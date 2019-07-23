@@ -1,32 +1,38 @@
-# js-ng
+# js-ext
 
-next generation of jumpscale
 
+![[https://pypi.python.org/pypi/js-ext](pypi)](https://img.shields.io/pypi/v/js-ext.svg)
+![[https://travis-ci.org/js-next/js-ext]](https://travis-ci.org/js-next/js-ext.png)
+![[https://codecov.io/gh/js-next/js-ext]](https://codecov.io/gh/js-next/js-ext/branch/master/graph/badge.svg)
+
+official extenions to js framework 
+
+
+## Contribution
+
+- Clean code (pep-8)
+- Documentation
+- Tests
+
+## Development environment
 - clone repo
-- `cd reparo/js-ng`
+- `poetry install`
+- `poetry shell` 
+
+## Running tests
+- `make tests`
+
+## Generating docs
+- `make docs`
 
 
-## core
-- config: single entry point for configuration retrieval/update
-- exceptions: unified exception
-- logging : unified logging 
+## building dists
+- `poetry build`
 
-## sals
-provide abstraction over the system (files, processes, hostfile, ...)
-
-## clients
-provide the DSL around popular python packages/ or inhouse clients that mainly communicates with some sort of servers
+## publishing 
+- `poetry publish`
 
 
-### ipython
+## API Docs
 
-```python
-In [1]: from jumpscale.god import j                        
-In [2]: g = j.clients.github.Github("first")               
-In [3]: g.config.data                                      
-Out[3]: {'user': 'ahmed2', '__tok': 'abcedf'}
-In [4]: g.config.data = {'user':'tftech', '__tok':'newpass'}                                                  
-
-In [5]: g.config.data              
-Out[5]: {'user': 'tftech', '__tok': 'newpass'}                        
-```
+[browsable](https://js-next.github.io/js-ng/api/jumpscale/) at https://js-next.github.io/js-ng/api/jumpscale/
