@@ -35,4 +35,4 @@ official extenions to js framework
 
 ## API Docs
 
-[browsable](https://js-next.github.io/js-ng/api/jumpscale/) at https://js-next.github.io/js-ng/api/jumpscale/
+[browsable](https://js-next.github.io/js-ext/api/jumpscale/) at https://js-next.github.io/js-ext/api/jumpscale/
