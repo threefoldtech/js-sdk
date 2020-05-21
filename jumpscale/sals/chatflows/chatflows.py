@@ -139,7 +139,7 @@ class GedisChatBot:
 
             except Exception as e:
                 internal_error = True
-                # j.errorhandler.exception_handle(e, die=False)
+                j.logger.exception("error", exception=e)
                 self.send_error("Something wrong happened, please contact support")
             
             if not internal_error:
@@ -429,7 +429,7 @@ class GedisChatBot:
             datetime.datetime: user input
         """
         result =  self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
-        return j.data.time.getDeltaTime(result)
+        return j.data.time.get_delta_time(result)
 
     def location_msg(self, msg, **kwargs):
         return {"category": "location_ask", "msg": msg, "kwargs": kwargs}
@@ -571,6 +571,17 @@ class GedisChatBot:
 
     def stop(self, msg=None, **kwargs):
         raise StopChatFlow(msg=msg, **kwargs)
+
+
+
+def chatflow_step(title=None, disable_previous=False):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            self_ = args[0]
+            self_.step_info.update(title=title, slide=0, previous=(not disable_previous))
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class StopChatFlow(Exception):
