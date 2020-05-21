@@ -11,6 +11,12 @@ GEDIS = "gedis"
 GEDIS_HTTP = "gedis_http"
 GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
+CHATFLOW_SERVER_HOST = "127.0.0.1"
+CHATFLOW_SERVER_PORT = 8552
+
+DEFAULT_PACKAGES = {
+    "chatflows": "/sandbox/code/github/js-next/js-ng/jumpscale/packages/chatflows"
+}
 
 
 class PackageNginxConfig:
@@ -57,6 +63,16 @@ class PackageNginxConfig:
                 "path_dest": self.package.base_url,
             })
 
+        if self.package.chats_dir:
+            default_server["locations"].append({
+                "type": "proxy",
+                "name": "chats",
+                "host": CHATFLOW_SERVER_HOST,
+                "port": CHATFLOW_SERVER_PORT,
+                "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
+                "path_dest": self.package.base_url,
+            })
+
         return [default_server]
     
     def apply(self):
@@ -83,7 +99,7 @@ class PackageNginxConfig:
                     if location_type == "static":
                         loc = website.get_static_location(location_name)
                         loc.spa = location.get("spa", False)
-                        loc.index = location.get("index", "index.html")
+                        loc.index = location.get("index")
                         loc.path_location = location.get("path_location")
   
                     elif location_type == "proxy":
@@ -95,7 +111,11 @@ class PackageNginxConfig:
                         loc.websocket = location.get("websocket", False)
                     
                     if loc:
-                        loc.path_url = location.get("path_url")
+                        path_url = location.get("path_url", "/")
+                        if not path_url.endswith("/"):
+                            path_url += "/"
+                        
+                        loc.path_url = path_url
                         loc.force_https = location.get("force_https")
 
                 website.save()
@@ -120,11 +140,15 @@ class Package:
 
     @property
     def actors_dir(self):
-        actors_dir = self.config.get("actors_dir", None)
-        if not actors_dir:
-            if j.sals.fs.join_paths(self.path, "actors"):
-                actors_dir = "actors"
-        return actors_dir
+        actors_dir = j.sals.fs.join_paths(self.path, self.config.get("actors_dir", "actors"))
+        if j.sals.fs.exists(actors_dir):
+            return actors_dir
+
+    @property
+    def chats_dir(self):
+        chats_dir = j.sals.fs.join_paths(self.path, self.config.get("chats_dir", "chats"))
+        if j.sals.fs.exists(chats_dir):
+            return chats_dir
 
     @property
     def static_dirs(self):
@@ -134,17 +158,16 @@ class Package:
     def bottle_servers(self):
         return self.config.get("bottle_servers", [])
 
-    def get_actors(self):
-        actors = []
-        for file_path in j.sals.fs.walk_files(self.path + '/' + self.actors_dir, recursive=False):
+    @property
+    def actors(self):
+        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
             file_name =  j.sals.fs.basename(file_path)
             if file_name.endswith(".py"):
                 actor_name = f"{self.name}_{file_name[:-3]}"
-                actors.append(dict(name=actor_name, path=file_path))
-        return actors
-    
-    def get_bottle_server(self, path, host, port):
-        module = imp.load_source(path[:-3], path)
+                yield dict(name=actor_name, path=file_path)
+
+    def get_bottle_server(self, file_path, host, port):
+        module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), module.app)
    
 
@@ -157,7 +180,7 @@ class PackageManager:
         return self._packages.get(package_name)
 
     def list_all(self):
-        return self._packages.values()
+        return self._packages.keys()
 
     def add(self, path):
         package = Package(path=path)
@@ -165,6 +188,8 @@ class PackageManager:
 
         if self._threebot.started:
             self.apply(package)
+        
+        return package
 
     def apply(self, package):        
         for static_dir in package.static_dirs:
@@ -183,12 +208,12 @@ class PackageManager:
 
         # register gedis actors
         if package.actors_dir:
-            path = j.sals.fs.join_paths(package.path, package.actors_dir)
-            if not j.sals.fs.exists(path):
-                raise j.exceptions.NotFound(f"Cannot find actors dir {path}")
-
-            for actor in package.get_actors():
+            for actor in package.actors:
                 self._threebot.gedis._system_actor.register_actor(actor["name"], actor["path"])
+
+        # add chatflows actors
+        if package.chats_dir:
+            self._threebot.chatbot.load(package.chats_dir)
 
         # start servers
         self._threebot.rack.start()
@@ -196,26 +221,11 @@ class PackageManager:
         # apply nginx configuration
         package.nginx_config.apply()
 
+
     def apply_all(self):
         for package in self.list_all():
-            self.apply(package)
-
-    # def delete(self, package_name):
-    #     package = self._packages.get(package_name)
-    #     if not package:
-    #         raise j.exceptions.NotFound("package not found")
-        
-    #     # stop bottle server
-    #     if package.has_bottle_app:
-    #         self._threebot.rack.stop(package.name)
-        
-    #     # unregister gedis actors
-    #     if package.has_actors:
-    #         for actor in package.get_actors():
-    #             self._threebot.gedis._system_actor.unregister_actor(actor["name"])
-        
-    #     # remove nginx configuration
-    #     # package.website.clean()
+            if package not in DEFAULT_PACKAGES:
+                self.apply(self.get(package))
 
 
 class ThreebotServer(Base):
@@ -225,11 +235,12 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
+        self._chatbot = None
         self.started = False
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
         self.packages = PackageManager(threebot=self)
-
+        
     @property
     def db(self):
         if self._db is None:
@@ -254,9 +265,29 @@ class ThreebotServer(Base):
             self._gedis_http = j.servers.gedis_http.get("threebot")
         return self._gedis_http
 
+    @property
+    def chatbot(self):
+        if self._chatbot is None:
+            self._chatbot = self.gedis._loaded_actors.get('chatflows_chatbot')
+        return self._chatbot
+
+    def list_chatflows(self):
+        return list(self.chatflows.keys())
+
     def start(self):
+        # start all server in the rack
         self.rack.start()
+        
+        # add default packages
+        for package_name, package_path in DEFAULT_PACKAGES.items():
+            if not self.packages.get(package_name):
+                package = self.packages.add(package_path)
+                self.packages.apply(package)
+        
+        # apply all package
         self.packages.apply_all()
+
+        # mark server as started
         self.started = True
 
     def stop(self):
