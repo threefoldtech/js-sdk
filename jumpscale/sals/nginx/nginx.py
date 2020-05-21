@@ -37,58 +37,106 @@ loc.scheme = #  https or https
 website.configure()
 """
 
-from jumpscale.god import j
+from enum import Enum
+
 from jumpscale.core.base import Base, fields
-from .location import Location
-from .utils import render_config_template, DIR_PATH
+from jumpscale.god import j
+
+from .utils import DIR_PATH, render_config_template
+
+
+class LocationType(Enum):
+    STATIC = "static"
+    PROXY = "proxy"
+
+
+class Location(Base):
+    path_url = fields.String(default="/")
+    force_https = fields.Boolean(default=False)
+    path_location = fields.String(default="/")
+    index = fields.String(default="index.html")
+
+    scheme = fields.String(default="http")
+    host = fields.String(default="127.0.0.1")
+    port = fields.Integer()
+    path_dest = fields.String(default="/")
+    spa = fields.Boolean(default=False)
+    websocket = fields.Boolean(default=False)
+    location_type = fields.Enum(LocationType)
+
+    @property
+    def cfg_dir(self):
+        return j.sals.fs.join_paths(self.parent.cfg_dir, "locations")
+
+    @property
+    def cfg_file(self):
+        return j.sals.fs.join_paths(self.cfg_dir, f"{self.instance_name}.conf")
+
+    def get_config(self):
+        return render_config_template("location", base_dir=j.core.dirs.BASEDIR, location=self)
+
+    def configure(self):
+        j.sals.fs.mkdir(self.cfg_dir)
+        j.sals.fs.write_file(self.cfg_file, self.get_config())
 
 
 class Website(Base):
-
-    port = fields.Integer(default=80)
-    ssl = fields.Boolean()
     domain = fields.String()
-    path = fields.String()
+    ssl = fields.Boolean()
+    port = fields.Integer(default=80)
     locations = fields.Factory(Location)
     letsencryptemail = fields.String()
 
     @property
-    def path_cfg_dir(self):
-        return f"{self.parent.path_cfg_dir}/servers"
+    def cfg_dir(self):
+        return j.sals.fs.join_paths(self.parent.cfg_dir, self.instance_name)
 
     @property
-    def path_cfg(self):
-        return f"{self.path_cfg_dir}/{self.instance_name}.http.conf"
+    def cfg_file(self):
+        return j.sals.fs.join_paths(self.cfg_dir, "server.conf")
 
-    @property
-    def path_web(self):
-        return self.parent.path_web
+    def get_locations(self):
+        for location in self.locations.list_all():
+            yield self.locations.get(location)
+
+    def get_proxy_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.PROXY
+        return location
+
+    def get_static_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.STATIC
+        return location
+
+    def get_spa_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.SPA
+        return location
+
+    def get_config(self):
+        return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
     def generate_certificates(self):
-        """Generate ssl certificate if ssl is enabled
-        """
         if self.ssl:
             j.sals.process.execute(
-                f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.path_cfg_dir}"
+                f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
             )
 
     def configure(self, generate_certificates=True):
-        """Writes configuration of the website and its locations
+        j.sals.fs.mkdir(self.cfg_dir)
 
-        Args:
-            generate_certificates (bool, optional): Will generate certificates if true. Defaults to True.
-        """
-
-        j.sals.fs.mkdir(self.path_cfg_dir)
-        config = render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
-        j.sals.fs.write_file(self.path_cfg, config)
-
-        for location_name in self.locations.list_all():
-            location = self.locations.get(location_name)
+        for location in self.get_locations():
             location.configure()
+
+        j.sals.fs.write_file(self.cfg_file, self.get_config())
 
         if generate_certificates:
             self.generate_certificates()
+
+    def clean(self):
+        j.sals.fs.rmtree(self.cfg_dir)
+
 
 
 class NginxConfig(Base):
@@ -98,26 +146,19 @@ class NginxConfig(Base):
         super().__init__()
         self._cmd = None
         self._path_web = None
-        self._path_cfg_dir = None
+        self._cfg_dir = None
         self._logs_dir = None
 
     @property
-    def path_web(self):
-        if not self._path_web:
-            self._path_web = j.sals.fs.join_paths(j.core.dirs.VARDIR, "web", self.instance_name)
-            j.sals.fs.mkdirs(j.sals.fs.join_paths(self._path_web, "static"))
-        return self._path_web
+    def cfg_dir(self):
+        if not self._cfg_dir:
+            self._cfg_dir = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.instance_name)
+            j.sals.fs.mkdirs(self._cfg_dir)
+        return self._cfg_dir
 
     @property
-    def path_cfg_dir(self):
-        if not self._path_cfg_dir:
-            self._path_cfg_dir = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.instance_name)
-            j.sals.fs.mkdirs(self._path_cfg_dir)
-        return self._path_cfg_dir
-
-    @property
-    def path_cfg(self):
-        return j.sals.fs.join_paths(self.path_cfg_dir, "nginx.conf")
+    def cfg_file(self):
+        return j.sals.fs.join_paths(self.cfg_dir, "nginx.conf")
 
     @property
     def logs_dir(self):
@@ -129,40 +170,25 @@ class NginxConfig(Base):
     def configure(self):
         """configures main nginx conf
         """
-        # clean old websites config
-        self.cleanup()
+        self.clean()
+        j.sals.fs.mkdir(self.cfg_dir)
+        
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"), logs_dir=self.logs_dir,
         )
-        j.sals.fs.write_file(self.path_cfg, configtext)
+        
+        j.sals.fs.write_file(self.cfg_file, configtext) 
+        j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
-        j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.path_cfg_dir)
-
-    def get_from_port(self, port, domain=None, ssl=None):
-        """will try to get a website listening on port, if it doesn't exist it will create one
-
-        Args:
-            port (int): port to search for
-            domain (str, optional): domain. Defaults to None.
-            ssl (bool, optional): Will set ssl if True. Defaults to None.
-
-        Returns:
-            Website: A new or an old website instance with the needed port
-        """
-        website_name = f"{self.instance_name}_website_{port}"
-
+    def get_website(self, name: str, port: int = 80):
+        website_name = f"{name}_{port}"
         website = self.websites.find(website_name)
         if website:
             return website
 
         website = self.websites.get(website_name)
-        ssl = ssl or port == 443  # Use ssl if port is 443 if ssl in not specified
-
-        website.domain = domain
         website.port = port
-        website.ssl = ssl
-
         return website
 
-    def cleanup(self):
-        j.sals.fs.rmtree(f"{self.path_cfg_dir}/servers")
+    def clean(self):
+        j.sals.fs.rmtree(f"{self.cfg_dir}")
