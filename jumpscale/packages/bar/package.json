@@ -1,36 +1,5 @@
 {
   "name": "bar",
   "ports": [80, 81],
-  "actors_dir": "actors",
-  "static_dirs": [
-    {
-      "name": "static",
-      "path_url": "/static",
-      "index": "static/index.html",
-      "path_location": "static"
-    },
-    {
-      "name": "assets",
-      "path_url": "/assets",
-      "path_location": "assets"
-    }
-  ],
-  "bottle_servers": [
-    {
-      "name": "main",
-      "file_path": "bottle/main.py",
-      "path_url": "/main",
-      "path_dest": "/",
-      "host": "0.0.0.0",
-      "port": 5000
-    },
-    {
-      "name": "api",
-      "file_path": "bottle/api.py",
-      "path_url": "/api",
-      "path_dest": "/",
-      "host": "0.0.0.0",
-      "port": 6000
-    }
-  ]
+  "actors_dir": "actors"
 }

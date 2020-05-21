@@ -1,0 +1,79 @@
+body {
+    -webkit-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -moz-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -o-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    height: 100vh;
+}
+
+.intro {
+    display: flex;
+    align-items: center;
+    color: #fff;
+}
+
+.intro h1 {
+    text-transform: capitalize;
+    font-size: 5em;
+    letter-spacing: -2px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+}
+
+.intro ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.intro ul li {
+    display: inline-block;
+    padding: 10px 5px;
+}
+
+.intro ul a {
+    text-decoration: none;
+    font-size: 1.5em;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 15px;
+    padding: 10px 30px;
+    margin: 4px;
+    -webkit-transition: all .4s ease-in-out;
+    -moz-transition: all .4s ease-in-out;
+    -o-transition: all .4s ease-in-out;
+    transition: all .4s ease-in-out;
+}
+
+.intro ul a:hover {
+    background-color: #38afa7;
+    border: 2px solid transparent;
+}
+
+.intro-text p {
+    display: inline-block;
+    width: 40%;
+}
+
+.intro-text img {
+    height: 300px;
+    display: block;
+    margin: 0 auto;
+}
+.bot:before{
+    content:url("/staticchat/home/img/3botlogin.png");
+    }
+
+.card {
+    background-color: transparent;
+}
+
+.reload-button:hover {
+    cursor:pointer;
+}
+
+.reload-button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}
