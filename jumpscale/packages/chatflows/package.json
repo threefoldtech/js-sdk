@@ -1,0 +1,13 @@
+{
+    "name": "chatflows",
+    "ports": [80],
+    "static_dirs": [
+      {
+        "name": "frontend",
+        "path_url": "/",
+        "index": "frontend/index.html",
+        "path_location": "frontend"
+      }
+    ]
+  }
+  
