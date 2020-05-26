@@ -46,8 +46,8 @@ class State(Enum):
 
 
 class Type(Enum):
-    Hdd = 0
-    Ssd = 1
+    HDD = "HDD"
+    SSD = "SSD"
 
 
 class Type(Enum):
@@ -68,8 +68,8 @@ class Mode(Enum):
 
 
 class Disk_type(Enum):
-    Hdd = 0
-    Ssd = 1
+    HDD = "HDD"
+    SSD = "SSD"
 
 
 class TfgridDeployed_reservation1(Base):
@@ -188,6 +188,8 @@ class TfgridWorkloadsReservationNetworkConnection1(Base):
 class TfgridWorkloadsReservationContainerCapacity1(Base):
     cpu = fields.Integer()
     memory = fields.Integer()
+    disk_size = fields.Integer()
+    disk_type = fields.Enum(Disk_type)
 
 
 class TfgridWorkloadsReservationGatewayProxy1(Base):
