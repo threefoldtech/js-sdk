@@ -88,7 +88,7 @@ class Zosv2:
         reservation.customer_tid = me.tid
 
         if expiration_provisioning is None:
-            expiration_provisioning = now().timestamp + (3600 * 24 * 365)
+            expiration_provisioning = now().timestamp + (15 * 60)
 
         dr = reservation.data_reservation
         dr.currencies = currencies

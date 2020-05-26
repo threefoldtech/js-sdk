@@ -22,6 +22,8 @@ class Container:
         env={},
         cpu=1,
         memory=1024,
+        disk_size=256,
+        disk_type="SSD",
         entrypoint="",
         interactive=False,
         secret_env={},
@@ -81,6 +83,8 @@ class Container:
 
         cont.capacity.cpu = cpu
         cont.capacity.memory = memory
+        cont.capacity.disk_size = disk_size
+        cont.capacity.disk_type = disk_type
         reservation.data_reservation.containers.append(cont)
 
         return cont
