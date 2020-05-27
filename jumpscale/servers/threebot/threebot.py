@@ -1,7 +1,8 @@
 from jumpscale.god import j
 
 import imp
-import json
+import os
+import toml
 
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
@@ -14,9 +15,7 @@ GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 
-DEFAULT_PACKAGES = {
-    "chatflows": "/sandbox/code/github/js-next/js-ng/jumpscale/packages/chatflows"
-}
+DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
 
 
 class PackageNginxConfig:
@@ -26,55 +25,59 @@ class PackageNginxConfig:
 
     @property
     def default_config(self):
-        default_server = {
-            "name": "default",
-            "ports": self.package.config.get("ports"),
-            "locations": []
-        }
+        default_server = {"name": "default", "ports": self.package.config.get("ports"), "locations": []}
 
         for static_dir in self.package.static_dirs:
-            default_server["locations"].append({
-                "type": "static",
-                "name": static_dir.get("name"),
-                "spa": static_dir.get("spa"),
-                "index": static_dir.get("index"),
-                "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
-                "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location"))
-            })
+            default_server["locations"].append(
+                {
+                    "type": "static",
+                    "name": static_dir.get("name"),
+                    "spa": static_dir.get("spa"),
+                    "index": static_dir.get("index"),
+                    "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
+                    "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location")),
+                }
+            )
 
         for bottle_server in self.package.bottle_servers:
-            default_server["locations"].append({
-                "type": "proxy",
-                "name": bottle_server.get("name"),
-                "host": bottle_server.get("host"),
-                "port": bottle_server.get("port"),
-                "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
-                "path_dest": bottle_server.get("path_dest"),
-                "websocket": bottle_server.get("websocket")
-            })
+            default_server["locations"].append(
+                {
+                    "type": "proxy",
+                    "name": bottle_server.get("name"),
+                    "host": bottle_server.get("host"),
+                    "port": bottle_server.get("port"),
+                    "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
+                    "path_dest": bottle_server.get("path_dest"),
+                    "websocket": bottle_server.get("websocket"),
+                }
+            )
 
         if self.package.actors_dir:
-            default_server["locations"].append({
-                "type": "proxy",
-                "name": "actors",
-                "host": GEDIS_HTTP_HOST,
-                "port": GEDIS_HTTP_PORT,
-                "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
-                "path_dest": self.package.base_url,
-            })
+            default_server["locations"].append(
+                {
+                    "type": "proxy",
+                    "name": "actors",
+                    "host": GEDIS_HTTP_HOST,
+                    "port": GEDIS_HTTP_PORT,
+                    "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
+                    "path_dest": self.package.base_url,
+                }
+            )
 
         if self.package.chats_dir:
-            default_server["locations"].append({
-                "type": "proxy",
-                "name": "chats",
-                "host": CHATFLOW_SERVER_HOST,
-                "port": CHATFLOW_SERVER_PORT,
-                "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
-                "path_dest": self.package.base_url,
-            })
+            default_server["locations"].append(
+                {
+                    "type": "proxy",
+                    "name": "chats",
+                    "host": CHATFLOW_SERVER_HOST,
+                    "port": CHATFLOW_SERVER_PORT,
+                    "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
+                    "path_dest": self.package.base_url,
+                }
+            )
 
         return [default_server]
-    
+
     def apply(self):
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
@@ -101,7 +104,7 @@ class PackageNginxConfig:
                         loc.spa = location.get("spa", False)
                         loc.index = location.get("index")
                         loc.path_location = location.get("path_location")
-  
+
                     elif location_type == "proxy":
                         loc = website.get_proxy_location(location_name)
                         loc.scheme = location.get("scheme", "http")
@@ -109,12 +112,12 @@ class PackageNginxConfig:
                         loc.port = location.get("port")
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
-                    
+
                     if loc:
                         path_url = location.get("path_url", "/")
                         if not path_url.endswith("/"):
                             path_url += "/"
-                        
+
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
 
@@ -131,8 +134,7 @@ class Package:
         self.nginx_config = PackageNginxConfig(self)
 
     def load_config(self):
-        with open(j.sals.fs.join_paths(self.path, 'package.json')) as f:
-            return json.load(f)
+        return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
 
     @property
     def base_url(self):
@@ -161,7 +163,7 @@ class Package:
     @property
     def actors(self):
         for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name =  j.sals.fs.basename(file_path)
+            file_name = j.sals.fs.basename(file_path)
             if file_name.endswith(".py"):
                 actor_name = f"{self.name}_{file_name[:-3]}"
                 yield dict(name=actor_name, path=file_path)
@@ -169,7 +171,7 @@ class Package:
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), module.app)
-   
+
 
 class PackageManager:
     def __init__(self, threebot):
@@ -188,10 +190,10 @@ class PackageManager:
 
         if self._threebot.started:
             self.apply(package)
-        
+
         return package
 
-    def apply(self, package):        
+    def apply(self, package):
         for static_dir in package.static_dirs:
             path = j.sals.fs.join_paths(package.path, static_dir["path_location"])
             if not j.sals.fs.exists(path):
@@ -202,7 +204,7 @@ class PackageManager:
             path = j.sals.fs.join_paths(package.path, bottle_server["file_path"])
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find bottle server path {path}")
-                
+
             bottle_app = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
             self._threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_app)
 
@@ -220,7 +222,6 @@ class PackageManager:
 
         # apply nginx configuration
         package.nginx_config.apply()
-
 
     def apply_all(self):
         for package in self.list_all():
@@ -240,7 +241,7 @@ class ThreebotServer(Base):
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
         self.packages = PackageManager(threebot=self)
-        
+
     @property
     def db(self):
         if self._db is None:
@@ -268,22 +269,19 @@ class ThreebotServer(Base):
     @property
     def chatbot(self):
         if self._chatbot is None:
-            self._chatbot = self.gedis._loaded_actors.get('chatflows_chatbot')
+            self._chatbot = self.gedis._loaded_actors.get("chatflows_chatbot")
         return self._chatbot
-
-    def list_chatflows(self):
-        return list(self.chatflows.keys())
 
     def start(self):
         # start all server in the rack
         self.rack.start()
-        
+
         # add default packages
         for package_name, package_path in DEFAULT_PACKAGES.items():
             if not self.packages.get(package_name):
                 package = self.packages.add(package_path)
                 self.packages.apply(package)
-        
+
         # apply all package
         self.packages.apply_all()
 
