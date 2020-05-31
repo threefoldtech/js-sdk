@@ -174,11 +174,10 @@ class Package:
 
 
 class PackageManager(Base):
-    packages = fields.Typed(dict)
+    packages = fields.Typed(dict, default={})
 
     def __init__(self):
         super().__init__()
-        self.packages = self.packages or {}
         self._threebot = None
 
     @property
