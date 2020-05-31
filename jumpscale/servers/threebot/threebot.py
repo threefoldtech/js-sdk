@@ -173,22 +173,33 @@ class Package:
         return WSGIServer((host, port), module.app)
 
 
-class PackageManager:
-    def __init__(self, threebot):
-        self._threebot = threebot
-        self._packages = {}
+class PackageManager(Base):
+    packages = fields.Typed(dict)
+
+    def __init__(self):
+        super().__init__()
+        self.packages = self.packages or {}
+        self._threebot = None
+
+    @property
+    def threebot(self):
+        if self._threebot is None:
+            self._threebot = j.servers.threebot.get(self.instance_name)
+        return self._threebot
 
     def get(self, package_name):
-        return self._packages.get(package_name)
+        package_path = self.packages.get(package_name)
+        if package_path:
+            return Package(path=package_path)
 
     def list_all(self):
-        return self._packages.keys()
+        return self.packages.keys()
 
     def add(self, path):
         package = Package(path=path)
-        self._packages[package.name] = package
+        self.packages[package.name] = package.path
 
-        if self._threebot.started:
+        if self.threebot.started:
             self.apply(package)
 
         return package
@@ -206,19 +217,19 @@ class PackageManager:
                 raise j.exceptions.NotFound(f"Cannot find bottle server path {path}")
 
             bottle_app = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
-            self._threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_app)
+            self.threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_app)
 
         # register gedis actors
         if package.actors_dir:
             for actor in package.actors:
-                self._threebot.gedis._system_actor.register_actor(actor["name"], actor["path"])
+                self.threebot.gedis._system_actor.register_actor(actor["name"], actor["path"])
 
         # add chatflows actors
         if package.chats_dir:
-            self._threebot.chatbot.load(package.chats_dir)
+            self.threebot.chatbot.load(package.chats_dir)
 
         # start servers
-        self._threebot.rack.start()
+        self.threebot.rack.start()
 
         # apply nginx configuration
         package.nginx_config.apply()
@@ -230,6 +241,8 @@ class PackageManager:
 
 
 class ThreebotServer(Base):
+    _package_manager = fields.Factory(PackageManager)
+
     def __init__(self):
         super().__init__()
         self._rack = None
@@ -240,7 +253,7 @@ class ThreebotServer(Base):
         self.started = False
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
-        self.packages = PackageManager(threebot=self)
+        self._packages = None
 
     @property
     def db(self):
@@ -272,15 +285,21 @@ class ThreebotServer(Base):
             self._chatbot = self.gedis._loaded_actors.get("chatflows_chatbot")
         return self._chatbot
 
+    @property
+    def packages(self):
+        if self._packages is None:
+            self._packages = self._package_manager.get(self.instance_name)
+        return self._packages
+
     def start(self):
         # start all server in the rack
         self.rack.start()
-
         # add default packages
         for package_name, package_path in DEFAULT_PACKAGES.items():
             if not self.packages.get(package_name):
                 package = self.packages.add(package_path)
                 self.packages.apply(package)
+                self.packages.save()
 
         # apply all package
         self.packages.apply_all()
