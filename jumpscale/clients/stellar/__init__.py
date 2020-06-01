@@ -3,12 +3,15 @@ from stellar_sdk import Keypair
 
 
 class StellarFactory(StoredFactory):
-    def new(self, name, *args, **kwargs):
+    def new(self, name, secret=None, *args, **kwargs):
         instance = super().new(name, *args, **kwargs)
-        key_pair = Keypair.random()
-        instance.address = key_pair.public_key
-        instance.secret = key_pair.secret
-        instance.save()
+
+        if not secret:
+            key_pair = Keypair.random()
+            instance.secret = key_pair.secret
+        else:
+            instance.secret = secret
+
         return instance
 
 
