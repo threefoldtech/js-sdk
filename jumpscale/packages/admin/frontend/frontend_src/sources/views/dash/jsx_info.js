@@ -1,5 +1,6 @@
 
 import { JetView } from "webix-jet";
+import { admin } from "../../services/admin"
 
 export default class JSXInfoView extends JetView {
     config() {
@@ -37,5 +38,12 @@ export default class JSXInfoView extends JetView {
             }]
         }
         $$("jsx_info").parse(jsx_info);
+
+        admin.hello().then((data)=>{
+            console.log("resulte: ",data.json())
+        }).catch((error)=>{
+            console.log(error)
+        })
+
     }
 }
