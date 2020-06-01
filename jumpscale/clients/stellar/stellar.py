@@ -65,6 +65,19 @@ class Stellar(Client):
     address = fields.String()
     secret = fields.String()
 
+    def _attr_updated(self, name, value):
+        """
+        update the address if a new secret is set
+
+        Args:
+            name (str): attribute name
+            value (any): the new value
+        """
+        super()._attr_updated(name, value)
+
+        if name == "secret":
+            self.address = stellar_sdk.Keypair.from_secret(value).public_key
+
     def _get_horizon_server(self):
         return stellar_sdk.Server(horizon_url=_HORIZON_NETWORKS[self.network.value])
 
