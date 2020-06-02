@@ -1,7 +1,6 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.god import j
 
-
 class Packages(BaseActor):
 
     @actor_method

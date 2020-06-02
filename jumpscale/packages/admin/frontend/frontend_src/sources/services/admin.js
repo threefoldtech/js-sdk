@@ -11,7 +11,6 @@ class AdminService extends Service {
         return this.getCall("admin_list");
     }
 
-
     add(name) {
         return this.postCall("admin_add", {
             "name": name
