@@ -39,11 +39,13 @@ export default class JSXInfoView extends JetView {
         }
         $$("jsx_info").parse(jsx_info);
 
-        admin.hello().then((data)=>{
-            console.log("resulte: ",data.json())
-        }).catch((error)=>{
-            console.log(error)
-        })
+        // call service
+        
+        // admin.hello().then((data)=>{
+        //     console.log("resulte: ",data.json())
+        // }).catch((error)=>{
+        //     console.log(error)
+        // })
 
     }
 }

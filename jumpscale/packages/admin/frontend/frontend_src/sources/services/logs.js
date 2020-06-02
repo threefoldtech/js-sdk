@@ -12,7 +12,7 @@ class LogsService extends Service {
     }
 
     list(appName, logId) {
-        return this.getCall("list", {
+        return this.getCall("list_logs", {
             appname: appName,
             id_from: logId
         });

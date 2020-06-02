@@ -10,16 +10,12 @@ class Logs(BaseActor):
     
 
     @actor_method
-    def list(self, appname: str, id_from: int = 0) -> str:
+    def list_logs(self, appname: str, id_from: int = 0) -> str:
         return "hello from admin's actor"
     
     @actor_method
-    def delete(self, appname: str) -> str:
-        return "hello from admin's actor"
-    
-
-    @actor_method
-    def delete(self) -> str:
+    def delete(self, appname: str = "") -> str:
+        # if no appname delete all logs 
         return "hello from admin's actor"
     
     @actor_method
