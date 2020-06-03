@@ -4,10 +4,11 @@ from jumpscale.core.base import Base, fields
 
 class NginxServer(Base):
     name = fields.String(default="main")
-    path = fields.String(default="~/sandbox/cfg/nginx/main/nginx.conf")
+    config_path = fields.String(default="~/sandbox/cfg/nginx/main/nginx.conf")
 
     def install(self):
-        j.sals.process.execute("apt install nginx", showout=True, die=False)
+        j.sals.process.execute("add-apt-repository ppa:certbot/certbot", showout=True, die=False)
+        j.sals.process.execute("apt-get install -y nginx certbot python-certbot-nginx ", showout=True, die=False)
 
     def start(self):
         nginx = j.sals.nginx.get(self.name)
