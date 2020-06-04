@@ -1005,7 +1005,7 @@ class ReservationChatflow:
 
     def validate_user(self, user_info):
         # TODO: FIXME add THREEBOT_CONNECT to config
-        if not j.core.config.get_config().get("THREEBOT_CONNECT", False):
+        if not j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
             error_msg = """
             This chatflow is not supported when Threebot is in dev mode.
             To enable Threebot connect : `j.me.encryptor.tools.threebotconnect_enable()`
