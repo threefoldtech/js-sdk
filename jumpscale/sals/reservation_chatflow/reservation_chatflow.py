@@ -731,7 +731,6 @@ class ReservationChatflow:
         return "TFT"
 
     def cancel_solution_reservation(self, solution_type, solution_name):
-        solutions = model.find(name=solution_name)
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
@@ -767,10 +766,10 @@ class ReservationChatflow:
         reservation.metadata = encrypted_metadata
         return reservation
 
-    def get_solution_model(self, instance_name, solution_type, form_info=None):
+    def get_solution_model(self, instance_name, solution_name, solution_type, form_info=None):
         form_info = form_info or {}
         reservation = self.solutions.get(instance_name)
-        reservation.name = name
+        reservation.name = solution_name
         reservation.form_info = form_info
         reservation.solution_type = solution_type
         reservation.explorer = self._explorer.url
