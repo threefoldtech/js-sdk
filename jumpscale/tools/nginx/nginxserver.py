@@ -8,24 +8,26 @@ class NginxServer(Base):
 
     def install(self):
         j.sals.process.execute("add-apt-repository ppa:certbot/certbot", showout=True, die=False)
-        j.sals.process.execute("apt-get install -y nginx certbot python-certbot-nginx ", showout=True, die=False)
+        j.sals.process.execute(
+            "apt-get install -y nginx certbot python-certbot-nginx ", showout=True, die=False,
+        )
 
     def start(self):
         nginx = j.sals.nginx.get(self.name)
         nginx.configure()
         nginx.save()
         cmd = j.tools.startupcmd.get(self.name)
-        cmd.start_cmd = f"nginx -c {self.path}"
-        cmd.stop_cmd = "service nginx stop"
+        cmd.start_cmd = f"nginx -c {self.config_path}"
+        cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.start()
 
     def stop(self):
         cmd = j.tools.startupcmd.get(self.name)
         cmd.stop()
-        j.sals.process.execute("pkill -9 nginx")
 
     def reload(self):
-        j.sals.process.execute("service nginx reload")
+        j.sals.process.execute(f"nginx -c {self.config_path} -s reload")
 
     def restart(self):
-        j.sals.process.execute("service nginx restart")
+        self.stop()
+        self.start()
