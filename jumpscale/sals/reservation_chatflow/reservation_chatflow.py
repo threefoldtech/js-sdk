@@ -129,12 +129,12 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
+        self.me = identity.get_identity()
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
         self._explorer = j.clients.explorer.get_default()
         self.get_solutions_explorer()
-        self.me = identity.get_identity()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         # TODO: REPLACE WHEN IDENTITY IS READY
