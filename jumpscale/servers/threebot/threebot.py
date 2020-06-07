@@ -249,9 +249,6 @@ class PackageManager(Base):
         if not package:
             raise j.exceptions.NotFound("package not found")
 
-        # execute package uninstall method
-        package.uninstall()
-
         # remove bottle servers
         for bottle_server in package.bottle_servers:
             self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
@@ -266,9 +263,11 @@ class PackageManager(Base):
             if package.chats_dir:
                 self.threebot.chatbot.unload(package.chats_dir)
 
+        # execute package uninstall method
+        package.uninstall()
+
         self.packages.pop(package_name)
         self.save()
-
 
     def apply(self, package):
         for static_dir in package.static_dirs:
