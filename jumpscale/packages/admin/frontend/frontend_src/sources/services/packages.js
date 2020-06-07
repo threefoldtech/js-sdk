@@ -9,7 +9,7 @@ class PackagesService extends Service {
     }
 
     getStatus(names) {
-        return this.getCall("packages_get_status", {
+        return this.postCall("packages_get_status", {
             names: names
         });
     }
