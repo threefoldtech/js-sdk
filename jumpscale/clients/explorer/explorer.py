@@ -15,9 +15,10 @@ from jumpscale.core.base import fields
 class Explorer(Client):
     url = fields.String()
 
-    def __init__(self, url, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.url = url
+        self.url = kwargs['url']
+
         self._session = requests.Session()
         self._session.hooks = dict(response=raise_for_status)
 
