@@ -132,9 +132,22 @@ class Package:
         self.config = self.load_config()
         self.name = self.config["name"]
         self.nginx_config = PackageNginxConfig(self)
+        self._module = None
 
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
+
+    @property
+    def module(self):
+        if self._module is None:
+            package_file_path = j.sals.fs.join_paths(self.path, "package.py")
+            if j.sals.fs.exists(package_file_path):
+                module = imp.load_source(self.name, package_file_path)
+                if not hasattr(module, self.name):
+                    raise j.exceptions.Halt(f"missing class ({self.name}) in the package file")
+                
+                self._module = getattr(module, self.name)()
+        return self._module
 
     @property
     def base_url(self):
@@ -172,9 +185,30 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), module.app)
 
+    def install(self):
+        if self.module and hasattr(self.module, "install"):
+            self.module.install()
+
+    def uninstall(self):
+        if self.module and hasattr(self.module, "uninstall"):
+            self.module.uninstall()
+
+    def start(self):
+        if self.module and hasattr(self.module, "start"):
+            self.module.start()
+
+    def stop(self):
+        if self.module and hasattr(self.module, "stop"):
+            self.module.stop()
+
+    def restart(self):
+        if self.module:
+            self.module.stop()
+            self.module.start()
+
 
 class PackageManager(Base):
-    packages = fields.Typed(dict, default={})
+    packages = fields.Typed(dict, default=DEFAULT_PACKAGES)
 
     def __init__(self):
         super().__init__()
@@ -198,10 +232,43 @@ class PackageManager(Base):
         package = Package(path=path)
         self.packages[package.name] = package.path
 
+        # execute package install method
+        package.install()
+
+        # apply package if threebot is started
         if self.threebot.started:
             self.apply(package)
 
-        return package
+        self.save()
+
+    def delete(self, package_name):
+        if package_name in DEFAULT_PACKAGES:
+            raise j.exceptions.Value("cannot delete default packages")
+
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+
+        # execute package uninstall method
+        package.uninstall()
+
+        # remove bottle servers
+        for bottle_server in package.bottle_servers:
+            self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
+        
+        if self.threebot.started:
+            # unregister gedis actors
+            if package.actors_dir:
+                for actor in package.actors:
+                    self.threebot.gedis._system_actor.unregister_actor(actor["name"])
+
+            # unload chats
+            if package.chats_dir:
+                self.threebot.chatbot.unload(package.chats_dir)
+
+        self.packages.pop(package_name)
+        self.save()
+
 
     def apply(self, package):
         for static_dir in package.static_dirs:
@@ -232,6 +299,9 @@ class PackageManager(Base):
 
         # apply nginx configuration
         package.nginx_config.apply()
+        
+        # execute package start method
+        package.start()
 
     def apply_all(self):
         for package in self.list_all():
@@ -249,11 +319,15 @@ class ThreebotServer(Base):
         self._db = None
         self._gedis_http = None
         self._chatbot = None
-        self.started = False
+        self._packages = None
+        self._started = False
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
-        self._packages = None
 
+    @property
+    def started(self):
+        return self._started
+        
     @property
     def db(self):
         if self._db is None:
@@ -291,21 +365,20 @@ class ThreebotServer(Base):
         return self._packages
 
     def start(self):
-        # start all server in the rack
+        # start default servers in the rack
         self.rack.start()
+
         # add default packages
-        for package_name, package_path in DEFAULT_PACKAGES.items():
-            if not self.packages.get(package_name):
-                package = self.packages.add(package_path)
-                self.packages.apply(package)
-                self.packages.save()
+        for package_name in DEFAULT_PACKAGES:
+            package = self.packages.get(package_name)
+            self.packages.apply(package)
 
         # apply all package
         self.packages.apply_all()
 
         # mark server as started
-        self.started = True
+        self._started = True
 
     def stop(self):
         self.rack.stop()
-        self.started = False
+        self._started = False
