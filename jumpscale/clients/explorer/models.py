@@ -17,13 +17,13 @@ class Type(Enum):
 
 
 class Next_action(Enum):
-    Create = 0
-    Sign = 1
-    Pay = 2
-    Deploy = 3
-    Delete = 4
-    Invalid = 5
-    Deleted = 6
+    CREATE = 0
+    SIGN = 1
+    PAY = 2
+    DEPLOY = 3
+    DELETE = 4
+    INVALID = 5
+    DELETED = 6
 
 
 class Category(Enum):
@@ -309,7 +309,7 @@ class TfgridDirectoryNode2(Base):
     farm_id = fields.Integer()
     os_version = fields.String(default="")
     created = fields.Date()
-    updated = fields.Date()
+    updated = fields.DateTime()
     uptime = fields.Integer()
     address = fields.String(default="")
     location = fields.Object(TfgridDirectoryLocation1)
@@ -424,6 +424,7 @@ class TfgridWorkloadsReservationData1(Base):
 
 
 class TfgridWorkloadsReservation1(Base):
+    id = fields.Integer()
     json = fields.String(default="")
     data_reservation = fields.Object(TfgridWorkloadsReservationData1)
     customer_tid = fields.Integer()
