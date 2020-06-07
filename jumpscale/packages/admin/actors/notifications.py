@@ -5,6 +5,6 @@ class Notifications(BaseActor):
 
     @actor_method
     def check_new_release(self) -> str:
-        return "hello from admin's actor"
+        return "hello from notifications actor"
 
 Actor = Notifications

@@ -6,6 +6,7 @@ class Notifications extends Service {
     constructor() {
         super(BASE_URL);
     }
+    
     checkNewRelease() {
         return this.getCall("check_new_release");
     }
