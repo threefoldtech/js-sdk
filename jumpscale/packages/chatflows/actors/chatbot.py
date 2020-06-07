@@ -36,13 +36,23 @@ class ChatFlows(BaseActor):
     def chatflows_list(self) -> list:
         return list(self.chats.keys())
 
+    def _scan_chats(self, path):
+        for path in j.sals.fs.walk_files(path, recursive=False):
+            if path.endswith(".py"):
+                name = j.sals.fs.basename(path)[:-3]                
+                yield path, name
+
     @actor_method
     def load(self, path: str):
-        for file_path in j.sals.fs.walk_files(path, recursive=False):
-            if file_path.endswith(".py"):
-                module_name = j.sals.fs.basename(file_path)[:-3]                
-                module = imp.load_source(name=module_name, pathname=file_path)
-                self.chats[module_name] = module.chat
+        for path, name in self._scan_chats(path):            
+            module = imp.load_source(name=name, pathname=path)
+            self.chats[name] = module.chat
+
+    @actor_method
+    def unload(self, path: str):
+        for path, name in self._scan_chats(path):            
+            sys.modules.pop(name)
+            self.chats.pop(name)
 
 
 Actor = ChatFlows
