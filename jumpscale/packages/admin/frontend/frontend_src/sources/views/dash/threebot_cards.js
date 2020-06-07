@@ -1,6 +1,7 @@
 
 
 import { JetView } from "webix-jet";
+import { admin } from "../../services/admin";
 
 export default class ThreebotCardsView extends JetView {
     config() {
@@ -46,14 +47,24 @@ export default class ThreebotCardsView extends JetView {
     init() {
         const threebot_cards = this.$$("threebot_cards");
 
-        const threebot_card_data = [
+        let threebot_card_data = [
             { "id": 1, "title": "Health checks", "info": "Automation", "icon": "static/img/health.png" },
             { "id": 2, "title": "Errors", "info": "Product Quality Assurance", "icon": "static/img/error.png" },
             { "id": 3, "title": "Memory usage", "info": "Management", "icon": "static/img/memory.png" },
-            { "id": 4, "title": "Explorer", "info": "Test Execution Engine", "icon": "static/img/explorer.png" }
         ];
 
-        threebot_cards.parse(threebot_card_data);
+        admin.getExplorer().then((data) => {
+            const explorer = JSON.parse(data.json());
+            let explorer_url = explorer.url;
+            
+            threebot_card_data.push({
+                'id': 4,
+                'title': 'Explorer',
+                'info': explorer_url,
+                'icon': 'static/img/explorer.png'
+            })
+            threebot_cards.parse(threebot_card_data);
+        })
 
         this._winresize = webix.event(window, "resize", () => this.resizeDataview(this.minItemWidth));
     }

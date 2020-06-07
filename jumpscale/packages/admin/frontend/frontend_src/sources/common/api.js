@@ -16,11 +16,11 @@ export class Service {
         method = method.toLowerCase();
         url = this.joinUrl(url);
 
-        if (args) {
-            args = { args: args };
-        } else {
-            args = {};
-        }
+        // if (args) {
+        //     args = { args: args };
+        // } else {
+        //     args = {};
+        // }
 
         if (method === "get") {
             return ajax.get(url, args);
