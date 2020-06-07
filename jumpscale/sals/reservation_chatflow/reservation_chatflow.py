@@ -8,15 +8,18 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import (
     TfgridSolution1,
     TfgridSolutionsPayment1,
+    SolutionType,
 )
-from jumpscale.clients.explorer.models import TfgridDeployed_reservation1
-
+from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, Next_action
+from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 from jumpscale.core import identity
 
 import netaddr
 import random
 import requests
 import time
+import base64
+from nacl.public import Box
 
 
 class Network:
@@ -34,7 +37,7 @@ class Network:
 
     def _fill_used_ips(self, reservations):
         for reservation in reservations:
-            if reservation.next_action != "DEPLOY":
+            if reservation.next_action != Next_action.DEPLOY:
                 continue
             for kubernetes in reservation.data_reservation.kubernetes:
                 if kubernetes.network_id == self._network.name:
@@ -129,7 +132,7 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
-        self.me = identity.get_identity()
+        self.me = j.core.identity
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
@@ -137,8 +140,10 @@ class ReservationChatflow:
         self.get_solutions_explorer()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
-        # TODO: REPLACE WHEN IDENTITY IS READY
-        return self.me.encryptor.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
+        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        box = Box(sk, pk)
+        return box.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
 
     def check_solution_type(self, reservation):
         containers = reservation.data_reservation.containers
@@ -147,22 +152,22 @@ class ReservationChatflow:
         kubernetes = reservation.data_reservation.kubernetes
         networks = reservation.data_reservation.networks
         if containers == [] and volumes == [] and zdbs == [] and kubernetes == [] and networks:
-            return "network"
+            return SolutionType.Network
         elif kubernetes != []:
-            return "kubernetes"
+            return SolutionType.Kubernetes
         elif len(containers) != 0:
             if "ubuntu" in containers[0].flist:
-                return "ubuntu"
+                return SolutionType.Ubuntu
             elif "minio" in containers[0].flist:
-                return "minio"
+                return SolutionType.Minio
             elif "gitea" in containers[0].flist:
-                return "gitea"
+                return SolutionType.Gitea
             elif "tcprouter" in containers[0].flist:
-                return "exposed"
+                return SolutionType.Exposed
             return "flist"
         elif reservation.data_reservation.domain_delegates:
-            return "delegated_domain"
-        return "unknown"
+            return SolutionType.DelegatedDomain
+        return SolutionType.Unkown
 
     def get_solution_ubuntu_info(self, metadata, reservation):
         envs = reservation.data_reservation.containers[0].environment
@@ -234,7 +239,7 @@ class ReservationChatflow:
         return {"Domain": delegated_domain.domain, "Gateway": delegated_domain.node_id}
 
     def save_reservation(self, rid, name, solution_type, form_info=None):
-        form_info = form_info or []
+        form_info = form_info or {}
         explorer_name = self._explorer.url.split(".")[1]
         reservation = self.solutions.get(f"{explorer_name}_{rid}")
         reservation.rid = rid
@@ -245,7 +250,6 @@ class ReservationChatflow:
         reservation.save()
 
     def get_solutions_explorer(self):
-
         # delete old instances, to get the new ones from explorer
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
@@ -268,21 +272,21 @@ class ReservationChatflow:
                 else:
                     solution_type = metadata["form_info"]["chatflow"]
                     metadata["form_info"].pop("chatflow")
-                if solution_type == "unknown":
+                if solution_type == SolutionType.Unknown:
                     continue
-                elif solution_type == "ubuntu":
+                elif solution_type == SolutionType.Ubuntu:
                     metadata = self.get_solution_ubuntu_info(metadata, reservation)
-                elif solution_type == "flist":
+                elif solution_type == SolutionType.Flist:
                     metadata = self.get_solution_flist_info(metadata, reservation)
-                elif solution_type == "network":
+                elif solution_type == SolutionType.Network:
                     if metadata["name"] in networks:
                         continue
                     networks.append(metadata["name"])
-                elif solution_type == "gitea":
+                elif solution_type == SolutionType.Gitea:
                     metadata["form_info"]["Public key"] = reservation.data_reservation.containers[0].environment[
                         "pub_key"
                     ]
-                elif solution_type == "exposed":
+                elif solution_type == SolutionType.Exposed:
                     meta = metadata
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
@@ -293,20 +297,20 @@ class ReservationChatflow:
                 solution_type = self.check_solution_type(reservation)
                 info = {}
                 name = f"unknown_{reservation.id}"
-                if solution_type == "unknown":
+                if solution_type == SolutionType.Unknown:
                     continue
-                elif solution_type == "network":
+                elif solution_type == SolutionType.Network:
                     name = reservation.data_reservation.networks[0].name
                     if name in networks:
                         continue
                     networks.append(name)
-                elif solution_type == "delegated_domain":
+                elif solution_type == SolutionType.DelegatedDomain:
                     info = self.get_solution_domain_delegates_info(reservation)
                     if not info.get("Solution name"):
                         name = f"unknown_{reservation.id}"
                     else:
                         name = info["Solution name"]
-                elif solution_type == "exposed":
+                elif solution_type == SolutionType.Exposed:
                     info = self.get_solution_exposed_info(reservation)
                     info["Solution name"] = name
                     name = info["Domain"]
@@ -323,14 +327,17 @@ class ReservationChatflow:
         rtype: list
         """
         if "devnet" in self._explorer.url or "testnet" in self._explorer.url:
-            network_type = "TEST"
+            network_type = StellarNetwork.TEST
         else:
-            network_type = "STD"
+            network_type = StellarNetwork.STD
 
-        wallets_list = j.clients.stellar.find(network=network_type)
+        wallets_list = j.clients.stellar.list_all()
         wallets = dict()
-        for wallet in wallets_list:
-            wallets[wallet.name] = wallet
+        for wallet_name in wallets_list:
+            wallet = j.clients.stellar.find(wallet_name)
+            if wallet.network != network_type:
+                continue
+            wallets[wallet_name] = wallet
         return wallets
 
     def show_escrow_qr(self, bot, reservation_create_resp, expiration_provisioning):
@@ -677,7 +684,7 @@ class ReservationChatflow:
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
             reservation_currency = self.get_currency(reservation)
-            if reservation.next_action != "DEPLOY":
+            if reservation.next_action != Next_action.DEPLOY:
                 continue
             rdomains = reservation.data_reservation.domain_delegates
             if currency and currency != reservation_currency:
@@ -703,7 +710,7 @@ class ReservationChatflow:
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
-            if reservation.next_action != "DEPLOY":
+            if reservation.next_action != Next_action.DEPLOY:
                 continue
             rnetworks = reservation.data_reservation.networks
             expiration = reservation.data_reservation.expiration_reservation
@@ -731,10 +738,13 @@ class ReservationChatflow:
         return "TFT"
 
     def cancel_solution_reservation(self, solution_type, solution_name):
+        import ipdb
+
+        ipdb.set_trace()
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
-                j.sals.zos.reservation_cancel(solution.rid)
+                j.sals.zos.reservation_cancel(str(solution.rid))
                 self.solutions.delete(name)
 
     def get_solutions(self, solution_type):
@@ -749,7 +759,7 @@ class ReservationChatflow:
             reservations.append(
                 {
                     "name": solution.name,
-                    "reservation": reservation._ddict_json_hr,
+                    "reservation": reservation._get_data,
                     "type": solution_type,
                     "form_info": json.dumps(solution.form_info),
                 }
@@ -757,12 +767,15 @@ class ReservationChatflow:
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        ## TODO: needs identity encryptor when identity is ready
         if isinstance(metadata, dict):
             meta_json = json.dumps(metadata)
         else:
             meta_json = metadata._json
-        encrypted_metadata = base64.b85encode(self.me.encryptor.encrypt(meta_json.encode())).decode()
+
+        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        box = Box(sk, pk)
+        encrypted_metadata = base64.b85encode(box.encrypt(meta_json.encode())).decode()
         reservation.metadata = encrypted_metadata
         return reservation
 
@@ -1004,7 +1017,7 @@ class ReservationChatflow:
         return list(farms_with_no_resources)
 
     def validate_user(self, user_info):
-        # TODO: FIXME add THREEBOT_CONNECT to config
+        # TODO: email field of testnet users is empty. is this really used?
         if not j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
             error_msg = """
             This chatflow is not supported when Threebot is in dev mode.
@@ -1024,6 +1037,54 @@ class ReservationChatflow:
     solution_name_add   # not needed anymore as factory instance_name is unique
     network_name_add  # not needed anymore as factory instance_name is unique
     """
+    # TODO: Missing configuration sections (DEPLOYER)
 
-    # TODO: Check usage of identity methods (self.me.encryptor)  after it is implemented
-    # TODO: Missing configuration sections (THREEBOT_CONNECT, DEPLOYER)
+    # Verified
+    """
+    list_networks   (unsaved factory instance raises error. it is fixed on development https://github.com/js-next/js-ng/issues/268)
+    get_nodes
+    list_wallets
+    validate_user   (email field of testnet users is empty. is it really used?)
+    check_farms
+    _distribute_nodes
+    filter_nodes
+    validate_node
+    list_delegate_domains
+    check_solution_type
+    decrypt_reservation_metadata
+    get_solution_domain_delegates_info
+    get_solutions_explorer
+    get_solutions
+    save_reservation
+    get_solution_ubuntu_info
+    get_solution_exposed_info
+    get_solution_flist_info
+    ###################
+    get_kube_network_ip
+    get_currency
+    create_payment
+    get_payment_details
+    add_reservation_metadata
+    get_solution_model
+    """
+
+    # TODO: Verify
+    """
+    cancel_solution_reservation  (something wrong with signature serialization as bytes in explorer client)
+
+    register_and_pay_reservation    (needs bot)
+    register_reservation    (needs bot)
+    get_ip_range    (needs bot)
+    create_network  (needs bot)
+    show_escrow_qr  (needs bot)
+    get_network     (needs bot)
+    show_payments   (needs bot)
+    wait_payment    (needs bot)
+    _reservation_failed     (needs bot)
+    wait_reservation    (needs bot)
+    list_gateways   (needs bot)
+    select_gateway  (needs bot)
+    select_farms    (needs bot)
+    select_network   (needs bot)
+    get_farm_names   (needs bot)
+    """

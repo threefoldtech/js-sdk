@@ -14,20 +14,21 @@ class SolutionType(Enum):
     Minio = "minio"
     Network = "network"
     Ubuntu = "ubuntu"
+    Unknown = "unknown"
 
 
 class TfgridSolution1(Base):
     id = fields.Integer()
     name = fields.String(default="")
     solution_type = fields.Enum(SolutionType)
-    rid = fields.String(default="")
+    rid = fields.Integer()
     form_info = fields.Typed(dict)
     explorer = fields.String(default="")
 
 
 class TfgridSolutionsPayment1(Base):
     id = fields.Integer()
-    rid = fields.String(default="")
+    rid = fields.Integer()
     explorer = fields.String(default="")
     currency = fields.String(default="")
     escrow_address = fields.String(default="")
