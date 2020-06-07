@@ -13,6 +13,7 @@ from jumpscale.data.nacl import payload_build
 from jumpscale.god import j
 from jumpscale.clients.explorer.models import TfgridWorkloadsReservation1
 from jumpscale.core import identity
+import binascii
 
 
 class Zosv2:
@@ -158,13 +159,17 @@ class Zosv2:
         Returns:
             bool: true if the reservation has been cancelled successfully
         """
-        me = identity.get_identity()
+        me = j.core.identity
 
         reservation = self.reservation_get(reservation_id)
         payload = payload_build(reservation.id, reservation.json.encode())
-        signature = me.nacl.sign_hex(payload)
+        # signature = me.nacl.sign_hex(payload)
+        signed = me.nacl.signing_key.sign(payload)
+        signature = binascii.hexlify(signed.signature)
 
-        return self._explorer.reservations.sign_delete(reservation_id=reservation_id, tid=me.tid, signature=signature)
+        return self._explorer.reservations.sign_delete(
+            reservation_id=reservation_id, tid=me.tid, signature=signature.decode()
+        )
 
     def reservation_list(self, tid=None, next_action=None):
         """List reservation of a threebot

@@ -15,7 +15,7 @@ class NodeFinder:
         filter out nodes that have not received update for more then 10 minutes
         """
         ago = now().timestamp - (60 * 10)
-        return node.updated > ago
+        return node.updated.timestamp() > ago
 
     def filter_is_free_to_use(self, node):
         return node.free_to_use
@@ -77,7 +77,6 @@ class NodeFinder:
                     continue
                 if node.farm_id in not_supported_farms:
                     continue
-                farm = self._farms.get(node.farm_id)
                 try:
                     farm = self._farms.get(node.farm_id)
                 except requests.exceptions.HTTPError:
