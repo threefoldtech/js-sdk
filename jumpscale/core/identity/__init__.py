@@ -6,13 +6,14 @@ from jumpscale.god import j
 
 class Identity:
     def __init__(self):
-        config_env = j.core.config.Environment()
-        self._threebot_data = config_env.get_threebot_data()
+        self.config_env = j.core.config.Environment()
+        self._threebot_data = self.config_env.get_threebot_data()
         self._nacl = None
         self._tid = None
 
     def configure(self, name, email, path_to_words):
         j.config.configure_threebot(name, email, path_to_words)
+        self._threebot_data = self.config_env.get_threebot_data()
         return self.tid
 
     @property
