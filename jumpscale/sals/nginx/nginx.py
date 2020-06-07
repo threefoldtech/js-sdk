@@ -109,11 +109,6 @@ class Website(Base):
         location.location_type = LocationType.STATIC
         return location
 
-    def get_spa_location(self, name):
-        location = self.locations.get(name)
-        location.location_type = LocationType.SPA
-        return location
-
     def get_config(self):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
