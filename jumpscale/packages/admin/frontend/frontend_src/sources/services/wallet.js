@@ -8,13 +8,13 @@ class WalletService extends Service {
     }
 
     createWallet(name) {
-        return this.getCall("create_wallet", {
+        return this.postCall("create_wallet", {
             name: name
         });
     }
 
-    manageWallet(name) {
-        return this.getCall("manage_wallet", {
+    getWalletInfo(name) {
+        return this.postCall("get_wallet_info", {
             name: name
         });
     }
@@ -24,7 +24,7 @@ class WalletService extends Service {
     }
 
     updateTrustLines(name) {
-        return this.postCall("updateTrustLines", {
+        return this.postCall("update_trustlines", {
             name: name
         });
     }
@@ -37,7 +37,7 @@ class WalletService extends Service {
         });
     }
 
-    delete(name) {
+    deleteWallet(name) {
         return this.postCall("delete_wallet", {
             name: name
         });
