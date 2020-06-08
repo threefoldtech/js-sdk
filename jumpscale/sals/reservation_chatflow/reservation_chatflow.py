@@ -547,11 +547,12 @@ class ReservationChatflow:
         while True:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize()
             deploying_message = f"""
-            # Deploying...\n
-            Deployment will be cancelled if it is not successful {remaning_time}
-            """
-            bot.md_show_update(j.core.text.strip(deploying_message), md=True)
+# Deploying...\n
+Deployment will be cancelled if it is not successful {remaning_time}
+"""
+            # bot.md_show(deploying_message, md=True) # TODO: RESTORE WHEN DONE
             self._reservation_failed(bot, reservation)
+
             if is_finished(reservation):
                 return reservation.results
             if is_expired(reservation):
@@ -817,7 +818,7 @@ class ReservationChatflow:
         # j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/wireguard/{network_name}.conf", f"{wg_quick}")
 
         # register the reservation
-        expiration = expiration or j.data.time.epoch + (60 * 60 * 24)
+        expiration = expiration or j.data.time.get().timestamp + (60 * 60 * 24)
         reservation_create = self.register_reservation(
             reservation, expiration, customer_tid, currency=currency, bot=bot
         )
