@@ -49,7 +49,7 @@ class NetworkDeploy(GedisChatBot):
                 bot=self,
             )
             try:
-                j.sal.reservation_chatflow.register_and_pay_reservation(self.config["reservation_create"], bot=self)
+                j.sals.reservation_chatflow.register_and_pay_reservation(self.config["reservation_create"], bot=self)
                 break
             except StopChatFlow as e:
                 if "wireguard listen port already in use" in e.msg:
@@ -67,7 +67,7 @@ class NetworkDeploy(GedisChatBot):
 Click next
 to download your configuration
         """
-
+        
         self.md_show(message, md=True, html=True)
 
         filename = "wg-{}.conf".format(self.config["rid"])
