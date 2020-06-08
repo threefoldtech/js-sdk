@@ -238,6 +238,7 @@ class PackageManager(Base):
         # apply package if threebot is started
         if self.threebot.started:
             self.apply(package)
+            self.threebot.nginx.reload()
 
         self.save()
 
@@ -262,6 +263,9 @@ class PackageManager(Base):
             # unload chats
             if package.chats_dir:
                 self.threebot.chatbot.unload(package.chats_dir)
+
+            # reload nginx
+            self.threebot.nginx.reload()
 
         # execute package uninstall method
         package.uninstall()
@@ -320,6 +324,7 @@ class ThreebotServer(Base):
         self._chatbot = None
         self._packages = None
         self._started = False
+        self._nginx = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
 
@@ -327,6 +332,12 @@ class ThreebotServer(Base):
     def started(self):
         return self._started
 
+    @property
+    def nginx(self):
+        if self._nginx is None:
+            self._nginx = j.tools.nginx.get("default")
+        return self._nginx
+        
     @property
     def db(self):
         if self._db is None:
@@ -365,6 +376,7 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
+        self.nginx.start()
         self.rack.start()
 
         # add default packages
@@ -374,10 +386,12 @@ class ThreebotServer(Base):
 
         # apply all package
         self.packages.apply_all()
+        self.nginx.reload()
 
         # mark server as started
         self._started = True
 
     def stop(self):
         self.rack.stop()
+        self.nginx.stop()
         self._started = False
