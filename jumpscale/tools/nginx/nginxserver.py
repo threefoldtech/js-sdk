@@ -24,7 +24,6 @@ class NginxServer(Base):
         nginx.save()
         cmd = j.tools.startupcmd.get(self.name)
         cmd.start_cmd = f"nginx -c {self.config_path}"
-        cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.start()
 
     def stop(self):
@@ -32,6 +31,7 @@ class NginxServer(Base):
         stop nginx server
         """
         cmd = j.tools.startupcmd.get(self.name)
+        cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.stop()
 
     def reload(self):
