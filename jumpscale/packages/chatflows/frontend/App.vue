@@ -222,7 +222,7 @@
         if (this.validate()) {
           let result = this.state[this.stepId]
 
-          if (typeof result === 'object') {
+          if (typeof result === 'object' || typeof result === 'number') {
             result = JSON.stringify(result)
           }
 
