@@ -764,10 +764,7 @@ class ReservationChatflow:
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        if isinstance(metadata, dict):
-            meta_json = json.dumps(metadata)
-        else:
-            meta_json = metadata._json
+        meta_json = json.dumps(metadata)
 
         pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
         sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
@@ -776,13 +773,13 @@ class ReservationChatflow:
         reservation.metadata = encrypted_metadata
         return reservation
 
-    def get_solution_model(self, instance_name, solution_name, solution_type, form_info=None):
+    def get_solution_metadata(self, solution_name, solution_type, form_info=None):
         form_info = form_info or {}
-        reservation = self.solutions.get(instance_name)
-        reservation.name = solution_name
-        reservation.form_info = form_info
-        reservation.solution_type = solution_type
-        reservation.explorer = self._explorer.url
+        reservation = {}
+        reservation["name"] = solution_name
+        reservation["form_info"] = form_info
+        reservation["solution_type"] = solution_type.value
+        reservation["explorer"] = self._explorer.url
         return reservation
 
     def create_network(
@@ -817,7 +814,7 @@ class ReservationChatflow:
         wg_quick = j.sals.zos.network.add_access(network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4)
 
         network_config["wg"] = wg_quick
-        j.sals.fs.write_file(f"/sandbox/cfg/wireguard/{network_name}.conf", f"{wg_quick}")
+        # j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/wireguard/{network_name}.conf", f"{wg_quick}")
 
         # register the reservation
         expiration = expiration or j.data.time.epoch + (60 * 60 * 24)
