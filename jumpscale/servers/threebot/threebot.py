@@ -145,7 +145,7 @@ class Package:
                 module = imp.load_source(self.name, package_file_path)
                 if not hasattr(module, self.name):
                     raise j.exceptions.Halt(f"missing class ({self.name}) in the package file")
-                
+
                 self._module = getattr(module, self.name)()
         return self._module
 
@@ -210,8 +210,8 @@ class Package:
 class PackageManager(Base):
     packages = fields.Typed(dict, default=DEFAULT_PACKAGES)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._threebot = None
 
     @property
@@ -252,7 +252,7 @@ class PackageManager(Base):
         # remove bottle servers
         for bottle_server in package.bottle_servers:
             self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
-        
+
         if self.threebot.started:
             # unregister gedis actors
             if package.actors_dir:
@@ -298,7 +298,7 @@ class PackageManager(Base):
 
         # apply nginx configuration
         package.nginx_config.apply()
-        
+
         # execute package start method
         package.start()
 
@@ -311,8 +311,8 @@ class PackageManager(Base):
 class ThreebotServer(Base):
     _package_manager = fields.Factory(PackageManager)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._rack = None
         self._gedis = None
         self._db = None
@@ -326,7 +326,7 @@ class ThreebotServer(Base):
     @property
     def started(self):
         return self._started
-        
+
     @property
     def db(self):
         if self._db is None:
