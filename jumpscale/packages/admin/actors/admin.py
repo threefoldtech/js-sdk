@@ -24,10 +24,12 @@ class Admin(BaseActor):
         """
 
         config = j.core.config.get_config()
-        # TODO: Check for explorer in config. default_addr_set() is not yet implemented
-        # if "explorer_url" not in config['threebot']:
-        #     j.clients.explorer.default_addr_set(explorers["testnet"])
-        #     return self.explorer_to_json("testnet")
+
+        if "explorer_url" not in config['threebot']:
+            url = "https://" + explorers["testnet"] + "/explorer"
+            j.clients.explorer.default_addr_set(url)
+            return j.data.serializers.json.dumps(
+                {"type": "testnet", "url": explorers["testnet"]})
 
         current_address = config['threebot']["explorer_url"].strip().lower().split("/")[2]
         if current_address == explorers["testnet"]:
