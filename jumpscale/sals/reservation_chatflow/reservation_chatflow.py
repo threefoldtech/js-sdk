@@ -738,9 +738,6 @@ class ReservationChatflow:
         return "TFT"
 
     def cancel_solution_reservation(self, solution_type, solution_name):
-        import ipdb
-
-        ipdb.set_trace()
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
@@ -1066,12 +1063,11 @@ class ReservationChatflow:
     get_payment_details
     add_reservation_metadata
     get_solution_model
+    cancel_solution_reservation
     """
 
     # TODO: Verify
     """
-    cancel_solution_reservation  (something wrong with signature serialization as bytes in explorer client)
-
     register_and_pay_reservation    (needs bot)
     register_reservation    (needs bot)
     get_ip_range    (needs bot)
