@@ -178,7 +178,8 @@
       newSession () {
         axios({
           url: `${baseUrl}/new`,
-          params: {
+          method: "post",
+          data: {
             topic: TOPIC,
             client_ip: CLIENT_IP
           }
@@ -196,7 +197,8 @@
       getWork (restore) {
         axios({
           url: `${baseUrl}/fetch`,
-          params: {
+          method: "post",
+          data: {
             session_id: this.sessionId,
             restore: restore
           }
@@ -209,7 +211,8 @@
       reportWork (result) {
         axios({
           url: `${baseUrl}/report`,
-          params: {
+          method: "post",
+          data: {
             session_id: this.sessionId,
             result: result
           }
@@ -230,7 +233,8 @@
       back () {
         axios({
           url: `${baseUrl}/back`,
-          params: {
+          method: "post",
+          data: {
             session_id: this.sessionId
           }
         })
