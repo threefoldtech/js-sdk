@@ -13,7 +13,7 @@ def _next_workload_id(reservation):
         "networks",
         "kubernetes",
         "proxies",
-        "reserve_proxies",
+        "reverse_proxies",
         "subdomains",
         "domain_delegates",
     ]:

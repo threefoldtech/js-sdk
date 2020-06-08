@@ -5,7 +5,7 @@ from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationGatewaySubdomain1,
     TfgridWorkloadsReservationGatewayDelegate1,
     TfgridWorkloadsReservationGatewayProxy1,
-    TfgridWorkloadsReservationGatewayReserve_proxy1,
+    TfgridWorkloadsReservationGatewayReverse_proxy1,
     TfgridWorkloadsReservationGateway4to61,
 )
 
@@ -44,12 +44,12 @@ class Gateway:
         return p
 
     def tcp_proxy_reverse(self, reservation, node_id, domain, secret):
-        p = TfgridWorkloadsReservationGatewayReserve_proxy1()
+        p = TfgridWorkloadsReservationGatewayReverse_proxy1()
         p.node_id = node_id
         p.domain = domain
         p.workload_id = _next_workload_id(reservation)
         p.secret = secret
-        reservation.data_reservation.reserve_proxies.append(p)
+        reservation.data_reservation.reverse_proxies.append(p)
         return p
 
     def gateway_4to6(self, reservation, node_id, public_key):
