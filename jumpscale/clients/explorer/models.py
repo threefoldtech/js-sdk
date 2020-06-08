@@ -248,9 +248,9 @@ class TfgridWorkloadsReservationK8s1(Base):
 
 class TfgridWorkloadsWireguardPeer1(Base):
     public_key = fields.String(default="")
-    allowed_iprange = fields.List(fields.IPAddress())
+    allowed_iprange = fields.List(fields.IPRange())
     endpoint = fields.String(default="")
-    iprange = fields.IPAddress(default="10.10.11.0/24")
+    iprange = fields.IPRange(default="10.10.11.0/24")
 
 
 class TfgridWorkloadsReservationResult1(Base):
@@ -370,14 +370,14 @@ class TfgridWorkloadsNetworkNet_resource1(Base):
     wireguard_private_key_encrypted = fields.String(default="")
     wireguard_public_key = fields.String(default="")
     wireguard_listen_port = fields.Integer()
-    iprange = fields.IPAddress(default="10.10.10.0/24")
+    iprange = fields.IPRange(default="10.10.10.0/24")
     peers = fields.List(fields.Object(TfgridWorkloadsWireguardPeer1))
 
 
 class TfgridWorkloadsReservationNetwork1(Base):
     name = fields.String(default="")
     workload_id = fields.Integer()
-    iprange = fields.IPAddress(default="10.10.0.0/16")
+    iprange = fields.IPRange(default="10.10.0.0/16")
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
     network_resources = fields.List(fields.Object(TfgridWorkloadsNetworkNet_resource1))
     farmer_tid = fields.Integer()
