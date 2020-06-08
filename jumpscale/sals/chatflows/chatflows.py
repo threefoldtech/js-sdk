@@ -426,7 +426,7 @@ class GedisChatBot:
             datetime.datetime: user input
         """
         result = self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
-        return j.data.time.get_delta_time(result)
+        return j.data.time.get(result).humanize()
 
     def location_msg(self, msg, **kwargs):
         return {"category": "location_ask", "msg": msg, "kwargs": kwargs}
