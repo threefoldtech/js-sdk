@@ -1,6 +1,7 @@
 
 import { JetView } from "webix-jet";
-import { admin } from "../../services/admin"
+import { health } from "../../services/health"
+import { alerts } from "../../services/alerts"
 
 export default class JSXInfoView extends JetView {
     config() {
@@ -40,8 +41,14 @@ export default class JSXInfoView extends JetView {
         $$("jsx_info").parse(jsx_info);
 
         // call service
-        
-        // admin.hello().then((data)=>{
+ 
+        alerts.delete([2],[]).then((data)=>{
+            console.log("resulte: ",data)
+        }).catch((error)=>{
+            console.log(error)
+        })
+
+        // alerts.count().then((data)=>{
         //     console.log("resulte: ",data.json())
         // }).catch((error)=>{
         //     console.log(error)

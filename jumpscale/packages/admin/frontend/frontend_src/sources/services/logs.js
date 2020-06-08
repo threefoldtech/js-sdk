@@ -11,28 +11,20 @@ class LogsService extends Service {
         return this.getCall("list_apps");
     }
 
-    list(appName, logId) {
-        return this.getCall("list_logs", {
-            appname: appName,
-            id_from: logId
-        });
+    listLogs(appName, limit) {
+        return this.getCall("list_logs");
     }
 
     delete(appname){
-        return this.postCall("delete",{
+        return this.postCall("remove_records",{
             appname: appname
         })
     }
 
     deleteAll(){
-        return this.postCall("delete")
+        return this.postCall("remove_records")
     }
 
-    deleteSelected(ids){
-        return this.postCall("delete_selected",{
-            ids: ids
-        })
-    }
 }
 
 export const logs = new LogsService();

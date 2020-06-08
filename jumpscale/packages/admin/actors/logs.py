@@ -5,19 +5,20 @@ class Logs(BaseActor):
 
     @actor_method
     def list_apps(self) -> str:
-        return "hello from admin's actor"
+        apps = ['init'] + [ app.decode() for app in j.core.db.smembers('applications') ]
+        return j.data.serializers.json.dumps({"apps":apps})
 
     @actor_method
-    def list_logs(self, appname: str, id_from: int = 0) -> str:
-        return "hello from admin's actor"
+    def list_logs(self) -> str:
+        logs = list(j.logger.redis.tail())
+        return j.data.serializers.json.dumps({"logs":logs})
     
     @actor_method
-    def delete(self, appname: str = "") -> str:
+    def remove_records(self, appname: str = "") -> str:
         # if no appname delete all logs 
-        return "hello from admin's actor"
-    
-    @actor_method
-    def delete_selected(self, ids: list) -> str:
-        return "hello from admin's actor"
+        if appname:
+            j.logger.redis.remove_all_records(appname = appname)
+        else:
+            j.logger.redis.remove_all_records()
    
 Actor = Logs
