@@ -418,8 +418,8 @@ class TfgridWorkloadsReservationData1(Base):
     subdomains = fields.List(fields.Object(TfgridWorkloadsReservationGatewaySubdomain1))
     domain_delegates = fields.List(fields.Object(TfgridWorkloadsReservationGatewayDelegate1))
     gateway4to6 = fields.List(fields.Object(TfgridWorkloadsReservationGateway4to61))
-    expiration_provisioning = fields.Date()
-    expiration_reservation = fields.Date()
+    expiration_provisioning = fields.DateTime()
+    expiration_reservation = fields.DateTime()
     currencies = fields.List(fields.String())
 
 
@@ -433,6 +433,6 @@ class TfgridWorkloadsReservation1(Base):
     signatures_provision = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_farmer = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_delete = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
-    epoch = fields.Date()
+    epoch = fields.DateTime()
     metadata = fields.String(default="")
     results = fields.List(fields.Object(TfgridWorkloadsReservationResult1))
