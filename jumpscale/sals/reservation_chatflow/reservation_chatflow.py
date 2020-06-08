@@ -486,7 +486,7 @@ class ReservationChatflow:
 
         # wait to check payment is actually done next_action changed from:PAY
         def is_expired(reservation):
-            return reservation.data_reservation.expiration_provisioning < j.data.time.get().timestamp
+            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
 
         reservation = self._explorer.reservations.get(rid)
         while True:
@@ -541,7 +541,7 @@ class ReservationChatflow:
             return len(reservation.results) >= count
 
         def is_expired(reservation):
-            return reservation.data_reservation.expiration_provisioning < j.data.time.get().timestamp
+            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
 
         reservation = self._explorer.reservations.get(rid)
         while True:
