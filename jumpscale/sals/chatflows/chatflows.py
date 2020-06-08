@@ -5,6 +5,7 @@ from captcha.image import ImageCaptcha
 from importlib import import_module
 import inspect
 import json
+import gevent
 import gevent.queue
 import html
 from jumpscale.god import j
@@ -75,6 +76,7 @@ class GedisChatBot:
     Contains the basic helper methods for asking questions
     It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server
     """
+
     steps = []
 
     def __init__(self, **kwargs):
@@ -93,7 +95,7 @@ class GedisChatBot:
         self._queue_out = gevent.queue.Queue()
         self._queue_in = gevent.queue.Queue()
         self._start()
-    
+
     @property
     def step_info(self):
         return self._steps_info.setdefault(self._current_step, {"slide": 0})
@@ -125,7 +127,7 @@ class GedisChatBot:
             "last_step": self.is_last_step,
             "first_step": self.is_first_step,
             "first_slide": self.is_first_slide,
-            "slide": self.step_info.get("slide", 1)
+            "slide": self.step_info.get("slide", 1),
         }
 
     def _execute_current_step(self, spawn=True):
@@ -141,14 +143,14 @@ class GedisChatBot:
                 internal_error = True
                 j.logger.exception("error", exception=e)
                 self.send_error("Something wrong happened, please contact support")
-            
+
             if not internal_error:
                 if self.is_last_step:
                     self.send_data({"category": "end"})
                 else:
                     self._current_step += 1
                     self._execute_current_step(spawn=False)
-          
+
         step_name = self.steps[self._current_step]
         self.step_info["slide"] = 0
 
@@ -156,7 +158,6 @@ class GedisChatBot:
             self._greenlet = gevent.spawn(wrapper, step_name)
         else:
             wrapper(step_name)
-
 
     def _start(self):
         self._execute_current_step()
@@ -184,19 +185,15 @@ class GedisChatBot:
     def send_data(self, data, is_slide=False):
         data.setdefault("kwargs", {})
         retry = data["kwargs"].pop("retry", False)
-        
+
         if is_slide and not retry:
             self.step_info["slide"] += 1
 
-        output = {"info": self.info, "payload": data} 
+        output = {"info": self.info, "payload": data}
         self._queue_out.put(output)
 
     def send_error(self, message, **kwargs):
-        self.send_data({
-            "category": "error",
-            "msg": message,
-            "kwargs": kwargs
-        })
+        self.send_data({"category": "error", "msg": message, "kwargs": kwargs})
         self._queue_in.get()
 
     def ask(self, data):
@@ -216,7 +213,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -231,18 +228,18 @@ class GedisChatBot:
 
     def secret_msg(self, msg, **kwargs):
         return {"category": "secret_ask", "msg": msg, "kwargs": kwargs}
-    
+
     def secret_ask(self, msg, **kwargs):
         """Ask for a secret value
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
             html (bool): render message as html
-            min_length (int): min length 
+            min_length (int): min length
             max_length (int): max length
 
         Returns:
@@ -258,7 +255,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -272,7 +269,7 @@ class GedisChatBot:
         result = self.ask(self.int_msg(msg, **kwargs))
         if result:
             return int(result)
-    
+
     def text_msg(self, msg, **kwargs):
         return {"category": "text_ask", "msg": msg, "kwargs": kwargs}
 
@@ -281,12 +278,12 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
             html (bool): render message as html
- 
+
         Returns:
             str: user input
         """
@@ -294,18 +291,18 @@ class GedisChatBot:
 
     def single_choice_msg(self, msg, options, **kwargs):
         return {"category": "single_choice", "msg": msg, "options": options, "kwargs": kwargs}
-    
+
     def single_choice(self, msg, options, **kwargs):
         """Ask for a single option
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
             html (bool): render message as html
- 
+
         Returns:
             str: user input
         """
@@ -319,7 +316,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -341,7 +338,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -363,7 +360,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -379,7 +376,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -390,7 +387,7 @@ class GedisChatBot:
         """
         return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)
 
-    def datetime_picker_msg(self, msg, **kwargs):        
+    def datetime_picker_msg(self, msg, **kwargs):
         return {"category": "datetime_picker", "msg": msg, "kwargs": kwargs}
 
     def datetime_picker(self, msg, **kwargs):
@@ -398,7 +395,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -413,13 +410,13 @@ class GedisChatBot:
 
     def time_delta_msg(self, msg, **kwargs):
         return {"category": "time_delta", "msg": msg, "kwargs": kwargs}
-        
+
     def time_delta_ask(self, msg, **kwargs):
         """Ask for a time delta example: 1Y 1M 1w 2d 1h
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -428,18 +425,18 @@ class GedisChatBot:
         Returns:
             datetime.datetime: user input
         """
-        result =  self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
+        result = self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
         return j.data.time.get_delta_time(result)
 
     def location_msg(self, msg, **kwargs):
         return {"category": "location_ask", "msg": msg, "kwargs": kwargs}
-    
+
     def location_ask(self, msg, **kwargs):
         """Ask for a location [lng, lat]
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -458,11 +455,11 @@ class GedisChatBot:
             msg (str): message text
             data (str): the data to be in the file
             filename (str): file name
-        
+
         Keyword Arguments:
             md (bool): render message as markdown
             html (bool): render message as html
-            
+
         """
         self.ask({"category": "download_file", "msg": msg, "data": data, "filename": filename, "kwargs": kwargs})
 
@@ -474,7 +471,7 @@ class GedisChatBot:
 
         Args:
             msg (str): message text
-        
+
         Keyword Arguments:
             required (bool): flag to make this field required
             md (bool): render message as markdown
@@ -485,7 +482,7 @@ class GedisChatBot:
         Returns:
             str: file content
         """
-        return self.ask(self.upload_file_msg(msg, ** kwargs))
+        return self.ask(self.upload_file_msg(msg, **kwargs))
 
     def qrcode_show(self, msg, data, scale=10, **kwargs):
         """Show QR code as an image
@@ -518,14 +515,14 @@ class GedisChatBot:
                 "kwargs": kwargs,
             },
         )
-    
+
     def captcha_ask(self, **kwargs):
         captcha, message = self.captcha_msg(required=True, **kwargs)
         return self.ask(message) == captcha
 
     def md_msg(self, msg, **kwargs):
         return {"category": "md_show", "msg": msg, "kwargs": kwargs}
-    
+
     def md_show(self, msg, **kwargs):
         """Show markdown
 
@@ -573,14 +570,15 @@ class GedisChatBot:
         raise StopChatFlow(msg=msg, **kwargs)
 
 
-
 def chatflow_step(title=None, disable_previous=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             self_ = args[0]
             self_.step_info.update(title=title, slide=0, previous=(not disable_previous))
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
