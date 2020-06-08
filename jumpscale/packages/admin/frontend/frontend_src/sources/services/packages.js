@@ -1,6 +1,6 @@
 import { Service } from "../common/api";
 
-const BASE_URL = "/admin/actors/package_manager";
+const BASE_URL = "/admin/actors/packages";
 
 
 class PackagesService extends Service {
@@ -22,7 +22,7 @@ class PackagesService extends Service {
     add(path, gitUrl) {
         return this.postCall("package_add", {
             path: path,
-            git_url: gitUrl
+            // git_url: gitUrl #TODO#
         });
     }
 
@@ -40,14 +40,14 @@ class PackagesService extends Service {
 
     }
 
-    disable(packageName) {
-        return this.postCall("package_disable", { name: packageName });
+    // disable(packageName) {
+    //     return this.postCall("package_disable", { name: packageName });
 
-    }
+    // }
 
-    enable(packageName) {
-        return this.postCall("package_enable", { name: packageName });
-    }
+    // enable(packageName) {
+    //     return this.postCall("package_enable", { name: packageName });
+    // }
 }
 
 
