@@ -1,5 +1,6 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.god import j
+from jumpscale.core.exceptions import JSException
 
 explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
@@ -7,22 +8,27 @@ class Admin(BaseActor):
 
     @actor_method
     def admin_list(self) -> str:
-        return "hello from admin_list actor"
-
+        return j.data.serializers.json.dumps(
+               j.core.identity.list_admins())
+               
     @actor_method
     def admin_add(self, name: str) -> str:
-        return "hello from admin_add actor"
+        try:
+            j.core.identity.add_admin(name)
+            return j.data.serializers.json.dumps("OK")
+        except JSException as e:
+            return j.data.serializers.json.dumps(str(e))
 
     @actor_method
     def admin_delete(self, name: str) -> str:
-        return "hello from admin_delete actor"
+        try:
+            j.core.identity.delete_admin(name)
+            return j.data.serializers.json.dumps("OK")
+        except JSException as e:
+            return j.data.serializers.json.dumps(str(e))
 
     @actor_method
     def get_explorer(self) -> str:
-        """
-        Get current explorer (testnet/main)
-        """
-
         config = j.core.config.get_config()
 
         if "explorer_url" not in config['threebot']:
