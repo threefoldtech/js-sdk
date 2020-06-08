@@ -57,7 +57,7 @@ class Type(Enum):
     Network = 3
     Kubernetes = 4
     Proxie = 5
-    Reserve_proxie = 6
+    Reverse_proxie = 6
     Subdomain = 7
     Domain_delegate = 8
 
@@ -101,17 +101,17 @@ class TfgridDirectoryLocation1(Base):
 
 class TfgridDirectoryNodeIface1(Base):
     name = fields.String(default="")
-    addrs = fields.List(fields.IPAddress())
-    gateway = fields.List(fields.IPAddress())
+    addrs = fields.List(fields.IPRange())
+    gateway = fields.List(fields.IPRange())
 
 
 class TfgridDirectoryNodePublic_iface1(Base):
     master = fields.String(default="")
     type = fields.Enum(Type)
-    ipv4 = fields.IPAddress()
-    ipv6 = fields.IPAddress()
-    gw4 = fields.IPAddress()
-    gw6 = fields.IPAddress()
+    ipv4 = fields.IPRange()
+    ipv6 = fields.IPRange()
+    gw4 = fields.IPRange()
+    gw6 = fields.IPRange()
     version = fields.Integer()
 
 
@@ -201,7 +201,7 @@ class TfgridWorkloadsReservationGatewayProxy1(Base):
     port_tls = fields.Integer()
 
 
-class TfgridWorkloadsReservationGatewayReserve_proxy1(Base):
+class TfgridWorkloadsReservationGatewayReverse_proxy1(Base):
     workload_id = fields.Integer()
     node_id = fields.String(default="")
     domain = fields.String(default="")
@@ -414,7 +414,7 @@ class TfgridWorkloadsReservationData1(Base):
     networks = fields.List(fields.Object(TfgridWorkloadsReservationNetwork1))
     kubernetes = fields.List(fields.Object(TfgridWorkloadsReservationK8s1))
     proxies = fields.List(fields.Object(TfgridWorkloadsReservationGatewayProxy1))
-    reserve_proxies = fields.List(fields.Object(TfgridWorkloadsReservationGatewayReserve_proxy1))
+    reverse_proxies = fields.List(fields.Object(TfgridWorkloadsReservationGatewayReverse_proxy1))
     subdomains = fields.List(fields.Object(TfgridWorkloadsReservationGatewaySubdomain1))
     domain_delegates = fields.List(fields.Object(TfgridWorkloadsReservationGatewayDelegate1))
     gateway4to6 = fields.List(fields.Object(TfgridWorkloadsReservationGateway4to61))
