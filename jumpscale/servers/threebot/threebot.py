@@ -225,10 +225,15 @@ class PackageManager(Base):
         if package_path:
             return Package(path=package_path)
 
+    def get_packages(self):
+        return [{"name":package, "path": self.packages.get(package)} \
+                for package in self.packages.keys()]
+
     def list_all(self):
         return self.packages.keys()
 
     def add(self, path):
+        # TODO: Check if package already exists
         package = Package(path=path)
         self.packages[package.name] = package.path
 
@@ -241,6 +246,9 @@ class PackageManager(Base):
             self.threebot.nginx.reload()
 
         self.save()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
 
     def delete(self, package_name):
         if package_name in DEFAULT_PACKAGES:
@@ -272,6 +280,51 @@ class PackageManager(Base):
 
         self.packages.pop(package_name)
         self.save()
+
+    def install_package(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+        package.install()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
+
+    def uninstall_package(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+        package.uninstall()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
+
+    def start_package(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+        package.start()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
+
+    def stop_package(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+        package.stop()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
+
+    def restart_package(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound("package not found")
+        package.restart()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
 
     def install(self, package):
         for static_dir in package.static_dirs:
