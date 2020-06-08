@@ -163,9 +163,8 @@ class Zosv2:
 
         reservation = self.reservation_get(reservation_id)
         payload = payload_build(reservation.id, reservation.json.encode())
-        # signature = me.nacl.sign_hex(payload)
-        signed = me.nacl.signing_key.sign(payload)
-        signature = binascii.hexlify(signed.signature)
+        payload = reservation_id.encode() + payload
+        signature = me.nacl.sign_hex(payload)
 
         return self._explorer.reservations.sign_delete(
             reservation_id=reservation_id, tid=me.tid, signature=signature.decode()
