@@ -1,6 +1,7 @@
 # GENERATED CLASS DONT EDIT
 from jumpscale.core.base import Base, fields
 from enum import Enum
+import ipaddress
 
 
 class Currency(Enum):
@@ -283,7 +284,7 @@ class TfgridDirectoryFarm1(Base):
     location = fields.Object(TfgridDirectoryLocation1)
     email = fields.Email()
     resource_prices = fields.List(fields.Object(TfgridDirectoryNodeResourcePrice1))
-    prefix_zero = fields.IPAddress()
+    prefix_zero = fields.IPRange()
 
 
 class TfgridDirectoryGateway1(Base):
