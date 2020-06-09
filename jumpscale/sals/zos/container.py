@@ -8,6 +8,7 @@ import binascii
 from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationContainer1,
     TfgridWorkloadsReservationNetworkConnection1,
+    Disk_type,
 )
 
 
@@ -23,12 +24,12 @@ class Container:
         cpu=1,
         memory=1024,
         disk_size=256,
-        disk_type="SSD",
+        disk_type=Disk_type.SSD,
         entrypoint="",
         interactive=False,
         secret_env={},
         public_ipv6=False,
-        hub_url="zdb://hub.grid.tf:9900",
+        storage_url="zdb://hub.grid.tf:9900",
     ):
         """Creates and add a container to the reservation
 
@@ -45,7 +46,7 @@ class Container:
             interactive (bool, optional): Specifies interactive contaienr start or not. Defaults to False.
             secret_env (dict, optional): Secret Environment variables to set. Defaults to {}.
             public_ipv6 (bool, optional): IPV6 container ip address in the network. Defaults to False.
-            hub_url (str, optional): Server used as storage backend. Defaults to "zdb://hub.grid.tf:9900".
+            storage_url (str, optional): Server used as storage backend. Defaults to "zdb://hub.grid.tf:9900".
 
         Raises:
             jumpscale.core.exceptions.Input: If ip not in specified network range
@@ -59,7 +60,7 @@ class Container:
         cont.workload_id = _next_workload_id(reservation)
 
         cont.flist = flist
-        cont.hub_url = hub_url
+        cont.storage_url = storage_url
         cont.environment = env
         cont.secret_environment = secret_env
         cont.entrypoint = entrypoint
