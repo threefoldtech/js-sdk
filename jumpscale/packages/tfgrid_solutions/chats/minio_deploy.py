@@ -311,10 +311,10 @@ class MinioDeploy(GedisChatBot):
                 container=slave_cont, volume_id=f"{self.zdb_rid}-{self.slave_volume.workload_id}", mount_point="/data"
             )
 
-        res = j.sal.reservation_chatflow.get_solution_metadata(
+        res = j.sals.reservation_chatflow.get_solution_metadata(
             self.user_form_data["Solution name"], SolutionType.Minio, self.user_form_data
         )
-        self.reservation = j.sals.reservation_chatflow.reservation_metadata_add(self.reservation, res)
+        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
             self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.network.currency, bot=self
         )
