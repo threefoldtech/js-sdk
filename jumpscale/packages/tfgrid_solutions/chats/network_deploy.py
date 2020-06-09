@@ -12,7 +12,7 @@ class NetworkDeploy(GedisChatBot):
     def network_reservation(self):
         user_form_data = {}
         user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(user_info)
+        # j.sals.reservation_chatflow.validate_user(user_info) # TODO: use it when Auth is ready
         user_form_data["chatflow"] = "network"
         network_name = self.string_ask("Please enter a network name", required=True, field="name")
         user_form_data["Currency"] = self.single_choice(
