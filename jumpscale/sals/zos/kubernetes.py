@@ -34,7 +34,7 @@ class Kubernetes:
         master.workload_id = _next_workload_id(reservation)
 
         node = self._nodes.get(node_id)
-        master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret)
+        master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret).decode()
         master.network_id = network_name
         master.ipaddress = ip_address
         master.size = size
