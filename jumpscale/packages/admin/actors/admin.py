@@ -9,21 +9,26 @@ class Admin(BaseActor):
     @actor_method
     def admin_list(self) -> str:
         return j.data.serializers.json.dumps(
-               j.core.identity.list_admins())
+                list({'name':name} for name in j.core.identity.list_admins()))
                
     @actor_method
     def admin_add(self, name: str) -> str:
-        try:
-            j.core.identity.add_admin(name)
-            return j.data.serializers.json.dumps("OK")
-        except JSException as e:
-            return j.data.serializers.json.dumps(str(e))
+        return j.data.serializers.json.dumps(
+            j.core.identity.add_admin(name))
 
     @actor_method
     def admin_delete(self, name: str) -> str:
+        return j.data.serializers.json.dumps(
+            j.core.identity.delete_admin(name))
+            
+    @actor_method        
+    def get_current_user(self) -> str:
         try:
-            j.core.identity.delete_admin(name)
-            return j.data.serializers.json.dumps("OK")
+            cfg = j.core.identity.get_threebot_config()
+            return j.data.serializers.json.dumps({
+                'name': cfg['name'],
+                'email': cfg['email']
+            })
         except JSException as e:
             return j.data.serializers.json.dumps(str(e))
 
@@ -52,22 +57,22 @@ class Admin(BaseActor):
     def set_explorer(self, explorer_type: str) -> str:
         if explorer_type in explorers:
             cfg = j.core.config.get("threebot")
+            url = f"https://{explorers[explorer_type]}/explorer"
             client = j.clients.explorer.get(
                 name=explorer_type,
-                url=f"https://{explorers[explorer_type]}/explorer")
+                url=url)
             
             # check if we can switch with existing identity
             try:
                 user = client.users.get(name=cfg["name"], email=cfg["email"])
             except j.exceptions.NotFound:
                 return j.data.serializers.json.dumps(
-                    f"Your identity does not exists on {explorer_type}")
+                    f"Your identity does not exist on {explorer_type}")
             if user.pubkey != j.core.identity.nacl.get_verify_key_hex():
                 return j.data.serializers.json.dumps(
                     f"Your identity does not match on {explorer_type}")
             
-            # cfg["id"] = user.id
-            j.clients.explorer.default_addr_set(explorers[explorer_type])
+            j.clients.explorer.default_addr_set(url=url)
 
             # update our solutions
             # j.sal.reservation_chatflow.solutions_explorer_get()

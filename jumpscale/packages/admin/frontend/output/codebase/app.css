@@ -1,3 +1,8 @@
+.settings_header {
+  background: #e4e4e6;
+  color: #444852;
+  font-weight: bold;
+}
 .webix_layout_clean {
   background-color: #e6e6e6 !important;
 }
