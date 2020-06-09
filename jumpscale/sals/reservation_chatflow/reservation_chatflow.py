@@ -550,7 +550,7 @@ class ReservationChatflow:
 # Deploying...\n
 Deployment will be cancelled if it is not successful {remaning_time}
 """
-            # bot.md_show_update(deploying_message, md=True) # TODO: RESTORE WHEN DONE
+            bot.md_show_update(deploying_message, md=True)
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
@@ -815,7 +815,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
         wg_quick = j.sals.zos.network.add_access(network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4)
 
         network_config["wg"] = wg_quick
-        # j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/wireguard/{network_name}.conf", f"{wg_quick}")
+
+        j.sals.fs.mkdir(f"{j.core.dirs.CFGDIR}/wireguard/")
+        j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/wireguard/{network_name}.conf", f"{wg_quick}")
 
         # register the reservation
         expiration = expiration or j.data.time.get().timestamp + (60 * 60 * 24)
