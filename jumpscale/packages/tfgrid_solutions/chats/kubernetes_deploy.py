@@ -116,7 +116,8 @@ class kubernetesDeploy(GedisChatBot):
             ipaddresses.append(ip_address)
 
         for idx, node_selected in enumerate(self.worker_nodes_selected):
-            if node_selected not in self.master_nodes_selected:
+            nodes_ids = [nid.node_id for nid in self.master_nodes_selected]
+            if node_selected.node_id not in nodes_ids:
                 self.network_copy.add_node(node_selected)
             msg = f"Please choose IP Address for worker node {idx + 1} of your kubernets cluster"
             ip_address = self.network_copy.ask_ip_from_node(node_selected, msg)
