@@ -167,7 +167,7 @@ class ReservationChatflow:
             return "flist"
         elif reservation.data_reservation.domain_delegates:
             return SolutionType.DelegatedDomain
-        return SolutionType.Unkown
+        return SolutionType.Unknown
 
     def get_solution_ubuntu_info(self, metadata, reservation):
         envs = reservation.data_reservation.containers[0].environment
