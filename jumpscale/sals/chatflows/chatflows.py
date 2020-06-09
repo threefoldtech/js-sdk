@@ -557,6 +557,26 @@ class GedisChatBot:
             data["value"] = (i / wait) * 100
             self.send_data(data)
             gevent.sleep(1)
+    
+    def md_show_update(self, msg, **kwargs):
+        self.send_data({"category": "infinite_loading", "msg": msg, "kwargs": kwargs}, is_slide=False)
+
+    def multi_values_ask(self, msg, **kwargs):
+        """Ask for multiple values
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            dict: the result as a dict
+        """
+        result = self.ask({"category": "ask_multi_values", "msg": msg, "kwargs": kwargs})
+        return j.data.serializers.json.loads(result)
 
     def new_form(self):
         """Create a new form
