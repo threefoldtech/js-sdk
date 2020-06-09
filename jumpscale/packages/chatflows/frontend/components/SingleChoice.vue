@@ -26,7 +26,7 @@
     methods: {
       getColor (i) {
         if (i > this.colors.length - 1) {
-          return this.colors[i % this.color.length]
+          return this.colors[i % this.colors.length]
         } else {
           return this.colors[i]
         }
