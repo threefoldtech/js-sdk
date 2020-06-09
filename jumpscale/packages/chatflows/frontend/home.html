@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Home{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+
+    <link rel="stylesheet" href="/weblibs/bootstrap4/bootstrap.min.css">
+
+    <link rel="stylesheet" href="/staticchat/home/css/fonts.css">
+    <link rel="stylesheet" href="/staticchat/home/css/bootstrap-social.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="/weblibs/fontawesome4/css/fontawesome.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/staticchat/home/css/style.css">
+    {% endblock %}
+</head>
+
+<body>
+    {% if email %}
+    <div style="float:right; margin:20px; padding:10px;color:#404040;">
+        <i class="fa fa-user-circle" style="font-size: 18px; margin-right:5px;"></i> {{ email }}
+    </div>
+    {% endif %}
+    <div class="intro">
+        <div class="container">
+            <div class="intro-text justify-content-center">
+                <div class="row">
+                    <div class="col-sm">
+                        <img style="padding-top:60px !important" src="/staticchat/home/img/3BOT - ROBOT.png" alt="3Bot">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm text-center">
+                        {% block content %}
+                        <h1>Welcome to ChatFlows deployments</h1>
+                        <ul>
+                            {% for chatflow, sanitized_name in chatflows %}
+                            <li><a href="/{{threebot_name}}/{{package_name}}/chat/{{chatflow}}">{{sanitized_name}}</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% endblock %}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

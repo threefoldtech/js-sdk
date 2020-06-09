@@ -1,0 +1,36 @@
+html, body {
+    height:100% !important;
+    width: 100% !important;
+  }
+  
+  .v-content {
+    background: url(./assets/images/background.jpg) repeat center;
+    background-size: cover;
+  }
+  
+  .chat-container {
+    width: 100%;
+    min-height: 100%;
+    padding-top: 80px;
+    padding-bottom: 50px;
+  }
+  
+  .chat {
+    text-align: left;
+    padding: 16px 48px;
+  }
+  
+  .chat .v-card__text, .chat .v-card__actions, .chat .v-toolbar__content, .chat .v-toolbar__extension {
+    padding: 0px !important;
+  }
+  
+  .chat .v-card__text {
+    margin-top: 24px;
+    min-height: 150px;
+  }
+  
+  .chat .v-card__actions {
+    margin-top: 0px;
+    margin-bottom: 16px;
+  }
+  
