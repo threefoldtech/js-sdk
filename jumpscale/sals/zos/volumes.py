@@ -51,6 +51,7 @@ class Volumes:
             volume_id ([type]): the complete volume ID, format should be '{reservation.id}-{volume.workload_id}'
             mount_point (str): path where to mount the volume in the container
         """
-        vol = container.volumes.new()
+        vol = TfgridWorkloadsReservationVolume1()
         vol.volume_id = volume_id
         vol.mountpoint = mount_point
+        container.volumes.append(vol)
