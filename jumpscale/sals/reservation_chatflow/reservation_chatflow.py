@@ -550,7 +550,7 @@ class ReservationChatflow:
 # Deploying...\n
 Deployment will be cancelled if it is not successful {remaning_time}
 """
-            # bot.md_show(deploying_message, md=True) # TODO: RESTORE WHEN DONE
+            # bot.md_show_update(deploying_message, md=True) # TODO: RESTORE WHEN DONE
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
