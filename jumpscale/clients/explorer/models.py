@@ -69,8 +69,8 @@ class Mode(Enum):
 
 
 class Disk_type(Enum):
-    HDD = "HDD"
-    SSD = "SSD"
+    HDD = 0
+    SSD = 1
 
 
 class TfgridDeployed_reservation1(Base):
@@ -354,7 +354,7 @@ class TfgridWorkloadsReservationContainer1(Base):
     workload_id = fields.Integer()
     node_id = fields.String(default="")
     flist = fields.String(default="")
-    hub_url = fields.String(default="")
+    storage_url = fields.String(default="")
     environment = fields.Typed(dict)
     secret_environment = fields.Typed(dict)
     entrypoint = fields.String(default="")
