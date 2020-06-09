@@ -23,13 +23,17 @@ class AdminService extends Service {
         });
     }
 
+    getCurrentUser() {
+        return this.getCall("get_current_user");
+    }
+
     getExplorer() {
-        return this.getCall('get_explorer');
+        return this.getCall("get_explorer");
     }
 
     setExplorer(type) {
         // post call to send args as json
-        return this.postCall('set_explorer', {
+        return this.postCall("set_explorer", {
             explorer_type: type
         })
     }
