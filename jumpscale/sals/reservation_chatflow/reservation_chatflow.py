@@ -75,12 +75,12 @@ class Network:
     def update(self, tid, currency=None, bot=None):
         if self._is_dirty:
             reservation = j.sals.zos.reservation_create()
-            reservation.data_reservation.networks.append(self._network._ddict)
+            reservation.data_reservation.networks.append(self._network)
             reservation_create = self._sal.register_reservation(
                 reservation, self._expiration, tid, currency=currency, bot=bot
             )
             rid = reservation_create.reservation_id
-            payment = j.sals.reservation_chatflow.show_payments(self._bot, reservation_create, currency)
+            payment, _ = j.sals.reservation_chatflow.show_payments(self._bot, reservation_create, currency)
             if payment["free"]:
                 pass
             elif payment["wallet"]:
@@ -375,7 +375,7 @@ class ReservationChatflow:
         payment_obj.currency = currency
         payment_obj.escrow_address = escrow_address
         payment_obj.escrow_asset = escrow_asset
-        payment_obj.total_amount = total_amount
+        payment_obj.total_amount = str(total_amount)
         payment_obj.transaction_fees = f"0.1 {currency}"
         payment_obj.payment_source = payment_source
         for farmer in farmer_payments:
@@ -492,10 +492,10 @@ class ReservationChatflow:
         while True:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize()
             deploying_message = f"""
-            # Payment being processed...\n
-            Deployment will be cancelled if payment is not successful {remaning_time}
-            """
-            bot.md_show_update(j.core.text.strip(deploying_message), md=True)
+# Payment being processed...\n
+Deployment will be cancelled if payment is not successful {remaning_time}
+"""
+            bot.md_show_update(deploying_message, md=True)
             if reservation.next_action != "PAY":
                 return
             if is_expired(reservation):

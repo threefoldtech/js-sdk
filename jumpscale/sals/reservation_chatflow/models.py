@@ -36,5 +36,5 @@ class TfgridSolutionsPayment1(Base):
     total_amount = fields.String(default="")
     transaction_fees = fields.String(default="")
     payment_source = fields.String(default="")
-    farmer_payments = fields.Typed(dict)
+    farmer_payments = fields.Typed(dict, default={})
     time = fields.DateTime(default=datetime.utcnow)
