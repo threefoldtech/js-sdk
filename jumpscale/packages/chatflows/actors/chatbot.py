@@ -23,7 +23,7 @@ class ChatFlows(BaseActor):
         return chatflow.get_work()
     
     @actor_method
-    def report(self, session_id: str, result: str):
+    def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)
         chatflow.set_work(result)
     

@@ -179,6 +179,7 @@
         axios({
           url: `${baseUrl}/new`,
           method: "post",
+          headers: {'Content-Type': 'application/json'},
           data: {
             topic: TOPIC,
             client_ip: CLIENT_IP
