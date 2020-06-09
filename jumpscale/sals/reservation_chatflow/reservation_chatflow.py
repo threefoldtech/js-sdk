@@ -907,6 +907,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         nodes_distribution = self._distribute_nodes(number_of_nodes, farm_names)
         # to avoid using the same node with different networks
         nodes_selected = []
+        selected_ids = []
         for farm_name in nodes_distribution:
             nodes_number = nodes_distribution[farm_name]
             if not farm_names:
@@ -918,12 +919,13 @@ Deployment will be cancelled if it is not successful {remaning_time}
             for i in range(nodes_number):
                 try:
                     node = random.choice(nodes)
-                    while node in nodes_selected:
+                    while node.node_id in selected_ids:
                         node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow("Failed to find resources for this reservation")
                 nodes.remove(node)
                 nodes_selected.append(node)
+                selected_ids.append(node.node_id)
         return nodes_selected
 
     def filter_nodes(self, nodes, free_to_use):
