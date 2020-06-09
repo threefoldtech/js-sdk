@@ -57,7 +57,7 @@ export default class WalletManagerView extends JetView {
                     css: "webix_secondary",
                     autowidth: true,
                     click: function () {
-                        this.$scope.WalletFormView.showForm()
+                        this.$scope.walletFormView.showForm()
                     }
                 },
                 {
@@ -67,7 +67,7 @@ export default class WalletManagerView extends JetView {
                     css: "webix_secondary",
                     autowidth: true,
                     click: function () {
-                        this.$scope.WalletImportView.showForm()
+                        this.$scope.walletImportView.showForm()
                     }
                 }
             ]
@@ -85,9 +85,9 @@ export default class WalletManagerView extends JetView {
         var self = this;
 
         self.wallets_table = $$("wallets_table");
-        self.WalletDetailsView = self.ui(WalletDetailsView)
-        self.WalletFormView = self.ui(WalletFormView);
-        self.WalletImportView = self.ui(WalletImportView);
+        self.walletDetailsView = self.ui(WalletDetailsView)
+        self.walletFormView = self.ui(WalletFormView);
+        self.walletImportView = self.ui(WalletImportView);
 
         self.wallets_table.attachEvent("onItemDblClick", function () {
             webix.extend(self.wallets_table, webix.ProgressBar);
@@ -106,7 +106,7 @@ export default class WalletManagerView extends JetView {
                     'secret': res.secret,
                     'balances': res.balances
                 }
-                self.WalletDetailsView.showInfo(info)
+                self.walletDetailsView.showInfo(info)
                 self.wallets_table.showProgress({ hide: true });
             }).catch(data => {
                 console.log(data);
