@@ -53,6 +53,7 @@
       httpVueLoader.register(Vue, `${baseUrl}/components/TimeDelta.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Location.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Error.vue`)
+      httpVueLoader.register(Vue, `${baseUrl}/components/MultiValues.vue`)
 
       Vue.mixin({
         data: function() {
@@ -77,6 +78,7 @@
               confirm: 'Confirm',
               loading: 'Loading',
               infinite_loading: 'InfiniteLoading',
+              ask_multi_values: 'MultiValues',
               form: 'Form',
               error: 'Error'
             }
