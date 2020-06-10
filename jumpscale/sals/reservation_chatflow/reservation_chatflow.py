@@ -1020,7 +1020,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             reservations.append(
                 {
                     "name": solution.name,
-                    "reservation": reservation._get_data,
+                    "reservation": reservation._get_data(),
                     "type": solution_type,
                     "form_info": json.dumps(solution.form_info),
                 }
