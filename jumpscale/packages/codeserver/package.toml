@@ -1,0 +1,12 @@
+name = "codeserver"
+ports = [80]
+[[servers]]
+name = "default"
+[[servers.locations]]
+type = "proxy"
+host = "127.0.0.1"
+name = "codeserver"
+port = 8080
+path_url = "/codeserver"
+path_dest = "/"
+websocket = true
