@@ -315,7 +315,7 @@ def generate_peers(network):
             peer.iprange = ea.subnet
             peer.endpoint = ""
             peer.allowed_iprange = [str(x) for x in allowed_ips]
-            peer.public_key = ea.wg_public_key
+            peer.public_key = ea.wg_public_key if isinstance(ea.wg_public_key, str) else ea.wg_public_key.decode()
             nr.peers.append(peer)
 
 
