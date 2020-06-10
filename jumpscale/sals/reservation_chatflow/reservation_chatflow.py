@@ -1,9 +1,8 @@
 import base64
 import copy
-import datetime
 import json
 from jumpscale.god import j
-from jumpscale.core.base import Base, fields, StoredFactory
+from jumpscale.core.base import StoredFactory
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import (
     TfgridSolution1,
@@ -12,18 +11,26 @@ from jumpscale.sals.reservation_chatflow.models import (
 )
 from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, Next_action
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
-from jumpscale.core import identity
 
+from nacl.public import Box
 import netaddr
 import random
 import requests
 import time
-import base64
-from nacl.public import Box
 
 
 class Network:
     def __init__(self, network, expiration, bot, reservations, currency, resv_id):
+        """Network class is responsible for creation and management of networks
+            you can add, update, list, get, filter nodes
+        Args:
+            network (jumpscale.clients.explorer.models.TfgridWorkloadsReservationNetwork1): network object
+            expiration (datetime): timestamp of the date for network expiration
+            bot (GedisChatBot):Instance from the bot that uses network
+            reservations (list of TfgridWorkloadsReservationData1): list of reservations
+            currency (str): currency used "TFT", "FreeTFT"
+            resv_id (int): reservation ID
+        """
         self._network = network
         self._expiration = expiration
         self.name = network.name
@@ -48,6 +55,11 @@ class Network:
                         self._used_ips.append(nc.ipaddress)
 
     def add_node(self, node):
+        """add node to the network
+
+        Args:
+            node (jumpscale.clients.explorer.models.TfgridDirectoryNode2): node object
+        """
         network_resources = self._network.network_resources
         used_ip_ranges = set()
         for network_resource in network_resources:
@@ -58,7 +70,8 @@ class Network:
                 used_ip_ranges.add(peer.iprange)
         else:
             network_range = netaddr.IPNetwork(self._network.iprange)
-            for idx, subnet in enumerate(network_range.subnet(24)):
+            subnet = None
+            for _, subnet in enumerate(network_range.subnet(24)):
                 if str(subnet) not in used_ip_ranges:
                     break
             else:
@@ -67,12 +80,29 @@ class Network:
             self._is_dirty = True
 
     def get_node_range(self, node):
+        """get ip range from specified node
+
+        Args:
+            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): node object
+
+        Returns:
+            (IPRange): ip range field
+        """
         for network_resource in self._network.network_resources:
             if network_resource.node_id == node.node_id:
                 return network_resource.iprange
         self._bot.stop(f"Node {node.node_id} is not part of network")
 
     def update(self, tid, currency=None, bot=None):
+        """create reservations and update status and show payments stuff
+        Args:
+            tid (int): customer tid (j.core.identity.tid)
+            currency (str, optional): "TFT" or "FreeTFT". Defaults to None.
+            bot (GedisChatBot, optional): bot instance. Defaults to None.
+
+        Returns:
+            bool: True if successful
+        """
         if self._is_dirty:
             reservation = j.sals.zos.reservation_create()
             reservation.data_reservation.networks.append(self._network)
@@ -94,6 +124,15 @@ class Network:
         return True
 
     def copy(self, customer_tid):
+        """create a copy of network object
+
+        Args:
+            customer_tid (int): customet tid (j.core.identity.tid)
+
+        Returns:
+            (Network): copy of the network
+        """
+        network_copy = None
         explorer = j.clients.explorer.default
         reservation = explorer.reservations.get(self.resv_id)
         networks = self._sal.list_networks(customer_tid, [reservation])
@@ -107,6 +146,15 @@ class Network:
         return network_copy
 
     def ask_ip_from_node(self, node, message):
+        """ask for free ip from a specific node and mark it as used in chatbot
+
+        Args:
+            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): reqired node to ask ip from
+            message (str): message to the chatflow slide
+
+        Returns:
+            [str]: free ip
+        """
         ip_range = self.get_node_range(node)
         freeips = []
         hosts = netaddr.IPNetwork(ip_range).iter_hosts()
@@ -120,6 +168,14 @@ class Network:
         return ip_address
 
     def get_free_ip(self, node):
+        """return free ip
+
+        Args:
+            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): reqired node to get free ip from
+
+        Returns:
+            [str]: free ip to use
+        """
         ip_range = self.get_node_range(node)
         hosts = netaddr.IPNetwork(ip_range).iter_hosts()
         next(hosts)  # skip ip used by node
