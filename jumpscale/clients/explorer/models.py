@@ -137,7 +137,7 @@ class TfgridDirectoryNodeResourceWorkloads1(Base):
 
 
 class TfgridDirectoryNodeProof1(Base):
-    created = fields.Date()
+    created = fields.DateTime()
     hardware_hash = fields.String(default="")
     disk_hash = fields.String(default="")
     hardware = fields.Typed(dict)
@@ -168,7 +168,7 @@ class TfgridWorkloadsReservationSigningRequest1(Base):
 class TfgridWorkloadsReservationSigningSignature1(Base):
     tid = fields.Integer()
     signature = fields.String(default="")
-    epoch = fields.Date()
+    epoch = fields.DateTime()
 
 
 class TfgridWorkloadsReservationEscrowDetail1(Base):
@@ -262,7 +262,7 @@ class TfgridWorkloadsReservationResult1(Base):
     signature = fields.Bytes()
     state = fields.Enum(State)
     message = fields.String(default="")
-    epoch = fields.Date()
+    epoch = fields.DateTime()
 
 
 class TfgridWorkloadsReservationWorkload1(Base):
@@ -293,7 +293,7 @@ class TfgridDirectoryGateway1(Base):
     os_version = fields.String(default="")
     farm_id = fields.Integer()
     created = fields.DateTime()
-    updated = fields.Date()
+    updated = fields.DateTime()
     uptime = fields.Integer()
     address = fields.String(default="")
     location = fields.Object(TfgridDirectoryLocation1)
@@ -310,7 +310,7 @@ class TfgridDirectoryNode2(Base):
     node_id_v1 = fields.String(default="")
     farm_id = fields.Integer()
     os_version = fields.String(default="")
-    created = fields.Date()
+    created = fields.DateTime()
     updated = fields.DateTime()
     uptime = fields.Integer()
     address = fields.String(default="")
