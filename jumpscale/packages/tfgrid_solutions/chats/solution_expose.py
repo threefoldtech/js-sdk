@@ -67,7 +67,7 @@ class SolutionExpose(GedisChatBot):
         )
         solution = self.sols[solution_name]
         self.user_form_data["Solution name"] = solution_name
-        self.reservation_data = json.loads(solution["reservation"]()["json"])  # TODO: fix this callable key
+        self.reservation_data = json.loads(solution["reservation"]["json"])
         self.solution_currency = self.reservation_data["currencies"][0]
 
     @chatflow_step(title="Ports")
