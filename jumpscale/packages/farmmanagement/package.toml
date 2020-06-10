@@ -1,0 +1,8 @@
+name = "farmmanagement"
+ports = [ 80,]
+[[static_dirs]]
+name = "frontend"
+path_url = "frontend"
+path_location = "frontend/"
+index = "index.html"
+spa = true

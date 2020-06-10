@@ -1,0 +1,188 @@
+<section class="nodeinfo">
+  <v-col>
+    <div class="title">
+      <v-icon small left>fa-info-circle</v-icon>
+      Node Information
+    </div>
+    <v-container fluid>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Node ID </v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.id}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Node version</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.version}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Farmer</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.farmer.name}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Location</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.location.country}}, {{node.location.city}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Uptime</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.uptime}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Status</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.status.status}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Updated</v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <span>{{node.updated}}</span>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-flex xs3 class="text-left pr-2">Free to use</v-flex>
+        <v-flex>
+          <v-switch class="free-toggle pr-2" v-model="node.free_to_use" @change="setFree()"></v-switch>
+          <v-alert class="pr-2" :type="freeSwitchAlert.type" v-if="freeSwitchAlert" border="right" colored-border
+            elevation="2">
+            {{freeSwitchAlert.message}}
+          </v-alert>
+          <p>
+            When free to use is enabled, you can paid for this node capacity using <a id='asd'
+              href="https://github.com/threefoldfoundation/tft-stellar/#testnet">FreeTFT</a>
+          </p>
+        </v-flex>
+      </v-row>
+      <v-row>
+        <v-tooltip right>
+          <template v-slot:activator="{ on }">
+            <v-flex xs3 class="text-left pr-2">Network Health</v-flex>
+            <v-flex class="text-truncate font-weight-bold">
+              <span v-on="on"><v-icon :color="healthyIcon.color">{{healthyIcon.icon}}</v-icon> <v-icon x-small>fa-question-circle</v-icon></span>
+            </v-flex>
+          </template>
+          <span v-if="!node.publicConfig6Error && !node.npub4HealthError && !node.publicConfig6Error">
+            Your network is configured properly!<a id='asd'></a>
+          </span>
+          <span v-else>
+            Your network is not configured properly, check the network config.<a id='asd'></a>
+          </span>
+        </v-tooltip>
+      </v-row>
+      <v-row>
+        <v-dialog v-model="dialog" persistent max-width="800">
+          <template v-slot:activator="{ on }">
+            <v-btn color="primary" dark v-on="on">Check network config</v-btn>
+          </template>
+          <v-card>
+            <v-card-title class="headline">You node's network configuration</v-card-title>
+            <v-card-text>
+              <ul>
+                <li v-if="!node.npub6HealthError">NDMZ ipv6 config: <strong>{{ node.npub6Value }}</strong></li>
+                <li v-else>
+                  {{node.npub6HealthError}}
+                  <ul v-if="node.npub6Configs.length > 0">
+                    <li v-for="config in node.npub6Configs" :key="config">{{ config }}</li>
+                  </ul>
+                </li>
+
+                <li v-if="!node.npub4HealthError">NDMZ ipv4 config: <strong>{{ node.npub4Value }}</strong></li>
+                <li v-else>{{node.npub4HealthError}}</li>
+
+                <li v-if="!node.publicConfig6Error && !node.publicConfig6Value">No ipv6 public config</li>
+                <li v-else-if="node.publicConfig6Error">{{node.publicConfig6Error}}</li>
+                <li v-else>Public config ipv6: <strong>{{ node.publicConfig6Value }}</strong></li>
+              </ul>
+              <a href="https://github.com/threefoldtech/zos/blob/master/docs/network/Deploy_Network-V2.md" target="blank">Network documentation</a>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn x-small color="green darken-1" text @click="dialog = false">Close</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-row>
+    </v-container>
+  </v-col>
+  <v-col v-if="node.workloads">
+    <div class="title">
+      <v-icon small left>fa-chart-bar</v-icon>Provisioned workloads
+    </div>
+    <v-container fluid>
+      <v-row>
+        <v-col>
+          <v-row>
+            <v-col>Network:</v-col>
+            <v-col><span class="font-weight-bold text-right">{{node.workloads.network}}</span></v-col>
+          </v-row>
+          <v-row>
+            <v-col>0-DB namespace:</v-col>
+            <v-col><span class="font-weight-bold text-right">{{node.workloads.zdb_namespace}}</span></v-col>
+          </v-row>
+        </v-col>
+        <v-col>
+          <v-row>
+            <v-col>Volume:</v-col>
+            <v-col><span class="font-weight-bold text-right">{{node.workloads.volume}}</span></v-col>
+          </v-row>
+          <v-row>
+            <v-col>Container:</v-col>
+            <v-col><span class="font-weight-bold text-right">{{node.workloads.container}}</span></v-col>
+          </v-row>
+        </v-col>
+        <v-col>
+          <v-row>
+            <v-col>Kubernetes VM:</v-col>
+            <v-col><span class="font-weight-bold text-right">{{node.workloads.k8s_vm}}</span></v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
+    </div>
+  </v-col>
+
+  <v-col>
+    <div class="title">
+      <v-icon small left>fa-chart-pie</v-icon>Resource units reserved
+    </div>
+
+    <v-row>
+      <v-col v-for="(value, key) in node.totalResources" :key="key" align="center">
+        <v-flex class="text-center pr-2">
+          <span class="text-uppercase">{{ key }}</span>
+        </v-flex>
+        <v-flex class="text-truncate font-weight-bold">
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-progress-circular v-on="on" :rotate="-90" :size="100" :width="15" :value="getPercentage(key)"
+                color="light-green darken-2" />
+              <span>
+                {{ node.reservedResources[key] }} / {{ node.totalResources[key] }}
+              </span>
+            </template>
+            <span>
+              <v-row dense>
+                Total: {{ node.totalResources[key] }}
+              </v-row>
+              <v-row dense>
+                Reserved: {{ node.reservedResources[key] }}
+              </v-row>
+            </span>
+          </v-tooltip>
+        </v-flex>
+      </v-col>
+    </v-row>
+  </v-col>
+  </v-row>
+  </v-row>
+  </v-row>
+  </v-col>
+</section>

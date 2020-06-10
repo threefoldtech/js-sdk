@@ -1,5 +1,8 @@
 import { JetView } from "webix-jet";
 
+
+// TODO: Add required packages
+
 export class ExternalView extends JetView {
     constructor(app, name, targetUrl) {
         super(app, name);
