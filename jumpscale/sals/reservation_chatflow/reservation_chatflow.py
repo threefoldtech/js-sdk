@@ -77,7 +77,7 @@ class Network:
             reservation = j.sals.zos.reservation_create()
             reservation.data_reservation.networks.append(self._network)
             reservation_create = self._sal.register_reservation(
-                reservation, self._expiration, tid, currency=currency, bot=bot
+                reservation, self._expiration.timestamp(), tid, currency=currency, bot=bot
             )
             rid = reservation_create.reservation_id
             payment, _ = j.sals.reservation_chatflow.show_payments(self._bot, reservation_create, currency)
