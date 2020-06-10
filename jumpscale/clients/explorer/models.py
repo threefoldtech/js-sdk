@@ -2,6 +2,7 @@
 from jumpscale.core.base import Base, fields
 from enum import Enum
 import ipaddress
+from datetime import datetime
 
 
 class Currency(Enum):
@@ -269,7 +270,7 @@ class TfgridWorkloadsReservationWorkload1(Base):
     user = fields.String(default="")
     type = fields.Enum(Type)
     content = fields.Typed(dict)
-    created = fields.Date()
+    created = fields.DateTime()
     duration = fields.Integer()
     signature = fields.String(default="")
     to_delete = fields.Boolean()
@@ -291,7 +292,7 @@ class TfgridDirectoryGateway1(Base):
     node_id = fields.String(default="")
     os_version = fields.String(default="")
     farm_id = fields.Integer()
-    created = fields.Date()
+    created = fields.DateTime()
     updated = fields.Date()
     uptime = fields.Integer()
     address = fields.String(default="")
@@ -434,6 +435,6 @@ class TfgridWorkloadsReservation1(Base):
     signatures_provision = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_farmer = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_delete = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
-    epoch = fields.DateTime()
+    epoch = fields.DateTime(default=datetime.utcnow)
     metadata = fields.String(default="")
     results = fields.List(fields.Object(TfgridWorkloadsReservationResult1))
