@@ -1,3 +1,5 @@
+import json
+
 from jumpscale.god import j
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
@@ -5,7 +7,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
-from jumpscale.clients.explorer.models import Disk_type, Mode, Volume_type
+from jumpscale.clients.explorer.models import Disk_type, Mode, Volume_type, Category
 import requests
 import math
 import time
@@ -234,8 +236,8 @@ class MinioDeploy(GedisChatBot):
         # read the IP address of the 0-db namespaces after they are deployed to be used in the creation of the minio container
         self.namespace_config = []
         for result in self.reservation_result:
-            if result.category == "ZDB":
-                data = result.data_json
+            if result.category == Category.Zdb:
+                data = json.loads(result.data_json)
                 cfg = f"{data['Namespace']}:{self.password}@[{data['IP']}]:{data['Port']}"
                 self.namespace_config.append(cfg)
         if self.user_form_data["Setup type"] == "Master/Slave Setup":
