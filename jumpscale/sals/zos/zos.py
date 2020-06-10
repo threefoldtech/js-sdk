@@ -27,7 +27,7 @@ class Zosv2:
         self._zdb = ZDB(self._explorer)
         self._kubernetes = Kubernetes(self._explorer)
         self._billing = Billing()
-        self._gateway = Gateway()
+        self._gateway = Gateway(self._explorer)
 
     @property
     def network(self):
