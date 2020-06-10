@@ -90,7 +90,6 @@ class Zosv2:
 
         if expiration_provisioning is None:
             expiration_provisioning = now().timestamp + (15 * 60)
-
         dr = reservation.data_reservation
         dr.currencies = currencies
 
