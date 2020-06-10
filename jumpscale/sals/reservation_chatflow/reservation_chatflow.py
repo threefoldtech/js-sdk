@@ -188,6 +188,8 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
+        """This class is responsible for managing, creating, cancelling reservations
+        """
         self.me = j.core.identity
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
@@ -196,12 +198,28 @@ class ReservationChatflow:
         self.get_solutions_explorer()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
+        """decrypt the reservation metadata using identity nacl
+
+        Args:
+            metadata_encrypted (bytes): encrypted metadata
+
+        Returns:
+            [str]: decrypted solution metadata
+        """
         pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
         sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
         box = Box(sk, pk)
         return box.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
 
     def check_solution_type(self, reservation):
+        """categorize the solutions by types
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): user reservation
+
+        Returns:
+            [jumpscale.clients.explorer.models.SolutionType]: type of the solution
+        """
         containers = reservation.data_reservation.containers
         volumes = reservation.data_reservation.volumes
         zdbs = reservation.data_reservation.zdbs
@@ -226,6 +244,15 @@ class ReservationChatflow:
         return SolutionType.Unknown
 
     def get_solution_ubuntu_info(self, metadata, reservation):
+        """get ubuntu solutions information from metadata on explorer and update local ones
+
+        Args:
+            metadata (dict): ubuntu reservation metadata
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): ubuntu reservation
+
+        Returns:
+            [dict]: updated metadata
+        """
         envs = reservation.data_reservation.containers[0].environment
         env_variable = ""
         metadata["form_info"]["Public key"] = envs["pub_key"].strip(" ")
@@ -245,6 +272,14 @@ class ReservationChatflow:
         return metadata
 
     def get_solution_exposed_info(self, reservation):
+        """get information about solution exposed from reservation
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1)
+
+        return dict of info
+        """
+
         def get_arg(cmd, arg):
             idx = cmd.index(arg)
             if idx:
@@ -269,6 +304,15 @@ class ReservationChatflow:
         return info
 
     def get_solution_flist_info(self, metadata, reservation):
+        """get flist solutions information from metadata on explorer and update local ones
+
+        Args:
+            metadata (dict): flist reservation metadata
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): ubuntu reservation
+
+        Returns:
+            [dict]: updated metadata
+        """
         envs = reservation.data_reservation.containers[0].environment
         env_variable = ""
         for key, value in envs.items():
@@ -291,10 +335,27 @@ class ReservationChatflow:
         return metadata
 
     def get_solution_domain_delegates_info(self, reservation):
+        """get domain delegated metadata info
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+
+        Returns:
+            [dict]: domain delegated metadata info
+        """
+
         delegated_domain = reservation.data_reservation.domain_delegates[0]
         return {"Domain": delegated_domain.domain, "Gateway": delegated_domain.node_id}
 
     def save_reservation(self, rid, name, solution_type, form_info=None):
+        """save user reservation in local config manager
+
+        Args:
+            rid (int): user identity (j.core.identity.tid)
+            name (str): reservation name
+            solution_type (SolutionType): type of the solution from types enum
+            form_info (dict, optional): reservation user info. Defaults to None.
+        """
         form_info = form_info or {}
         explorer_name = self._explorer.url.split(".")[1]
         reservation = self.solutions.get(f"{explorer_name}_{rid}")
@@ -306,7 +367,8 @@ class ReservationChatflow:
         reservation.save()
 
     def get_solutions_explorer(self):
-        # delete old instances, to get the new ones from explorer
+        """delete old instances, to get the new ones from explorer
+        """
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
 
@@ -424,6 +486,20 @@ class ReservationChatflow:
     def create_payment(
         self, rid, currency, escrow_address, escrow_asset, total_amount, payment_source, farmer_payments
     ):
+        """create payment object and save it locally
+
+        Args:
+            rid (int): customer tid
+            currency (str): reservation currency "TFT" or "FreeTFT"
+            escrow_address (str): escrow_address
+            escrow_asset (str): escrow asset
+            total_amount (str): paid amount
+            payment_source (str): payment source
+            farmer_payments (list): total list of farmer payments
+
+        Returns:
+            [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object
+        """
         explorer_name = self._explorer.url.split(".")[1]
         payment_obj = self.payments.get(f"{explorer_name}_{rid}")
         payment_obj.explorer = self._explorer.url
@@ -440,6 +516,15 @@ class ReservationChatflow:
         return payment_obj
 
     def get_payment_details(self, escrow_info, currency):
+        """split payment details and get each one
+
+        Args:
+            escrow_info (str): payment info
+            currency (str): currency used
+
+        Returns:
+            [str]: payment details
+        """
 
         farmer_payments = escrow_info["farmer_payments"]
         total_amount = escrow_info["total_amount"]
@@ -458,12 +543,17 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """
-        Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3bot app is shown
         where a QR code is viewed for the user to scan and continue with their payment
-        :rtype: wallet in case a wallet is used
-        """
 
+        Args:
+            bot (GedisChatBot): instance of the used bot
+            reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): result of reservation
+            currency (str): currency used
+
+        Returns:
+            [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object wallet in case a wallet is used
+        """
         payment = {"wallet": None, "free": False}
         if not (reservation_create_resp.escrow_information and reservation_create_resp.escrow_information.details):
             payment["free"] = True
@@ -514,6 +604,7 @@ class ReservationChatflow:
             else:
                 payment["wallet"] = wallets[result]
                 balances = payment["wallet"].get_balance().balances
+                current_balance = None
                 for balance in balances:
                     if balance.asset_code == currency:
                         current_balance = balance.balance
@@ -539,6 +630,14 @@ class ReservationChatflow:
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
+        """wait slide untill payment is ready
+
+        Args:
+            bot (GedisChatBot): bot instance
+            rid (int): customer tid
+            threebot_app (bool, optional): is using threebot app payment. Defaults to False.
+            reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
+        """
 
         # wait to check payment is actually done next_action changed from:PAY
         def is_expired(reservation):
@@ -581,6 +680,15 @@ Deployment will be cancelled if payment is not successful {remaning_time}
             bot.stop(res, md=True, html=True)
 
     def wait_reservation(self, bot, rid):
+        """
+        Wait for reservation results to be complete, have errors, or expire.
+        If there are errors then error message is previewed in the chatflow to the user and the chat is ended.
+
+        Args:
+            bot (GedisChatBot): bot instance
+            rid (int): user tid
+        """
+
         def is_finished(reservation):
             count = 0
             count += len(reservation.data_reservation.volumes)
@@ -597,6 +705,14 @@ Deployment will be cancelled if payment is not successful {remaning_time}
             return len(reservation.results) >= count
 
         def is_expired(reservation):
+            """[summary]
+
+            Args:
+                reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+
+            Returns:
+                [bool]: True if the reservation is expired
+            """
             return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
 
         reservation = self._explorer.reservations.get(rid)
@@ -626,20 +742,21 @@ Deployment will be cancelled if it is not successful {remaning_time}
     def register_reservation(
         self, reservation, expiration, customer_tid, expiration_provisioning=1000, currency=None, bot=None
     ):
-        """
-        Register reservation
+        """Register any reservation through the chatflow.
+        This reservation could include anything such as a new network, container, kubernetes cluster, or zdb.
+        It returns the reservation id of the registered reservation.
 
-        :param reservation: Reservation object to register
-        :type  reservation: object
-        :param expiration: epoch time when the reservation should be canceled automaticly
-        :type  expiration: int
-        :param customer_tid: Id of the customer making the reservation
-        :type  customer_tid: int
-        :param expiration_provisioning: timeout on the deployment of the provisioning in seconds
-        :type  expiration_provisioning: int
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+            expiration (int): epoch time when the reservation should be canceled automaticly
+            customer_tid (int): Id of the customer making the reservation
+            expiration_provisioning (int): timeout on the deployment of the provisioning in seconds
+            currency (str): "TFT" of "FreeTFT"
+            bot (GedisChatBot): bot instance
 
-        :return: reservation_create object
-        :rtype: Obj
+        Return:
+            [jumpscale.clients.explorer.models.TfgridWorkloadsReservation1]: reservation create object
+
         """
         expiration_provisioning += j.data.time.get().timestamp
         try:
@@ -673,6 +790,20 @@ Deployment will be cancelled if it is not successful {remaning_time}
     def register_and_pay_reservation(
         self, reservation, expiration=None, customer_tid=None, currency=None, bot=None, wallet=None
     ):
+        """register the reservation, pay and deploy
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+            expiration (int): epoch time when the reservation should be canceled automaticly
+            customer_tid (int): Id of the customer making the reservation
+            currency (str): "TFT" of "FreeTFT"
+            bot (GedisChatBot): bot instance
+            wallet (TfgridDirectoryWallet_address1): wallet object. Defaults to None.
+
+        Returns:
+            [int]: reservation id
+        """
+
         payment_obj = None
         if customer_tid and expiration and currency:
             reservation_create = self.register_reservation(
@@ -702,11 +833,28 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return resv_id
 
     def get_kube_network_ip(self, reservation_data):
+        """get kubernetes reservation network id
+
+        Args:
+            reservation_data (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1.reservation_data): reservation data object
+
+        Returns:
+            [str, str]: network_id, ip
+        """
         network_id = reservation_data["kubernetes"][0]["network_id"]
         ip = reservation_data["kubernetes"][0]["ipaddress"]
         return network_id, ip
 
     def list_gateways(self, bot, currency=None):
+        """list available gateways that supports passed currency
+
+        Args:
+            bot (GedisChatBot): bot instance
+            currency (str, optional): "TFT" or "FreeTFT". Defaults to None.
+
+        Returns:
+            [dict]
+        """
         unknowns = ["", None, "Uknown", "Unknown"]
         gateways = {}
         for g in j.sals.zos._explorer.gateway.list():
@@ -728,6 +876,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return gateways
 
     def select_gateway(self, bot, currency=None):
+        """prompt user about available gateways that supports passed currency
+
+        Args:
+            bot (GedisChatBot): bot instance
+            currency (str, optional): "TFT" or "FreeTFT". Defaults to None.
+
+        Returns:
+            [TfgridDirectoryGateway1]
+        """
         gateways = self.list_gateways(bot, currency)
         if not gateways:
             bot.stop("No available gateways")
@@ -736,6 +893,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return gateways[gateway]
 
     def list_delegate_domains(self, customer_tid, currency=None):
+        """list delegated domains with passed currency
+
+        Args:
+            customer_tid (int): user tid
+            currency (str, optional): currency to search with. Defaults to None.
+
+        Returns:
+            [dict]: [domains names]
+        """
         reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
         domains = dict()
         names = set()
@@ -754,6 +920,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return domains
 
     def get_network(self, bot, customer_tid, name):
+        """get the network object
+
+        Args:
+            bot (GedisChatBot): bot instance
+            customer_tid (int): user tid
+            name (str): [network name]
+
+        Returns:
+            [jumpscale.clients.explorer.models.TfgridWorkloadsReservationNetwork1]: nework object
+        """
         reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
         networks = self.list_networks(customer_tid, reservations)
         for key in networks.keys():
@@ -762,6 +938,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 return Network(network, expiration, bot, reservations, currency, resv_id)
 
     def list_networks(self, tid, reservations=None):
+        """list all available networks from reservations
+
+        Args:
+            tid (int): user tid
+            reservation (list of jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): list of reservation objects
+
+        Returns:
+            [type]: [description]
+        """
         if not reservations:
             reservations = j.sals.zos.reservation_list(tid=tid, next_action="DEPLOY")
         networks = dict()
@@ -784,6 +969,14 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return networks
 
     def get_currency(self, reservation):
+        """get reservation currency
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+
+        Returns:
+            [str]
+        """
         currencies = reservation.data_reservation.currencies
         if currencies:
             return currencies[0]
@@ -795,6 +988,12 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return "TFT"
 
     def cancel_solution_reservation(self, solution_type, solution_name):
+        """cancel solution reservation
+
+        Args:
+            solution_type (str): solution_type
+            solution_name (str): solution name
+        """
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
@@ -802,6 +1001,14 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 self.solutions.delete(name)
 
     def get_solutions(self, solution_type):
+        """get deployed solutions from specified type
+
+        Args:
+            solution_type (str): solution type
+
+        Returns:
+            [list]: list of reservations objects
+        """
         reservations = []
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
@@ -821,6 +1028,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
+        """ add the encrypted metadata to reservation object
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+            metadata (dict): reservation metadata
+
+        Returns:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation with metadata
+        """
         meta_json = json.dumps(metadata)
 
         pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
@@ -831,6 +1047,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservation
 
     def get_solution_metadata(self, solution_name, solution_type, form_info=None):
+        """get metadata from a solution
+
+        Args:
+            solution_name (str): solution name
+            solution_type (str): solution type
+            form_info (dict, optional): info from user slide. Defaults to None.
+
+        Returns:
+            dict: metadata
+        """
         form_info = form_info or {}
         reservation = {}
         reservation["name"] = solution_name
@@ -842,14 +1068,25 @@ Deployment will be cancelled if it is not successful {remaning_time}
     def create_network(
         self, network_name, reservation, ip_range, customer_tid, ip_version, expiration=None, currency=None, bot=None
     ):
-        """
-        bot: Gedis chatbot object from chatflow
-        reservation: reservation object from schema
-        ip_range: ip range for network eg: "10.70.0.0/16"
-        node: list of node objects from explorer
+        """create network to deploy reservation on
 
-        return reservation (Object) , config of network (dict)
+        Args:
+            network_name (str): network name
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+            ip_range (IPRange): selected ip range eg: "10.70.0.0/16"
+            customer_tid (int): user tid
+            ip_version (str): "IPv4" or "IPv6"
+            expiration (int, optional): epoch for expiration time. Defaults to None.
+            currency (str, optional): wanted currency . Defaults to None.
+            bot (GedisChatBot, optional): bot instance. Defaults to None.
+
+        Raises:
+            StopChatFlow: when no available node
+
+        Returns:
+            [dict]: network config
         """
+
         network = j.sals.zos.network.create(reservation, ip_range, network_name)
         node_subnets = netaddr.IPNetwork(ip_range).subnet(24)
         network_config = dict()
@@ -887,9 +1124,13 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return network_config
 
     def get_ip_range(self, bot):
-        """
-        bot: Gedis chatbot object from chatflow
-        return ip_range from user or generated one
+        """prompt user to select iprange
+
+        Args:
+            bot (GedisChatBot): bot instance
+
+        Returns:
+            [IPRange]: ip selected by user
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
@@ -907,6 +1148,17 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return ip_range
 
     def select_farms(self, bot, message=None, currency=None, retry=False):
+        """prompt user to select farm to deploy on
+
+        Args:
+            bot (GedisChatBot): bot instance
+            message (str, optional): bot screen message. Defaults to None.
+            currency (str, optional): wanted currency to deal with. Defaults to None.
+            retry (bool, optional): retry if failed. Defaults to False.
+
+        Returns:
+            farm object
+        """
         message = message or "Select 1 or more farms to distribute nodes on"
         farms = self._explorer.farms.list()
         farm_names = []
@@ -917,6 +1169,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return farms_selected
 
     def select_network(self, bot, customer_tid):
+        """prompt user to select a specific network
+
+        Args:
+            bot (GedisChatBot): bot instance
+            customer_tid (int): user tid
+
+        Returns:
+            Network object
+        """
         reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
         networks = self.list_networks(customer_tid, reservations)
         names = []
@@ -934,6 +1195,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
             return Network(network, expiration, bot, reservations, currency, resv_id)
 
     def validate_node(self, nodeid, query=None, currency=None):
+        """validate the node if it's ok to use and have enough resources
+
+        Args:
+            nodeid (str): node id
+            query (dict, optional): search paramas. Defaults to None.
+            currency (str, optional): wanted currency. Defaults to None.
+
+        Returns:
+            Node object
+        """
         try:
             node = self._explorer.nodes.get(nodeid)
         except requests.exceptions.HTTPError:
@@ -960,6 +1231,24 @@ Deployment will be cancelled if it is not successful {remaning_time}
     def get_nodes(
         self, number_of_nodes, farm_id=None, farm_names=None, cru=None, sru=None, mru=None, hru=None, currency="TFT"
     ):
+        """get available nodes to deploy solutions on
+
+        Args:
+            number_of_nodes (int): required nodes count
+            farm_id (int, optional): id for farm to search with. Defaults to None.
+            farm_names (list, optional): farms to search in. Defaults to None.
+            cru (int, optional): cpu resource. Defaults to None.
+            sru (int, optional): ssd resource. Defaults to None.
+            mru (int, optional): memory resource. Defaults to None.
+            hru (int, optional): hdd resources. Defaults to None.
+            currency (str, optional): wanted currency. Defaults to "TFT".
+
+        Raises:
+            StopChatFlow: if no nodes found
+
+        Returns:
+            list of available nodes
+        """
         nodes_distribution = self._distribute_nodes(number_of_nodes, farm_names)
         # to avoid using the same node with different networks
         nodes_selected = []
@@ -985,6 +1274,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return nodes_selected
 
     def filter_nodes(self, nodes, free_to_use):
+        """filter nodes by free to use flag
+
+        Args:
+            nodes (list of nodes objects)
+            free_to_use (bool)
+
+        Returns:
+            list of filtered nodes
+        """
         nodes = filter(j.sals.zos.nodes_finder.filter_is_up, nodes)
         nodes = list(nodes)
         if free_to_use:
@@ -1017,6 +1315,20 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return nodes_distribution
 
     def get_farm_names(self, number_of_nodes, bot, cru=None, sru=None, mru=None, hru=None, currency="TFT", message=""):
+        """get list with available farm names and prompt user to choose one
+
+        Args:
+            number_of_nodes (int): required nodes count
+            farm_id (int, optional): id for farm to search with. Defaults to None.
+            farm_names (list, optional): farms to search in. Defaults to None.
+            cru (int, optional): cpu resource. Defaults to None.
+            sru (int, optional): ssd resource. Defaults to None.
+            mru (int, optional): memory resource. Defaults to None.
+            hru (int, optional): hdd resources. Defaults to None.
+            currency (str, optional): wanted currency. Defaults to "TFT".
+            message (str): message to user. Defaults to ""
+
+        """
         farms_message = f"Select 1 or more farms to distribute the {message} nodes on. If no selectiosn is made, the farms will be chosen randomly"
         empty_farms = set()
         all_farms = self._explorer.farms.list()
@@ -1057,6 +1369,22 @@ Deployment will be cancelled if it is not successful {remaning_time}
     def check_farms(
         self, number_of_nodes, farm_id=None, farm_names=None, cru=None, sru=None, mru=None, hru=None, currency="TFT"
     ):
+        """get list with available farm and make sure it has resources
+
+        Args:
+            number_of_nodes (int): required nodes count
+            farm_id (int, optional): id for farm to search with. Defaults to None.
+            farm_names (list, optional): farms to search in. Defaults to None.
+            cru (int, optional): cpu resource. Defaults to None.
+            sru (int, optional): ssd resource. Defaults to None.
+            mru (int, optional): memory resource. Defaults to None.
+            hru (int, optional): hdd resources. Defaults to None.
+            currency (str, optional): wanted currency. Defaults to "TFT".
+            message (str): message to user. Defaults to ""
+
+        Returns:
+            list of available farm objects
+        """
         if not farm_names:
             return []
         farms_with_no_resources = []
@@ -1072,6 +1400,11 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return list(farms_with_no_resources)
 
     def validate_user(self, user_info):
+        """validate user information data to authentication
+
+        Args:
+            user_info (dict): user information
+        """
         # TODO: email field of testnet users is empty. is this really used?
         if not j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
             error_msg = """
@@ -1084,61 +1417,3 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
         return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
-
-    ##############
-
-    # TODO: Remaining methods
-    """
-    solution_name_add   # not needed anymore as factory instance_name is unique
-    network_name_add  # not needed anymore as factory instance_name is unique
-    """
-    # TODO: Missing configuration sections (DEPLOYER)
-
-    # Verified
-    """
-    list_networks   (unsaved factory instance raises error. it is fixed on development https://github.com/js-next/js-ng/issues/268)
-    get_nodes
-    list_wallets
-    validate_user   (email field of testnet users is empty. is it really used?)
-    check_farms
-    _distribute_nodes
-    filter_nodes
-    validate_node
-    list_delegate_domains
-    check_solution_type
-    decrypt_reservation_metadata
-    get_solution_domain_delegates_info
-    get_solutions_explorer
-    get_solutions
-    save_reservation
-    get_solution_ubuntu_info
-    get_solution_exposed_info
-    get_solution_flist_info
-    ###################
-    get_kube_network_ip
-    get_currency
-    create_payment
-    get_payment_details
-    add_reservation_metadata
-    get_solution_model
-    cancel_solution_reservation
-    """
-
-    # TODO: Verify
-    """
-    register_and_pay_reservation    (needs bot)
-    register_reservation    (needs bot)
-    get_ip_range    (needs bot)
-    create_network  (needs bot)
-    show_escrow_qr  (needs bot)
-    get_network     (needs bot)
-    show_payments   (needs bot)
-    wait_payment    (needs bot)
-    _reservation_failed     (needs bot)
-    wait_reservation    (needs bot)
-    list_gateways   (needs bot)
-    select_gateway  (needs bot)
-    select_farms    (needs bot)
-    select_network   (needs bot)
-    get_farm_names   (needs bot)
-    """
