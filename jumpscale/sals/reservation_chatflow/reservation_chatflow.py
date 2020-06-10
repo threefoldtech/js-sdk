@@ -734,7 +734,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                         res += f"\n### {x.category}: ```{x.message}```\n"
                 link = f"{self._explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(rid)
+                j.sals.zos.reservation_cancel(str(rid))
                 bot.stop(res, md=True, html=True)
             time.sleep(1)
             reservation = self._explorer.reservations.get(rid)
