@@ -29,3 +29,12 @@ def generate_zos_keys(node_public_key):
     wg_private_encrypted_hex = binascii.hexlify(wg_private_encrypted)
 
     return (wg_private_base64.decode(), wg_private_encrypted_hex.decode(), wg_public_base64.decode())
+
+
+def generate_key_pair():
+    wg_private = public.PrivateKey.generate()
+    wg_public = wg_private.public_key
+
+    wg_private_base64 = wg_private.encode(Base64Encoder)
+    wg_public_base64 = wg_public.encode(Base64Encoder)
+    return wg_private_base64, wg_public_base64
