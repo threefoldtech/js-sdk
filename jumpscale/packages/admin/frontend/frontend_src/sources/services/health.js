@@ -30,11 +30,8 @@ class HealthService extends Service {
     getRunningProcesses() {
         return this.getCall("get_running_processes");
     }
-
-    getProcessDetails(pid) {
-        return this.getCall('get_process_details', {
-            pid: pid
-        })
+    getMemoryUsage() {
+        return this.getCall("get_memory_usage");
     }
 }
 

@@ -115,19 +115,9 @@ export default class TopView extends JetView {
             icon: "mdi mdi-server"
         },
         {
-            id: "sdkexamples",
-            value: "SDK Examples",
-            icon: "mdi mdi-file"
-        },
-        {
             id: "codeserver",
             value: "Codeserver",
             icon: "mdi mdi-code-tags"
-        },
-        {
-            id: "jupyter",
-            value: "TF Simulator",
-            icon: "mdi mdi-play"
         },
         {
             id: "settings",

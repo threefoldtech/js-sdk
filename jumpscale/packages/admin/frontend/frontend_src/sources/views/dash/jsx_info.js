@@ -1,58 +1,53 @@
 
 import { JetView } from "webix-jet";
 import { health } from "../../services/health"
-import { alerts } from "../../services/alerts"
 
 export default class JSXInfoView extends JetView {
     config() {
         return {
             gravity:1,
             view: "template",
-            id: "jsx_info",
-            css: "jsx_info",
+            id: "js_info",
+            css: "js_info",
             template: (obj) => {
                 let ret = "";
                 ret += `<div class="header_div" style="user-select: auto;"><img class="header_image" src="static/img/header.png" alt="..."></div>`
-                ret += `<h3 class='threebot_name'><b>3bot name:</b> ${obj.threebot_name}</h3>
-                        <p class='threebot_id'><b>3bot id:</b> ${obj.threebot_id}</p>`;
-                ret += `<p class="jsx_version"><b>JSX Version: </b>${obj.jsx_version}</p>`
-                for (let i in obj.interfaces) {
-                    let intfc = obj.interfaces[i];
-                    ret += `<b>${intfc.name}:</b><br>
-                            <b>IP:</b> ${intfc.ip}<br>
-                            <b>IPv6:</b> ${intfc.ip6}<br>`
-                }
+                ret += `<div><h3 class='threebot_name'><b>3bot name:</b> ${obj.threebot_name}</h3>
+                        <p class='threebot_id'><b>3bot id:</b> ${obj.threebot_id}</p></div>`;
+                ret += `<p class="js_version"><b>JS Version: </b>${obj.js_version}</p>`
+                ret += `<b class='threebot_id'>Network name: </b>${obj.interface_name}<br>
+                        <b class='threebot_id'>IP: </b>${obj.ip}`
                 return ret;
             }
         }
     }
 
     init() {
-        const jsx_info = {
-            'threebot_name': 'Mohamed',
-            'threebot_id': '123',
-            'jsx_version': '2.5.6',
-            'interfaces': [{
-                'name': 'eth0',
-                'ip': '120.5.6.1',
-                'ip6': '1.2.4.5.6.5.4'
-            }]
+        const self = this;
+        const js_info = {
+            'threebot_name': "",
+            'threebot_id': "",
+            'js_version': 'alpha 0.2.0',
+            'interface_name': "",
+            'ip':""
         }
-        $$("jsx_info").parse(jsx_info);
-
-        // call service
- 
-        alerts.delete([2],[]).then((data)=>{
-            console.log("resulte: ",data)
+        
+        health.getIdentity().then((data)=>{
+            let identity = JSON.parse(data.json())
+            js_info.threebot_name = identity.name
+            js_info.threebot_id = identity.id
+            $$("js_info").parse(js_info);
         }).catch((error)=>{
             console.log(error)
         })
 
-        // alerts.count().then((data)=>{
-        //     console.log("resulte: ",data.json())
-        // }).catch((error)=>{
-        //     console.log(error)
-        // })
-
+        health.getNetworkInfo().then((data) => {
+            let network = JSON.parse(data.json()).network
+            js_info.interface_name = network[0]
+            js_info.ip = network[1]
+            $$("js_info").parse(js_info);
+        }).catch((error)=>{
+            console.log(error)
+        });
     }
 }

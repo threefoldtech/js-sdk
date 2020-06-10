@@ -1,7 +1,7 @@
-
-
 import { JetView } from "webix-jet";
 import { admin } from "../../services/admin";
+import { alerts } from "../../services/alerts";
+import { health } from "../../services/health";
 
 export default class ThreebotCardsView extends JetView {
     config() {
@@ -9,7 +9,7 @@ export default class ThreebotCardsView extends JetView {
         const initCount = Math.floor(document.documentElement.clientWidth / this.minItemWidth);
 
         return {
-            gravity:2.6,
+            gravity: 2.6,
             view: "dataview",
             id: "threebot_cards",
             xCount: (initCount > 4) ? 4 : 2,
@@ -27,7 +27,7 @@ export default class ThreebotCardsView extends JetView {
                 },
                 icon: obj => {
                     if (obj.icon)
-                        return `<image class='threebot_card_icon' src='${obj.icon}'>`;
+                        return `<img class='threebot_card_icon' src='${obj.icon}'>`;
                     else return `<p>unavailable</p>`
                 },
                 title: obj => {
@@ -37,7 +37,7 @@ export default class ThreebotCardsView extends JetView {
                 },
                 info: obj => {
                     if (obj.info)
-                        return `<p class='threebot_card_info'>${obj.info}</p>`;
+                        return `<div class='threebot_card_info'>${obj.info}</div>`;
                     else return `<p>unavailable</p>`
                 }
             }
@@ -48,21 +48,27 @@ export default class ThreebotCardsView extends JetView {
         const threebot_cards = this.$$("threebot_cards");
 
         let threebot_card_data = [
-            { "id": 1, "title": "Health checks", "info": "Automation", "icon": "static/img/health.png" },
-            { "id": 2, "title": "Errors", "info": "Product Quality Assurance", "icon": "static/img/error.png" },
-            { "id": 3, "title": "Memory usage", "info": "Management", "icon": "static/img/memory.png" },
+            { "id": 1, "title": "Health checks", "info": "All izz well", "icon": "static/img/health.png" },
+            { "id": 2, "title": "Errors", "info": "", "icon": "static/img/error.png" },
+            { "id": 3, "title": "Memory usage", "info": "", "icon": "static/img/memory.png" },
+            {'id': 4,'title': 'Explorer','info': "",'icon': 'static/img/explorer.png'}
         ];
+
+        alerts.count().then((data) => {
+            const alertCount = JSON.parse(data.json());
+            threebot_card_data[1].info = `<a class="threebot_card_info" href="#!/main/alerts">Find ${alertCount} alerts</a>`;
+            threebot_cards.parse(threebot_card_data);
+        })
+
+        health.getMemoryUsage().then((data) => {
+            let memoryUsage = JSON.parse(data.json()).memory
+            threebot_card_data[2].info = `<p><b>Total: </b>${memoryUsage.total} GB</p><p><b>Used: </b>${memoryUsage.used} GB</p><p><b>Percentage: </b>${memoryUsage.percent}%</p>`;
+        });
 
         admin.getExplorer().then((data) => {
             const explorer = JSON.parse(data.json());
             let explorer_url = explorer.url;
-            
-            threebot_card_data.push({
-                'id': 4,
-                'title': 'Explorer',
-                'info': explorer_url,
-                'icon': 'static/img/explorer.png'
-            })
+            threebot_card_data[3].info = explorer_url;
             threebot_cards.parse(threebot_card_data);
         })
 

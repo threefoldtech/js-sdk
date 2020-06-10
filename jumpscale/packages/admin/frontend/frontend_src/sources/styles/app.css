@@ -1,3 +1,9 @@
+.compo_ports{
+	width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
 .settings_header {
 	background:rgb(228, 228, 230);
 	color:rgb(68, 72, 82);
@@ -32,7 +38,7 @@
 	box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.2);
 }
 
-.jsx_version {
+.js_version {
 	position: absolute;
 	bottom: 0px;
 	right: 15px;
@@ -54,13 +60,12 @@
 	border-width: 0px 0px 2px !important;
 }
 
-.jsx_info, .threebot_cards{
+.js_info, .threebot_cards{
 	border-style: none;
 }
 
-.jsx_info .webix_template{
+.js_info .webix_template{
 	box-shadow: 0px 5px 5px rgba(0, 0, 0, 0.2);
-	text-align: center;
 	margin: 12px;
 	margin-top: 0px;
 	height: 95%;
@@ -69,6 +74,13 @@
 	margin-right: 5px;
 	border-radius: 15px;
 	background-color: #ffffff;
+}
+.threebot_name{
+	padding-left: 15px;
+}
+
+.threebot_id{
+	padding-left: 15px;
 }
 
 .threebot_cards .webix_dataview_inner_item{
@@ -85,7 +97,7 @@
 	font-size:14px;
 	color:#475466;
 }
-.solution_cards ,.threebot_cards, .jsx_info{
+.solution_cards ,.threebot_cards, .js_info{
 	background-color: transparent;
 	border: none;
 }
@@ -143,6 +155,7 @@
 	float:left;
 	padding: 15px;
 	margin-right: 15px;
+	margin-bottom: 50px;
 }
 
 .threebot_card_title{
@@ -151,8 +164,9 @@
 	color:#fdf9f9;
 }
 
-.threebot_card_info{
+.threebot_card_info, .threebot_card_info p{
 	color: #fdf9f9;
+	font-size: 18px;
 }
 
 /* notifications */

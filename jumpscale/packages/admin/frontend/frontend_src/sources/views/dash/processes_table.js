@@ -1,5 +1,6 @@
 
 import { JetView } from "webix-jet";
+import { health } from "../../services/health";
 
 export default class ProcessesTableView extends JetView {
     config() {
@@ -15,7 +16,7 @@ export default class ProcessesTableView extends JetView {
                     id: "index",
                     header: "#",
                     sort: "int",
-                    autowidth: true,
+                    width:40,
                 },
                 {
                     id: "name",
@@ -26,11 +27,14 @@ export default class ProcessesTableView extends JetView {
                         },
                     ],
                     sort: "string",
+                    // autowidth: true,
+                    width:140,
                 },
                 {
                     id: "pid",
                     header: "PID",
-                    sort: "int"
+                    sort: "int",
+                    width:60,
                 },
                 {
                     id: "username",
@@ -39,16 +43,26 @@ export default class ProcessesTableView extends JetView {
                 },
                 {
                     id: "rss",
-                    header: "Memory Usage",
+                    header: "Memory(MB)",
                     sort: "int",
+                    width:100,
                     format: function(value) {
                         return Math.ceil(value)
                     }
                 },
                 {
-                    id: "port",
-                    header: "Port",
-                    sort: "string"
+                    id: "ports",
+                    header: "Ports",
+                    width:190,
+                    format:function(value){
+                        let ret = `<select name="ports" class= "compo_ports" id="cars">`
+                        for (let i = 0; i < value.length; i++) {
+                            const port = value[i];
+                            ret += `<option value="${i}">${port.port} , ${port.status}</option> `
+                        }
+                        ret += `</select>`
+                        return ret;
+                    }
                 }
             ],
             scheme: {
@@ -61,113 +75,8 @@ export default class ProcessesTableView extends JetView {
 
     init() {
         const processesTable = this.$$("processes_table");
-
-        const processes_data = [{
-                "name": "P1",
-                "pid": "123",
-                "username": "p1",
-                "rss": "15",
-                "port": "1234"
-            },
-            {
-                "name": "P2",
-                "pid": "23",
-                "username": "p2",
-                "rss": "20",
-                "port": "1434"
-            },
-            {
-                "name": "P3",
-                "pid": "151",
-                "username": "p3",
-                "rss": "10",
-                "port": "5212"
-            },
-            {
-                "name": "P4",
-                "pid": "11",
-                "username": "p4",
-                "rss": "14",
-                "port": "2367"
-            },
-            {
-                "name": "P5",
-                "pid": "2415",
-                "username": "p5",
-                "rss": "9",
-                "port": "3456"
-            },
-            {
-                "name": "P6",
-                "pid": "7452",
-                "username": "p6",
-                "rss": "23",
-                "port": "8563"
-            },
-            {
-                "name": "P7",
-                "pid": "1244",
-                "username": "p7",
-                "rss": "50",
-                "port": "3633"
-            },
-            {
-                "name": "P8",
-                "pid": "4",
-                "username": "p8",
-                "rss": "20",
-                "port": "4122"
-            },
-            {
-                "name": "P9",
-                "pid": "455",
-                "username": "p9",
-                "rss": "3",
-                "port": "2729"
-            },
-            {
-                "name": "P5",
-                "pid": "2415",
-                "username": "p5",
-                "rss": "9",
-                "port": "3456"
-            },
-            {
-                "name": "P7",
-                "pid": "1244",
-                "username": "p7",
-                "rss": "50",
-                "port": "3633"
-            },
-            {
-                "name": "P3",
-                "pid": "151",
-                "username": "p3",
-                "rss": "10",
-                "port": "5212"
-            },
-            {
-                "name": "P1",
-                "pid": "123",
-                "username": "p1",
-                "rss": "15",
-                "port": "1234"
-            },
-            {
-                "name": "P7",
-                "pid": "1244",
-                "username": "p7",
-                "rss": "50",
-                "port": "3633"
-            },
-            {
-                "name": "P7",
-                "pid": "1244",
-                "username": "p7",
-                "rss": "50",
-                "port": "3633"
-            },
-        ]
-        processesTable.parse(processes_data);
+        health.getRunningProcesses().then((data) => {
+            processesTable.parse(JSON.parse(data.json()).processes);
+        });
     }
 }
