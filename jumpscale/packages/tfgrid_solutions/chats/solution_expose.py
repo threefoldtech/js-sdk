@@ -12,6 +12,7 @@ kinds = {
     "kubernetes": SolutionType.Kubernetes,
     "ubuntu": SolutionType.Ubuntu,
     "flist": SolutionType.Flist,
+    "gitea": SolutionType.Gitea,
 }
 
 domain_types = {
@@ -19,7 +20,7 @@ domain_types = {
     "sub": Category.Subdomain,
 }
 
-ports = {"minio": 9000, "kubernetes": 6443}
+ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
 
 class SolutionExpose(GedisChatBot):
