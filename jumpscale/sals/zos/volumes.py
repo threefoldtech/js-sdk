@@ -1,6 +1,10 @@
 from .id import _next_workload_id
 from jumpscale.core.exceptions import Input
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationVolume1, Disk_type
+from jumpscale.clients.explorer.models import (
+    TfgridWorkloadsReservationVolume1,
+    Disk_type,
+    TfgridWorkloadsReservationContainerMount1,
+)
 
 
 class Volumes:
@@ -37,7 +41,7 @@ class Volumes:
             volume ([type]): Volume object that is returned from add_volume function
             mount_point (str): path where to mount the volume in the container
         """
-        vol = TfgridWorkloadsReservationVolume1()
+        vol = TfgridWorkloadsReservationContainerMount1()
         vol.volume_id = f"-{volume.workload_id}"
         vol.mountpoint = mount_point
         container.volumes.append(vol)
@@ -51,7 +55,7 @@ class Volumes:
             volume_id ([type]): the complete volume ID, format should be '{reservation.id}-{volume.workload_id}'
             mount_point (str): path where to mount the volume in the container
         """
-        vol = TfgridWorkloadsReservationVolume1()
+        vol = TfgridWorkloadsReservationContainerMount1()
         vol.volume_id = volume_id
         vol.mountpoint = mount_point
         container.volumes.append(vol)
