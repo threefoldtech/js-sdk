@@ -8,7 +8,7 @@ export default class CapacityView extends ExternalView {
 
     showIframe() {
         admin.getExplorer().then((data) => {
-            const explorer = JSON.parse(data.json());
+            const explorer = JSON.parse(data.json()).data;
             let url = explorer.url;
 
             if (!url.startsWith('http')) {

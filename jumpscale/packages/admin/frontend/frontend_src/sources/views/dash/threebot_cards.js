@@ -67,7 +67,7 @@ export default class ThreebotCardsView extends JetView {
         });
 
         admin.getExplorer().then((data) => {
-            const explorer = JSON.parse(data.json());
+            const explorer = JSON.parse(data.json()).data;
             let explorer_url = explorer.url;
             threebot_card_data[3].info = explorer_url;
             threebot_cards.parse(threebot_card_data);
