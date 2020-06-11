@@ -98,8 +98,7 @@ export default class WalletManagerView extends JetView {
 
             let item = self.wallets_table.getSelectedItem()
             wallet.getWalletInfo(item.name).then(data => {
-                console.log(data.json())
-                let res = JSON.parse(data.json())
+                let res = JSON.parse(data.json()).data
                 var info = {
                     'name': item.name,
                     'address': res.address,
@@ -147,7 +146,7 @@ export default class WalletManagerView extends JetView {
 
         self.wallets_table = $$("wallets_table");
         wallet.getWallets().then(data => {
-            self.wallets_table.parse(JSON.parse(data.json()))
+            self.wallets_table.parse(JSON.parse(data.json()).data)
         });
     }
 }

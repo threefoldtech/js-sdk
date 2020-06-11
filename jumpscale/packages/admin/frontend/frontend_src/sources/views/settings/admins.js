@@ -64,8 +64,7 @@ export default class AdminsView extends JetView {
         this.table = this.$$("admins_table");
 
         admin.list().then(data => {
-            console.log(JSON.parse(data.json()))
-            this.table.parse(JSON.parse(data.json()));
+            this.table.parse(JSON.parse(data.json()).data);
         });
     }
 }

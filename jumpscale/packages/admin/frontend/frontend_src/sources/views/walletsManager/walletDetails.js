@@ -82,7 +82,7 @@ export default class WalletDetailsView extends JetView {
         })
         wallet.updateTrustLines(self.name).then(data => {
             wallet.getWalletInfo(self.name).then(data => {
-                let walletInfo = JSON.parse(data.json());
+                let walletInfo = JSON.parse(data.json()).data;
                 walletInfo.name = self.name;
                 self.showInfo(walletInfo);
                 self.secret_btn.enable()

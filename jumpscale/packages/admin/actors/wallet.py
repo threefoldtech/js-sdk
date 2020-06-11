@@ -13,25 +13,25 @@ class Wallet(BaseActor):
 
         # Why while not if?
         while j.clients.stellar.find(name):
-            raise ValueError("Name already exists")
+            raise j.exceptions.Value("Name already exists")
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
             wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
-            raise
+            raise j.exceptions.JSException("Error on wallet activation")
         
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
         for asset_code in trustlines.keys():
             wallet.add_known_trustline(asset_code)
 
-        return j.data.serializers.json.dumps(wallet.address)
+        return j.data.serializers.json.dumps({"data": wallet.address})
 
     @actor_method
     def get_wallet_info(self, name: str) -> str:
         if not j.clients.stellar.find(name):
-            raise ValueError("Wallet does not exist")
+            raise j.exceptions.Value("Wallet does not exist")
 
         wallet = j.clients.stellar.get(name=name)
         balances = wallet.get_balance()
@@ -42,7 +42,7 @@ class Wallet(BaseActor):
             )
 
         ret = {"address": wallet.address, "secret": wallet.secret, "balances": balances_data}
-        return j.data.serializers.json.dumps(ret)
+        return j.data.serializers.json.dumps({"data": ret})
 
     @actor_method
     def get_wallets(self) -> str:
@@ -52,12 +52,12 @@ class Wallet(BaseActor):
             wallet = j.clients.stellar.get(name=name)
             ret.append({"name": wallet.instance_name, "address": wallet.address})
 
-        return j.data.serializers.json.dumps(ret)
+        return j.data.serializers.json.dumps({"data": ret})
 
     @actor_method
     def update_trustlines(self, name: str) -> str:
         if not j.clients.stellar.find(name):
-            raise ValueError("Wallet does not exist")
+            raise j.exceptions.Value("Wallet does not exist")
 
         wallet = j.clients.stellar.get(name=name)
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
@@ -67,17 +67,17 @@ class Wallet(BaseActor):
         for asset_code in trustlines.keys():
             wallet.add_known_trustline(asset_code)
 
-        return j.data.serializers.json.dumps(trustlines)
+        return j.data.serializers.json.dumps({"data": trustlines})
     
     @actor_method
     def import_wallet(self, name: str, secret: str, network: str) -> str:
         network = network or "TEST"
         wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
-        return j.data.serializers.json.dumps(wallet.address)
+        return j.data.serializers.json.dumps({"data": wallet.address})
 
     @actor_method
     def delete_wallet(self, name: str) -> str:
         j.clients.stellar.delete(name=name)
-        return j.data.serializers.json.dumps({"result": True})
+        return j.data.serializers.json.dumps({"data": True})
 
 Actor = Wallet

@@ -15,7 +15,7 @@ export default class JSXInfoView extends JetView {
                 ret += `<div><h3 class='threebot_name'><b>3bot name:</b> ${obj.threebot_name}</h3>
                         <p class='threebot_id'><b>3bot id:</b> ${obj.threebot_id}</p></div>`;
                 ret += `<p class="js_version"><b>JS Version: </b>${obj.js_version}</p>`
-                ret += `<b class='threebot_id'>Network name: </b>${obj.interface_name}<br>
+                ret += `<b class='threebot_id'>Interface name: </b>${obj.interface_name}<br>
                         <b class='threebot_id'>IP: </b>${obj.ip}`
                 return ret;
             }

@@ -42,21 +42,21 @@ export default class ExplorerView extends JetView {
         self.explorerUrl = self.$$('explorer_url');
 
         admin.getExplorer().then((data) => {
-            const explorer = JSON.parse(data.json());
+            const explorer = JSON.parse(data.json()).data;
             self.explorerList.setValue(explorer.type);
             self.explorerUrl.setValue(explorer.url);
+        }).catch((error) => {
+            console.log(error);
+            this.webix.message({ type: "error", text: "Error on getting current explorer"})
         });
 
-        self.explorerList.attachEvent("onChange", (newValue) => {
+        self.explorerList.attachEvent("onChange", (newValue, oldValue) => {
             admin.setExplorer(newValue.toLowerCase()).then((data) => {
-                const response = JSON.parse(data.json());
-                if(response.url) {
-                    self.explorerUrl.setValue(response.url);
-                }
-                else {
-                    self.explorerUrl.setValue("");
-                    this.webix.message({ type: "error", text: response})
-                }
+                const response = JSON.parse(data.json()).data;
+                self.explorerUrl.setValue(response.url);
+            }).catch((error) => {
+                self.explorerList.setValue(oldValue);
+                this.webix.message({ type: "error", text: "Error on switching explorer"})
             });
         });
     }

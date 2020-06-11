@@ -8,29 +8,26 @@ class Admin(BaseActor):
 
     @actor_method
     def admin_list(self) -> str:
-        return j.data.serializers.json.dumps(
-                list({'name':name} for name in j.core.identity.list_admins()))
+        return j.data.serializers.json.dumps({"data": 
+            list({'name':name} for name in j.core.identity.list_admins())})
                
     @actor_method
     def admin_add(self, name: str) -> str:
         return j.data.serializers.json.dumps(
-            j.core.identity.add_admin(name))
+            {"data": j.core.identity.add_admin(name)})
 
     @actor_method
     def admin_delete(self, name: str) -> str:
         return j.data.serializers.json.dumps(
-            j.core.identity.delete_admin(name))
+            {"data": j.core.identity.delete_admin(name)})
             
     @actor_method        
     def get_current_user(self) -> str:
-        try:
-            cfg = j.core.identity.get_threebot_config()
-            return j.data.serializers.json.dumps({
-                'name': cfg['name'],
-                'email': cfg['email']
-            })
-        except JSException as e:
-            return j.data.serializers.json.dumps(str(e))
+        cfg = j.core.identity.get_threebot_config()
+        return j.data.serializers.json.dumps({"data": {
+            "name": cfg["name"],
+            "email": cfg["email"]
+        }})
 
     @actor_method
     def get_explorer(self) -> str:
@@ -39,19 +36,19 @@ class Admin(BaseActor):
         if "explorer_url" not in config['threebot']:
             url = "https://" + explorers["testnet"] + "/explorer"
             j.clients.explorer.default_addr_set(url)
-            return j.data.serializers.json.dumps(
-                {"type": "testnet", "url": explorers["testnet"]})
+            return j.data.serializers.json.dumps({"data":
+                {"type": "testnet", "url": explorers["testnet"]}})
 
-        current_address = config['threebot']["explorer_url"].strip().lower().split("/")[2]
-        if current_address == explorers["testnet"]:
+        current_url = config['threebot']["explorer_url"].strip().lower().split("/")[2]
+        if current_url == explorers["testnet"]:
             explorer_type = "testnet"
-        elif current_address == explorers["main"]:
+        elif current_url == explorers["main"]:
             explorer_type = "main"
         else:
-            return j.data.serializers.json.dumps(
-                {"type": "custom", "url": current_address})
-        return j.data.serializers.json.dumps(
-            {"type": explorer_type, "url": explorers[explorer_type]})
+            return j.data.serializers.json.dumps({"data": 
+                {"type": "custom", "url": current_url}})
+        return j.data.serializers.json.dumps({"data": 
+            {"type": explorer_type, "url": explorers[explorer_type]}})
 
     @actor_method
     def set_explorer(self, explorer_type: str) -> str:
@@ -66,19 +63,20 @@ class Admin(BaseActor):
             try:
                 user = client.users.get(name=cfg["name"], email=cfg["email"])
             except j.exceptions.NotFound:
-                return j.data.serializers.json.dumps(
-                    f"Your identity does not exist on {explorer_type}")
+                raise j.exceptions.NotFound(
+                        f"Your identity does not exist on {explorer_type}")
+
             if user.pubkey != j.core.identity.nacl.get_verify_key_hex():
-                return j.data.serializers.json.dumps(
+                raise j.exceptions.Value(
                     f"Your identity does not match on {explorer_type}")
             
             j.clients.explorer.default_addr_set(url=url)
 
             # update our solutions
-            # j.sal.reservation_chatflow.solutions_explorer_get()
-            return j.data.serializers.json.dumps(
-                {"type": explorer_type, "url": explorers[explorer_type]})
-        return j.data.serializers.json.dumps(
-                f"{explorer_type} is not a valid explorer type, must be 'testnet' or 'main'")
+
+            return j.data.serializers.json.dumps({"data": 
+                {"type": explorer_type, "url": explorers[explorer_type]}})
+        return j.data.serializers.json.dumps({"data": 
+                f"{explorer_type} is not a valid explorer type, must be 'testnet' or 'main'"})
 
 Actor = Admin

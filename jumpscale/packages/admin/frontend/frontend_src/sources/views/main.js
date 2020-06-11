@@ -242,8 +242,7 @@ export default class TopView extends JetView {
         this.usernameLabel = $$("username_label");
 
         admin.getCurrentUser().then(data => {
-            const userInfo = JSON.parse(data.json());
-            console.log(userInfo)
+            const userInfo = JSON.parse(data.json()).data;
             let username = userInfo.name;
 
             self.usernameLabel.config.label = username;

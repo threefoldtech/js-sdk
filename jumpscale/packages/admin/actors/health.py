@@ -36,6 +36,6 @@ class Health(BaseActor):
 
     @actor_method
     def get_running_processes(self) -> str:
-        return j.data.serializers.json.dumps({"data": j.sals.process.get_processes_ifo() })
+        return j.data.serializers.json.dumps({"data": j.sals.process.get_processes_info()})
 
 Actor = Health
