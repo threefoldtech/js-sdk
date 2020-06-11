@@ -215,6 +215,15 @@ export default class TopView extends JetView {
             urls: {
                 tfgridsdk: "tfwikis.tfgridsdk",
                 threefold: "tfwikis.threefold",
+                deployed_network: "deployedSolutions.network",
+                deployed_ubuntu: "deployedSolutions.ubuntu",
+                deployed_flist: "deployedSolutions.flist",
+                deployed_minio: "deployedSolutions.minio",
+                deployed_k8s_cluster: "deployedSolutions.k8sCluster",
+                deployed_gitea: "deployedSolutions.gitea",
+                deployed_domain_delegation: "deployedSolutions.domainDelegation",
+                deployed_solution_expose: "deployedSolutions.solutionExpose",
+                deployed_gateway_4to6: "deployedSolutions.4to6Gateway"
             }
         });
 
