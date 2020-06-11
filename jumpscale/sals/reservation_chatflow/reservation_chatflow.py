@@ -726,6 +726,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
+                if reservation.next_action != Next_action.DEPLOY:
+                    res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy\n"
+                    bot.stop(res, md=True, html=True)
                 return reservation.results
             if is_expired(reservation):
                 res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy in time:\n"
