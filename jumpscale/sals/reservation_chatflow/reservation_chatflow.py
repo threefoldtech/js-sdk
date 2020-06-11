@@ -1185,7 +1185,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             names.append(n)
         if not names:
             res = "You don't have any networks, please use the network chatflow to create one"
-            res = j.tools.jinja2.template_render(text=res)
+            res = j.tools.jinja2.render_template(template_text=res)
             bot.stop(res)
         while True:
             result = bot.single_choice("Choose a network", names, required=True)
