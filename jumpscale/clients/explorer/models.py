@@ -47,11 +47,6 @@ class State(Enum):
     Deleted = 2
 
 
-class Volume_type(Enum):
-    HDD = 0
-    SSD = 1
-
-
 class Type(Enum):
     Zdb = 0
     Container = 1
@@ -389,7 +384,7 @@ class TfgridWorkloadsReservationVolume1(Base):
     workload_id = fields.Integer()
     node_id = fields.String(default="")
     size = fields.Integer()
-    type = fields.Enum(Volume_type)
+    type = fields.Enum(Disk_type)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
     farmer_tid = fields.Integer()
 
