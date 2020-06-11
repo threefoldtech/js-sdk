@@ -1,8 +1,7 @@
 import { BaseView } from './baseview'
 import { solutions } from '../../services/deployedSolutions'
 
-// TODO: Add chat link
-const CHAT = ""
+const CHAT = "/tfgrid_solutions/chats/minio_deploy/"
 
 export default class DeployedMinioView extends BaseView {
     constructor(app, name) {

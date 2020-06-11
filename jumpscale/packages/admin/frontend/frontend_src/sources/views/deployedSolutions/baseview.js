@@ -1,7 +1,6 @@
 import { JetView, plugins } from "webix-jet";
 import SolutionDetailsView from './SolutionDetails'
 
-
 export class BaseView extends JetView {
     constructor(app, name, chat, logo) {
         super(app, name);

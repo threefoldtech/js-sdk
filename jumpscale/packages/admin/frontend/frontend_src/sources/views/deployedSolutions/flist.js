@@ -1,8 +1,7 @@
 import { BaseView } from './baseview'
 import { solutions } from '../../services/deployedSolutions'
 
-// TODO: Add chat link
-const CHAT = ""
+const CHAT = "/tfgrid_solutions/chats/flist_deploy/"
 
 export default class DeployedFlistView extends BaseView {
     constructor(app, name) {
