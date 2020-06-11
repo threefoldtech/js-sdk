@@ -230,7 +230,7 @@ export default class LogsView extends JetView {
                 hide: false
             });
             logs.listLogs().then(data => {
-                self.data = JSON.parse(data.json()).logs;
+                self.data = JSON.parse(data.json()).data;
                 self.table.clearAll()
                 self.table.parse(self.data)
                 self.table.showProgress({ hide: true });
@@ -238,7 +238,7 @@ export default class LogsView extends JetView {
         });
 
         logs.listApps().then(data => {
-            self.appsCombo.define("options", JSON.parse(data.json()).apps);
+            self.appsCombo.define("options", JSON.parse(data.json()).data);
             self.appsCombo.render();
         });
 

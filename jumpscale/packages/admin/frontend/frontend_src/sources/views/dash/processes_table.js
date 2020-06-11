@@ -76,7 +76,7 @@ export default class ProcessesTableView extends JetView {
     init() {
         const processesTable = this.$$("processes_table");
         health.getRunningProcesses().then((data) => {
-            processesTable.parse(JSON.parse(data.json()).processes);
+            processesTable.parse(JSON.parse(data.json()).data);
         });
     }
 }

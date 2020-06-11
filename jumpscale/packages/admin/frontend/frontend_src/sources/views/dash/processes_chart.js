@@ -58,7 +58,7 @@ export default class ProcessesChartView extends JetView {
         var chartData = []
 
         health.getMemoryUsage().then((data) => {
-            let memoryData = JSON.parse(data.json()).memory
+            let memoryData = JSON.parse(data.json()).data
             processesChart.define("legend", {
                 layout: "x",
                 values: [{
@@ -74,8 +74,8 @@ export default class ProcessesChartView extends JetView {
 
         health.getRunningProcesses().then((data) => {
             let processesData = {};
-            for (let i = 0; i < JSON.parse(data.json()).processes.length; i++) {
-                const process = JSON.parse(data.json()).processes[i];
+            for (let i = 0; i < JSON.parse(data.json()).data.length; i++) {
+                const process = JSON.parse(data.json()).data[i];
                 if(process.name in processesData){
                     processesData[process.name] += process.rss;
                 }else{

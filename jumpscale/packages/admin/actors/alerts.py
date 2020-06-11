@@ -9,14 +9,14 @@ class Alerts(BaseActor):
             get all alerts
         """
         ret = [ alert.json for alert in j.tools.alerthandler.find() ]
-        return j.data.serializers.json.dumps({"alerts":ret})
+        return j.data.serializers.json.dumps({"data":ret})
 
     @actor_method
-    def alerts_count(self) -> int:
+    def alerts_count(self) -> str:
         """
             get count of alerts
         """
-        return j.tools.alerthandler.count()
+        return j.data.serializers.json.dumps( {"data":j.tools.alerthandler.count()} )
 
 
     

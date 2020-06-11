@@ -33,7 +33,7 @@ export default class JSXInfoView extends JetView {
         }
         
         health.getIdentity().then((data)=>{
-            let identity = JSON.parse(data.json())
+            let identity = JSON.parse(data.json()).data
             js_info.threebot_name = identity.name
             js_info.threebot_id = identity.id
             $$("js_info").parse(js_info);
@@ -42,7 +42,7 @@ export default class JSXInfoView extends JetView {
         })
 
         health.getNetworkInfo().then((data) => {
-            let network = JSON.parse(data.json()).network
+            let network = JSON.parse(data.json()).data
             js_info.interface_name = network[0]
             js_info.ip = network[1]
             $$("js_info").parse(js_info);

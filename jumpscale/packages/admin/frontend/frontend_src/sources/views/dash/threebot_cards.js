@@ -55,13 +55,14 @@ export default class ThreebotCardsView extends JetView {
         ];
 
         alerts.count().then((data) => {
-            const alertCount = JSON.parse(data.json());
+            const alertCount = JSON.parse(data.json()).data;
+            console.log("dsdsd",alertCount)
             threebot_card_data[1].info = `<a class="threebot_card_info" href="#!/main/alerts">Find ${alertCount} alerts</a>`;
             threebot_cards.parse(threebot_card_data);
         })
 
         health.getMemoryUsage().then((data) => {
-            let memoryUsage = JSON.parse(data.json()).memory
+            let memoryUsage = JSON.parse(data.json()).data
             threebot_card_data[2].info = `<p><b>Total: </b>${memoryUsage.total} GB</p><p><b>Used: </b>${memoryUsage.used} GB</p><p><b>Percentage: </b>${memoryUsage.percent}%</p>`;
         });
 

@@ -19,11 +19,11 @@ class Health(BaseActor):
     
     @actor_method
     def get_identity(self) -> str:
-        return j.data.serializers.json.dumps( j.core.identity.get_threebot_config() )
+        return j.data.serializers.json.dumps( {"data":j.core.identity.get_threebot_config()} )
     
     @actor_method
     def network_info(self) -> str:
-        return j.data.serializers.json.dumps({ "network":j.sals.nettools.get_default_ip_config() })
+        return j.data.serializers.json.dumps({ "data":j.sals.nettools.get_default_ip_config() })
     
     @actor_method
     def js_version(self) -> str:
@@ -32,10 +32,10 @@ class Health(BaseActor):
     
     @actor_method
     def get_memory_usage(self) -> str:
-        return j.data.serializers.json.dumps({"memory": j.sals.process.get_memory_usage() })
+        return j.data.serializers.json.dumps( {"data":j.sals.process.get_memory_usage() })
 
     @actor_method
     def get_running_processes(self) -> str:
-        return j.data.serializers.json.dumps({"processes": j.sals.process.get_processes_ifo() })
+        return j.data.serializers.json.dumps({"data": j.sals.process.get_processes_ifo() })
 
 Actor = Health

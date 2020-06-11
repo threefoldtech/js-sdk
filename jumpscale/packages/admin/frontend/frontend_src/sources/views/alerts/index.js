@@ -237,7 +237,7 @@ export default class AlertsView extends JetView {
                 hide: false
             });
             alerts.list().then(data => {
-                let alerts = JSON.parse(data.json()).alerts;
+                let alerts = JSON.parse(data.json()).data;
                 self.table.parse(alerts);
             });
         });
