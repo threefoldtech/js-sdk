@@ -1,10 +1,10 @@
 from .id import _next_workload_id
 from jumpscale.core.exceptions import Input
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationVolume1, Volume_type
+from jumpscale.clients.explorer.models import TfgridWorkloadsReservationVolume1, Disk_type
 
 
 class Volumes:
-    def create(self, reservation, node_id, size=5, type=Volume_type.HDD):
+    def create(self, reservation, node_id, size=5, type=Disk_type.HDD):
         """add a volume to the reservation
 
         Args:
