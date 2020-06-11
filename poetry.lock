@@ -1248,6 +1248,25 @@ pywin32 = ">=223"
 
 [[package]]
 category = "main"
+description = "Pure Python PNG image encoder/decoder"
+name = "pypng"
+optional = false
+python-versions = "*"
+version = "0.0.20"
+
+[[package]]
+category = "main"
+description = "A QR code generator written purely in Python with SVG, EPS, PNG and terminal output."
+name = "pyqrcode"
+optional = false
+python-versions = "*"
+version = "1.2.1"
+
+[package.extras]
+PNG = ["pypng (>=0.0.13)"]
+
+[[package]]
+category = "main"
 description = "pytest: simple powerful testing with Python"
 name = "pytest"
 optional = false
@@ -1746,7 +1765,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "fd9f9f503b49e941e9912267a807be5877c46b7932a7609716f6974ae9bec3cf"
+content-hash = "eade1f30ed347b4a4d650a0e48efc65d9f0c230ff710487bcb9d4a322d01c9ad"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2470,6 +2489,13 @@ pyparsing = [
 pypiwin32 = [
     {file = "pypiwin32-223-py3-none-any.whl", hash = "sha256:67adf399debc1d5d14dffc1ab5acacb800da569754fafdc576b2a039485aa775"},
     {file = "pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
+]
+pypng = [
+    {file = "pypng-0.0.20.tar.gz", hash = "sha256:1032833440c91bafee38a42c38c02d00431b24c42927feb3e63b104d8550170b"},
+]
+pyqrcode = [
+    {file = "PyQRCode-1.2.1.tar.gz", hash = "sha256:fdbf7634733e56b72e27f9bce46e4550b75a3a2c420414035cae9d9d26b234d5"},
+    {file = "PyQRCode-1.2.1.zip", hash = "sha256:1b2812775fa6ff5c527977c4cd2ccb07051ca7d0bc0aecf937a43864abe5eff6"},
 ]
 pytest = [
     {file = "pytest-5.4.3-py3-none-any.whl", hash = "sha256:5c0db86b698e8f170ba4582a492248919255fcd4c79b1ee64ace34301fb589a1"},
