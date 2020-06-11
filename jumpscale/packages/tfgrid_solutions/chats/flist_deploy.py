@@ -2,13 +2,11 @@ from jumpscale.god import j
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.clients.explorer.models import Disk_type
 
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type, Volume_type
-import requests
 import math
-import time
+import requests
+
 
 class FlistDeploy(GedisChatBot):
     steps = [
@@ -37,7 +35,7 @@ class FlistDeploy(GedisChatBot):
         self.user_form_data["chatflow"] = "flist"
         # j.sal.reservation_chatflow.validate_user(user_info) # TODO bring this back when Auth is ready
         self.md_show("# This wizard will help you deploy a container using any flist provided", md=True)
-        
+
     @chatflow_step(title="Network")
     def flist_network(self):
         self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
@@ -45,7 +43,9 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def flist_solution_name(self):
-        self.user_form_data["Solution name"] = self.string_ask("Please enter a name for your container", required=True, field="name")
+        self.user_form_data["Solution name"] = self.string_ask(
+            "Please enter a name for your container", required=True, field="name"
+        )
 
     @chatflow_step(title="Flist url")
     def flist_url(self):
@@ -126,7 +126,7 @@ class FlistDeploy(GedisChatBot):
             vol_disk_size = form.int_ask("Please specify the volume size", required=True, default=10)
             vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
             form.ask()
-            self.vol_disk_type = getattr(Volume_type, vol_disk_type.value)
+            self.vol_disk_type = getattr(Disk_type, vol_disk_type.value)
             self.user_form_data["Volume Disk type"] = vol_disk_type.value
             self.user_form_data["Volume Size"] = vol_disk_size.value
             self.user_form_data["Volume mount point"] = vol_mount_point.value
@@ -140,7 +140,7 @@ class FlistDeploy(GedisChatBot):
             default=j.data.time.get().timestamp + 3900,
         )
         self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
-    
+
     @chatflow_step(title="Container IP & Confirmation about conatiner details")
     def container_ip(self):
         self.network_copy = self.network.copy(j.core.identity.tid)

@@ -3,13 +3,6 @@ from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type, Volume_type
-import requests
-import math
-import time
-
 
 class DomainDelegation(GedisChatBot):
     steps = ["domain_delegation_name", "domain_name", "expiration_time", "domain_pay", "success"]
@@ -82,10 +75,7 @@ class DomainDelegation(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         j.sals.reservation_chatflow.save_reservation(
-            self.resv_id,
-            self.user_form_data["Solution name"],
-            SolutionType.DelegatedDomain,
-            self.user_form_data,
+            self.resv_id, self.user_form_data["Solution name"], SolutionType.DelegatedDomain, self.user_form_data,
         )
 
         res = """\

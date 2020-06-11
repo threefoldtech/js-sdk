@@ -3,13 +3,6 @@ from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type
-
-import math
-import time
-
 
 class kubernetesDeploy(GedisChatBot):
     steps = [
@@ -40,7 +33,9 @@ class kubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def solution_name(self):
-        self.user_form_data["Solution name"] = self.string_ask("Please enter a name for your kubernetes cluster", required=True, field="name")
+        self.user_form_data["Solution name"] = self.string_ask(
+            "Please enter a name for your kubernetes cluster", required=True, field="name"
+        )
 
     @chatflow_step(title="Master and Worker nodes selection")
     def nodes_selection(self):
@@ -138,6 +133,7 @@ class kubernetesDeploy(GedisChatBot):
         self.reservation = j.sals.zos.reservation_create()
         # Create master and workers
         # Master is in the first node from the selected nodes
+        master = None
         for idx, master_node in enumerate(self.master_nodes_selected):
             master = j.sals.zos.kubernetes.add_master(
                 reservation=self.reservation,
@@ -170,7 +166,11 @@ class kubernetesDeploy(GedisChatBot):
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.network.currency, bot=self
+            self.reservation,
+            self.expiration,
+            customer_tid=j.core.identity.tid,
+            currency=self.network.currency,
+            bot=self,
         )
         j.sals.reservation_chatflow.save_reservation(
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Kubernetes, self.user_form_data

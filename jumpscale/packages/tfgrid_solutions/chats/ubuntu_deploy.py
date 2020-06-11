@@ -8,7 +8,6 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.clients.explorer.models import Disk_type
 
 import math
-import time
 
 
 class UbuntuDeploy(GedisChatBot):
@@ -33,7 +32,7 @@ class UbuntuDeploy(GedisChatBot):
         self.user_form_data = dict()
         self.query = dict()
         self.HUB_URL = "https://hub.grid.tf/tf-bootable"
-        self.IMAGES = ["ubuntu-18.04","ubuntu-19.10","ubuntu-20.04"]
+        self.IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
         user_info = self.user_info()
         self.user_form_data["chatflow"] = "ubuntu"
         self.md_show("# This wizard will help you deploy an ubuntu container", md=True)
@@ -45,7 +44,9 @@ class UbuntuDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
-        self.user_form_data["Solution name"] = self.string_ask("Please enter a name for your ubuntu container", required=True, field="name")
+        self.user_form_data["Solution name"] = self.string_ask(
+            "Please enter a name for your ubuntu container", required=True, field="name"
+        )
 
     @chatflow_step(title="Ubuntu version")
     def ubuntu_version(self):
@@ -177,5 +178,6 @@ class UbuntuDeploy(GedisChatBot):
 To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
 """
         self.md_show(res, md=True)
+
 
 chat = UbuntuDeploy

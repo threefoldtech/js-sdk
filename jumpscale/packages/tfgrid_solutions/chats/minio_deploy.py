@@ -2,17 +2,12 @@ import json
 
 from jumpscale.god import j
 
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.clients.explorer.models import Disk_type, Mode, Category
 
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type, Mode, Volume_type, Category
-import requests
 import math
-import time
 import uuid
-
 
 
 class MinioDeploy(GedisChatBot):
@@ -38,8 +33,8 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="")
     def deployment_start(self):
-        self.user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(self.user_info) # TODO: bring back when Auth is ready
+        self.user_information = self.user_info()
+        # j.sals.reservation_chatflow.validate_user(self.user_information ) # TODO: bring back when Auth is ready
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "minio"
         self.md_show("# This wizard will help you deploy a minio cluster")
@@ -50,7 +45,9 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def solution_name(self):
-        self.user_form_data["Solution name"] = self.string_ask("Please enter a name for your minio", required=True, field="name")
+        self.user_form_data["Solution name"] = self.string_ask(
+            "Please enter a name for your minio", required=True, field="name"
+        )
 
     @chatflow_step(title="Setup type")
     def setup_type(self):
@@ -67,11 +64,11 @@ class MinioDeploy(GedisChatBot):
             "Please choose a the type of disk for zdb", ["SSD", "HDD"], required=True, default="SSD"
         )
         self.disk_type = getattr(Disk_type, self.user_form_data["Disk type"])
-        self.vol_type = getattr(Volume_type, self.user_form_data["Disk type"])
+        self.vol_type = getattr(Disk_type, self.user_form_data["Disk type"])
 
     @chatflow_step(title="Access credentials")
     def access_credentials(self):
-        name = self.user_info["username"]
+        name = self.user_information["username"]
         accesskey_string = f"{name.split('.')[0]}"
         secret_string = "secret12345"
         form = self.new_form()
@@ -138,7 +135,7 @@ class MinioDeploy(GedisChatBot):
             default=j.data.time.get().timestamp + 3900,
         )
         self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
-    
+
     @chatflow_step(title="Zdb (storage) nodes selection")
     def zdb_nodes(self):
         zdb_nodequery = {}
@@ -169,7 +166,7 @@ class MinioDeploy(GedisChatBot):
         self.cont_node = minio_nodes[0]
         if self.user_form_data["Setup type"] == "Master/Slave Setup" and len(minio_nodes) > 1:
             self.slave_node = minio_nodes[1]
-    
+
     @chatflow_step(title="Minio container IP")
     def ip_selection(self):
         self.network_copy = self.network.copy(j.core.identity.tid)
@@ -177,7 +174,7 @@ class MinioDeploy(GedisChatBot):
         for node_selected in self.nodes_selected:
             self.network_copy.add_node(node_selected)
             selected_ids.append(node_selected.node_id)
-        
+
         if self.cont_node.node_id not in selected_ids:
             self.network_copy.add_node(self.cont_node)
 
@@ -214,9 +211,7 @@ class MinioDeploy(GedisChatBot):
                 disk_type=self.disk_type,
                 public=False,
             )
-        self.volume = j.sals.zos.volume.create(
-            self.reservation, self.cont_node.node_id, size=10, type=self.vol_type
-        )
+        self.volume = j.sals.zos.volume.create(self.reservation, self.cont_node.node_id, size=10, type=self.vol_type)
         if self.user_form_data["Setup type"] == "Master/Slave Setup":
             self.slave_volume = j.sals.zos.volume.create(
                 self.reservation, self.slave_node.node_id, size=10, type=self.vol_type
@@ -224,7 +219,11 @@ class MinioDeploy(GedisChatBot):
 
         # register the reservation for zdb db
         self.zdb_rid = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.network.currency, bot=self
+            self.reservation,
+            self.expiration,
+            customer_tid=j.core.identity.tid,
+            currency=self.network.currency,
+            bot=self,
         )
         res = f"# Database has been deployed with reservation id: {self.zdb_rid}. Click next to continue with deployment of the minio container"
 
@@ -318,7 +317,11 @@ class MinioDeploy(GedisChatBot):
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.network.currency, bot=self
+            self.reservation,
+            self.expiration,
+            customer_tid=j.core.identity.tid,
+            currency=self.network.currency,
+            bot=self,
         )
         j.sals.reservation_chatflow.save_reservation(
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Minio, self.user_form_data
@@ -335,7 +338,6 @@ Open your browser at [http://{self.ip_address}:9000](http://{self.ip_address}:90
 You can access the slave machine at [http://{self.slave_ip_address}:9000](http://{self.slave_ip_address}:9000)
             """
         self.md_show(res)
-
 
 
 chat = MinioDeploy
