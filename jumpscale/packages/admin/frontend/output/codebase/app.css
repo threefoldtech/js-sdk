@@ -1,3 +1,35 @@
+@media (max-width: 1500px) and (min-width: 1300px) {
+  .add-icon {
+    font-size: 15px !important;
+  }
+  .solution_card_title,
+  .solution_card_count {
+    font-size: 18px !important;
+  }
+  .threebot_card_title {
+    font-size: 24px !important;
+  }
+}
+@media (max-width: 1300px) {
+  .threebot_card_icon {
+    display: none;
+  }
+  .add-icon {
+    display: none;
+  }
+  .header_div {
+    height: 130px !important;
+  }
+  .solution_card_title,
+  .solution_card_count {
+    font-size: 18px !important;
+  }
+  .solution_card_icon {
+    height: 25px !important;
+    width: 25px !important;
+    margin-left: 5px !important;
+  }
+}
 .compo_ports {
   width: 100%;
   height: 100%;

@@ -12,7 +12,7 @@ export default class ThreebotCardsView extends JetView {
             gravity: 2.6,
             view: "dataview",
             id: "threebot_cards",
-            xCount: (initCount > 4) ? 4 : 2,
+            xCount: 4,
             select: false,
             scroll: false,
             css: "threebot_cards",
@@ -73,7 +73,7 @@ export default class ThreebotCardsView extends JetView {
             threebot_cards.parse(threebot_card_data);
         })
 
-        this._winresize = webix.event(window, "resize", () => this.resizeDataview(this.minItemWidth));
+        // this._winresize = webix.event(window, "resize", () => this.resizeDataview(this.minItemWidth));
     }
 
     resizeDataview(minItemWidth) {
