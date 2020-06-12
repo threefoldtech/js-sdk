@@ -3,6 +3,8 @@ from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
+import requests
+
 
 class DomainDelegation(GedisChatBot):
     steps = ["domain_delegation_name", "domain_name", "expiration_time", "domain_pay", "success"]
@@ -42,14 +44,15 @@ class DomainDelegation(GedisChatBot):
 
     @chatflow_step(title="Payment", disable_previous=True)
     def domain_pay(self):
-        # TODO: remove hardcoded currencies when gateways `farm_id` field is fixed
-        currencies = ["TFT", "FreeTFT"]
-        # currencies = list()
-        # farm_id = self.gateway.farm_id
-        # addresses = j.sals.zos._explorer.farms.get(farm_id).wallet_addresses
-        # for address in addresses:
-        #     if address.asset not in currencies:
-        #         currencies.append(address.asset)
+        currencies = list()
+        farm_id = self.gateway.farm_id
+        try:
+            addresses = j.sals.zos._explorer.farms.get(farm_id).wallet_addresses
+        except requests.HTTPError:
+            self.stop(f"The selected gateway {self.gateway.node_id} have an invalid farm_id {farm_id}")
+        for address in addresses:
+            if address.asset not in currencies:
+                currencies.append(address.asset)
 
         if len(currencies) > 1:
             currency = self.single_choice(
