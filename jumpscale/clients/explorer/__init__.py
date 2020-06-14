@@ -17,7 +17,7 @@ class ExplorerFactory(StoredFactory):
         return self.new(name, url, *args, **kwargs)
 
     def get_default(self):
-        return Explorer(j.core.config.get("threebot")["explorer_url"])
+        return Explorer(j.core.config.get("explorer")["default_url"])
 
     def get_by_url(self, url):
         return Explorer(url)
@@ -30,4 +30,3 @@ class ExplorerFactory(StoredFactory):
 
 def export_module_as():
     return ExplorerFactory(Explorer)
-

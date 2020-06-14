@@ -38,8 +38,8 @@ class Users:
         resp = self._session.post(url, json=data)
         return resp.json()["is_valid"]
 
-    def update(self, user):
-        me = identity.get_identity()
+    def update(self, user, me=None):
+        me = me or identity.get_identity()
         datatosign = ""
         datatosign += f"{user.id}{user.name}{user.email}"
         if user.host:
