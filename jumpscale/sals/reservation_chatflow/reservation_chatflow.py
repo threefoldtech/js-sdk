@@ -9,7 +9,7 @@ from jumpscale.sals.reservation_chatflow.models import (
     TfgridSolutionsPayment1,
     SolutionType,
 )
-from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, Next_action
+from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 
 from nacl.public import Box
@@ -44,7 +44,7 @@ class Network:
 
     def _fill_used_ips(self, reservations):
         for reservation in reservations:
-            if reservation.next_action != Next_action.DEPLOY:
+            if reservation.next_action != NextAction.DEPLOY:
                 continue
             for kubernetes in reservation.data_reservation.kubernetes:
                 if kubernetes.network_id == self._network.name:
@@ -726,7 +726,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
-                if reservation.next_action != Next_action.DEPLOY:
+                if reservation.next_action != NextAction.DEPLOY:
                     res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy\n"
                     bot.stop(res, md=True, html=True)
                 return reservation.results
@@ -910,7 +910,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
             reservation_currency = self.get_currency(reservation)
-            if reservation.next_action != Next_action.DEPLOY:
+            if reservation.next_action != NextAction.DEPLOY:
                 continue
             rdomains = reservation.data_reservation.domain_delegates
             if currency and currency != reservation_currency:
@@ -955,7 +955,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
-            if reservation.next_action != Next_action.DEPLOY:
+            if reservation.next_action != NextAction.DEPLOY:
                 continue
             rnetworks = reservation.data_reservation.networks
             expiration = reservation.data_reservation.expiration_reservation
