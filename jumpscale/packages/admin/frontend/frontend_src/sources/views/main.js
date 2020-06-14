@@ -263,7 +263,25 @@ export default class TopView extends JetView {
             this.webix.message("Error on getting current user")
         });
 
+        // to check on first init view
+        let width = document.documentElement.clientWidth;
+        let height = document.documentElement.clientHeight;
         let menuOpen = true;
+        
+        if (width < 1500 && menuOpen) {
+            self.menu.hide();
+            self.header.hide();
+            self.buttonHideMenu.hide();
+            self.buttonShowMenu.show();
+            menuOpen = false
+        } else if (width > 1500 && !menuOpen) {
+            self.menu.show();
+            self.header.show();
+            self.buttonHideMenu.show();
+            self.buttonShowMenu.hide();
+            menuOpen = true;
+        }
+        
         window.onresize = function(event) {
             var width = document.documentElement.clientWidth;
             var height = document.documentElement.clientHeight;
