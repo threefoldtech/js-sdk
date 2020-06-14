@@ -8,7 +8,7 @@ import binascii
 from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationContainer1,
     TfgridWorkloadsReservationNetworkConnection1,
-    Disk_type,
+    DiskType,
 )
 
 
@@ -24,7 +24,7 @@ class Container:
         cpu=1,
         memory=1024,
         disk_size=256,
-        disk_type=Disk_type.SSD,
+        disk_type=DiskType.SSD,
         entrypoint="",
         interactive=False,
         secret_env={},
