@@ -273,7 +273,7 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def apply(self, package):
+    def install(self, package):
         for static_dir in package.static_dirs:
             path = j.sals.fs.join_paths(package.path, static_dir["path_location"])
             if not j.sals.fs.exists(path):
@@ -306,10 +306,13 @@ class PackageManager(Base):
         # execute package start method
         package.start()
 
-    def apply_all(self):
+    def install_all(self):
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
                 self.apply(self.get(package))
+
+    apply = install
+    apply_all = install_all
 
 
 class ThreebotServer(Base):
