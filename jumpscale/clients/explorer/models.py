@@ -18,7 +18,7 @@ class Type(Enum):
     Vlan = 1
 
 
-class Next_action(Enum):
+class NextAction(Enum):
     CREATE = 0
     SIGN = 1
     PAY = 2
@@ -64,7 +64,7 @@ class Mode(Enum):
     User = 1
 
 
-class Disk_type(Enum):
+class DiskType(Enum):
     HDD = 0
     SSD = 1
 
@@ -186,7 +186,7 @@ class TfgridWorkloadsReservationContainerCapacity1(Base):
     cpu = fields.Integer()
     memory = fields.Integer()
     disk_size = fields.Integer()
-    disk_type = fields.Enum(Disk_type)
+    disk_type = fields.Enum(DiskType)
 
 
 class TfgridWorkloadsReservationGatewayProxy1(Base):
@@ -384,7 +384,7 @@ class TfgridWorkloadsReservationVolume1(Base):
     workload_id = fields.Integer()
     node_id = fields.String(default="")
     size = fields.Integer()
-    type = fields.Enum(Disk_type)
+    type = fields.Enum(DiskType)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
     farmer_tid = fields.Integer()
 
@@ -395,7 +395,7 @@ class TfgridWorkloadsReservationZdb1(Base):
     size = fields.Integer()
     mode = fields.Enum(Mode)
     password = fields.String(default="")
-    disk_type = fields.Enum(Disk_type)
+    disk_type = fields.Enum(DiskType)
     public = fields.Boolean(default=False)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
     farmer_tid = fields.Integer()
@@ -426,7 +426,7 @@ class TfgridWorkloadsReservation1(Base):
     data_reservation = fields.Object(TfgridWorkloadsReservationData1)
     customer_tid = fields.Integer()
     customer_signature = fields.String(default="")
-    next_action = fields.Enum(Next_action)
+    next_action = fields.Enum(NextAction)
     signatures_provision = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_farmer = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_delete = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
