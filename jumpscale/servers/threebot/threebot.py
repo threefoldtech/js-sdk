@@ -226,8 +226,7 @@ class PackageManager(Base):
             return Package(path=package_path)
 
     def get_packages(self):
-        return [{"name":package, "path": self.packages.get(package)} \
-                for package in self.packages.keys()]
+        return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
 
     def list_all(self):
         return self.packages.keys()
@@ -240,9 +239,9 @@ class PackageManager(Base):
         # execute package install method
         package.install()
 
-        # apply package if threebot is started
+        # install package if threebot is started
         if self.threebot.started:
-            self.apply(package)
+            self.install(package)
             self.threebot.nginx.reload()
 
         self.save()
@@ -256,7 +255,7 @@ class PackageManager(Base):
 
         package = self.get(package_name)
         if not package:
-            raise j.exceptions.NotFound("package not found")
+            raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
         for bottle_server in package.bottle_servers:
@@ -281,52 +280,51 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def install_package(self, package_name):
+    def uninstall(self, package_name):
         package = self.get(package_name)
         if not package:
-            raise j.exceptions.NotFound("package not found")
-        package.install()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def uninstall_package(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound("package not found")
+            raise j.exceptions.NotFound(f"{package_name} package not found")
         package.uninstall()
 
         # Return updated package info to actor (now we have path only)
         return {"name": package.name, "path": package.path}
 
-    def start_package(self, package_name):
+    def start(self, package_name):
         package = self.get(package_name)
         if not package:
-            raise j.exceptions.NotFound("package not found")
+            raise j.exceptions.NotFound(f"{package_name} package not found")
         package.start()
 
         # Return updated package info to actor (now we have path only)
         return {"name": package.name, "path": package.path}
 
-    def stop_package(self, package_name):
+    def stop(self, package_name):
         package = self.get(package_name)
         if not package:
-            raise j.exceptions.NotFound("package not found")
+            raise j.exceptions.NotFound(f"{package_name} package not found")
         package.stop()
 
         # Return updated package info to actor (now we have path only)
         return {"name": package.name, "path": package.path}
 
-    def restart_package(self, package_name):
+    def restart(self, package_name):
         package = self.get(package_name)
         if not package:
-            raise j.exceptions.NotFound("package not found")
+            raise j.exceptions.NotFound(f"{package_name} package not found")
         package.restart()
 
         # Return updated package info to actor (now we have path only)
         return {"name": package.name, "path": package.path}
 
     def install(self, package):
+        """install and apply package configrations
+
+        Args:
+            package ([package object]): get package object using [self.get(package_name)]
+
+        Returns:
+            [dict]: [package info]
+        """
         for static_dir in package.static_dirs:
             path = j.sals.fs.join_paths(package.path, static_dir["path_location"])
             if not j.sals.fs.exists(path):
@@ -356,16 +354,18 @@ class PackageManager(Base):
         # apply nginx configuration
         package.nginx_config.apply()
 
+        package.install()
+
         # execute package start method
         package.start()
+
+        # Return updated package info to actor (now we have path only)
+        return {"name": package.name, "path": package.path}
 
     def install_all(self):
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
-                self.apply(self.get(package))
-
-    apply = install
-    apply_all = install_all
+                self.install(self.get(package))
 
 
 class ThreebotServer(Base):
@@ -438,10 +438,10 @@ class ThreebotServer(Base):
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             package = self.packages.get(package_name)
-            self.packages.apply(package)
+            self.packages.install(package)
 
-        # apply all package
-        self.packages.apply_all()
+        # install all package
+        self.packages.install_all()
         self.nginx.reload()
 
         # mark server as started
