@@ -1,4 +1,5 @@
 import "./styles/app.css";
+import 'babel-polyfill';
 import {JetApp, plugins} from "webix-jet";
 
 export default class InventoryApp extends JetApp {

@@ -5,9 +5,6 @@ import { health } from "../../services/health";
 
 export default class ThreebotCardsView extends JetView {
     config() {
-        this.minItemWidth = 320;
-        const initCount = Math.floor(document.documentElement.clientWidth / this.minItemWidth);
-
         return {
             gravity: 2.6,
             view: "dataview",
@@ -43,44 +40,47 @@ export default class ThreebotCardsView extends JetView {
             }
         }
     }
+    
+    async getAlertCount(){
+        const request = await alerts.count();
+        return JSON.parse(request.json()).data;
+    }
 
-    init() {
-        const threebot_cards = this.$$("threebot_cards");
+    async getMemoryUsage(){
+        const request = await health.getMemoryUsage();
+        return JSON.parse(request.json()).data;
+    }
 
+    async getExplorer(){
+        const request = await admin.getExplorer();
+        const explorer = JSON.parse(request.json()).data;
+        return explorer.url;
+    }
+
+    async fetchData(){
+        const alertCount = await this.getAlertCount();
+        const memoryUsage = await this.getMemoryUsage()
+        const explorerUrl = await this.getExplorer();
+        
         let threebot_card_data = [
             { "id": 1, "title": "Health checks", "info": "All izz well", "icon": "static/img/health.png" },
             { "id": 2, "title": "Errors", "info": "", "icon": "static/img/error.png" },
             { "id": 3, "title": "Memory usage", "info": "", "icon": "static/img/memory.png" },
-            {'id': 4,'title': 'Explorer','info': "",'icon': 'static/img/explorer.png'}
+            { "id": 4, "title": "Explorer", "info": "", "icon": "static/img/explorer.png" }
         ];
 
-        alerts.count().then((data) => {
-            const alertCount = JSON.parse(data.json()).data;
-            console.log("dsdsd",alertCount)
-            threebot_card_data[1].info = `<a class="threebot_card_info" href="#!/main/alerts">Find ${alertCount} alerts</a>`;
-            threebot_cards.parse(threebot_card_data);
+        threebot_card_data[1].info = `<a class="threebot_card_info" href="#!/main/alerts">Find ${alertCount} alerts</a>`;
+        threebot_card_data[2].info = `<p><b>Total: </b>${memoryUsage.total} GB</p><p><b>Used: </b>${memoryUsage.used} GB</p><p><b>Percentage: </b>${memoryUsage.percent}%</p>`;
+        threebot_card_data[3].info = explorerUrl;
+
+        return threebot_card_data;
+    };
+    
+    init() {
+        const threebot_cards = this.$$("threebot_cards");
+
+        this.fetchData().then((data) => {
+            threebot_cards.parse(data);
         })
-
-        health.getMemoryUsage().then((data) => {
-            let memoryUsage = JSON.parse(data.json()).data
-            threebot_card_data[2].info = `<p><b>Total: </b>${memoryUsage.total} GB</p><p><b>Used: </b>${memoryUsage.used} GB</p><p><b>Percentage: </b>${memoryUsage.percent}%</p>`;
-        });
-
-        admin.getExplorer().then((data) => {
-            const explorer = JSON.parse(data.json()).data;
-            let explorer_url = explorer.url;
-            threebot_card_data[3].info = explorer_url;
-            threebot_cards.parse(threebot_card_data);
-        })
-
-        // this._winresize = webix.event(window, "resize", () => this.resizeDataview(this.minItemWidth));
-    }
-
-    resizeDataview(minItemWidth) {
-        const elements = Math.floor(this.$$("threebot_cards").$width / minItemWidth);
-        const count = (elements >= 4) ? 4 : 2;
-        this.$$("threebot_cards").define("xCount", count);
-        this.$$("threebot_cards").adjust();
-        this.$$("threebot_cards").resize();
     }
 }
