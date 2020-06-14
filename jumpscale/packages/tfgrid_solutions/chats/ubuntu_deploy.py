@@ -1,11 +1,9 @@
 from jumpscale.god import j
 
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type
+from jumpscale.clients.explorer.models import DiskType
 
 import math
 
@@ -60,7 +58,7 @@ class UbuntuDeploy(GedisChatBot):
         disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(Disk_type, disk.value)
+        self.rootfs_type = getattr(DiskType, disk.value)
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
         self.user_form_data["Root filesystem Type"] = disk.value

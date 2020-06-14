@@ -4,7 +4,7 @@ from jumpscale.god import j
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.clients.explorer.models import Disk_type, Mode, Category
+from jumpscale.clients.explorer.models import DiskType, Mode, Category
 
 import math
 import uuid
@@ -63,8 +63,8 @@ class MinioDeploy(GedisChatBot):
         self.user_form_data["Disk type"] = self.drop_down_choice(
             "Please choose a the type of disk for zdb", ["SSD", "HDD"], required=True, default="SSD"
         )
-        self.disk_type = getattr(Disk_type, self.user_form_data["Disk type"])
-        self.vol_type = getattr(Disk_type, self.user_form_data["Disk type"])
+        self.disk_type = getattr(DiskType, self.user_form_data["Disk type"])
+        self.vol_type = getattr(DiskType, self.user_form_data["Disk type"])
 
     @chatflow_step(title="Access credentials")
     def access_credentials(self):

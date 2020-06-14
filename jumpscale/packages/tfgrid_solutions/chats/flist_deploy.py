@@ -2,7 +2,7 @@ from jumpscale.god import j
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.clients.explorer.models import Disk_type
+from jumpscale.clients.explorer.models import DiskType
 
 import math
 import requests
@@ -71,7 +71,7 @@ class FlistDeploy(GedisChatBot):
         disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(Disk_type, disk.value)
+        self.rootfs_type = getattr(DiskType, disk.value)
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
         self.user_form_data["Root filesystem Type"] = disk.value
@@ -126,7 +126,7 @@ class FlistDeploy(GedisChatBot):
             vol_disk_size = form.int_ask("Please specify the volume size", required=True, default=10)
             vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
             form.ask()
-            self.vol_disk_type = getattr(Disk_type, vol_disk_type.value)
+            self.vol_disk_type = getattr(DiskType, vol_disk_type.value)
             self.user_form_data["Volume Disk type"] = vol_disk_type.value
             self.user_form_data["Volume Size"] = vol_disk_size.value
             self.user_form_data["Volume mount point"] = vol_mount_point.value

@@ -1,11 +1,7 @@
 from jumpscale.god import j
 
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-
-from jumpscale.clients.explorer.models import Disk_type
 
 import math
 
