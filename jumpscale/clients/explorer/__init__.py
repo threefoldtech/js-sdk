@@ -3,9 +3,9 @@ from .explorer import Explorer
 from jumpscale.core.config import get_config
 
 
-class explorerFactory(StoredFactory):
+class ExplorerFactory(StoredFactory):
     def new(self, name, url, *args, **kwargs):
-        kwargs['url'] = url
+        kwargs["url"] = url
         instance = super().new(name, *args, **kwargs)
         instance.url = url
         return instance
@@ -22,4 +22,4 @@ class explorerFactory(StoredFactory):
 
 def export_module_as():
 
-    return explorerFactory(Explorer)
+    return ExplorerFactory(Explorer)
