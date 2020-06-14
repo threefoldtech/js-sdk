@@ -18,7 +18,7 @@ CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
 
 
-class PackageNginxConfig:
+class NginxPackageConfig:
     def __init__(self, package):
         self.package = package
         self.nginx = j.sals.nginx.get("main")
@@ -131,7 +131,7 @@ class Package:
         self.path = path
         self.config = self.load_config()
         self.name = self.config["name"]
-        self.nginx_config = PackageNginxConfig(self)
+        self.nginx_config = NginxPackageConfig(self)
         self._module = None
 
     def load_config(self):
@@ -337,7 +337,7 @@ class ThreebotServer(Base):
         if self._nginx is None:
             self._nginx = j.tools.nginx.get("default")
         return self._nginx
-        
+
     @property
     def db(self):
         if self._db is None:
