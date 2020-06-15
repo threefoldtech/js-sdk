@@ -23,9 +23,7 @@ class ExplorerFactory(StoredFactory):
         return Explorer(url)
 
     def default_addr_set(self, url):
-        threebot_cfg = j.core.config.get("threebot")
-        threebot_cfg["explorer_url"] = url
-        j.core.config.set("threebot", threebot_cfg)
+        j.core.identity.me.explorer_url = url
 
 
 def export_module_as():

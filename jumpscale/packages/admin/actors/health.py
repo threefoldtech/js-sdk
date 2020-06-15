@@ -19,7 +19,7 @@ class Health(BaseActor):
     
     @actor_method
     def get_identity(self) -> str:
-        return j.data.serializers.json.dumps( {"data":j.core.identity.get_threebot_config()} )
+        return j.data.serializers.json.dumps( {"data":{ "name":j.core.identity.me.tname, "id":j.core.identity.me.tid }} )
     
     @actor_method
     def network_info(self) -> str:
