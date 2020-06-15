@@ -38,7 +38,7 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def flist_network(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
+        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
         self.currency = self.network.currency
 
     @chatflow_step(title="Solution name")
@@ -143,7 +143,7 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Container IP & Confirmation about conatiner details")
     def container_ip(self):
-        self.network_copy = self.network.copy(j.core.identity.tid)
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
         self.network_copy.add_node(self.node)
         self.ip_address = self.network_copy.ask_ip_from_node(
             self.node, "Please choose your IP Address for this solution"
@@ -165,7 +165,7 @@ class FlistDeploy(GedisChatBot):
     def container_pay(self):
         self.network = self.network_copy
         # update network
-        self.network.update(j.core.identity.tid, currency=self.currency, bot=self)
+        self.network.update(j.core.identity.me.tid, currency=self.currency, bot=self)
 
         # create container
         cont = j.sals.zos.container.create(
@@ -204,7 +204,7 @@ class FlistDeploy(GedisChatBot):
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.currency, bot=self
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
         )
         j.sals.reservation_chatflow.save_reservation(
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Flist, self.user_form_data

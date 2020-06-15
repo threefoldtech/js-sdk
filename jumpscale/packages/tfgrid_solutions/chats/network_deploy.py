@@ -44,7 +44,7 @@ class NetworkDeploy(GedisChatBot):
                 network_name,
                 reservation,
                 ip_range,
-                j.core.identity.tid,
+                j.core.identity.me.tid,
                 ipversion,
                 expiration=expiration,
                 currency=user_form_data["Currency"],

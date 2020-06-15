@@ -29,7 +29,7 @@ class kubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def network_selection(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
+        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
 
     @chatflow_step(title="Solution name")
     def solution_name(self):
@@ -102,7 +102,7 @@ class kubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="IP selection")
     def ip_selection(self):
-        self.network_copy = self.network.copy(j.core.identity.tid)
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
         ipaddresses = list()
         for idx, node_selected in enumerate(self.master_nodes_selected):
             self.network_copy.add_node(node_selected)
@@ -128,7 +128,7 @@ class kubernetesDeploy(GedisChatBot):
     def cluster_reservation(self):
         self.network = self.network_copy
         # update network
-        self.network.update(j.core.identity.tid, currency=self.network.currency, bot=self)
+        self.network.update(j.core.identity.me.tid, currency=self.network.currency, bot=self)
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
         # Create master and workers
@@ -168,7 +168,7 @@ class kubernetesDeploy(GedisChatBot):
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
             self.reservation,
             self.expiration,
-            customer_tid=j.core.identity.tid,
+            customer_tid=j.core.identity.me.tid,
             currency=self.network.currency,
             bot=self,
         )

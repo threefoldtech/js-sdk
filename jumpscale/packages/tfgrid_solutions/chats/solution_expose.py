@@ -15,10 +15,7 @@ kinds = {
     "gitea": SolutionType.Gitea,
 }
 
-domain_types = {
-    "delegate": Category.Domain_delegate,
-    "sub": Category.Subdomain,
-}
+domain_types = {"delegate": Category.Domain_delegate, "sub": Category.Subdomain}
 
 ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
@@ -90,7 +87,7 @@ class SolutionExpose(GedisChatBot):
                 g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
             }
         self.user_domains = j.sals.reservation_chatflow.list_delegate_domains(
-            j.core.identity.tid, currency=self.solution_currency
+            j.core.identity.me.tid, currency=self.solution_currency
         )
         domain_ask_list = []
         for dom in self.user_domains:
@@ -191,14 +188,14 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
     def confirmation(self):
         query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
         node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
-        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.tid, self.network_name)
+        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network_name)
         network.add_node(node_selected)
-        network.update(j.core.identity.tid, currency=self.solution_currency, bot=self)
+        network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
         ip_address = network.get_free_ip(node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
 
-        secret = f"{j.core.identity.tid}:{uuid.uuid4().hex}"
+        secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         self.user_form_data["Secret"] = secret
         secret_env = {}
         secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.user_form_data["Secret"])
@@ -237,7 +234,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
         resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
             self.reservation,
             self.expiration,
-            customer_tid=j.core.identity.tid,
+            customer_tid=j.core.identity.me.tid,
             currency=self.solution_currency,
             bot=self,
         )

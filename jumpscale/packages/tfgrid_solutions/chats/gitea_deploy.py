@@ -37,7 +37,7 @@ class GiteaDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def gitea_network(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
+        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
         self.currency = self.network.currency
 
     @chatflow_step(title="Solution name")
@@ -110,7 +110,7 @@ class GiteaDeploy(GedisChatBot):
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
-        self.network_copy = self.network.copy(j.core.identity.tid)
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
         self.network_copy.add_node(self.node_selected)
         self.ip_address = self.network_copy.ask_ip_from_node(
             self.node_selected, "Please choose IP Address for your solution"
@@ -137,7 +137,7 @@ class GiteaDeploy(GedisChatBot):
             self.node_selected.node_id, self.user_form_data["Database Password"]
         )
         secret_env = {"POSTGRES_PASSWORD": database_password_encrypted}
-        self.network.update(j.core.identity.tid, currency=self.currency, bot=self)
+        self.network.update(j.core.identity.me.tid, currency=self.currency, bot=self)
         storage_url = "zdb://hub.grid.tf:9900"
         entry_point = "/start_gitea.sh"
 
@@ -171,7 +171,7 @@ class GiteaDeploy(GedisChatBot):
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.currency, bot=self
+            self.reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
         )
 
         j.sals.reservation_chatflow.save_reservation(

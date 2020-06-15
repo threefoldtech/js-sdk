@@ -129,7 +129,7 @@ class Network:
             (Network): copy of the network
         """
         network_copy = None
-        explorer = j.clients.explorer.default
+        explorer = j.clients.explorer.get_default()
         reservation = explorer.reservations.get(self.resv_id)
         networks = self._sal.list_networks(customer_tid, [reservation])
         for key in networks.keys():
@@ -202,8 +202,8 @@ class ReservationChatflow:
         Returns:
             [str]: decrypted solution metadata
         """
-        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
         box = Box(sk, pk)
         return box.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
 
@@ -1038,8 +1038,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         meta_json = json.dumps(metadata)
 
-        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
         box = Box(sk, pk)
         encrypted_metadata = base64.b85encode(box.encrypt(meta_json.encode())).decode()
         reservation.metadata = encrypted_metadata

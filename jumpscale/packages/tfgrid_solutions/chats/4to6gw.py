@@ -11,13 +11,7 @@ class FourToSixGateway(GedisChatBot):
     """
     """
 
-    steps = [
-        "gateway_start",
-        "expiration_time",
-        "wireguard_public_get",
-        "wg_reservation",
-        "wg_config",
-    ]
+    steps = ["gateway_start", "expiration_time", "wireguard_public_get", "wg_reservation", "wg_config"]
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):
@@ -66,7 +60,7 @@ class FourToSixGateway(GedisChatBot):
 
         if len(currencies) > 1:
             currency = self.single_choice(
-                "Please choose a currency that will be used for the payment", currencies, default="TFT", required=True,
+                "Please choose a currency that will be used for the payment", currencies, default="TFT", required=True
             )
         else:
             currency = currencies[0]
@@ -75,7 +69,7 @@ class FourToSixGateway(GedisChatBot):
         j.sals.zos._gateway.gateway_4to6(reservation=reservation, node_id=self.gateway_id, public_key=self.publickey)
 
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.tid, currency=currency, bot=self
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=currency, bot=self
         )
         self.reservation_result = j.sals.reservation_chatflow.wait_reservation(self, self.resv_id)
 

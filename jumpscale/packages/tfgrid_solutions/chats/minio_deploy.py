@@ -41,7 +41,7 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def network_selection(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
+        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
 
     @chatflow_step(title="Solution name")
     def solution_name(self):
@@ -169,7 +169,7 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="Minio container IP")
     def ip_selection(self):
-        self.network_copy = self.network.copy(j.core.identity.tid)
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
         selected_ids = []
         for node_selected in self.nodes_selected:
             self.network_copy.add_node(node_selected)
@@ -195,7 +195,7 @@ class MinioDeploy(GedisChatBot):
     @chatflow_step(title="Reserve zdb", disable_previous=True)
     def zdb_reservation(self):
         self.network = self.network_copy
-        self.network.update(j.core.identity.tid, currency=self.network.currency, bot=self)
+        self.network.update(j.core.identity.me.tid, currency=self.network.currency, bot=self)
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
 
@@ -221,7 +221,7 @@ class MinioDeploy(GedisChatBot):
         self.zdb_rid = j.sals.reservation_chatflow.register_and_pay_reservation(
             self.reservation,
             self.expiration,
-            customer_tid=j.core.identity.tid,
+            customer_tid=j.core.identity.me.tid,
             currency=self.network.currency,
             bot=self,
         )
@@ -319,7 +319,7 @@ class MinioDeploy(GedisChatBot):
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
             self.reservation,
             self.expiration,
-            customer_tid=j.core.identity.tid,
+            customer_tid=j.core.identity.me.tid,
             currency=self.network.currency,
             bot=self,
         )

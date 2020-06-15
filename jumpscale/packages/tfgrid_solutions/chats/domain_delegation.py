@@ -56,7 +56,7 @@ class DomainDelegation(GedisChatBot):
 
         if len(currencies) > 1:
             currency = self.single_choice(
-                "Please choose a currency that will be used for the payment", currencies, default="", required=True,
+                "Please choose a currency that will be used for the payment", currencies, default="", required=True
             )
         else:
             currency = currencies[0]
@@ -72,13 +72,13 @@ class DomainDelegation(GedisChatBot):
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
 
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.tid, currency=currency, bot=self
+            self.reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=currency, bot=self
         )
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         j.sals.reservation_chatflow.save_reservation(
-            self.resv_id, self.user_form_data["Solution name"], SolutionType.DelegatedDomain, self.user_form_data,
+            self.resv_id, self.user_form_data["Solution name"], SolutionType.DelegatedDomain, self.user_form_data
         )
 
         res = """\

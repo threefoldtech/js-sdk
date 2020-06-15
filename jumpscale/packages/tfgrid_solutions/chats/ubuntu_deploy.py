@@ -38,7 +38,7 @@ class UbuntuDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def ubuntu_network(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.tid)
+        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
@@ -106,7 +106,7 @@ class UbuntuDeploy(GedisChatBot):
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
-        self.network_copy = self.network.copy(j.core.identity.tid)
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
         self.network_copy.add_node(self.node_selected)
         self.ip_address = self.network_copy.ask_ip_from_node(
             self.node_selected, "Please choose IP Address for your solution"
@@ -130,7 +130,7 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Payment", disable_previous=True)
     def container_pay(self):
         self.network = self.network_copy
-        self.network.update(j.core.identity.tid, currency=self.query["currency"], bot=self)
+        self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
         container_flist = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
         storage_url = "zdb://hub.grid.tf:9900"
         entry_point = "/bin/bash /start.sh"
@@ -162,7 +162,7 @@ class UbuntuDeploy(GedisChatBot):
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.tid, currency=self.query["currency"], bot=self
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.query["currency"], bot=self
         )
 
         j.sals.reservation_chatflow.save_reservation(
