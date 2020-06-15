@@ -4,11 +4,7 @@ import json
 from jumpscale.god import j
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import (
-    TfgridSolution1,
-    TfgridSolutionsPayment1,
-    SolutionType,
-)
+from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
 from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 
@@ -96,7 +92,7 @@ class Network:
     def update(self, tid, currency=None, bot=None):
         """create reservations and update status and show payments stuff
         Args:
-            tid (int): customer tid (j.core.identity.tid)
+            tid (int): customer tid (j.core.identity.me.tid)
             currency (str, optional): "TFT" or "FreeTFT". Defaults to None.
             bot (GedisChatBot, optional): bot instance. Defaults to None.
 
@@ -118,7 +114,7 @@ class Network:
                 j.sals.reservation_chatflow.wait_payment(bot, rid, threebot_app=False)
             else:
                 j.sals.reservation_chatflow.wait_payment(
-                    bot, rid, threebot_app=True, reservation_create_resp=reservation_create,
+                    bot, rid, threebot_app=True, reservation_create_resp=reservation_create
                 )
             return self._sal.wait_reservation(self._bot, rid)
         return True
@@ -127,7 +123,7 @@ class Network:
         """create a copy of network object
 
         Args:
-            customer_tid (int): customet tid (j.core.identity.tid)
+            customer_tid (int): customet tid (j.core.identity.me.tid)
 
         Returns:
             (Network): copy of the network
@@ -190,7 +186,7 @@ class ReservationChatflow:
     def __init__(self, **kwargs):
         """This class is responsible for managing, creating, cancelling reservations
         """
-        self.me = j.core.identity
+        self.me = j.core.identity.me
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
@@ -351,7 +347,7 @@ class ReservationChatflow:
         """save user reservation in local config manager
 
         Args:
-            rid (int): user identity (j.core.identity.tid)
+            rid (int): user identity (j.core.identity.me.tid)
             name (str): reservation name
             solution_type (SolutionType): type of the solution from types enum
             form_info (dict, optional): reservation user info. Defaults to None.
