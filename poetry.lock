@@ -753,12 +753,11 @@ pytoml = "^0.1.21"
 redis = "^3.3"
 secretconf = "^0.1.2"
 snakeviz = "^2.0.1"
-stellar-sdk = "^2.3.2"
 terminaltables = "^3.1"
 watchdog = "^0.9.0"
 
 [package.source]
-reference = "7f66ffda4d46dde68bdc2154cc198314305ceba9"
+reference = "851bdcc5f902b81b44be8554ec42347190c211bf"
 type = "git"
 url = "https://github.com/js-next/js-ng.git"
 [[package]]
@@ -1747,7 +1746,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "1a3bc2ef37c30ee1d6106b43a764a9464dd59103669b5b7b8eda992826500e73"
+content-hash = "fd9f9f503b49e941e9912267a807be5877c46b7932a7609716f6974ae9bec3cf"
 python-versions = "^3.6"
 
 [metadata.files]
