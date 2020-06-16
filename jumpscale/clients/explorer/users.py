@@ -1,12 +1,11 @@
 from jumpscale.core.exceptions import NotFound
 from jumpscale.core import identity
 from .models import TfgridPhonebookUser1
+from .base import BaseResource
 
 
-class Users:
-    def __init__(self, session, url):
-        self._session = session
-        self._base_url = url
+class Users(BaseResource):
+    _resource = "users"
 
     def list(self, name=None, email=None):
         query = {}
@@ -14,7 +13,7 @@ class Users:
             query["name"] = name
         if email is not None:
             query["email"] = email
-        resp = self._session.get(self._base_url + "/users", params=query)
+        resp = self._session.get(self._url, params=query)
         users = []
         for user_data in resp.json():
             user = TfgridPhonebookUser1.from_dict(user_data)
@@ -25,7 +24,7 @@ class Users:
         return TfgridPhonebookUser1()
 
     def register(self, user):
-        resp = self._session.post(self._base_url + "/users", json=user.to_dict())
+        resp = self._session.post(self._url, json=user.to_dict())
         return resp.json()["id"]
 
     def validate(self, tid, payload, signature):
@@ -48,11 +47,11 @@ class Users:
         signature = me.nacl.sign_hex(datatosign.encode("utf8"))
         data = user.to_dict().copy()
         data["sender_signature_hex"] = signature.decode("utf8")
-        self._session.put(self._base_url + f"/users/{user.id}", json=data)
+        self._session.put(f"{self._url}/{user.id}", json=data)
 
     def get(self, tid=None, name=None, email=None):
         if tid is not None:
-            resp = self._session.get(self._base_url + f"/users/{tid}")
+            resp = self._session.get(f"{self._url}/{tid}")
             return TfgridPhonebookUser1.from_dict(resp.json())
 
         results = self.list(name=name, email=email)
