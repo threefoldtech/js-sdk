@@ -54,14 +54,16 @@ class FlistDeploy(GedisChatBot):
             "Please add the link to your flist to be deployed. For example: https://hub.grid.tf/usr/example.flist",
             required=True,
         )
+        self.user_form_data["Flist link"] = self.user_form_data["Flist link"].strip()
 
-        if "hub.grid.tf" not in self.user_form_data["Flist link"]:
+        if "hub.grid.tf" not in self.user_form_data["Flist link"] or ".md" in self.user_form_data["Flist link"][-3:]:
             raise StopChatFlow(
-                "This flist is not correct. Please make sure you enter a valid link to an existing flist"
+                "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist"
             )
 
         response = requests.head(self.user_form_data["Flist link"])
-        if response.status_code != 200:
+        response_md5 = requests.head(f"{self.user_form_data['Flist link']}.md5")
+        if response.status_code != 200 or response_md5.status_code != 200:
             raise StopChatFlow("This flist doesn't exist. Please make sure you enter a valid link to an existing flist")
 
     @chatflow_step(title="Container resources")
