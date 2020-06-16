@@ -18,6 +18,7 @@ class GiteaDeploy(GedisChatBot):
         "public_key_get",
         "expiration_time",
         "gitea_credentials",
+        "container_logs",
         "container_node_id",
         "container_farm",
         "container_ip",
@@ -85,6 +86,33 @@ class GiteaDeploy(GedisChatBot):
         self.user_form_data["Database Password"] = database_password.value
         self.user_form_data["Repository"] = repository_name.value
 
+    @chatflow_step(title="Container logs")
+    def container_logs(self):
+        self.container_logs_option = self.single_choice(
+            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
+            ["YES", "NO"],
+            default="NO",
+        )
+        if self.container_logs_option == "YES":
+            form = self.new_form()
+            self.channel_type = form.string_ask("Please add the channel type", default="redis", required=True)
+            self.channel_host = form.string_ask(
+                "Please add the IP address where the logs will be output to", required=True
+            )
+            self.channel_port = form.int_ask(
+                "Please add the port available where the logs will be output to", required=True
+            )
+            self.channel_name = form.string_ask(
+                "Please add the channel name to be used. The channels will be in the form NAME-stdout and NAME-stderr",
+                default=self.user_form_data["Solution name"],
+                required=True,
+            )
+            form.ask()
+            self.user_form_data["Logs Channel type"] = self.channel_type.value
+            self.user_form_data["Logs Channel host"] = self.channel_host.value
+            self.user_form_data["Logs Channel port"] = self.channel_port.value
+            self.user_form_data["Logs Channel name"] = self.channel_name.value
+
     @chatflow_step(title="Container node id")
     def container_node_id(self):
         self.query = {"mru": math.ceil(1024 / 1024), "cru": 2, "hru": 5, "sru": 1}
@@ -142,7 +170,7 @@ class GiteaDeploy(GedisChatBot):
         entry_point = "/start_gitea.sh"
 
         # create container
-        j.sals.zos.container.create(
+        cont = j.sals.zos.container.create(
             reservation=self.reservation,
             node_id=self.node_selected.node_id,
             network_name=self.network.name,
@@ -157,6 +185,14 @@ class GiteaDeploy(GedisChatBot):
             memory=1024,
             secret_env=secret_env,
         )
+        if self.container_logs_option == "YES":
+            j.sals.zos.container.add_logs(
+                cont,
+                channel_type=self.user_form_data["Logs Channel type"],
+                channel_host=self.user_form_data["Logs Channel host"],
+                channel_port=self.user_form_data["Logs Channel port"],
+                channel_name=self.user_form_data["Logs Channel name"],
+            )
         metadata = dict()
         metadata["chatflow"] = self.user_form_data["chatflow"]
         metadata["Solution name"] = self.user_form_data["Solution name"]

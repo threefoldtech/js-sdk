@@ -15,6 +15,7 @@ class UbuntuDeploy(GedisChatBot):
         "ubuntu_name",
         "ubuntu_version",
         "container_resources",
+        "container_logs",
         "public_key_get",
         "container_node_id",
         "ubuntu_farm",
@@ -63,6 +64,33 @@ class UbuntuDeploy(GedisChatBot):
         self.user_form_data["Memory"] = memory.value
         self.user_form_data["Root filesystem Type"] = disk.value
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
+
+    @chatflow_step(title="Container logs")
+    def container_logs(self):
+        self.container_logs_option = self.single_choice(
+            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
+            ["YES", "NO"],
+            default="NO",
+        )
+        if self.container_logs_option == "YES":
+            form = self.new_form()
+            self.channel_type = form.string_ask("Please add the channel type", default="redis", required=True)
+            self.channel_host = form.string_ask(
+                "Please add the IP address where the logs will be output to", required=True
+            )
+            self.channel_port = form.int_ask(
+                "Please add the port available where the logs will be output to", required=True
+            )
+            self.channel_name = form.string_ask(
+                "Please add the channel name to be used. The channels will be in the form NAME-stdout and NAME-stderr",
+                default=self.user_form_data["Solution name"],
+                required=True,
+            )
+            form.ask()
+            self.user_form_data["Logs Channel type"] = self.channel_type.value
+            self.user_form_data["Logs Channel host"] = self.channel_host.value
+            self.user_form_data["Logs Channel port"] = self.channel_port.value
+            self.user_form_data["Logs Channel name"] = self.channel_name.value
 
     @chatflow_step(title="Access keys")
     def public_key_get(self):
@@ -136,7 +164,7 @@ class UbuntuDeploy(GedisChatBot):
         entry_point = "/bin/bash /start.sh"
 
         # create container
-        j.sals.zos.container.create(
+        cont = j.sals.zos.container.create(
             reservation=self.reservation,
             node_id=self.node_selected.node_id,
             network_name=self.network.name,
@@ -151,6 +179,14 @@ class UbuntuDeploy(GedisChatBot):
             cpu=self.user_form_data["CPU"],
             memory=self.user_form_data["Memory"],
         )
+        if self.container_logs_option == "YES":
+            j.sals.zos.container.add_logs(
+                cont,
+                channel_type=self.user_form_data["Logs Channel type"],
+                channel_host=self.user_form_data["Logs Channel host"],
+                channel_port=self.user_form_data["Logs Channel port"],
+                channel_name=self.user_form_data["Logs Channel name"],
+            )
         metadata = dict()
         metadata["chatflow"] = self.user_form_data["chatflow"]
         metadata["Solution name"] = self.user_form_data["Solution name"]
