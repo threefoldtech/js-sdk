@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader
-from bottle import Bottle
+from bottle import Bottle, request
 from jumpscale.god import j
 from jumpscale.packages.auth.bottle.auth import login_required, _session_opts
 from beaker.middleware import SessionMiddleware
@@ -24,7 +24,10 @@ def chats(package_name):
 @app.route("/<package_name>/chats/<chat_name>")
 @login_required
 def chat(package_name, chat_name):
-    return env.get_template("index.html").render(topic=chat_name, username="", email="")
+    session = request.environ.get("beaker.session")
+    return env.get_template("index.html").render(
+        topic=chat_name, username=session.get("username", ""), email=session.get("email", "")
+    )
 
 
 app = SessionMiddleware(app, _session_opts)

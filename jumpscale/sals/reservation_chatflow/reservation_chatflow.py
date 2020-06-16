@@ -1404,8 +1404,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Args:
             user_info (dict): user information
         """
-        # TODO: email field of testnet users is empty. is this really used?
-        if not j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
+        if not j.core.config.get_config().get("threebot", {}).get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when Threebot is in dev mode.
             To enable Threebot connect : `j.me.encryptor.tools.threebotconnect_enable()`

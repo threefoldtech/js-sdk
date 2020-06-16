@@ -39,7 +39,7 @@ class SolutionExpose(GedisChatBot):
     def deployment_start(self):
         self.user_form_data = {}
         user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(user_info) # TODO: bring back when auth is ready
+        j.sals.reservation_chatflow.validate_user(user_info)
         self.md_show("# This wizard will help you expose a deployed solution using the web gateway")
 
     @chatflow_step(title="Solution type")

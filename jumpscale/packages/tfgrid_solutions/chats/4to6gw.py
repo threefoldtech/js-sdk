@@ -17,7 +17,7 @@ class FourToSixGateway(GedisChatBot):
     def gateway_start(self):
         self.user_form_data = {}
         user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(user_info) # TODO: bring back when Auth is ready
+        j.sals.reservation_chatflow.validate_user(user_info)
 
         self.gateway = j.sals.reservation_chatflow.select_gateway(self)
         self.gateway_id = self.gateway.node_id

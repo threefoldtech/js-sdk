@@ -34,7 +34,7 @@ class UbuntuDeploy(GedisChatBot):
         user_info = self.user_info()
         self.user_form_data["chatflow"] = "ubuntu"
         self.md_show("# This wizard will help you deploy an ubuntu container", md=True)
-        # j.sals.reservation_chatflow.validate_user(user_info)  # TODO: bring it back when Auth is ready
+        j.sals.reservation_chatflow.validate_user(user_info)
 
     @chatflow_step(title="Network")
     def ubuntu_network(self):

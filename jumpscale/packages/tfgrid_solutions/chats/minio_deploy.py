@@ -34,7 +34,7 @@ class MinioDeploy(GedisChatBot):
     @chatflow_step(title="")
     def deployment_start(self):
         self.user_information = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(self.user_information ) # TODO: bring back when Auth is ready
+        j.sals.reservation_chatflow.validate_user(self.user_information)
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "minio"
         self.md_show("# This wizard will help you deploy a minio cluster")
