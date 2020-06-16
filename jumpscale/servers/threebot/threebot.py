@@ -15,7 +15,10 @@ GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 
-DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
+DEFAULT_PACKAGES = {
+    "auth": os.path.dirname(j.packages.auth.__file__),
+    "chatflows": os.path.dirname(j.packages.chatflows.__file__),
+}
 
 
 class NginxPackageConfig:
