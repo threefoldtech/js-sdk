@@ -133,3 +133,4 @@ nosetests.xml
 .project
 .pydevproject
 
+./data
