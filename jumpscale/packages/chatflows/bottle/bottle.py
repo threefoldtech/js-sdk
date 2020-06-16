@@ -21,7 +21,7 @@ def chats(package_name):
     return j.data.serializers.json.dumps(list(chatflows.keys()))
 
 
-@app.route("/<package_name>/<chat_name>")
+@app.route("/<package_name>/chats/<chat_name>")
 @login_required
 def chat(package_name, chat_name):
     return env.get_template("index.html").render(topic=chat_name, username="", email="")

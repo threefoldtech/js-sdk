@@ -72,7 +72,7 @@ class NginxPackageConfig:
                     "host": CHATFLOW_SERVER_HOST,
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
-                    "path_dest": self.package.base_url,
+                    "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
                 }
             )
 
