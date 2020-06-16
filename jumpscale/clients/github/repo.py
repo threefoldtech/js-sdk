@@ -415,6 +415,26 @@ class GithubRepo:
 
         return self._issues
 
+    def download_directory(self, src, download_dir, branch=None):
+        dest = j.sals.fs.join_paths(download_dir, self.api.full_name)
+        j.sals.fs.mkdirs(dest)
+        branch = branch or self.api.default_branch
+        contents = self.api.get_dir_contents(src, ref=branch)
+
+        for content in contents:
+            if content.type == 'dir':
+                dir_path = j.sals.fs.join_paths(dest, content.path)
+                j.sals.fs.mkdirs(dir_path)
+                self.download_directory(content.path, download_dir, branch)
+            else:
+                file_path = j.sals.fs.join_paths(dest, content.path)
+                j.sals.fs.mkdirs(j.sals.fs.dirname(file_path))
+                file_content = self.api.get_contents(content.path, ref=branch)
+                with open(file_path, "+w") as f:
+                    f.write(base64.b64decode(file_content.content).decode())
+    
+        return j.sals.fs.join_paths(dest, src)
+
     def __str__(self):
         return "gitrepo:%s" % self.fullname
 
