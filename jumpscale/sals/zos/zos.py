@@ -70,7 +70,7 @@ class Zosv2:
         return self._explorer.reservations.new()
 
     def reservation_register(
-        self, reservation, expiration_date, expiration_provisioning=None, customer_tid=None, currencies=["TFT"],
+        self, reservation, expiration_date, expiration_provisioning=None, customer_tid=None, currencies=["TFT"]
     ):
         """register a reservation.
            If expiration_provisioning is specified and the reservation is not provisioning before expiration, it will never be provionned.
@@ -162,7 +162,7 @@ class Zosv2:
 
         reservation = self.reservation_get(reservation_id)
         payload = payload_build(reservation.id, reservation.json.encode())
-        payload = reservation_id.encode() + payload
+        payload = str(reservation_id).encode() + payload
         signature = me.nacl.sign_hex(payload)
 
         return self._explorer.reservations.sign_delete(

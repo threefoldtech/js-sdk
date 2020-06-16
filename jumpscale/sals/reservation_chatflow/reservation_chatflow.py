@@ -733,7 +733,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                         res += f"\n### {x.category}: ```{x.message}```\n"
                 link = f"{self._explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(str(rid))
+                j.sals.zos.reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             time.sleep(1)
             reservation = self._explorer.reservations.get(rid)
@@ -996,7 +996,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
-                j.sals.zos.reservation_cancel(str(solution.rid))
+                j.sals.zos.reservation_cancel(solution.rid)
                 self.solutions.delete(name)
 
     def get_solutions(self, solution_type):
