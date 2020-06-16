@@ -17,6 +17,10 @@ class PackagesService extends Service {
         return this.getCall("packages_list");
     }
 
+    packagesNames() {
+        return this.getCall("packages_names");
+    }
+
     add(path, gitUrl) {
         return this.postCall("package_add", {
             path: path || "",

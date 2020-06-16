@@ -16,6 +16,10 @@ class Packages(BaseActor):
         return j.data.serializers.json.dumps({"data": self.threebot.packages.get_packages()})
 
     @actor_method
+    def packages_names(self) -> str:
+        return j.data.serializers.json.dumps({"data": list(self.threebot.packages.list_all())})
+
+    @actor_method
     def package_add(self, path: str = "", giturl: str = "") -> str:
         # TODO: Now package is working only with path (js-ng version)
         # until threebot is migrated to js-sdk

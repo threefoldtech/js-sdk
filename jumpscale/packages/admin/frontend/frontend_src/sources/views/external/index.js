@@ -97,13 +97,13 @@ export class ExternalView extends JetView {
 
         // check which packages to install
         // if any is already installed, then just ignore it
-        packages.list().then(data => {
+        packages.packagesNames().then(data => {
             const packageList = JSON.parse(data.json()).data;
 
             // now go over required packages
             for (let name of this.packageNames) {
                 // check if a required package is already installed
-                if (name in packageList) {
+                if (packageList.includes(name)) {
                     continue;
                 }
 
