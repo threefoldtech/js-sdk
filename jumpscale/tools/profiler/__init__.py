@@ -9,7 +9,7 @@ def foo():
 to do visualizing, add (visualize=True) when u call profiled decorator
 example
 @j.tools.profiler.profiled() # this will print the profiling results to stdout
-j.tools.profiler.profiled(visualized=True) # will launce a server with the visualized profiling on `http://127.0.0.1:8080/snakeviz/%2Fsandbox%2Fcode%2Fgithub%2Fjs-next%2Fjs-ng%2Fresult.prof`
+j.tools.profiler.profiled(visualized=True) # will launce a server with the visualized profiling on `http://127.0.0.1:8080/snakeviz/%2Fsandbox%2Fcode%2Fgithub%2Fthreefoldtech%2Fjs-ng%2Fresult.prof`
 to change port and host
 j.tools.profiler.profiled(visualized=True, port="8008", host="0.0.0.0", print_data=True)
 this will print data to stdout and launce snakeviz server on this url
