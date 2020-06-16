@@ -119,18 +119,6 @@ export default class PackagesView extends JetView {
         });
     }
 
-    startPackage(packageName, itemId) {
-        this.handleResult(packages.start(packageName), (item) => {
-            this.packageTable.updateItem(itemId, item);
-        });
-    }
-
-    stopPackage(packageName, itemId) {
-        this.handleResult(packages.stop(packageName), (item) => {
-            this.packageTable.updateItem(itemId, item);
-        });
-    }
-
     loadPackages() {
         packages.list().then(data => {
             this.packageTable.parse(JSON.parse(data.json()).data);
@@ -143,8 +131,7 @@ export default class PackagesView extends JetView {
         self.errorView = this.ui(ErrorView);
         self.packageDetailsView = self.ui(PackageDetailsView);
 
-        // TODO: Add checks for required packages
-        // self._requiredpackages = ["zerobot.base", "zerobot.webinterface", "zerobot.admin"]
+        self._requiredpackages = ["chatflows", "admin"]
 
         const menu = webix.ui({
             view: "contextmenu",
@@ -171,10 +158,6 @@ export default class PackagesView extends JetView {
                     }).then(() => {
                         self.deletePackage(packageName, itemId)
                     });
-                } else if (action == 'start') {
-                    self.startPackage(packageName, itemId)
-                } else if (action == 'stop') {
-                    self.stopPackage(packageName, itemId)
                 }
             } else {
                 webix.message("you have to select a package")
@@ -210,13 +193,12 @@ export default class PackagesView extends JetView {
             if (pos) {
                 const item = self.packageTable.getItem(pos.row);
 
-                // TODO: Add checks for required packages
-                // if (self._requiredpackages.includes(item.name)) {
-                //     webix.message({ type: "error", text: `${item.name} is required package` });
-                //     return
-                // }
-                // const actions = [...PACKAGE_STATES[item.status].actions, 'delete'];
-                const actions = ['start', 'stop', 'delete']
+                if (self._requiredpackages.includes(item.name)) {
+                    webix.message({ type: "error", text: `${item.name} is a required package` });
+                    return
+                }
+
+                const actions = ['install', 'delete']
                 menu.clearAll();
                 menu.parse(actions);
                 menu.show(e);

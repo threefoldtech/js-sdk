@@ -311,42 +311,6 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def uninstall(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.uninstall()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def start(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def stop(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.stop()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def restart(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.restart()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
     def install(self, package):
         """install and apply package configrations
 
@@ -385,13 +349,8 @@ class PackageManager(Base):
         # apply nginx configuration
         package.nginx_config.apply()
 
-        package.install()
-
         # execute package start method
         package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
 
     def install_all(self):
         for package in self.list_all():

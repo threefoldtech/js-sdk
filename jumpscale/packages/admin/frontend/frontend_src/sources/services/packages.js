@@ -13,8 +13,7 @@ class PackagesService extends Service {
         });
     }
 
-    list(opts) {
-        opts = opts || {};
+    list() {
         return this.getCall("packages_list");
     }
 
@@ -27,14 +26,6 @@ class PackagesService extends Service {
 
     delete(packageName) {
         return this.postCall("package_delete", { name: packageName });
-    }
-
-    start(packageName) {
-        return this.postCall("package_start", { name: packageName });
-    }
-
-    stop(packageName) {
-        return this.postCall("package_stop", { name: packageName });
     }
 }
 
