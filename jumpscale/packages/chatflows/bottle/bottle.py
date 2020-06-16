@@ -1,6 +1,8 @@
 from jinja2 import Environment, FileSystemLoader
 from bottle import Bottle
 from jumpscale.god import j
+from jumpscale.packages.auth.bottle.auth import login_required, _session_opts
+from beaker.middleware import SessionMiddleware
 
 
 app = Bottle()
@@ -12,6 +14,7 @@ threebot = j.servers.threebot.get("default")
 
 
 @app.route("/<package_name>")
+@login_required
 def chats(package_name):
     package = threebot.packages.get(package_name)
     chatflows = package.get_chats()
@@ -19,5 +22,9 @@ def chats(package_name):
 
 
 @app.route("/<package_name>/<chat_name>")
+@login_required
 def chat(package_name, chat_name):
     return env.get_template("index.html").render(topic=chat_name, username="", email="")
+
+
+app = SessionMiddleware(app, _session_opts)

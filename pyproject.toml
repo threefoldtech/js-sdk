@@ -32,6 +32,7 @@ snakeviz = "^2.0.1"
 stellar-sdk = "^2.3.2"
 pypng = "^0.0.20"
 pyqrcode = "^1.2.1"
+beaker = "^1.11.0"
 [tool.poetry.dev-dependencies]
 
 [build-system]
