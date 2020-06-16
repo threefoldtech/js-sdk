@@ -1404,7 +1404,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Args:
             user_info (dict): user information
         """
-        if not j.core.config.get_config().get("threebot", {}).get("threebot_connect", True):
+        if (
+            not j.core.config.get_config().get("threebot", {}).get("threebot_connect", True)
+        ):  # TODO: fix after making threebot connect value
             error_msg = """
             This chatflow is not supported when Threebot is in dev mode.
             To enable Threebot connect : `j.me.encryptor.tools.threebotconnect_enable()`

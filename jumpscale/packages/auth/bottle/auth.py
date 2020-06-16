@@ -1,4 +1,4 @@
-from bottle import redirect, request, abort, Bottle
+from bottle import redirect, request, abort, Bottle, response
 import nacl
 import requests
 import json
@@ -139,7 +139,67 @@ def access_denied():
     return {"error": "access denied."}
 
 
-app = SessionMiddleware(app, _session_opts)
+def get_user_info():
+    session = request.environ.get("beaker.session", {})
+    tname = session.get("username", "")
+    temail = session.get("email", "")
+    session.get("signedAttempt", "")
+    response.content_type = "application/json"
+    return j.data.serializers.json.dumps(
+        {
+            "username": tname.lower(),
+            "email": temail.lower(),
+            "devmode": not j.core.config.get("threebot").get(
+                "THREEBOT_CONNECT", False
+            ),  # TODO: fix after making threebot connect value
+        }
+    )
+
+
+def is_admin(tname):
+    threebot_me = j.core.identity.me
+    return threebot_me.tname == tname or tname in threebot_me.admins
+
+
+def authenticated(handler):
+    def decorator(*args, **kwargs):
+        session = request.environ.get("beaker.session")
+        if j.core.config.get("threebot").get(
+            "THREEBOT_CONNECT", False
+        ):  # TODO: fix after making threebot connect value
+            if not session.get("authorized", False):
+                return abort(401)
+        return handler(*args, **kwargs)
+
+    return decorator
+
+
+def admin_only(handler):
+    def decorator(*args, **kwargs):
+        session = request.environ.get("beaker.session")
+        if j.core.config.get("threebot").get(
+            "THREEBOT_CONNECT", False
+        ):  # TODO: fix after making threebot connect value
+            username = session.get("username")
+            if not is_admin(username):
+                return abort(403)
+
+        return handler(*args, **kwargs)
+
+    return decorator
+
+
+@app.route("/auth/authenticated")
+@authenticated
+def is_authenticated():
+    return get_user_info()
+
+
+@app.route("/auth/authorized")
+@authenticated
+@admin_only
+def is_authorized():
+    return get_user_info()
 
 
 def login_required(func):
@@ -155,3 +215,6 @@ def login_required(func):
         return func(*args, **kwargs)
 
     return decorator
+
+
+app = SessionMiddleware(app, _session_opts)

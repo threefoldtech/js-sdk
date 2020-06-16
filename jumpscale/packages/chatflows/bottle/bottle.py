@@ -24,7 +24,7 @@ def chats(package_name):
 @app.route("/<package_name>/chats/<chat_name>")
 @login_required
 def chat(package_name, chat_name):
-    session = request.environ.get("beaker.session")
+    session = request.environ.get("beaker.session", {})
     return env.get_template("index.html").render(
         topic=chat_name, username=session.get("username", ""), email=session.get("email", "")
     )
