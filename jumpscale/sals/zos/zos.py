@@ -158,7 +158,7 @@ class Zosv2:
         Returns:
             bool: true if the reservation has been cancelled successfully
         """
-        me = j.core.identity
+        me = j.core.identity.me
 
         reservation = self.reservation_get(reservation_id)
         payload = payload_build(reservation.id, reservation.json.encode())
