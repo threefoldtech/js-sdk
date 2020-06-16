@@ -21,12 +21,7 @@ class Packages(BaseActor):
 
     @actor_method
     def package_add(self, path: str = "", giturl: str = "") -> str:
-        # TODO: Now package is working only with path (js-ng version)
-        # until threebot is migrated to js-sdk
-        if path == "" and giturl != "":
-            raise j.exceptions.NotImplemented("Giturl is not yet supported")
-
-        return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path)})
+        return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl)})
 
     @actor_method
     def package_delete(self, name: str) -> str:

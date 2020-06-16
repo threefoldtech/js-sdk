@@ -56,14 +56,14 @@ export class ExternalView extends JetView {
     }
 
     installRequiredPackages() {
-        // let promises = Object.values(this.packagesToInstall).map((path) => {
-        //     return packages.add(null, path); // add by git url
-        // });
+        let promises = Object.values(this.packagesToInstall).map((path) => {
+            console.log(path)
+            return packages.add(null, path); // add by git url
+        });
 
-        // this.installButton.disable();
+        this.installButton.disable();
 
-        // Promise.all(promises).then(() => {
-        packages.add(null, Object.values(this.packagesToInstall)[0]).then(() => {
+        Promise.all(promises).then(() => {
             webix.message({ type: "success", text: "All required packages installed successfully, page will be reloaded in 2 seconds" });
             setInterval(() => window.location.reload(true), 2000);
         }).catch(() => {
