@@ -7,6 +7,8 @@ from jumpscale.core.exceptions import Input
 
 
 class Reservations(BaseResource):
+    _resource = "reservations"
+
     def new(self):
         return TfgridWorkloadsReservation1()
 
