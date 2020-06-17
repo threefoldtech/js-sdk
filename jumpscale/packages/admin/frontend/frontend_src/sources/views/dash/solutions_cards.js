@@ -20,7 +20,7 @@ export default class SolutionsCardsView extends JetView {
                     return common.icon(obj) +
                         common.title(obj) +
                         common.count(obj) +
-                        "<button class='add-icon mdi mdi-plus'></button>"
+                        `<a class="add-icon" href="#!/main/solutions.${obj.view}">+</a>`
                 },
                 icon: obj => {
                     if (obj.icon)
@@ -45,12 +45,12 @@ export default class SolutionsCardsView extends JetView {
         const solution_cards = this.$$("solution_cards");
 
         const solutions_data = [
-            { "id": 1, "title": "Network", "info": 3, "icon": "static/img/network.png" },
-            { "id": 2, "title": "Ubuntu", "info": 1, "icon": "static/img/ubuntu.png" },
-            { "id": 3, "title": "Flist", "info": 2, "icon": "static/img/flist.png" },
-            { "id": 4, "title": "Minio", "info": 2, "icon": "static/img/minio.png" },
-            { "id": 5, "title": "Kubernetes", "info": 1, "icon": "static/img/k8s.png" },
-            { "id": 6, "title": "Gitea", "info": 1, "icon": "static/img/gitea.png" }
+            { "id": 1, "title": "Network", "info": 3, "view":"network", "icon": "static/img/network.png" },
+            { "id": 2, "title": "Ubuntu", "info": 1, "view": "ubuntu", "icon": "static/img/ubuntu.png" },
+            { "id": 3, "title": "Flist", "info": 2, "view": "flist", "icon": "static/img/flist.png" },
+            { "id": 4, "title": "Minio", "info": 2, "view": "minio", "icon": "static/img/minio.png" },
+            { "id": 5, "title": "Kubernetes", "info": 1, "view": "k8sCluster", "icon": "static/img/k8s.png" },
+            { "id": 6, "title": "Gitea", "info": 1, "view": "gitea", "icon": "static/img/gitea.png" }
         ];
 
         solution_cards.parse(solutions_data);
