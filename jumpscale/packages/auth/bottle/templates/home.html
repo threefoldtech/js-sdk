@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    {% block head %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Home{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css"
+        integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/auth/static/css/fonts.css">
+    <link rel="stylesheet" href="/auth/static/css/bootstrap-social.css">
+    <link rel="stylesheet" href="/auth/static/css/style.css">
+    {% endblock %}
+</head>
+
+<body>
+    {% if email %}
+    <div style="float:right; margin:20px; padding:10px;color:#404040;">
+        <i class="fa fa-user-circle" style="font-size: 18px; margin-right:5px;"></i> {{ email }}
+    </div>
+    {% endif %}
+    <div class="intro">
+        <div class="container">
+            <div class="intro-text justify-content-center">
+                <div class="row">
+                    <div class="col-sm">
+                        <img style="padding-top:60px !important" src="/auth/static/img/3bot_robot.png" alt="3Bot">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm text-center">
+                        {% block content %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </div>
+        </div>
+</body>
+
+</html>

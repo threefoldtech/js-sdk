@@ -33,7 +33,7 @@ class GiteaDeploy(GedisChatBot):
         self.HUB_URL = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
         user_info = self.user_info()
         self.user_form_data["chatflow"] = "gitea"
-        # j.sal.reservation_chatflow.validate_user(user_info)
+        j.sals.reservation_chatflow.validate_user(user_info)
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
 
     @chatflow_step(title="Network")

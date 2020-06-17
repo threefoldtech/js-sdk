@@ -21,7 +21,7 @@ class kubernetesDeploy(GedisChatBot):
     @chatflow_step(title="")
     def deployment_start(self):
         user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(user_info) # TODO: bring back when auth is ready
+        j.sals.reservation_chatflow.validate_user(user_info)
 
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "kubernetes"

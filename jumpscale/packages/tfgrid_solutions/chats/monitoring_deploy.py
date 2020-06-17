@@ -32,7 +32,7 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step()
     def deployment_start(self):
         self.user_info = self.user_info()
-        # j.sals.reservation_chatflow.validate_user(self.user_info)
+        j.sals.reservation_chatflow.validate_user(self.user_info)
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "monitoring"
         self.md_show(

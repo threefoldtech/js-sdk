@@ -13,7 +13,7 @@ class DomainDelegation(GedisChatBot):
     def domain_delegation_name(self):
         user_info = self.user_info()
         self.user_form_data = {}
-        # j.sals.reservation_chatflow.validate_user(user_info) # TODO: bring back when auth is ready
+        j.sals.reservation_chatflow.validate_user(user_info)
         self.user_form_data["chatflow"] = "delegated_domain"
 
     @chatflow_step(title="Domain name & Choose gateway")
