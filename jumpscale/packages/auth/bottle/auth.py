@@ -1,21 +1,22 @@
-from bottle import redirect, request, abort, Bottle, response
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+import base64
+import json
+from functools import wraps
+from urllib.parse import urlencode
 
 import nacl
 import requests
-import json
 from beaker.middleware import SessionMiddleware
-from jumpscale.god import j
-from urllib.parse import urlencode
-import base64
-from nacl.signing import VerifyKey
+from bottle import Bottle, abort, redirect, request, response
 from nacl.public import Box
-from functools import wraps
+from nacl.signing import VerifyKey
 
-_session_opts = {"session.type": "file", "session.data_dir": "./data", "session.auto": True}
-redirect_url = "https://login.threefold.me"
-callback_url = "/auth/3bot_callback"
-login_url = "/auth/login"
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jumpscale.god import j
+
+SESSION_OPTS = {"session.type": "file", "session.data_dir": "./data", "session.auto": True}
+REDIRECT_URL = "https://login.threefold.me"
+CALLBACK_URL = "/auth/3bot_callback"
+LOGIN_URL = "/auth/login"
 
 app = Bottle()
 
@@ -38,11 +39,11 @@ def login():
             "state": state,
             "appid": app_id,
             "scope": json.dumps({"user": True, "email": True}),
-            "redirecturl": callback_url,
+            "redirecturl": CALLBACK_URL,
             "publickey": j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
         }
         params = urlencode(params)
-        return redirect(f"{redirect_url}?{params}", code=302)
+        return redirect(f"{REDIRECT_URL}?{params}", code=302)
 
     return env.get_template("login.html").render(providers=[], next_url=next_url)
 
@@ -139,7 +140,7 @@ def logout():
         pass
 
     next_url = request.query.get("next_url", "/")
-    return redirect(f"{login_url}?next_url={next_url}")
+    return redirect(f"{LOGIN_URL}?next_url={next_url}")
 
 
 @app.route("/accessdenied")
@@ -221,10 +222,10 @@ def login_required(func):
         if True:
             if not session.get("authorized", False):
                 session["next_url"] = request.url
-                return redirect(login_url)
+                return redirect(LOGIN_URL)
         return func(*args, **kwargs)
 
     return decorator
 
 
-app = SessionMiddleware(app, _session_opts)
+app = SessionMiddleware(app, SESSION_OPTS)

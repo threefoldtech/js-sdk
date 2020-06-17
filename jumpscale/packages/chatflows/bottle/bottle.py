@@ -1,7 +1,7 @@
 from jinja2 import Environment, FileSystemLoader
 from bottle import Bottle, request
 from jumpscale.god import j
-from jumpscale.packages.auth.bottle.auth import login_required, _session_opts
+from jumpscale.packages.auth.bottle.auth import login_required, SESSION_OPTS
 from beaker.middleware import SessionMiddleware
 
 
@@ -30,4 +30,4 @@ def chat(package_name, chat_name):
     )
 
 
-app = SessionMiddleware(app, _session_opts)
+app = SessionMiddleware(app, SESSION_OPTS)
