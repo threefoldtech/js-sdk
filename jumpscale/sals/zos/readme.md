@@ -12,7 +12,7 @@
 ### Create a network on all the nodes of a farm
 
 ```python
-zos = j.sal.zosv2
+zos = j.sals.zos
 
 # create a reservation
 r = zos.reservation_create()
@@ -84,7 +84,7 @@ Import these lines into a new Wireguard tunnel.
 ## create a container
 
 ```python
-zos = j.sal.zosv2
+zos = j.sals.zos
 
 # create a reservation
 r = zos.reservation_create()
@@ -118,7 +118,7 @@ Main documentation can be found [here](https://github.com/threefoldtech/zos/tree
 ### Example of a deployment
 
 ```python
-zos = j.sal.zosv2
+zos = j.sals.zos
 r = zos.reservation_create()
 
 cluster_secret = 'supersecret'
@@ -162,7 +162,7 @@ print(result)
 ## Example : reserve 0-DB storage namespaces
 
 ```python
-zos = j.sal.zosv2
+zos = j.sals.zos
 
 # find some node that have 10 GiB of SSD disks
 nodes = zos.nodes_finder.nodes_search(sru=10)

@@ -34,7 +34,7 @@ class FlistDeploy(GedisChatBot):
         self.user_form_data = dict()
         self.env = dict()
         self.user_form_data["chatflow"] = "flist"
-        j.sal.reservation_chatflow.validate_user(user_info)
+        j.sals.reservation_chatflow.validate_user(user_info)
         self.md_show("# This wizard will help you deploy a container using any flist provided", md=True)
 
     @chatflow_step(title="Network")
