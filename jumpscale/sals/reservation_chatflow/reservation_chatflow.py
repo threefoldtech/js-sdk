@@ -365,6 +365,9 @@ class ReservationChatflow:
     def get_solutions_explorer(self):
         """delete old instances, to get the new ones from explorer
         """
+        import pdb
+
+        pdb.set_trace()
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
 
@@ -386,21 +389,21 @@ class ReservationChatflow:
                 else:
                     solution_type = metadata["form_info"]["chatflow"]
                     metadata["form_info"].pop("chatflow")
-                if solution_type == SolutionType.Unknown:
+                if solution_type == SolutionType.Unknown.value:
                     continue
-                elif solution_type == SolutionType.Ubuntu:
+                elif solution_type == SolutionType.Ubuntu.value:
                     metadata = self.get_solution_ubuntu_info(metadata, reservation)
-                elif solution_type == SolutionType.Flist:
+                elif solution_type == SolutionType.Flist.value:
                     metadata = self.get_solution_flist_info(metadata, reservation)
-                elif solution_type == SolutionType.Network:
+                elif solution_type == SolutionType.Network.value:
                     if metadata["name"] in networks:
                         continue
                     networks.append(metadata["name"])
-                elif solution_type == SolutionType.Gitea:
+                elif solution_type == SolutionType.Gitea.value:
                     metadata["form_info"]["Public key"] = reservation.data_reservation.containers[0].environment[
                         "pub_key"
                     ]
-                elif solution_type == SolutionType.Exposed:
+                elif solution_type == SolutionType.Exposed.value:
                     meta = metadata
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
