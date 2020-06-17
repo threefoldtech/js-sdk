@@ -10,18 +10,18 @@ from bottle import Bottle, abort, redirect, request, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from jumpscale.god import j
 
-SESSION_OPTS = {"session.type": "file", "session.data_dir": "./data", "session.auto": True}
+SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
 REDIRECT_URL = "https://login.threefold.me"
 CALLBACK_URL = "/auth/3bot_callback"
 LOGIN_URL = "/auth/login"
 
 app = Bottle()
 
+
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
-env = Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape(["html", "xml"]))
+env = j.tools.jinja2.get_env(templates_path)
 
 
 @app.route("/login")
