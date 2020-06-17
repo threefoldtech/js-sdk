@@ -14,6 +14,10 @@ class SolutionsService extends Service {
     delete(solutionType, solutionName) {
         return this.postCall("cancel_solution", { solution_type: solutionType, solution_name: solutionName });
     }
+
+    count(){
+        return this.getCall("count_solutions")
+    }
 }
 
 export const solutions = new SolutionsService();

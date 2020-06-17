@@ -1,5 +1,6 @@
 
 import { JetView } from "webix-jet";
+import { solutions } from "../../services/solutions";
 
 export default class SolutionsCardsView extends JetView {
     config() {
@@ -43,16 +44,23 @@ export default class SolutionsCardsView extends JetView {
 
     init() {
         const solution_cards = this.$$("solution_cards");
-
         const solutions_data = [
-            { "id": 1, "title": "Network", "info": 3, "view":"network", "icon": "static/img/network.png" },
-            { "id": 2, "title": "Ubuntu", "info": 1, "view": "ubuntu", "icon": "static/img/ubuntu.png" },
-            { "id": 3, "title": "Flist", "info": 2, "view": "flist", "icon": "static/img/flist.png" },
-            { "id": 4, "title": "Minio", "info": 2, "view": "minio", "icon": "static/img/minio.png" },
-            { "id": 5, "title": "Kubernetes", "info": 1, "view": "k8sCluster", "icon": "static/img/k8s.png" },
-            { "id": 6, "title": "Gitea", "info": 1, "view": "gitea", "icon": "static/img/gitea.png" }
+            { "id": 1, "title": "Network", "info": "0", "view":"network", "icon": "static/img/network.png" },
+            { "id": 2, "title": "Ubuntu", "info": "0", "view": "ubuntu", "icon": "static/img/ubuntu.png" },
+            { "id": 3, "title": "Flist", "info": "0", "view": "flist", "icon": "static/img/flist.png" },
+            { "id": 4, "title": "Minio", "info": "0", "view": "minio", "icon": "static/img/minio.png" },
+            { "id": 5, "title": "Kubernetes", "info": "0", "view": "k8sCluster", "icon": "static/img/k8s.png" },
+            { "id": 6, "title": "Gitea", "info": "0", "view": "gitea", "icon": "static/img/gitea.png" }
         ];
-
         solution_cards.parse(solutions_data);
+        solutions.count().then((data) => {
+            const solutionsCount = JSON.parse(data.json()).data
+            for (let i = 0; i < solutions_data.length; i++) {
+                const solution = solutions_data[i];
+                solution.info = String(solutionsCount[solution.title.toLowerCase()])
+            }
+            solution_cards.parse(solutions_data);
+        })
+
     }
 }
