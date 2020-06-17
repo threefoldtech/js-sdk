@@ -86,6 +86,7 @@ class Website(Base):
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
     letsencryptemail = fields.String()
+    selfsigned = fields.Boolean()
 
     @property
     def cfg_dir(self):
@@ -114,9 +115,22 @@ class Website(Base):
 
     def generate_certificates(self):
         if self.ssl:
-            j.sals.process.execute(
+            res = j.sals.process.execute(
                 f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
             )
+            return res
+
+    def generate_self_signed_certificates(self):
+        if self.ssl:
+            self.selfsigned = True
+            if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(
+                f"{self.parent.cfg_dir}/cert.pem"
+            ):
+                return True
+            res = j.sals.process.execute(
+                f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
+            )
+            return res
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
@@ -127,11 +141,15 @@ class Website(Base):
         j.sals.fs.write_file(self.cfg_file, self.get_config())
 
         if generate_certificates:
-            self.generate_certificates()
+            res = self.generate_certificates()
+            if res and res[0] != 0:
+                # failed to generate cert by certbot
+                # use self_signed certs
+                self.generate_self_signed_certificates()
+                j.sals.fs.write_file(self.cfg_file, self.get_config())
 
     def clean(self):
         j.sals.fs.rmtree(self.cfg_dir)
-
 
 
 class NginxConfig(Base):
@@ -167,12 +185,12 @@ class NginxConfig(Base):
         """
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
-        
+
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"), logs_dir=self.logs_dir,
         )
-        
-        j.sals.fs.write_file(self.cfg_file, configtext) 
+
+        j.sals.fs.write_file(self.cfg_file, configtext)
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
     def get_website(self, name: str, port: int = 80):
