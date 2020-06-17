@@ -129,6 +129,18 @@ class NginxPackageConfig:
                 self.nginx.save()
 
 
+class StripPathMiddleware(object):
+    """
+    a middle ware for bottle apps to strip slashes
+    """
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, e, h):
+        e["PATH_INFO"] = e["PATH_INFO"].rstrip("/")
+        return self.app(e, h)
+
+
 class Package:
     def __init__(self, path):
         self.path = path
@@ -186,7 +198,7 @@ class Package:
 
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
-        return WSGIServer((host, port), module.app)
+        return WSGIServer((host, port), StripPathMiddleware(module.app))
 
     def install(self):
         if self.module and hasattr(self.module, "install"):
@@ -244,7 +256,7 @@ class PackageManager(Base):
     def add(self, path: str = None, giturl: str = None):
         # TODO: Check if package already exists
 
-        if any([path, giturl]) and not all([path, giturl]):
+        if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
         if giturl:
