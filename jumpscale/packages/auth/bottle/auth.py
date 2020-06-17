@@ -185,9 +185,7 @@ def get_user_info():
         {
             "username": tname.lower(),
             "email": temail.lower(),
-            "devmode": not j.core.config.get("threebot").get(
-                "THREEBOT_CONNECT", False
-            ),  # TODO: fix after making threebot connect value
+            "devmode": not j.core.config.get_config().get("threebot_connect", True),
         }
     )
 
@@ -214,9 +212,7 @@ def authenticated(handler):
 
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
-        if j.core.config.get("threebot").get(
-            "THREEBOT_CONNECT", False
-        ):  # TODO: fix after making threebot connect value
+        if j.core.config.get_config().get("threebot_connect", True):
             if not session.get("authorized", False):
                 return abort(401)
         return handler(*args, **kwargs)
@@ -233,9 +229,7 @@ def admin_only(handler):
 
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
-        if j.core.config.get("threebot").get(
-            "THREEBOT_CONNECT", False
-        ):  # TODO: fix after making threebot connect value
+        if j.core.config.get_config().get("threebot_connect", True):
             username = session.get("username")
             if not is_admin(username):
                 return abort(403)
@@ -278,9 +272,7 @@ def login_required(func):
     @wraps(func)
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
-        # TODO: read threebot_connect from config and remove hardcoded True
-        # if j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
-        if True:
+        if j.core.config.get_config().get("threebot_connect", True):
             if not session.get("authorized", False):
                 session["next_url"] = request.url
                 return redirect(LOGIN_URL)
