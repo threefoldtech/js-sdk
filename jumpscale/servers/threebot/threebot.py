@@ -3,7 +3,7 @@ from jumpscale.god import j
 import imp
 import os
 import toml
-
+from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 
@@ -14,7 +14,7 @@ GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
-
+DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
 
 
@@ -213,12 +213,19 @@ class PackageManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._threebot = None
+        self._github = None
 
     @property
     def threebot(self):
         if self._threebot is None:
             self._threebot = j.servers.threebot.get(self.instance_name)
         return self._threebot
+
+    @property
+    def github(self):
+        if self._github is None:
+            self._github = j.clients.github.get("default")
+        return self._github
 
     def get(self, package_name):
         package_path = self.packages.get(package_name)
@@ -231,8 +238,17 @@ class PackageManager(Base):
     def list_all(self):
         return self.packages.keys()
 
-    def add(self, path):
+    def add(self, path: str = None, giturl: str = None):
         # TODO: Check if package already exists
+
+        if any([path, giturl]) and not all([path, giturl]):
+            raise j.exceptions.Value("either path or giturl is required")
+
+        if giturl:
+            org, repo, _, branch, path = urlparse(giturl).path.lstrip("/").split("/", 4)
+            repo = self.github.get_repo(f"{org}/{repo}")
+            path = repo.download_directory(path, DOWNLOADED_PACKAGES_PATH, branch=branch)
+
         package = Package(path=path)
         self.packages[package.name] = package.path
 
