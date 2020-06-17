@@ -241,7 +241,7 @@ class PackageManager(Base):
     def add(self, path: str = None, giturl: str = None):
         # TODO: Check if package already exists
 
-        if not (path or giturl):
+        if any([path, giturl]) and not all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
         if giturl:
@@ -251,7 +251,7 @@ class PackageManager(Base):
 
         package = Package(path=path)
         self.packages[package.name] = package.path
-        
+
         # execute package install method
         package.install()
 
