@@ -29,5 +29,3 @@ export default class DeployedSolutionExposeView extends BaseView {
         });
     }
 }
-
-

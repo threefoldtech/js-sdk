@@ -35,4 +35,3 @@ export default class DeployedMinioView extends BaseView {
         });
     }
 }
-

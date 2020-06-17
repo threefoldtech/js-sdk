@@ -1,30 +1,26 @@
 import { BaseView } from './baseview'
 import { solutions } from '../../services/solutions'
 
-const CHAT = "solutions.chatflow?package=tfgrid_solutions&chat=flist_deploy"
+const CHAT = "solutions.chatflow?package=tfgrid_solutions&chat=gitea_deploy"
 
-export default class DeployedFlistView extends BaseView {
+export default class DeployedGiteaView extends BaseView {
     constructor(app, name) {
-        super(app, name, CHAT, "flist.png");
+        super(app, name, CHAT, "gitea.png");
     }
 
     init(view) {
         super.init(view)
         let self = this
         self.parseData = []
-        solutions.listSolution('Flist').then((data) => {
+        solutions.listSolution('Gitea').then((data) => {
             const solutions = JSON.parse(data.json()).data
             for (let i = 0; i < solutions.length; i++) {
                 const solution = solutions[i];
                 let dict = JSON.parse(solution.form_info)
                 let reservation = solution.reservation
-                if (!dict['Solution name'])     // for flists created by other solutions not flist chatflow
-                    continue;
-                if(dict['Interactive'] === 'YES'){
-                    delete dict['Entry point']
-                }
+                dict['Network'] = reservation.data_reservation.containers[0].network_connection[0].network_id
                 dict.id = reservation.id
-                dict._type = "Flist"
+                dict._type = "Gitea"
                 dict._name = dict['Solution name'].length > self.maxTitleLength ?
                     dict['Solution name'].substring(0, self.maxTitleLength) + '...' : dict['Solution name'];
                 dict._ip = dict['IP Address']
@@ -37,5 +33,3 @@ export default class DeployedFlistView extends BaseView {
         });
     }
 }
-
-

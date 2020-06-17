@@ -215,15 +215,15 @@ export default class TopView extends JetView {
             urls: {
                 tfgridsdk: "tfwikis.tfgridsdk",
                 threefold: "tfwikis.threefold",
-                deployed_network: "deployedSolutions.network",
-                deployed_ubuntu: "deployedSolutions.ubuntu",
-                deployed_flist: "deployedSolutions.flist",
-                deployed_minio: "deployedSolutions.minio",
-                deployed_k8s_cluster: "deployedSolutions.k8sCluster",
-                deployed_gitea: "deployedSolutions.gitea",
-                deployed_domain_delegation: "deployedSolutions.domainDelegation",
-                deployed_solution_expose: "deployedSolutions.solutionExpose",
-                deployed_gateway_4to6: "deployedSolutions.4to6Gateway"
+                deployed_network: "solutions.network",
+                deployed_ubuntu: "solutions.ubuntu",
+                deployed_flist: "solutions.flist",
+                deployed_minio: "solutions.minio",
+                deployed_k8s_cluster: "solutions.k8sCluster",
+                deployed_gitea: "solutions.gitea",
+                deployed_domain_delegation: "solutions.domainDelegation",
+                deployed_solution_expose: "solutions.solutionExpose",
+                deployed_gateway_4to6: "solutions.4to6Gateway"
             }
         });
 
@@ -267,7 +267,7 @@ export default class TopView extends JetView {
         let width = document.documentElement.clientWidth;
         let height = document.documentElement.clientHeight;
         let menuOpen = true;
-        
+
         if (width < 1500 && menuOpen) {
             self.menu.hide();
             self.header.hide();
@@ -281,7 +281,7 @@ export default class TopView extends JetView {
             self.buttonShowMenu.hide();
             menuOpen = true;
         }
-        
+
         window.onresize = function(event) {
             var width = document.documentElement.clientWidth;
             var height = document.documentElement.clientHeight;

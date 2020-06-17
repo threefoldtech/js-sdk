@@ -79,7 +79,7 @@ export default class SolutionDetailsView extends JetView {
             }
         }
 
-        
+
         this.getRoot().show();
     }
     deleteSolution(){
