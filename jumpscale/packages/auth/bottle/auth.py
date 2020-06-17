@@ -26,6 +26,11 @@ env = Environment(loader=FileSystemLoader(templates_path), autoescape=select_aut
 
 @app.route("/login")
 def login():
+    """List available providers for login and redirect to the selected provider (3bot connect)
+
+    Returns:
+        Renders the template of login page
+    """
     session = request.environ.get("beaker.session")
     provider = request.query.get("provider")
     next_url = request.query.get("next_url", session.get("next_url"))
@@ -50,6 +55,11 @@ def login():
 
 @app.route("/3bot_callback")
 def callback():
+    """Takes the response from the provider and verify the identity of the logged in user
+
+    Returns:
+        Redirect to the wanted page after authentication
+    """
     session = request.environ.get("beaker.session")
     data = request.query.get("signedAttempt")
 
@@ -133,6 +143,11 @@ def callback():
 
 @app.route("/logout")
 def logout():
+    """Invalidates the user session and redirect to login page
+
+    Returns:
+        Redirect to the login page
+    """
     session = request.environ.get("beaker.session", {})
     try:
         session.invalidate()
@@ -145,12 +160,22 @@ def logout():
 
 @app.route("/accessdenied")
 def access_denied():
+    """Displays the access denied page when the authenticated user is not authorized to view the page
+
+    Returns:
+        Renders access denied page
+    """
     email = request.environ.get("beaker.session").get("email")
     next_url = request.query.get("next_url")
     return env.get_template("access_denied.html").render(email=email, next_url=next_url)
 
 
 def get_user_info():
+    """Parse user information from the session object
+
+    Returns:
+        [JSON string]: [user information session]
+    """
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
@@ -168,11 +193,25 @@ def get_user_info():
 
 
 def is_admin(tname):
+    """Checks if the user provided is considered an admin or not
+
+    Args:
+        tname (str): threebot name
+
+    Returns:
+        [Bool]: [True if the user is an admin]
+    """
     threebot_me = j.core.identity.me
     return threebot_me.tname == tname or tname in threebot_me.admins
 
 
 def authenticated(handler):
+    """decorator for the methods to be for authenticated users only
+
+    Args:
+        handler (method)
+    """
+
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
         if j.core.config.get("threebot").get(
@@ -186,6 +225,12 @@ def authenticated(handler):
 
 
 def admin_only(handler):
+    """decorator for methods for admin access only
+
+    Args:
+        handler (method)
+    """
+
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
         if j.core.config.get("threebot").get(
@@ -203,6 +248,11 @@ def admin_only(handler):
 @app.route("/auth/authenticated")
 @authenticated
 def is_authenticated():
+    """get user information if it is authenticated
+
+    Returns:
+        [JSON string]: [user information session]
+    """
     return get_user_info()
 
 
@@ -210,10 +260,21 @@ def is_authenticated():
 @authenticated
 @admin_only
 def is_authorized():
+    """get user information if it is authenticated and authorized as admin only
+
+    Returns:
+        [JSON string]: [user information session]
+    """
     return get_user_info()
 
 
 def login_required(func):
+    """Decorator for the methods we want to secure
+
+    Args:
+        func (method)
+    """
+
     @wraps(func)
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
