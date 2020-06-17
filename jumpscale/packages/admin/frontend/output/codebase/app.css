@@ -164,6 +164,10 @@
   float: right;
   font-size: 20px;
 }
+.add-icon:hover {
+  text-decoration: none;
+  color: white;
+}
 /* dataview with qa cards */
 .webix_dataview .webix_dataview_item.tiles .webix_dataview_inner_item {
   padding: 11px;

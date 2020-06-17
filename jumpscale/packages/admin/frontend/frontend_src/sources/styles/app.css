@@ -9,7 +9,7 @@
 	}
 }
 
-@media (max-width: 1500px) and (min-width:1300px) {  
+@media (max-width: 1500px) and (min-width:1300px) {
 	.add-icon{
 		font-size: 15px !important;
 	}
@@ -17,14 +17,14 @@
 	.solution_card_title, .solution_card_count{
 		font-size: 18px !important;
 	}
-	
+
 	.threebot_card_title{
 		font-size: 24px !important;
 	}
 }
 
-@media (max-width: 1300px) {                  
-	
+@media (max-width: 1300px) {
+
 	.threebot_card_icon {
 		display: none;
 	}
@@ -185,6 +185,12 @@
 	border-radius: 30px;
 	float: right;
 	font-size: 20px;
+}
+
+.add-icon:hover
+{
+  text-decoration: none;
+  color: white;
 }
 
 /* dataview with qa cards */
