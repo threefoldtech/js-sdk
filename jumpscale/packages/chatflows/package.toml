@@ -1,5 +1,5 @@
 name = "chatflows"
-ports = [ 80,]
+ports = [ 80, 443]
 [[static_dirs]]
 name = "frontend"
 path_url = "/static"
