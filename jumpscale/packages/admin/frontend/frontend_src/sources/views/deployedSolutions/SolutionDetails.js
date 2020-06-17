@@ -85,7 +85,7 @@ export default class SolutionDetailsView extends JetView {
     deleteSolution(){
         const self = this
         webix.confirm({
-              title: "Delete Solution",
+              title: "Cancel and delete Solution",
               ok: "Delete",
               cancel: "No",
               text: `Delete ${self.solution["Solution name"]} Solution ?<br>Warning: this action can't be undone`

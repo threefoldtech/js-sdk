@@ -17,9 +17,11 @@ export default class DeployedUbuntuView extends BaseView {
             const solutions = JSON.parse(data.json()).data
             for (let i = 0; i < solutions.length; i++) {
                 const solution = solutions[i];
+                console.log(solution)
                 let dict = JSON.parse(solution.form_info)
                 let reservation = solution.reservation
                 dict.id = reservation.id
+                dict._type = "Ubuntu"
                 dict._name = dict['Solution name'].length > self.maxTitleLength ?
                     dict['Solution name'].substring(0, self.maxTitleLength) + '...' : dict['Solution name'];
                 dict._ip = dict['IP Address']

@@ -24,6 +24,7 @@ export default class DeployedFlistView extends BaseView {
                     delete dict['Entry point']
                 }
                 dict.id = reservation.id
+                dict._type = "Flist"
                 dict._name = dict['Solution name'].length > self.maxTitleLength ?
                     dict['Solution name'].substring(0, self.maxTitleLength) + '...' : dict['Solution name'];
                 dict._ip = dict['IP Address']

@@ -380,7 +380,6 @@ class ReservationChatflow:
                     metadata = json.loads(metadata)
                 except Exception:
                     continue
-
                 if "form_info" not in metadata:
                     solution_type = self.check_solution_type(reservation)
                 else:

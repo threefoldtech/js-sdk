@@ -5,7 +5,7 @@ from jumpscale.core.exceptions import JSException
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
-class TFgridSolutions(BaseActor):
+class Solutions(BaseActor):
     @actor_method
     def list_solutions(self, solution_type:str) -> str:
         # Update the solutions from the explorer
@@ -15,11 +15,11 @@ class TFgridSolutions(BaseActor):
         solutions = j.sals.reservation_chatflow.get_solutions(SolutionType[solution_type])
         return j.data.serializers.json.dumps({"data":solutions})
 
-    # @actor_method
-    # def cancel_reservation(self, solution_type, solution_name):
-    #     if solution_type:
-    #         j.sal.reservation_chatflow.reservation_cancel_for_solution(solution_name)
-    #         return True
-    #     return False
+    @actor_method
+    def cancel_solution(self, solution_type, solution_name) -> bool:
+        if solution_type:
+            j.sals.reservation_chatflow.cancel_solution_reservation(SolutionType[solution_type],solution_name)
+            return True
+        return False
 
-Actor = TFgridSolutions
+Actor = Solutions

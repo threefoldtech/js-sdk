@@ -12,7 +12,7 @@ class SolutionsService extends Service {
     }
 
     delete(solutionType, solutionName) {
-        return this.postCall("solution_delete", { solution_type: solutionType, solution_name: solutionName });
+        return this.postCall("cancel_solution", { solution_type: solutionType, solution_name: solutionName });
     }
 }
 

@@ -27,6 +27,7 @@ export default class DeployedNetworkView extends BaseView {
                 dict.expiration = JSON.parse(String(solution.form_info))['Solution expiration']
                 dict['IP Address'] = reservation.data_reservation.networks[0].iprange
                 dict._ip = reservation.data_reservation.networks[0].iprange
+                dict._type = "Network"
                 dict._name = solution.name.length > self.maxTitleLength ?
                     solution.name.substring(0, self.maxTitleLength) + '...' : solution.name
                 dict.nodes = []

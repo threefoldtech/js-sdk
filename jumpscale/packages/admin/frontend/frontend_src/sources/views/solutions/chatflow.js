@@ -3,8 +3,8 @@ import { ExternalView } from "../external";
 export default class ChatflowView extends ExternalView {
     constructor(app, name) {
         super(app, name);
-        // TODO: Add url for tfgrid_solutions to install if not
-        this.baseGitUrl = "";
+        // TODO: modify url to be development branch
+        this.baseGitUrl = "https://github.com/threefoldtech/js-sdk/blob/development_adminpanel/jumpscale/packages/tfgrid_solutions";
 
     }
 
