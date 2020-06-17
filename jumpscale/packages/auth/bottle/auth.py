@@ -1,13 +1,13 @@
 from bottle import redirect, request, abort, Bottle, response
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 import nacl
 import requests
 import json
 from beaker.middleware import SessionMiddleware
-import uuid
 from jumpscale.god import j
 from urllib.parse import urlencode
 import base64
-import binascii
 from nacl.signing import VerifyKey
 from nacl.public import Box
 from functools import wraps
@@ -19,22 +19,32 @@ login_url = "/auth/login"
 
 app = Bottle()
 
+templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
+env = Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape(["html", "xml"]))
+
 
 @app.route("/login")
 def login():
-    state = j.data.idgenerator.chars(20)
     session = request.environ.get("beaker.session")
-    session["state"] = state
-    app_id = request.get_header("host")
-    params = {
-        "state": state,
-        "appid": app_id,
-        "scope": json.dumps({"user": True, "email": True}),
-        "redirecturl": callback_url,
-        "publickey": j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
-    }
-    params = urlencode(params)
-    return redirect(f"{redirect_url}?{params}", code=302)
+    provider = request.query.get("provider")
+    next_url = request.query.get("next_url", session.get("next_url"))
+
+    if provider and provider == "3bot":
+        state = j.data.idgenerator.chars(20)
+        session["next_url"] = next_url
+        session["state"] = state
+        app_id = request.get_header("host")
+        params = {
+            "state": state,
+            "appid": app_id,
+            "scope": json.dumps({"user": True, "email": True}),
+            "redirecturl": callback_url,
+            "publickey": j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
+        }
+        params = urlencode(params)
+        return redirect(f"{redirect_url}?{params}", code=302)
+
+    return env.get_template("login.html").render(providers=[], next_url=next_url)
 
 
 @app.route("/3bot_callback")
@@ -136,7 +146,7 @@ def logout():
 def access_denied():
     email = request.environ.get("beaker.session").get("email")
     next_url = request.query.get("next_url")
-    return {"error": "access denied."}
+    return env.get_template("access_denied.html").render(email=email, next_url=next_url)
 
 
 def get_user_info():

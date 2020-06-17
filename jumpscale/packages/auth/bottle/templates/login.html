@@ -1,0 +1,22 @@
+{% extends "home.html"%}
+{% block title %}Login{% endblock %}
+{% block content %}
+<h3>Choose one of the following available methods</h3>
+<br />
+<div class="row justify-content-md-center">
+    <div class="col-sm-4">
+        {% for provider in providers%}
+        <a class="btn btn-block btn-social btn-{[provider]} text-center"
+            href="/auth/login?provider={{provider}}&{% if next_url %}next_url={{next_url}}{% endif %}">
+            <i class="fa fa-{{provider}}"></i> {{provider}}
+        </a>
+        {% endfor %}
+
+        <a class="btn btn-block btn-social btn-vk text-center"
+            href="/auth/login?provider=3bot&{% if next_url %}next_url={{next_url}}{% endif %}">
+            <span class="bot"></span>Sign in with 3Bot connect
+        </a>
+    </div>
+</div>
+
+{% endblock %}

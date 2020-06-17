@@ -1,0 +1,15 @@
+{% extends "home.html"%}
+{% block title %}Login{% endblock %}
+{% block content %}
+<br>
+<h3>Access denied</h3>
+<p>If you are trying to access your threebot, make sure you are using the same 3bot as the one you initialized the
+    machine, otherwise you need to be an admin to access this page</p>
+<div class="row justify-content-md-center">
+    <div class="col-sm-4">
+        <a class="btn btn-block btn-vk text-center" href="{{next_url}}">
+            <i class="fa fa-{{provider}}"></i> Try again
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,11 @@
 name = "auth"
 ports = [ 80,]
 
+[[static_dirs]]
+name = "static"
+path_url = "/static"
+path_location = "static"
+
 [[bottle_servers]]
 name = "main"
 file_path = "bottle/auth.py"
