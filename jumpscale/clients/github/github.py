@@ -12,8 +12,8 @@ class GithubClient(Client):
     password = fields.String()
     accesstoken = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__client = None
 
     @property
@@ -26,12 +26,12 @@ class GithubClient(Client):
         return self.__client
 
     def get_repo(self, repo_full_name):
-        return GithubRepo(self.__client,repo_full_name)
+        return GithubRepo(self.github_client,repo_full_name)
 
     def get_repos(self):
         l = []
         for r in self.github_client.get_user().get_repos():
-            l.append(GithubRepo(self.__client,r.full_name))
+            l.append(GithubRepo(self.github_client,r.full_name))
         return l
 
     def get_orgs(self):
@@ -73,4 +73,4 @@ class GithubClient(Client):
         )
 
     def delete_repo(self, repo_name):
-        return self.__client.get_user().get_repo(repo_name).delete()
+        return self.github_client.get_user().get_repo(repo_name).delete()
