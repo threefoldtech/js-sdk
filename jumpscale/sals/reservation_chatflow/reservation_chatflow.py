@@ -365,9 +365,6 @@ class ReservationChatflow:
     def get_solutions_explorer(self):
         """delete old instances, to get the new ones from explorer
         """
-        import pdb
-
-        pdb.set_trace()
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
 
