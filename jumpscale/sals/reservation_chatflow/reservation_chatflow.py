@@ -1036,7 +1036,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 {
                     "name": solution.name,
                     "reservation": reservation._get_data(),
-                    "type": solution_type,
+                    "type": solution_type.value,
                     "form_info": json.dumps(solution.form_info),
                 }
             )

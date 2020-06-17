@@ -6,7 +6,7 @@ export class ExternalView extends JetView {
         super(app, name);
 
         this.targetUrl = targetUrl || "/";
-        this.requiredPackages = requiredPackages || {}; // required packages as (name: git_url) pairs
+        this.requiredPackages = {}; // required packages as (name: git_url) pairs
     }
 
     config() {
@@ -84,7 +84,7 @@ export class ExternalView extends JetView {
 
         this.packageNames = Object.keys(this.requiredPackages); // only names
 
-        if (!this.packageNames.length) {
+        if (this.packageNames.length) {
             this.showIframe();
             return;
         }

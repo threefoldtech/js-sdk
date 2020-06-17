@@ -1,5 +1,5 @@
 import { JetView } from "webix-jet";
-import { solutions } from '../../services/deployedSolutions'
+import { solutions } from '../../services/solutions'
 
 export default class SolutionDetailsView extends JetView {
     config() {

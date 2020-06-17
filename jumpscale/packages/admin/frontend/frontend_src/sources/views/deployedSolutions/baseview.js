@@ -60,11 +60,11 @@ export class BaseView extends JetView {
         let self = this;
         self.solutionlist = $$("solutionlist")
         self.maxTitleLength = 20;
-        // webix.extend(self.solutionlist, webix.ProgressBar);
-        // self.solutionlist.showProgress({
-        //     type: "icon",
-        //     hide: false
-        // });
+        webix.extend(self.solutionlist, webix.ProgressBar);
+        self.solutionlist.showProgress({
+            type: "icon",
+            hide: false
+        });
         self.SolutionDetailsView = self.ui(SolutionDetailsView)
 
         self.solutionlist.addCss(self.solutionlist.getFirstId(), 'createnewdiv')

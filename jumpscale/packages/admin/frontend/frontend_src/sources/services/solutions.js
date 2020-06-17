@@ -1,19 +1,14 @@
 import { Service } from "../common/api";
 
-const BASE_URL = "/admin/actors/solutions";
+const BASE_URL = "/tfgrid_solutions/actors/solutions";
 
 class SolutionsService extends Service {
     constructor() {
         super(BASE_URL);
     }
 
-    list(opts) {
-        opts = opts || {};
-        return this.getCall("solutions_list");
-    }
-
     listSolution(solutionType){
-        return this.postCall("solutions_list",{solution_type: solutionType})
+        return this.postCall("list_solutions",{solution_type: solutionType})
     }
 
     delete(solutionType, solutionName) {
