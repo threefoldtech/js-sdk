@@ -2,8 +2,10 @@ body {
     -webkit-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
     -moz-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
     -o-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
-    background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
-    height: 100vh;
+    background-image: url("/auth/static/img/background.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+
 }
 
 .intro {
