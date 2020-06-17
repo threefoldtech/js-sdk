@@ -1,11 +1,13 @@
 import { ExternalView } from "../external";
 
+// TODO: modify url to be development branch
+const REQUIRED_PACKAGES = {
+    "tfgrid_solutions": "https://github.com/threefoldtech/js-sdk/blob/development_adminpanel/jumpscale/packages/tfgrid_solutions"
+}
+
 export default class ChatflowView extends ExternalView {
     constructor(app, name) {
-        super(app, name);
-        // TODO: modify url to be development branch
-        this.baseGitUrl = "https://github.com/threefoldtech/js-sdk/blob/development_adminpanel/jumpscale/packages/tfgrid_solutions";
-
+        super(app, name, "", REQUIRED_PACKAGES);
     }
 
     urlChange(view, url) {
@@ -14,13 +16,7 @@ export default class ChatflowView extends ExternalView {
             return;
         }
 
-        const packageName = `${params.package}`
-        const packageUrl = packageName.replace(".", "/");
-
-        this.targetUrl = `/${packageUrl}/chats/${params.chat}#/?noheader=yes`;
-        this.requiredPackages = {}
-        this.requiredPackages[packageName] = `${this.baseGitUrl}/${packageUrl}`;
-
+        this.targetUrl = `/${params.package}/chats/${params.chat}#/?noheader=yes`;
         this.init(view);
     }
 }
