@@ -86,7 +86,7 @@ class Website(Base):
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
     letsencryptemail = fields.String()
-    selfsigned = fields.Boolean()
+    selfsigned = fields.Boolean(default=False)
 
     @property
     def cfg_dir(self):
@@ -134,19 +134,24 @@ class Website(Base):
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
-
         for location in self.get_locations():
             location.configure()
 
+        failback = self.selfsigned
+        self.selfsigned = False
         j.sals.fs.write_file(self.cfg_file, self.get_config())
+        self.selfsigned = failback
 
-        if generate_certificates:
+        if generate_certificates and self.ssl:
             res = self.generate_certificates()
             if res and res[0] != 0:
-                # failed to generate cert by certbot
-                # use self_signed certs
-                self.generate_self_signed_certificates()
-                j.sals.fs.write_file(self.cfg_file, self.get_config())
+                if failback:
+                    # failed to generate cert by certbot
+                    # use self_signed certs
+                    self.generate_self_signed_certificates()
+                    j.sals.fs.write_file(self.cfg_file, self.get_config())
+                else:
+                    raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
 
     def clean(self):
         j.sals.fs.rmtree(self.cfg_dir)
