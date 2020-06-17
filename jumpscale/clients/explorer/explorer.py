@@ -20,8 +20,8 @@ class Explorer(Client):
         self._session = requests.Session()
         self._session.hooks = dict(response=raise_for_status)
 
-        self.nodes = Nodes(self._session, self.url)
-        self.users = Users(self._session, self.url)
-        self.farms = Farms(self._session, self.url)
-        self.reservations = Reservations(self._session, self.url)
-        self.gateway = Gateway(self._session, self.url)
+        self.nodes = Nodes(self)
+        self.users = Users(self)
+        self.farms = Farms(self)
+        self.reservations = Reservations(self)
+        self.gateway = Gateway(self)

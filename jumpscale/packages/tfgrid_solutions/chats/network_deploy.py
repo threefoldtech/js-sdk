@@ -17,7 +17,7 @@ class NetworkDeploy(GedisChatBot):
         network_name = self.string_ask("Please enter a network name", required=True, field="name")
         user_form_data["Currency"] = self.single_choice(
             "Please choose a currency that will be used for the payment",
-            ["FreeTFT", "TFT"],
+            ["FreeTFT", "TFTA", "TFT"],
             default="TFT",
             required=True,
         )
@@ -32,6 +32,11 @@ class NetworkDeploy(GedisChatBot):
         ipversion = self.single_choice(
             "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
         )
+        # Check if reservation failed
+        farms = j.sals.reservation_chatflow.get_farm_names(1, self)
+        access_node = j.sals.reservation_chatflow.get_nodes(
+            1, farm_names=farms, currency=user_form_data["Currency"], ip_version=ipversion
+        )[0]
         user_form_data["Solution expiration"] = j.data.time.get(expiration).humanize()
 
         reservation = j.sals.zos.reservation_create()
@@ -46,6 +51,7 @@ class NetworkDeploy(GedisChatBot):
                 ip_range,
                 j.core.identity.me.tid,
                 ipversion,
+                access_node,
                 expiration=expiration,
                 currency=user_form_data["Currency"],
                 bot=self,

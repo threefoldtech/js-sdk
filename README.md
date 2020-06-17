@@ -1,9 +1,9 @@
-# js-ext
+# js-sdk
 
 
-![[https://pypi.python.org/pypi/js-ext](pypi)](https://img.shields.io/pypi/v/js-ext.svg)
-![[https://travis-ci.org/js-next/js-ext]](https://travis-ci.org/js-next/js-ext.png)
-![[https://codecov.io/gh/js-next/js-ext]](https://codecov.io/gh/js-next/js-ext/branch/master/graph/badge.svg)
+![[https://pypi.python.org/pypi/js-sdk](pypi)](https://img.shields.io/pypi/v/js-sdk.svg)
+![[https://travis-ci.org/threefoldtech/js-sdk]](https://travis-ci.org/threefoldtech/js-sdk.png)
+![[https://codecov.io/gh/threefoldtech/js-sdk]](https://codecov.io/gh/threefoldtech/js-sdk/branch/master/graph/badge.svg)
 
 official extenions to js framework 
 
@@ -35,4 +35,4 @@ official extenions to js framework
 
 ## API Docs
 
-[browsable](https://js-next.github.io/js-ext/api/jumpscale/) at https://js-next.github.io/js-ext/api/jumpscale/
+[browsable](https://threefoldtech.github.io/js-sdk/api/jumpscale/) at https://threefoldtech.github.io/js-sdk/api/jumpscale/
