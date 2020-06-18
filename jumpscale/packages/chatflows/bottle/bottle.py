@@ -1,5 +1,5 @@
 from jinja2 import Environment, FileSystemLoader
-from bottle import Bottle, request
+from bottle import Bottle, request, abort
 from jumpscale.god import j
 from jumpscale.packages.auth.bottle.auth import login_required, SESSION_OPTS
 from beaker.middleware import SessionMiddleware
@@ -17,6 +17,8 @@ threebot = j.servers.threebot.get("default")
 @login_required
 def chats(package_name):
     package = threebot.packages.get(package_name)
+    if not package:
+        abort(404, f"package {package_name} does not exist")
     chatflows = package.get_chats()
     return j.data.serializers.json.dumps(list(chatflows.keys()))
 
