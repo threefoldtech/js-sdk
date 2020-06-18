@@ -114,23 +114,28 @@ class Website(Base):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
     def generate_certificates(self):
-        if self.ssl:
-            res = j.sals.process.execute(
-                f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
-            )
-            return res
+        res = j.sals.process.execute(
+            f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
+        )
+        if res[0] != 0:
+            if self.selfsigned:
+                res = self.generate_self_signed_certificates()
+                if res and res[0] != 0:
+                    raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
+                j.sals.fs.write_file(self.cfg_file, self.get_config())
+                return res
+            else:
+                raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
+        return res
 
     def generate_self_signed_certificates(self):
-        if self.ssl:
-            self.selfsigned = True
-            if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(
-                f"{self.parent.cfg_dir}/cert.pem"
-            ):
-                return
-            res = j.sals.process.execute(
-                f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
-            )
-            return res
+        self.selfsigned = True
+        if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(f"{self.parent.cfg_dir}/cert.pem"):
+            return
+        res = j.sals.process.execute(
+            f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
+        )
+        return res
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
@@ -143,15 +148,7 @@ class Website(Base):
         self.selfsigned = failback
 
         if generate_certificates and self.ssl:
-            res = self.generate_certificates()
-            if res and res[0] != 0:
-                if failback:
-                    # failed to generate cert by certbot
-                    # use self_signed certs
-                    self.generate_self_signed_certificates()
-                    j.sals.fs.write_file(self.cfg_file, self.get_config())
-                else:
-                    raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
+            self.generate_certificates()
 
     def clean(self):
         j.sals.fs.rmtree(self.cfg_dir)
