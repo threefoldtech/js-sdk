@@ -1,0 +1,6 @@
+.farmmanagement {
+    height: 100%;
+}
+table tr td{
+    cursor: pointer;
+}

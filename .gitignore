@@ -3,8 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-
-
 # C extensions
 *.so
 
@@ -133,3 +131,6 @@ nosetests.xml
 .project
 .pydevproject
 
+
+node_modules/
+.vscode/

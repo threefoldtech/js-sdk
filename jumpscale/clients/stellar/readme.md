@@ -30,6 +30,8 @@ and remove it again:
 wallet.delete_trustline('TFT','GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3')
 ```
 
+Check more about trustlines: [here](https://www.stellar.org/developers/guides/concepts/assets.html#trustlines)
+
 ## Transferring assets
 
 Send 1000 TFT to another address:

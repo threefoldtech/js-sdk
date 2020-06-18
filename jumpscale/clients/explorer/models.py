@@ -182,6 +182,16 @@ class TfgridWorkloadsReservationNetworkConnection1(Base):
     public_ip6 = fields.Boolean()
 
 
+class TfgridWorkloadsReservationContainerLogsredis1(Base):
+    stdout = fields.String(default="")
+    stderr = fields.String(default="")
+
+
+class TfgridWorkloadsReservationContainerLogs1(Base):
+    type = fields.String(default="")
+    data = fields.Object(TfgridWorkloadsReservationContainerLogsredis1)
+
+
 class TfgridWorkloadsReservationContainerCapacity1(Base):
     cpu = fields.Integer()
     memory = fields.Integer()
@@ -359,6 +369,7 @@ class TfgridWorkloadsReservationContainer1(Base):
     network_connection = fields.List(fields.Object(TfgridWorkloadsReservationNetworkConnection1))
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
     farmer_tid = fields.Integer()
+    logs = fields.List(fields.Object(TfgridWorkloadsReservationContainerLogs1))
     capacity = fields.Object(TfgridWorkloadsReservationContainerCapacity1)
 
 

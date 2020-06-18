@@ -63,6 +63,8 @@ class Location(Base):
     spa = fields.Boolean(default=False)
     websocket = fields.Boolean(default=False)
     location_type = fields.Enum(LocationType)
+    is_auth = fields.Boolean(default=False)
+    is_admin = fields.Boolean(default=False)
 
     @property
     def cfg_dir(self):

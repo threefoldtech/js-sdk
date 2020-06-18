@@ -29,8 +29,10 @@ PyGithub = "^1.43"
 python-digitalocean = "^1.15.0"
 twilio = "^6.29"
 snakeviz = "^2.0.1"
-stellar-sdk = "^2.3.2"
-
+stellar-sdk = "2.4.1"
+pypng = "^0.0.20"
+pyqrcode = "^1.2.1"
+beaker = "^1.11.0"
 [tool.poetry.dev-dependencies]
 
 [build-system]

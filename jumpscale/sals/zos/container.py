@@ -7,6 +7,7 @@ from nacl import public
 import binascii
 from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationContainer1,
+    TfgridWorkloadsReservationContainerLogs1,
     TfgridWorkloadsReservationNetworkConnection1,
     DiskType,
 )
@@ -99,3 +100,28 @@ class Container:
         result = box.encrypt(value.encode())
 
         return binascii.hexlify(result).decode()
+
+    def add_logs(self, cont, channel_type, channel_host, channel_port, channel_name):
+        """
+        Add logs to the container of a reservation
+
+        :param cont: container instance
+        :type cont: tfgrid.workloads.reservation.container.1
+        :param channel_type: type of channel the logs will be streamed to
+        :type channel_type: str
+        :param channel_host: IP of host that the logs will be streamed to
+        :type channel_host: str
+        :param channel_port: port of host that the logs will be streamed to
+        :type channel_port: int
+        :param channel_name: name of channel that will be published to
+        :type channel_name: str
+        :return: logs object added to the container
+        :rtype: tfgrid.workloads.reservation.container.logs.1
+
+        """
+        cont_logs = TfgridWorkloadsReservationContainerLogs1()
+        cont_logs.type = channel_type
+        cont_logs.data.stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
+        cont_logs.data.stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
+        cont.logs.append(cont_logs)
+        return cont_logs

@@ -14,8 +14,12 @@ GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
+DEFAULT_PACKAGES = {
+    "auth": os.path.dirname(j.packages.auth.__file__),
+    "chatflows": os.path.dirname(j.packages.chatflows.__file__),
+    "admin": os.path.dirname(j.packages.admin.__file__),
+}
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
-DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
 
 
 class NginxPackageConfig:
@@ -36,6 +40,8 @@ class NginxPackageConfig:
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
                     "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location")),
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -49,6 +55,8 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
+                    "is_auth": bottle_server.get("is_auth", False),
+                    "is_admin": bottle_server.get("is_admin", False),
                 }
             )
 
@@ -72,7 +80,7 @@ class NginxPackageConfig:
                     "host": CHATFLOW_SERVER_HOST,
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
-                    "path_dest": self.package.base_url,
+                    "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
                 }
             )
 
@@ -81,7 +89,7 @@ class NginxPackageConfig:
     def apply(self):
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
-            for port in server.get("ports", [80]):
+            for port in server.get("ports", [80, 443]):
 
                 server_name = server.get("name")
                 if server_name != "default":
@@ -120,10 +128,25 @@ class NginxPackageConfig:
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
+                        loc.is_auth = location.get("is_auth", False)
+                        loc.is_admin = location.get("is_admin", False)
 
                 website.save()
                 website.configure()
                 self.nginx.save()
+
+
+class StripPathMiddleware(object):
+    """
+    a middle ware for bottle apps to strip slashes
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, e, h):
+        e["PATH_INFO"] = e["PATH_INFO"].rstrip("/")
+        return self.app(e, h)
 
 
 class Package:
@@ -183,7 +206,7 @@ class Package:
 
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
-        return WSGIServer((host, port), module.app)
+        return WSGIServer((host, port), StripPathMiddleware(module.app))
 
     def install(self):
         if self.module and hasattr(self.module, "install"):
@@ -248,10 +271,10 @@ class PackageManager(Base):
             repo_dir = f"{org}_{repo}_{branch}"
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
-            
+
             # delete repo dir if exists
             j.sals.fs.rmtree(repo_path)
-            
+
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
@@ -302,42 +325,6 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def uninstall(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.uninstall()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def start(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def stop(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.stop()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def restart(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.restart()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
     def install(self, package):
         """install and apply package configrations
 
@@ -376,13 +363,8 @@ class PackageManager(Base):
         # apply nginx configuration
         package.nginx_config.apply()
 
-        package.install()
-
         # execute package start method
         package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
 
     def install_all(self):
         for package in self.list_all():
@@ -454,7 +436,7 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
-        
+
         # mark app as started
         j.application.start(f"threebot_{self.instance_name}")
 
