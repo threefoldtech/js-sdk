@@ -1,9 +1,21 @@
 name = "admin"
 ports = [80, 443]
+
 [[static_dirs]]
 name = "frontend"
-path_url = "/"
+path_url = ""
 path_location = "frontend/output/"
 index = "index.html"
 spa = true
 is_auth = true
+
+[[servers]]
+name = "default"
+ports = [80, 443]
+[[servers.locations]]
+type = "proxy"
+host = "127.0.0.1"
+port = 80
+name = "admin"
+path_url = "/"
+path_dest = "/admin/"
