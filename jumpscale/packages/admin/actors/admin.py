@@ -13,11 +13,13 @@ class Admin(BaseActor):
     @actor_method
     def add_admin(self, name: str) -> str:
         j.core.identity.me.admins.append(name)
+        j.core.identity.me.save()
         return "Added"
 
     @actor_method
     def delete_admin(self, name: str) -> str:
         j.core.identity.me.admins.remove(name)
+        j.core.identity.me.save()
         return "Removed"
 
     @actor_method

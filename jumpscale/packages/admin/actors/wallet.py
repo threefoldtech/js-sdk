@@ -2,8 +2,8 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.god import j
 from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 
-class Wallet(BaseActor):
 
+class Wallet(BaseActor):
     @actor_method
     def create_wallet(self, name: str) -> str:
         explorer = j.clients.explorer.get_default()
@@ -21,11 +21,12 @@ class Wallet(BaseActor):
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException("Error on wallet activation")
-        
+
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
         for asset_code in trustlines.keys():
             wallet.add_known_trustline(asset_code)
 
+        wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
 
     @actor_method
@@ -67,17 +68,20 @@ class Wallet(BaseActor):
         for asset_code in trustlines.keys():
             wallet.add_known_trustline(asset_code)
 
+        wallet.save()
         return j.data.serializers.json.dumps({"data": trustlines})
-    
+
     @actor_method
     def import_wallet(self, name: str, secret: str, network: str) -> str:
         network = network or "TEST"
         wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
 
     @actor_method
     def delete_wallet(self, name: str) -> str:
         j.clients.stellar.delete(name=name)
         return j.data.serializers.json.dumps({"data": True})
+
 
 Actor = Wallet
