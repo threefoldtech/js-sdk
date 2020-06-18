@@ -29,11 +29,11 @@ export default class TopView extends JetView {
                 value: "Dashboard",
                 icon: "mdi mdi-view-dashboard"
             },
-            {
-                id: "wikis",
-                value: "Packages Docs",
-                icon: "mdi mdi-newspaper"
-            },
+            // {
+            //     id: "wikis",
+            //     value: "Packages Docs",
+            //     icon: "mdi mdi-newspaper"
+            // },
             {
                 id: "alerts",
                 value: "Alerts",
