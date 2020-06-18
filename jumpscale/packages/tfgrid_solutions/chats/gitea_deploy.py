@@ -1,9 +1,8 @@
-from jumpscale.god import j
+import math
 
+from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-
-import math
 
 
 class GiteaDeploy(GedisChatBot):

@@ -1,14 +1,15 @@
-from jumpscale.god import j
+import math
 
+from jumpscale.clients.explorer.models import DiskType
+from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
-from jumpscale.clients.explorer.models import DiskType
-
-import math
-
 
 class UbuntuDeploy(GedisChatBot):
+    HUB_URL = "https://hub.grid.tf/tf-bootable"
+    IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
+
     steps = [
         "ubuntu_start",
         "ubuntu_network",
@@ -30,8 +31,6 @@ class UbuntuDeploy(GedisChatBot):
     def ubuntu_start(self):
         self.user_form_data = dict()
         self.query = dict()
-        self.HUB_URL = "https://hub.grid.tf/tf-bootable"
-        self.IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
         user_info = self.user_info()
         self.user_form_data["chatflow"] = "ubuntu"
         self.md_show("# This wizard will help you deploy an ubuntu container", md=True)

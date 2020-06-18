@@ -1,13 +1,10 @@
-import json
-
-from jumpscale.god import j
-
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.clients.explorer.models import DiskType, Mode, Category
-
 import math
 import uuid
+
+from jumpscale.clients.explorer.models import Category, DiskType, Mode
+from jumpscale.god import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class MinioDeploy(GedisChatBot):
@@ -264,7 +261,7 @@ class MinioDeploy(GedisChatBot):
         self.namespace_config = []
         for result in self.reservation_result:
             if result.category == Category.Zdb:
-                data = json.loads(result.data_json)
+                data = j.data.serializers.json.loads(result.data_json)
                 cfg = f"{data['Namespace']}:{self.password}@[{data['IP']}]:{data['Port']}"
                 self.namespace_config.append(cfg)
         if self.user_form_data["Setup type"] == "Master/Slave Setup":

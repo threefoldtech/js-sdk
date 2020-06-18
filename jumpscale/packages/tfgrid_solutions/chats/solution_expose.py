@@ -1,11 +1,9 @@
-from jumpscale.god import j
+import uuid
 
+from jumpscale.clients.explorer.models import Category
+from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.clients.explorer.models import Category
-
-import json
-import uuid
 
 kinds = {
     "minio": SolutionType.Minio,
@@ -59,7 +57,7 @@ class SolutionExpose(GedisChatBot):
         )
         solution = self.sols[solution_name]
         self.user_form_data["Solution name"] = solution_name
-        self.reservation_data = json.loads(solution["reservation"]["json"])
+        self.reservation_data = j.data.serializers.json.loads(solution["reservation"]["json"])
         self.solution_currency = self.reservation_data["currencies"][0]
 
     @chatflow_step(title="Ports")

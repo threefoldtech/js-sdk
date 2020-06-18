@@ -1,14 +1,13 @@
-from jinja2 import Environment, FileSystemLoader
-from bottle import Bottle, request, abort
-from jumpscale.god import j
-from jumpscale.packages.auth.bottle.auth import login_required, SESSION_OPTS
 from beaker.middleware import SessionMiddleware
+from bottle import Bottle, abort, request
 
+from jumpscale.god import j
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required
 
 app = Bottle()
 
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "..", "frontend")
-env = Environment(loader=FileSystemLoader(templates_path))
+env = j.tools.jinja2.get_env(templates_path)
 
 threebot = j.servers.threebot.get("default")
 

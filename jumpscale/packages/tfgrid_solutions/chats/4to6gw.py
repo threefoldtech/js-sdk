@@ -1,10 +1,8 @@
-from jumpscale.god import j
+import requests
 
+from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-
-import json
-import requests
 
 
 class FourToSixGateway(GedisChatBot):
@@ -87,7 +85,7 @@ to download your configuration
 
     @chatflow_step(title="Wireguard configuration", disable_previous=True)
     def wg_config(self):
-        cfg = json.loads(self.reservation_result[0].data_json)
+        cfg = j.data.serializers.json.loads(self.reservation_result[0].data_json)
         wgconfigtemplate = """\
 [Interface]
 Address = {{cfg.ips[0]}}

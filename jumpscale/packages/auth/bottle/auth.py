@@ -1,6 +1,5 @@
-import base64
-import json
 from functools import wraps
+from json import JSONDecodeError
 from urllib.parse import urlencode
 
 import nacl
@@ -43,7 +42,7 @@ def login():
         params = {
             "state": state,
             "appid": app_id,
-            "scope": json.dumps({"user": True, "email": True}),
+            "scope": j.data.serializers.json.dumps({"user": True, "email": True}),
             "redirecturl": CALLBACK_URL,
             "publickey": j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
         }
@@ -66,7 +65,7 @@ def callback():
     if not data:
         return abort(400, "signedAttempt parameter is missing")
 
-    data = json.loads(data)
+    data = j.data.serializers.json.loads(data)
 
     if "signedAttempt" not in data:
         return abort(400, "signedAttempt value is missing")
@@ -81,14 +80,14 @@ def callback():
         return abort(400, "Error getting user pub key")
     pub_key = res.json()["publicKey"]
 
-    user_pub_key = VerifyKey(base64.b64decode(pub_key))
+    user_pub_key = VerifyKey(j.data.serializers.base64.decode(pub_key))
 
     # verify data
     signedData = data["signedAttempt"]
 
-    verifiedData = user_pub_key.verify(base64.b64decode(signedData)).decode()
+    verifiedData = user_pub_key.verify(j.data.serializers.base64.decode(signedData)).decode()
 
-    data = json.loads(verifiedData)
+    data = j.data.serializers.json.loads(verifiedData)
 
     if "doubleName" not in data:
         return abort(400, "Decrypted data does not contain (doubleName)")
@@ -104,8 +103,8 @@ def callback():
     if state != session["state"]:
         return abort(400, "Invalid state. not matching one in user session")
 
-    nonce = base64.b64decode(data["data"]["nonce"])
-    ciphertext = base64.b64decode(data["data"]["ciphertext"])
+    nonce = j.data.serializers.base64.decode(data["data"]["nonce"])
+    ciphertext = j.data.serializers.base64.decode(data["data"]["ciphertext"])
 
     try:
         priv = j.core.identity.me.nacl.private_key
@@ -115,8 +114,8 @@ def callback():
         return abort(400, "Error decrypting data")
 
     try:
-        result = json.loads(decrypted)
-    except json.JSONDecodeError:
+        result = j.data.serializers.json.loads(decrypted)
+    except JSONDecodeError:
         return abort(400, "3bot login returned faulty data")
 
     if "email" not in result:
