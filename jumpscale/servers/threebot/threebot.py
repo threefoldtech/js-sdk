@@ -240,19 +240,12 @@ class PackageManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._threebot = None
-        self._github = None
 
     @property
     def threebot(self):
         if self._threebot is None:
             self._threebot = j.servers.threebot.get(self.instance_name)
         return self._threebot
-
-    @property
-    def github(self):
-        if self._github is None:
-            self._github = j.clients.github.get("default")
-        return self._github
 
     def get(self, package_name):
         package_path = self.packages.get(package_name)
@@ -272,9 +265,22 @@ class PackageManager(Base):
             raise j.exceptions.Value("either path or giturl is required")
 
         if giturl:
-            org, repo, _, branch, path = urlparse(giturl).path.lstrip("/").split("/", 4)
-            repo = self.github.get_repo(f"{org}/{repo}")
-            path = repo.download_directory(path, DOWNLOADED_PACKAGES_PATH, branch=branch)
+            url = urlparse(giturl)
+            url_parts = url.path.lstrip("/").split("/", 4)
+
+            if len(url_parts) != 5:
+                raise j.exceptions.Value("invalid path")
+
+            org, repo, _, branch, package_path = url_parts
+            repo_dir = f"{org}_{repo}_{branch}"
+            repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
+            repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
+            
+            # delete repo dir if exists
+            j.sals.fs.rmtree(repo_path)
+            
+            j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
+            path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(path=path)
         self.packages[package.name] = package.path
@@ -434,6 +440,10 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
+        
+        # mark app as started
+        j.application.start(f"threebot_{self.instance_name}")
+
         self.nginx.start()
         self.rack.start()
 
@@ -453,3 +463,5 @@ class ThreebotServer(Base):
         self.rack.stop()
         self.nginx.stop()
         self._started = False
+        # mark app as stopped
+        j.application.stop()
