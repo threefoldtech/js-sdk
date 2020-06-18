@@ -86,6 +86,7 @@ class Website(Base):
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
     letsencryptemail = fields.String()
+    selfsigned = fields.Boolean(default=True)
 
     @property
     def cfg_dir(self):
@@ -113,25 +114,41 @@ class Website(Base):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
     def generate_certificates(self):
-        if self.ssl:
-            j.sals.process.execute(
-                f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
-            )
+        res = j.sals.process.execute(
+            f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
+        )
+        if res[0] != 0:
+            if self.selfsigned:
+                self.generate_self_signed_certificates()
+                j.sals.fs.write_file(self.cfg_file, self.get_config())
+            else:
+                raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
+
+    def generate_self_signed_certificates(self):
+        self.selfsigned = True
+        if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(f"{self.parent.cfg_dir}/cert.pem"):
+            return
+        res = j.sals.process.execute(
+            f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
+        )
+        if res[0] != 0:
+            raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
-
         for location in self.get_locations():
             location.configure()
 
+        failback = self.selfsigned
+        self.selfsigned = False
         j.sals.fs.write_file(self.cfg_file, self.get_config())
+        self.selfsigned = failback
 
-        if generate_certificates:
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
         j.sals.fs.rmtree(self.cfg_dir)
-
 
 
 class NginxConfig(Base):
@@ -167,12 +184,12 @@ class NginxConfig(Base):
         """
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
-        
+
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"), logs_dir=self.logs_dir,
         )
-        
-        j.sals.fs.write_file(self.cfg_file, configtext) 
+
+        j.sals.fs.write_file(self.cfg_file, configtext)
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
     def get_website(self, name: str, port: int = 80):
