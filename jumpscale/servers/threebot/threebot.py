@@ -354,6 +354,7 @@ class PackageManager(Base):
         Returns:
             [dict]: [package info]
         """
+        package.install()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
