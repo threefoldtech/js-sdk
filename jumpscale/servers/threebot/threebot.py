@@ -239,7 +239,12 @@ class PackageManager(Base):
 
         if giturl:
             url = urlparse(giturl)
-            org, repo, _, branch, package_path = url.path.lstrip("/").split("/", 4)
+            url_parts = url.path.lstrip("/").split("/", 4)
+
+            if len(url_parts) != 5:
+                raise j.exceptions.Value("invalid path")
+
+            org, repo, _, branch, package_path = url_parts
             repo_dir = f"{org}_{repo}_{branch}"
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
