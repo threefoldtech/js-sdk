@@ -4,7 +4,7 @@ from jumpscale.god import j
 class weblibs:
     def __init__(self):
         self.url = "https://github.com/threefoldtech/jumpscaleX_weblibs"
-        self.path = "/sandbox/code/github/"
+        self.path = j.sals.fs.join_paths(j.core.dirs.CODEDIR, "github")
         self.branch = "development"
 
     def install(self):

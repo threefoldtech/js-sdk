@@ -18,6 +18,7 @@ DEFAULT_PACKAGES = {
     "auth": os.path.dirname(j.packages.auth.__file__),
     "chatflows": os.path.dirname(j.packages.chatflows.__file__),
     "admin": os.path.dirname(j.packages.admin.__file__),
+    "weblibs": os.path.dirname(j.packages.weblibs.__file__),
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
@@ -39,7 +40,7 @@ class NginxPackageConfig:
                     "spa": static_dir.get("spa"),
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
-                    "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location")),
+                    "path_location": self.package.resolve_staticdir_location(static_dir),
                     "is_auth": static_dir.get("is_auth", False),
                     "is_admin": static_dir.get("is_admin", False),
                 }
@@ -204,6 +205,25 @@ class Package:
                 actor_name = f"{self.name}_{file_name[:-3]}"
                 yield dict(name=actor_name, path=file_path)
 
+    def resolve_staticdir_location(self, static_dir):
+        """Resolves path for static location in case we need it
+        absoulute or not
+
+        static_dir.absolute_path true it will return the path directly
+        if false will be relative to the path
+
+        Args:
+            static_dir (str): package.toml static dirs category
+
+        Returns:
+            str: package path
+        """
+        path_location = static_dir.get("path_location")
+        absolute_path = static_dir.get("absolute_path", False)
+        if absolute_path:
+            return j.sals.fs.expanduser(path_location)
+        return j.sals.fs.expanduser(j.sals.fs.join_paths(self.path, path_location))
+
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
@@ -335,7 +355,7 @@ class PackageManager(Base):
             [dict]: [package info]
         """
         for static_dir in package.static_dirs:
-            path = j.sals.fs.join_paths(package.path, static_dir["path_location"])
+            path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find static dir {path}")
 

@@ -3,4 +3,5 @@ ports = [80, 443]
 [[static_dirs]]
 name = "static"
 path_url = "/"
-path_location = "/sandbox/code/github/jumpscaleX_weblibs/static/"
+absolute_path = true
+path_location = "~/sandbox/code/github/jumpscaleX_weblibs/static/"
