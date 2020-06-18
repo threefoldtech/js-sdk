@@ -1,0 +1,10 @@
+<textarea id="code1" name="code1">"
+res = {}
+for item in self.items:
+    if item.type == "data" and item.name == ttype:
+        res[item.guid] = item.ddict
+        key = "%s__%s" % (ttype, item.guid)
+        self._dataCache[key] = item
+return res
+
+</textarea>"

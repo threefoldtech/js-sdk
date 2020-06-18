@@ -1,0 +1,843 @@
+/************************************************************************
+*
+* components.scss
+* ----------------------------------------------------------------------
+* All components of the template.
+*
+* Author: Humza Khan
+* Date: Mar 28, 2017.
+*
+*************************************************************************/
+/************************************************************************
+*
+* variables.scss
+* ----------------------------------------------------------------------
+* Sass Variables for the template.
+*
+* Author: Humza Khan
+* Date: Mar 28, 2017.
+*
+*************************************************************************/
+/************************************************************************
+*
+* colors.scss
+* ----------------------------------------------------------------------
+* Color pallete for the template.
+*
+* Author: Humza Khan
+* Date: Mar 28, 2017.
+*
+*************************************************************************/
+/************************************************************************
+*
+* mixins.scss
+* ----------------------------------------------------------------------
+* custom mixins for the template.
+*
+* Author: Humza Khan
+* Date: Apr 17, 2017.
+*
+*************************************************************************/
+/************************************************************************
+*
+* content.scss
+* ----------------------------------------------------------------------
+* Content's basic layout of the web app
+*
+* Author: Humza Khan
+* Date: Mar 28, 2017.
+*
+*************************************************************************/
+html,
+body {
+  width: 100%;
+  height: 100%; }
+
+body {
+  font-family: "Lato", sans-serif;
+  font-size: 0.875rem !important;
+  background-color: #f7f7f7; }
+
+.page-container {
+  position: relative; }
+  @media (min-width: 768px) {
+    .page-container {
+      display: table;
+      table-layout: fixed;
+      height: 100%;
+      width: 100%; } }
+
+@-moz-document url-prefix() {
+  .page-container {
+    height: 1px; } }
+
+@media (min-width: 768px) {
+  .page-content {
+    display: table-row; } }
+
+.content {
+  padding: 20px 20px; }
+  .content:after {
+    content: '';
+    display: table;
+    clear: both; }
+  .page-header + .content {
+    padding-top: 0; }
+
+.content-wrapper {
+  padding-bottom: 1.33333;
+  width: 100%; }
+  @media (min-width: 768px) {
+    .content-wrapper {
+      display: table-cell;
+      vertical-align: top; } }
+
+.content-group {
+  margin-bottom: 20px !important; }
+
+.content-group-sm {
+  margin-bottom: 15px !important; }
+
+.content-group-lg {
+  margin-bottom: 30px !important; }
+
+.form-horizontal .control-label {
+  text-align: right;
+  width: 100%;
+  display: block; }
+
+.page-title {
+  font-weight: bold;
+  margin-bottom: 15px;
+  font-size: 1.4534rem; }
+  .page-title > small {
+    font-size: 15px;
+    display: inline-block;
+    padding-left: 4px;
+    font-weight: 300; }
+
+.main-footer {
+  background: #fff;
+  padding: 15px;
+  color: #444;
+  border-top: 1px solid #d2d6de;
+  position: absolute;
+  bottom: 0;
+  width: 100%; }
+
+/************************************************************************
+*
+* siderbar.scss
+* ----------------------------------------------------------------------
+* Main sidebar's styling.
+*
+* Author: Humza Khan
+* Date: Apr 17, 2017.
+*
+*************************************************************************/
+.sidebar {
+  font-family: 'Raleway', sans-serif;
+  font-size: 0.35rem;
+  font-weight: 600;
+  position: relative;
+  background-color: #181717;
+  color: #c3c3c5; }
+  @media (min-width: 768px) {
+    .sidebar {
+      display: table-cell;
+      vertical-align: top;
+      width: 250px; } }
+  @media (max-width: 768px) {
+    .sidebar {
+      display: none; } }
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%; } }
+  .sidebar-block {
+    display: block; }
+  .sidebar-default {
+    z-index: 99; }
+    .sidebar-default .navigation-header > i {
+      display: none; }
+  .sidebar-collapsed.sidebar {
+    min-width: 53px !important; }
+  .sidebar-collapsed .sidebar-content > .navigation li > .navigation-header > span {
+    display: none; }
+  .sidebar-collapsed .sidebar-content > .navigation li > .navigation-header > i {
+    display: block;
+    left: 19px;
+    position: absolute; }
+    .sidebar-collapsed .sidebar-content > .navigation li > .navigation-header > i:hover {
+      cursor: pointer; }
+  .sidebar-collapsed .sidebar-content > .navigation li > a {
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+    display: block; }
+  .sidebar-collapsed .sidebar-content > .navigation li > i {
+    margin: 2px 0;
+    display: block;
+    float: none; }
+  .sidebar-collapsed .sidebar-content > .navigation li > span {
+    display: none; }
+  .sidebar-collapsed .sidebar-content > .navigation li.has-ul:after {
+    display: none; }
+  .sidebar-collapsed .hidden-ul {
+    display: none; }
+  .sidebar-collapsed .side bar-content {
+    position: relative; }
+  .sidebar .navigation {
+    margin: 0;
+    padding: 10px 0;
+    list-style: none;
+    position: relative; }
+    .sidebar .navigation .hidden-ul {
+      display: none; }
+    .sidebar .navigation > li {
+      position: relative; }
+      .sidebar .navigation > li + li {
+        margin-top: 1px; }
+      .sidebar .navigation > li.active {
+        background-color: rgba(0, 0, 0, 0.1); }
+      .sidebar .navigation > li > a {
+        display: block;
+        color: #c3c3c5;
+        font-size: 13px;
+        text-transform: uppercase; }
+        .sidebar .navigation > li > a:focus, .sidebar .navigation > li > a:hover {
+          background-color: rgba(0, 0, 0, 0.1);
+          color: #fff;
+          text-decoration: none; }
+        .sidebar .navigation > li > a > i {
+          float: left;
+          top: 11px;
+          position: absolute;
+          margin-top: 2px;
+          margin-right: 15px;
+          font-size: 15px; }
+          .sidebar .navigation > li > a > i.pull-right {
+            margin-right: 0;
+            margin-left: 15px; }
+        .sidebar .navigation > li > a > span {
+          margin-left: 27px; }
+      .sidebar .navigation > li.disabled > a, .sidebar .navigation > li.disabled > a:hover, .sidebar .navigation > li.disabled > a:focus {
+        color: inherit;
+        background-color: transparent;
+        cursor: not-allowed;
+        opacity: 0.3; }
+      .sidebar .navigation > li > .has-ul {
+        position: relative;
+        padding-right: 33px; }
+        .sidebar .navigation > li > .has-ul:after {
+          content: "\f107";
+          display: inline-block;
+          font: normal normal normal 14px/1 FontAwesome;
+          text-rendering: auto;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          font-size: 13px;
+          display: block;
+          position: absolute;
+          top: 50%;
+          margin-top: -6.5px;
+          right: 20px;
+          line-height: 1;
+          -webkit-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+          transition: -webkit-transform 0.2s ease-in-out; }
+      .sidebar .navigation > li.active > .has-ul:after {
+        -webkit-transform: rotate(90deg);
+        -ms-transform: rotate(90deg);
+        -o-transform: rotate(90deg);
+        transform: rotate(90deg); }
+    .sidebar .navigation > li a {
+      padding: 12px 20px;
+      min-height: 44px; }
+    .sidebar .navigation > li ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      background-color: fade(#000, 15%); }
+      @media (max-width: 768px) {
+        .sidebar .navigation > li ul {
+          width: 100%; } }
+      .sidebar .navigation > li ul li {
+        background-color: #232323;
+        position: relative; }
+        .sidebar .navigation > li ul li:hover, .sidebar .navigation > li ul li:active {
+          background-color: rgba(102, 102, 102, 0.1); }
+        .sidebar .navigation > li ul li > a {
+          padding: 10px 20px 10px 48px;
+          min-height: 40px;
+          font-size: 0.8256rem;
+          color: #c3c3c5;
+          display: block; }
+          .sidebar .navigation > li ul li > a:hover, .sidebar .navigation > li ul li > a:active {
+            text-decoration: none;
+            color: #fff; }
+        .sidebar .navigation > li ul li.active {
+          border-left: none; }
+      .sidebar .navigation > li ul .navigation-header {
+        padding-left: 48px; }
+    .sidebar .navigation .navigation-header {
+      padding: 10px 20px;
+      border-bottom: 0;
+      text-transform: uppercase;
+      font-size: 0.688rem;
+      line-height: 1.66667;
+      margin-top: 10px;
+      opacity: 0.7;
+      font-weight: 300; }
+      .sidebar .navigation .navigation-header > span {
+        display: block;
+        margin-top: 0.312rem;
+        width: 250px; }
+
+.sidebar-toggle {
+  background-color: inherit;
+  color: #fff;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 15px 15px;
+  outline: 0; }
+  @media (max-width: 768px) {
+    .sidebar-toggle {
+      display: none; } }
+  .sidebar-toggle:hover, .sidebar-toggle:active, .sidebar-toggle:visited, .sidebar-toggle:focus {
+    outline: 0;
+    color: #fff;
+    text-decoration: none;
+    box-shadow: none; }
+  .sidebar-toggle:hover {
+    background-color: #1b628b; }
+
+/************************************************************************
+*
+* helpers.scss
+* ----------------------------------------------------------------------
+* Helper items
+*
+* Author: Humza Khan
+* Date: Apr 28, 2017.
+*
+*************************************************************************/
+.width-350 {
+  width: 350px; }
+
+.width-300 {
+  width: 300px; }
+
+.width-190 {
+  width: 190px !important; }
+
+.height-200 {
+  height: 200px; }
+
+.height-250 {
+  height: 250px; }
+
+.height-300 {
+  height: 300px; }
+
+.height-350 {
+  height: 350px; }
+
+legend {
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  padding: 10px 10px;
+  border-bottom: 1px solid #c7c8c8;
+  padding-left: 0; }
+
+.display-block {
+  display: block; }
+
+.display-none {
+  display: none; }
+
+.display-inline {
+  display: inline; }
+
+.display-inline-block {
+  display: inline-block; }
+
+.valign-top {
+  vertical-align: top !important; }
+
+.valign-middle {
+  vertical-align: middle !important; }
+
+.position-left {
+  margin-right: 9px; }
+
+.position-right {
+  margin-left: 9px; }
+
+.text-bold {
+  font-weight: 800; }
+
+.text-semibold {
+  font-weight: 400; }
+
+.text-light {
+  font-weight: 300; }
+
+.text-center {
+  text-align: center; }
+
+.text-left {
+  text-align: left; }
+
+.text-right {
+  text-right: center; }
+
+.text-upper {
+  text-transform: uppercase; }
+
+.margin-5 {
+  margin: 5px; }
+
+.margin-10 {
+  margin: 10px; }
+
+.margin-15 {
+  margin: 15px; }
+
+.margin-20 {
+  margin: 20px; }
+
+.margin-top-5 {
+  margin-top: 5px; }
+
+.margin-top-10 {
+  margin-top: 10px; }
+
+.margin-top-15 {
+  margin-top: 15px; }
+
+.margin-top-20 {
+  margin-top: 20px; }
+
+.margin-top-25 {
+  margin-top: 25px; }
+
+.margin-top-30 {
+  margin-top: 30px; }
+
+.margin-bottom-5 {
+  margin-bottom: 5px; }
+
+.margin-bottom-10 {
+  margin-bottom: 10px; }
+
+.margin-bottom-15 {
+  margin-bottom: 15px; }
+
+.margin-bottom-20 {
+  margin-bottom: 20px; }
+
+.margin-left-5 {
+  margin-left: 5px; }
+
+.margin-left-10 {
+  margin-left: 10px; }
+
+.margin-left-15 {
+  margin-left: 15px; }
+
+.margin-left-20 {
+  margin-left: 20px; }
+
+.margin-right-5 {
+  margin-right: 5px; }
+
+.margin-right-10 {
+  margin-right: 10px; }
+
+.margin-right-15 {
+  margin-right: 15px; }
+
+.margin-right-20 {
+  margin-right: 20px; }
+
+/************************************************************************
+*
+* notifications.scss
+* ----------------------------------------------------------------------
+* Notification styling goes here.
+*
+* Author: Humza Khan
+* Date: Apr 28, 2017.
+*
+*************************************************************************/
+.list-notifications > ul {
+  overflow: auto; }
+  .list-notifications > ul > .media {
+    padding: 10.5px 12px;
+    border-top: 1px solid #e7e7e7; }
+    .list-notifications > ul > .media:hover {
+      cursor: pointer;
+      background-color: #f7f7f7; }
+    .list-notifications > ul > .media:nth-child(1) {
+      border-top: none; }
+    .list-notifications > ul > .media.notif-unread {
+      text-align: center;
+      font-size: 0.688rem;
+      padding: 4px;
+      float: center;
+      display: block;
+      text-transform: uppercase;
+      font-weight: 600;
+      background-color: #4678e1;
+      color: #fff; }
+    .list-notifications > ul > .media > .notif-icon {
+      color: #fff;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      line-height: 25px;
+      text-align: center;
+      vertical-align: middle;
+      display: inline-block; }
+    .list-notifications > ul > .media > .notif-text {
+      position: absolute;
+      left: 15%; }
+
+.list-notifications.dropdown-menu {
+  padding: 0; }
+
+/************************************************************************
+*
+* fontawesome.scss
+* ----------------------------------------------------------------------
+* Font Awesome icons custom styling.
+*
+* Author: Humza Khan
+* Date: May 8, 2017.
+*
+*************************************************************************/
+.page-header {
+  padding-bottom: 9px;
+  margin: 40px 0 20px;
+  border-bottom: 1px solid #eee; }
+
+.fontawesome-icon-list .fa-hover a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  color: #222;
+  line-height: 32px;
+  height: 32px;
+  padding-left: 15px;
+  border-radius: 4px; }
+  .fontawesome-icon-list .fa-hover a:hover {
+    background-color: #2380B6;
+    color: #fff;
+    text-decoration: none; }
+  .fontawesome-icon-list .fa-hover a > i {
+    margin-right: 7px; }
+
+/************************************************************************
+*
+* datepickers.scss
+* ----------------------------------------------------------------------
+* Custom datepickers styling.
+*
+* Author: Humza Khan
+* Date: May 8, 2017.
+*
+*************************************************************************/
+.picker select {
+  padding: 0;
+  height: inherit;
+  font-size: 0.875rem;
+  padding: 5px; }
+
+.picker__holder {
+  max-width: 380px; }
+
+.picker__list-item:hover {
+  color: #fff;
+  background-color: #0E74AF;
+  border: none; }
+
+.picker__input,
+.picker__input--active {
+  border-color: rgba(0, 0, 0, 0.15); }
+
+.picker__list {
+  list-style: none;
+  padding: 0.75em 0 1.0em;
+  margin: 0; }
+
+.picker--time .picker__button--clear {
+  display: block;
+  width: 90%; }
+
+/************************************************************************
+*
+* datatables.scss
+* ----------------------------------------------------------------------
+* Custom datatables styling.
+*
+* Author: Humza Khan
+*
+*************************************************************************/
+.dataTables_filter {
+  position: relative;
+  display: block;
+  float: left;
+  margin: 0 0 20px 20px; }
+  .dataTables_filter > label {
+    margin-bottom: 0;
+    position: relative; }
+    .dataTables_filter > label:after {
+      content: "\f002";
+      font-family: 'FontAwesome';
+      font-size: 0.688rem;
+      display: inline-block;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      color: #636c72;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale; }
+    .dataTables_filter > label > span {
+      float: left;
+      margin: 8px 15px;
+      margin-left: 0; }
+  .dataTables_filter input {
+    outline: 0;
+    width: 200px;
+    height: 2.09375rem;
+    padding: 7px 12px;
+    padding-right: 1.532rem;
+    font-size: 0.875rem;
+    line-height: 1.25;
+    color: #464a4c;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem; }
+  .filter-right .dataTables_filter {
+    float: right; }
+
+.dataTables_length {
+  float: right;
+  display: inline-block;
+  margin: 0 0 20px 20px; }
+  .dataTables_length > label {
+    margin-bottom: 0; }
+    .dataTables_length > label > span {
+      float: left;
+      margin: 8px 15px;
+      margin-left: 0; }
+    .dataTables_length > label > select {
+      margin-top: 5px;
+      padding: 5px; }
+  .length-left .dataTables_length {
+    float: left; }
+
+.dataTables_info {
+  float: left;
+  padding: 8px 0;
+  margin-bottom: 20px; }
+  .info-right .dataTables_info {
+    float: right; }
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: none;
+  background-color: #eeeeef; }
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: none;
+  background-color: #181717; }
+
+table.dataTable thead th,
+table.dataTable thead td {
+  border-bottom: 1px solid #eeeeef; }
+
+table.dataTable tfoot th,
+table.dataTable tfoot td {
+  border-top: 1px solid #eeeeef; }
+
+table.dataTable thead .sorting {
+  background-image: url("../../lib/img/sort_both.png"); }
+
+table.dataTable thead .sorting_asc {
+  background-image: url("../../lib/img/sort_asc.png"); }
+
+table.dataTable thead .sorting_desc {
+  background-image: url("../../lib/img/sort_desc.png"); }
+
+table.dataTable thead .sorting_asc_disabled {
+  background-image: url("../../lib/img/sort_asc_disabled.png"); }
+
+table.dataTable thead .sorting_desc_disabled {
+  background-image: url("../../lib/img/sort_desc_disabled.png"); }
+
+/************************************************************************
+*
+* login.scss
+* ----------------------------------------------------------------------
+* Page styles for login.
+*
+* Author: Humza Khan
+* Date: May 28, 2017.
+*
+*************************************************************************/
+.auth-box > .card {
+  display: block;
+  margin: 0 auto; }
+
+.auth-box .user-icon {
+  margin-bottom: 7px; }
+  .auth-box .user-icon > i {
+    font-size: 4.472rem;
+    color: #0E74AF; }
+
+.auth-box .user-details {
+  margin-top: 27px; }
+  .auth-box .user-details .input-group-addon {
+    width: 35px; }
+
+.auth-box .user-links {
+  padding-top: 15px;
+  padding-bottom: 22.5px;
+  font-size: 0.688rem; }
+
+.auth-box input {
+  font-family: "Lato", sans-serif; }
+  .auth-box input:focus {
+    border-color: rgba(0, 0, 0, 0.15) !important; }
+
+.login.card,
+.register.card {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%); }
+
+#login.card,
+.login.card {
+  max-width: 350px; }
+
+#register.card,
+.register.card {
+  max-width: 600px; }
+
+/************************************************************************
+*
+* widgets.scss
+* ----------------------------------------------------------------------
+* Widget styling goes here.
+*
+* Author: Humza Khan
+*
+*************************************************************************/
+@media (min-width: 0) {
+  .widget-overview {
+    margin-bottom: 10px; } }
+
+.widget-overview > .inner {
+  padding: 15px;
+  color: #fff; }
+  .widget-overview > .inner > h2 {
+    font-weight: 900; }
+  .widget-overview > .inner > p {
+    font-weight: bold; }
+
+.widget-overview > .icon {
+  position: absolute;
+  right: 25px;
+  top: 5px;
+  font-size: 60px;
+  color: rgba(0, 0, 0, 0.25); }
+
+.widget-overview > .details {
+  padding: 3px;
+  color: #fff;
+  text-align: center;
+  font-size: 0.688rem;
+  opacity: 0.85; }
+  .widget-overview > .details:hover {
+    opacity: 1;
+    cursor: pointer; }
+  .widget-overview > .details > span i {
+    margin-left: 5px; }
+
+/************************************************************************
+*
+* extras.scss
+* ----------------------------------------------------------------------
+* Extra styles for random designs.
+*
+* Author: Humza Khan
+*
+*************************************************************************/
+.recent-products > ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0; }
+  .recent-products > ul > li {
+    padding-bottom: 23.6px; }
+    .recent-products > ul > li > .product-image {
+      float: left; }
+      .recent-products > ul > li > .product-image > img {
+        width: 50px;
+        height: 50px; }
+    .recent-products > ul > li > .product-info {
+      margin-left: 60px; }
+      .recent-products > ul > li > .product-info > .product-title {
+        font-weight: bold; }
+        .recent-products > ul > li > .product-info > .product-title > a {
+          color: #2380B6; }
+      .recent-products > ul > li > .product-info > .product-description {
+        display: block;
+        color: #888;
+        font-size: 0.7568rem; }
+
+.recent-members {
+  list-style-type: none;
+  padding: 0;
+  margin: 0; }
+  .recent-members > li {
+    width: 25%;
+    padding: 10px;
+    float: left;
+    text-align: center; }
+    .recent-members > li > img {
+      border-radius: 50%;
+      max-width: 100%;
+      height: auto;
+      vertical-align: middle;
+      border: 1px solid #ddd; }
+    .recent-members > li > .user-name {
+      font-weight: bold;
+      font-size: 0.7912rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis; }
+    .recent-members > li > .joined-date {
+      color: #999;
+      font-size: 0.688rem; }
+
+/************************************************************************
+*
+* chartist.scss
+* ----------------------------------------------------------------------
+* Custom styling for chartist plugin.
+*
+* Author: Humza Khan
+*
+*************************************************************************/
+.ct-chart-blue .ct-series-a .ct-line,
+.ct-chart-blue .ct-series-a .ct-bar {
+  stroke: #0E74AF; }
+
+.ct-chart-blue .ct-series-b .ct-line,
+.ct-chart-blue .ct-series-b .ct-bar {
+  stroke: #65A6CC; }
