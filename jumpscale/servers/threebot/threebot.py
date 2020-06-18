@@ -19,6 +19,7 @@ DEFAULT_PACKAGES = {
     "chatflows": os.path.dirname(j.packages.chatflows.__file__),
     "admin": os.path.dirname(j.packages.admin.__file__),
     "weblibs": os.path.dirname(j.packages.weblibs.__file__),
+    "tfgrid_solutions": os.path.dirname(j.packages.tfgrid_solutions.__file__),
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
