@@ -3,8 +3,6 @@ import { admin } from "../services/admin";
 
 export default class TopView extends JetView {
     config() {
-        const _ = this.app.getService("locale")._;
-
         const header = {
             cols: [{
                     id: "button_hide_menu",
