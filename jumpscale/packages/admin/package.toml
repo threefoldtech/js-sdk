@@ -6,3 +6,4 @@ path_url = "/"
 path_location = "frontend/output/"
 index = "index.html"
 spa = true
+is_auth = true
