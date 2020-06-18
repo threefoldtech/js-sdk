@@ -119,14 +119,11 @@ class Website(Base):
         )
         if res[0] != 0:
             if self.selfsigned:
-                res = self.generate_self_signed_certificates()
-                if res and res[0] != 0:
-                    raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
+                self.generate_self_signed_certificates()
                 j.sals.fs.write_file(self.cfg_file, self.get_config())
                 return res
             else:
                 raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
-        return res
 
     def generate_self_signed_certificates(self):
         self.selfsigned = True
@@ -135,7 +132,8 @@ class Website(Base):
         res = j.sals.process.execute(
             f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
         )
-        return res
+        if res[0] != 0:
+            raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
