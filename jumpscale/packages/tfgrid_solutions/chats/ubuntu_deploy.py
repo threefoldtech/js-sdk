@@ -186,14 +186,9 @@ class UbuntuDeploy(GedisChatBot):
                 channel_port=self.user_form_data["Logs Channel port"],
                 channel_name=self.user_form_data["Logs Channel name"],
             )
-        metadata = dict()
-        metadata["chatflow"] = self.user_form_data["chatflow"]
-        metadata["Solution name"] = self.user_form_data["Solution name"]
-        metadata["Version"] = self.user_form_data["Version"]
-        metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
 
         res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Ubuntu, metadata
+            self.user_form_data["Solution name"], SolutionType.Ubuntu, self.user_form_data
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(

@@ -82,6 +82,7 @@ class Identity(Base):
                 self._explorer = ex_factory.get_by_url(self.explorer_url)
             else:
                 self._explorer = ex_factory.get_default()
+                self.explorer_url = self._explorer.url
         return self._explorer
 
     @property
@@ -125,6 +126,7 @@ class Identity(Base):
                 )
             tid = user.id
         self._tid = tid
+        self.admins.append(self.tname)
         self.save()
         return tid
 

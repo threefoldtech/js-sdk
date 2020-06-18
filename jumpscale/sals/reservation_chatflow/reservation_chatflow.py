@@ -380,7 +380,6 @@ class ReservationChatflow:
                     metadata = json.loads(metadata)
                 except Exception:
                     continue
-
                 if "form_info" not in metadata:
                     solution_type = self.check_solution_type(reservation)
                 else:
@@ -1036,7 +1035,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 {
                     "name": solution.name,
                     "reservation": reservation._get_data(),
-                    "type": solution_type,
+                    "type": solution_type.value,
                     "form_info": json.dumps(solution.form_info),
                 }
             )

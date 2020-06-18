@@ -1,0 +1,8 @@
+name = "admin"
+ports = [80, 443]
+[[static_dirs]]
+name = "frontend"
+path_url = "/"
+path_location = "frontend/output/"
+index = "index.html"
+spa = true

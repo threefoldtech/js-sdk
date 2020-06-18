@@ -1,0 +1,38 @@
+body,
+.content {
+  background: #fafafa !important;
+}
+.topround {
+  border-radius: 4px 4px 0 0 !important;
+}
+.full-round {
+  border-radius: 4px !important;
+  overflow: hidden;
+}
+.rounded {
+  border-radius: 0 4px 4px 0 !important;
+}
+.v-menu__content,
+.v-card {
+  border-radius: 4px !important;
+  /* overflow: hidden; */
+}
+.v-card__title {
+  font-size: 18px !important;
+}
+.v-navigation-drawer__border {
+  display: none;
+}
+textarea {
+  width: 100%;
+  height: 100%;
+}
+.v-dialog__container {
+  display: block !important;
+}
+.v-list--three-line .v-list-item {
+  min-height: 0 !important;
+}
+.v-avatar {
+  overflow: hidden;
+}

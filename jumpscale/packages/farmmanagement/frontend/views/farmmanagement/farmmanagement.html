@@ -1,0 +1,202 @@
+<section v-if="isLoggedIn()" class="farmmanagement">
+  <v-row class="my-3 mx-1">
+    <v-card style="width: 100%;">
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        <v-row>
+          <v-col cols="6" class="py-0">
+            My Farms
+            <v-btn text icon dark class="ml-2" @click="addFarmDialog = true">
+              <v-icon small>fa-plus</v-icon>
+            </v-btn>
+            <v-btn text icon dark @click="refreshFarms">
+              <v-icon small>fa-sync-alt</v-icon>
+            </v-btn>
+          </v-col>
+          <v-col></v-col>
+          <v-col cols="4" class="py-0">
+            <v-text-field dark class="pt-0" v-model="searchFarms" append-icon="fa-search" label="Search" single-line
+              hide-details>
+            </v-text-field>
+          </v-col>
+        </v-row>
+      </v-card-title>
+      <v-card-text>
+        <v-row>
+          <v-data-table item-key="name" :search="searchFarms" :headers="headers" :items="farms" :items-per-page="10"
+            @click:row="viewNodes" style="width: 100%;" :footer-props="{
+              prevIcon: 'fa-angle-left',
+              nextIcon: 'fa-angle-right'
+            }">
+            <template v-slot:item.action="{ item }">
+              <v-btn fab small text @click="viewNodes(item)">
+                <v-icon small>
+                  fa-eye
+                </v-icon>
+              </v-btn>
+              <v-btn fab small text @click.stop="viewSettings(item)">
+                <v-icon small>
+                  fa-cog
+                </v-icon>
+              </v-btn>
+            </template>
+          </v-data-table>
+        </v-row>
+      </v-card-text>
+    </v-card>
+    </v-flex>
+  </v-row>
+  <v-row class="my-3 mx-1">
+    <v-card v-if="!farmSelected.name" style="width: 100%;">
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        <v-row>
+          <v-col cols="6" class="py-0">
+
+            <v-icon small color="white" left>fa-server</v-icon>
+            Nodes in farm
+          </v-col>
+        </v-row>
+      </v-card-title>
+      <v-card-text>
+        <p class="text-center">please select a farm to view the nodes.</p>
+      </v-card-text>
+    </v-card>
+    <nodesTable style="height: 100%; width:100%;" :farmselected="farmSelected" v-if="farmSelected && farmSelected.name">
+    </nodesTable>
+  </v-row>
+  <v-dialog v-model="settingsDialog" scrollable v-if="settingsDialog" max-width="700px">
+    <v-card style="width: 100%;">
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        <v-icon color="white" left>fa-server</v-icon>
+        Farm Settings - {{farmToEdit.name}}
+      </v-card-title>
+      <v-card-text>
+        <v-row>
+          <!--<v-col>
+            <h2>Pricing</h2>
+            
+            <br>
+            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.cru"
+              label="Compute unit">
+            </v-text-field>
+            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.mru"
+              label="Memory unit">
+            </v-text-field>
+            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.sru"
+              label="SSD unit">
+            </v-text-field>
+            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.hru"
+              label="HDD unit">
+            </v-text-field>
+            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.nru"
+              label="Network unit">
+            </v-text-field> 
+          </v-col>-->
+
+          <v-col>
+            <v-text-field v-model="farmToEdit.threebot_id" label="3bot ID" disabled></v-text-field>
+            <v-text-field v-model="farmToEdit.name" label="Farm name"></v-text-field>
+            <!-- </v-textarea> -->
+
+            <!-- <h3>Location</h3> -->
+            <!-- <v-row>
+              <v-col cols=6>
+                <v-text-field v-model="farmToEdit.location.latitude" label="Latitude"></v-text-field>
+              </v-col>
+              <v-col cols=6>
+                <v-text-field v-model="farmToEdit.location.longitude" label="Longitude"></v-text-field>
+              </v-col>
+            </v-row> -->
+            <v-select v-model="farmToEdit.location.country" menu-props="auto" :items="countries" label="Country">
+            </v-select>
+
+            <v-text-field v-model="farmToEdit.email" label="Email"></v-text-field>
+
+            <v-container>
+              <v-row v-for="(wallet, i) in farmToEdit.wallet_addresses" :key="wallet.id">
+                <v-col cols="12" sm="4">
+                  <v-text-field v-model="wallet.address" label="Wallet address"></v-text-field>
+                </v-col>
+                <v-col cols="12" sm="4">
+                  <v-text-field v-model="wallet.asset" label="Asset Code"></v-text-field>
+                </v-col>
+                <v-col>
+                  <v-btn @click="removeWallet(farmToEdit, i)" fab dark small color="warning">
+                    <v-icon small>fa-minus</v-icon>
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <v-btn @click="addWallet(farmToEdit)" dark small color="success">Add a wallet address</v-btn>
+                </v-col>
+              </v-row>
+            </v-container>
+
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-alert :type="editFarmAlert.type" v-if=editFarmAlert border="right" colored-border elevation="2">
+          {{editFarmAlert.message}}
+        </v-alert>
+        <v-btn text class="mr-3" @click="cancelEditFarm">Cancel</v-btn>
+        <v-btn text color="secondary" class="mr-3" @click="saveFarm">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="addFarmDialog" scrollable max-width="700px">
+    <v-card style="width: 100%;">
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        <v-icon color="white" left>fa-server</v-icon>
+        Add a farm
+        <v-spacer />
+
+      </v-card-title>
+      <v-card-text>
+        <v-text-field v-model="newFarm.name" label="Farm name" :rules="namerules" :error-messages="nameError"
+          @input="nameError = []"></v-text-field>
+        <v-text-field v-model="newFarm.iyo_organization" label="Organization ID"></v-text-field>
+        <v-text-field v-model="newFarm.email" required label="Email addrress" :error-messages="mailError"
+          @input="mailError = []"></v-text-field>
+        <v-select v-model="newFarm.location.country" menu-props="auto" :items="countries" label="Country"></v-select>
+        <v-container>
+          <v-row v-for="(wallet, i) in newFarm.wallet_addresses" :key="wallet.id">
+            <v-col cols="12" sm="4">
+              <v-text-field v-model="wallet.address" label="Wallet address"></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-text-field v-model="wallet.asset" label="Asset Code"></v-text-field>
+            </v-col>
+            <v-col>
+              <v-btn @click="removeWallet(newFarm, i)" fab dark small color="warning">
+                <v-icon small>fa-minus</v-icon>
+              </v-btn>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <v-btn @click="addWallet(newFarm)" dark small color="success">Add a wallet address</v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
+
+        <!-- <google-map v-model="newFarm.location" :center="{lat:38.884629, lng:1.389934}" map-type-id="satellite" :zoom="2"
+          style="width: 100%; height: 300px" @click="setPlace">
+          <GmapMarker :position="parsedLocation" />
+        </google-map> -->
+
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-alert :type="newFarmAlert.type" v-if=newFarmAlert border="right" colored-border elevation="2">
+          {{newFarmAlert.message}}
+        </v-alert>
+        <v-btn text class="mr-3" @click="addFarmDialog = false">Cancel</v-btn>
+        <v-btn text color="secondary" class="mr-3" @click="addFarm">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+</section>
+<section v-else>Not logged in with 3bot or in dev mode.</section>
