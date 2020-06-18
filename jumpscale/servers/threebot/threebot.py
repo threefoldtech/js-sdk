@@ -84,7 +84,7 @@ class NginxPackageConfig:
     def apply(self):
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
-            for port in server.get("ports", [80]):
+            for port in server.get("ports", [80, 443]):
 
                 server_name = server.get("name")
                 if server_name != "default":
@@ -133,6 +133,7 @@ class StripPathMiddleware(object):
     """
     a middle ware for bottle apps to strip slashes
     """
+
     def __init__(self, app):
         self.app = app
 
