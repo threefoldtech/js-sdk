@@ -232,8 +232,13 @@ class FlistDeploy(GedisChatBot):
                 container=cont, volume=self.volume, mount_point=self.user_form_data["Volume mount point"]
             )
 
+        metadata = dict()
+        metadata["chatflow"] = self.user_form_data["chatflow"]
+        metadata["Solution name"] = self.user_form_data["Solution name"]
+        metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
+
         res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Flist, self.user_form_data
+            self.user_form_data["Solution name"], SolutionType.Flist, metadata
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
