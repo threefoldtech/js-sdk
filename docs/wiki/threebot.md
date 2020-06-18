@@ -38,7 +38,9 @@ Some components will be defined by default based on the parent package classes i
     path_url = "/static"
     path_location = "frontend"
     ```
+
     We can also define bottle server to start in the toml file like in the following example
+
     ```
     [[bottle_servers]]
     name = "main"
@@ -47,7 +49,18 @@ Some components will be defined by default based on the parent package classes i
     path_dest = "/"
     host = "0.0.0.0"
     port = 8552
+    ```
 
+    Other servers locations can also be defined, for example using codeserver
+    ```
+    [[servers.locations]]
+    type = "proxy"
+    host = "127.0.0.1"
+    name = "codeserver"
+    port = 8080
+    path_url = "/codeserver"
+    path_dest = "/"
+    websocket = true
     ```
 - **__init__.py** could include the docs that will summarize the use of the package where they are added in the beging of the file in docstrings.
 
