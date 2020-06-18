@@ -55,8 +55,8 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
-                    "is_auth": static_dir.get("is_auth", False),
-                    "is_admin": static_dir.get("is_admin", False),
+                    "is_auth": bottle_server.get("is_auth", False),
+                    "is_admin": bottle_server.get("is_admin", False),
                 }
             )
 
@@ -69,8 +69,6 @@ class NginxPackageConfig:
                     "port": GEDIS_HTTP_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
                     "path_dest": self.package.base_url,
-                    "is_auth": static_dir.get("is_auth", False),
-                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -83,8 +81,6 @@ class NginxPackageConfig:
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
                     "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
-                    "is_auth": static_dir.get("is_auth", False),
-                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -275,10 +271,10 @@ class PackageManager(Base):
             repo_dir = f"{org}_{repo}_{branch}"
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
-            
+
             # delete repo dir if exists
             j.sals.fs.rmtree(repo_path)
-            
+
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
@@ -440,7 +436,7 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
-        
+
         # mark app as started
         j.application.start(f"threebot_{self.instance_name}")
 
