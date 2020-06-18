@@ -1,8 +1,14 @@
 from jumpscale.god import j
 
+
 class codeserver:
     def __init__(self):
         self.bin_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "code-server")
+        self._started = False
+
+    @property
+    def started(self):
+        return self._started
 
     @property
     def startupcmd(self):
@@ -25,7 +31,11 @@ class codeserver:
     def start(self):
         """Called when threebot is started
         """
-        self.startupcmd.start()
+        if not self.started:
+            self.startupcmd.start()
+            self._started = True
 
     def stop(self):
-        self.startupcmd.stop()
+        if self.started:
+            self.startupcmd.stop()
+            self._started = False
