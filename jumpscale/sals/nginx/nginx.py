@@ -86,7 +86,7 @@ class Website(Base):
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
     letsencryptemail = fields.String()
-    selfsigned = fields.Boolean(default=False)
+    selfsigned = fields.Boolean(default=True)
 
     @property
     def cfg_dir(self):
@@ -121,7 +121,6 @@ class Website(Base):
             if self.selfsigned:
                 self.generate_self_signed_certificates()
                 j.sals.fs.write_file(self.cfg_file, self.get_config())
-                return res
             else:
                 raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
 
