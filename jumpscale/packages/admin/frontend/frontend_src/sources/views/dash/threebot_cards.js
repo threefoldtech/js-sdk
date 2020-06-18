@@ -40,30 +40,30 @@ export default class ThreebotCardsView extends JetView {
             }
         }
     }
-    
-    async getAlertCount(){
+
+    async getAlertCount() {
         const request = await alerts.count();
         return JSON.parse(request.json()).data;
     }
 
-    async getMemoryUsage(){
+    async getMemoryUsage() {
         const request = await health.getMemoryUsage();
         return JSON.parse(request.json()).data;
     }
 
-    async getExplorer(){
+    async getExplorer() {
         const request = await admin.getExplorer();
         const explorer = JSON.parse(request.json()).data;
         return explorer.url;
     }
 
-    async fetchData(){
+    async fetchData() {
         const alertCount = await this.getAlertCount();
         const memoryUsage = await this.getMemoryUsage()
         const explorerUrl = await this.getExplorer();
-        
+
         let threebot_card_data = [
-            { "id": 1, "title": "Health checks", "info": "All izz well", "icon": "static/img/health.png" },
+            { "id": 1, "title": "Health checks", "info": "Tests OK ✅", "icon": "static/img/health.png" },
             { "id": 2, "title": "Errors", "info": "", "icon": "static/img/error.png" },
             { "id": 3, "title": "Memory usage", "info": "", "icon": "static/img/memory.png" },
             { "id": 4, "title": "Explorer", "info": "", "icon": "static/img/explorer.png" }
@@ -75,7 +75,7 @@ export default class ThreebotCardsView extends JetView {
 
         return threebot_card_data;
     };
-    
+
     init() {
         const threebot_cards = this.$$("threebot_cards");
 
