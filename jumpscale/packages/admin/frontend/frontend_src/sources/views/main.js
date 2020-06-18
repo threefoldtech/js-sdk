@@ -85,6 +85,9 @@ export default class TopView extends JetView {
                 }, {
                     id: "deployed_gitea",
                     value: '<span><img class="solutions-icon" src="static/img/gitea.png"/>Gitea</span>'
+                },{
+                    id: "deployed_monitoring",
+                    value: '<span><img class="solutions-icon" src="static/img/monitoring.png"/>Monitoring</span>'
                 }, {
                     id: "deployed_domain_delegation",
                     value: '<span><img class="solutions-icon" src="static/img/domain.png"/>Domain Delegation</span>'
@@ -221,7 +224,8 @@ export default class TopView extends JetView {
                 deployed_gitea: "solutions.gitea",
                 deployed_domain_delegation: "solutions.domainDelegation",
                 deployed_solution_expose: "solutions.solutionExpose",
-                deployed_gateway_4to6: "solutions.4to6Gateway"
+                deployed_gateway_4to6: "solutions.4to6Gateway",
+                deployed_monitoring: "solutions.monitoring"
             }
         });
 
