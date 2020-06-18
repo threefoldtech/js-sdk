@@ -124,9 +124,10 @@ def create_wallet(name):
         if "testnet" in explorer.url or "devnet" in explorer.url:
             wallettype = "TEST"
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
+        
+        if j.clients.stellar.find(name):
             raise j.exceptions.Value("Name already exists")
+
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
