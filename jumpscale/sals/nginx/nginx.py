@@ -126,7 +126,7 @@ class Website(Base):
             if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(
                 f"{self.parent.cfg_dir}/cert.pem"
             ):
-                return True
+                return
             res = j.sals.process.execute(
                 f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
             )
