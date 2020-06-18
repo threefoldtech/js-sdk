@@ -3,8 +3,8 @@ html, body {
     width: 100% !important;
   }
   
-  .v-content {
-    background: url(./assets/images/background.jpg) repeat center;
+  .v-main {
+    background: url(./assets/images/background.jpg) repeat center !important;
     background-size: cover;
   }
   

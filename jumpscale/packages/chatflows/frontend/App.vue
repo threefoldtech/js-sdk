@@ -33,7 +33,7 @@
       </v-menu>
 
     </v-app-bar>
-    <v-content>
+    <v-main>
       <div class="chat-container text-center">
           <h1 class="display-2 font-weight-light">Zero Chat Bot</h1><br><br>
 
@@ -86,7 +86,7 @@
             </div>
           </v-card>
       </div>
-    </v-content>
+    </v-main>
   </v-app>
 </template>
 
