@@ -715,7 +715,7 @@ terminaltables = "^3.1"
 watchdog = "^0.9.0"
 
 [package.source]
-reference = "f6330a28c044a387797f467f8ed93238ba18f569"
+reference = "cf0b661d84b7a559922c3e262ae1ba1aeb831090"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1066,7 +1066,6 @@ version = "19.8.18"
 [[package]]
 category = "main"
 description = "C parser in Python"
-marker = "sys_platform == \"win32\" and platform_python_implementation == \"CPython\""
 name = "pycparser"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -1449,7 +1448,7 @@ description = "The Python Stellar SDK library provides APIs to build transaction
 name = "stellar-sdk"
 optional = false
 python-versions = ">=3.6.0"
-version = "2.5.3"
+version = "2.6.0"
 
 [package.dependencies]
 aiohttp = ">=3.5.4"
@@ -2490,8 +2489,8 @@ stellar-base-sseclient = [
     {file = "stellar-base-sseclient-0.0.21.tar.gz", hash = "sha256:2a500f3015dede4e9fac0f9d6d9d85f4fdd7fe1c9c10b2b111a6ae190cc5dc00"},
 ]
 stellar-sdk = [
-    {file = "stellar-sdk-2.5.3.tar.gz", hash = "sha256:2ba27b3131ffa5a4c0f87080fb7ee6a41244dc16e80fdd78872c4dbd63c40c6e"},
-    {file = "stellar_sdk-2.5.3-py3-none-any.whl", hash = "sha256:f72505a7750e8f11595d96bfc267ec9f82bc76bac1e780ca13659c91d899026a"},
+    {file = "stellar-sdk-2.6.0.tar.gz", hash = "sha256:9fe22339e85f01b9186177f2eb59b5df0aff82d7dc0c1eda345f6a2dfffbfa84"},
+    {file = "stellar_sdk-2.6.0-py3-none-any.whl", hash = "sha256:ec64ac2077cff1146cfb04ff520339daf93ed7d7415a43e9d3fe57850391dd03"},
 ]
 terminaltables = [
     {file = "terminaltables-3.1.0.tar.gz", hash = "sha256:f3eb0eb92e3833972ac36796293ca0906e998dc3be91fbe1f8615b331b853b81"},
