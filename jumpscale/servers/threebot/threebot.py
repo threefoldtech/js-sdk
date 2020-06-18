@@ -40,6 +40,8 @@ class NginxPackageConfig:
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
                     "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location")),
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -53,6 +55,8 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -65,6 +69,8 @@ class NginxPackageConfig:
                     "port": GEDIS_HTTP_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
                     "path_dest": self.package.base_url,
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -77,6 +83,8 @@ class NginxPackageConfig:
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
                     "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -124,6 +132,8 @@ class NginxPackageConfig:
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
+                        loc.is_auth = location.get("is_auth", False)
+                        loc.is_admin = location.get("is_admin", False)
 
                 website.save()
                 website.configure()

@@ -238,7 +238,7 @@ def admin_only(handler):
     return decorator
 
 
-@app.route("/auth/authenticated")
+@app.route("/authenticated")
 @authenticated
 def is_authenticated():
     """get user information if it is authenticated
@@ -249,7 +249,7 @@ def is_authenticated():
     return get_user_info()
 
 
-@app.route("/auth/authorized")
+@app.route("/authorized")
 @authenticated
 @admin_only
 def is_authorized():
