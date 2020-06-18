@@ -68,3 +68,22 @@
 
   you will find your information there.
   ![identity](images/identity.png)
+
+## To start the threebot server
+
+- From `jsng` shell just make:
+
+  ```python
+  server = j.server.threebot.get("default")
+  server.start()
+  ```
+
+- Then access the admin panel via: http://container-ip/
+
+*usually container ip is 172.17.0.2
+
+*on mac you'll need a wireguard to your container to access the container
+
+## Create a reservation via jsng Shell
+
+See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a393a9ae2a838d78c22/docs/wiki/tutorials/deploy_ubuntu_container.md)
