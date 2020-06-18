@@ -21,7 +21,6 @@ export class Service {
         // } else {
         //     args = {};
         // }
-        
         if (method === "get") {
             return ajax.get(url, args);
         } else if (method === "post") {

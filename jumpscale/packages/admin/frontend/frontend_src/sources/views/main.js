@@ -1,5 +1,6 @@
 import { JetView, plugins } from "webix-jet";
 import { admin } from "../services/admin";
+import { auth } from "../services/auth";
 
 export default class TopView extends JetView {
     config() {
@@ -251,9 +252,9 @@ export default class TopView extends JetView {
 
         this.usernameLabel = $$("username_label");
 
-        admin.getCurrentUser().then(data => {
-            const userInfo = JSON.parse(data.json()).data;
-            let username = userInfo.name;
+        auth.getAuthenticatedUser().then(data => {
+            const userInfo = data.json();
+            let username = userInfo.username;
 
             self.usernameLabel.config.label = username;
             self.usernameLabel.config.width = webix.html.getTextSize(username).width + 10;
