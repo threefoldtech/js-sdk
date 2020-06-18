@@ -8,17 +8,17 @@ class AdminService extends Service {
     }
 
     list() {
-        return this.getCall("admin_list");
+        return this.getCall("list_admins");
     }
 
     add(name) {
-        return this.postCall("admin_add", {
+        return this.postCall("add_admin", {
             "name": name
         });
     }
 
     delete(name) {
-        return this.postCall("admin_delete", {
+        return this.postCall("delete_admin", {
             "name": name
         });
     }

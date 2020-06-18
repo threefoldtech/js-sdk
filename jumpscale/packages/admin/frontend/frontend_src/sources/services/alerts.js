@@ -8,15 +8,15 @@ class AlertsService extends Service {
     }
 
     list() {
-        return this.getCall("alerts_list");
+        return this.getCall("list_alerts");
     }
 
     count() {
-        return this.getCall("alerts_count");
+        return this.getCall("get_alerts_count");
     }
 
     delete(ids, identifiers) {
-        return this.postCall("alerts_delete", {
+        return this.postCall("delete_alerts", {
             ids: ids,
             identifiers: identifiers
         });

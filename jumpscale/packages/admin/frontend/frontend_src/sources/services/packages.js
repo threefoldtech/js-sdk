@@ -8,13 +8,13 @@ class PackagesService extends Service {
     }
 
     getStatus(names) {
-        return this.postCall("packages_get_status", {
+        return this.postCall("get_package_status", {
             names: names
         });
     }
 
     list() {
-        return this.getCall("packages_list");
+        return this.getCall("list_packages");
     }
 
     packagesNames() {
@@ -22,14 +22,14 @@ class PackagesService extends Service {
     }
 
     add(path, gitUrl) {
-        return this.postCall("package_add", {
+        return this.postCall("add_package", {
             path: path || "",
             giturl: gitUrl || ""
         });
     }
 
     delete(packageName) {
-        return this.postCall("package_delete", { name: packageName });
+        return this.postCall("delete_package", { name: packageName });
     }
 }
 

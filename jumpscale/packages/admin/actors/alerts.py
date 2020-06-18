@@ -1,27 +1,25 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.god import j
 
-class Alerts(BaseActor):
 
+class Alerts(BaseActor):
     @actor_method
-    def alerts_list(self) -> str:
+    def list_alerts(self) -> str:
         """
             get all alerts
         """
-        ret = [ alert.json for alert in j.tools.alerthandler.find() ]
-        return j.data.serializers.json.dumps({"data":ret})
+        ret = [alert.json for alert in j.tools.alerthandler.find()]
+        return j.data.serializers.json.dumps({"data": ret})
 
     @actor_method
-    def alerts_count(self) -> str:
+    def get_alerts_count(self) -> str:
         """
             get count of alerts
         """
-        return j.data.serializers.json.dumps( {"data":j.tools.alerthandler.count()} )
+        return j.data.serializers.json.dumps({"data": j.tools.alerthandler.count()})
 
-
-    
     @actor_method
-    def alerts_delete(self, ids: list = [], identifiers: list = []):
+    def delete_alerts(self, ids: list = [], identifiers: list = []):
         """
             delete list of alerts
         """
@@ -36,7 +34,7 @@ class Alerts(BaseActor):
             raise e
 
     @actor_method
-    def alerts_delete_all(self):
+    def delete_all_alerts(self):
         """
             delete all alerts
         """
@@ -44,5 +42,6 @@ class Alerts(BaseActor):
             j.tools.alerthandler.delete_all()
         except Exception as e:
             raise e
+
 
 Actor = Alerts

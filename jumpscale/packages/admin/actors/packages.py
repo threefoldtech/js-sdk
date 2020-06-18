@@ -8,11 +8,11 @@ class Packages(BaseActor):
         self.threebot = j.servers.threebot.get("default")
 
     @actor_method
-    def packages_get_status(self, names: list) -> str:
+    def get_package_status(self, names: list) -> str:
         return "hello from packages_get_status actor"
 
     @actor_method
-    def packages_list(self) -> str:
+    def list_packages(self) -> str:
         return j.data.serializers.json.dumps({"data": self.threebot.packages.get_packages()})
 
     @actor_method
@@ -20,11 +20,11 @@ class Packages(BaseActor):
         return j.data.serializers.json.dumps({"data": list(self.threebot.packages.list_all())})
 
     @actor_method
-    def package_add(self, path: str = "", giturl: str = "") -> str:
+    def add_package(self, path: str = "", giturl: str = "") -> str:
         return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl)})
 
     @actor_method
-    def package_delete(self, name: str) -> str:
+    def delete_package(self, name: str) -> str:
         return j.data.serializers.json.dumps({"data": self.threebot.packages.delete(name)})
 
 
