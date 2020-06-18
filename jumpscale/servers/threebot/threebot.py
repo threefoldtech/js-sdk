@@ -448,6 +448,10 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
+        
+        # mark app as started
+        j.application.start(f"threebot_{self.instance_name}")
+
         self.nginx.start()
         self.rack.start()
 
@@ -467,3 +471,5 @@ class ThreebotServer(Base):
         self.rack.stop()
         self.nginx.stop()
         self._started = False
+        # mark app as stopped
+        j.application.stop()
