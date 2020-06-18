@@ -17,6 +17,7 @@ CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {
     "auth": os.path.dirname(j.packages.auth.__file__),
     "chatflows": os.path.dirname(j.packages.chatflows.__file__),
+    "admin": os.path.dirname(j.packages.admin.__file__),
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
