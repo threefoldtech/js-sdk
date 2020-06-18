@@ -26,6 +26,12 @@ export default class WalletFormView extends JetView {
             position: "center",
             body: {
                 rows: [
+                    {
+                        view: "template",
+                        css: "wallet-warning",
+                        height: 30,
+                        template: "WARNING: YOU'RE RESPONSIBLE FOR KEEPING YOUR WALLET SECRET SAFE"
+                    },
                     info,
                     {
                         view: "button",
