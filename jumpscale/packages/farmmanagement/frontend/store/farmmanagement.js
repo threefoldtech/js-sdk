@@ -23,15 +23,15 @@ export default {
   actions: {
     getTfgridUrl: async context => {
       var response = await tfService.getExplorer();
-      var url = response.data.url
+      var url = JSON.parse(response.data).data.url
       if (!url.startsWith('http')) {
         url = `https://${url}/explorer`;
-      }  
+      }
       context.commit("setTfgridUrl", url);
     },
     getUser: async context => {
       var response = await tfService.getUser();
-      console.log(response.data)
+      response = JSON.parse(response.data)
       if (response.data.name.length > 0) {
         context.commit("setUser", response.data);
       }

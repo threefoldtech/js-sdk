@@ -2,10 +2,11 @@ import axios from "/weblibs/axios/axios.min.js";
 
 export default {
   getExplorer() {
-    return axios.get("/zerobot/admin/actors/admin/get_explorer");
+    return axios.get("/admin/actors/admin/get_explorer");
   },
   getUser() {
-    return axios.get("/zerobot/webinterface/actors/identity/threebot_name");
+    console.log("ACTOR")
+    return axios.get("/admin/actors/admin/get_current_user");
   },
   getFarms(tfgridUrl, user_id) {
     return axios.get(`${tfgridUrl}/farms`, {
@@ -18,7 +19,7 @@ export default {
     return axios.post(`${tfgridUrl}/farms`, farm);
   },
   updateFarm(farm_id, farm) {
-    return axios.post('/threebot/farmmanagement/actors/farm_management/update_farm', {
+    return axios.post('/farmmanagement/actors/farm_management/update_farm', {
       args: {
         farm_id: farm_id,
         farm: farm,
@@ -34,7 +35,7 @@ export default {
   },
   setNodeFree(node_id, free) {
     console.log(node_id, free)
-    return axios.post('/threebot/farmmanagement/actors/farm_management/mark_node_free', {
+    return axios.post('/farmmanagement/actors/farm_management/mark_node_free', {
       args: {
         node_id: node_id,
         free: free,

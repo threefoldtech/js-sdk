@@ -1,7 +1,7 @@
 import { ExternalView } from "../external";
 
 // TODO: modify url to be development branch
-const URL = "/farmmanagement/frontend/";
+const URL = "/farmmanagement/";
 const REQUIRED_PACKAGES = {
     "farmmanagement": "https://github.com/threefoldtech/js-sdk/blob/development_adminpanel/jumpscale/packages/farmmanagement"
 }

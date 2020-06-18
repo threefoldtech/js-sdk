@@ -10,7 +10,7 @@ module.exports = new Promise(async (resolve, reject) => {
         name: "nodestable",
         props: ['farmselected'],
         components: {
-            nodeinfo: "url:/threebot/farmmanagement/components/nodeinfo/index.vue"
+            nodeinfo: "url:/farmmanagement/components/nodeinfo/index.vue"
         },
         data() {
             return {
@@ -53,7 +53,7 @@ module.exports = new Promise(async (resolve, reject) => {
                     let npub6HealthError, npub4HealthError, publicConfig6Error
                     let npub6Value, npub4Value, publicConfig6Value
                     let npub6Configs = []
-            
+
                     const Global = "Global unicast"
                     const allowedIfaces = ["zos", "npub6", "npub4"]
 
@@ -89,7 +89,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                     }
 
-                    if (npub6Healthy && npub4Healthy) { 
+                    if (npub6Healthy && npub4Healthy) {
                         healthy = true
                     }
 

@@ -7,7 +7,7 @@ module.exports = new Promise(async (resolve, reject) => {
     resolve({
         name: "farmManagement",
         components: {
-            nodestable: "url:/threebot/farmmanagement/components/nodestable/index.vue"
+            nodestable: "url:/farmmanagement/components/nodestable/index.vue"
         },
         data() {
             return {
@@ -267,6 +267,7 @@ module.exports = new Promise(async (resolve, reject) => {
             }
         },
         async mounted() {
+            console.log("MOUNT")
             await this.getTfgridUrl();
             await this.getUser();
             this.getFarms();
@@ -325,7 +326,7 @@ module.exports = new Promise(async (resolve, reject) => {
                     return;
                 }
 
-                
+
                 this.registerFarm(this.newFarm).then(response => {
                     if (response.status == 201) {
                         this.newFarmAlert = {

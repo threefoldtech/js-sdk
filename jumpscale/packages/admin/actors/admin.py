@@ -25,7 +25,13 @@ class Admin(BaseActor):
     @actor_method
     def get_current_user(self) -> str:
         return j.data.serializers.json.dumps(
-            {"data": {"name": j.core.identity.me.tname, "email": j.core.identity.me.email}}
+            {
+                "data": {
+                    "name": j.core.identity.me.tname,
+                    "email": j.core.identity.me.email,
+                    "tid": j.core.identity.me.tid,
+                }
+            }
         )
 
     @actor_method
