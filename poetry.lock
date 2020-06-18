@@ -715,7 +715,7 @@ terminaltables = "^3.1"
 watchdog = "^0.9.0"
 
 [package.source]
-reference = "cf0b661d84b7a559922c3e262ae1ba1aeb831090"
+reference = "82a5df4fa8449591052b62ff2e4afeb9357137bc"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1448,7 +1448,7 @@ description = "The Python Stellar SDK library provides APIs to build transaction
 name = "stellar-sdk"
 optional = false
 python-versions = ">=3.6.0"
-version = "2.6.0"
+version = "2.4.1"
 
 [package.dependencies]
 aiohttp = ">=3.5.4"
@@ -1677,7 +1677,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "2ee4911200265c242d0b61a9d30384fe15b0fa4696df08237daebea8a406a4ab"
+content-hash = "9f6fe78905154d8b80dbca3380db6dfae0bd81134c3841760dc60560c822ec80"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2489,8 +2489,8 @@ stellar-base-sseclient = [
     {file = "stellar-base-sseclient-0.0.21.tar.gz", hash = "sha256:2a500f3015dede4e9fac0f9d6d9d85f4fdd7fe1c9c10b2b111a6ae190cc5dc00"},
 ]
 stellar-sdk = [
-    {file = "stellar-sdk-2.6.0.tar.gz", hash = "sha256:9fe22339e85f01b9186177f2eb59b5df0aff82d7dc0c1eda345f6a2dfffbfa84"},
-    {file = "stellar_sdk-2.6.0-py3-none-any.whl", hash = "sha256:ec64ac2077cff1146cfb04ff520339daf93ed7d7415a43e9d3fe57850391dd03"},
+    {file = "stellar-sdk-2.4.1.tar.gz", hash = "sha256:505468d74e321d914bc4aacfa9674f17b02d6d5502190afd7a694c0d48310cf2"},
+    {file = "stellar_sdk-2.4.1-py3-none-any.whl", hash = "sha256:9303f78233864a2534736ed7fe8edb6e2a17306718115ec08eea509aa49afc50"},
 ]
 terminaltables = [
     {file = "terminaltables-3.1.0.tar.gz", hash = "sha256:f3eb0eb92e3833972ac36796293ca0906e998dc3be91fbe1f8615b331b853b81"},
