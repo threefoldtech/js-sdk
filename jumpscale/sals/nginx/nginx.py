@@ -199,8 +199,10 @@ class NginxConfig(Base):
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
     def get_user_info(self):
-        """
-        returns username > string, group string
+        """retrieves current user info
+        Returns:
+            username: str
+            group: str
         """
         res = j.sals.process.execute("whoami")
         if res[0] != 0:
