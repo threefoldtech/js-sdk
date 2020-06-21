@@ -30,7 +30,9 @@ class NginxServer(Base):
         nginx.save()
         cmd = j.tools.startupcmd.get(self.name)
         cmd.start_cmd = f"nginx -c {self.config_path}"
-        cmd.ports = [8999]
+        cmd.process_strings_regex = [
+            r"nginx.* \-c {CONFIG_PATH}".format(CONFIG_PATH=j.sals.fs.expanduser(self.config_path))
+        ]
         if not cmd.is_running():
             cmd.start()
 
