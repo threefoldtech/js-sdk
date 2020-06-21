@@ -1,0 +1,231 @@
+# Quick Start with js-ng
+
+## Requirments
+
+- Ubuntu 18.04 or later
+- Docker installed check [here](https://docs.docker.com/engine/install/ubuntu/)
+- git, python3, python3-pip, pyinstaller
+
+  ```bash
+  sudo apt-get install -y git python3 python3-pip python3-venv;
+  pip3 install poetry pyinstaller;
+  ```
+
+## Getting started with 3sdk [Build your binary]
+
+- Clone the jsng repository and prepare the virtual environment
+
+  ```bash
+  mkdir -p ~/sandbox/code/threefoldtech/;
+  cd ~/sandbox/code/threefoldtech/;
+  git clone https://github.com/threefoldtech/js-ng.git;
+  cd js-ng;
+  poetry update;
+  poetry install;
+  poetry shell;
+  ```
+
+- Build the sdk binary [here](https://github.com/threefoldtech/js-ng/blob/development/docs/wiki/3sdk.md#building-the-3sdk)
+
+- Once pyinstaller finishes and the binary ready under the `{js-ng_repository_path}/dist` we can run it using
+
+  ```bash
+  cd ~/sandbox/code/threefoldtech/js-ng/dist/;
+  ./3sdk;
+  ```
+
+  ![3sdk](images/3sdk.png)
+
+## Spawn a threebot container
+
+- Install threebot using `threebot install` like [here](https://github.com/threefoldtech/js-ng/blob/development/docs/wiki/3sdk.md#using-3sdk)
+
+- After it's done you will see something like that
+
+  ![finish](images/3sdk_finish.png)
+
+- Now exit the shell, and get into the container with
+
+  ```bash
+  docker exec -it 3bot-ng bash
+  ```
+
+- To start js shell just type
+
+  ```bash
+  jsng
+  ```
+
+  ![shell](images/shell.png)
+
+  You are now ready to go with your threebot container
+
+- To make sure the identity is configured correctly
+
+  ```bash
+  j.core.identity.me
+  ```
+
+  you will find your information there.
+  ![identity](images/identity.png)
+
+## To start the threebot server
+
+- From `jsng` shell just make:
+
+  ```python
+  server = j.server.threebot.get("default")
+  server.start()
+  ```
+
+- Then access the admin panel via: http://container-ip/
+
+*usually container ip is 172.17.0.2
+
+*on mac you'll need a wireguard to your container to access the container
+
+## Create a reservation via jsng Shell
+
+See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a393a9ae2a838d78c22/docs/wiki/tutorials/deploy_ubuntu_container.md)
+
+## Access admin panel
+
+Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
+
+
+## Create a new wallet
+
+First we need to setup the payment method wich is the wallet we will use to pay for the deployment machine. This can be done through the admin under `Wallet manager`.
+
+![solutions menu](images/wallet_manager.png)
+
+One of the following can be done:
+
+- **Create a new wallet**: You can create a new wallet by clicking on the `create wallet` button then entering the name of the wallet to be created. Make sure you save the secret of the wallet created to be able get the wallet incase it was lost. Transfer the amount of tokens you need to your wallet to have enough funds for the deployment.
+![Create wallet](images/create_wallet.png)
+
+- **Import an existing wallet**:If you already have a stellar wallet then you can simply import it by clicking on `import wallet` then entering the wallet name and secret.
+![Import wallet](images/import_wallet.png)
+
+Now that the wallet is setup, you are ready for your first deployment.
+
+## Deploy your private overlay network
+Before we get to deploy the actual Ubuntu container, we first need to create a private overlay network.
+
+The technology used to implement the network overlay is [Wireguard](https://www.Wireguard.com/). Make sure you have installed Wireguard on your device to able to continue: [Wireguard installation](https://www.wireguard.com/install/)
+
+For this tutorial we will use the network wizard that will guide us through the creation of your network.
+
+To start the wizard click the left menu on Solutions then Network then Create new
+
+![solutions menu](images/solutions_list.png)
+
+First step is to choose the name of your network. This name is only used to identify the network later on when deploying workloads.
+
+![choose network name](images/network_name.png)
+
+Then choose the currency that will be used for paying for all the deployments on your network
+
+![choose network currency](images/network_currency.png)
+
+The next step is to choose the expiration time of your reservation. Each capacity reservation made on the grid is always bound to an expiration date. Once the date is reached, the capacity is released back to the grid and your workloads deleted.
+
+For this tutorial one day will be more than enough.
+
+![choose network expiration](images/network_expiration.png)
+
+Then choose the farms on which the container can be deployed on. The farms are basically a group of nodes where multiple solutions can be deployed on. You can either choose the farm name from the drop down list or leave it empty to randomly choose any farm.
+
+![Choose farms](images/network_farms.png)
+
+The following step is to configure an `entrypoint` into your network so you can actually access your network from your device (laptop/PC/mobile). An `entrypoint` is responsible to route the traffic coming from your device to all the other nodes of the network.
+
+The nodes running on the TFGrid all communicate over IPv6. While this is very convenient for the nodes, not everyone has access to IPv6 already. For this reason we allow people to configure `entrypoint` using IPv4 address.
+
+The fifth step lets you choose between IPv6 or IPv4 for your `entrypoint`. If you are not sure what to choose, pick IPv4.
+
+![choose entrypoint type](images/network_ipversion.png)
+
+Sixth step is there to let you configure the subnet used by your network. To make it easy here we just let the wizard pick one for us.
+
+![choose network subnet](images/network_ip.png)
+
+Last step shows you the configuration you need to download in order to configure your device. Just click the download button and save the configuration locally and configure you device.
+
+Depending on your platform the configuration of Wireguard can look a bit different. But all the information required is shown in the configuration you have downloaded.
+
+![Step6](images/network_wireguard.png)
+
+
+On Linux system, you can just use the `wg-quick` command directly with the file sent from the chatflow, like so:
+
+```
+wg-quick up my_first_network.conf
+```
+
+## Deploy an Ubuntu container and connect to it
+
+Now that you have a network in place. We can deploy containers and connect it to the network. To do so we will use the Ubuntu Chat flow
+
+To start the wizard click the left menu on Solutions then Ubuntu, then Create new
+
+![Solutions menu](images/solutions_list.png)
+
+1. First step to deploy Ubuntu is to choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
+
+    ![Choose network](images/ubuntu_network.png)
+
+2. Second enter a name to give your Ubuntu solution. This will be used locally to save the details of the deployment.
+
+    ![Solution name](images/ubuntu_solution_name.png)
+
+3. Next choose the version of Ubuntu on you want. We currently support versions 18.04 and 16.04
+    ![Ubuntu version](images/ubuntu_version.png)
+
+4. Then choose how much CPU and Memory resources you want allocated for the container
+    ![Container resources](images/ubuntu_resources.png)
+
+5. The next step includes the possibility to stream the container's logs to a redis channel. In our simple deployment we will not need it so you can simply choose No
+    ![container_logs](images/ubuntu_logs.png)
+
+6. In order to access this container after it is deployed, you will need to upload your public ssh key. Usually your public and private ssh key pairs are found in `~/.ssh` where the public key ends in `.pub`
+
+    ![SSH key](images/ubuntu_public_key.png)
+
+7. The next step is to choose the expiration time of your Ubuntu reservation. Each capacity reservation made on the grid is always bound to an expiration date. Once the date is reached, the capacity is released back to the grid and your workloads deleted.
+
+    For this tutorial one day will be more than enough.
+
+    ![Expiration time](images/ubuntu_expiration.png)
+
+8. After that you will encounter an optional question asking for a node ID to deploy the container on. If there is a specific node you want your container to be on then provide its ID otherwise leave it empty. To discover nodes where to deploy your solution the easiest place to look for them is the explorer: https://explorer.grid.tf
+
+    ![Choose node](images/ubuntu_node_id.png)
+
+9. If you left the nodeid empty, you can then choose the farms on which the container can be deployed on. The farms are basically a group of nodes where multiple solutions can be deployed on. You can either choose the farm name from the drop down list or leave it empty to randomly choose any farm.
+
+    ![Choose farms](images/ubuntu_farms.png)
+
+10. You can now choose an IP address that will be given to your Ubuntu container in your network. This is the IP address you will be using to access the container.
+
+    ![Choose IP](images/ubuntu_ip.png)
+
+11. Then read carefully the options you selected previously until this point in the chatflow and confirm them by clicking next to proceed.
+
+    ![Overview](images/ubuntu_overview.png)
+
+12. Now that you have chosen all the resources and details required, you will need to proceed with the payment for the solution that will be deployed. As previously mentioned, you will have your wallet setup and funded with an amount of the currency you chose your network with. The following overview will show the price of the deployment and the details regarding the address to be payed to. By clicking on the wallet you will pay with and then next then you accept the payment to be automatically done from it.
+
+    ![Payment](images/ubuntu_payment.png)
+
+13. Once the amount is available in the wallet and the payment is successfully completed, the deployment process is continued. After the deployment is successful which may take a couple of minutes sometimes, the following message is shown with details regarding the reservation id which is a unique id used for your specific container deployment. It also views the IP address that is to be used to connect to the container.
+
+    ![Deployment Success](images/ubuntu_success.png)
+
+14. You can now simply access the deployed Ubuntu container by the following command
+
+    ```bash
+    ssh root@IP_ADDRESS
+    ```
+
+    where the IP address is the one you chose in the chatflow earlier and is shown in the previous success message.

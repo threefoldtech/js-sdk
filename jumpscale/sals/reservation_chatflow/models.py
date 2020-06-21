@@ -14,6 +14,7 @@ class SolutionType(Enum):
     Minio = "minio"
     Network = "network"
     Ubuntu = "ubuntu"
+    Monitoring = "monitoring"
     Unknown = "unknown"
 
 

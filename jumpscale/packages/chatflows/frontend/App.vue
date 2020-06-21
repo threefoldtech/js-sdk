@@ -207,6 +207,8 @@
             this.loading = false
             this.saveSession()
             this.handleResponse(response.data)
+        }).catch((response) => {
+          alert("Request timedout. please refresh the page.")
         })
       },
       reportWork (result) {

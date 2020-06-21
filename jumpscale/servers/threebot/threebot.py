@@ -14,8 +14,14 @@ GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
+DEFAULT_PACKAGES = {
+    "auth": os.path.dirname(j.packages.auth.__file__),
+    "chatflows": os.path.dirname(j.packages.chatflows.__file__),
+    "admin": os.path.dirname(j.packages.admin.__file__),
+    "weblibs": os.path.dirname(j.packages.weblibs.__file__),
+    "tfgrid_solutions": os.path.dirname(j.packages.tfgrid_solutions.__file__),
+}
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
-DEFAULT_PACKAGES = {"chatflows": os.path.dirname(j.packages.chatflows.__file__)}
 
 
 class NginxPackageConfig:
@@ -35,7 +41,9 @@ class NginxPackageConfig:
                     "spa": static_dir.get("spa"),
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
-                    "path_location": j.sals.fs.join_paths(self.package.path, static_dir.get("path_location")),
+                    "path_location": self.package.resolve_staticdir_location(static_dir),
+                    "is_auth": static_dir.get("is_auth", False),
+                    "is_admin": static_dir.get("is_admin", False),
                 }
             )
 
@@ -49,6 +57,8 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
+                    "is_auth": bottle_server.get("is_auth", False),
+                    "is_admin": bottle_server.get("is_admin", False),
                 }
             )
 
@@ -72,7 +82,7 @@ class NginxPackageConfig:
                     "host": CHATFLOW_SERVER_HOST,
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
-                    "path_dest": self.package.base_url,
+                    "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
                 }
             )
 
@@ -81,7 +91,7 @@ class NginxPackageConfig:
     def apply(self):
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
-            for port in server.get("ports", [80]):
+            for port in server.get("ports", [80, 443]):
 
                 server_name = server.get("name")
                 if server_name != "default":
@@ -120,10 +130,25 @@ class NginxPackageConfig:
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
+                        loc.is_auth = location.get("is_auth", False)
+                        loc.is_admin = location.get("is_admin", False)
 
                 website.save()
                 website.configure()
                 self.nginx.save()
+
+
+class StripPathMiddleware(object):
+    """
+    a middle ware for bottle apps to strip slashes
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, e, h):
+        e["PATH_INFO"] = e["PATH_INFO"].rstrip("/")
+        return self.app(e, h)
 
 
 class Package:
@@ -181,9 +206,28 @@ class Package:
                 actor_name = f"{self.name}_{file_name[:-3]}"
                 yield dict(name=actor_name, path=file_path)
 
+    def resolve_staticdir_location(self, static_dir):
+        """Resolves path for static location in case we need it
+        absoulute or not
+
+        static_dir.absolute_path true it will return the path directly
+        if false will be relative to the path
+
+        Args:
+            static_dir (str): package.toml static dirs category
+
+        Returns:
+            str: package path
+        """
+        path_location = static_dir.get("path_location")
+        absolute_path = static_dir.get("absolute_path", False)
+        if absolute_path:
+            return j.sals.fs.expanduser(path_location)
+        return j.sals.fs.expanduser(j.sals.fs.join_paths(self.path, path_location))
+
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
-        return WSGIServer((host, port), module.app)
+        return WSGIServer((host, port), StripPathMiddleware(module.app))
 
     def install(self):
         if self.module and hasattr(self.module, "install"):
@@ -213,19 +257,12 @@ class PackageManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._threebot = None
-        self._github = None
 
     @property
     def threebot(self):
         if self._threebot is None:
             self._threebot = j.servers.threebot.get(self.instance_name)
         return self._threebot
-
-    @property
-    def github(self):
-        if self._github is None:
-            self._github = j.clients.github.get("default")
-        return self._github
 
     def get(self, package_name):
         package_path = self.packages.get(package_name)
@@ -241,13 +278,26 @@ class PackageManager(Base):
     def add(self, path: str = None, giturl: str = None):
         # TODO: Check if package already exists
 
-        if any([path, giturl]) and not all([path, giturl]):
+        if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
         if giturl:
-            org, repo, _, branch, path = urlparse(giturl).path.lstrip("/").split("/", 4)
-            repo = self.github.get_repo(f"{org}/{repo}")
-            path = repo.download_directory(path, DOWNLOADED_PACKAGES_PATH, branch=branch)
+            url = urlparse(giturl)
+            url_parts = url.path.lstrip("/").split("/", 4)
+
+            if len(url_parts) != 5:
+                raise j.exceptions.Value("invalid path")
+
+            org, repo, _, branch, package_path = url_parts
+            repo_dir = f"{org}_{repo}_{branch}"
+            repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
+            repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
+
+            # delete repo dir if exists
+            j.sals.fs.rmtree(repo_path)
+
+            j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
+            path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(path=path)
         self.packages[package.name] = package.path
@@ -296,42 +346,6 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def uninstall(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.uninstall()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def start(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def stop(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.stop()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
-    def restart(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-        package.restart()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
-
     def install(self, package):
         """install and apply package configrations
 
@@ -341,8 +355,9 @@ class PackageManager(Base):
         Returns:
             [dict]: [package info]
         """
+        package.install()
         for static_dir in package.static_dirs:
-            path = j.sals.fs.join_paths(package.path, static_dir["path_location"])
+            path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find static dir {path}")
 
@@ -370,13 +385,8 @@ class PackageManager(Base):
         # apply nginx configuration
         package.nginx_config.apply()
 
-        package.install()
-
         # execute package start method
         package.start()
-
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
 
     def install_all(self):
         for package in self.list_all():
@@ -448,6 +458,10 @@ class ThreebotServer(Base):
 
     def start(self):
         # start default servers in the rack
+
+        # mark app as started
+        j.application.start(f"threebot_{self.instance_name}")
+
         self.nginx.start()
         self.rack.start()
 
@@ -467,3 +481,5 @@ class ThreebotServer(Base):
         self.rack.stop()
         self.nginx.stop()
         self._started = False
+        # mark app as stopped
+        j.application.stop()

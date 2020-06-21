@@ -129,7 +129,7 @@ class Network:
             (Network): copy of the network
         """
         network_copy = None
-        explorer = j.clients.explorer.default
+        explorer = j.clients.explorer.get_default()
         reservation = explorer.reservations.get(self.resv_id)
         networks = self._sal.list_networks(customer_tid, [reservation])
         for key in networks.keys():
@@ -202,8 +202,8 @@ class ReservationChatflow:
         Returns:
             [str]: decrypted solution metadata
         """
-        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
         box = Box(sk, pk)
         return box.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
 
@@ -380,27 +380,26 @@ class ReservationChatflow:
                     metadata = json.loads(metadata)
                 except Exception:
                     continue
-
                 if "form_info" not in metadata:
                     solution_type = self.check_solution_type(reservation)
                 else:
                     solution_type = metadata["form_info"]["chatflow"]
                     metadata["form_info"].pop("chatflow")
-                if solution_type == SolutionType.Unknown:
+                if solution_type == SolutionType.Unknown.value:
                     continue
-                elif solution_type == SolutionType.Ubuntu:
+                elif solution_type == SolutionType.Ubuntu.value:
                     metadata = self.get_solution_ubuntu_info(metadata, reservation)
-                elif solution_type == SolutionType.Flist:
+                elif solution_type == SolutionType.Flist.value:
                     metadata = self.get_solution_flist_info(metadata, reservation)
-                elif solution_type == SolutionType.Network:
+                elif solution_type == SolutionType.Network.value:
                     if metadata["name"] in networks:
                         continue
                     networks.append(metadata["name"])
-                elif solution_type == SolutionType.Gitea:
+                elif solution_type == SolutionType.Gitea.value:
                     metadata["form_info"]["Public key"] = reservation.data_reservation.containers[0].environment[
                         "pub_key"
                     ]
-                elif solution_type == SolutionType.Exposed:
+                elif solution_type == SolutionType.Exposed.value:
                     meta = metadata
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
@@ -724,6 +723,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if is_finished(reservation):
                 if reservation.next_action != NextAction.DEPLOY:
                     res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy\n"
+                    for x in reservation.results:
+                        if x.state == "ERROR":
+                            res += f"\n### {x.category}: ```{x.message}```\n"
                     bot.stop(res, md=True, html=True)
                 return reservation.results
             if is_expired(reservation):
@@ -733,7 +735,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                         res += f"\n### {x.category}: ```{x.message}```\n"
                 link = f"{self._explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(str(rid))
+                j.sals.zos.reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             time.sleep(1)
             reservation = self._explorer.reservations.get(rid)
@@ -856,6 +858,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         unknowns = ["", None, "Uknown", "Unknown"]
         gateways = {}
+        farms = {}
         for g in j.sals.zos._explorer.gateway.list():
             if not j.sals.zos.nodes_finder.filter_is_up(g):
                 continue
@@ -864,11 +867,23 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 areaname = getattr(g.location, area)
                 if areaname not in unknowns:
                     location.append(areaname)
+            currencies = list()
+
+            farm_id = g.farm_id
+            if farm_id not in farms:
+                farms[farm_id] = j.sals.zos._explorer.farms.get(farm_id)
+
+            addresses = farms[farm_id].wallet_addresses
+            for address in addresses:
+                if address.asset not in currencies:
+                    currencies.append(address.asset)
             if g.free_to_use:
-                reservation_currency = "FreeTFT"
-            else:
-                reservation_currency = "TFT"
-            if currency and currency != reservation_currency:
+                if "FreeTFT" not in currencies:
+                    currencies.append("FreeTFT")
+
+            reservation_currency = ", ".join(currencies)
+
+            if currency and currency not in currencies:
                 continue
             gtext = f"{' - '.join(location)} ({reservation_currency}) ID: {g.node_id}"
             gateways[gtext] = g
@@ -996,7 +1011,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
-                j.sals.zos.reservation_cancel(str(solution.rid))
+                j.sals.zos.reservation_cancel(solution.rid)
                 self.solutions.delete(name)
 
     def get_solutions(self, solution_type):
@@ -1020,7 +1035,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 {
                     "name": solution.name,
                     "reservation": reservation._get_data(),
-                    "type": solution_type,
+                    "type": solution_type.value,
                     "form_info": json.dumps(solution.form_info),
                 }
             )
@@ -1038,8 +1053,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         meta_json = json.dumps(metadata)
 
-        pk = j.core.identity.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.nacl.signing_key.to_curve25519_private_key()
+        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
+        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
         box = Box(sk, pk)
         encrypted_metadata = base64.b85encode(box.encrypt(meta_json.encode())).decode()
         reservation.metadata = encrypted_metadata
@@ -1065,7 +1080,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservation
 
     def create_network(
-        self, network_name, reservation, ip_range, customer_tid, ip_version, expiration=None, currency=None, bot=None
+        self,
+        network_name,
+        reservation,
+        ip_range,
+        customer_tid,
+        ip_version,
+        access_node,
+        expiration=None,
+        currency=None,
+        bot=None,
     ):
         """create network to deploy reservation on
 
@@ -1089,19 +1113,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         network = j.sals.zos.network.create(reservation, ip_range, network_name)
         node_subnets = netaddr.IPNetwork(ip_range).subnet(24)
         network_config = dict()
-        access_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(currency=currency)
         use_ipv4 = ip_version == "IPv4"
-
-        if use_ipv4:
-            nodefilter = j.sals.zos.nodes_finder.filter_public_ip4
-        else:
-            nodefilter = j.sals.zos.nodes_finder.filter_public_ip6
-
-        for node in filter(j.sals.zos.nodes_finder.filter_is_up, filter(nodefilter, access_nodes)):
-            access_node = node
-            break
-        else:
-            raise StopChatFlow("Could not find available access node")
 
         j.sals.zos.network.add_node(network, access_node.node_id, str(next(node_subnets)))
         wg_quick = j.sals.zos.network.add_access(network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4)
@@ -1228,7 +1240,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self, number_of_nodes, farm_id=None, farm_names=None, cru=None, sru=None, mru=None, hru=None, currency="TFT"
+        self,
+        number_of_nodes,
+        farm_id=None,
+        farm_names=None,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        currency="TFT",
+        ip_version=None,
     ):
         """get available nodes to deploy solutions on
 
@@ -1259,7 +1280,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 farm_name=farm_name, cru=cru, sru=sru, mru=mru, hru=hru, currency=currency
             )
-            nodes = self.filter_nodes(nodes, currency == "FreeTFT")
+            nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
                 try:
                     node = random.choice(nodes)
@@ -1272,7 +1293,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 selected_ids.append(node.node_id)
         return nodes_selected
 
-    def filter_nodes(self, nodes, free_to_use):
+    def filter_nodes(self, nodes, free_to_use, ip_version=None):
         """filter nodes by free to use flag
 
         Args:
@@ -1289,6 +1310,18 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = filter(j.sals.zos.nodes_finder.filter_is_free_to_use, nodes)
         elif not free_to_use:
             nodes = list(nodes)
+
+        if ip_version:
+            use_ipv4 = ip_version == "IPv4"
+
+            if use_ipv4:
+                nodefilter = j.sals.zos.nodes_finder.filter_public_ip4
+            else:
+                nodefilter = j.sals.zos.nodes_finder.filter_public_ip6
+
+            nodes = filter(j.sals.zos.nodes_finder.filter_is_up, filter(nodefilter, nodes))
+            if not nodes:
+                raise StopChatFlow("Could not find available access node")
         return list(nodes)
 
     def _distribute_nodes(self, number_of_nodes, farm_names):
@@ -1404,11 +1437,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Args:
             user_info (dict): user information
         """
-        # TODO: email field of testnet users is empty. is this really used?
-        if not j.core.config.get_config().get("threebot", {}).get("threebot_connect"):
+        if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when Threebot is in dev mode.
-            To enable Threebot connect : `j.me.encryptor.tools.threebotconnect_enable()`
+            To enable Threebot connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:
