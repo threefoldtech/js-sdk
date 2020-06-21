@@ -43,6 +43,7 @@ from jumpscale.core.base import Base, fields
 from jumpscale.god import j
 
 from .utils import DIR_PATH, render_config_template
+import os, pwd, grp
 
 
 class LocationType(Enum):
@@ -186,9 +187,14 @@ class NginxConfig(Base):
         """
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
+        user = j.sals.unix.get_current_pwd()
+        group = j.sals.unix.get_current_grp()
 
         configtext = j.tools.jinja2.render_template(
-            template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"), logs_dir=self.logs_dir,
+            template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"),
+            logs_dir=self.logs_dir,
+            user=user,
+            group=group,
         )
 
         j.sals.fs.write_file(self.cfg_file, configtext)
