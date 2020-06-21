@@ -1,9 +1,11 @@
 from jumpscale.god import j
+import os
 
 
 class codeserver:
     def __init__(self):
         self.bin_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "code-server")
+        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), "codeserver-install.sh")
         self._started = False
 
     @property
@@ -21,7 +23,9 @@ class codeserver:
         """Called when package is added
         """
         if not j.sals.fs.exists(self.bin_path):
-            raise j.exceptions.NotFound("Code server is not installed")
+            rc, out, err = j.sals.process.execute(f"chmod +x {self.script_path}; {self.script_path}")
+            if rc:
+                raise j.exceptions.Runtime(err)
 
     def uninstall(self):
         """Called when package is deleted
