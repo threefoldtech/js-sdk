@@ -10,9 +10,15 @@ class NginxServer(Base):
         """
         install nginx and certbot
         """
-        j.sals.process.execute("add-apt-repository ppa:certbot/certbot", showout=True, die=False)
         j.sals.process.execute(
-            "apt-get install -y nginx certbot python-certbot-nginx ", showout=True, die=False,
+            "apt-get install -y software-properties-common;"
+            "add-apt-repository universe;"
+            "add-apt-repository ppa:certbot/certbot;"
+            "apt-get update;"
+            "apt-get install -y nginx certbot python-certbot-nginx;",
+            showout=True,
+            die=False,
+            env={"DEBIAN_FRONTEND": "noninteractive"},
         )
 
     def start(self):
@@ -24,7 +30,9 @@ class NginxServer(Base):
         nginx.save()
         cmd = j.tools.startupcmd.get(self.name)
         cmd.start_cmd = f"nginx -c {self.config_path}"
-        cmd.start()
+        cmd.ports = [8999]
+        if not cmd.is_running():
+            cmd.start()
 
     def stop(self):
         """
