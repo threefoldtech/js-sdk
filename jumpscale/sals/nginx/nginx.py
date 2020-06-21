@@ -43,6 +43,7 @@ from jumpscale.core.base import Base, fields
 from jumpscale.god import j
 
 from .utils import DIR_PATH, render_config_template
+import os, pwd, grp
 
 
 class LocationType(Enum):
@@ -186,33 +187,18 @@ class NginxConfig(Base):
         """
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
-        username, group = self.get_user_info()
+        user = j.sals.unix.get_current_pwd()
+        group = j.sals.unix.get_current_grp()
 
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"),
             logs_dir=self.logs_dir,
-            username=username,
+            user=user,
             group=group,
         )
 
         j.sals.fs.write_file(self.cfg_file, configtext)
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
-
-    def get_user_info(self):
-        """retrieves current user info
-        Returns:
-            username: str
-            group: str
-        """
-        res = j.sals.process.execute("whoami")
-        if res[0] != 0:
-            return None, None
-        username = res[1].replace("\n", "")
-        res = j.sals.process.execute(f"groups {username}")
-        if res[0] != 0:
-            return username, None
-        group = res[1].split()[0]
-        return username, group
 
     def get_website(self, name: str, port: int = 80):
         website_name = f"{name}_{port}"
