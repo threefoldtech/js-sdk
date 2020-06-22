@@ -12,7 +12,7 @@ class LogsService extends Service {
     }
 
     listLogs(appName, limit) {
-        return this.getCall("list_logs");
+        return this.postCall("list_logs", {appname: appName, limit: limit});
     }
 
     delete(appname){
