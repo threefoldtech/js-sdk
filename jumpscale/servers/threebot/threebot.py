@@ -460,8 +460,11 @@ class ThreebotServer(Base):
         # start default servers in the rack
 
         # mark app as started
-        if j.servers.threebot.get_running():
-            raise j.exceptions.JSException("you already have a running server instance.")
+        running_server = j.servers.threebot.get_running()
+        if running_server:
+            raise j.exceptions.JSException(
+                f"you already have a running server instance {running_server.instance_name}."
+            )
         j.application.start(f"threebot_{self.instance_name}")
 
         self.nginx.start()
