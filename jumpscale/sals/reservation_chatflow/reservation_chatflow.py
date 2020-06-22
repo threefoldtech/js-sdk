@@ -974,22 +974,26 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if network.name == name:
                 return Network(network, expiration, bot, reservations, currency, resv_id)
 
-    def list_networks(self, tid, reservations=None):
+    def list_networks(self, tid, reservations=None, include_deleted=False):
         """list all available networks from reservations
 
         Args:
             tid (int): user tid
             reservation (list of jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): list of reservation objects
+            include_deleted (boolean): include deleted networks
 
         Returns:
             [type]: [description]
         """
         if not reservations:
-            reservations = j.sals.zos.reservation_list(tid=tid, next_action="DEPLOY")
+            reservations = j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DEPLOY.value)
+        if include_deleted:
+            reservations += j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DELETE.value)
+            reservations += j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DELETED.value)
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
-            if reservation.next_action != NextAction.DEPLOY:
+            if not include_deleted and reservation.next_action != NextAction.DEPLOY:
                 continue
             rnetworks = reservation.data_reservation.networks
             expiration = reservation.data_reservation.expiration_reservation
@@ -1047,6 +1051,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
             [list]: list of reservations objects
         """
         reservations = []
+        if solution_type == SolutionType.Network:
+            all_networks = j.sals.reservation_chatflow.list_networks(j.core.identity.me.tid, include_deleted=True)
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.solution_type != solution_type:
@@ -1054,6 +1060,13 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if solution.explorer and solution.explorer != self._explorer.url:
                 continue
             reservation = self._explorer.reservations.get(solution.rid)
+            if solution_type == SolutionType.Network:
+                previous_network = [net for name, net in all_networks.items() if solution.name in name]
+                if previous_network:
+                    previous_network = previous_network[0]
+                    previous_network_resv = self._explorer.reservations.get(previous_network[3])
+                    if previous_network_resv.next_action != NextAction.DEPLOY:
+                        continue
             reservations.append(
                 {
                     "name": solution.name,
