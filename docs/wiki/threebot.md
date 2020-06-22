@@ -170,10 +170,15 @@ Some components will be defined by default based on the parent package classes i
 
   ```python
   threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
-  threebot_server.packages.add("/home/xmonader/wspace/  threefoldtech/js-ng/jumpscale/packages/hello")
   threebot_server.save()
   threebot_server.start()
   ```
+- To add packages
+
+```python
+threebot_server.packages.add(<path or giturl>)
+threebot_server.packages.add(path="/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
+```
 
   ```
   ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/    hello/actors/helloActor/hello
