@@ -54,7 +54,7 @@ class NginxPackageConfig:
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
                     "port": bottle_server.get("port"),
-                    "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
+                    "path_url": bottle_server.get("path_url"),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
                     "is_auth": bottle_server.get("is_auth", False),
@@ -125,8 +125,6 @@ class NginxPackageConfig:
 
                     if loc:
                         path_url = location.get("path_url", "/")
-                        if not path_url.endswith("/"):
-                            path_url += "/"
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
