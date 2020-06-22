@@ -150,7 +150,7 @@ Some components will be defined by default based on the parent package classes i
 - start nginx `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
 
 ```python
-threebot_server = j.servers.threebot.get("my_threebot_server")
+threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>")
 threebot_server.packages.add("/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
 threebot_server.save()
 threebot_server.start()
@@ -161,3 +161,45 @@ threebot_server.start()
 "hello from foo's actor"%
 
 ```
+
+## ssl
+
+- If you to generate certificates to your website/package you can specify it in the package.toml explicitly.
+
+for example
+
+```toml
+name = "admin"
+ports = [80, 443]
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/output/"
+index = "index.html"
+spa = true
+is_admin = true
+
+[[servers]]
+name = "default"
+ports = [80, 443]
+domain = "waleed.grid.tf" # your domain name
+letsencryptemail = "aa@example.com" # email to get notifications from lets encrypt (optional)
+
+[[servers.locations]]
+type = "proxy"
+host = "127.0.0.1"
+port = 80
+name = "admin"
+path_url = "/"
+path_dest = "/admin/"
+```
+
+- If you want to have default domain for your threebot, define it in the threebot start
+
+```python
+threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>")
+threebot_server.start()
+```
+
+This will use certbot to generate a certificate for your domain
