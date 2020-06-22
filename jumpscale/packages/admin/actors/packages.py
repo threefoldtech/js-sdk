@@ -5,7 +5,13 @@ from jumpscale.core.exceptions import JSException
 
 class Packages(BaseActor):
     def __init__(self):
-        self.threebot = j.servers.threebot.get("default")
+        self._threebot = None
+
+    @property
+    def threebot(self):
+        if not self._threebot:
+            self._threebot = j.servers.threebot.get_running()
+        return self._threebot
 
     @actor_method
     def get_package_status(self, names: list) -> str:
