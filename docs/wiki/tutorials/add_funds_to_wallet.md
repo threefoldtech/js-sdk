@@ -13,6 +13,8 @@ At the time of writting, there are three types of tokens available:
 
 The FreeTFT's is a special token that has been created to allow developers and interested parties to play with the grid for free using free capacity by certain farmers.
 
+To watch a quick video with the next steps go to [Create wallet and exchange in JS-NG](https://www.youtube.com/watch?v=HGkB7bunbTw&feature=youtu.be)
+
 To get yourself FreeTFTs and TFTs on testnet network you can follow the following steps where you create a wallet and configure it:
 
 1. Create a new empty stellar wallet instance from the jsng shell with the network type(TEST or STD) you will be using
