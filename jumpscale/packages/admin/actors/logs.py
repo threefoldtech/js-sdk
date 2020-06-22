@@ -9,8 +9,8 @@ class Logs(BaseActor):
         return j.data.serializers.json.dumps({"data":apps})
 
     @actor_method
-    def list_logs(self) -> str:
-        logs = list(j.logger.redis.tail())
+    def list_logs(self, appname: str = "init") -> str:
+        logs = list(j.logger.redis.tail(appname=appname))
         return j.data.serializers.json.dumps({"data":logs})
     
     @actor_method

@@ -8,7 +8,6 @@ import { logs } from "../../services/logs";
 
 export default class LogsView extends JetView {
     config() {
-
         const view = {
             rows: [{
                     cols: [{
@@ -21,6 +20,7 @@ export default class LogsView extends JetView {
                             id: "apps_combo",
                             placeholder: "Choose your application",
                             align: "right",
+                            value: "init",
                             on: {
                                 onChange: function(appName) {
                                     this.$scope.show(`/main/logs`)
@@ -218,6 +218,15 @@ export default class LogsView extends JetView {
         return view;
     }
 
+    fetch_logs(appname) {
+        logs.listLogs(appname).then(data => {
+            data = JSON.parse(data.json()).data;
+            this.table.clearAll()
+            this.table.showProgress({ hide: true });
+            this.table.parse(data)
+        });
+    }
+
     init() {
         // this.use(plugins.ProgressBar, "progress");
         let self = this;
@@ -229,12 +238,7 @@ export default class LogsView extends JetView {
             self.table.showProgress({
                 hide: false
             });
-            logs.listLogs().then(data => {
-                self.data = JSON.parse(data.json()).data;
-                self.table.clearAll()
-                self.table.parse(self.data)
-                self.table.showProgress({ hide: true });
-            });
+            self.fetch_logs("init")        
         });
 
         logs.listApps().then(data => {
@@ -246,24 +250,15 @@ export default class LogsView extends JetView {
 
     urlChange(view, url) {
         const appName = url[0].params.appname,
-            logId = url[0].params.logid;
+        logId = url[0].params.logid;
         if (appName) {
             this.showFor(appName);
         }
     }
 
     showFor(appName) {
-        var self = this;
-        self.table = $$("applogs_table");
-        // filter logs by given appName
-        const res = self.data.filter(({
-            appname
-        }) => (
-            appName == appname
-        ));
-        // parsing data in table
-        self.table.clearAll()
-        self.table.parse(res)
+        this.table = $$("applogs_table");
+        this.fetch_logs(appName)
     }
 
     delete() {
