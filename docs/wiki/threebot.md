@@ -146,18 +146,37 @@ Some components will be defined by default based on the parent package classes i
 
 - start redis
 - `poetry run jsng`
-- get `main` instance and make sure to nginx configure` j.sals.nginx.main.configure()`
-- start nginx `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
 
-```python
-threebot_server = j.servers.threebot.get("my_threebot_server")
-threebot_server.packages.add("/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
-threebot_server.save()
-threebot_server.start()
-```
+### start nginx
 
-```
-➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/hello/actors/helloActor/hello
-"hello from foo's actor"%
+- On container it just works!
 
-```
+- On host
+
+  - Nginx starts automatically with threebotserver but we have to increse its capablitites
+  to be able to use port 80 and 443.
+
+  using this command in your bash shell
+
+  ```bash
+  setcap cap_net_bind_service=+ep /path/to/program
+  ```
+
+  `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation
+
+  -if you don't want that you can manually do it using manually using: `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
+
+- start threebotserver
+
+  ```python
+  threebot_server = j.servers.threebot.get("my_threebot_server",   domain="<optional><your-threebotdomain>", email="<your   email><required if you want to use domain and ssl for certbot")
+  threebot_server.packages.add("/home/xmonader/wspace/  threefoldtech/js-ng/jumpscale/packages/hello")
+  threebot_server.save()
+  threebot_server.start()
+  ```
+
+  ```
+  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/    hello/actors/helloActor/hello
+  "hello from foo's actor"%
+
+  ```
