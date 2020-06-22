@@ -118,7 +118,7 @@ class Website(Base):
 
     def generate_certificates(self):
         if self.domain:
-            rc, res, err = j.sals.process.execute(
+            rc, out, err = j.sals.process.execute(
                 f"certbot --nginx -d {self.domain} "
                 f"--non-interactive --agree-tos -m {self.letsencryptemail} "
                 f"--nginx-server-root {self.parent.cfg_dir} "
@@ -127,7 +127,7 @@ class Website(Base):
                 f"--work-dir {j.core.dirs.VARDIR}/certbot "
             )
             if rc > 0:
-                j.logger.error(f"Generating certificate faile due to {err}")
+                j.logger.error(f"Generating certificate failed {out}\n{err}")
 
         elif self.selfsigned:
             self.generate_self_signed_certificates()
