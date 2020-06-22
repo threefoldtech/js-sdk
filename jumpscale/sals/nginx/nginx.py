@@ -117,15 +117,21 @@ class Website(Base):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
     def generate_certificates(self):
-        res = j.sals.process.execute(
-            f"certbot --nginx -d {self.domain} --non-interactive --agree-tos -m {self.letsencryptemail} --nginx-server-root {self.parent.cfg_dir}"
-        )
-        if res[0] != 0:
-            if self.selfsigned:
-                self.generate_self_signed_certificates()
-                j.sals.fs.write_file(self.cfg_file, self.get_config())
-            else:
-                raise j.exceptions.JSException(f"Failed to generate certificates by certbot.{res}")
+        if self.domain:
+            rc, out, err = j.sals.process.execute(
+                f"certbot --nginx -d {self.domain} "
+                f"--non-interactive --agree-tos -m {self.letsencryptemail} "
+                f"--nginx-server-root {self.parent.cfg_dir} "
+                f"--logs-dir {j.core.dirs.LOGDIR}/certbot "
+                f"--config-dir {j.core.dirs.CFGDIR}/certbot "
+                f"--work-dir {j.core.dirs.VARDIR}/certbot "
+            )
+            if rc > 0:
+                j.logger.error(f"Generating certificate failed {out}\n{err}")
+
+        elif self.selfsigned:
+            self.generate_self_signed_certificates()
+            j.sals.fs.write_file(self.cfg_file, self.get_config())
 
     def generate_self_signed_certificates(self):
         self.selfsigned = True

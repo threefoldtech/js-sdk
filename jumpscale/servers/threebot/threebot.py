@@ -31,7 +31,13 @@ class NginxPackageConfig:
 
     @property
     def default_config(self):
-        default_server = {"name": "default", "ports": self.package.config.get("ports"), "locations": []}
+        default_server = {
+            "name": "default",
+            "ports": self.package.config.get("ports"),
+            "locations": [],
+            "domain": self.package.default_domain,
+            "letsencryptemail": self.package.default_email,
+        }
 
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
@@ -99,8 +105,10 @@ class NginxPackageConfig:
 
                 website = self.nginx.get_website(server_name, port=port)
                 website.ssl = server.get("ssl", port == 443)
-                website.domain = server.get("domain")
-                website.letsencryptemail = server.get("letsencryptemail")
+                website.domain = server.get("domain", self.default_config[0].get("domain"))
+                website.letsencryptemail = server.get(
+                    "letsencryptemail", self.default_config[0].get("letsencryptemail")
+                )
 
                 for location in server.get("locations", []):
                     loc = None
@@ -152,12 +160,14 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path):
+    def __init__(self, path, default_domain, default_email):
         self.path = path
         self.config = self.load_config()
         self.name = self.config["name"]
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
+        self.default_domain = default_domain
+        self.default_email = default_email
 
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
@@ -267,7 +277,7 @@ class PackageManager(Base):
     def get(self, package_name):
         package_path = self.packages.get(package_name)
         if package_path:
-            return Package(path=package_path)
+            return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
         return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
@@ -299,7 +309,7 @@ class PackageManager(Base):
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
-        package = Package(path=path)
+        package = Package(path=path, default_domain=self.threebot.domain, default_email=self.threebot.email)
         self.packages[package.name] = package.path
 
         # execute package install method
@@ -396,6 +406,8 @@ class PackageManager(Base):
 
 class ThreebotServer(Base):
     _package_manager = fields.Factory(PackageManager)
+    domain = fields.String()
+    email = fields.String()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
