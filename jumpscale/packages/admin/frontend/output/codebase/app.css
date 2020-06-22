@@ -1,3 +1,8 @@
+@media (max-width: 1200px) {
+  .solution_card_icon {
+    display: none;
+  }
+}
 @media (max-height: 800px) {
   .header_div {
     display: none;
@@ -7,7 +12,7 @@
     padding-top: 20px !important;
   }
 }
-@media (max-width: 1500px) and (min-width: 1300px) {
+@media (max-width: 1500px) and (min-width: 1400px) {
   .add-icon {
     font-size: 15px !important;
   }
@@ -19,7 +24,7 @@
     font-size: 24px !important;
   }
 }
-@media (max-width: 1300px) {
+@media (max-width: 1400px) {
   .threebot_card_icon {
     display: none;
   }
@@ -37,7 +42,18 @@
     height: 25px !important;
     width: 25px !important;
     margin-left: 5px !important;
+    margin-top: 7px !important;
   }
+}
+.red_label {
+  color: red;
+}
+.chart_label {
+  background-color: transparent;
+  border-style: none;
+}
+.chart_label .webix_template {
+  color: #057781;
 }
 .wallet-warning {
   background: red;

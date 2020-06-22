@@ -69,7 +69,9 @@ export default class ThreebotCardsView extends JetView {
             { "id": 4, "title": "Explorer", "info": "", "icon": "static/img/explorer.png" }
         ];
 
-        threebot_card_data[1].info = `<a class="threebot_card_info" href="#!/main/alerts">Find ${alertCount} alerts</a>`;
+        threebot_card_data[1].info = alertCount ?
+                                        `<a class="threebot_card_info red_label" href="#!/main/alerts">Found ${alertCount} alerts</a>` :
+                                        `<a class="threebot_card_info" href="#!/main/alerts">No alerts</a>`;
         threebot_card_data[2].info = `<p><b>Total: </b>${memoryUsage.total} GB</p><p><b>Used: </b>${memoryUsage.used} GB</p><p><b>Percentage: </b>${memoryUsage.percent}%</p>`;
         threebot_card_data[3].info = explorerUrl;
 
