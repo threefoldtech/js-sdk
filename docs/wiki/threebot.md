@@ -146,21 +146,45 @@ Some components will be defined by default based on the parent package classes i
 
 - start redis
 - `poetry run jsng`
-- get `main` instance and make sure to nginx configure` j.sals.nginx.main.configure()`
-- start nginx `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
 
-```python
-threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
-threebot_server.packages.add("/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
-threebot_server.save()
-threebot_server.start()
-```
+### start nginx
 
-```
-➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/hello/actors/helloActor/hello
-"hello from foo's actor"%
+- On container it just works! because you are root already
 
-```
+- On host
+
+  - Nginx starts automatically with threebotserver but we have to increse its capablitites
+  to be able to use port 80 and 443.
+
+  using this command in your bash shell
+
+  ```bash
+  sudo setcap cap_net_bind_service=+ep /path/to/program
+  ```
+
+  - `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation you can get it via executing `which nginx` in your terminal
+
+  -if you don't want that you can manually do it using manually using: `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
+
+- start threebotserver
+
+  ```python
+  threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
+  threebot_server.save()
+  threebot_server.start()
+  ```
+
+- To add packages
+
+  ```python
+  threebot_server.packages.add(<path or giturl>)
+  threebot_server.packages.add(path="/home/xmonader/wspace/  threefoldtech/js-ng/jumpscale/packages/hello")
+  ```
+
+  ```python
+  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/hello/actors/helloActor/hello
+  "hello from foo's actor"%
+  ```
 
 ## ssl
 
@@ -198,7 +222,7 @@ path_dest = "/admin/"
 - If you want to have default domain for your threebot, define it in the threebot start
 
 ```python
-threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
+threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
 threebot_server.start()
 ```
 
