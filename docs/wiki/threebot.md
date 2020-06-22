@@ -149,7 +149,7 @@ Some components will be defined by default based on the parent package classes i
 
 ### start nginx
 
-- On container it just works!
+- On container it just works! because you are root already
 
 - On host
 
@@ -162,7 +162,7 @@ Some components will be defined by default based on the parent package classes i
   sudo setcap cap_net_bind_service=+ep /path/to/program
   ```
 
-  `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation
+  - `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation you can get it via executing `which nginx` in your terminal
 
   -if you don't want that you can manually do it using manually using: `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
 
@@ -173,15 +173,16 @@ Some components will be defined by default based on the parent package classes i
   threebot_server.save()
   threebot_server.start()
   ```
+
 - To add packages
 
-```python
-threebot_server.packages.add(<path or giturl>)
-threebot_server.packages.add(path="/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
-```
-
+  ```python
+  threebot_server.packages.add(<path or giturl>)
+  threebot_server.packages.add(path="/home/xmonader/wspace/  threefoldtech/js-ng/jumpscale/packages/hello")
   ```
-  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/    hello/actors/helloActor/hello
+
+  ```python
+  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/ hello/actors/helloActor/hello
   "hello from foo's actor"%
 
   ```
