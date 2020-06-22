@@ -273,7 +273,7 @@ class PackageManager(Base):
     def get(self, package_name):
         package_path = self.packages.get(package_name)
         if package_path:
-            return Package(path=package_path)
+            return Package(path=package_path, default_domain=self.threebot.domain)
 
     def get_packages(self):
         return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
