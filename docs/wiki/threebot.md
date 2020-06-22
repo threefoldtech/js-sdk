@@ -182,7 +182,7 @@ Some components will be defined by default based on the parent package classes i
   ```
 
   ```python
-  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/ hello/actors/helloActor/hello
+  ➜  js-ng git:(development_threebot) ✗ curl -XPOST localhost:80/hello/actors/helloActor/hello
   "hello from foo's actor"%
 
   ```
