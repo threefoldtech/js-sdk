@@ -159,7 +159,7 @@ Some components will be defined by default based on the parent package classes i
   using this command in your bash shell
 
   ```bash
-  setcap cap_net_bind_service=+ep /path/to/program
+  sudo setcap cap_net_bind_service=+ep /path/to/program
   ```
 
   `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation
@@ -169,7 +169,7 @@ Some components will be defined by default based on the parent package classes i
 - start threebotserver
 
   ```python
-  threebot_server = j.servers.threebot.get("my_threebot_server",   domain="<optional><your-threebotdomain>", email="<your   email><required if you want to use domain and ssl for certbot")
+  threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
   threebot_server.packages.add("/home/xmonader/wspace/  threefoldtech/js-ng/jumpscale/packages/hello")
   threebot_server.save()
   threebot_server.start()
