@@ -19,7 +19,7 @@ class Alerts(BaseActor):
         return j.data.serializers.json.dumps({"data": j.tools.alerthandler.count()})
 
     @actor_method
-    def delete_alerts(self, ids: list = [], identifiers: list = []):
+    def delete_alerts(self, ids: list = []) -> str:
         """
             delete list of alerts
         """
@@ -27,11 +27,9 @@ class Alerts(BaseActor):
             if ids:
                 for _id in ids:
                     j.tools.alerthandler.delete(_id)
-            elif identifiers:
-                for _identifier in identifiers:
-                    j.tools.alerthandler.delete(_identifier)
-        except Exception as e:
-            raise e
+            return j.data.serializers.json.dumps({"data": "success"})
+        except:
+            raise j.exceptions.Value("Error in delete alerts")
 
     @actor_method
     def delete_all_alerts(self):

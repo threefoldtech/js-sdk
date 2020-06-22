@@ -166,7 +166,7 @@ export default class AlertsView extends JetView {
             self.table.showProgress({
                 hide: false
             })
-            alerts.delete(identifiers).then(() => {
+            alerts.delete(ids).then(() => {
                 self.table.remove(ids)
                 self.table.showProgress({
                     hide: true
