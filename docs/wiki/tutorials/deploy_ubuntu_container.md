@@ -90,7 +90,7 @@ Endpoint = 185.69.166.59:5000
 Import these lines into a new Wireguard tunnel.
 
 
-## deploy ubuntu container
+## deploy ubuntu container access using ssh
 
 ```python
 import time
@@ -106,6 +106,30 @@ zos.container.create(reservation=r,
                     flist='https://hub.grid.tf/tf-bootable/3bot-ubuntu-20.04.flist', # flist of the container you want to install
                     # interactive=True,         # True only if corex_connect required, default false
                     env={"pub_key":"YOUR_PUBLIC_KEY"},                   # field for parameters like config
+                    entrypoint='/bin/bash /start.sh')
+
+expiration = j.data.time.get().timestamp +3900
+# register the reservation
+registered_reservation = zos.reservation_register(r, expiration)
+time.sleep(5)
+# inspect the result of the reservation provisioning
+```
+## deploy ubuntu container access using Web only COREX
+
+```python
+import time
+zos = j.sals.zos
+
+# create a reservation
+r = zos.reservation_create()
+# add container reservation into the reservation
+zos.container.create(reservation=r,
+                    node_id='2fi9ZZiBGW4G9pnrN656bMfW6x55RSoHDeMrd9pgSA8T', # one of the node_id that is part of the network
+                    network_name='<network_name>', # this assume this network is already provisioned on the node
+                    ip_address='10.80.1.10', # part of ip_range you reserved for your network xxx.xxx.1.10
+                    flist='https://hub.grid.tf/tf-bootable/3bot-ubuntu-20.04.flist', # flist of the container you want to install
+                    interactive=True,         # True only if corex_connect required, default false
+                    #env={"pub_key":"YOUR_PUBLIC_KEY"},                   # field for parameters like config
                     entrypoint='/bin/bash /start.sh')
 
 expiration = j.data.time.get().timestamp +3900
@@ -166,8 +190,19 @@ print("provisioning result")
 print(result)
 ```
 
-## access your ubuntu container
+## access your ubuntu container using ssh
 
 ```bash
 ssh roo@10.80.1.10
 ```
+
+## access your ubuntu container using web
+
+```bash
+10.80.1.10:7681
+```
+- run bash  to goto into container
+```bash
+10.80.1.10:7681/api/process/start?arg[]=/bin/bash
+```
+Then refresh page and press on job id
