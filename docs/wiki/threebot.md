@@ -150,7 +150,7 @@ Some components will be defined by default based on the parent package classes i
 - start nginx `sudo nginx -c ~/sandbox/cfg/nginx/main/nginx.conf`
 
 ```python
-threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>")
+threebot_server = j.servers.threebot.get("my_threebot_server", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
 threebot_server.packages.add("/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/packages/hello")
 threebot_server.save()
 threebot_server.start()
