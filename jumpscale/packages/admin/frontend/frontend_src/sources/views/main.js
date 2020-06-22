@@ -271,13 +271,13 @@ export default class TopView extends JetView {
         let height = document.documentElement.clientHeight;
         let menuOpen = true;
 
-        if (width < 1500 && menuOpen) {
+        if (width < 1600 && menuOpen) {
             self.menu.hide();
             self.header.hide();
             self.buttonHideMenu.hide();
             self.buttonShowMenu.show();
             menuOpen = false
-        } else if (width > 1500 && !menuOpen) {
+        } else if (width > 1600 && !menuOpen) {
             self.menu.show();
             self.header.show();
             self.buttonHideMenu.show();
@@ -289,13 +289,13 @@ export default class TopView extends JetView {
             var width = document.documentElement.clientWidth;
             var height = document.documentElement.clientHeight;
 
-            if (width < 1500 && menuOpen) {
+            if (width < 1600 && menuOpen) {
                 self.menu.hide();
                 self.header.hide();
                 self.buttonHideMenu.hide();
                 self.buttonShowMenu.show();
                 menuOpen = false
-            } else if (width > 1500 && !menuOpen) {
+            } else if (width > 1600 && !menuOpen) {
                 self.menu.show();
                 self.header.show();
                 self.buttonHideMenu.show();

@@ -9,12 +9,11 @@ app = Bottle()
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "..", "frontend")
 env = j.tools.jinja2.get_env(templates_path)
 
-threebot = j.servers.threebot.get("default")
-
 
 @app.route("/<package_name>")
 @login_required
 def chats(package_name):
+    threebot = j.servers.threebot.get_running()
     package = threebot.packages.get(package_name)
     if not package:
         abort(404, f"package {package_name} does not exist")
