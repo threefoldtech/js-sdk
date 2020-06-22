@@ -184,7 +184,7 @@ is_admin = true
 name = "default"
 ports = [80, 443]
 domain = "waleed.grid.tf" # your domain name
-letsencryptemail = "aa@example.com" # email to get notifications from lets encrypt (optional)
+letsencryptemail = "aa@example.com" # email to get notifications from lets encrypt
 
 [[servers.locations]]
 type = "proxy"
@@ -198,7 +198,7 @@ path_dest = "/admin/"
 - If you want to have default domain for your threebot, define it in the threebot start
 
 ```python
-threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>")
+threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot")
 threebot_server.start()
 ```
 
