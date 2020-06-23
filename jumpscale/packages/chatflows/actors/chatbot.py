@@ -4,12 +4,14 @@ import base64
 import sys
 import uuid
 import imp
+import gevent
 
 
 class ChatFlows(BaseActor):
     def __init__(self):
         self.chats = {}
         self.sessions = {}
+        self._fetch_greenlet = None
 
     @actor_method
     def new(self, topic: str, client_ip: str, query_params: dict = None) -> dict:
@@ -18,10 +20,26 @@ class ChatFlows(BaseActor):
         return {"sessionId": chatflow.session_id}
 
     @actor_method
-    def fetch(self, session_id: str) -> dict:
+    def fetch(self, session_id: str, restore: bool = False) -> dict:
         chatflow = self.sessions.get(session_id)
-        return chatflow.get_work()
-    
+        if not chatflow:
+            return {"payload":{"category": "end"}}
+        
+        if self._fetch_greenlet:
+            if not self._fetch_greenlet.ready():
+                self._fetch_greenlet.kill()
+
+        self._fetch_greenlet = gevent.spawn(chatflow.get_work, restore)
+        
+        result = self._fetch_greenlet.get()
+        if isinstance(result, gevent.GreenletExit):
+            return
+
+        if result.get("category") == "end":
+            self.sessions.pop(session_id)
+
+        return result
+
     @actor_method
     def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)
