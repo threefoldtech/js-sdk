@@ -191,9 +191,9 @@
         })
       },
       restoreSession (session) {
-          this.sessionId = session.id
-          this.state = session.state
-          this.getWork(true)
+        this.sessionId = session.id
+        this.state = session.state
+        this.getWork(true)
       },
       getWork (restore) {
         axios({
@@ -248,7 +248,7 @@
       }
     },
     mounted () {
-      this.newSession()
+      this.start()
       document.body.addEventListener('keypress', (e) => {
         if (e.key == 'Enter') {
           this.next()
