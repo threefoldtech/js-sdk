@@ -114,7 +114,7 @@ class GiteaDeploy(GedisChatBot):
 
     @chatflow_step(title="Container node id")
     def container_node_id(self):
-        self.query = {"mru": math.ceil(1024 / 1024), "cru": 2, "hru": 5, "sru": 1}
+        self.query = {"mru": math.ceil(1024 / 1024), "cru": 2, "sru": 6}
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
         self.nodeid = self.string_ask(
