@@ -14,9 +14,9 @@
 ## Requirments for insystem installation
 
 - Ubuntu 18.04 or later, MacOS 10.9 or more
-- packages [python3, git, poetry, nginx, redis]
+- packages [python3, python3-pip, git, poetry, nginx, redis]
 
-- Install on ubuntu
+- Install packages on Ubuntu
 
   ```bash
   apt-get update
@@ -24,7 +24,7 @@
   pip3 install poetry
   ```
 
-- MacOS
+- Install packages on MacOS
   - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
   - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
   - git from [here](https://www.atlassian.com/git/tutorials/install-git)
