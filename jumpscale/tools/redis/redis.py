@@ -10,8 +10,8 @@ class RedisServer(Base):
         self.cmd = j.tools.startupcmd.get(self.name)
 
     @property
-    def is_installed(self):
-        j.sals.process.execute('dpkg -s redis-server')[0] == 0
+    def installed(self):
+        return j.sals.process.execute('dpkg -s redis-server')[0] == 0
 
     def install(self):
         """
