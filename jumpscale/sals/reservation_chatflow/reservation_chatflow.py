@@ -191,7 +191,7 @@ class ReservationChatflow:
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
         self._explorer = j.clients.explorer.get_default()
-        self.get_solutions_explorer()
+        self.update_local_reservations()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
@@ -362,14 +362,22 @@ class ReservationChatflow:
         reservation.explorer = self._explorer.url
         reservation.save()
 
-    def get_solutions_explorer(self):
-        """delete old instances, to get the new ones from explorer
-        """
-        for obj in self.solutions.list_all():
-            self.solutions.delete(obj)
+    def get_solutions_explorer(self, deployed=True):
+        """get the updated reservations from explorer
 
+        Args:
+            deployed (bool, optional): set False to get all reservations. Defaults to True.
+
+        Returns:
+            list: list of reservations
+        """
         customer_tid = self.me.tid
-        reservations = self._explorer.reservations.list(customer_tid, "DEPLOY")
+        reservations_data = []
+        reservations = []
+        if deployed:
+            reservations = self._explorer.reservations.list(customer_tid, "DEPLOY")
+        else:
+            reservations = self._explorer.reservations.list(customer_tid)
         networks = []
         dupnames = {}
         for reservation in sorted(reservations, key=lambda res: res.id, reverse=True):
@@ -432,7 +440,22 @@ class ReservationChatflow:
             if count != 1:
                 dupnames[solution_type][name] = count + 1
                 name = f"{name}_{count}"
-            self.save_reservation(reservation.id, name, solution_type, form_info=info)
+            # append reservation
+            reservations_data.append(
+                {"id": reservation.id, "name": name, "solution_type": solution_type, "form_info": info}
+            )
+        return reservations_data
+
+    def update_local_reservations(self):
+        """update local reserfvations with new ones
+        """
+        for obj in self.solutions.list_all():
+            self.solutions.delete(obj)
+        reservations = self.get_solutions_explorer()
+        for reservation in reservations:
+            self.save_reservation(
+                reservation["id"], reservation["name"], reservation["solution_type"], form_info=reservation["form_info"]
+            )
 
     def list_wallets(self):
         """
