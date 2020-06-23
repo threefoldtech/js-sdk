@@ -69,14 +69,13 @@ class MonitoringDeploy(GedisChatBot):
             "Please add how many CPU cores are needed for the Prometheus container", default=1, required=True
         )
         memory = form.int_ask("Please add the amount of memory in MB", default=3072, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
 
-        self.prometheus_rootfs_type = getattr(DiskType, disk.value)
+        self.prometheus_rootfs_type = getattr(DiskType, "SSD")
         self.user_form_data["Prometheus CPU"] = cpu.value
         self.user_form_data["Prometheus Memory"] = memory.value
-        self.user_form_data["Prometheus Root filesystem Type"] = disk.value
+        self.user_form_data["Prometheus Root filesystem Type"] = "SSD"
         self.user_form_data["Prometheus Root filesystem Size"] = rootfs_size.value
 
         self.prometheus_query["mru"] = math.ceil(self.user_form_data["Prometheus Memory"] / 1024)
@@ -109,13 +108,12 @@ class MonitoringDeploy(GedisChatBot):
             "Please add how many CPU cores are needed for the Grafana container", default=1, required=True
         )
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.grafana_rootfs_type = getattr(DiskType, disk.value)
+        self.grafana_rootfs_type = getattr(DiskType, "SSD")
         self.user_form_data["Grafana CPU"] = cpu.value
         self.user_form_data["Grafana Memory"] = memory.value
-        self.user_form_data["Grafana Root filesystem Type"] = disk.value
+        self.user_form_data["Grafana Root filesystem Type"] = "SSD"
         self.user_form_data["Grafana Root filesystem Size"] = rootfs_size.value
 
         self.grafana_query["mru"] = math.ceil(self.user_form_data["Grafana Memory"] / 1024)
@@ -131,13 +129,12 @@ class MonitoringDeploy(GedisChatBot):
         form = self.new_form()
         cpu = form.int_ask("Please add how many CPU cores are needed for the redis container", default=1, required=True)
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.redis_rootfs_type = getattr(DiskType, disk.value)
+        self.redis_rootfs_type = getattr(DiskType, "SSD")
         self.user_form_data["Redis CPU"] = cpu.value
         self.user_form_data["Redis Memory"] = memory.value
-        self.user_form_data["Redis Root filesystem Type"] = disk.value
+        self.user_form_data["Redis Root filesystem Type"] = "SSD"
         self.user_form_data["Redis Root filesystem Size"] = rootfs_size.value
 
         self.redis_query["mru"] = math.ceil(self.user_form_data["Redis Memory"] / 1024)

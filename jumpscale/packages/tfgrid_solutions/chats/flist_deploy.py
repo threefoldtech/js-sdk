@@ -71,13 +71,12 @@ class FlistDeploy(GedisChatBot):
         form = self.new_form()
         cpu = form.int_ask("Please add how many CPU cores are needed", default=1, required=True)
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(DiskType, disk.value)
+        self.rootfs_type = getattr(DiskType, "SSD")
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
-        self.user_form_data["Root filesystem Type"] = disk.value
+        self.user_form_data["Root filesystem Type"] = "SSD"
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
 
     @chatflow_step(title="Container ineractive & EntryPoint")
@@ -105,10 +104,7 @@ class FlistDeploy(GedisChatBot):
         query["cru"] = self.user_form_data["CPU"]
 
         storage_units = math.ceil(self.rootfs_size.value / 1024)
-        if self.user_form_data["Root filesystem Type"] == "SSD":
-            query["sru"] = storage_units
-        else:
-            query["hru"] = storage_units
+        query["sru"] = storage_units
         farms = j.sals.reservation_chatflow.get_farm_names(1, self, currency=self.currency, **query)
         self.node = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, currency=self.currency, **query)[0]
 
@@ -123,14 +119,11 @@ class FlistDeploy(GedisChatBot):
     def container_volume_details(self):
         if self.container_volume_attach:
             form = self.new_form()
-            vol_disk_type = form.drop_down_choice(
-                "Please choose the type of disk for the volume", ["SSD", "HDD"], required=True, default="SSD"
-            )
             vol_disk_size = form.int_ask("Please specify the volume size", required=True, default=10)
             vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
             form.ask()
-            self.vol_disk_type = getattr(DiskType, vol_disk_type.value)
-            self.user_form_data["Volume Disk type"] = vol_disk_type.value
+            self.vol_disk_type = getattr(DiskType, "SSD")
+            self.user_form_data["Volume Disk type"] = "SSD"
             self.user_form_data["Volume Size"] = vol_disk_size.value
             self.user_form_data["Volume mount point"] = vol_mount_point.value
 

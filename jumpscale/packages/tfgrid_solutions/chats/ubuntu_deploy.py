@@ -55,13 +55,13 @@ class UbuntuDeploy(GedisChatBot):
         form = self.new_form()
         cpu = form.int_ask("Please add how many CPU cores are needed", default=1, required=True)
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
+
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(DiskType, disk.value)
+        self.rootfs_type = getattr(DiskType, "SSD")
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
-        self.user_form_data["Root filesystem Type"] = disk.value
+        self.user_form_data["Root filesystem Type"] = "SSD"
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
 
     @chatflow_step(title="Container logs")
@@ -105,10 +105,7 @@ class UbuntuDeploy(GedisChatBot):
         self.query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
         self.query["cru"] = self.user_form_data["CPU"]
         storage_units = math.ceil(self.rootfs_size.value / 1024)
-        if self.rootfs_type.value == "SSD":
-            self.query["sru"] = storage_units
-        else:
-            self.query["hru"] = storage_units
+        self.query["sru"] = storage_units
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
         self.nodeid = self.string_ask(
