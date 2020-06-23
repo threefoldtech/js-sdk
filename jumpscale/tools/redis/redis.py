@@ -10,14 +10,13 @@ class RedisServer(Base):
         self.cmd = j.tools.startupcmd.get(self.name)
 
     @property
-    def installed(self):
-        return j.sals.process.execute('which redis-server')[0] == 0
+    def installed(self) -> bool:
+        """check if redis server is installed
 
-    def install(self):
+        Returns:
+            bool: True if redis server is installed
         """
-        install redis-server
-        """
-        j.sals.process.execute("apt-get install -y redis-server", showout=True, die=False)
+        return j.sals.process.execute('which redis-server')[0] == 0
 
     def start(self, host: str = "127.0.0.1", port: int = 6379):
         """start redis server in tmux
