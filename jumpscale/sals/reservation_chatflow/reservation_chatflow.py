@@ -37,6 +37,7 @@ class Network:
         self._fill_used_ips(reservations)
         self.currency = currency
         self.resv_id = resv_id
+        self.solutions = StoredFactory(TfgridSolution1)
 
     def _fill_used_ips(self, reservations):
         for reservation in reservations:
@@ -102,6 +103,18 @@ class Network:
         if self._is_dirty:
             reservation = j.sals.zos.reservation_create()
             reservation.data_reservation.networks.append(self._network)
+            form_info = {
+                "chatflow": "network",
+                "Currency": self.currency,
+                "Solution expiration": self._expiration.timestamp(),
+            }
+            metadata = j.sals.reservation_chatflow.get_solution_metadata(
+                self.name, SolutionType.Network, form_info=form_info
+            )
+
+            metadata["parent_network"] = self.resv_id
+            self._sal.add_reservation_metadata(reservation, metadata)
+
             reservation_create = self._sal.register_reservation(
                 reservation, self._expiration.timestamp(), tid, currency=currency, bot=bot
             )
@@ -116,7 +129,13 @@ class Network:
                 j.sals.reservation_chatflow.wait_payment(
                     bot, rid, threebot_app=True, reservation_create_resp=reservation_create
                 )
-            return self._sal.wait_reservation(self._bot, rid)
+            wait_reservation_results = self._sal.wait_reservation(self._bot, rid)
+            # Update solution saved locally
+            explorer_name = self._sal._explorer.url.split(".")[1]
+            solution = self.solutions.get(f"{explorer_name}_{self.resv_id}")
+            solution.rid = rid
+            solution.save()
+            return wait_reservation_results
         return True
 
     def copy(self, customer_tid):
@@ -951,7 +970,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if network.name == name:
                 return Network(network, expiration, bot, reservations, currency, resv_id)
 
-    def list_networks(self, tid, reservations=None, include_deleted=False):
+    def list_networks(self, tid, reservations=None):
         """list all available networks from reservations
 
         Args:
@@ -964,13 +983,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         if not reservations:
             reservations = j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DEPLOY.value)
-        if include_deleted:
-            reservations += j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DELETE.value)
-            reservations += j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DELETED.value)
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
-            if not include_deleted and reservation.next_action != NextAction.DEPLOY:
+            if reservation.next_action != NextAction.DEPLOY:
                 continue
             rnetworks = reservation.data_reservation.networks
             expiration = reservation.data_reservation.expiration_reservation
@@ -1015,6 +1031,23 @@ Deployment will be cancelled if it is not successful {remaning_time}
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.name == solution_name and solution.solution_type == solution_type:
+                # Cancel all parent networks if solution type is network
+                if solution.solution_type == SolutionType.Network:  ## TODO change to SolutionType.Network.value
+                    curr_network_resv = self._explorer.reservations.get(solution.rid)
+                    while curr_network_resv:
+                        if curr_network_resv.metadata:
+                            try:
+                                network_metadata = self.decrypt_reservation_metadata(curr_network_resv.metadata)
+                                network_metadata = json.loads(network_metadata)
+                            except Exception:
+                                break
+                            if "parent_network" in network_metadata:
+                                parent_resv = self._explorer.reservations.get(network_metadata["parent_network"])
+                                j.sals.zos.reservation_cancel(parent_resv.id)
+                                curr_network_resv = parent_resv
+                                continue
+                        curr_network_resv = None
+
                 j.sals.zos.reservation_cancel(solution.rid)
                 self.solutions.delete(name)
 
@@ -1028,8 +1061,6 @@ Deployment will be cancelled if it is not successful {remaning_time}
             [list]: list of reservations objects
         """
         reservations = []
-        if solution_type == SolutionType.Network:
-            all_networks = j.sals.reservation_chatflow.list_networks(j.core.identity.me.tid, include_deleted=True)
         for name in self.solutions.list_all():
             solution = self.solutions.get(name)
             if solution.solution_type != solution_type:
@@ -1037,13 +1068,6 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if solution.explorer and solution.explorer != self._explorer.url:
                 continue
             reservation = self._explorer.reservations.get(solution.rid)
-            if solution_type == SolutionType.Network:
-                previous_network = [net for name, net in all_networks.items() if solution.name in name]
-                if previous_network:
-                    previous_network = previous_network[0]
-                    previous_network_resv = self._explorer.reservations.get(previous_network[3])
-                    if previous_network_resv.next_action != NextAction.DEPLOY:
-                        continue
             reservations.append(
                 {
                     "name": solution.name,
