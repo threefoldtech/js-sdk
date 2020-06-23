@@ -9,8 +9,13 @@ class NginxServer(Base):
         super().__init__(*args, **kwargs)
         self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.name, "nginx.conf")
 
+    @property
+    def check_command_string(self):
+        return r"nginx.* \-c {CONFIG_PATH}".format(CONFIG_PATH=j.sals.fs.expanduser(self.config_path))
+
     def install(self):
         """
+        # TODO: Remove or support other OS
         install nginx and certbot
         """
         j.sals.process.execute(
@@ -33,9 +38,7 @@ class NginxServer(Base):
         nginx.save()
         cmd = j.tools.startupcmd.get(self.name)
         cmd.start_cmd = f"nginx -c {self.config_path}"
-        cmd.process_strings_regex = [
-            r"nginx.* \-c {CONFIG_PATH}".format(CONFIG_PATH=j.sals.fs.expanduser(self.config_path))
-        ]
+        cmd.process_strings_regex = [self.check_command_string]
         if not cmd.is_running():
             cmd.start()
 

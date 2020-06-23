@@ -468,7 +468,7 @@ class ThreebotServer(Base):
             self._packages = self._package_manager.get(self.instance_name)
         return self._packages
 
-    def start(self):
+    def start(self, wait: bool = False):
         # start default servers in the rack
 
         # mark app as started
@@ -493,6 +493,7 @@ class ThreebotServer(Base):
 
         # mark server as started
         self._started = True
+        self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
         self.rack.stop()
