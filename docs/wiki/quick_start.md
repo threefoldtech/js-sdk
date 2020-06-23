@@ -1,6 +1,6 @@
 # Quick Start with js-ng
 
-## Requirments
+## Requirments for container installation
 
 - Ubuntu 18.04 or later
 - Docker installed check [here](https://docs.docker.com/engine/install/ubuntu/)
@@ -10,6 +10,43 @@
   sudo apt-get install -y git python3 python3-pip python3-venv;
   pip3 install poetry pyinstaller;
   ```
+
+## Requirments for insystem installation
+
+- Ubuntu 18.04 or later, MacOS 10.9 or more
+- packages [python3, git, poetry, nginx, redis]
+
+- Install on ubuntu
+
+  ```bash
+  apt-get update
+  apt-get install -y git python3-venv python3-pip nginx redis-server;
+  pip3 install poetry
+  ```
+
+- MacOS
+  - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
+  - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
+  - git from [here](https://www.atlassian.com/git/tutorials/install-git)
+  - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
+
+## Installation in system (Experts)
+
+- Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
+- Install the js-ng
+
+  ```bash
+  cd js-sdk
+  poetry update
+  poetry install
+  poetry shell
+  jsng
+  ```
+
+- Then you'll find the jsng shell
+- Next step is to configure the identity [here](https://github.com/threefoldtech/js-ng/blob/development/docs/wiki/identity.md#L6)
+- You are ready to start threebot server now [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot.md#L145)
+- Congratulations threebot server is now started you can continue to make reservation and access the admin panel
 
 ## Getting started with 3sdk [Build your binary]
 
