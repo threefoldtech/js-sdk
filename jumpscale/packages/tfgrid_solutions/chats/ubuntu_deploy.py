@@ -58,10 +58,10 @@ class UbuntuDeploy(GedisChatBot):
 
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(DiskType, DiskType.SSD)
+        self.rootfs_type = DiskType.SSD
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
-        self.user_form_data["Root filesystem Type"] = "SSD"
+        self.user_form_data["Root filesystem Type"] = DiskType.SSD
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
 
     @chatflow_step(title="Container logs")

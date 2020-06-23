@@ -73,10 +73,10 @@ class FlistDeploy(GedisChatBot):
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = getattr(DiskType, DiskType.SSD)
+        self.rootfs_type = DiskType.SSD
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
-        self.user_form_data["Root filesystem Type"] = "SSD"
+        self.user_form_data["Root filesystem Type"] = DiskType.SSD
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
 
     @chatflow_step(title="Container ineractive & EntryPoint")
@@ -122,8 +122,8 @@ class FlistDeploy(GedisChatBot):
             vol_disk_size = form.int_ask("Please specify the volume size", required=True, default=10)
             vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
             form.ask()
-            self.vol_disk_type = getattr(DiskType, DiskType.SSD)
-            self.user_form_data["Volume Disk type"] = "SSD"
+            self.vol_disk_type = DiskType.SSD
+            self.user_form_data["Volume Disk type"] = DiskType.SSD
             self.user_form_data["Volume Size"] = vol_disk_size.value
             self.user_form_data["Volume mount point"] = vol_mount_point.value
 
