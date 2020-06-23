@@ -92,6 +92,7 @@ class GedisChatBot:
         self._current_step = 0
         self._steps_info = {}
         self._last_output = None
+        self._fetch_greenlet = None
         self._greenlet = None
         self._queue_out = gevent.queue.Queue()
         self._queue_in = gevent.queue.Queue()
@@ -178,9 +179,18 @@ class GedisChatBot:
         return self._execute_current_step()
 
     def get_work(self, restore=False):
+        if self._fetch_greenlet:
+            if not self._fetch_greenlet.ready():
+                self._fetch_greenlet.kill()
+
         if restore and self._last_output:
             return self._last_output
-        return self._queue_out.get()
+
+        self._fetch_greenlet = gevent.spawn(self._queue_out.get)
+        result = self._fetch_greenlet.get()
+
+        if not isinstance(result, gevent.GreenletExit):
+            return result
 
     def set_work(self, data):
         return self._queue_in.put(data)
