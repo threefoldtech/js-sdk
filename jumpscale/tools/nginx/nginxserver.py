@@ -4,7 +4,10 @@ from jumpscale.core.base import Base, fields
 
 class NginxServer(Base):
     name = fields.String(default="main")
-    config_path = fields.String(default="~/sandbox/cfg/nginx/main/nginx.conf")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.name, "nginx.conf")
 
     def install(self):
         """
