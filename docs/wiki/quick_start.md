@@ -46,7 +46,7 @@
 - Then you'll find the jsng shell
 - Next step is to configure the identity [here](https://github.com/threefoldtech/js-ng/blob/development/docs/wiki/identity.md#L6)
 - You are ready to start threebot server now [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot.md#L145)
-- Congratulations threebot server is now started you can continue to make reservation and access the admin panel
+- Congratulations threebot server is now started you can continue to access the admin panel and make reservations
 
 ## Getting started with 3sdk [Build your binary]
 
