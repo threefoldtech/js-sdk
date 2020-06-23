@@ -1,4 +1,4 @@
-# Deploy Ubuntu in the grid 
+# Deploy Ubuntu in the grid
 
 ## configuring identity
 
@@ -31,7 +31,7 @@ network = zos.network.create(r, ip_range="10.80.0.0/16", network_name="<network_
 # find all node from farm with id <farm_id>
 nodes = j.sals.zos.nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT")
 
-# add each node into the network        
+# add each node into the network
 for i, node in enumerate(nodes):
     iprange = f"10.80.{i+2}.0/24"
     zos.network.add_node(network, node.node_id, iprange)
@@ -59,7 +59,7 @@ for n2 in network.network_resources:
     print(n2.node_id, n2.iprange)
 ```
 
-## set-up network in Wireguard
+## Set-up network in Wireguard
 In order to have the network active and accessible from your local machine, a good way is to create the network configuration in Wireguard.
 To do this, copy the setup into wireguard:
 ```bash
@@ -168,21 +168,16 @@ def create_wallet(name):
 
 wallet = create_wallet("wallet_name")
 ```
-## Get FreeTFT to your wallet
-using [freetft](https://getfreetft.testnet.threefold.io/#/)
+## Get FreeTFT and TFT to your wallet
+See [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md)
 
-by adding ```wallet.address```
-
-## Exchange XLM to TFT
-using [Interstaller](https://testnet.interstellar.exchange/app/#/home)
-
-## Get balance of your wallet 
+## Get balance of your wallet
 ```python
 wallet.get_balance()
 ```
-## pay for your ubuntu container
+## Pay for your ubuntu container
 ```python
-j.sals.zos.billing.payout_farmers(wallet,reservation_response= registered_reservation) 
+j.sals.zos.billing.payout_farmers(wallet,reservation_response= registered_reservation)
 
 result = zos.reservation_result(registered_reservation.reservation_id)
 

@@ -95,17 +95,24 @@ Now the admin panel should available on the host and can be accesse through `<HO
 
 ## Create a new wallet
 
-First we need to setup the payment method wich is the wallet we will use to pay for the deployment machine. This can be done through the admin under `Wallet manager`.
+There are two options to be create a wallet, first is using the jsng shell where you will setup the wallet and can get FreeTFTs and TFTs. Second is through the admin dashboard where you will not be able to set up and recieve FreeTFTs and test TFTs.
 
-![solutions menu](images/wallet_manager.png)
+1. Using jsng shell:
 
-One of the following can be done:
+    See [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md)
 
-- **Create a new wallet**: You can create a new wallet by clicking on the `create wallet` button then entering the name of the wallet to be created. Make sure you save the secret of the wallet created to be able get the wallet incase it was lost. Transfer the amount of tokens you need to your wallet to have enough funds for the deployment.
-![Create wallet](images/create_wallet.png)
+2. Using admin panel:
+    First we need to setup the payment method wich is the wallet we will use to pay for the deployment machine. This can be done through the admin under `Wallet manager`.
 
-- **Import an existing wallet**:If you already have a stellar wallet then you can simply import it by clicking on `import wallet` then entering the wallet name and secret.
-![Import wallet](images/import_wallet.png)
+    ![solutions menu](images/wallet_manager.png)
+
+    One of the following can be done:
+
+    - **Create a new wallet**: You can create a new wallet by clicking on the `create wallet` button then entering the name of the wallet to be created. Make sure you save the secret of the wallet created to be able get the wallet incase it was lost. Transfer the amount of tokens you need to your wallet to have enough funds for the deployment.
+    ![Create wallet](images/create_wallet.png)
+
+    - **Import an existing wallet**:If you already have a stellar wallet then you can simply import it by clicking on `import wallet` then entering the wallet name and secret.
+    ![Import wallet](images/import_wallet.png)
 
 Now that the wallet is setup, you are ready for your first deployment.
 
