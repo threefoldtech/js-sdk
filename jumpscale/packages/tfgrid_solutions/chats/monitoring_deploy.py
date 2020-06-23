@@ -72,7 +72,7 @@ class MonitoringDeploy(GedisChatBot):
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
 
-        self.prometheus_rootfs_type = getattr(DiskType, "SSD")
+        self.prometheus_rootfs_type = getattr(DiskType, DiskType.SSD)
         self.user_form_data["Prometheus CPU"] = cpu.value
         self.user_form_data["Prometheus Memory"] = memory.value
         self.user_form_data["Prometheus Root filesystem Type"] = "SSD"
@@ -89,16 +89,10 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Prometheus volume details")
     def prometheus_volume_details(self):
         form = self.new_form()
-        disk = form.drop_down_choice(
-            "Please choose the type of disk for the volume to be attached to the Prometheus container",
-            ["SSD", "HDD"],
-            required=True,
-            default="SSD",
-        )
         vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
         form.ask()
-        self.prometheus_vol_disk_type = getattr(DiskType, disk.value)
-        self.user_form_data["Prometheus Volume Disk type"] = disk.value
+        self.prometheus_vol_disk_type = getattr(DiskType, DiskType.SSD)
+        self.user_form_data["Prometheus Volume Disk type"] = "SSD"
         self.user_form_data["Prometheus Volume Size"] = vol_disk_size.value
 
     @chatflow_step(title="Grafana container resources")
@@ -110,7 +104,7 @@ class MonitoringDeploy(GedisChatBot):
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.grafana_rootfs_type = getattr(DiskType, "SSD")
+        self.grafana_rootfs_type = getattr(DiskType, DiskType.SSD)
         self.user_form_data["Grafana CPU"] = cpu.value
         self.user_form_data["Grafana Memory"] = memory.value
         self.user_form_data["Grafana Root filesystem Type"] = "SSD"
@@ -131,7 +125,7 @@ class MonitoringDeploy(GedisChatBot):
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.redis_rootfs_type = getattr(DiskType, "SSD")
+        self.redis_rootfs_type = getattr(DiskType, DiskType.SSD)
         self.user_form_data["Redis CPU"] = cpu.value
         self.user_form_data["Redis Memory"] = memory.value
         self.user_form_data["Redis Root filesystem Type"] = "SSD"
