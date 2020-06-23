@@ -1,0 +1,41 @@
+from jumpscale.god import j
+from jumpscale.core.base import Base, fields
+
+
+class RedisServer(Base):
+    name = fields.String(default="redis")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cmd = j.tools.startupcmd.get(self.name)
+
+    @property
+    def is_installed(self):
+        j.sals.process.execute('dpkg -s redis-server')[0] == 0
+
+    def install(self):
+        """
+        install redis-server
+        """
+        j.sals.process.execute("apt-get install -y redis-server", showout=True, die=False)
+
+    def start(self, host: str = "127.0.0.1", port: int = 6379):
+        """start redis server in tmux
+
+        Args:
+            host (str, optional): redis bind address. Defaults to "127.0.0.1".
+            port (int, optional): redis port. Defaults to 6379.
+        """
+        self.cmd.start_cmd = f"redis-server --bind {host} --port {port}"
+        self.cmd.start()
+
+    def stop(self):
+        """stop redis server
+        """
+        self.cmd.stop(force=True)
+
+    def restart(self):
+        """restart redis server
+        """
+        self.stop()
+        self.start()
