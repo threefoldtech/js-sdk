@@ -717,7 +717,7 @@ watchdog = "^0.9.0"
 zipp = "^3.1.0"
 
 [package.source]
-reference = "693493128917d3da4ff0295083df84116559ef75"
+reference = "d2afd46a6d3531f2807858c6fc75a6ae5a97846b"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1683,7 +1683,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "227a3deb40d2c43a1cd1f2f577d8347f6cff9b74381bbf67b3d3d1ef21c96d65"
+content-hash = "fc7e33a316626cfd32fa3449747fb2db9b710c675f9e0c99ab17c78c0c78dc46"
 python-versions = "^3.6"
 
 [metadata.files]
