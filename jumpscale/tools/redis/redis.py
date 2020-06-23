@@ -11,7 +11,7 @@ class RedisServer(Base):
 
     @property
     def installed(self):
-        return j.sals.process.execute('dpkg -s redis-server')[0] == 0
+        return j.sals.process.execute('which redis-server')[0] == 0
 
     def install(self):
         """
