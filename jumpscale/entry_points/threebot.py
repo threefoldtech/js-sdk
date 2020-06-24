@@ -30,9 +30,6 @@ def start(identity=None):
                 "{RED}Identity %s is not set, please configure it or start with the default one" % identity
             )
             return
-    else:
-        j.core.identity.set_default("default")
-        j.core.identity.me.save()
 
     if not j.core.identity.list_all():
         identity_data = IdentityManager()
