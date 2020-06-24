@@ -7,14 +7,24 @@
 
 - Install packages on Ubuntu
 
+  These are for certbot:
+  ```bash
+  apt-get install -y software-properties-common;
+  add-apt-repository universe;
+  add-apt-repository ppa:certbot/certbot;
+  ```
+
+  Then:
   ```bash
   apt-get update
-  apt-get install -y git python3-venv python3-pip nginx redis-server;
+  apt-get install -y git python3-venv python3-pip redis-server;
+  apt-get install -y nginx certbot python-certbot-nginx;
   pip3 install poetry
   ```
 
 - Install packages on MacOS
   - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
+  - certbot `brew install certbot`
   - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
   - git from [here](https://www.atlassian.com/git/tutorials/install-git)
   - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
@@ -103,19 +113,17 @@ For this tutorial one day will be more than enough.
 
 ![choose network expiration](images/network_expiration.png)
 
+The nodes running on the TFGrid all communicate over IPv6. While this is very convenient for the nodes, not everyone has access to IPv6 already. For this reason we allow people to configure `entrypoint` using IPv4 address.
+
+This step lets you choose between IPv6 or IPv4 for your `entrypoint`. If you are not sure what to choose, pick IPv4.
+
+![choose entrypoint type](images/network_ipversion.png)
+
 Then choose the farms on which the container can be deployed on. The farms are basically a group of nodes where multiple solutions can be deployed on. You can either choose the farm name from the drop down list or leave it empty to randomly choose any farm.
 
 ![Choose farms](images/network_farms.png)
 
-The following step is to configure an `entrypoint` into your network so you can actually access your network from your device (laptop/PC/mobile). An `entrypoint` is responsible to route the traffic coming from your device to all the other nodes of the network.
-
-The nodes running on the TFGrid all communicate over IPv6. While this is very convenient for the nodes, not everyone has access to IPv6 already. For this reason we allow people to configure `entrypoint` using IPv4 address.
-
-The fifth step lets you choose between IPv6 or IPv4 for your `entrypoint`. If you are not sure what to choose, pick IPv4.
-
-![choose entrypoint type](images/network_ipversion.png)
-
-Sixth step is there to let you configure the subnet used by your network. To make it easy here we just let the wizard pick one for us.
+This step is there to let you configure the subnet used by your network. To make it easy here we just let the wizard pick one for us.
 
 ![choose network subnet](images/network_ip.png)
 
@@ -161,23 +169,23 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 
     ![SSH key](images/ubuntu_public_key.png)
 
-7. The next step is to choose the expiration time of your Ubuntu reservation. Each capacity reservation made on the grid is always bound to an expiration date. Once the date is reached, the capacity is released back to the grid and your workloads deleted.
+7. After that you will encounter an optional question asking for a node ID to deploy the container on. If there is a specific node you want your container to be on then provide its ID otherwise leave it empty. To discover nodes where to deploy your solution the easiest place to look for them is the explorer: https://explorer.grid.tf
+
+    ![Choose node](images/ubuntu_node_id.png)
+
+8. If you left the nodeid empty, you can then choose the farms on which the container can be deployed on. The farms are basically a group of nodes where multiple solutions can be deployed on. You can either choose the farm name from the drop down list or leave it empty to randomly choose any farm.
+
+    ![Choose farms](images/ubuntu_farms.png)
+
+9. You can now choose an IP address that will be given to your Ubuntu container in your network. This is the IP address you will be using to access the container.
+
+    ![Choose IP](images/ubuntu_ip.png)
+
+10. The next step is to choose the expiration time of your Ubuntu reservation. Each capacity reservation made on the grid is always bound to an expiration date. Once the date is reached, the capacity is released back to the grid and your workloads deleted.
 
     For this tutorial one day will be more than enough.
 
     ![Expiration time](images/ubuntu_expiration.png)
-
-8. After that you will encounter an optional question asking for a node ID to deploy the container on. If there is a specific node you want your container to be on then provide its ID otherwise leave it empty. To discover nodes where to deploy your solution the easiest place to look for them is the explorer: https://explorer.grid.tf
-
-    ![Choose node](images/ubuntu_node_id.png)
-
-9. If you left the nodeid empty, you can then choose the farms on which the container can be deployed on. The farms are basically a group of nodes where multiple solutions can be deployed on. You can either choose the farm name from the drop down list or leave it empty to randomly choose any farm.
-
-    ![Choose farms](images/ubuntu_farms.png)
-
-10. You can now choose an IP address that will be given to your Ubuntu container in your network. This is the IP address you will be using to access the container.
-
-    ![Choose IP](images/ubuntu_ip.png)
 
 11. Then read carefully the options you selected previously until this point in the chatflow and confirm them by clicking next to proceed.
 

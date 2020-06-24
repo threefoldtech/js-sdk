@@ -75,7 +75,7 @@ class MonitoringDeploy(GedisChatBot):
         self.prometheus_rootfs_type = DiskType.SSD
         self.user_form_data["Prometheus CPU"] = cpu.value
         self.user_form_data["Prometheus Memory"] = memory.value
-        self.user_form_data["Prometheus Root filesystem Type"] = DiskType.SSD
+        self.user_form_data["Prometheus Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Prometheus Root filesystem Size"] = rootfs_size.value
 
         self.prometheus_query["mru"] = math.ceil(self.user_form_data["Prometheus Memory"] / 1024)
@@ -92,7 +92,7 @@ class MonitoringDeploy(GedisChatBot):
         vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
         form.ask()
         self.prometheus_vol_disk_type = DiskType.SSD
-        self.user_form_data["Prometheus Volume Disk type"] = DiskType.SSD
+        self.user_form_data["Prometheus Volume Disk type"] = DiskType.SSD.name
         self.user_form_data["Prometheus Volume Size"] = vol_disk_size.value
 
     @chatflow_step(title="Grafana container resources")
@@ -107,7 +107,7 @@ class MonitoringDeploy(GedisChatBot):
         self.grafana_rootfs_type = DiskType.SSD
         self.user_form_data["Grafana CPU"] = cpu.value
         self.user_form_data["Grafana Memory"] = memory.value
-        self.user_form_data["Grafana Root filesystem Type"] = DiskType.SSD
+        self.user_form_data["Grafana Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Grafana Root filesystem Size"] = rootfs_size.value
 
         self.grafana_query["mru"] = math.ceil(self.user_form_data["Grafana Memory"] / 1024)
@@ -128,7 +128,7 @@ class MonitoringDeploy(GedisChatBot):
         self.redis_rootfs_type = DiskType.SSD
         self.user_form_data["Redis CPU"] = cpu.value
         self.user_form_data["Redis Memory"] = memory.value
-        self.user_form_data["Redis Root filesystem Type"] = DiskType.SSD
+        self.user_form_data["Redis Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Redis Root filesystem Size"] = rootfs_size.value
 
         self.redis_query["mru"] = math.ceil(self.user_form_data["Redis Memory"] / 1024)

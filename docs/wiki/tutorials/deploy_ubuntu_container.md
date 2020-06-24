@@ -29,7 +29,7 @@ r = zos.reservation_create()
 network = zos.network.create(r, ip_range="10.80.0.0/16", network_name="<network_name>")
 
 # find all node from farm with id <farm_id>
-nodes = j.sals.zos.nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT")
+nodes = list(j.sals.zos.nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT"))
 
 # add each node into the network
 for i, node in enumerate(nodes):
@@ -46,8 +46,7 @@ wg_config = zos.network.add_access(network, node.node_id, "10.80.100.0/24", ipv4
 expiration = j.data.time.get().timestamp +3900
 # register the reservation
 registered_reservation = zos.reservation_register(r, expiration)
-time.sleep(5)
-# inspect the result of the reservation provisioning
+# inspect the result of the reservation provisioning might take between 1 to 2 mins before the result is reported, otherwise will return empty list
 result = zos.reservation_result(registered_reservation.reservation_id)
 
 print("wireguard configuration")
@@ -109,10 +108,8 @@ zos.container.create(reservation=r,
                     entrypoint='/bin/bash /start.sh')
 
 expiration = j.data.time.get().timestamp +3900
-# register the reservation
-registered_reservation = zos.reservation_register(r, expiration)
-time.sleep(5)
-# inspect the result of the reservation provisioning
+# register the reservation with FreeTFT
+registered_reservation = zos.reservation_register(r, expiration, currencies=["FreeTFT"])
 ```
 ## deploy ubuntu container access using Web only COREX
 
