@@ -61,7 +61,7 @@ class UbuntuDeploy(GedisChatBot):
         self.rootfs_type = DiskType.SSD
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
-        self.user_form_data["Root filesystem Type"] = DiskType.SSD
+        self.user_form_data["Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
 
     @chatflow_step(title="Container logs")
