@@ -5,6 +5,8 @@ import click
 from jumpscale.loader import j
 from jumpscale.threesdk.identitymanager import IdentityManager
 
+SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 16000}
+
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
@@ -44,17 +46,21 @@ def start(identity=None):
         me.register()
         me.save()
 
-    ports = [8999, 80, 443, 16000]
     used_ports = []
-    for port in ports:
-        if j.sals.nettools.tcp_connection_test(ipaddr="localhost", port=port, timeout=1):
-            used_ports.append(port)
+    ports_error_msg = ""
+    for service_name, service_port in SERVICES_PORTS.items():
+        if j.sals.nettools.tcp_connection_test(ipaddr="localhost", port=service_port, timeout=1):
+            used_ports.append((service_name, service_port))
+            ports_error_msg += f" {service_name}:{service_port}"
+
+    msg = (
+        f"{{RED}}Threebot server is running already or ports{{CYAN}}{ports_error_msg}{{RED}}\n"
+        "are being held by your system\n"
+        f"Please use {{WHITE}}threebot stop{{RED}} to stop your threebot server or free the ports to be able to start the threebot server"
+    )
 
     if used_ports:
-        j.tools.console.printcolors(
-            f"{{RED}}Threebot server is running already or ports {{CYAN}}{used_ports}{{RED}} are being held by your system\n"
-            f"Please use {{WHITE}}threebot stop{{RED}} stop your threebot server or free the ports to be able to start the threebot server"
-        )
+        j.tools.console.printcolors(msg)
         sys.exit(1)
 
     cmd = j.tools.startupcmd.get("threebot_default")
