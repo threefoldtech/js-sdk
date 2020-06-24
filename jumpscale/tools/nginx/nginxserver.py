@@ -20,7 +20,9 @@ class NginxServer(Base):
         Returns:
             bool: True if nginx is installed
         """
-        return j.sals.process.execute("which nginx")[0] == 0
+        import shutil
+
+        return shutil.which("nginx")
 
     def start(self):
         """

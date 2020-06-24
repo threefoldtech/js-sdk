@@ -16,7 +16,9 @@ class RedisServer(Base):
         Returns:
             bool: True if redis server is installed
         """
-        return j.sals.process.execute("which redis-server")[0] == 0
+        import shutil
+
+        return shutil.which("redis-server")
 
     def start(self, host: str = "127.0.0.1", port: int = 6379):
         """start redis server in tmux
