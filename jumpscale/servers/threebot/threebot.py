@@ -3,6 +3,7 @@ from jumpscale.god import j
 import imp
 import os
 import toml
+import shutil
 from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
@@ -477,7 +478,6 @@ class ThreebotServer(Base):
 
     def check_dependencies(self):
         install_msg = "Visit https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md for installation guide"
-        import shutil
 
         if not self.nginx.installed:
             raise j.exceptions.NotFound(f"nginx is not installed.\n{install_msg}")
