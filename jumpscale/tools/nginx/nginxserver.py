@@ -1,5 +1,6 @@
 from jumpscale.god import j
 from jumpscale.core.base import Base, fields
+import shutil
 
 
 class NginxServer(Base):
@@ -20,8 +21,6 @@ class NginxServer(Base):
         Returns:
             bool: True if nginx is installed
         """
-        import shutil
-
         return shutil.which("nginx")
 
     def start(self):

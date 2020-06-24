@@ -1,5 +1,6 @@
 from jumpscale.god import j
 from jumpscale.core.base import Base, fields
+import shutil
 
 
 class RedisServer(Base):
@@ -16,8 +17,6 @@ class RedisServer(Base):
         Returns:
             bool: True if redis server is installed
         """
-        import shutil
-
         return shutil.which("redis-server")
 
     def start(self, host: str = "127.0.0.1", port: int = 6379):
