@@ -69,14 +69,13 @@ class MonitoringDeploy(GedisChatBot):
             "Please add how many CPU cores are needed for the Prometheus container", default=1, required=True
         )
         memory = form.int_ask("Please add the amount of memory in MB", default=3072, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
 
-        self.prometheus_rootfs_type = getattr(DiskType, disk.value)
+        self.prometheus_rootfs_type = DiskType.SSD
         self.user_form_data["Prometheus CPU"] = cpu.value
         self.user_form_data["Prometheus Memory"] = memory.value
-        self.user_form_data["Prometheus Root filesystem Type"] = disk.value
+        self.user_form_data["Prometheus Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Prometheus Root filesystem Size"] = rootfs_size.value
 
         self.prometheus_query["mru"] = math.ceil(self.user_form_data["Prometheus Memory"] / 1024)
@@ -90,16 +89,10 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Prometheus volume details")
     def prometheus_volume_details(self):
         form = self.new_form()
-        disk = form.drop_down_choice(
-            "Please choose the type of disk for the volume to be attached to the Prometheus container",
-            ["SSD", "HDD"],
-            required=True,
-            default="SSD",
-        )
         vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
         form.ask()
-        self.prometheus_vol_disk_type = getattr(DiskType, disk.value)
-        self.user_form_data["Prometheus Volume Disk type"] = disk.value
+        self.prometheus_vol_disk_type = DiskType.SSD
+        self.user_form_data["Prometheus Volume Disk type"] = DiskType.SSD.name
         self.user_form_data["Prometheus Volume Size"] = vol_disk_size.value
 
     @chatflow_step(title="Grafana container resources")
@@ -109,13 +102,12 @@ class MonitoringDeploy(GedisChatBot):
             "Please add how many CPU cores are needed for the Grafana container", default=1, required=True
         )
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.grafana_rootfs_type = getattr(DiskType, disk.value)
+        self.grafana_rootfs_type = DiskType.SSD
         self.user_form_data["Grafana CPU"] = cpu.value
         self.user_form_data["Grafana Memory"] = memory.value
-        self.user_form_data["Grafana Root filesystem Type"] = disk.value
+        self.user_form_data["Grafana Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Grafana Root filesystem Size"] = rootfs_size.value
 
         self.grafana_query["mru"] = math.ceil(self.user_form_data["Grafana Memory"] / 1024)
@@ -131,13 +123,12 @@ class MonitoringDeploy(GedisChatBot):
         form = self.new_form()
         cpu = form.int_ask("Please add how many CPU cores are needed for the redis container", default=1, required=True)
         memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        disk = form.single_choice("Select the storage type for your root filesystem", ["SSD", "HDD"], default="SSD")
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.redis_rootfs_type = getattr(DiskType, disk.value)
+        self.redis_rootfs_type = DiskType.SSD
         self.user_form_data["Redis CPU"] = cpu.value
         self.user_form_data["Redis Memory"] = memory.value
-        self.user_form_data["Redis Root filesystem Type"] = disk.value
+        self.user_form_data["Redis Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Redis Root filesystem Size"] = rootfs_size.value
 
         self.redis_query["mru"] = math.ceil(self.user_form_data["Redis Memory"] / 1024)

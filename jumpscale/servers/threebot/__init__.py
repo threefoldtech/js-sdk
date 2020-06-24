@@ -8,6 +8,11 @@ class ThreebotServerFactory(StoredFactory):
             if server.started:
                 return server
 
+    def start_default(self, wait=False):
+        server = self.get("default")
+        server.save()
+        server.start(wait=wait)
+
 
 def export_module_as():
     from .threebot import ThreebotServer

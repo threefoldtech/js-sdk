@@ -8,56 +8,59 @@
 
 ## Requirments
 
-- [JS-NG](https://threefoldtech.github.io/js-ng/wiki/#/./installation)
+- JS-NG
 - Redis (Install using: `apt install redis`)
 - Nginx (Install using: `apt install nginx`)
 - Certbot [Install](https://certbot.eff.org/lets-encrypt/ubuntuxenial-nginx.html)
 - DO Machine and domain
 - A test package [here](https://github.com/threefoldtech/www_threefold.tech)
 
-## Creating jsng package
+## Creating jsng package (Automatically with jsng and threebotserver)
+
+- See the quick start how to install jsng with sdk [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#L1)
 
 - Upgrade the package to jsng, modify package.toml to be the following
 
   ```toml
-  name = "threefold_tech" # package name
-  ports = [ 80, 443] # package ports
+  name = "threefold_tech"
+  ports = [80, 443]
+
   [[static_dirs]]
-  name = "html" # static location name
-  path_url = "threefold_tech" # access location path localhost/threefold_tech
-  path_location = "html" # served files location
-  index = "index.html" # index location
+  name = "html"
+  path_url = "threefold_tech" # access location path example localhost/threefold_tech
+  path_location = "html"
+  index = "index.html"
+
+  [[servers]]
+  name = "threefold_tech"
+  ports = [80, 443]
+  domain = "waleed.grid.tf" # your domain name
+  letsencryptemail = "aa@example.com" # email to get notifications from lets encrypt
+
+  [[servers.locations]]
+  type = "proxy"
+  host = "127.0.0.1"
+  port = 80
+  name = "threefold_tech"
+  path_url = "/"
+  path_dest = "/threefold_tech/"
   ```
 
 - Example package structure
 
   ![cert](../images/package.png)
 
-- Get nginx and threebot server instances
+
+- Start threebot server
 
   ```python
-  nginx = j.sals.nginx.get("main")
-  nginx.configure()
-  nginx.save()
-  server = j.servers.threebot.get("threefold_tech")
-  server.packages.add("/root/js-ng/jumpscale/packages/threefold_tech")
-  server.save()
-  server.start()
+  threebot_server = j.servers.threebot.get("default",   domain="<optional><your-threebotdomain>", email="<your email><required if you want to   use domain and ssl for certbot>")
+  threebot_server.start()
   ```
 
-- Locations should be like the following
+- More about starting 3bot server start [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot.md)
 
-  ![cert](../images/locations_main.png)
-
-- start nginx
-
-  ```bash
-  nginx -c ~/sandbox/cfg/nginx/main/nginx.conf
-  ```
-
-- Make sure by: `curl http://localhost/threefold_tech/threefold_tech`
-
-## Create website with custom locations
+## Create website with custom locations (Manually)
 
 - Get nginx sal instance
 

@@ -159,7 +159,7 @@ Some components will be defined by default based on the parent package classes i
   using this command in your bash shell
 
   ```bash
-  sudo setcap cap_net_bind_service=+ep /path/to/program
+  sudo setcap cap_net_bind_service=+ep `which nginx`
   ```
 
   - `/path/to/program` usually be: `/usr/sbin/nginx` depending on your installation you can get it via executing `which nginx` in your terminal

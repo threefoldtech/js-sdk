@@ -18,10 +18,18 @@ class ChatFlows(BaseActor):
         return {"sessionId": chatflow.session_id}
 
     @actor_method
-    def fetch(self, session_id: str) -> dict:
+    def fetch(self, session_id: str, restore: bool = False) -> dict:
         chatflow = self.sessions.get(session_id)
-        return chatflow.get_work()
-    
+        if not chatflow:
+            return {"payload":{"category": "end"}}
+        
+        result = chatflow.get_work(restore)
+
+        if result.get("category") == "end":
+            self.sessions.pop(session_id)
+
+        return result
+
     @actor_method
     def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)

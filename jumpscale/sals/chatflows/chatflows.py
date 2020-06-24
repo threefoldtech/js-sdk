@@ -91,6 +91,8 @@ class GedisChatBot:
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
+        self._last_output = None
+        self._fetch_greenlet = None
         self._greenlet = None
         self._queue_out = gevent.queue.Queue()
         self._queue_in = gevent.queue.Queue()
@@ -176,8 +178,19 @@ class GedisChatBot:
         self._greenlet.kill()
         return self._execute_current_step()
 
-    def get_work(self):
-        return self._queue_out.get()
+    def get_work(self, restore=False):
+        if self._fetch_greenlet:
+            if not self._fetch_greenlet.ready():
+                self._fetch_greenlet.kill()
+
+        if restore and self._last_output:
+            return self._last_output
+
+        self._fetch_greenlet = gevent.spawn(self._queue_out.get)
+        result = self._fetch_greenlet.get()
+
+        if not isinstance(result, gevent.GreenletExit):
+            return result
 
     def set_work(self, data):
         return self._queue_in.put(data)
@@ -190,6 +203,7 @@ class GedisChatBot:
             self.step_info["slide"] += 1
 
         output = {"info": self.info, "payload": data}
+        self._last_output = output
         self._queue_out.put(output)
 
     def send_error(self, message, **kwargs):
