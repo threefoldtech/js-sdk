@@ -22,6 +22,7 @@ stellar-sdk = "2.4.1"
 pypng = "^0.0.20"
 pyqrcode = "^1.2.1"
 beaker = "^1.11.0"
+certbot-nginx = "1.5.0"
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
