@@ -416,22 +416,24 @@ class ReservationChatflow:
                 name = metadata["name"]
             else:
                 solution_type = self.check_solution_type(reservation)
+                if type(solution_type) is not str:
+                    solution_type = solution_type.value
                 info = {}
                 name = f"unknown_{reservation.id}"
-                if solution_type == SolutionType.Unknown:
+                if solution_type == SolutionType.Unknown.value:
                     continue
-                elif solution_type == SolutionType.Network:
+                elif solution_type == SolutionType.Network.value:
                     name = reservation.data_reservation.networks[0].name
                     if name in networks:
                         continue
                     networks.append(name)
-                elif solution_type == SolutionType.DelegatedDomain:
+                elif solution_type == SolutionType.DelegatedDomain.value:
                     info = self.get_solution_domain_delegates_info(reservation)
                     if not info.get("Solution name"):
                         name = f"unknown_{reservation.id}"
                     else:
                         name = info["Solution name"]
-                elif solution_type == SolutionType.Exposed:
+                elif solution_type == SolutionType.Exposed.value:
                     info = self.get_solution_exposed_info(reservation)
                     info["Solution name"] = name
                     name = info["Domain"]
@@ -442,7 +444,14 @@ class ReservationChatflow:
                 name = f"{name}_{count}"
             # append reservation
             reservations_data.append(
-                {"id": reservation.id, "name": name, "solution_type": solution_type, "form_info": info}
+                {
+                    "id": reservation.id,
+                    "name": name,
+                    "solution_type": solution_type,
+                    "form_info": info,
+                    "status": reservation.next_action.name,
+                    "reservation_date": reservation.epoch.ctime(),
+                }
             )
         return reservations_data
 
