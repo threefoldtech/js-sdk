@@ -44,6 +44,19 @@ def start(identity=None):
         me.register()
         me.save()
 
+    ports = [8999, 80, 443, 16000]
+    used_ports = []
+    for port in ports:
+        if j.sals.nettools.tcp_connection_test(ipaddr="localhost", port=port, timeout=1):
+            used_ports.append(port)
+
+    if used_ports:
+        j.tools.console.printcolors(
+            f"{{RED}}Threebot server is running already or ports {{CYAN}}{used_ports}{{RED}} are being held by your system\n"
+            f"Please use {{WHITE}}threebot stop{{RED}} stop your threebot server or free the ports to be able to start the threebot server"
+        )
+        sys.exit(1)
+
     cmd = j.tools.startupcmd.get("threebot_default")
     cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
     cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string, "nginx.*"]
