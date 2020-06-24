@@ -17,7 +17,7 @@
   Then:
   ```bash
   apt-get update
-  apt-get install -y git python3-venv python3-pip redis-server;
+  apt-get install -y git python3-venv python3-pip redis-server tmux;
   apt-get install -y nginx certbot python-certbot-nginx;
   pip3 install poetry
   ```
@@ -28,6 +28,7 @@
   - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
   - git from [here](https://www.atlassian.com/git/tutorials/install-git)
   - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
+  - tmux `brew install tmux`
 
 ## Installation in system (Experts)
 
