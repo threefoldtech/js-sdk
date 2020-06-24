@@ -480,6 +480,12 @@ class ThreebotServer(Base):
 
         if not self.nginx.installed:
             raise j.exceptions.NotFound(f"nginx is not installed.\n{install_msg}")
+        rc, _, _ = j.sals.process.execute("which certbot")
+        if rc:
+            raise j.exceptions.NotFound(f"certbot is not installed.\n{install_msg}")
+        rc, _, _ = j.sals.process.execute("dpkg -l python-certbot-nginx")
+        if rc:
+            raise j.exceptions.NotFound(f"python-certbot-nginx is not installed.\n{install_msg}")
         if not self.redis.installed:
             raise j.exceptions.NotFound(f"redis is not installed.\n{install_msg}")
         rc, _, _ = j.sals.process.execute("which tmux")
