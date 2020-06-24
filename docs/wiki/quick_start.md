@@ -7,14 +7,24 @@
 
 - Install packages on Ubuntu
 
+  These are for certbot:
+  ```bash
+  apt-get install -y software-properties-common;
+  add-apt-repository universe;
+  add-apt-repository ppa:certbot/certbot;
+  ```
+
+  Then:
   ```bash
   apt-get update
-  apt-get install -y git python3-venv python3-pip nginx redis-server;
+  apt-get install -y git python3-venv python3-pip redis-server;
+  apt-get install -y nginx certbot python-certbot-nginx;
   pip3 install poetry
   ```
 
 - Install packages on MacOS
   - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
+  - certbot `brew install certbot`
   - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
   - git from [here](https://www.atlassian.com/git/tutorials/install-git)
   - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
