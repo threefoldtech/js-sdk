@@ -667,7 +667,9 @@ class ReservationChatflow:
 
         reservation = self._explorer.reservations.get(rid)
         while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize()
+            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+                granularity=["minute", "second"]
+            )
             deploying_message = f"""
 # Payment being processed...\n
 Deployment will be cancelled if payment is not successful {remaning_time}
@@ -739,7 +741,9 @@ Deployment will be cancelled if payment is not successful {remaning_time}
 
         reservation = self._explorer.reservations.get(rid)
         while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize()
+            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+                granularity=["minute", "second"]
+            )
             deploying_message = f"""
 # Deploying...\n
 Deployment will be cancelled if it is not successful {remaning_time}
