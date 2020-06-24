@@ -29,13 +29,23 @@
   poetry update
   poetry install
   poetry shell
-  jsng
   ```
 
-- Then you'll find the jsng shell
-- Next step is to configure the identity [here](https://github.com/threefoldtech/js-ng/blob/development/docs/wiki/identity.md#L6)
-- You are ready to start threebot server now [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot.md#L145)
-- Congratulations threebot server is now started you can continue to access the admin panel and make reservations
+- After that we will just do
+
+  ```bash
+  threebot start
+  ```
+
+- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+
+- Then it will start threebot server you will see some thing like that
+
+  ![configure](images/identity_new.png)
+
+- After success you can visit the admin dashboard at http://localhost and start creating reservations
+
+  ![configure](images/success.png)
 
 ## Create a reservation via jsng Shell (without admin panel)
 

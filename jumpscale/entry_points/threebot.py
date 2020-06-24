@@ -148,39 +148,48 @@ class IdentityManager:
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
-@click.option("--email", default=None, help="threebot email registerd with in 3bot app")
-@click.option("--words", default=None, help="seed phrase of the user from 3bot app")
-@click.option("--explorer", default=None, help="which explorer network to use: mainnet, testnet, devnet")
-def start(identity=None, email=None, words=None, explorer=None):
+def start(identity=None):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
 
     usage: threebot start
-    or: threebot start --identity <identity> --email <email> --words <words> --explorer <explorer>
+    or: threebot start --identity <identity> --explorer <explorer>
 
     Args:
         identity (str, optional): threebot name. Defaults to None.
-        email (str, optional): threebot email. Defaults to None.
-        words (str, optional): seed phrase of the user. Defaults to None.
         explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
-    if identity or email or words or explorer or not j.core.identity.list_all():
-        identity_data = IdentityManager(identity=identity, email=email, words=words, explorer=explorer)
-        identity, email, words, explorer = identity_data.ask_identity(identity, explorer)
+    if identity:
+        if j.core.identity.find(identity):
+            print(f"Setting default identity to {identity}\nStarting threebot server...")
+            j.core.identity.set_default(identity)
+            j.core.identity.me.save()
+        else:
+            j.tools.console.printcolors(
+                "{RED}Identity %s is not set, please configure it or start with the default one" % identity
+            )
+            return
+    else:
+        j.core.identity.set_default("default")
+        j.core.identity.me.save()
+
+    if not j.core.identity.list_all():
+        identity_data = IdentityManager()
+        identity, email, words, explorer = identity_data.ask_identity()
         me = j.core.identity.new(
             "default", tname=identity, email=email, words=words, explorer_url=f"https://{explorer}/explorer"
         )
         me.register()
         me.save()
-        j.core.identity.set_default("default")
 
     cmd = j.tools.startupcmd.get("threebot_default")
     cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
     cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string, "nginx.*"]
     cmd.ports = [8000, 8999]
     cmd.start()
-    print("\n✅ Threebot server started")
+    print("\n✅ Threebot server started\n")
+    j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n")
 
 
 @click.command()
