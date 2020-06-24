@@ -1,9 +1,9 @@
+import sys
+
 import click
 
 from jumpscale.loader import j
 from jumpscale.threesdk.identitymanager import IdentityManager
-
-NETWORKS = {"mainnet": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf", "devnet": "explorer.devnet.grid.tf"}
 
 
 @click.command()
@@ -29,13 +29,17 @@ def start(identity=None):
             j.tools.console.printcolors(
                 "{RED}Identity %s is not set, please configure it or start with the default one" % identity
             )
-            return
+            sys.exit(1)
 
     if not j.core.identity.list_all():
         identity_data = IdentityManager()
-        identity, email, words, explorer = identity_data.ask_identity()
+        identity_info = identity_data.ask_identity()
         me = j.core.identity.new(
-            "default", tname=identity, email=email, words=words, explorer_url=f"https://{explorer}/explorer"
+            "default",
+            tname=identity_info.identity,
+            email=identity_info.email,
+            words=identity_info.words,
+            explorer_url=f"https://{identity_info.explorer}/explorer",
         )
         me.register()
         me.save()
