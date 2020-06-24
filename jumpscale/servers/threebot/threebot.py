@@ -419,6 +419,7 @@ class ThreebotServer(Base):
         self._packages = None
         self._started = False
         self._nginx = None
+        self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
 
@@ -431,6 +432,12 @@ class ThreebotServer(Base):
         if self._nginx is None:
             self._nginx = j.tools.nginx.get("default")
         return self._nginx
+
+    @property
+    def redis(self):
+        if self._redis is None:
+            self._redis = j.tools.redis.get("default")
+        return self._redis
 
     @property
     def db(self):
@@ -468,6 +475,32 @@ class ThreebotServer(Base):
             self._packages = self._package_manager.get(self.instance_name)
         return self._packages
 
+    def check_dependencies(self):
+        install_msg = "Visit https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md for installation guide"
+        import shutil
+
+        if not self.nginx.installed:
+            raise j.exceptions.NotFound(f"nginx is not installed.\n{install_msg}")
+
+        ret = shutil.which("certbot")
+        if not ret:
+            raise j.exceptions.NotFound(f"certbot is not installed.\n{install_msg}")
+
+        rc, out, err = j.sals.process.execute("certbot plugins")
+        if "* nginx" not in out:
+            raise j.exceptions.NotFound(f"python-certbot-nginx is not installed.\n{install_msg}")
+
+        if not self.redis.installed:
+            raise j.exceptions.NotFound(f"redis is not installed.\n{install_msg}")
+
+        ret = shutil.which("tmux")
+        if not ret:
+            raise j.exceptions.NotFound(f"tmux is not installed.\n{install_msg}")
+
+        ret = shutil.which("git")
+        if not ret:
+            raise j.exceptions.NotFound(f"git is not installed.\n{install_msg}")
+
     def start(self, wait: bool = False):
         # start default servers in the rack
 
@@ -477,10 +510,13 @@ class ThreebotServer(Base):
             raise j.exceptions.JSException(
                 f"you already have a running server instance {running_server.instance_name}."
             )
-        j.application.start(f"threebot_{self.instance_name}")
 
+        self.check_dependencies()
+
+        self.redis.start()
         self.nginx.start()
         self.rack.start()
+        j.application.start(f"threebot_{self.instance_name}")
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
@@ -498,6 +534,7 @@ class ThreebotServer(Base):
     def stop(self):
         self.rack.stop()
         self.nginx.stop()
+        self.redis.stop()
         self._started = False
         # mark app as stopped
         j.application.stop()
