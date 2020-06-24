@@ -49,7 +49,7 @@ def start(identity=None):
     used_ports = []
     ports_error_msg = ""
     for service_name, service_port in SERVICES_PORTS.items():
-        if j.sals.nettools.tcp_connection_test(ipaddr="localhost", port=service_port, timeout=1):
+        if j.sals.process.is_port_listenting(service_port):
             used_ports.append((service_name, service_port))
             ports_error_msg += f" {service_name}:{service_port}"
 
