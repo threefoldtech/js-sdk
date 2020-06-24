@@ -1,7 +1,7 @@
 import click
 
 from jumpscale.loader import j
-from jumpscale.threesdk.threebot import IdentityManager
+from jumpscale.threesdk.identitymanager import IdentityManager
 
 NETWORKS = {"mainnet": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf", "devnet": "explorer.devnet.grid.tf"}
 
