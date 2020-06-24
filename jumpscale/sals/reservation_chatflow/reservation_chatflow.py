@@ -132,9 +132,17 @@ class Network:
             wait_reservation_results = self._sal.wait_reservation(self._bot, rid)
             # Update solution saved locally
             explorer_name = self._sal._explorer.url.split(".")[1]
-            solution = self.solutions.get(f"{explorer_name}_{self.resv_id}")
-            solution.rid = rid
+            old_solution = self.solutions.get(f"{explorer_name}_{self.resv_id}")
+            solution = self.solutions.get(
+                f"{explorer_name}_{rid}",
+                explorer=old_solution.explorer,
+                form_info=old_solution.form_info,
+                rid=rid,
+                solution_type=old_solution.solution_type,
+            )
+            solution.name = self.name
             solution.save()
+            self.solutions.delete(f"{explorer_name}_{self.resv_id}")
             return wait_reservation_results
         return True
 
@@ -976,7 +984,6 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Args:
             tid (int): user tid
             reservation (list of jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): list of reservation objects
-            include_deleted (boolean): include deleted networks
 
         Returns:
             [type]: [description]
