@@ -42,6 +42,13 @@
   poetry shell
   ```
 
+
+- Make sure to setcap for nginx 
+```
+sudo setcap cap_net_bind_service=+ep `which nginx`
+```
+to be able to run as a normal user, you don't need it if you are root.
+
 - After that we will just do
 
   ```bash
