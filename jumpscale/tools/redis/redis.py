@@ -28,6 +28,7 @@ class RedisServer(Base):
         # Port is not busy (Redis is not started)
         if not j.sals.nettools.tcp_connection_test("127.0.0.1", 6379, timeout=1):
             self.cmd.start_cmd = f"redis-server --bind {host} --port {port}"
+            self.cmd.ports = [port]
             self.cmd.start()
 
     def stop(self):
