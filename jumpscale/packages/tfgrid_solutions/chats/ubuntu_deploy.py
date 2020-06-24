@@ -58,7 +58,6 @@ class UbuntuDeploy(GedisChatBot):
 
         self.rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
         form.ask()
-        self.rootfs_type = DiskType.SSD
         self.user_form_data["CPU"] = cpu.value
         self.user_form_data["Memory"] = memory.value
         self.user_form_data["Root filesystem Type"] = DiskType.SSD.name
@@ -167,7 +166,7 @@ class UbuntuDeploy(GedisChatBot):
             ip_address=self.ip_address,
             flist=container_flist,
             storage_url=storage_url,
-            disk_type=self.rootfs_type,
+            disk_type=DiskType.SSD.value,
             disk_size=self.rootfs_size.value,
             env=self.var_dict,
             interactive=False,
