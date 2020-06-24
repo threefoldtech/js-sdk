@@ -1,4 +1,4 @@
-# Quick Start with js-ng
+# Quick Start with js-sdk
 
 ## Requirments for insystem installation
 
