@@ -70,7 +70,7 @@ def start(identity=None):
     cmd.start()
     print("\n✅ Threebot server started\n")
     if j.sals.process.in_host():
-        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{{RESET}}")
+        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{RESET}")
 
 
 @click.command()
