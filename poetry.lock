@@ -705,6 +705,7 @@ prompt-toolkit = "<3.0.0"
 psutil = "^5.7.0"
 ptpython = "^2.0"
 pudb = "^2019.1"
+pycparser = "^2.20"
 pylzma = "^0.5.0"
 pynacl = "^1.3"
 pytoml = "^0.1.21"
@@ -713,9 +714,10 @@ secretconf = "^0.1.2"
 snakeviz = "^2.0.1"
 terminaltables = "^3.1"
 watchdog = "^0.9.0"
+zipp = "^3.1.0"
 
 [package.source]
-reference = "2e7bb38b2f0301dd534f9a2407bf815aa9099a3f"
+reference = "d2afd46a6d3531f2807858c6fc75a6ae5a97846b"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1584,7 +1586,7 @@ description = "Virtual Python Environment builder"
 name = "virtualenv"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-version = "20.0.23"
+version = "20.0.25"
 
 [package.dependencies]
 appdirs = ">=1.4.3,<2"
@@ -1602,7 +1604,7 @@ version = ">=1.0"
 
 [package.extras]
 docs = ["sphinx (>=3)", "sphinx-argparse (>=0.2.5)", "sphinx-rtd-theme (>=0.4.3)", "towncrier (>=19.9.0rc1)", "proselint (>=0.10.2)"]
-testing = ["pytest (>=4)", "coverage (>=5)", "coverage-enable-subprocess (>=1)", "pytest-xdist (>=1.31.0)", "pytest-mock (>=2)", "pytest-env (>=0.6.2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)", "flaky (>=3)", "packaging (>=20.0)", "xonsh (>=0.9.16)"]
+testing = ["pytest (>=4)", "coverage (>=5)", "coverage-enable-subprocess (>=1)", "pytest-xdist (>=1.31.0)", "pytest-mock (>=2)", "pytest-env (>=0.6.2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)", "pytest-freezegun (>=0.4.1)", "flaky (>=3)", "packaging (>=20.0)", "xonsh (>=0.9.16)"]
 
 [[package]]
 category = "main"
@@ -1623,7 +1625,7 @@ description = "Measures the displayed width of unicode strings in a terminal"
 name = "wcwidth"
 optional = false
 python-versions = "*"
-version = "0.2.4"
+version = "0.2.5"
 
 [[package]]
 category = "main"
@@ -1671,7 +1673,6 @@ multidict = ">=4.0"
 [[package]]
 category = "main"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
 python-versions = ">=3.6"
@@ -2543,15 +2544,15 @@ urwid = [
     {file = "urwid-2.1.0.tar.gz", hash = "sha256:0896f36060beb6bf3801cb554303fef336a79661401797551ba106d23ab4cd86"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.0.23-py2.py3-none-any.whl", hash = "sha256:ccfb8e1e05a1174f7bd4c163700277ba730496094fe1a58bea9d4ac140a207c8"},
-    {file = "virtualenv-20.0.23.tar.gz", hash = "sha256:5102fbf1ec57e80671ef40ed98a84e980a71194cedf30c87c2b25c3a9e0b0107"},
+    {file = "virtualenv-20.0.25-py2.py3-none-any.whl", hash = "sha256:ffffcb3c78a671bb3d590ac3bc67c081ea2188befeeb058870cba13e7f82911b"},
+    {file = "virtualenv-20.0.25.tar.gz", hash = "sha256:f332ba0b2dfbac9f6b1da9f11224f0036b05cdb4df23b228527c2a2d5504aeed"},
 ]
 watchdog = [
     {file = "watchdog-0.9.0.tar.gz", hash = "sha256:965f658d0732de3188211932aeb0bb457587f04f63ab4c1e33eab878e9de961d"},
 ]
 wcwidth = [
-    {file = "wcwidth-0.2.4-py2.py3-none-any.whl", hash = "sha256:79375666b9954d4a1a10739315816324c3e73110af9d0e102d906fdb0aec009f"},
-    {file = "wcwidth-0.2.4.tar.gz", hash = "sha256:8c6b5b6ee1360b842645f336d9e5d68c55817c26d3050f46b235ef2bc650e48f"},
+    {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
+    {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
 ]
 websocket-client = [
     {file = "websocket_client-0.57.0-py2.py3-none-any.whl", hash = "sha256:0fc45c961324d79c781bab301359d5a1b00b13ad1b10415a4780229ef71a5549"},

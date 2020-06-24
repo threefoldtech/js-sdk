@@ -76,7 +76,12 @@ class Location(Base):
         return j.sals.fs.join_paths(self.cfg_dir, f"{self.instance_name}.conf")
 
     def get_config(self):
-        return render_config_template("location", base_dir=j.core.dirs.BASEDIR, location=self)
+        return render_config_template(
+            "location",
+            base_dir=j.core.dirs.BASEDIR,
+            location=self,
+            threebot_connect=j.core.config.get_config().get("threebot_connect", True),
+        )
 
     def configure(self):
         j.sals.fs.mkdir(self.cfg_dir)
