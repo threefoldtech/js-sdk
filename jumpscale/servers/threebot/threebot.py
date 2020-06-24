@@ -477,22 +477,23 @@ class ThreebotServer(Base):
 
     def check_dependencies(self):
         install_msg = "Visit https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md for installation guide"
+        import shutil
 
         if not self.nginx.installed:
             raise j.exceptions.NotFound(f"nginx is not installed.\n{install_msg}")
-        rc, _, _ = j.sals.process.execute("which certbot")
-        if rc:
+        ret = shutil.which("certbot")
+        if not ret:
             raise j.exceptions.NotFound(f"certbot is not installed.\n{install_msg}")
         rc, _, _ = j.sals.process.execute("dpkg -l python-certbot-nginx")
         if rc:
             raise j.exceptions.NotFound(f"python-certbot-nginx is not installed.\n{install_msg}")
         if not self.redis.installed:
             raise j.exceptions.NotFound(f"redis is not installed.\n{install_msg}")
-        rc, _, _ = j.sals.process.execute("which tmux")
-        if rc:
+        ret = shutil.which("tmux")
+        if not ret:
             raise j.exceptions.NotFound(f"tmux is not installed.\n{install_msg}")
-        rc, _, _ = j.sals.process.execute("which git")
-        if rc:
+        ret = shutil.which("git")
+        if not ret:
             raise j.exceptions.NotFound(f"git is not installed.\n{install_msg}")
 
     def start(self, wait: bool = False):
