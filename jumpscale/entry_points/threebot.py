@@ -29,7 +29,7 @@ def start(identity=None):
             j.core.identity.me.save()
         else:
             j.tools.console.printcolors(
-                "{RED}Identity %s is not set, please configure it or start with the default one" % identity
+                "{RED}Identity %s is not set, please configure it or start with the default one{{RESET}}" % identity
             )
             sys.exit(1)
 
@@ -56,7 +56,7 @@ def start(identity=None):
     msg = (
         f"{{RED}}Threebot server is running already or ports{{CYAN}}{ports_error_msg}{{RED}}\n"
         "are being held by your system\n"
-        f"Please use {{WHITE}}threebot stop{{RED}} to stop your threebot server or free the ports to be able to start the threebot server"
+        f"Please use {{WHITE}}threebot stop{{RED}} to stop your threebot server or free the ports to be able to start the threebot server{{RESET}}"
     )
 
     if used_ports:
@@ -70,7 +70,7 @@ def start(identity=None):
     cmd.start()
     print("\n✅ Threebot server started\n")
     if j.sals.process.in_host():
-        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n")
+        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{{RESET}}")
 
 
 @click.command()
