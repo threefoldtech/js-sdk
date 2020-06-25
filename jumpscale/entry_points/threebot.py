@@ -68,9 +68,12 @@ def start(identity=None):
     cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string, "nginx.*"]
     cmd.ports = [8000, 8999]
     cmd.start()
-    ports = [8000, 8999, 16000]
-    for port in ports:
-        j.sals.nettools.wait_connection_test("127.0.0.1", port, timeout=10)
+    for service_name, service_port in SERVICES_PORTS.items():
+        if not j.sals.nettools.wait_connection_test("127.0.0.1", service_port, timeout=15):
+            j.tools.console.printcolors(
+                f"{{RED}}Could not start threebot server. Service: {service_name}, Port {service_port} couldn't start in 15 seconds. Please try again {{RESET}}"
+            )
+            sys.exit(1)
 
     print("\n✅ Threebot server started\n")
     if j.sals.process.in_host():
