@@ -162,7 +162,7 @@ class IdentityFactory(StoredFactory):
 
     def set_default(self, name):
         config = get_config()
-        config["default"] = name
+        config["threebot"]["default"] = name
         update_config(config)
         self.__class__._me = None
 

@@ -23,7 +23,7 @@ class ExplorerFactory(StoredFactory):
         return Explorer(url)
 
     def default_addr_set(self, url):
-        j.core.identity.me.explorer_url = url
+        j.core.config.set("explorer", {"default_url": url})
 
 
 def export_module_as():
