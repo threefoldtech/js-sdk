@@ -11,10 +11,10 @@ class weblibs:
         """Called when package is added
         """
         if not j.sals.fs.exists(j.sals.fs.join_paths(self.path, "jumpscaleX_weblibs")):
-            retries = 5
+            retries = 2
             while retries:
                 try:
-                    j.tools.git.clone_repo(url=self.url, dest=self.path, branch_or_tag=self.branch)
+                    j.tools.git.clone_repo(url=self.url, dest=self.path, branch_or_tag=self.branch, depth=1)
                     break
                 except Exception:
                     if retries == 1:
