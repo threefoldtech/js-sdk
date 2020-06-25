@@ -220,6 +220,12 @@ class ReservationChatflow:
         self._explorer = j.clients.explorer.get_default()
         self.update_local_reservations()
 
+    @property
+    def explorer(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._explorer = j.clients.explorer.get_default()
+        return self._explorer
+
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
 
@@ -380,13 +386,13 @@ class ReservationChatflow:
             form_info (dict, optional): reservation user info. Defaults to None.
         """
         form_info = form_info or {}
-        explorer_name = self._explorer.url.split(".")[1]
+        explorer_name = self.explorer.url.split(".")[1]
         reservation = self.solutions.get(f"{explorer_name}_{rid}")
         reservation.rid = rid
         reservation.name = name
         reservation.solution_type = solution_type
         reservation.form_info = form_info
-        reservation.explorer = self._explorer.url
+        reservation.explorer = self.explorer.url
         reservation.save()
 
     def get_solutions_explorer(self, deployed=True):
@@ -402,9 +408,9 @@ class ReservationChatflow:
         reservations_data = []
         reservations = []
         if deployed:
-            reservations = self._explorer.reservations.list(customer_tid, "DEPLOY")
+            reservations = self.explorer.reservations.list(customer_tid, "DEPLOY")
         else:
-            reservations = self._explorer.reservations.list(customer_tid)
+            reservations = self.explorer.reservations.list(customer_tid)
         networks = []
         dupnames = {}
         for reservation in sorted(reservations, key=lambda res: res.id, reverse=True):
@@ -498,7 +504,7 @@ class ReservationChatflow:
         List all stellar client wallets from bcdb. Based on explorer instance only either wallets with network type TEST or STD are returned
         rtype: list
         """
-        if "devnet" in self._explorer.url or "testnet" in self._explorer.url:
+        if "devnet" in self.explorer.url or "testnet" in self.explorer.url:
             network_type = StellarNetwork.TEST
         else:
             network_type = StellarNetwork.STD
@@ -554,9 +560,9 @@ class ReservationChatflow:
         Returns:
             [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object
         """
-        explorer_name = self._explorer.url.split(".")[1]
+        explorer_name = self.explorer.url.split(".")[1]
         payment_obj = self.payments.get(f"{explorer_name}_{rid}")
-        payment_obj.explorer = self._explorer.url
+        payment_obj.explorer = self.explorer.url
         payment_obj.rid = rid
         payment_obj.currency = currency
         payment_obj.escrow_address = escrow_address
@@ -565,7 +571,7 @@ class ReservationChatflow:
         payment_obj.transaction_fees = f"0.1 {currency}"
         payment_obj.payment_source = payment_source
         for farmer in farmer_payments:
-            farmer_name = self._explorer.farms.get(farm_id=farmer["farmer_id"]).name
+            farmer_name = self.explorer.farms.get(farm_id=farmer["farmer_id"]).name
             payment_obj.farmer_payments[farmer_name] = farmer["total_amount"]
         return payment_obj
 
@@ -586,7 +592,7 @@ class ReservationChatflow:
         payment_details = ""
         payment_details += '<table style="width: 50%; font-family: arial, sans-serif; border-collapse: collapse;">'
         for farmer in farmer_payments:
-            farmer_name = self._explorer.farms.get(farm_id=farmer["farmer_id"]).name
+            farmer_name = self.explorer.farms.get(farm_id=farmer["farmer_id"]).name
             payment_details += (
                 f"<tr><td>Farmer {farmer_name}</td><td>{format(farmer['total_amount'],'.7f')} {currency}</td></tr>"
             )
@@ -613,7 +619,6 @@ class ReservationChatflow:
             payment["free"] = True
             return payment, None
         escrow_info = j.sals.zos.reservation_escrow_information_with_qrcodes(reservation_create_resp)
-
         escrow_address = escrow_info["escrow_address"]
         escrow_asset = escrow_info["escrow_asset"]
         total_amount = escrow_info["total_amount"]
@@ -643,7 +648,7 @@ class ReservationChatflow:
                 retry = True
                 continue
             if result == "3bot app":
-                reservation = self._explorer.reservations.get(rid)
+                reservation = self.explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
                     rid=rid,
@@ -697,7 +702,7 @@ class ReservationChatflow:
         def is_expired(reservation):
             return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
 
-        reservation = self._explorer.reservations.get(rid)
+        reservation = self.explorer.reservations.get(rid)
         while True:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=["minute", "second"]
@@ -714,14 +719,14 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                 for x in reservation.results:
                     if x.state == "ERROR":
                         res += f"\n### {x.category}: ```{x.message}```\n"
-                link = f"{self._explorer.url}/reservations/{reservation.id}"
+                link = f"{self.explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
                 j.sals.zos.reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             if threebot_app and reservation_create_resp:
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
             time.sleep(5)
-            reservation = self._explorer.reservations.get(rid)
+            reservation = self.explorer.reservations.get(rid)
 
     def _reservation_failed(self, bot, reservation):
         failed = j.sals.zos.reservation_failed(reservation)
@@ -730,7 +735,7 @@ Deployment will be cancelled if payment is not successful {remaning_time}
             for x in reservation.results:
                 if x.state == "ERROR":
                     res += f"\n### {x.category}: ```{x.message}```\n"
-            link = f"{self._explorer.url}/reservations/{reservation.id}"
+            link = f"{self.explorer.url}/reservations/{reservation.id}"
             res += f"<h2> <a href={link}>Full reservation info</a></h2>"
             j.sals.zos.reservation_cancel(reservation.id)
             bot.stop(res, md=True, html=True)
@@ -771,7 +776,7 @@ Deployment will be cancelled if payment is not successful {remaning_time}
             """
             return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
 
-        reservation = self._explorer.reservations.get(rid)
+        reservation = self.explorer.reservations.get(rid)
         while True:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=["minute", "second"]
@@ -796,12 +801,12 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 for x in reservation.results:
                     if x.state == "ERROR":
                         res += f"\n### {x.category}: ```{x.message}```\n"
-                link = f"{self._explorer.url}/reservations/{reservation.id}"
+                link = f"{self.explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
                 j.sals.zos.reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             time.sleep(1)
-            reservation = self._explorer.reservations.get(rid)
+            reservation = self.explorer.reservations.get(rid)
 
     def register_reservation(
         self, reservation, expiration, customer_tid, expiration_provisioning=1000, currency=None, bot=None
@@ -844,7 +849,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         # TODO: FIXME TO SET DEPLOYER in config
         if j.core.config.get_config().get("DEPLOYER") and customer_tid:
             # create a new object from deployed_reservation with the reservation and the tid
-            explorer_name = self._explorer.url.split(".")[1]
+            explorer_name = self.explorer.url.split(".")[1]
             deployed_reservation = self.deployed_reservations.get(f"{explorer_name}_{rid}")
             deployed_reservation.reservation_id = rid
             deployed_reservation.customer_tid = customer_tid
@@ -1059,7 +1064,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             return currencies[0]
         elif reservation.data_reservation.networks and reservation.data_reservation.networks[0].network_resources:
             node_id = reservation.data_reservation.networks[0].network_resources[0].node_id
-            if self._explorer.nodes.get(node_id).free_to_use:
+            if self.explorer.nodes.get(node_id).free_to_use:
                 return "FreeTFT"
 
         return "TFT"
@@ -1076,7 +1081,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             if solution.name == solution_name and solution.solution_type == solution_type:
                 # Cancel all parent networks if solution type is network
                 if solution.solution_type == SolutionType.Network:  ## TODO change to SolutionType.Network.value
-                    curr_network_resv = self._explorer.reservations.get(solution.rid)
+                    curr_network_resv = self.explorer.reservations.get(solution.rid)
                     while curr_network_resv:
                         if curr_network_resv.metadata:
                             try:
@@ -1085,7 +1090,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
                             except Exception:
                                 break
                             if "parent_network" in network_metadata:
-                                parent_resv = self._explorer.reservations.get(network_metadata["parent_network"])
+                                parent_resv = self.explorer.reservations.get(network_metadata["parent_network"])
                                 j.sals.zos.reservation_cancel(parent_resv.id)
                                 curr_network_resv = parent_resv
                                 continue
@@ -1108,9 +1113,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             solution = self.solutions.get(name)
             if solution.solution_type != solution_type:
                 continue
-            if solution.explorer and solution.explorer != self._explorer.url:
+            if solution.explorer and solution.explorer != self.explorer.url:
                 continue
-            reservation = self._explorer.reservations.get(solution.rid)
+            reservation = self.explorer.reservations.get(solution.rid)
             reservations.append(
                 {
                     "name": solution.name,
@@ -1156,7 +1161,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         reservation["name"] = solution_name
         reservation["form_info"] = form_info
         reservation["solution_type"] = solution_type.value
-        reservation["explorer"] = self._explorer.url
+        reservation["explorer"] = self.explorer.url
         return reservation
 
     def create_network(
@@ -1251,7 +1256,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             farm object
         """
         message = message or "Select 1 or more farms to distribute nodes on"
-        farms = self._explorer.farms.list()
+        farms = self.explorer.farms.list()
         farm_names = []
         for f in farms:
             if j.sals.zos.nodes_finder.filter_farm_currency(f, currency):
@@ -1297,7 +1302,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             Node object
         """
         try:
-            node = self._explorer.nodes.get(nodeid)
+            node = self.explorer.nodes.get(nodeid)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f"Node {nodeid} doesn't exists please enter a valid nodeid")
         if not j.sals.zos.nodes_finder.filter_is_up(node):
@@ -1409,7 +1414,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         nodes_left = number_of_nodes
         names = list(farm_names) if farm_names else []
         if not farm_names:
-            farms = self._explorer.farms.list()
+            farms = self.explorer.farms.list()
             names = []
             for f in farms:
                 names.append(f.name)
@@ -1443,7 +1448,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         farms_message = f"Select 1 or more farms to distribute the {message} nodes on. If no selectiosn is made, the farms will be chosen randomly"
         empty_farms = set()
-        all_farms = self._explorer.farms.list()
+        all_farms = self.explorer.farms.list()
         retry = False
         while True:
             farms = self.select_farms(bot, farms_message, currency=currency, retry=retry)
@@ -1527,4 +1532,4 @@ Deployment will be cancelled if it is not successful {remaning_time}
             raise j.exceptions.Value("Email shouldn't be empty")
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
-        return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
+        return self.explorer.users.get(name=user_info["username"], email=user_info["email"])

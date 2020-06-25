@@ -61,6 +61,10 @@ class Admin(BaseActor):
                 raise j.exceptions.Value(f"Your identity does not match on {explorer_type}")
 
             j.clients.explorer.default_addr_set(url=url)
+            j.core.identity.me.explorer_url = url
+            j.core.identity.me._tid = -1
+            j.core.identity.me.register()
+            j.core.identity.me.save()
 
             # update our solutions
             j.sals.reservation_chatflow.update_local_reservations()

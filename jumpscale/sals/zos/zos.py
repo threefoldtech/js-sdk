@@ -30,7 +30,27 @@ class Zosv2:
         self._gateway = Gateway(self._explorer)
 
     @property
+    def explorer(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._explorer = j.clients.explorer.get_default()
+        return self._explorer
+
+    @property
+    def nodes_finder(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._nodes_finder = NodeFinder(self._explorer)
+        return self._nodes_finder
+
+    @property
+    def gateways_finder(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._gateways_finder = GatewayFinder(self._explorer)
+        return self._gateways_finder
+
+    @property
     def network(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._network = Network(self._explorer)
         return self._network
 
     @property
@@ -43,23 +63,25 @@ class Zosv2:
 
     @property
     def zdb(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._zdb = ZDB(self._explorer)
         return self._zdb
 
     @property
     def kubernetes(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._kubernetes = Kubernetes(self._explorer)
         return self._kubernetes
-
-    @property
-    def nodes_finder(self):
-        return self._nodes_finder
-
-    @property
-    def gateways_finder(self):
-        return self._gateways_finder
 
     @property
     def billing(self):
         return self._billing
+
+    @property
+    def gateway(self):
+        if j.clients.explorer.get_default().url != self._explorer.url:
+            self._gateway = Gateway(self._explorer)
+        return self.gateway
 
     def reservation_create(self):
         """Creates a new empty reservation schema
@@ -67,7 +89,7 @@ class Zosv2:
         Returns:
             jumpscale.clients.explorer.models.TfgridWorkloadsReservation1: reservation object
         """
-        return self._explorer.reservations.new()
+        return self.explorer.reservations.new()
 
     def reservation_register(
         self, reservation, expiration_date, expiration_provisioning=None, customer_tid=None, currencies=["TFT"]
@@ -105,8 +127,7 @@ class Zosv2:
 
         reservation.json = dumps(dr.to_dict())
         reservation.customer_signature = me.nacl.sign_hex(reservation.json.encode()).decode()
-
-        return self._explorer.reservations.create(reservation)
+        return self.explorer.reservations.create(reservation)
 
     def reservation_accept(self, reservation):
         """A farmer need to use this function to notify he accepts to deploy the reservation on his node
@@ -122,7 +143,7 @@ class Zosv2:
         reservation.json = dumps(reservation.data_reservation.to_dict())
         signature = me.nacl.sign_hex(reservation.json.encode())
         # TODO: missing sign_farm
-        # return self._explorer.reservations.sign_farmer(reservation.id, me.tid, signature)
+        # return self.explorer.reservations.sign_farmer(reservation.id, me.tid, signature)
 
     def reservation_result(self, reservation_id):
         """returns the list of workload provisioning results of a reservation
@@ -144,7 +165,7 @@ class Zosv2:
         Returns:
             jumpscale.clients.explorer.models.TfgridWorkloadsReservation1: reservation object
         """
-        return self._explorer.reservations.get(reservation_id)
+        return self.explorer.reservations.get(reservation_id)
 
     def reservation_cancel(self, reservation_id):
         """Cancel a reservation.
@@ -165,7 +186,7 @@ class Zosv2:
         payload = str(reservation_id).encode() + payload
         signature = me.nacl.sign_hex(payload)
 
-        return self._explorer.reservations.sign_delete(
+        return self.explorer.reservations.sign_delete(
             reservation_id=reservation_id, tid=me.tid, signature=signature.decode()
         )
 
@@ -180,7 +201,7 @@ class Zosv2:
             list: list of reservations
         """
         tid = tid or identity.get_identity().tid
-        return self._explorer.reservations.list(customer_tid=tid, next_action=next_action)
+        return self.explorer.reservations.list(customer_tid=tid, next_action=next_action)
 
     def reservation_store(self, reservation, path):
         """Write the reservation on disk.
@@ -206,7 +227,7 @@ class Zosv2:
 
     def reservation_live(self, expired=False, cancelled=False, identity=None):
         me = identity.get_identity()
-        rs = self._explorer.reservations.list()
+        rs = self.explorer.reservations.list()
 
         current_time = now().timestamp
 
