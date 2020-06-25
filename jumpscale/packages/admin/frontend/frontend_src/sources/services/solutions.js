@@ -7,7 +7,7 @@ class SolutionsService extends Service {
         super(BASE_URL);
     }
 
-    listAllSolution(){
+    listAllSolutions(){
         return this.getCall("list_all_solutions")
     }
 

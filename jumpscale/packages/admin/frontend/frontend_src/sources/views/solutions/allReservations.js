@@ -11,7 +11,7 @@ export default class DeployedView extends JetView {
         const view = {
             rows: [{
                     cols: [{
-                        id: "hraderLabel",
+                        id: "headerLabel",
                         view: "label",
                         label: "explorer",
                         borderless: true,
@@ -120,7 +120,7 @@ export default class DeployedView extends JetView {
     init(view) {
         let self = this;
         self.table = $$("solutionsTable");
-        self.header = $$("hraderLabel")
+        self.header = $$("headerLabel")
         self.OldSolutionDetailsView = self.ui(OldSolutionDetailsView)
 
         webix.extend(self.table, webix.ProgressBar);
@@ -134,7 +134,7 @@ export default class DeployedView extends JetView {
             self.header.config.width = webix.html.getTextSize(ret).width + 10;
             self.header.resize();
         });
-        solutions.listAllSolution().then((data) => {
+        solutions.listAllSolutions().then((data) => {
             const solutions = JSON.parse(data.json()).data
             self.table.parse(solutions);
             self.table.showProgress({ hide: true });
