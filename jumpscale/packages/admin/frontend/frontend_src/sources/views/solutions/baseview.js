@@ -1,4 +1,4 @@
-import { JetView, plugins } from "webix-jet";
+import { JetView } from "webix-jet";
 import SolutionDetailsView from './SolutionDetails'
 
 export class BaseView extends JetView {

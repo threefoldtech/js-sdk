@@ -1,5 +1,4 @@
 import { JetView, plugins } from "webix-jet";
-import { admin } from "../services/admin";
 import { auth } from "../services/auth";
 
 export default class TopView extends JetView {
@@ -30,11 +29,6 @@ export default class TopView extends JetView {
             value: "Dashboard",
             icon: "mdi mdi-view-dashboard"
         },
-        // {
-        //     id: "wikis",
-        //     value: "Packages Docs",
-        //     icon: "mdi mdi-newspaper"
-        // },
         {
             id: "alerts",
             value: "Alerts",
@@ -98,6 +92,9 @@ export default class TopView extends JetView {
             }, {
                 id: "deployed_gateway_4to6",
                 value: '<span><img class="solutions-icon" src="static/img/ip.png"/>4 to 6 Gateway</span>'
+            }, {
+                id: "all_reservations",
+                value: '<span><img class="solutions-icon" src="static/img/3bot.ico"/>All reservations</span>'
             }]
         },
         {
@@ -217,6 +214,7 @@ export default class TopView extends JetView {
             urls: {
                 tfgridsdk: "tfwikis.tfgridsdk",
                 threefold: "tfwikis.threefold",
+                all_reservations: "solutions.allReservations",
                 deployed_network: "solutions.network",
                 deployed_ubuntu: "solutions.ubuntu",
                 deployed_flist: "solutions.flist",
@@ -226,7 +224,7 @@ export default class TopView extends JetView {
                 deployed_domain_delegation: "solutions.domainDelegation",
                 deployed_solution_expose: "solutions.solutionExpose",
                 deployed_gateway_4to6: "solutions.4to6Gateway",
-                deployed_monitoring: "solutions.monitoring"
+                deployed_monitoring: "solutions.monitoring",
             }
         });
 
