@@ -40,7 +40,7 @@ website.configure()
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
-from jumpscale.god import j
+from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
 import os, pwd, grp

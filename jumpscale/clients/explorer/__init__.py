@@ -1,6 +1,6 @@
 from jumpscale.core.base import StoredFactory
 from .explorer import Explorer
-from jumpscale.god import j
+from jumpscale.loader import j
 
 
 class ExplorerFactory(StoredFactory):

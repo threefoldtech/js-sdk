@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 import os
 
 

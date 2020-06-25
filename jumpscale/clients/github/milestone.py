@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 from .base import base
 
 
@@ -81,4 +81,3 @@ class RepoMilestone(base):
     @property
     def number(self):
         return self._ddict["number"]
-        

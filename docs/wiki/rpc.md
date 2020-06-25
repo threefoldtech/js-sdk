@@ -13,11 +13,11 @@ from jumpscale.servers.gedis.baseactor import BaseActor
 class Example(BaseActor):
     def add_two_ints(self, x: int, y: int) -> int:
         """Adds two ints
-        
+
         Arguments:
             x {int} -- first int
             y {int} -- second int
-        
+
         Returns:
             int -- the sum of the two ints
         """
@@ -25,11 +25,11 @@ class Example(BaseActor):
 
     def concate_two_strings(self, x: str, y: str) -> str:
         """Concate two strings
-        
+
         Arguments:
             x {str} -- first string
             y {str} -- second string
-        
+
         Returns:
             str -- the concate of the two strings
         """
@@ -65,7 +65,7 @@ Here is an example actor
 ```python
 from jumpscale.servers.gedis.baseactor import BaseActor
 from typing import Sequence
-from jumpscale.god import j
+from jumpscale.loader import j
 import inspect, sys
 
 class TestObject:
@@ -82,11 +82,11 @@ class TestObject:
 class Example(BaseActor):
     def add_two_ints(self, x: int, y: int) -> int:
         """Adds two ints
-        
+
         Arguments:
             x {int} -- first int
             y {int} -- second int
-        
+
         Returns:
             int -- the sum of the two ints
         """
@@ -94,11 +94,11 @@ class Example(BaseActor):
 
     def concate_two_strings(self, x: str, y: str) -> str:
         """Concate two strings
-        
+
         Arguments:
             x {str} -- first string
             y {str} -- second string
-        
+
         Returns:
             str -- the concate of the two strings
         """
@@ -109,7 +109,7 @@ class Example(BaseActor):
 
         Arguments:
             myobj {TestObject} -- the object to be modified
-        
+
         Returns:
             TestObject -- modified object
         """
@@ -119,26 +119,26 @@ class Example(BaseActor):
 Actor = Example
 
 ```
-This actor has `add_two_ints`, `concate_two_strings`, and `modify_objet` methods. The first two are pretty basic 
+This actor has `add_two_ints`, `concate_two_strings`, and `modify_objet` methods. The first two are pretty basic
 
-Let's do a walkthrough and check the invocation, and the errors 
+Let's do a walkthrough and check the invocation, and the errors
 
 ```
 JS-NG> ACTOR_PATH = "/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/servers/gedis/example_actor.py"
 JS-NG> cl = j.clients.gedis.get("test")
-JS-NG> cl.actors.system.register_actor("test_actor", ACTOR_PATH) 
+JS-NG> cl.actors.system.register_actor("test_actor", ACTOR_PATH)
 True
 
 ```
 At this point we can do `cl.reload` to add `test_actor` into the client domain
 
 ```
-JS-NG> cl.reload()  
+JS-NG> cl.reload()
 ```
 ### Getting actor documentation and information from
 
 ```
-JS-NG> cl.actors.test_actor.info()                                                                
+JS-NG> cl.actors.test_actor.info()
 {'module': '/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/servers/gedis', 'path': '/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/servers/gedis/example_actor.py', 'methods': {'add_two_ints': {'args': [['x', 'int'], ['y', 'int']], 'doc': 'Adds two ints\n        \n        Arguments:\n            x {int} -- first int\n            y {int} -- second int\n        \n        Returns:\n            int -- the sum of the two ints\n        ', 'response_type': None}, 'concate_two_strings': {'args': [['x', 'str'], ['y', 'str']], 'doc': 'Concate two strings\n        \n        Arguments:\n            x {str} -- first string\n            y {str} -- second string\n        \n        Returns:\n            str -- the concate of the two strings\n        ', 'response_type': None}, 'info': {'args': [], 'doc': '', 'response_type': None}, 'get_testobject': {'args': [['myobj', 'TestObject'], ['new_value', 'int']], 'doc': 'returns an object of type Test object with update attribute attr to `new_value`\n        \n        Arguments:\n            myobj {TestObject} -- the object to be modified\n        \n        Returns:\n            TestObject -- modified object\n        ', 'response_type': 'TestObject'}}}
 
 ```
@@ -153,7 +153,7 @@ JS-NG> cl.actors.test_actor.add_two_ints(4, 5)
 What if we pass a wrong type?
 
 ```
-JS-NG> cl.actors.test_actor.add_two_ints(4, "11")                                                 
+JS-NG> cl.actors.test_actor.add_two_ints(4, "11")
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
   File "/home/xmonader/wspace/threefoldtech/js-ng/jumpscale/clients/gedis/gedis.py", line 57, in method
@@ -234,10 +234,10 @@ Any object with `to_dict` and `from_dict` is ok to use in actor methods for the 
 ```python
     def get_testobject(self, myobj: TestObject, new_value: int) -> TestObject:
         """Modify atrribute attr of the given object
-        
+
         Arguments:
             myobj {TestObject} -- the object to be modified
-        
+
         Returns:
             TestObject -- modified object
         """
@@ -247,24 +247,24 @@ Any object with `to_dict` and `from_dict` is ok to use in actor methods for the 
 Let's test it
 
 ```
-JS-NG> class TestObject: 
-     2     def __init__(self): 
-     3         self.attr = None 
-     4  
-     5     def to_dict(self): 
-     6         return self.__dict__ 
-     7  
-     8     def from_dict(self, ddict): 
-     9         self.__dict__ = ddict                                                              
+JS-NG> class TestObject:
+     2     def __init__(self):
+     3         self.attr = None
+     4
+     5     def to_dict(self):
+     6         return self.__dict__
+     7
+     8     def from_dict(self, ddict):
+     9         self.__dict__ = ddict
 JS-NG> obj = TestObject()
 JS-NG> res = cl.actors.test_actor.get_testobject(obj, 6)
 JS-NG> res.attr
 6
 JS-NG> obj.attr
-JS-NG>  
+JS-NG>
 ```
 
 
 
- 
+
 

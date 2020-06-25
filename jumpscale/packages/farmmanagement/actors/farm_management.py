@@ -1,6 +1,6 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.clients.explorer.models import TfgridDirectoryFarm1
-from jumpscale.god import j
+from jumpscale.loader import j
 
 class FarmManagemenet(BaseActor):
     def __init__(self):

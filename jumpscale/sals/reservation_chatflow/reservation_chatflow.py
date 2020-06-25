@@ -1,7 +1,7 @@
 import base64
 import copy
 import json
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType

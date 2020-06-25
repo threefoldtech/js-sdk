@@ -9,7 +9,7 @@ from bottle import Bottle, abort, redirect, request, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
-from jumpscale.god import j
+from jumpscale.loader import j
 
 SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
 REDIRECT_URL = "https://login.threefold.me"

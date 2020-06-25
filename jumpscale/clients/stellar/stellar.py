@@ -1,7 +1,7 @@
 import stellar_sdk
 import math
 import time
-from jumpscale.god import j
+from jumpscale.loader import j
 from urllib import parse
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
