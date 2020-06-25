@@ -31,7 +31,7 @@ export default class JSXInfoView extends JetView {
             'interface_name': "",
             'ip':""
         }
-        
+
         health.getIdentity().then((data)=>{
             let identity = JSON.parse(data.json()).data
             js_info.threebot_name = identity.name

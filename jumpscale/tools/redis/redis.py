@@ -1,5 +1,6 @@
 from jumpscale.god import j
 from jumpscale.core.base import Base, fields
+import shutil
 
 
 class RedisServer(Base):
@@ -16,7 +17,7 @@ class RedisServer(Base):
         Returns:
             bool: True if redis server is installed
         """
-        return j.sals.process.execute('which redis-server')[0] == 0
+        return shutil.which("redis-server")
 
     def start(self, host: str = "127.0.0.1", port: int = 6379):
         """start redis server in tmux
@@ -25,8 +26,11 @@ class RedisServer(Base):
             host (str, optional): redis bind address. Defaults to "127.0.0.1".
             port (int, optional): redis port. Defaults to 6379.
         """
-        self.cmd.start_cmd = f"redis-server --bind {host} --port {port}"
-        self.cmd.start()
+        # Port is not busy (Redis is not started)
+        if not j.sals.nettools.tcp_connection_test("127.0.0.1", 6379, timeout=1):
+            self.cmd.start_cmd = f"redis-server --bind {host} --port {port}"
+            self.cmd.ports = [port]
+            self.cmd.start()
 
     def stop(self):
         """stop redis server

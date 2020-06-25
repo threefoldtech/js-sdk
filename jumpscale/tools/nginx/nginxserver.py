@@ -1,5 +1,6 @@
 from jumpscale.god import j
 from jumpscale.core.base import Base, fields
+import shutil
 
 
 class NginxServer(Base):
@@ -13,21 +14,14 @@ class NginxServer(Base):
     def check_command_string(self):
         return r"nginx.* \-c {CONFIG_PATH}".format(CONFIG_PATH=j.sals.fs.expanduser(self.config_path))
 
-    def install(self):
+    @property
+    def installed(self) -> bool:
+        """check if nginx is installed
+
+        Returns:
+            bool: True if nginx is installed
         """
-        # TODO: Remove or support other OS
-        install nginx and certbot
-        """
-        j.sals.process.execute(
-            "apt-get install -y software-properties-common;"
-            "add-apt-repository universe;"
-            "add-apt-repository ppa:certbot/certbot;"
-            "apt-get update;"
-            "apt-get install -y nginx certbot python-certbot-nginx;",
-            showout=True,
-            die=False,
-            env={"DEBIAN_FRONTEND": "noninteractive"},
-        )
+        return shutil.which("nginx")
 
     def start(self):
         """

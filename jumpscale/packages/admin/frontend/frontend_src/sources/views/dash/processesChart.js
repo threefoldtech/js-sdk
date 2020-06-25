@@ -90,7 +90,7 @@ export default class ProcessesChartView extends JetView {
                     "rss": Math.ceil(processesData[process]),
                 }
                 chartData.push(temp)
-                
+
                 //Break when there is no more colors
                 if (!colorNo)
                 break;

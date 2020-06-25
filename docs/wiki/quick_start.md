@@ -31,7 +31,7 @@
   - tmux `brew install tmux`
 
 ## Installation in system (Experts)
-
+(note: for mac OSX use root user during installation to be able to use ports (80, 443) `sudo su -`)
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
 - Install the js-ng
 
@@ -43,7 +43,7 @@
   ```
 
 
-- Make sure to setcap for nginx 
+- Make sure to setcap for nginx (for linux only)
 ```
 sudo setcap cap_net_bind_service=+ep `which nginx`
 ```
