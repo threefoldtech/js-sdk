@@ -41,7 +41,7 @@ To get yourself FreeTFTs and TFTs on testnet network you can follow the followin
 
     ```python
     wallet.add_known_trustline("TFT")
-    wallet.add_known_trustline("FreeTFT)
+    wallet.add_known_trustline("FreeTFT")
     wallet.save()
     ```
 
