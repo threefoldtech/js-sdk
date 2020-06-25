@@ -68,14 +68,9 @@ def start(identity=None):
     cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string, "nginx.*"]
     cmd.ports = [8000, 8999]
     cmd.start()
-
-    if j.sals.nettools.tcp_connection_test(ipaddr="localhost", port=SERVICES_PORTS["gedis"], timeout=15):
-        print("\n✅ Threebot server started\n")
-        if j.sals.process.in_host():
-            j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{RESET}")
-    else:
-        j.tools.console.printcolors("{RED}Could not start threebot server in 15 seconds, Please try again{RESET}")
-        sys.exit(1)
+    print("\n✅ Threebot server started\n")
+    if j.sals.process.in_host():
+        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{RESET}")
 
 
 @click.command()
