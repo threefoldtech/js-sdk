@@ -17,7 +17,7 @@ class weblibs:
                     j.tools.git.clone_repo(url=self.url, dest=self.path, branch_or_tag=self.branch, depth=1)
                     return
                 except Exception:
-                    retries = retries - 1
+                    retries -= 1
             raise j.exceptions.Timeout("Clone weblibs repo failed")
 
     def uninstall(self):
