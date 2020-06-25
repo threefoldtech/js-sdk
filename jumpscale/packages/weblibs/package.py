@@ -16,9 +16,12 @@ class weblibs:
                 try:
                     j.tools.git.clone_repo(url=self.url, dest=self.path, branch_or_tag=self.branch, depth=1)
                     return
-                except Exception:
+                except Exception as e:
                     retries -= 1
-            raise j.exceptions.Timeout("Clone weblibs repo failed")
+                    msg = str(e)
+                    # check if error not lost internet connection don't try again
+                    if not retries or msg.find("Could not resolve host") == -1:
+                        raise e
 
     def uninstall(self):
         """Called when package is deleted
