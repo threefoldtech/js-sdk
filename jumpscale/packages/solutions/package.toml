@@ -8,3 +8,4 @@ path_location = "frontend/"
 index = "index.html"
 spa = true
 is_auth = true
+is_admin = false
