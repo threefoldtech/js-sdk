@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 
 
 DIR_PATH = j.sals.fs.dirname(j.sals.fs.realpath(__file__))

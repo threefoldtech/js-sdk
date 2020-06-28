@@ -1,6 +1,6 @@
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
-from jumpscale.god import j
+from jumpscale.loader import j
 from .repo import GithubRepo
 from github import Github, GithubObject
 

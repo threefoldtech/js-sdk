@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 from .base import base
 from .base import replacelabels
 from .milestone import RepoMilestone

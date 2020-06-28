@@ -80,7 +80,7 @@ Some components will be defined by default based on the parent package classes i
 
         ```python3
         from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-        from jumpscale.god import j
+        from jumpscale.loader import j
 
         class HelloActor(BaseActor):
             def __init__(self):
@@ -101,7 +101,7 @@ Some components will be defined by default based on the parent package classes i
     <br />
     Example
         ```
-        from jumpscale.god import j
+        from jumpscale.loader import j
 
         from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 

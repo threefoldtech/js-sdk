@@ -2,7 +2,7 @@ from pprint import pprint as print
 import cryptocompare as cc
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
-from jumpscale.god import j
+from jumpscale.loader import j
 from .currencies import CURRENCIES, CURRNECIES_IDS
 from pprint import pprint
 
@@ -20,7 +20,7 @@ def get_currency_data(api_key, fake=False, fakeonerror=False):
             data["USDETH"] = 1 / cc.get_price("ETH", "USD")["ETH"]["USD"]
             data["USDXRP"] = cc.get_price("USD", "XRP")["USD"]["XRP"]
             data["USDBTC"] = 1 / cc.get_price("BTC", "USD")["BTC"]["USD"]
-            
+
             normalized_data = {k.lower().lstrip("usd"):v for k,v in data.items()}
             return normalized_data
 

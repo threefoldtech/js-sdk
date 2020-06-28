@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 
 from ipaddress import IPv4Address, IPv6Address
 
@@ -18,7 +18,7 @@ def addr_check(addr):
 
 """
 j.tools.tf_gateway.tcpservice_register("bing", "www.bing.com", "122.124.214.21")
-j.tools.tf_gateway.domain_register_a("ahmed", "bots.grid.tf.", "123.3.23.54")  
+j.tools.tf_gateway.domain_register_a("ahmed", "bots.grid.tf.", "123.3.23.54")
 
 """
 
@@ -28,7 +28,7 @@ def local_redis():
         local = j.clients.redis.get('local')
     except:
         local = j.clients.redis.new('local')
-    
+
     return local
 
 def tcpservice_register(service_name, domain, service_endpoint):
@@ -40,7 +40,7 @@ def tcpservice_register(service_name, domain, service_endpoint):
     :param domain: (Server Name Indicator SNI) (e.g www.facebook.com)
     :type domain: str
     :param service_endpoint: TLS endpoint 102.142.96.34:443 "ip:port"
-    :type service_endpoint: string 
+    :type service_endpoint: string
     """
     service = {}
     service["Key"] = "/tcprouter/service/{}".format(service_name)
@@ -52,14 +52,14 @@ def tcpservice_register(service_name, domain, service_endpoint):
 
 def domain_register(threebot_name, bots_domain="bots.grid.tf.", record_type="a", records=None):
     """registers domain in coredns (needs to be authoritative)
-    
+
     e.g: ahmed.bots.grid.tf
 
     requires nameserver on bots.grid.tf (authoritative)
     - ahmed is threebot_name
     - bots_domain is bots.grid.tf
-    
-    :param threebot_name: threebot_name 
+
+    :param threebot_name: threebot_name
     :type threebot_name: str
     :param bots_domain: str, defaults to "bots.grid.tf."
     :type bots_domain: str, optional
@@ -82,13 +82,13 @@ def domain_register(threebot_name, bots_domain="bots.grid.tf.", record_type="a",
 
 def domain_register_a(name, domain, record_ip):
     """registers A domain in coredns (needs to be authoritative)
-    
+
     e.g: ahmed.bots.grid.tf
 
     requires nameserver on bots.grid.tf (authoritative)
     - ahmed is threebot_name
     - bots_domain is bots.grid.tf
-    
+
     :param threebot_name: myhost
     :type threebot_name: str
     :param bots_domain: str, defaults to "grid.tf."
@@ -103,14 +103,14 @@ def domain_register_a(name, domain, record_ip):
 
 def domain_register_aaaa(threebot_name, bots_domain, record_ip):
     """registers A domain in coredns (needs to be authoritative)
-    
+
     e.g: ahmed.bots.grid.tf
 
     requires nameserver on bots.grid.tf (authoritative)
     - ahmed is threebot_name
     - bots_domain is bots.grid.tf
-    
-    :param threebot_name: threebot_name 
+
+    :param threebot_name: threebot_name
     :type threebot_name: str
     :param bots_domain: str, defaults to "bots.grid.tf."
     :type bots_domain: str, optional

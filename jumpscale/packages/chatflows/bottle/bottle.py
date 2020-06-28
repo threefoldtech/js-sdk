@@ -1,7 +1,7 @@
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, abort, request
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required
 
 app = Bottle()

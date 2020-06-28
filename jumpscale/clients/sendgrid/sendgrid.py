@@ -4,7 +4,7 @@ import io
 import sendgrid
 from sendgrid.helpers.mail import Mail, Attachment
 from python_http_client.exceptions import HTTPError
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 
