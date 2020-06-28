@@ -65,7 +65,7 @@ def start(identity=None):
 
     cmd = j.tools.startupcmd.get("threebot_default")
     cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
-    cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string]
+    cmd.process_strings_regex = [".*threebot_default.sh"]
     cmd.ports = [8000, 8999]
     cmd.start()
     for service_name, service_port in SERVICES_PORTS.items():
@@ -84,9 +84,29 @@ def start(identity=None):
 def stop():
     """stops threebot server
     """
-    cmd = j.tools.startupcmd.get("threebot_default")
-    cmd.stop()
+    threebot_cmd = j.tools.startupcmd.get("threebot_default")
+    threebot_cmd.stop()
+    nginx_cmd = j.tools.startupcmd.get(j.tools.nginx.get("default").name)
+    nginx_cmd.stop()
     print("Threebot server Stopped")
+
+
+@click.command()
+def status():
+    """return the status of threebot server
+    """
+    cmd = j.tools.startupcmd.get("threebot_default")
+    if cmd.is_running():
+        j.tools.console.printcolors("Server is {GREEN}running{RESET}")
+    else:
+        j.tools.console.printcolors("Server is {RED}stopped{RESET}")
+
+
+@click.command()
+@click.pass_context
+def restart(ctx):
+    ctx.invoke(stop)
+    ctx.invoke(start)
 
 
 @click.group()
@@ -96,6 +116,8 @@ def cli():
 
 cli.add_command(start)
 cli.add_command(stop)
+cli.add_command(status)
+cli.add_command(restart)
 
 
 if __name__ == "__main__":
