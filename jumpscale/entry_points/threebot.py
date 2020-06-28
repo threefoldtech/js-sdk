@@ -105,6 +105,8 @@ def status():
 @click.command()
 @click.pass_context
 def restart(ctx):
+    """restart threebot server
+    """
     ctx.invoke(stop)
     ctx.invoke(start)
 
