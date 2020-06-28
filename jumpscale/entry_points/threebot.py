@@ -88,6 +88,10 @@ def stop():
     threebot_cmd.stop()
     nginx_cmd = j.tools.startupcmd.get(j.tools.nginx.get("default").name)
     nginx_cmd.stop()
+    try:
+        j.servers.threebot.default.redis.cmd.stop()
+    except:
+        pass
     print("Threebot server Stopped")
 
 
@@ -95,8 +99,7 @@ def stop():
 def status():
     """return the status of threebot server
     """
-    cmd = j.tools.startupcmd.get("threebot_default")
-    if cmd.is_running():
+    if j.servers.threebot.default.is_running():
         j.tools.console.printcolors("Server is {GREEN}running{RESET}")
     else:
         j.tools.console.printcolors("Server is {RED}stopped{RESET}")

@@ -54,7 +54,7 @@
 - Start threebot server
 
   ```python
-  threebot_server = j.servers.threebot.get("default",   domain="<optional><your-threebotdomain>", email="<your email><required if you want to   use domain and ssl for certbot>")
+  threebot_server = j.servers.threebot.get(domain="<optional><your-threebotdomain>", email="<your email><required if you want to   use domain and ssl for certbot>")
   threebot_server.start()
   ```
 

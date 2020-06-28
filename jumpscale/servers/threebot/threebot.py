@@ -272,7 +272,7 @@ class PackageManager(Base):
     @property
     def threebot(self):
         if self._threebot is None:
-            self._threebot = j.servers.threebot.get(self.instance_name)
+            self._threebot = j.servers.threebot.get()
         return self._threebot
 
     def get(self, package_name):
@@ -424,6 +424,12 @@ class ThreebotServer(Base):
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
 
+    def is_running(self):
+        nginx_running = j.tools.startupcmd.get(j.tools.nginx.get("default").name).is_running()
+        redis_running = self.redis.cmd.is_running()
+        gedis_running = j.sals.nettools.wait_connection_test("127.0.0.1", 16000, timeout=1)
+        return nginx_running and redis_running and gedis_running
+
     @property
     def started(self):
         return self._started
@@ -505,11 +511,8 @@ class ThreebotServer(Base):
         # start default servers in the rack
 
         # mark app as started
-        running_server = j.servers.threebot.get_running()
-        if running_server:
-            raise j.exceptions.JSException(
-                f"you already have a running server instance {running_server.instance_name}."
-            )
+        if self.is_running():
+            return
 
         self.check_dependencies()
 

@@ -2,11 +2,8 @@ from jumpscale.core.base import StoredFactory
 
 
 class ThreebotServerFactory(StoredFactory):
-    def get_running(self):
-        for name in self.list_all():
-            server = self.get(name)
-            if server.started:
-                return server
+    def get(self, *args, **kwargs):
+        return super().get("default", *args, **kwargs)
 
     def start_default(self, wait=False):
         server = self.get("default")

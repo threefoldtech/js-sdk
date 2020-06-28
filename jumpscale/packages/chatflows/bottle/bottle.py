@@ -13,7 +13,7 @@ env = j.tools.jinja2.get_env(templates_path)
 @app.route("/<package_name>")
 @login_required
 def chats(package_name):
-    threebot = j.servers.threebot.get_running()
+    threebot = j.servers.threebot.get()
     package = threebot.packages.get(package_name)
     if not package:
         abort(404, f"package {package_name} does not exist")
