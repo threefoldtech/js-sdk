@@ -137,11 +137,12 @@ class Poll(GedisChatBot):
     @chatflow_step(title="Vote Results")
     def result(self):
         all_users = self.all_users.list_all()
-
+        total_votes = 0
         total_answers = {}
         for username in all_users:
             user = self.all_users.get(username)
             if user.poll_name == self.poll_name:
+                total_votes += 1
                 user_votes = self.all_users.get(username).vote_data
                 for question, answer in user_votes.items():
                     if total_answers.get(question):
@@ -157,6 +158,8 @@ class Poll(GedisChatBot):
                 answer_name = self.QUESTIONS[question][i]
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n"
+
+        result_msg += f"#### Total number of votes: {total_votes}\n"
 
         print(result_msg)
         self.md_show(result_msg, md=True)
