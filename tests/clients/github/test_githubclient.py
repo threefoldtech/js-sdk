@@ -5,7 +5,7 @@
 # name: Codescalers Test
 # organization: fakeForTest2
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from tests.base_tests import BaseTests
 
 
