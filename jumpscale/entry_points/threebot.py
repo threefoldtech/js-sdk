@@ -103,12 +103,13 @@ def status():
 
 
 @click.command()
+@click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
 @click.pass_context
-def restart(ctx):
+def restart(ctx, identity=None):
     """restart threebot server
     """
     ctx.invoke(stop)
-    ctx.invoke(start)
+    ctx.invoke(start, identity=identity)
 
 
 @click.group()
