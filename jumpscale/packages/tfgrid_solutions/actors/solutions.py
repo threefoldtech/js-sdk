@@ -7,11 +7,15 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 class Solutions(BaseActor):
     @actor_method
-    def list_solutions(self, solution_type: str) -> str:
-        # Update the solutions from the explorer
-        j.sals.reservation_chatflow.get_solutions_explorer()
+    def list_all_solutions(self) -> str:
+        res = j.sals.reservation_chatflow.get_solutions_explorer(deployed=False)
+        return j.data.serializers.json.dumps({"data": res})
 
+    @actor_method
+    def list_solutions(self, solution_type: str) -> str:
         solutions = []
+
+        j.sals.reservation_chatflow.update_local_reservations()
         solutions = j.sals.reservation_chatflow.get_solutions(SolutionType[solution_type])
         return j.data.serializers.json.dumps({"data": solutions})
 

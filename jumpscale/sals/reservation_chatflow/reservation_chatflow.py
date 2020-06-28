@@ -218,7 +218,7 @@ class ReservationChatflow:
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
         self._explorer = j.clients.explorer.get_default()
-        self.get_solutions_explorer()
+        self.update_local_reservations()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
@@ -389,14 +389,22 @@ class ReservationChatflow:
         reservation.explorer = self._explorer.url
         reservation.save()
 
-    def get_solutions_explorer(self):
-        """delete old instances, to get the new ones from explorer
-        """
-        for obj in self.solutions.list_all():
-            self.solutions.delete(obj)
+    def get_solutions_explorer(self, deployed=True):
+        """get the updated reservations from explorer
 
+        Args:
+            deployed (bool, optional): set False to get all reservations. Defaults to True.
+
+        Returns:
+            list: list of reservations
+        """
         customer_tid = self.me.tid
-        reservations = self._explorer.reservations.list(customer_tid, "DEPLOY")
+        reservations_data = []
+        reservations = []
+        if deployed:
+            reservations = self._explorer.reservations.list(customer_tid, "DEPLOY")
+        else:
+            reservations = self._explorer.reservations.list(customer_tid)
         networks = []
         dupnames = {}
         for reservation in sorted(reservations, key=lambda res: res.id, reverse=True):
@@ -435,22 +443,24 @@ class ReservationChatflow:
                 name = metadata["name"]
             else:
                 solution_type = self.check_solution_type(reservation)
+                if type(solution_type) is not str:
+                    solution_type = solution_type.value
                 info = {}
                 name = f"unknown_{reservation.id}"
-                if solution_type == SolutionType.Unknown:
+                if solution_type == SolutionType.Unknown.value:
                     continue
-                elif solution_type == SolutionType.Network:
+                elif solution_type == SolutionType.Network.value:
                     name = reservation.data_reservation.networks[0].name
                     if name in networks:
                         continue
                     networks.append(name)
-                elif solution_type == SolutionType.DelegatedDomain:
+                elif solution_type == SolutionType.DelegatedDomain.value:
                     info = self.get_solution_domain_delegates_info(reservation)
                     if not info.get("Solution name"):
                         name = f"unknown_{reservation.id}"
                     else:
                         name = info["Solution name"]
-                elif solution_type == SolutionType.Exposed:
+                elif solution_type == SolutionType.Exposed.value:
                     info = self.get_solution_exposed_info(reservation)
                     info["Solution name"] = name
                     name = info["Domain"]
@@ -459,7 +469,29 @@ class ReservationChatflow:
             if count != 1:
                 dupnames[solution_type][name] = count + 1
                 name = f"{name}_{count}"
-            self.save_reservation(reservation.id, name, solution_type, form_info=info)
+            # append reservation
+            reservations_data.append(
+                {
+                    "id": reservation.id,
+                    "name": name,
+                    "solution_type": solution_type,
+                    "form_info": info,
+                    "status": reservation.next_action.name,
+                    "reservation_date": reservation.epoch.ctime(),
+                }
+            )
+        return reservations_data
+
+    def update_local_reservations(self):
+        """update local reserfvations with new ones
+        """
+        for obj in self.solutions.list_all():
+            self.solutions.delete(obj)
+        reservations = self.get_solutions_explorer()
+        for reservation in reservations:
+            self.save_reservation(
+                reservation["id"], reservation["name"], reservation["solution_type"], form_info=reservation["form_info"]
+            )
 
     def list_wallets(self):
         """
@@ -993,7 +1025,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             [type]: [description]
         """
         if not reservations:
-            reservations = j.sals.zos.reservation_list(tid=tid, next_action=NextAction.DEPLOY.value)
+            reservations = j.sals.zos.reservation_list(tid=tid, next_action="DEPLOY")
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):

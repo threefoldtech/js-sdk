@@ -9,10 +9,10 @@ export default class TopView extends JetView {
         return {
             type:"clean",
             rows: [{
-                    $subview: "dash.solutions_cards"
+                    $subview: "dash.solutionsCards"
                 },
                 {
-                    $subview: "dash.threebot_cards"
+                    $subview: "dash.threebotCards"
                 },
                 {
                     gravity:7.1,
@@ -24,19 +24,19 @@ export default class TopView extends JetView {
                                     cols:
                                 [
                                     {
-                                        $subview: "dash.jsx_info"
+                                        $subview: "dash.jsxInfo"
                                     },
                                     {
-                                        $subview: "dash.processes_chart"
+                                        $subview: "dash.processesChart"
                                     },
                                 ]},
                                 {
-                                    $subview: "dash.graph_chart"
+                                    $subview: "dash.graphChart"
                                 }
                             ]
                         },
                         {
-                            $subview: "dash.processes_table"
+                            $subview: "dash.processesTable"
                         }
                     ]
                 },

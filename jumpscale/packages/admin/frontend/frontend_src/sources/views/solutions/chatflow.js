@@ -1,8 +1,7 @@
 import { ExternalView } from "../external";
 
-// TODO: modify url to be development branch
 const REQUIRED_PACKAGES = {
-    "tfgrid_solutions": "https://github.com/threefoldtech/js-sdk/blob/development_adminpanel/jumpscale/packages/tfgrid_solutions"
+    "tfgrid_solutions": "https://github.com/threefoldtech/js-sdk/blob/development/jumpscale/packages/tfgrid_solutions"
 }
 
 export default class ChatflowView extends ExternalView {

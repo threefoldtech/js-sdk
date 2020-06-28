@@ -9,3 +9,6 @@ TODO describe what can be done using js-ng
 ## API Docs
 
 [browsable](https://threefoldtech.github.io/js-ng/api/jumpscale/) at [https://threefoldtech.github.io/js-ng/api/jumpscale/](https://threefoldtech.github.io/js-ng/api/jumpscale/)
+
+
+TODO: more wording about js-sdk

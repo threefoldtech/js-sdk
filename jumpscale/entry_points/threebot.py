@@ -65,7 +65,7 @@ def start(identity=None):
 
     cmd = j.tools.startupcmd.get("threebot_default")
     cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
-    cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string, "nginx.*"]
+    cmd.process_strings_regex = [j.tools.nginx.get("default").check_command_string]
     cmd.ports = [8000, 8999]
     cmd.start()
     for service_name, service_port in SERVICES_PORTS.items():
