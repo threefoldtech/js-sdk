@@ -117,7 +117,7 @@ class Poll(GedisChatBot):
         answers = {k: v.value for k, v in answers.items()}
 
         # Customized stuff
-        custom_questions, custom_answers = self.custom_votes()
+        custom_questions, custom_answers, extra_data = self.custom_votes()
         self.QUESTIONS.update(custom_questions)
         answers.update(custom_answers)
 
@@ -126,15 +126,16 @@ class Poll(GedisChatBot):
         self.user.vote_data = vote_data
         self.user.vote_data_weighted = vote_data_weighted
         self.user.has_voted = True
+        self.user.extra_data = extra_data
         self.user.save()
 
     def custom_votes(self):
         """allow child classes to have its custom slides
 
         Returns:
-            Dict, Dict: Has all questions and choices, Has all questions and answer
+            Dict, Dict, Dict: Has all questions and choices, Has all questions and answer
         """
-        return {}, {}
+        return {}, {}, {}
 
     def _map_vote_results(self, form_answers, weighted=False):
         """takes form answers and returns a sparse array of what user chose

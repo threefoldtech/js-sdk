@@ -18,6 +18,7 @@ class Example(Poll):
         """
         custom_questions = {}
         custom_answers = {}
+        extra_data = {}
 
         q1 = "What's your favorite artist?"
         q1_choice = ["Amr Diab", "Adele", "Celin Dion", "Angham"]
@@ -25,7 +26,11 @@ class Example(Poll):
         custom_questions.update({q1: q1_choice})
         custom_answers.update({q1: q1_answer})
 
-        return custom_questions, custom_answers
+        feedback_text = "Please provide your feedback"
+        feedback = self.text_ask(feedback_text)
+        extra_data.update({"feedback": feedback})
+
+        return custom_questions, custom_answers, extra_data
 
 
 chat = Example
