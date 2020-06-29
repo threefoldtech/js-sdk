@@ -1,11 +1,9 @@
 import time
 
-# TODO: TESTING ONLY
-from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 from jumpscale.core.base import StoredFactory
 from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.chatflows.models.user_model import User
+from jumpscale.sals.chatflows.models.voter_model import User
 
 
 class Poll(GedisChatBot):
@@ -49,7 +47,7 @@ class Poll(GedisChatBot):
 
     @chatflow_step(title="Payment")
     def payment(self):
-        self.wallet = j.clients.stellar.hamada  # TODO: RESTORE TO STD WALLET
+        self.wallet = j.clients.stellar.polls_receive  # TODO: RESTORE TO STD WALLET
 
         if not self.user.user_code:
             self.user.user_code = j.data.idgenerator.chars(10)
@@ -77,29 +75,34 @@ class Poll(GedisChatBot):
             <h4> Message (User code): </h4>  {self.user.user_code} \n
             """
             self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True)
-            # simulate transaction, TODO: REMOVE
-            issuer = _NETWORK_KNOWN_TRUSTS["TEST"]["TFT"]
-            j.clients.stellar.waleed.transfer(
-                self.wallet.address, amount=0.1, asset=f"{currency}:{issuer}", memo_text=self.user.user_code
-            )
-            time.sleep(2)
-            if self._check_payment():
+            if self._check_payment(timeout=360):
                 self.md_show("Payment was successful. Press Next to go to the poll form", md=True)
             else:
                 raise StopChatFlow(f"Payment was unsuccessful. Please make sure you entered the correct data")
 
-    def _check_payment(self):
+    def _check_payment(self, timeout):
         """Returns True if user has paied alaready, False if not
         """
-        transactions = self.wallet.list_transactions()
-        for transaction in transactions:
-            if transaction.memo_text == self.user.user_code:
-                self.user.transaction_hash = transaction.hash
-                self.user.save()
-                return True
+        now = j.data.time.get().timestamp
+        remaning_time = j.data.time.get(now + timeout).timestamp
+        while remaning_time > now:
+            remaning_time_msg = j.data.time.get(remaning_time).humanize(granularity=["minute", "second"])
+            payment_message = (
+                "# Payment being processed...\n"
+                f"Process will be cancelled if payment is not successful {remaning_time_msg}"
+            )
+            self.md_show_update(payment_message, md=True)
 
-        if self.user.transaction_hash:
-            return True
+            transactions = self.wallet.list_transactions()
+            for transaction in transactions:
+                if transaction.memo_text == self.user.user_code:
+                    self.user.transaction_hash = transaction.hash
+                    self.user.wallet_address = self.wallet.get_sender_wallet_address(transaction.hash)
+                    self.user.save()
+                    return True
+
+            if self.user.transaction_hash:
+                return True
 
         return False
 
