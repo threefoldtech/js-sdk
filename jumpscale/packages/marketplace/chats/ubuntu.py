@@ -35,6 +35,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         self.metadata["Version"] = self.user_form_data["Version"]
         self.metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
         self.entry_point = "/bin/bash /start.sh"
+        self.flist_url = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
 
     @chatflow_step(title="Success", disable_previous=True)
     def ubuntu_acess(self):

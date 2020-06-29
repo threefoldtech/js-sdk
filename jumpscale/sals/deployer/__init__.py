@@ -650,6 +650,7 @@ class MarketPlaceChatflow(GedisChatBot):
     SOLUTION_TYPE = None
     user_form_data = {}
     metadata = {}
+    query = {}
 
     def get_tid(self):
         user = deployer.validate_user(self.user_info())
@@ -693,6 +694,11 @@ class MarketPlaceChatflow(GedisChatBot):
         self.user_form_data["Memory"] = memory.value
         self.user_form_data["Root filesystem Type"] = DiskType.SSD.name
         self.user_form_data["Root filesystem Size"] = self.rootfs_size.value
+        self.query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
+        self.query["cru"] = self.user_form_data["CPU"]
+        storage_units = math.ceil(self.rootfs_size.value / 1024)
+        self.query["sru"] = storage_units
+        self.query["currency"] = self.currency
 
     @chatflow_step(title="Access keys")
     def public_key_get(self):
@@ -701,17 +707,11 @@ class MarketPlaceChatflow(GedisChatBot):
                     Just upload the file with the key""",
             required=True,
         ).split("\n")[0]
+        self.env["pub_key"] = self.user_form_data["Public key"]
 
     @chatflow_step(title="Container node id")
     def container_node_id(self):
-        self.query = dict()
-        self.env["pub_key"] = self.user_form_data["Public key"]
-        self.query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
-        self.query["cru"] = self.user_form_data["CPU"]
-        storage_units = math.ceil(self.rootfs_size.value / 1024)
-        self.query["sru"] = storage_units
         # create new reservation
-        self.reservation = j.sals.zos.reservation_create()
         self.nodeid = self.string_ask(
             "Please enter the nodeid you would like to deploy on if left empty a node will be chosen for you"
         )
@@ -728,12 +728,21 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Container farm")
     def container_farm(self):
+        if not hasattr(self, "nodeid"):
+            self.nodeid = None
         if not self.nodeid:
+            query = {}
+            query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
+            query["cru"] = self.user_form_data["CPU"]
+
+            storage_units = math.ceil(self.rootfs_size.value / 1024)
+            query["sru"] = storage_units
             farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
             self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
+        # FIXME: it doesn't exclude used ip addresses
         self.network_copy = self.network.copy()
         self.network_copy.add_node(self.node_selected)
         self.ip_address = self.network_copy.ask_ip_from_node(
@@ -793,6 +802,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Payment", disable_previous=True)
     def container_pay(self):
+        self.reservation = j.sals.zos.reservation_create()
         if not hasattr(self, "container_volume_attach"):
             self.container_volume_attach = False
         if not hasattr(self, "interactive"):
@@ -801,8 +811,7 @@ class MarketPlaceChatflow(GedisChatBot):
             self.entry_point = None
 
         self.network = self.network_copy
-        self.network.update(self.get_tid(), currency=self.query["currency"], bot=self)
-        container_flist = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
+        self.network.update(self.get_tid(), currency=self.currency, bot=self)
         storage_url = "zdb://hub.grid.tf:9900"
 
         # create container
@@ -811,7 +820,7 @@ class MarketPlaceChatflow(GedisChatBot):
             node_id=self.node_selected.node_id,
             network_name=self.network.name,
             ip_address=self.ip_address,
-            flist=container_flist,
+            flist=self.flist_url,
             storage_url=storage_url,
             disk_type=DiskType.SSD.value,
             disk_size=self.rootfs_size.value,
@@ -845,7 +854,7 @@ class MarketPlaceChatflow(GedisChatBot):
         )
         reservation = deployer.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.query["currency"], bot=self
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
         )
 
     @chatflow_step(title="Attach Volume")
@@ -872,3 +881,16 @@ class MarketPlaceChatflow(GedisChatBot):
     def container_env(self):
         self.user_form_data["Env variables"] = self.multi_values_ask("Set Environment Variables")
         self.env.update(self.user_form_data["Env variables"])
+
+    @chatflow_step(title="Container ineractive & EntryPoint")
+    def container_interactive(self):
+        self.user_form_data["Interactive"] = self.single_choice(
+            "Would you like access to your container through the web browser (coreX)?", ["YES", "NO"], required=True
+        )
+        if self.user_form_data["Interactive"] == "NO":
+            self.interactive = False
+            self.user_form_data["Entry point"] = self.string_ask("Please add your entrypoint for your flist") or ""
+        else:
+            self.interactive = True
+            self.user_form_data["Port"] = "7681"
+            self.user_form_data["Entry point"] = ""
