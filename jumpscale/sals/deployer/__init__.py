@@ -429,11 +429,12 @@ to download your configuration
         return self.reservations[tid][solution_type.value]
 
     def get_network_object(self, reservation_obj, bot):
+        reservations = j.sals.zos.reservation_list(tid=j.core.identity.me.tid, next_action="DEPLOY")
         network = reservation_obj.data_reservation.networks[0]
         expiration = reservation_obj.data_reservation.expiration_reservation
         resv_id = reservation_obj.id
         currency = reservation_obj.data_reservation.currencies[0]
-        return Network(network, expiration, bot, [reservation_obj], currency, resv_id)
+        return Network(network, expiration, bot, reservations, currency, resv_id)
 
     def show_payment_qrcode(self, resv_id, total_amount, currency, bot):
         qr_code_content = j.sals.zos._escrow_to_qrcode(
@@ -742,7 +743,6 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
-        # FIXME: it doesn't exclude used ip addresses
         self.network_copy = self.network.copy()
         self.network_copy.add_node(self.node_selected)
         self.ip_address = self.network_copy.ask_ip_from_node(
