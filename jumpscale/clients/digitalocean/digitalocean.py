@@ -9,7 +9,7 @@ ssh.load_from_file_system()
 ## Create Digital Ocean client and set your token and load your sshkey
 ```python
 dg = j.clients.digitalocean.get("testDG")
-dg.token_ = ""
+dg.token = ""
 ```
 ## Set sshclient you have created
 ``` python
@@ -185,7 +185,7 @@ class Project(Client):
             raise j.exceptions.Value("A project with the same name already exists")
 
         project = ProjectManagement(
-            token=self.parent.projects.parent_instance.token_,
+            token=self.parent.projects.parent_instance.token,
             name=self.do_name,
             purpose=purpose,
             description=description,
@@ -388,9 +388,7 @@ class Droplet(Client):
                 sshkey = self.parent.sshkey
 
                 key = digitalocean.SSHKey(
-                    token=self.parent.projects.parent_instance.token_,
-                    name=sshkey.instance_name,
-                    public_key=sshkey.public_key,
+                    token=self.parent.projects.parent_instance.token, name=sshkey.name, public_key=sshkey.public_key
                 )
                 key.create()
                 sshkey_do = self.parent.get_default_sshkey()
@@ -412,7 +410,7 @@ class Droplet(Client):
         img_slug_or_id = imagedo.slug if imagedo.slug else imagedo.id
 
         droplet = digitalocean.Droplet(
-            token=self.parent.droplets.parent_instance.token_,
+            token=self.parent.droplets.parent_instance.token,
             name=self.do_name,
             region=region.slug,
             image=img_slug_or_id,
@@ -438,7 +436,7 @@ class Droplet(Client):
 
 class DigitalOcean(Client):
     name = fields.String()
-    token_ = fields.String()
+    token = fields.Secret()
     projects = fields.Factory(Project, factory_type=ProjectFactory)
     droplets = fields.Factory(Droplet, factory_type=DropletFactory)
 
@@ -457,7 +455,7 @@ class DigitalOcean(Client):
         """
 
         if not self._client:
-            self._client = digitalocean.Manager(token=self.token_)
+            self._client = digitalocean.Manager(token=self.token)
         return self._client
 
     # Images
