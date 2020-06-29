@@ -108,18 +108,22 @@ class Poll(GedisChatBot):
 
     @chatflow_step(title="Please fill in the following form", disable_previous=True)
     def vote(self):
-        form_answers = {}
+        answers = {}
         form = self.new_form()
         question, choices = "", ""
         for question, choices in self.QUESTIONS.items():
-            form_answers[question] = form.single_choice(question, choices, required=True)
+            answers[question] = form.single_choice(question, choices, required=True)
         form.ask()
-        form_answers = self._map_vote_results(form_answers)
-        self.user.vote_data = form_answers
+
+        vote_data = self._map_vote_results(answers.copy())
+        vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
+
+        self.user.vote_data = vote_data
+        self.user.vote_data_weighted = vote_data_weighted
         self.user.has_voted = True
         self.user.save()
 
-    def _map_vote_results(self, form_answers):
+    def _map_vote_results(self, form_answers, weighted=False):
         """takes form answers and returns a sparse array of what user chose
         to be easy in calcualting votes
 
@@ -129,33 +133,53 @@ class Poll(GedisChatBot):
         Args:
             form_answers (dict): form result dictionary
         """
-
         for question, answer in form_answers.items():
-            all_answers_init = len(self.QUESTIONS[question]) * [0]
+            all_answers_init = len(self.QUESTIONS[question]) * [0.0]
             answer_index = self.QUESTIONS[question].index(answer.value)
-            all_answers_init[answer_index] = 1
+            if weighted:
+                all_answers_init[answer_index] = self._get_voter_balance(self.user.wallet_address)
+            else:
+                all_answers_init[answer_index] = 1
             form_answers[question] = all_answers_init
         return form_answers
 
     @chatflow_step(title="Vote Results")
     def result(self):
-        all_users = self.all_users.list_all()
+        usersnames = self.all_users.list_all()
         total_votes = 0
         total_answers = {}
-        for username in all_users:
+        total_answers_weighted = {}
+        for username in usersnames:
             user = self.all_users.get(username)
             if user.poll_name == self.poll_name:
                 total_votes += 1
                 user_votes = self.all_users.get(username).vote_data
+                user_votes_weighted = self.all_users.get(username).vote_data_weighted
                 for question, answer in user_votes.items():
                     if total_answers.get(question):
                         total_answers[question] = list(map(sum, zip(total_answers[question], answer)))
                     else:
                         total_answers[question] = answer
 
+                for question, answer in user_votes_weighted.items():
+                    if total_answers_weighted.get(question):
+                        total_answers_weighted[question] = list(map(sum, zip(total_answers_weighted[question], answer)))
+                    else:
+                        total_answers_weighted[question] = answer
+
         total_answers = {k: self._calculate_percent(v) for k, v in total_answers.items()}
+        total_answers_weighted = {k: self._calculate_percent(v) for k, v in total_answers_weighted.items()}
+
         result_msg = ""
         for question, answers in total_answers.items():
+            result_msg += f"### {question}\n"
+            for i in range(len(answers)):
+                answer_name = self.QUESTIONS[question][i]
+                result_msg += f"- {answer_name}: {answers[i]}%\n"
+            result_msg += "\n"
+
+        result_msg += "## Results by token weights %\n"
+        for question, answers in total_answers_weighted.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
                 answer_name = self.QUESTIONS[question][i]
@@ -182,3 +206,17 @@ class Poll(GedisChatBot):
             res = (answers_list[i] / total_votes) * 100
             answers_list[i] = round(res, 2)
         return answers_list
+
+    def _get_voter_balance(self, wallet_address):
+        """Get sum of user TFT and TFTA
+
+        Args:
+            wallet_address (String): Wallet address
+        """
+        assets = self.wallet.get_balance(wallet_address).balances
+        total_balance = 0.0
+        for asset in assets:
+            if asset.asset_code == "TFT" or asset.asset_code == "TFTA":
+                total_balance += float(asset.balance)
+
+        return total_balance
