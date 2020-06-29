@@ -136,7 +136,7 @@ class Stellar(Client):
     def get_balance(self, address=None):
         """Gets balance for a stellar address
         """
-        if address:
+        if address is None:
             address = self.address
         all_balances = self._get_free_balances(address)
         for account in self._find_escrow_accounts(address):
