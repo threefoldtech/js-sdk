@@ -12,6 +12,7 @@ class FlistDeploy(MarketPlaceChatflow):
     SOLUTION_TYPE = SolutionType.Flist
 
     steps = [
+        "welcome",
         "solution_name",
         "choose_network",
         "flist_url",

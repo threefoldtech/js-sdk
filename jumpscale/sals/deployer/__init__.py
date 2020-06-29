@@ -443,7 +443,7 @@ to download your configuration
         message_text = f"""
             <h3> Please make your payment </h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
-            Make sure to add the message (user code) as memo_text
+            Make sure to add the message (reservation id) as memo_text
             Please make the transaction and press Next
             <h4> Wallet address: </h4>  {self.wallet.address} \n
             <h4> Currency: </h4>  {currency} \n
@@ -649,19 +649,24 @@ deployer = MarketPlaceDeployer()
 
 class MarketPlaceChatflow(GedisChatBot):
     SOLUTION_TYPE = None
-    user_form_data = {}
-    metadata = {}
-    query = {}
 
     def get_tid(self):
         user = deployer.validate_user(self.user_info())
         return user.id
 
+    @chatflow_step(title="Welcome")
+    def welcome(self):
+        self.user_form_data = dict()
+        self.metadata = dict()
+        self.query = dict()
+        self.env = dict()
+        self.secret_env = dict()
+        self.md_show(f"### Welcome to {self.SOLUTION_TYPE.value} chatflow. click next to proceed to the deployment")
+
     @chatflow_step(title="Solution name")
     def solution_name(self):
         self.name = self.string_ask("Please enter a name for your solution", required=True)
         self.user_form_data["Solution name"] = self.name
-        self.env = dict()
 
     @chatflow_step(title="Expiration time")
     def expiration_time(self):
@@ -672,6 +677,7 @@ class MarketPlaceChatflow(GedisChatBot):
             default=j.data.time.get().timestamp + 3900,
         )
         self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
+        self.metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
 
     @chatflow_step(title="Currency")
     def choose_currency(self):
@@ -732,12 +738,12 @@ class MarketPlaceChatflow(GedisChatBot):
         if not hasattr(self, "nodeid"):
             self.nodeid = None
         if not self.nodeid:
-            query = {}
-            query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
-            query["cru"] = self.user_form_data["CPU"]
+            if not self.query:
+                self.query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
+                self.query["cru"] = self.user_form_data["CPU"]
 
-            storage_units = math.ceil(self.rootfs_size.value / 1024)
-            query["sru"] = storage_units
+                storage_units = math.ceil(self.rootfs_size.value / 1024)
+                self.query["sru"] = storage_units
             farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
             self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
 
@@ -825,6 +831,7 @@ class MarketPlaceChatflow(GedisChatBot):
             disk_type=DiskType.SSD.value,
             disk_size=self.rootfs_size.value,
             env=self.env,
+            secret_env=self.secret_env,
             interactive=self.interactive,
             entrypoint=self.entry_point,
             cpu=self.user_form_data["CPU"],

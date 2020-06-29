@@ -14,6 +14,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
     IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
 
     steps = [
+        "welcome",
         "solution_name",
         "choose_network",
         "ubuntu_version",
@@ -33,7 +34,6 @@ class UbuntuDeploy(MarketPlaceChatflow):
     def ubuntu_version(self):
         self.user_form_data["Version"] = self.single_choice("Please choose ubuntu version", self.IMAGES, required=True)
         self.metadata["Version"] = self.user_form_data["Version"]
-        self.metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
         self.entry_point = "/bin/bash /start.sh"
         self.flist_url = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
 
