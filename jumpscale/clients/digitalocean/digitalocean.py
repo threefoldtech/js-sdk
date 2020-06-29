@@ -1,6 +1,6 @@
 """This module is used to manage your digital ocean account, create droplet,list all the droplets, destroy droplets, create project, list all the projects and delete project
 # prerequisites
-    ## Sshkey client and loaded with you public key
+## Sshkey client and loaded with you public key
 '''python
 ssh = j.clients.sshkey.get(name= "test")
 ssh.private_key_path = "/home/rafy/.ssh/id_rsa"
@@ -31,6 +31,10 @@ project.set_digital_ocean_name("test project DO client")
 ``` python
 project.deploy(purpose="testing digital ocean client")
 ```
+#### Deploy the project as default one so the new droplets will be automatically added to your default project
+``` python
+project.deploy(purpose="testing digital ocean client",is_default=True) 
+```
 #### Delete the project from Digital Ocean
 ``` python
 project.delete_remote()
@@ -47,8 +51,13 @@ droplet = dg.droplets.new("test_droplet_dg")
 droplet.set_digital_ocean_name("droplet-test-DO")
 ```
 #### Deploy the Droplet
+The droplet will be deployed to you your default project
 ```python
 droplet.deploy()
+```
+You can specify the project that you want the deploy the droplet to 
+```python
+droplet.deploy(project_name="test project DO client")
 ```
 #### Delete the Droplet from Digital Ocean
 ```python
@@ -129,7 +138,7 @@ class ProjectFactory(StoredFactory):
         for project in self.list_remote():
             if project.name == name:
                 return project
-        raise j.exceptions.Input("could not find project with name:%s on you Digital Ocean account" % name)
+        raise j.exceptions.Input("could not find project with name:%s on your Digital Ocean account" % name)
 
 
 class Project(Client):
@@ -262,7 +271,7 @@ class DropletFactory(StoredFactory):
         for droplet in self.list_remote():
             if droplet.name.lower() == name.lower():
                 return droplet
-        raise j.exceptions.Input("could not find project with name:%s on you Digital Ocean account" % name)
+        raise j.exceptions.Input("could not find droplet with name:%s on your Digital Ocean account" % name)
 
     def shutdown_all(self, project_name=None):
         """
@@ -367,22 +376,24 @@ class Droplet(Client):
         """
         project = None
         if project_name:
-            project = self.parent.projects.get_project_exist_remote(self.do_name)
+            project = self.parent.projects.get_project_exist_remote(project_name)
             if not project:
                 raise j.exceptions.Input("could not find project with name:%s" % project_name)
 
         # Get ssh
         if not sshkey:
             sshkey_do = self.parent.get_default_sshkey()
-
             if not sshkey_do:
                 # means we did not find the sshkey on digital ocean yet, need to create
                 sshkey = self.parent.sshkey
+
                 key = digitalocean.SSHKey(
-                    token=self.parent.projects.parent_instance.token_, name=sshkey.name, public_key=sshkey.public_key
+                    token=self.parent.projects.parent_instance.token_,
+                    name=sshkey.instance_name,
+                    public_key=sshkey.public_key,
                 )
                 key.create()
-            sshkey_do = self.parent.get_default_sshkey()
+                sshkey_do = self.parent.get_default_sshkey()
             assert sshkey_do
             sshkey = sshkey_do.name
 
@@ -431,8 +442,8 @@ class DigitalOcean(Client):
     projects = fields.Factory(Project, factory_type=ProjectFactory)
     droplets = fields.Factory(Droplet, factory_type=DropletFactory)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._client = None
 
     @property
