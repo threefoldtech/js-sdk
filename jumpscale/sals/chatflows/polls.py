@@ -114,14 +114,27 @@ class Poll(GedisChatBot):
         for question, choices in self.QUESTIONS.items():
             answers[question] = form.single_choice(question, choices, required=True)
         form.ask()
+        answers = {k: v.value for k, v in answers.items()}
+
+        # Customized stuff
+        custom_questions, custom_answers = self.custom_votes()
+        self.QUESTIONS.update(custom_questions)
+        answers.update(custom_answers)
 
         vote_data = self._map_vote_results(answers.copy())
         vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
-
         self.user.vote_data = vote_data
         self.user.vote_data_weighted = vote_data_weighted
         self.user.has_voted = True
         self.user.save()
+
+    def custom_votes(self):
+        """allow child classes to have its custom slides
+
+        Returns:
+            Dict, Dict: Has all questions and choices, Has all questions and answer
+        """
+        return {}, {}
 
     def _map_vote_results(self, form_answers, weighted=False):
         """takes form answers and returns a sparse array of what user chose
@@ -135,7 +148,7 @@ class Poll(GedisChatBot):
         """
         for question, answer in form_answers.items():
             all_answers_init = len(self.QUESTIONS[question]) * [0.0]
-            answer_index = self.QUESTIONS[question].index(answer.value)
+            answer_index = self.QUESTIONS[question].index(answer)
             if weighted:
                 all_answers_init[answer_index] = self._get_voter_balance(self.user.wallet_address)
             else:
@@ -176,9 +189,9 @@ class Poll(GedisChatBot):
             for i in range(len(answers)):
                 answer_name = self.QUESTIONS[question][i]
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
-            result_msg += "\n"
+            result_msg += "\n\n"
 
-        result_msg += "## Results by token weights %\n"
+        result_msg += "## Results by token weights %\n\n"
         for question, answers in total_answers_weighted.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
@@ -188,7 +201,6 @@ class Poll(GedisChatBot):
 
         result_msg += f"#### Total number of votes: {total_votes}\n"
 
-        print(result_msg)
         self.md_show(result_msg, md=True)
 
     def _calculate_percent(self, answers_list):
