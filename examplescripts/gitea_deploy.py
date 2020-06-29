@@ -7,10 +7,9 @@ from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSo
 from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network
 
 
-def wait_payment(self, bot, rid, reservation_create_resp=None):
+def wait_payment(self, rid, reservation_create_resp=None):
     """wait slide untill payment is ready
         Args:
-            bot (GedisChatBot): bot instance
             rid (int): customer tid
             threebot_app (bool, optional): is using threebot app payment. Defaults to False.
             reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
@@ -79,7 +78,6 @@ class Network_child(Network):
         Args:
             tid (int): customer tid (j.core.identity.me.tid)
             currency (str, optional): "TFT" or "FreeTFT". Defaults to None.
-            bot (GedisChatBot, optional): bot instance. Defaults to None.
 
         Returns:
             bool: True if successful
@@ -100,7 +98,7 @@ class Network_child(Network):
             self._sal.add_reservation_metadata(reservation, metadata)
 
             reservation_create = self._sal.register_reservation(
-                reservation, self._expiration, tid, currency=currency, bot=None
+                reservation, self._expiration, tid, currency=currency
             )
             rid = reservation_create.reservation_id
 
@@ -183,7 +181,6 @@ class GiteaDeploy:
         access_node,
         expiration=expiration,
         currency=user_form_data["Currency"],
-        bot=None,
     )
 
     client = j.clients.stellar.get(name="my_wallet", network="TEST")
