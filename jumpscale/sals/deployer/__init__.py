@@ -455,12 +455,6 @@ to download your configuration
             <h4> Message (Reservation ID): </h4>  {resv_id} \n
         """
         bot.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True)
-        #############################Simulate Payment FIXME##########################
-        issuer = _NETWORK_KNOWN_TRUSTS["TEST"]["TFT"]
-        j.clients.stellar.waleed.transfer(
-            self.wallet.address, amount=total_amount, asset=f"{currency}:{issuer}", memo_text=f"{resv_id}"
-        )
-        time.sleep(2)
 
     def _check_payment(self, resv_id, currency, total_amount, timeout=300):
         """Returns True if user has paied alaready, False if not
