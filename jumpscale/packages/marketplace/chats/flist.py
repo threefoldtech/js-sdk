@@ -43,10 +43,10 @@ class FlistDeploy(MarketPlaceChatflow):
                 "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist"
             )
 
-        # response = requests.head(self.user_form_data["Flist link"])
-        # response_md5 = requests.head(f"{self.user_form_data['Flist link']}.md5")
-        # if response.status_code != 200 or response_md5.status_code != 200:
-        #     raise StopChatFlow("This flist doesn't exist. Please make sure you enter a valid link to an existing flist")
+        response = requests.head(self.user_form_data["Flist link"])
+        response_md5 = requests.head(f"{self.user_form_data['Flist link']}.md5")
+        if response.status_code != 200 or response_md5.status_code != 200:
+            raise StopChatFlow("This flist doesn't exist. Please make sure you enter a valid link to an existing flist")
         self.flist_url = self.user_form_data["Flist link"]
 
     @chatflow_step()
