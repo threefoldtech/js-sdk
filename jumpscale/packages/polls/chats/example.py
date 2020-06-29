@@ -12,9 +12,10 @@ class Example(Poll):
     def custom_votes(self):
         """allow to have custom slides
         just update custom_questions, custom_answers dicts
+        extra_data: save data outside the poll
 
         Returns:
-            Dict, Dict: Has all questions and choices, Has all questions and answer
+            Dict, Dict, Dict: Has all questions and choices, Has all questions and answer, extra saved
         """
         custom_questions = {}
         custom_answers = {}

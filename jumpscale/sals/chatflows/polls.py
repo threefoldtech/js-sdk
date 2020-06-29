@@ -133,7 +133,7 @@ class Poll(GedisChatBot):
         """allow child classes to have its custom slides
 
         Returns:
-            Dict, Dict, Dict: Has all questions and choices, Has all questions and answer
+            Dict, Dict, Dict: Has all questions and choices, Has all questions and answer, extra saved data outside the poll
         """
         return {}, {}, {}
 
