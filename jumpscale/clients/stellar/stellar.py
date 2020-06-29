@@ -441,7 +441,6 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
-
         try:
             response = horizon_server.submit_transaction(transaction)
             tx_hash = response["hash"]
@@ -702,3 +701,20 @@ class Stellar(Client):
         except stellar_sdk.exceptions.BadRequestError:
             j.logger.info("Transaction need additional signatures in order to send")
             return tx.to_xdr()
+
+    def get_sender_wallet_address(self, transaction_hash):
+        """Get the sender's wallet address from a transaction hash
+
+        Args:
+            transaction_hash (String): Transaction hash
+
+        Returns:
+            String : Wallet Hash
+
+        """
+        server = self._get_horizon_server()
+        endpoint = server.operations().for_transaction(transaction_hash)
+        response = endpoint.call()
+        # not possible for a transaction to have more than a source, so will take first one
+        wallet_address = response["_embedded"]["records"][0]["source_account"]
+        return wallet_address
