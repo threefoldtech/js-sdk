@@ -183,6 +183,7 @@ class GiteaDeploy:
         currency=user_form_data["Currency"],
     )
 
+    #change wallet name for one used and make sure have TFT or FreeTFT
     client = j.clients.stellar.get(name="my_wallet", network="TEST")
     client.activate_through_friendbot()
     client.add_known_trustline("TFT")
@@ -191,7 +192,9 @@ class GiteaDeploy:
     # payout farmer
     j.sals.zos.billing.payout_farmers(client, config["reservation_create"])
 
+    print("Wireguard configuration")
     print(config["wg"])
+    print("Copy and up your wireguard")
 
     network = Network_child(
         reservation.data_reservation.networks[0],
@@ -207,9 +210,11 @@ class GiteaDeploy:
 
     user_form_data["Public key"] = "Puplic_key".split("\n")[0]
 
+    #add your expiration time
     expiration = j.data.time.get().timestamp + 9900
     user_form_data["Solution expiration"] = j.data.time.get(expiration).humanize()
 
+    #configuration of oddo and postgres
     database_name = "postgres"
     database_user = "postgres"
     database_password = "postgres"
