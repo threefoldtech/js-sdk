@@ -10,7 +10,7 @@ class ThreebotServerFactory(StoredFactory):
         self.default = super().new("default", *args, **kwargs)
         return self.default
 
-    def get(self, *args, **kwargs):
+    def get(self, name=None, *args, **kwargs):
         return super().get("default", *args, **kwargs)
 
     def start_default(self, wait=False):
