@@ -8,7 +8,7 @@ from jumpscale.sals.deployer import deployer, MarketPlaceChatflow
 
 
 class NetworkDeploy(MarketPlaceChatflow):
-    SOLUTION_TYPE = "Network"
+    SOLUTION_TYPE = SolutionType.Network
 
     steps = ["welcome", "solution_name", "expiration_time", "choose_currency", "network_info"]
 

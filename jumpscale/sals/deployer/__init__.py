@@ -116,7 +116,9 @@ class Network:
                 "Currency": self.currency,
                 "Solution expiration": self._expiration.timestamp(),
             }
-            metadata = deployer.get_solution_metadata(self.name, SolutionType.Network, tid, form_info=form_info)
+            metadata = deployer.get_solution_metadata(
+                self.name.split(f"{tid}_")[1], SolutionType.Network, tid, form_info=form_info
+            )
 
             metadata["parent_network"] = self.resv_id
             reservation = deployer.add_reservation_metadata(reservation, metadata)
@@ -258,6 +260,8 @@ class MarketPlaceDeployer:
                 elif solution_type == SolutionType.Flist.value:
                     metadata = self.get_solution_flist_info(metadata, reservation)
                 elif solution_type == SolutionType.Network.value:
+                    if not metadata["name"]:
+                        metadata["name"] = reservation.data_reservation.networks[0].name
                     if metadata["name"] in networks:
                         continue
                     networks.append(metadata["name"])
