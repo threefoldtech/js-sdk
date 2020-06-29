@@ -11,6 +11,14 @@ class ThreebotServerFactory(StoredFactory):
         return self.default
 
     def get(self, name=None, *args, **kwargs):
+        """get ThreebotServer default instance
+
+        Args:
+            name: ignored but here to be same signature as parent
+
+        Returns:
+            ThreebotServer
+        """
         return super().get("default", *args, **kwargs)
 
     def start_default(self, wait=False):
