@@ -1,17 +1,27 @@
-from jumpscale.god import j
-from .models import SolutionType, MarketPlaceSolution
-from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, NextAction, DiskType
 import base64
-from nacl.public import Box
-from collections import defaultdict
-import time
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, GedisChatBot, chatflow_step
-import math
-import netaddr
 import copy
+import math
+import time
+import requests
+import json
+import datetime
+from collections import defaultdict
+
+import netaddr
+from nacl.public import Box
+
+from jumpscale.clients.explorer.models import DiskType, NextAction, TfgridDeployed_reservation1
+from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
+from jumpscale.core.base import StoredFactory
+from jumpscale.god import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+
+from .models import MarketPlaceSolution, SolutionType
 
 # from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network
+
+
+MARKET_WALLET_NAME = "TFMarketWallet"
 
 
 class Network:
@@ -107,10 +117,6 @@ class Network:
                 "Solution expiration": self._expiration.timestamp(),
             }
             metadata = deployer.get_solution_metadata(self.name, SolutionType.Network, tid, form_info=form_info)
-            print(metadata)
-            import pdb
-
-            pdb.set_trace()
 
             metadata["parent_network"] = self.resv_id
             reservation = deployer.add_reservation_metadata(reservation, metadata)
@@ -201,6 +207,7 @@ class MarketPlaceDeployer:
         self.solutions = StoredFactory(MarketPlaceSolution)
         self._explorer = j.clients.explorer.get_default()
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type"}
+        self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
 
     def add_reservation_metadata(self, reservation, metadata):
         meta_json = j.data.serializers.json.dumps(metadata)
@@ -428,22 +435,231 @@ to download your configuration
         currency = reservation_obj.data_reservation.currencies[0]
         return Network(network, expiration, bot, [reservation_obj], currency, resv_id)
 
+    def show_payment_qrcode(self, resv_id, total_amount, currency, bot):
+        qr_code_content = j.sals.zos._escrow_to_qrcode(
+            escrow_address=self.wallet.address, escrow_asset=currency, total_amount=total_amount, message=f"{resv_id}"
+        )
+        message_text = f"""
+            <h3> Please make your payment </h3>
+            Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            <h4> Wallet address: </h4>  {self.wallet.address} \n
+            <h4> Currency: </h4>  {currency} \n
+            <h4> Amount: </h4>  {total_amount} \n
+            <h4> Message (Reservation ID): </h4>  {resv_id} \n
+        """
+        bot.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True)
+        #############################Simulate Payment FIXME##########################
+        issuer = _NETWORK_KNOWN_TRUSTS["TEST"]["TFT"]
+        j.clients.stellar.waleed.transfer(
+            self.wallet.address, amount=total_amount, asset=f"{currency}:{issuer}", memo_text=f"{resv_id}"
+        )
+        time.sleep(2)
+
+    def _check_payment(self, resv_id, currency, total_amount, timeout=300):
+        """Returns True if user has paied alaready, False if not
+        """
+        now = datetime.datetime.now()
+        effects_sum = 0
+        while now + datetime.timedelta(seconds=timeout) > datetime.datetime.now():
+            transactions = self.wallet.list_transactions()
+            for transaction in transactions:
+                if transaction.memo_text == f"{resv_id}":
+                    effects = self.wallet.get_transaction_effects(transaction.hash)
+                    for e in effects:
+                        if e.asset_code == currency:
+                            effects_sum += e.amount
+            if effects_sum >= total_amount:
+                return True
+        return False
+
+    def register_reservation(
+        self, reservation, expiration, customer_tid, expiration_provisioning=1000, currency=None, bot=None
+    ):
+        expiration_provisioning += j.data.time.get().timestamp
+        try:
+            reservation_create = j.sals.zos.reservation_register(
+                reservation,
+                expiration,
+                expiration_provisioning=expiration_provisioning,
+                customer_tid=customer_tid,
+                currencies=[currency],
+            )
+        except requests.HTTPError as e:
+            try:
+                msg = e.response.json()["error"]
+            except (KeyError, json.JSONDecodeError):
+                msg = e.response.text
+            raise StopChatFlow(f"The following error occured: {msg}")
+
+        rid = reservation_create.reservation_id
+        reservation.id = rid
+        return reservation_create
+
+    def register_and_pay_reservation(self, reservation, expiration=None, customer_tid=None, currency=None, bot=None):
+        if customer_tid and expiration and currency:
+            reservation_create = self.register_reservation(
+                reservation, expiration, customer_tid=customer_tid, currency=currency, bot=bot
+            )
+        else:
+            reservation_create = reservation
+
+        payment = {"wallet": None, "free": False}
+        if not (reservation_create.escrow_information and reservation_create.escrow_information.details):
+            payment["free"] = True
+        else:
+            payment["wallet"] = self.wallet
+
+        resv_id = reservation_create.reservation_id
+        if payment["wallet"]:
+            total_amount = j.sals.zos.billing.get_reservation_amount(reservation_create)
+            self.show_payment_qrcode(resv_id, total_amount, currency, bot)
+            if not self._check_payment(resv_id, currency, float(total_amount) + 0.1):
+                raise StopChatFlow(f"Payment was unsuccessful. Please make sure you entered the correct data")
+
+            j.sals.zos.billing.payout_farmers(payment["wallet"], reservation_create)
+            self.wait_payment(bot, resv_id)
+
+        self.wait_reservation(bot, resv_id)
+        return resv_id
+
+    def wait_reservation(self, bot, rid):
+        """
+        Wait for reservation results to be complete, have errors, or expire.
+        If there are errors then error message is previewed in the chatflow to the user and the chat is ended.
+
+        Args:
+            bot (GedisChatBot): bot instance
+            rid (int): user tid
+        """
+
+        def is_finished(reservation):
+            count = 0
+            count += len(reservation.data_reservation.volumes)
+            count += len(reservation.data_reservation.zdbs)
+            count += len(reservation.data_reservation.containers)
+            count += len(reservation.data_reservation.kubernetes)
+            count += len(reservation.data_reservation.proxies)
+            count += len(reservation.data_reservation.reverse_proxies)
+            count += len(reservation.data_reservation.subdomains)
+            count += len(reservation.data_reservation.domain_delegates)
+            count += len(reservation.data_reservation.gateway4to6)
+            for network in reservation.data_reservation.networks:
+                count += len(network.network_resources)
+            return len(reservation.results) >= count
+
+        def is_expired(reservation):
+            """[summary]
+
+            Args:
+                reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+
+            Returns:
+                [bool]: True if the reservation is expired
+            """
+            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
+
+        reservation = self._explorer.reservations.get(rid)
+        while True:
+            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+                granularity=["minute", "second"]
+            )
+            deploying_message = f"""
+# Deploying...\n
+Deployment will be cancelled if it is not successful {remaning_time}
+"""
+            bot.md_show_update(deploying_message, md=True)
+            self._reservation_failed(bot, reservation)
+
+            if is_finished(reservation):
+                if reservation.next_action != NextAction.DEPLOY:
+                    res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy\n"
+                    for x in reservation.results:
+                        if x.state == "ERROR":
+                            res += f"\n### {x.category}: ```{x.message}```\n"
+                    bot.stop(res, md=True, html=True)
+                return reservation.results
+            if is_expired(reservation):
+                res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy in time:\n"
+                for x in reservation.results:
+                    if x.state == "ERROR":
+                        res += f"\n### {x.category}: ```{x.message}```\n"
+                link = f"{self._explorer.url}/reservations/{reservation.id}"
+                res += f"<h2> <a href={link}>Full reservation info</a></h2>"
+                j.sals.zos.reservation_cancel(rid)
+                bot.stop(res, md=True, html=True)
+            time.sleep(1)
+            reservation = self._explorer.reservations.get(rid)
+
+    def wait_payment(self, bot, rid, reservation_create_resp=None):
+        """wait slide untill payment is ready
+
+        Args:
+            bot (GedisChatBot): bot instance
+            rid (int): customer tid
+            threebot_app (bool, optional): is using threebot app payment. Defaults to False.
+            reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
+        """
+
+        # wait to check payment is actually done next_action changed from:PAY
+        def is_expired(reservation):
+            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
+
+        reservation = self._explorer.reservations.get(rid)
+        while True:
+            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+                granularity=["minute", "second"]
+            )
+            deploying_message = f"""
+# Payment being processed...\n
+Deployment will be cancelled if payment is not successful {remaning_time}
+"""
+            bot.md_show_update(deploying_message, md=True)
+            if reservation.next_action != "PAY":
+                return
+            if is_expired(reservation):
+                res = f"# Failed to wait for payment for reservation:```{reservation.id}```:\n"
+                for x in reservation.results:
+                    if x.state == "ERROR":
+                        res += f"\n### {x.category}: ```{x.message}```\n"
+                link = f"{self._explorer.url}/reservations/{reservation.id}"
+                res += f"<h2> <a href={link}>Full reservation info</a></h2>"
+                j.sals.zos.reservation_cancel(rid)
+                bot.stop(res, md=True, html=True)
+            time.sleep(5)
+            reservation = self._explorer.reservations.get(rid)
+
+    def _reservation_failed(self, bot, reservation):
+        failed = j.sals.zos.reservation_failed(reservation)
+        if failed:
+            res = f"# Sorry your reservation ```{reservation.id}``` has failed :\n"
+            for x in reservation.results:
+                if x.state == "ERROR":
+                    res += f"\n### {x.category}: ```{x.message}```\n"
+            link = f"{self._explorer.url}/reservations/{reservation.id}"
+            res += f"<h2> <a href={link}>Full reservation info</a></h2>"
+            j.sals.zos.reservation_cancel(reservation.id)
+            bot.stop(res, md=True, html=True)
+
 
 deployer = MarketPlaceDeployer()
 
 
 class MarketPlaceChatflow(GedisChatBot):
-    SOLUTION_TYPE = ""
+    SOLUTION_TYPE = None
     user_form_data = {}
+    metadata = {}
 
     def get_tid(self):
         user = deployer.validate_user(self.user_info())
         return user.id
 
-    @chatflow_step(title=f"{SOLUTION_TYPE} Name")
+    @chatflow_step(title="Solution name")
     def solution_name(self):
-        self.solution_name = self.string_ask("Please enter a name for your solution", required=True)
-        self.user_form_data["Solution name"] = self.solution_name
+        self.name = self.string_ask("Please enter a name for your solution", required=True)
+        self.user_form_data["Solution name"] = self.name
+        self.env = dict()
 
     @chatflow_step(title="Expiration time")
     def expiration_time(self):
@@ -489,7 +705,7 @@ class MarketPlaceChatflow(GedisChatBot):
     @chatflow_step(title="Container node id")
     def container_node_id(self):
         self.query = dict()
-        self.var_dict = {"pub_key": self.user_form_data["Public key"]}
+        self.env["pub_key"] = self.user_form_data["Public key"]
         self.query["mru"] = math.ceil(self.user_form_data["Memory"] / 1024)
         self.query["cru"] = self.user_form_data["CPU"]
         storage_units = math.ceil(self.rootfs_size.value / 1024)
@@ -574,3 +790,85 @@ class MarketPlaceChatflow(GedisChatBot):
         network_reservation = networks_dict[network_name]
         self.network = deployer.get_network_object(network_reservation["reservation_obj"], self)
         self.currency = self.network.currency
+
+    @chatflow_step(title="Payment", disable_previous=True)
+    def container_pay(self):
+        if not hasattr(self, "container_volume_attach"):
+            self.container_volume_attach = False
+        if not hasattr(self, "interactive"):
+            self.interactive = False
+        if not hasattr(self, "entry_point"):
+            self.entry_point = None
+
+        self.network = self.network_copy
+        self.network.update(self.get_tid(), currency=self.query["currency"], bot=self)
+        container_flist = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
+        storage_url = "zdb://hub.grid.tf:9900"
+
+        # create container
+        cont = j.sals.zos.container.create(
+            reservation=self.reservation,
+            node_id=self.node_selected.node_id,
+            network_name=self.network.name,
+            ip_address=self.ip_address,
+            flist=container_flist,
+            storage_url=storage_url,
+            disk_type=DiskType.SSD.value,
+            disk_size=self.rootfs_size.value,
+            env=self.env,
+            interactive=self.interactive,
+            entrypoint=self.entry_point,
+            cpu=self.user_form_data["CPU"],
+            memory=self.user_form_data["Memory"],
+        )
+        if self.container_logs_option == "YES":
+            j.sals.zos.container.add_logs(
+                cont,
+                channel_type=self.user_form_data["Logs Channel type"],
+                channel_host=self.user_form_data["Logs Channel host"],
+                channel_port=self.user_form_data["Logs Channel port"],
+                channel_name=self.user_form_data["Logs Channel name"],
+            )
+        if self.container_volume_attach:
+            self.volume = j.sals.zos.volume.create(
+                self.reservation,
+                self.node.node_id,
+                size=self.user_form_data["Volume Size"],
+                type=self.vol_disk_type.value,
+            )
+            j.sals.zos.volume.attach(
+                container=cont, volume=self.volume, mount_point=self.user_form_data["Volume mount point"]
+            )
+
+        res = deployer.get_solution_metadata(
+            self.user_form_data["Solution name"], self.SOLUTION_TYPE, self.tid, self.metadata
+        )
+        reservation = deployer.add_reservation_metadata(self.reservation, res)
+        self.resv_id = deployer.register_and_pay_reservation(
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.query["currency"], bot=self
+        )
+
+    @chatflow_step(title="Attach Volume")
+    def container_volume(self):
+        volume_attach = self.drop_down_choice(
+            "Would you like to attach an extra volume to the container", ["YES", "NO"], required=True, default="NO"
+        )
+        self.container_volume_attach = volume_attach == "YES" or False
+
+    @chatflow_step(title="Volume details")
+    def container_volume_details(self):
+        if self.container_volume_attach:
+            form = self.new_form()
+            vol_disk_size = form.int_ask("Please specify the volume size", required=True, default=10)
+            vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
+            form.ask()
+            self.vol_disk_size = vol_disk_size
+            self.vol_disk_type = DiskType.SSD
+            self.user_form_data["Volume Disk type"] = DiskType.SSD.name
+            self.user_form_data["Volume Size"] = vol_disk_size.value
+            self.user_form_data["Volume mount point"] = vol_mount_point.value
+
+    @chatflow_step(title="Environment variables")
+    def container_env(self):
+        self.user_form_data["Env variables"] = self.multi_values_ask("Set Environment Variables")
+        self.env.update(self.user_form_data["Env variables"])

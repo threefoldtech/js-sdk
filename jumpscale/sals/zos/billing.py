@@ -37,3 +37,12 @@ class Billing:
                 raise e
 
         return transaction_hashes
+
+    def get_reservation_amount(self, reservation_response):
+        if reservation_response.escrow_information.details:
+            asset = reservation_response.escrow_information.asset
+            total_amount = sum([d.total_amount for d in reservation_response.escrow_information.details])
+            total_amount = Decimal(total_amount) / Decimal(1e7)
+            total_amount = "{0:f}".format(total_amount)
+
+            return total_amount

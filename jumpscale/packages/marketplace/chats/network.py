@@ -14,9 +14,7 @@ class NetworkDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Network Information")
     def network_info(self):
-        deployer.deploy_network(
-            self.get_tid(), self.solution_name, self.expiration, self.currency, self, self.user_form_data
-        )
+        deployer.deploy_network(self.get_tid(), self.name, self.expiration, self.currency, self, self.user_form_data)
 
 
 chat = NetworkDeploy
