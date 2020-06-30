@@ -425,7 +425,7 @@ class ThreebotServer(Base):
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
 
     def is_running(self):
-        nginx_running = j.tools.startupcmd.get(j.tools.nginx.get("default").name).is_running()
+        nginx_running = self.nginx.is_running()
         redis_running = self.redis.cmd.is_running()
         gedis_running = j.sals.nettools.wait_connection_test("127.0.0.1", 16000, timeout=1)
         return nginx_running and redis_running and gedis_running
