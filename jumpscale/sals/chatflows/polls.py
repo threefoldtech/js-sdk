@@ -5,6 +5,8 @@ from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.chatflows.models.voter_model import User
 
+WALLET_NAME = "polls_receive"
+
 
 class Poll(GedisChatBot):
     """Polls chatflow base
@@ -47,7 +49,9 @@ class Poll(GedisChatBot):
 
     @chatflow_step(title="Payment")
     def payment(self):
-        self.wallet = j.clients.stellar.polls_receive  # TODO: RESTORE TO STD WALLET
+        if not j.clients.stellar.find(WALLET_NAME):
+            raise j.core.exceptions.Runtime(f"Wallet {WALLET_NAME} is not configured, please create it.")
+        self.wallet = j.clients.stellar.get(WALLET_NAME)
 
         if not self.user.user_code:
             self.user.user_code = j.data.idgenerator.chars(10)
