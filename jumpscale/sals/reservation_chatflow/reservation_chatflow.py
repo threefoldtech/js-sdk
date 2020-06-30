@@ -418,8 +418,7 @@ class ReservationChatflow:
                 if "form_info" not in metadata:
                     solution_type = self.check_solution_type(reservation)
                 else:
-                    solution_type = metadata["form_info"].get("chatflow", SolutionType.Unknown.value)
-                    metadata["form_info"].pop("chatflow", None)
+                    solution_type = metadata["form_info"].pop("chatflow", SolutionType.Unknown.value)
                 if solution_type == SolutionType.Unknown.value:
                     continue
                 elif solution_type == SolutionType.Ubuntu.value:
