@@ -37,7 +37,7 @@ class SolutionExpose(BaseSolutionExpose):
         )
         solution = self.sols[solution_name]
         self.user_form_data["Solution name"] = solution_name
-        self.reservation_data = solution["reservation_obj"].reservation_data
+        self.reservation_data = solution["reservation_obj"].data_reservation.to_dict()
         self.solution_currency = self.reservation_data["currencies"][0]
 
     @chatflow_step(title="Domain 1")
@@ -81,7 +81,12 @@ class SolutionExpose(BaseSolutionExpose):
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network_name)
         # get MarketPlace Network object
         network = Network(
-            network.network, network.expiration, self, network.reservations, network.currency, network.resv_id
+            network._network,
+            network._expiration,
+            self,
+            j.sals.zos.reservation_list(),
+            network.currency,
+            network.resv_id,
         )
         network.add_node(node_selected)
         network.update(self.get_tid(), currency=self.solution_currency, bot=self)
@@ -136,6 +141,35 @@ Tcp routers are used in the process of being able to expose your solutions. This
             currency=self.solution_currency,
             bot=self,
         )
+
+    @chatflow_step(title="Reserve TCP router container", disable_previous=True)
+    def tcp_router_reservation(self):
+        # create proxy
+        j.sals.zos._gateway.tcp_proxy_reverse(
+            self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
+        )
+
+        metadata = deployer.get_solution_metadata(
+            self.user_form_data["Solution name"],
+            SolutionType.Exposed,
+            self.get_tid(),
+            {"Solution expiration": self.expiration},
+        )
+        self.reservation = deployer.add_reservation_metadata(self.reservation, metadata)
+
+        resv_id = deployer.register_and_pay_reservation(
+            self.reservation,
+            self.expiration,
+            customer_tid=j.core.identity.me.tid,
+            currency=self.solution_currency,
+            bot=self,
+        )
+
+    @chatflow_step(title="Success", disable_previous=True)
+    def success(self):
+        domain = self.user_form_data["Domain"]
+        res_md = f"Use this Gateway to connect to your exposed solutions `{domain}`"
+        self.md_show(res_md)
 
 
 chat = SolutionExpose

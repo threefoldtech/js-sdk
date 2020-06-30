@@ -271,7 +271,7 @@ class MarketPlaceDeployer:
                     meta = metadata
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
-                    metadata["name"] = metadata["form_info"]["Domain"]
+                    metadata["name"] = f'{tid}_{metadata["form_info"]["Domain"]}'
                 info = metadata["form_info"]
                 name = metadata["name"]
                 count = dupnames.setdefault(solution_type, {}).setdefault(name, 1)
