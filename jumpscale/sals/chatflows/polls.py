@@ -23,7 +23,6 @@ class Poll(GedisChatBot):
     """
 
     poll_name = None  # Required
-    QUESTIONS = None
 
     steps = [
         "welcome",
@@ -31,6 +30,10 @@ class Poll(GedisChatBot):
         "vote",
         "result",
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.QUESTIONS = {}
 
     @chatflow_step()
     def welcome(self):
