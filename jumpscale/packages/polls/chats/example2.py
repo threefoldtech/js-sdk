@@ -15,23 +15,22 @@ class Example2(Poll):
         extra_data: save data outside the poll
 
         Returns:
-            Dict, Dict, Dict: Has all questions and choices, Has all questions and answer, extra saved
+            Dict, Dict: Has all questions and answer, extra saved
         """
-        custom_questions = {}
         custom_answers = {}
         extra_data = {}
 
         q1 = "What's your favorite artist?"
         q1_choice = ["Amr Diab", "Adele", "Celin Dion", "Angham"]
         q1_answer = self.drop_down_choice(q1, q1_choice, required=True)
-        custom_questions.update({q1: q1_choice})
+        self.QUESTIONS.update({q1: q1_choice})
         custom_answers.update({q1: q1_answer})
 
         feedback_text = "Please provide your feedback"
         feedback = self.text_ask(feedback_text)
         extra_data.update({"feedback": feedback})
 
-        return custom_questions, custom_answers, extra_data
+        return custom_answers, extra_data
 
 
 chat = Example2
