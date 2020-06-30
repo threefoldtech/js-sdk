@@ -1,6 +1,6 @@
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
-from jumpscale.god import j
+from jumpscale.loader import j
 
 replacelabels = {
     "bug": "type_bug",

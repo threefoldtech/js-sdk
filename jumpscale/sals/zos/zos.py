@@ -10,7 +10,7 @@ from .gateway import Gateway
 from jumpscale.data.time import now
 from jumpscale.data.serializers.json import dump_to_file, load_from_file, dumps, loads
 from jumpscale.data.nacl import payload_build
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.explorer.models import TfgridWorkloadsReservation1
 from jumpscale.core import identity
 import binascii

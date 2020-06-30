@@ -6,7 +6,7 @@ from .issue import Issue
 from .base import replacelabels
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
-from jumpscale.god import j
+from jumpscale.loader import j
 
 # import collections
 import urllib
@@ -432,7 +432,7 @@ class GithubRepo:
                 file_content = self.api.get_contents(content.path, ref=branch)
                 with open(file_path, "+w") as f:
                     f.write(base64.b64decode(file_content.content).decode())
-    
+
         return j.sals.fs.join_paths(dest, src)
 
     def __str__(self):

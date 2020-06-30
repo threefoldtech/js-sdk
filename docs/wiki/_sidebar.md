@@ -1,6 +1,7 @@
 * [Home](/)
 * Getting Started
     * [Intro](./intro.md)
+    * [Quick start](./quick_start.md)
     * [Installation](./installation.md)
     * [Installation for JS-SDK developers](./devsetup.md)
     * Docker based setup
@@ -8,6 +9,8 @@
     * [API](generated_apis.md)
 * Tutorials
     * [Developing a Package and Deploying a Website](./tutorials/deploying_website_and_packages.md)
+    * [Adding funds to the wallet](./tutorials/add_funds_to_wallet.md)
+    * [Deploy ubuntu container](./tutorials/deploy_ubuntu_container.md)
 * Developers
     * Structure
     * [Developer setup](./devsetup.md)
@@ -15,7 +18,9 @@
     * [Development process/Contribution](./devprocess.md)
     * Packages
     * ChatEngine
-    * Threebot
+    * [Threebot](./threebot.md)
+    * [Threebot Auth](./research/threebot_auth.md)
+    * [NGINX/SSL](./research/nginx_ssl.md)
     * [RPC](./rpc.md)
     * [API](generated_apis.md)
     * Builders

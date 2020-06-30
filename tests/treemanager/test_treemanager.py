@@ -1,6 +1,6 @@
 import pytest
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.data.treemanager.exceptions import NameExistsError, EmptyNameError, RootRemoveError
 
 

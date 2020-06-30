@@ -28,6 +28,7 @@
   - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
   - git from [here](https://www.atlassian.com/git/tutorials/install-git)
   - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
+  - poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
   - tmux `brew install tmux`
 
 ## Installation in system (Experts)

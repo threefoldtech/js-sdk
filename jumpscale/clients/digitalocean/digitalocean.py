@@ -1,15 +1,15 @@
 """This module is used to manage your digital ocean account, create droplet,list all the droplets, destroy droplets, create project, list all the projects and delete project
 # prerequisites
-    ## Sshkey client and loaded with you public key 
+## Sshkey client and loaded with you public key
 '''python
 ssh = j.clients.sshkey.get(name= "test")
-ssh.private_key_path = "/home/rafy/.ssh/id_rsa" 
+ssh.private_key_path = "/home/rafy/.ssh/id_rsa"
 ssh.load_from_file_system()
 '''
-## Create Digital Ocean client and set your token and load your sshkey 
+## Create Digital Ocean client and set your token and load your sshkey
 ```python
 dg = j.clients.digitalocean.get("testDG")
-dg.token_ = ""
+dg.token = ""
 ```
 ## Set sshclient you have created
 ``` python
@@ -17,7 +17,7 @@ dg.set_default_sshkey(ssh)
 ```
 ## Use Digital Ocean client
 
-### Create and deploy Project to Digital Ocean 
+### Create and deploy Project to Digital Ocean
 
 #### Create Project (name must not contian spaces or start with number)
 ``` python
@@ -31,8 +31,12 @@ project.set_digital_ocean_name("test project DO client")
 ``` python
 project.deploy(purpose="testing digital ocean client")
 ```
+#### Deploy the project as default one so the new droplets will be automatically added to your default project
+``` python
+project.deploy(purpose="testing digital ocean client",is_default=True) 
+```
 #### Delete the project from Digital Ocean
-``` python 
+``` python
 project.delete_remote()
 ```
 
@@ -47,21 +51,26 @@ droplet = dg.droplets.new("test_droplet_dg")
 droplet.set_digital_ocean_name("droplet-test-DO")
 ```
 #### Deploy the Droplet
+The droplet will be deployed to you your default project
 ```python
 droplet.deploy()
 ```
+You can specify the project that you want the deploy the droplet to 
+```python
+droplet.deploy(project_name="test project DO client")
+```
 #### Delete the Droplet from Digital Ocean
 ```python
-droplet.delete_remote() 
+droplet.delete_remote()
 ```
 
-### Get digital ocean regions 
-```python 
-dg.regions 
+### Get digital ocean regions
+```python
+dg.regions
 ```
 
-### Get digital ocean images 
-```python 
+### Get digital ocean images
+```python
 dg.images
 ```
 
@@ -69,7 +78,7 @@ In the below examples, I have supposed that you followed the above steps
 and you got digital ocean client with the name (dg)
 """
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from jumpscale.core.base import StoredFactory
@@ -86,27 +95,27 @@ class ProjectFactory(StoredFactory):
         Returns list of projects on Digital Ocean
 
         e.g
-            dg.projects.list_remote()  -> list of projects 
-        
-        Returns 
-            list(projects): list of projects on digital ocean 
+            dg.projects.list_remote()  -> list of projects
+
+        Returns
+            list(projects): list of projects on digital ocean
 
         """
         return ProjectManagement.list(self.parent_instance.client)
 
     def check_project_exist_remote(self, name):
         """
-        Check a project with specific name exits on Digital Ocean 
+        Check a project with specific name exits on Digital Ocean
 
         e.g
             dg.projects.check_project_exist_remote("codescalers")  -> True
             dg.projects.check_project_exist_remote("dsrfjsdfjl")  -> False
-        
+
         Args
             name (str): name of the project
 
         Returns
-            bool : True if the project exits and False if the project does not exist on digital ocean 
+            bool : True if the project exits and False if the project does not exist on digital ocean
         """
         for project in self.list_remote():
             if project.name == name:
@@ -116,10 +125,10 @@ class ProjectFactory(StoredFactory):
     def get_project_exist_remote(self, name):
         """
         Get a project with specifc name from  Digital Ocean.
-        
+
         e.g
             dg.projects.get_project_exist_remote("codescalers")  -> project
-        
+
         Args
             name (str): name of the project
 
@@ -129,7 +138,7 @@ class ProjectFactory(StoredFactory):
         for project in self.list_remote():
             if project.name == name:
                 return project
-        raise j.exceptions.Input("could not find project with name:%s on you Digital Ocean account" % name)
+        raise j.exceptions.Input("could not find project with name:%s on your Digital Ocean account" % name)
 
 
 class Project(Client):
@@ -140,7 +149,7 @@ class Project(Client):
 
     def set_digital_ocean_name(self, name):
         """Set a name for your project to be used on Digital Ocean
-        e.g 
+        e.g
             project.set_digital_ocean_name("test project DO client")
 
         Args:
@@ -150,7 +159,7 @@ class Project(Client):
 
     def get_digital_ocean_name(self):
         """Get a name for the project which is used on digital ocean
-        e.g 
+        e.g
             project.get_digital_ocean_name()  ->  "test project DO client"
 
         Returns:
@@ -167,16 +176,16 @@ class Project(Client):
             description(str): description of the project, defaults to ""
             environment(str): environment of project's resources, defaults to ""
             is_default(bool): make this the default project for your user
-        
+
         Returns:
-            project: The project object that has been created 
+            project: The project object that has been created
         """
 
         if self.parent.projects.check_project_exist_remote(self.do_name):
             raise j.exceptions.Value("A project with the same name already exists")
 
         project = ProjectManagement(
-            token=self.parent.projects.parent_instance.token_,
+            token=self.parent.projects.parent_instance.token,
             name=self.do_name,
             purpose=purpose,
             description=description,
@@ -192,7 +201,7 @@ class Project(Client):
 
     def delete_remote(self):
         """Delete the project from Digital Ocean (A project can't be deleted unless it has no resources.)
-        
+
         e.g
             project.delete_remote()
         """
@@ -207,14 +216,14 @@ class DropletFactory(StoredFactory):
     def list_remote(self, project_name=None):
         """
         List all remote droplet or list droplets for a project if it is specified
-        
+
         e.g
             dg.droplets.list_remote()  -> list of droplets
             dg.droplets.list_remote("codescalers")  -> list of droplets on codescalers project
-        
+
         Args:
             project_name (str) : name of project on digital ocean (optional)
-        
+
         Returns
             list (Droplet) : list of droplets on digital ocean
 
@@ -228,15 +237,15 @@ class DropletFactory(StoredFactory):
 
     def check_droplet_exist_remote(self, name):
         """
-        Check droplet exists on digital ocean 
+        Check droplet exists on digital ocean
 
-        e.g 
+        e.g
             dg.droplets.check_droplet_exist_remote("3git")  -> True
             dg.droplets.check_droplet_exist_remote("sdfgdfed")  -> False
 
         Args:
-            name (str) : name of droplet 
-        
+            name (str) : name of droplet
+
         Returns
             bool : True if the droplet exist or False if the droplet does not exist
         """
@@ -247,51 +256,51 @@ class DropletFactory(StoredFactory):
 
     def get_droplet_exist_remote(self, name):
         """
-        Get Droplet exists from Digital Ocean 
+        Get Droplet exists from Digital Ocean
 
         e.g
             dg.droplets.get_droplet_exist_remote("3git")
-        
+
         Args:
-            name (str) : name of droplet 
-        
+            name (str) : name of droplet
+
         Returns
-            droplet : droplet with the name specified 
+            droplet : droplet with the name specified
 
         """
         for droplet in self.list_remote():
             if droplet.name.lower() == name.lower():
                 return droplet
-        raise j.exceptions.Input("could not find project with name:%s on you Digital Ocean account" % name)
+        raise j.exceptions.Input("could not find droplet with name:%s on your Digital Ocean account" % name)
 
     def shutdown_all(self, project_name=None):
         """
-        Shutdown all the droplets or droplets in specific project  
+        Shutdown all the droplets or droplets in specific project
 
         e.g
             dg.droplets.shutdown_all("codescalers")
             dg.droplets.shutdown_all()
-        
+
         Args:
-            name (str) : name of the project 
-        
+            name (str) : name of the project
+
         """
         for droplet in self.list_remote(project_name):
             droplet.shutdown()
 
     def delete_all(self, ignore=None, interactive=True, project_name=None):
         """
-        Delete all the droplets or delete all the droplets in specific project  
+        Delete all the droplets or delete all the droplets in specific project
 
         e.g
             dg.droplets.delete_all(project_name = "codescalers")
             dg.droplets.delete_all()
-        
+
         Args:
-            project_name (str) : name of the project 
+            project_name (str) : name of the project
             ignore (list): list of ignored droplets to prevent their deletion
             interactive (bool): if True the deletion will be interactive and
-                                confirm if you want to delete but if False it 
+                                confirm if you want to delete but if False it
                                 will delete directly
         """
         if not ignore:
@@ -324,9 +333,9 @@ class Droplet(Client):
 
     def set_digital_ocean_name(self, name):
         """Set a name for your Droplet to be used on Digital Ocean
-        
-        e.g 
-            droplet.set_digital_ocean_name("test-name")  
+
+        e.g
+            droplet.set_digital_ocean_name("test-name")
 
         Args:
             name (str): name to be used on digital ocean
@@ -335,8 +344,8 @@ class Droplet(Client):
 
     def get_digital_ocean_name(self):
         """Get a name for the Droplet which is used on digital ocean
-        
-        e.g 
+
+        e.g
             droplet.get_digital_ocean_name()  ->  "test-name"
 
         Returns
@@ -357,32 +366,32 @@ class Droplet(Client):
         Deploy your Droplet to Digital Ocean
 
         Args
-            sshkey (string): sshkey name used on digital ocean (if not set it will use the default one which already loaded) 
-            region (string): region name to deploy to 
-            image (string): Image name to be used 
+            sshkey (string): sshkey name used on digital ocean (if not set it will use the default one which already loaded)
+            region (string): region name to deploy to
+            image (string): Image name to be used
             size_slug (string): size of the droplet  (s-1vcpu-2gb,s-6vcpu-16gb,gd-8vcpu-32gb)
-            delete (bool): delete the droplet if it is already deployed on digital ocean 
+            delete (bool): delete the droplet if it is already deployed on digital ocean
             project_name (string): project to add this droplet it. If not specified the default project will be used.
-        
+
         """
         project = None
         if project_name:
-            project = self.parent.projects.get_project_exist_remote(self.do_name)
+            project = self.parent.projects.get_project_exist_remote(project_name)
             if not project:
                 raise j.exceptions.Input("could not find project with name:%s" % project_name)
 
         # Get ssh
         if not sshkey:
             sshkey_do = self.parent.get_default_sshkey()
-
             if not sshkey_do:
                 # means we did not find the sshkey on digital ocean yet, need to create
                 sshkey = self.parent.sshkey
+
                 key = digitalocean.SSHKey(
-                    token=self.parent.projects.parent_instance.token_, name=sshkey.name, public_key=sshkey.public_key
+                    token=self.parent.projects.parent_instance.token, name=sshkey.name, public_key=sshkey.public_key
                 )
                 key.create()
-            sshkey_do = self.parent.get_default_sshkey()
+                sshkey_do = self.parent.get_default_sshkey()
             assert sshkey_do
             sshkey = sshkey_do.name
 
@@ -401,7 +410,7 @@ class Droplet(Client):
         img_slug_or_id = imagedo.slug if imagedo.slug else imagedo.id
 
         droplet = digitalocean.Droplet(
-            token=self.parent.droplets.parent_instance.token_,
+            token=self.parent.droplets.parent_instance.token,
             name=self.do_name,
             region=region.slug,
             image=img_slug_or_id,
@@ -416,9 +425,9 @@ class Droplet(Client):
 
     def delete_remote(self):
         """Delete Droplet from digital ocean
-        
-        e.g 
-            droplet.delete_remote() 
+
+        e.g
+            droplet.delete_remote()
 
         """
         droplet = self.parent.droplets.get_droplet_exist_remote(self.do_name)
@@ -427,12 +436,12 @@ class Droplet(Client):
 
 class DigitalOcean(Client):
     name = fields.String()
-    token_ = fields.String()
+    token = fields.Secret()
     projects = fields.Factory(Project, factory_type=ProjectFactory)
     droplets = fields.Factory(Droplet, factory_type=DropletFactory)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._client = None
 
     @property
@@ -446,13 +455,13 @@ class DigitalOcean(Client):
         """
 
         if not self._client:
-            self._client = digitalocean.Manager(token=self.token_)
+            self._client = digitalocean.Manager(token=self.token)
         return self._client
 
     # Images
     @property
     def images(self):
-        """Return a list of digital ocean availabe images 
+        """Return a list of digital ocean availabe images
 
         e.g
             dg.images  -> [<Image: 31354013 CentOS 6.9 x32>,
@@ -491,8 +500,8 @@ class DigitalOcean(Client):
         return self.images + self.myimages
 
     def get_image(self, name):
-        """Return an image 
-        
+        """Return an image
+
         e.g
             dg.get_image(name="CentOS")  -> <Image: 31354013 CentOS 6.9 x32>
 
@@ -513,7 +522,7 @@ class DigitalOcean(Client):
         raise j.exceptions.Base("did not find image:%s" % name)
 
     def get_image_names(self, name=""):
-        """ Return all the image  or images with a specified name 
+        """ Return all the image  or images with a specified name
          e.g
             dg.get_image_names()  -> ['centos 6.9 x32 20180130', 'centos 6.9 x64 20180602',...]
             dg.get_image_names("centos") -> ['centos 6.9 x32 20180130', 'centos 6.9 x64 20180602']
@@ -521,7 +530,7 @@ class DigitalOcean(Client):
         Args
             name (str): name of the  required image
         Returns
-            Image : list of images 
+            Image : list of images
         """
         res = []
         name = name.lower()
@@ -564,11 +573,11 @@ class DigitalOcean(Client):
 
     @property
     def region_names(self):
-        """Returns Digital Ocean regions 
-        
-        e.g 
+        """Returns Digital Ocean regions
+
+        e.g
             dg.region_names  -> ['nyc1', 'sgp1', 'lon1', 'nyc3', 'ams3', 'fra1', 'tor1', 'sfo2', 'blr1']
-        
+
         Returns
             list : list of digital ocean regions
         """
@@ -576,7 +585,7 @@ class DigitalOcean(Client):
 
     def get_region(self, name):
         """
-        Returns specific region 
+        Returns specific region
 
         e.g
             dg.get_region(name = 'nyc1')  -> <Region: nyc1 New York 1>
@@ -597,13 +606,13 @@ class DigitalOcean(Client):
     @property
     def sshkeys(self):
         """
-        Return list of sshkeys on digital ocean 
+        Return list of sshkeys on digital ocean
 
         e.g
             dg.sshkeys  -> [<SSHKey: 25882170 3bot_container_sandbox>,
                              <SSHKey: 27130645 Geert-root>,...]
-        
-        Returns 
+
+        Returns
             list : list of sshkeys
         """
 
@@ -611,12 +620,12 @@ class DigitalOcean(Client):
 
     def get_default_sshkey(self):
         """
-        Return sshkey you have added to your Digital Ocean client 
+        Return sshkey you have added to your Digital Ocean client
 
         e.g
             dg.get_default_sshkey()  ->  <SSHKey: 25589987 rafy@rafy-Inspiron-3576>
 
-        Returns 
+        Returns
             list : list of sshkeys
         """
         pubkeyonly = self.sshkey.public_key
@@ -627,7 +636,7 @@ class DigitalOcean(Client):
 
     def set_default_sshkey(self, default_sshkey):
         """
-        Set sshkey you  Digital Ocean client 
+        Set sshkey you  Digital Ocean client
 
         e.g
             dg.set_default_sshkey(ssh)  ->  <SSHKey: 25589987 rafy@rafy-Inspiron-3576>
@@ -646,9 +655,9 @@ class DigitalOcean(Client):
 
         Args
             name (string) : sshkey name
-        
+
         Returns
-            SSHKey : return the specified sshkey 
+            SSHKey : return the specified sshkey
         """
         for item in self.sshkeys:
             if name == item.name:

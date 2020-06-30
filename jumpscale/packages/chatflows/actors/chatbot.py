@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.god import j
+from jumpscale.loader import j
 import base64
 import sys
 import uuid
@@ -22,7 +22,7 @@ class ChatFlows(BaseActor):
         chatflow = self.sessions.get(session_id)
         if not chatflow:
             return {"payload":{"category": "end"}}
-        
+
         result = chatflow.get_work(restore)
 
         if result.get("category") == "end":
@@ -34,7 +34,7 @@ class ChatFlows(BaseActor):
     def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)
         chatflow.set_work(result)
-    
+
     @actor_method
     def back(self, session_id: str):
         chatflow = self.sessions.get(session_id)
@@ -47,18 +47,18 @@ class ChatFlows(BaseActor):
     def _scan_chats(self, path):
         for path in j.sals.fs.walk_files(path, recursive=False):
             if path.endswith(".py"):
-                name = j.sals.fs.basename(path)[:-3]                
+                name = j.sals.fs.basename(path)[:-3]
                 yield path, name
 
     @actor_method
     def load(self, path: str):
-        for path, name in self._scan_chats(path):            
+        for path, name in self._scan_chats(path):
             module = imp.load_source(name=name, pathname=path)
             self.chats[name] = module.chat
 
     @actor_method
     def unload(self, path: str):
-        for path, name in self._scan_chats(path):            
+        for path, name in self._scan_chats(path):
             sys.modules.pop(name)
             self.chats.pop(name)
 

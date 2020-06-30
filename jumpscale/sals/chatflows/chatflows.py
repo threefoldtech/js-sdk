@@ -8,7 +8,7 @@ import json
 import gevent
 import gevent.queue
 import html
-from jumpscale.god import j
+from jumpscale.loader import j
 
 
 class Result:
@@ -571,7 +571,7 @@ class GedisChatBot:
             data["value"] = (i / wait) * 100
             self.send_data(data)
             gevent.sleep(1)
-    
+
     def md_show_update(self, msg, **kwargs):
         self.send_data({"category": "infinite_loading", "msg": msg, "kwargs": kwargs}, is_slide=False)
 

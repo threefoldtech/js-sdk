@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
 import shutil
 
@@ -30,9 +30,13 @@ class NginxServer(Base):
         nginx = j.sals.nginx.get(self.name)
         nginx.configure()
         nginx.save()
-        cmd = j.tools.startupcmd.get(self.name)
+        cmd = j.tools.startupcmd.get(f"nginx_{self.name}")
         cmd.start_cmd = f"nginx -c {self.config_path}"
+        cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
+        cmd.path = nginx.cfg_dir
+        cmd.timeout = 10
         cmd.process_strings_regex = [self.check_command_string]
+        cmd.save()
         if not cmd.is_running():
             cmd.start()
 
@@ -40,8 +44,7 @@ class NginxServer(Base):
         """
         stop nginx server
         """
-        cmd = j.tools.startupcmd.get(self.name)
-        cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
+        cmd = j.tools.startupcmd.get(f"nginx_{self.name}")
         cmd.stop()
 
     def reload(self):

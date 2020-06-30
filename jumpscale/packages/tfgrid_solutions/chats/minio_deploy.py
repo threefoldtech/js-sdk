@@ -2,7 +2,7 @@ import math
 import uuid
 
 from jumpscale.clients.explorer.models import Category, DiskType, Mode
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
@@ -262,7 +262,13 @@ class MinioDeploy(GedisChatBot):
         for result in self.reservation_result:
             if result.category == Category.Zdb:
                 data = j.data.serializers.json.loads(result.data_json)
-                cfg = f"{data['Namespace']}:{self.password}@[{data['IP']}]:{data['Port']}"
+                if data.get("IP"):
+                    ip = data["IP"]
+                elif data.get("IPs"):
+                    ip = data["IPs"][0]
+                else:
+                    raise j.exceptions.RuntimeError("missing IP field in the 0-DB result")
+                cfg = f"{data['Namespace']}:{self.password}@[{ip}]:{data['Port']}"
                 self.namespace_config.append(cfg)
         if self.user_form_data["Setup type"] == "Master/Slave Setup":
             self.tlog_access = self.namespace_config.pop(-1)

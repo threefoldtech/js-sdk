@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.core.exceptions import JSException
 
 
@@ -10,7 +10,7 @@ class Packages(BaseActor):
     @property
     def threebot(self):
         if not self._threebot:
-            self._threebot = j.servers.threebot.get_running()
+            self._threebot = j.servers.threebot.get()
         return self._threebot
 
     @actor_method

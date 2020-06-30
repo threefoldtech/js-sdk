@@ -80,7 +80,7 @@ Some components will be defined by default based on the parent package classes i
 
         ```python3
         from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-        from jumpscale.god import j
+        from jumpscale.loader import j
 
         class HelloActor(BaseActor):
             def __init__(self):
@@ -101,7 +101,7 @@ Some components will be defined by default based on the parent package classes i
     <br />
     Example
         ```
-        from jumpscale.god import j
+        from jumpscale.loader import j
 
         from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 
@@ -169,7 +169,7 @@ Some components will be defined by default based on the parent package classes i
 - start threebotserver
 
   ```python
-  threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
+  threebot_server = j.servers.threebot.get(domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
   threebot_server.save()
   threebot_server.start()
   ```
@@ -222,7 +222,7 @@ path_dest = "/admin/"
 - If you want to have default domain for your threebot, define it in the threebot start
 
 ```python
-threebot_server = j.servers.threebot.get("default", domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
+threebot_server = j.servers.threebot.get(domain="<optional><your-threebotdomain>", email="<your email><required if you want to use domain and ssl for certbot>")
 threebot_server.start()
 ```
 

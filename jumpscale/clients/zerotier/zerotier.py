@@ -23,7 +23,7 @@ member.authorize()
 
 import requests
 import ipaddress
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 

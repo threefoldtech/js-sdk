@@ -1,7 +1,7 @@
 import dateutil
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from functools import lru_cache
