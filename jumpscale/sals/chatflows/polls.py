@@ -184,7 +184,7 @@ class Poll(GedisChatBot):
         total_answers = {k: self._calculate_percent(v) for k, v in total_answers.items()}
         total_answers_weighted = {k: self._calculate_percent(v) for k, v in total_answers_weighted.items()}
 
-        result_msg = ""
+        result_msg = "## Non weighted results %\n\n<br />\n\n"
         for question, answers in total_answers.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
@@ -192,7 +192,8 @@ class Poll(GedisChatBot):
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n\n"
 
-        result_msg += "## Results by token weights %\n\n"
+        result_msg += "\n<br />\n\n"
+        result_msg += "## Weighted results %\n\n<br />\n\n"
         for question, answers in total_answers_weighted.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
@@ -200,8 +201,7 @@ class Poll(GedisChatBot):
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n"
 
-        result_msg += f"#### Total number of votes: {total_votes}\n"
-
+        result_msg += f"\n<br />\n\n#### Total number of votes: {total_votes}\n"
         self.md_show(result_msg, md=True)
 
     def _calculate_percent(self, answers_list):

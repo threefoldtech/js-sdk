@@ -615,6 +615,7 @@ version = "0.1.0"
 [package.dependencies]
 GitPython = "^3.0"
 PyYAML = "^5.1"
+Whoosh = "^2.7.4"
 arrow = "^0.15.7"
 base58 = "^2.0.0"
 better-exceptions = "^0.2.2"
@@ -651,7 +652,7 @@ watchdog = "^0.9.0"
 zipp = "^3.1.0"
 
 [package.source]
-reference = "0aacf35e41b668604f5aaed6a24ce81e46a8e9a2"
+reference = "a9b50a2a4724bde6696eb89598410650058111f1"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1344,6 +1345,14 @@ version = "0.57.0"
 
 [package.dependencies]
 six = "*"
+
+[[package]]
+category = "main"
+description = "Fast, pure-Python full text indexing, search, and spell checking library."
+name = "whoosh"
+optional = false
+python-versions = "*"
+version = "2.7.4"
 
 [[package]]
 category = "main"
@@ -2210,6 +2219,11 @@ wcwidth = [
 websocket-client = [
     {file = "websocket_client-0.57.0-py2.py3-none-any.whl", hash = "sha256:0fc45c961324d79c781bab301359d5a1b00b13ad1b10415a4780229ef71a5549"},
     {file = "websocket_client-0.57.0.tar.gz", hash = "sha256:d735b91d6d1692a6a181f2a8c9e0238e5f6373356f561bb9dc4c7af36f452010"},
+]
+whoosh = [
+    {file = "Whoosh-2.7.4-py2.py3-none-any.whl", hash = "sha256:aa39c3c3426e3fd107dcb4bde64ca1e276a65a889d9085a6e4b54ba82420a852"},
+    {file = "Whoosh-2.7.4.tar.gz", hash = "sha256:7ca5633dbfa9e0e0fa400d3151a8a0c4bec53bd2ecedc0a67705b17565c31a83"},
+    {file = "Whoosh-2.7.4.zip", hash = "sha256:e0857375f63e9041e03fedd5b7541f97cf78917ac1b6b06c1fcc9b45375dda69"},
 ]
 win32-setctime = [
     {file = "win32_setctime-1.0.1-py3-none-any.whl", hash = "sha256:568fd636c68350bcc54755213fe01966fe0a6c90b386c0776425944a0382abef"},

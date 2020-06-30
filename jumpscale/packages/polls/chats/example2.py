@@ -1,7 +1,7 @@
 from jumpscale.sals.chatflows.polls import Poll
 
 
-class Example(Poll):
+class Example2(Poll):
     poll_name = "example"
     QUESTIONS = {
         "What's your favorite color?": ["Blue", "Red", "Green", "Orange"],
@@ -34,4 +34,4 @@ class Example(Poll):
         return custom_questions, custom_answers, extra_data
 
 
-chat = Example
+chat = Example2
