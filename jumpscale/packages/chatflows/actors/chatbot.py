@@ -8,14 +8,23 @@ import imp
 
 class ChatFlows(BaseActor):
     def __init__(self):
+        super().__init__()
         self.chats = {}
         self.sessions = {}
 
     @actor_method
-    def new(self, topic: str, client_ip: str, query_params: dict = None) -> dict:
-        chatflow = self.chats[topic]()
-        self.sessions[chatflow.session_id] = chatflow
-        return {"sessionId": chatflow.session_id}
+    def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -> dict:
+        package = self.chats.get(package)
+        if not package:
+            raise j.exceptions.Value(f"Package {package} not found")
+
+        chatflow = package.get(chat)
+        if not chatflow:
+            raise j.exceptions.Value(f"Chat {chat} not found")
+        
+        obj = chatflow()
+        self.sessions[obj.session_id] = obj
+        return {"sessionId": obj.session_id}
 
     @actor_method
     def fetch(self, session_id: str, restore: bool = False) -> dict:
@@ -45,22 +54,25 @@ class ChatFlows(BaseActor):
         return list(self.chats.keys())
 
     def _scan_chats(self, path):
+        package = j.sals.fs.basename(j.sals.fs.parent(path))
         for path in j.sals.fs.walk_files(path, recursive=False):
             if path.endswith(".py"):
                 name = j.sals.fs.basename(path)[:-3]
-                yield path, name
+                yield path, package, name
 
     @actor_method
     def load(self, path: str):
-        for path, name in self._scan_chats(path):
-            module = imp.load_source(name=name, pathname=path)
-            self.chats[name] = module.chat
+        for path, package, chat in self._scan_chats(path):
+            module = imp.load_source(name=chat, pathname=path)
+            if package not in self.chats:
+                self.chats[package] = {}
+
+            self.chats[package][chat] = module.chat
 
     @actor_method
     def unload(self, path: str):
-        for path, name in self._scan_chats(path):
-            sys.modules.pop(name)
-            self.chats.pop(name)
+        for _, package, chat in self._scan_chats(path):
+            self.chats[package].pop(chat)
 
 
 Actor = ChatFlows

@@ -26,7 +26,7 @@ def chats(package_name):
 def chat(package_name, chat_name):
     session = request.environ.get("beaker.session", {})
     return env.get_template("index.html").render(
-        topic=chat_name, username=session.get("username", ""), email=session.get("email", "")
+        package=package_name, chat=chat_name, username=session.get("username", ""), email=session.get("email", "")
     )
 
 
