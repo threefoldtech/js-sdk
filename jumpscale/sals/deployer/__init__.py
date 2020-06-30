@@ -438,7 +438,7 @@ to download your configuration
         currency = reservation_obj.data_reservation.currencies[0]
         return Network(network, expiration, bot, reservations, currency, resv_id)
 
-    def show_payment_qrcode(self, resv_id, total_amount, currency, bot):
+    def show_wallet_payment_qrcode(self, resv_id, total_amount, currency, bot):
         qr_code_content = j.sals.zos._escrow_to_qrcode(
             escrow_address=self.wallet.address, escrow_asset=currency, total_amount=total_amount, message=f"{resv_id}"
         )
@@ -494,7 +494,9 @@ to download your configuration
         reservation.id = rid
         return reservation_create
 
-    def register_and_pay_reservation(self, reservation, expiration=None, customer_tid=None, currency=None, bot=None):
+    def register_and_pay_reservation(
+        self, reservation, expiration=None, customer_tid=None, currency=None, bot=None, use_wallet=False
+    ):
         if customer_tid and expiration and currency:
             reservation_create = self.register_reservation(
                 reservation, expiration, customer_tid=customer_tid, currency=currency, bot=bot
@@ -505,13 +507,19 @@ to download your configuration
         payment = {"wallet": None, "free": False}
         if not (reservation_create.escrow_information and reservation_create.escrow_information.details):
             payment["free"] = True
-        else:
+        elif use_wallet:
             payment["wallet"] = self.wallet
+        else:
+            # prompt to pay with 3bot app
+            j.sals.reservation_chatflow.show_escrow_qr(
+                bot, reservation_create, reservation.data_reservation.expiration_provisioning
+            )
 
         resv_id = reservation_create.reservation_id
         if payment["wallet"]:
+            # use MarketPlace wallet
             total_amount = j.sals.zos.billing.get_reservation_amount(reservation_create)
-            self.show_payment_qrcode(resv_id, total_amount, currency, bot)
+            self.show_wallet_payment_qrcode(resv_id, total_amount, currency, bot)
             if not self._check_payment(resv_id, currency, float(total_amount) + 0.1):
                 raise StopChatFlow(f"Payment was unsuccessful. Please make sure you entered the correct data")
 
