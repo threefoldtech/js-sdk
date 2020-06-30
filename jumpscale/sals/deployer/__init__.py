@@ -15,8 +15,7 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 from jumpscale.core.base import StoredFactory
 from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-
-from .models import MarketPlaceSolution, SolutionType
+from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 # from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network
 
@@ -206,7 +205,6 @@ class Network:
 
 class MarketPlaceDeployer:
     def __init__(self):
-        self.solutions = StoredFactory(MarketPlaceSolution)
         self._explorer = j.clients.explorer.get_default()
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type"}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
