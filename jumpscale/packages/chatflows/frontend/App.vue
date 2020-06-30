@@ -104,12 +104,16 @@
         loading: true,
         end: false,
         menu: false,
-        topic: TOPIC,
+        chat: CHAT,
+        package: PACKAGE,
         noheader: NOHEADER,
         userInfo: {username: USERNAME, email: EMAIL}
       }
     },
     computed: {
+      chatUID () {
+        return `${this.package}_${this.chat}`
+      },
       nextButtonDisable () {
         return ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
@@ -129,6 +133,7 @@
         switch (payload.category) {
           case 'end':
             this.end = true
+            localStorage.removeItem(this.chatUID)
             break
           case 'user_info':
             this.sendUserInfo()
@@ -159,10 +164,10 @@
           id: this.sessionId,
           state: this.state,
         }
-        localStorage.setItem(this.topic, JSON.stringify(session))
+        localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
       getSession () {
-        let session = localStorage.getItem(this.topic)
+        let session = localStorage.getItem(this.chatUID)
         if (session) {
           return JSON.parse(session)
         }
@@ -181,7 +186,8 @@
           method: "post",
           headers: {'Content-Type': 'application/json'},
           data: {
-            topic: TOPIC,
+            package: this.package,
+            chat: this.chat,
             client_ip: CLIENT_IP
           }
         }).then((response) => {

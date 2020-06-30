@@ -5,6 +5,7 @@ from jumpscale.core.exceptions import JSException
 
 class Packages(BaseActor):
     def __init__(self):
+        super().__init__()
         self._threebot = None
 
     @property
