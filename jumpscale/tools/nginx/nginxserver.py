@@ -47,6 +47,12 @@ class NginxServer(Base):
         cmd = j.tools.startupcmd.get(f"nginx_{self.name}")
         cmd.stop()
 
+    def is_running(self):
+        """
+        Check if nginxserver is running
+        """
+        return j.tools.startupcmd.get(f"nginx_{self.name}").is_running()
+
     def reload(self):
         """
         reload nginx server using your config path
