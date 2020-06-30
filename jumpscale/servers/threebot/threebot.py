@@ -8,7 +8,7 @@ import shutil
 from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
-
+from jumpscale import packages as pkgnamespace
 
 GEDIS = "gedis"
 GEDIS_HTTP = "gedis_http"
@@ -282,7 +282,11 @@ class PackageManager(Base):
             return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
-        return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
+        return [
+            {"name": pkg, "path": j.sals.fs.dirname(getattr(pkgnamespace, pkg).__file__)}
+            for path in set(pkgnamespace.__path__)
+            for pkg in os.listdir(path)
+        ]
 
     def list_all(self):
         return self.packages.keys()
