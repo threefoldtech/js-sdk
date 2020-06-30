@@ -1,4 +1,4 @@
-## Requirments for insystem installation
+## Requirements for insystem installation
 
 - Ubuntu 18.04 or later, MacOS 10.9 or more
 - packages [python3, python3-pip, git, poetry, nginx, redis]
