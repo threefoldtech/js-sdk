@@ -2,6 +2,7 @@ from jumpscale.loader import j
 
 import imp
 import os
+import sys
 import toml
 import shutil
 from urllib.parse import urlparse
@@ -309,7 +310,7 @@ class PackageManager(Base):
 
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
-
+        sys.path.append(path + "/../")  # TODO to be changed
         package = Package(path=path, default_domain=self.threebot.domain, default_email=self.threebot.email)
         self.packages[package.name] = package.path
 
