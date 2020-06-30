@@ -21,7 +21,7 @@ class Identity(Base):
     explorer_url = fields.String(on_update=_explorer_url_update)
     admins = fields.List(fields.String())
 
-    def __init__(self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None):
+    def __init__(self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs):
         """
         Get Identity
 
@@ -37,7 +37,9 @@ class Identity(Base):
         Raises: NotFound incase tid is passed but does not exists on the explorer
         Raises: Input: when params are missing
         """
-        super().__init__(tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins)
+        super().__init__(
+            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs
+        )
         self._nacl = None
         self._explorer = None
         self.verify_configuration()

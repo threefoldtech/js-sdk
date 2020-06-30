@@ -168,8 +168,8 @@ class Website(Base):
 class NginxConfig(Base):
     websites = fields.Factory(Website)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._cmd = None
         self._path_web = None
         self._cfg_dir = None
