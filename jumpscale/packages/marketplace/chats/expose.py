@@ -126,28 +126,6 @@ Tcp routers are used in the process of being able to expose your solutions. This
         j.sals.zos._gateway.tcp_proxy_reverse(
             self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
         )
-        metadata = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"],
-            SolutionType.Exposed,
-            self.get_tid(),
-            {"Solution name": self.user_form_data["Solution name"]},
-        )
-        self.reservation = deployer.add_reservation_metadata(self.reservation, metadata,)
-
-        resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation,
-            self.expiration,
-            customer_tid=j.core.identity.me.tid,
-            currency=self.solution_currency,
-            bot=self,
-        )
-
-    @chatflow_step(title="Reserve TCP router container", disable_previous=True)
-    def tcp_router_reservation(self):
-        # create proxy
-        j.sals.zos._gateway.tcp_proxy_reverse(
-            self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
-        )
 
         metadata = deployer.get_solution_metadata(
             self.user_form_data["Solution name"],
