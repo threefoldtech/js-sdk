@@ -44,9 +44,6 @@ def do_upload():
 def show_docs():
     bcdb = j.clients.bcdb.get("default")
     collection = bcdb.collection("personal_docs")
-    fname = collection.find(field_type="fname")
-    lname = collection.find(field_type="lname")
-    email = collection.find(field_type="email")
     items = list(collection.find(field_type="fname"))
     if items:
         fname = collection.get(items[0].id).data.decode()
@@ -75,5 +72,4 @@ def show_docs():
         passport = base64.b64encode(collection.get(items[0].id).data)
     else:
         raise Exception("Can not find passport")
-    print(fname, lname, email)
     return template(f"{templates_path}/docs.html", fname=fname, lname=lname, email=email, id_card=id_card, passport=passport)

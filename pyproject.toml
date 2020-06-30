@@ -24,7 +24,6 @@ pyqrcode = "^1.2.1"
 beaker = "^1.11.0"
 certbot-nginx = "1.5.0"
 requests_unixsocket = "^0.2.0"
-grpcio = "^1.30.0"
 protobuf = "^3.12.2"
 
 [tool.poetry.scripts]
