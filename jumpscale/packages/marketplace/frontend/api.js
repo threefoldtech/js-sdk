@@ -11,21 +11,28 @@ const apiClient = {
   explorers: {
     get: () => {
       return axios({
-        url: "/actors/admin/get_explorer"
+        url: "/actors/admin/get_explorer/"
       })
     },
   },
   solutions: {
     getCount: () => {
       return axios({
-        url: "/tfgrid_solutions/actors/solutions/count_solutions"
+        url: "/marketplace/api/solutions/count/",
+        method: "get"
       })
     },
-    getDeployed: (solution_type) => {
+    getDeployed: (solutionType) => {
       return axios({
-        url: `/marketplace/api/solutions/${solution_type}/`,
+        url: `/marketplace/api/solutions/${solutionType}/`,
         method: "get",
         headers: {'Content-Type': 'application/json'}
+      })
+    },
+    cancelReservation: (solutionType, reservationId) => {
+      return axios({
+        url: `/marketplace/api/solutions/${solutionType}/${reservationId}/`,
+        method: "delete"
       })
     }
   }

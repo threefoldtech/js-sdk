@@ -477,6 +477,7 @@ class ReservationChatflow:
                     "form_info": info,
                     "status": reservation.next_action.name,
                     "reservation_date": reservation.epoch.ctime(),
+                    "data": reservation.json,
                 }
             )
         return reservations_data

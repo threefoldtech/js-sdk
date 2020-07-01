@@ -7,7 +7,7 @@
     props: {topic: String},
     computed: {
       url () {
-        return `/marketplace/chats/${this.topic}?noheader=yes`
+        return `#/solutions/${this.topic}?noheader=yes`
       }
     }
   }

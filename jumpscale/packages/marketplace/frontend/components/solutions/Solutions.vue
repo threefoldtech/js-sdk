@@ -13,28 +13,31 @@
               <v-icon v-else color="primary">{{solution.icon}}</v-icon>
             </v-avatar>
             {{solution.name}}
-            <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type]}}</v-chip>
+            <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type] || 0}}</v-chip>
           </v-tab>
 
           <v-tab-item v-for="solution in solutions" :key="solution.id + '-content'">
-              <template>
-                <v-btn color="primary" :to="'/solutions/'+solution.type" text>
-                  <v-icon left>mdi-export</v-icon>New
-                </v-btn>
-                <v-btn color="primary" v-if="started(solution.id)" @click.stop="open(solution.id)">Continue</v-btn>
-                <v-chip class="ma-2" color="primary" min-width="100" v-for="(s, i) in deployedSolutions[solution.type]" :key="i" @click="showInfo(s)" outlined>
-                  {{ s.name }}
-                </v-chip>
-              </template>
+              <v-card class="pa-3 ml-3">
+            <v-card-title class="headline">
+              <v-avatar size="50px" class="mr-5" tile>
+                <v-img v-if="solution.image" :src="solution.image"></v-img>
+                <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
+              </v-avatar>
+              <span>{{solution.name}}</span>
+            </v-card-title>
 
-              <template>
-                <v-data-table
-                  class="elevation-1"
-                  :loading="loading"
-                  :headers="headers"
-                  :items="alerts"
-                ></v-data-table>
-              </template>
+            <v-card-text>
+              <span>{{solution.description}}</span><br><br>
+              <v-btn color="primary" @click.stop="restart(solution.type)">New</v-btn>
+              <v-btn color="primary" v-if="started(solution.type)" @click.stop="open(solution.type)">Continue</v-btn>
+
+              <v-divider class="my-5"></v-divider>
+
+              <v-chip class="ma-2" color="primary" min-width="100" v-for="(s, i) in deployedSolutions[solution.type]" :key="i" @click="showInfo(s)" outlined>
+                {{ s.name }}
+              </v-chip>
+
+            </v-card-text>
           </v-tab-item>
         </v-tabs>
       </template>
@@ -154,7 +157,7 @@ module.exports = {
     },
     getSolutionCount() {
       this.$api.solutions.getCount().then(response => {
-        this.solutionCount = JSON.parse(response.data).data;
+        this.solutionCount = response.data.data;
       });
     },
     getDeployedSolutions(solution_type) {
@@ -162,7 +165,7 @@ module.exports = {
         this.$set(
           this.deployedSolutions,
           solution_type,
-          JSON.parse(response.data).data
+          response.data.data
         );
       });
     }

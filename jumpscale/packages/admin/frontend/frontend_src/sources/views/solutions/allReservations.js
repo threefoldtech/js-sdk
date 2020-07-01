@@ -4,7 +4,7 @@ import { admin } from "../../services/admin";
 import OldSolutionDetailsView from './OldSolutionDetails'
 
 const STATUS = ["DEPLOY", "DELETED"]
-const SOLUTION_TYPE = ["network", "ubuntu", "flist", "minio", "kubernetes", "gitea", "monitoring", "delegated_domain", "exposed", "4to6gw","unknown"]
+const SOLUTION_TYPE = ["network", "ubuntu", "flist", "minio", "kubernetes", "gitea", "monitoring", "delegated_domain", "exposed", "4to6gw", "unknown"]
 
 export default class DeployedView extends JetView {
     config() {
@@ -47,26 +47,6 @@ export default class DeployedView extends JetView {
                             header: "Reservation id",
                         },
                         {
-                            id: "name",
-                            header: ["Solution name", {
-                                content: "textFilter"
-                            }],
-                            width: 150,
-                            sort: "string"
-                        },
-                        {
-                            id: "solution_type",
-                            sort: "string",
-                            width: 150,
-                            header: [
-                                "Solution type",
-                                {
-                                    content: "selectFilter",
-                                    options: SOLUTION_TYPE
-                                }
-                            ],
-                        },
-                        {
                             id: "status",
                             sort: "string",
                             width: 150,
@@ -82,6 +62,12 @@ export default class DeployedView extends JetView {
                             id: "reservation_date",
                             width: 250,
                             header: "Reservation date",
+                            sort: "string"
+                        }, ,
+                        {
+                            id: "reservation_data",
+                            width: 250,
+                            header: "Reservation data",
                             sort: "string"
                         }
                     ],
@@ -141,9 +127,9 @@ export default class DeployedView extends JetView {
         })
 
 
-        self.table.attachEvent("onItemClick", function (id) {
+        self.table.attachEvent("onItemClick", function(id) {
             let item = self.table.getSelectedItem()
             self.OldSolutionDetailsView.showInfo(item.form_info)
-    });
+        });
     }
 }
