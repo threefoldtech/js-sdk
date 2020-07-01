@@ -21,7 +21,7 @@ def get_currency_data(api_key, fake=False, fakeonerror=False):
             data["USDXRP"] = cc.get_price("USD", "XRP")["USD"]["XRP"]
             data["USDBTC"] = 1 / cc.get_price("BTC", "USD")["BTC"]["USD"]
 
-            normalized_data = {k.lower().lstrip("usd"):v for k,v in data.items()}
+            normalized_data = {k.lower().lstrip("usd"): v for k, v in data.items()}
             return normalized_data
 
         except Exception as e:
@@ -31,23 +31,24 @@ def get_currency_data(api_key, fake=False, fakeonerror=False):
             else:
                 return CURRENCIES
 
+
 class CurrencyLayerClient(Client):
 
     name = fields.String()
     api_key = fields.String()
+    fake = fields.Boolean(default=True)
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__client = None
 
         self._data_cur = {}
         self._id2cur = {}
         self._cur2id = {}
-        self.fake = True
 
     def load(self):
         # data = self._cache.get("currency_data", get, expire=3600 * 24)
-        data = get_currency_data(self.api_key, fake=False)
+        data = get_currency_data(self.api_key, fake=self.fake)
         self._data_cur = data
 
     @property
@@ -83,4 +84,3 @@ class CurrencyLayerClient(Client):
     def test(self):
         self._log_info(self.cur2usd)
         assert "aed" in self.cur2usd
-

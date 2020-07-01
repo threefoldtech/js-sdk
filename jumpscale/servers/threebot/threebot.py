@@ -2,6 +2,7 @@ from jumpscale.loader import j
 
 import imp
 import os
+import sys
 import toml
 import shutil
 from urllib.parse import urlparse
@@ -19,6 +20,7 @@ DEFAULT_PACKAGES = {
     "auth": os.path.dirname(j.packages.auth.__file__),
     "chatflows": os.path.dirname(j.packages.chatflows.__file__),
     "admin": os.path.dirname(j.packages.admin.__file__),
+    "admin_old": os.path.dirname(j.packages.admin_old.__file__),
     "weblibs": os.path.dirname(j.packages.weblibs.__file__),
     "tfgrid_solutions": os.path.dirname(j.packages.tfgrid_solutions.__file__),
 }
@@ -281,7 +283,16 @@ class PackageManager(Base):
             return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
-        return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
+        packages = []
+        for package_name, package_path in self.packages.items():
+            packages.append(
+                {
+                    "name": package_name,
+                    "path": package_path,
+                    "system_package": package_name in DEFAULT_PACKAGES.keys()
+                }
+            ) 
+        return packages
 
     def list_all(self):
         return self.packages.keys()
@@ -366,6 +377,7 @@ class PackageManager(Base):
         Returns:
             [dict]: [package info]
         """
+        sys.path.append(package.path + "/../")  # TODO to be changed
         package.install()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
@@ -402,6 +414,7 @@ class PackageManager(Base):
     def install_all(self):
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
+                j.logger.info(f"Configuring package {package}")
                 self.install(self.get(package))
 
 
@@ -425,7 +438,7 @@ class ThreebotServer(Base):
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
 
     def is_running(self):
-        nginx_running = j.tools.startupcmd.get(j.tools.nginx.get("default").name).is_running()
+        nginx_running = self.nginx.is_running()
         redis_running = self.redis.cmd.is_running()
         gedis_running = j.sals.nettools.wait_connection_test("127.0.0.1", 16000, timeout=1)
         return nginx_running and redis_running and gedis_running
@@ -523,15 +536,18 @@ class ThreebotServer(Base):
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
+            j.logger.info(f"Configuring package {package_name}")
             package = self.packages.get(package_name)
             self.packages.install(package)
 
         # install all package
         self.packages.install_all()
+        j.logger.info("Reloading nginx")
         self.nginx.reload()
 
         # mark server as started
         self._started = True
+        j.logger.info("Starting rack")
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
