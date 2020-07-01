@@ -1,11 +1,10 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.loader import j
+from jumpscale.god import j
 from jumpscale.core.exceptions import JSException
 
 
 class Packages(BaseActor):
     def __init__(self):
-        super().__init__()
         self._threebot = None
 
     @property

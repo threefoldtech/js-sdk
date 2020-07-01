@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar v-if="$route.query.noheader !== 'yes'" app>
+    <v-app-bar v-if="topheader" app>
       <img src="/chatflows/static/assets/images/3bot.png" width="24"/>
       <v-spacer></v-spacer>
       <v-menu v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-x>
@@ -106,11 +106,13 @@
         menu: false,
         chat: CHAT,
         package: PACKAGE,
-        noheader: NOHEADER,
         userInfo: {username: USERNAME, email: EMAIL}
       }
     },
     computed: {
+      topheader () {
+        return window.self === window.top
+      },
       chatUID () {
         return `${this.package}_${this.chat}`
       },

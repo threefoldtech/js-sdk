@@ -300,6 +300,7 @@ class PackageManager(Base):
                             "name": pkg,
                             "path": j.sals.fs.dirname(getattr(j.packages, pkg).__file__),
                             "giturl": "",
+                            "system_package": package_name in DEFAULT_PACKAGES.keys(),
                             "installed": False,
                         }
                     )
@@ -336,7 +337,7 @@ class PackageManager(Base):
 
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
-        sys.path.append(path + "/../")  # TODO to be changed
+
         package = Package(path=path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
         if package.name in self.packages:
@@ -397,6 +398,7 @@ class PackageManager(Base):
         Returns:
             [dict]: [package info]
         """
+        sys.path.append(package.path + "/../")  # TODO to be changed
         package.install()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
@@ -451,6 +453,7 @@ class PackageManager(Base):
     def install_all(self):
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
+                j.logger.info(f"Configuring package {package}")
                 self.install(self.get(package))
 
 
@@ -572,15 +575,18 @@ class ThreebotServer(Base):
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
+            j.logger.info(f"Configuring package {package_name}")
             package = self.packages.get(package_name)
             self.packages.install(package)
 
         # install all package
         self.packages.install_all()
+        j.logger.info("Reloading nginx")
         self.nginx.reload()
 
         # mark server as started
         self._started = True
+        j.logger.info("Starting rack")
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
