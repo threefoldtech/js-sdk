@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.core.exceptions import JSException
 
 explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
@@ -8,17 +8,19 @@ explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 class Admin(BaseActor):
     @actor_method
     def list_admins(self) -> str:
-        return j.data.serializers.json.dumps({"data": j.core.identity.me.admins})
+        return j.data.serializers.json.dumps({"data": list({"name": name} for name in j.core.identity.me.admins)})
 
     @actor_method
-    def add_admin(self, name: str):
+    def add_admin(self, name: str) -> str:
         j.core.identity.me.admins.append(name)
         j.core.identity.me.save()
+        return "Added"
 
     @actor_method
-    def delete_admin(self, name: str):
+    def delete_admin(self, name: str) -> str:
         j.core.identity.me.admins.remove(name)
         j.core.identity.me.save()
+        return "Removed"
 
     @actor_method
     def get_current_user(self) -> str:
@@ -31,10 +33,6 @@ class Admin(BaseActor):
                 }
             }
         )
-
-    @actor_method
-    def list_explorers(self) -> str:
-        return j.data.serializers.json.dumps({"data": explorers})
 
     @actor_method
     def get_explorer(self) -> str:
@@ -65,7 +63,7 @@ class Admin(BaseActor):
             j.clients.explorer.default_addr_set(url=url)
 
             # update our solutions
-            j.sals.reservation_chatflow.get_solutions_explorer()
+            j.sals.reservation_chatflow.update_local_reservations()
 
             return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
         else:
