@@ -286,7 +286,7 @@ class MinioDeploy(MarketPlaceChatflow):
         res = deployer.get_solution_metadata(
             self.user_form_data["Solution name"], SolutionType.Minio, self.get_tid(), self.metadata
         )
-        self.reservation = deployer.add_reservation_metadata(self.reservation, res)
+        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(
             self.reservation,
             self.expiration,

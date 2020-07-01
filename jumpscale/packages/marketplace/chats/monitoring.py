@@ -287,7 +287,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
         res = deployer.get_solution_metadata(
             self.user_form_data["Solution name"], SolutionType.Monitoring, self.get_tid(), metadata
         )
-        reservation = deployer.add_reservation_metadata(self.reservation, res)
+        reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(
             reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.network.currency, bot=self
         )

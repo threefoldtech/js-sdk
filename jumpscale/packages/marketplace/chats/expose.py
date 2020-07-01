@@ -7,9 +7,13 @@ import uuid
 
 
 class SolutionExpose(BaseSolutionExpose):
+    _tid = None
+
     def get_tid(self):
-        user = deployer.validate_user(self.user_info())
-        return user.id
+        if not self._tid:
+            user = j.sals.reservation_chatflow.validate_user(self.user_info())
+            self._tid = user.id
+        return self._tid
 
     @chatflow_step(title="Welcome")
     def deployment_start(self):
@@ -133,7 +137,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
             self.get_tid(),
             {"Solution expiration": self.expiration},
         )
-        self.reservation = deployer.add_reservation_metadata(self.reservation, metadata)
+        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, metadata)
 
         resv_id = deployer.register_and_pay_reservation(
             self.reservation,

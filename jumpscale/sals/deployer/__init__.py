@@ -16,87 +16,13 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-
-# from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network
+from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network as BaseNetwork
 
 
 MARKET_WALLET_NAME = "TFMarketWallet"
 
 
-class Network:
-    def __init__(self, network, expiration, bot, reservations, currency, resv_id):
-        """Network class is responsible for creation and management of networks
-            you can add, update, list, get, filter nodes
-        Args:
-            network (jumpscale.clients.explorer.models.TfgridWorkloadsReservationNetwork1): network object
-            expiration (datetime): timestamp of the date for network expiration
-            bot (GedisChatBot):Instance from the bot that uses network
-            reservations (list of TfgridWorkloadsReservationData1): list of reservations
-            currency (str): currency used "TFT", "FreeTFT"
-            resv_id (int): reservation ID
-        """
-        self._network = network
-        self._expiration = expiration
-        self.name = network.name
-        self._used_ips = []
-        self._is_dirty = False
-        self._sal = j.sals.reservation_chatflow
-        self._bot = bot
-        self._fill_used_ips(reservations)
-        self.currency = currency
-        self.resv_id = resv_id
-
-    def _fill_used_ips(self, reservations):
-        for reservation in reservations:
-            if reservation.next_action != NextAction.DEPLOY:
-                continue
-            for kubernetes in reservation.data_reservation.kubernetes:
-                if kubernetes.network_id == self._network.name:
-                    self._used_ips.append(kubernetes.ipaddress)
-            for container in reservation.data_reservation.containers:
-                for nc in container.network_connection:
-                    if nc.network_id == self._network.name:
-                        self._used_ips.append(nc.ipaddress)
-
-    def add_node(self, node):
-        """add node to the network
-
-        Args:
-            node (jumpscale.clients.explorer.models.TfgridDirectoryNode2): node object
-        """
-        network_resources = self._network.network_resources
-        used_ip_ranges = set()
-        for network_resource in network_resources:
-            if network_resource.node_id == node.node_id:
-                return
-            used_ip_ranges.add(network_resource.iprange)
-            for peer in network_resource.peers:
-                used_ip_ranges.add(peer.iprange)
-        else:
-            network_range = netaddr.IPNetwork(self._network.iprange)
-            subnet = None
-            for _, subnet in enumerate(network_range.subnet(24)):
-                if str(subnet) not in used_ip_ranges:
-                    break
-            else:
-                self._bot.stop("Failed to find free network")
-            j.sals.zos.network.add_node(self._network, node.node_id, str(subnet))
-            self._is_dirty = True
-
-    def get_node_range(self, node):
-        """get ip range from specified node
-
-        Args:
-            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): node object
-
-        Returns:
-            (IPRange): ip range field
-        """
-        for network_resource in self._network.network_resources:
-            if network_resource.node_id == node.node_id:
-                return network_resource.iprange
-        self._bot.stop(f"Node {node.node_id} is not part of network")
-
+class Network(BaseNetwork):
     def update(self, tid, currency=None, bot=None):
         """create reservations and update status and show payments stuff
         Args:
@@ -120,7 +46,7 @@ class Network:
             )
 
             metadata["parent_network"] = self.resv_id
-            reservation = deployer.add_reservation_metadata(reservation, metadata)
+            reservation = self._sal.add_reservation_metadata(reservation, metadata)
 
             reservation_create = self._sal.register_reservation(
                 reservation, self._expiration.timestamp(), j.core.identity.me.tid, currency=currency, bot=bot
@@ -137,87 +63,22 @@ class Network:
                     bot, rid, threebot_app=True, reservation_create_resp=reservation_create
                 )
             wait_reservation_results = self._sal.wait_reservation(self._bot, rid)
-            # Update solution saved locally
-            explorer_name = self._sal._explorer.url.split(".")[1]
             return wait_reservation_results
         return True
 
     def copy(self):
         """create a copy of network object
-
-
         Returns:
             (Network): copy of the network
         """
-        network_copy = None
-        explorer = j.clients.explorer.get_default()
-        reservation = explorer.reservations.get(self.resv_id)
-        networks = self._sal.list_networks(j.core.identity.me.tid, [reservation])
-        for key in networks.keys():
-            network, expiration, currency, resv_id = networks[key]
-            if network.name == self.name:
-                network_copy = Network(network, expiration, self._bot, [reservation], currency, resv_id)
-                break
-        if network_copy:
-            network_copy._used_ips = copy.copy(self._used_ips)
-        return network_copy
-
-    def ask_ip_from_node(self, node, message):
-        """ask for free ip from a specific node and mark it as used in chatbot
-
-        Args:
-            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): reqired node to ask ip from
-            message (str): message to the chatflow slide
-
-        Returns:
-            [str]: free ip
-        """
-        ip_range = self.get_node_range(node)
-        freeips = []
-        hosts = netaddr.IPNetwork(ip_range).iter_hosts()
-        next(hosts)  # skip ip used by node
-        for host in hosts:
-            ip = str(host)
-            if ip not in self._used_ips:
-                freeips.append(ip)
-        ip_address = self._bot.drop_down_choice(message, freeips, required=True)
-        self._used_ips.append(ip_address)
-        return ip_address
-
-    def get_free_ip(self, node):
-        """return free ip
-
-        Args:
-            node (jumpscale.client.explorer.models.TfgridDirectoryNode2): reqired node to get free ip from
-
-        Returns:
-            [str]: free ip to use
-        """
-        ip_range = self.get_node_range(node)
-        hosts = netaddr.IPNetwork(ip_range).iter_hosts()
-        next(hosts)  # skip ip used by node
-        for host in hosts:
-            ip = str(host)
-            if ip not in self._used_ips:
-                return ip
-        return None
+        return super().copy(j.core.identity.me.tid)
 
 
 class MarketPlaceDeployer:
     def __init__(self):
         self._explorer = j.clients.explorer.get_default()
-        self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type"}
+        self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type": []}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
-
-    def add_reservation_metadata(self, reservation, metadata):
-        meta_json = j.data.serializers.json.dumps(metadata)
-
-        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
-        box = Box(sk, pk)
-        encrypted_metadata = base64.b85encode(box.encrypt(meta_json.encode())).decode()
-        reservation.metadata = encrypted_metadata
-        return reservation
 
     def get_solution_metadata(self, solution_name, solution_type, tid, form_info=None):
         form_info = form_info or {}
@@ -229,12 +90,6 @@ class MarketPlaceDeployer:
         metadata["tid"] = tid
         return metadata
 
-    def decrypt_reservation_metadata(self, metadata_encrypted):
-        pk = j.core.identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
-        sk = j.core.identity.me.nacl.signing_key.to_curve25519_private_key()
-        box = Box(sk, pk)
-        return box.decrypt(base64.b85decode(metadata_encrypted.encode())).decode()
-
     def load_user_reservations(self, tid, next_action=NextAction.DEPLOY.value):
         reservations = self._explorer.reservations.list(j.core.identity.me.tid, next_action)
         reservations_data = []
@@ -244,7 +99,7 @@ class MarketPlaceDeployer:
         for reservation in sorted(reservations, key=lambda res: res.id, reverse=True):
             if reservation.metadata:
                 try:
-                    metadata = self.decrypt_reservation_metadata(reservation.metadata)
+                    metadata = j.sals.reservation_chatflow.decrypt_reservation_metadata(reservation.metadata)
                     metadata = j.data.serializers.json.loads(metadata)
                 except Exception:
                     continue
@@ -254,9 +109,9 @@ class MarketPlaceDeployer:
                 if solution_type == SolutionType.Unknown.value:
                     continue
                 elif solution_type == SolutionType.Ubuntu.value:
-                    metadata = self.get_solution_ubuntu_info(metadata, reservation)
+                    metadata = j.sals.reservation_chatflow.get_solution_ubuntu_info(metadata, reservation)
                 elif solution_type == SolutionType.Flist.value:
-                    metadata = self.get_solution_flist_info(metadata, reservation)
+                    metadata = j.sals.reservation_chatflow.get_solution_flist_info(metadata, reservation)
                 elif solution_type == SolutionType.Network.value:
                     if not metadata["name"]:
                         metadata["name"] = reservation.data_reservation.networks[0].name
@@ -270,7 +125,7 @@ class MarketPlaceDeployer:
                 elif solution_type == SolutionType.Exposed.value:
                     meta = metadata
                     metadata = {"form_info": meta}
-                    metadata["form_info"].update(self.get_solution_exposed_info(reservation))
+                    metadata["form_info"].update(j.sals.reservation_chatflow.get_solution_exposed_info(reservation))
                     metadata["name"] = f'{tid}_{metadata["form_info"]["Domain"]}'
                 info = metadata["form_info"]
                 name = metadata["name"]
@@ -290,75 +145,6 @@ class MarketPlaceDeployer:
                 reservations_data.append(reservation_info)
                 self.reservations[tid][solution_type].append(reservation_info)
         return reservations_data
-
-    def get_solution_ubuntu_info(self, metadata, reservation):
-        envs = reservation.data_reservation.containers[0].environment
-        env_variable = ""
-        metadata["form_info"]["Public key"] = envs["pub_key"].strip(" ")
-        envs.pop("pub_key")
-        metadata["form_info"]["CPU"] = reservation.data_reservation.containers[0].capacity.cpu
-        metadata["form_info"]["Memory"] = reservation.data_reservation.containers[0].capacity.memory
-        metadata["form_info"]["Root filesystem Type"] = str(
-            reservation.data_reservation.containers[0].capacity.disk_type
-        )
-        metadata["form_info"]["Root filesystem Size"] = (
-            reservation.data_reservation.containers[0].capacity.disk_size or 256
-        )
-        for key, value in envs.items():
-            env_variable += f"{key}={value},"
-        metadata["form_info"]["Env variables"] = str(env_variable)
-        metadata["form_info"]["IP Address"] = reservation.data_reservation.containers[0].network_connection[0].ipaddress
-        return metadata
-
-    def get_solution_exposed_info(self, reservation):
-        def get_arg(cmd, arg):
-            idx = cmd.index(arg)
-            if idx:
-                return cmd[idx + 1]
-            return None
-
-        info = {}
-        for container in reservation.data_reservation.containers:
-            if "tcprouter" in container.flist:
-                entrypoint = container.entrypoint.split()
-                local = get_arg(entrypoint, "-local")
-                if local:
-                    info["Port"] = local.split(":")[-1]
-                localtls = get_arg(entrypoint, "-local-tls")
-                if localtls:
-                    info["port-tls"] = localtls.split(":")[-1]
-                remote = get_arg(entrypoint, "-remote")
-                if remote:
-                    info["Name Server"] = remote.split(":")[0]
-        for proxy in reservation.data_reservation.reverse_proxies:
-            info["Domain"] = proxy.domain
-        return info
-
-    def get_solution_flist_info(self, metadata, reservation):
-        envs = reservation.data_reservation.containers[0].environment
-        env_variable = ""
-        for key, value in envs.items():
-            env_variable += f"{key}={value}, "
-        metadata["form_info"]["CPU"] = reservation.data_reservation.containers[0].capacity.cpu
-        metadata["form_info"]["Memory"] = reservation.data_reservation.containers[0].capacity.memory
-        metadata["form_info"]["Root filesystem Type"] = str(
-            reservation.data_reservation.containers[0].capacity.disk_type
-        )
-        metadata["form_info"]["Root filesystem Size"] = (
-            reservation.data_reservation.containers[0].capacity.disk_size or 256
-        )
-        metadata["form_info"]["Env variables"] = str(env_variable)
-        metadata["form_info"]["Flist link"] = reservation.data_reservation.containers[0].flist
-        metadata["form_info"]["Interactive"] = reservation.data_reservation.containers[0].interactive
-        if metadata["form_info"]["Interactive"]:
-            metadata["form_info"]["Port"] = "7681"
-        metadata["form_info"]["Entry point"] = reservation.data_reservation.containers[0].entrypoint
-        metadata["form_info"]["IP Address"] = reservation.data_reservation.containers[0].network_connection[0].ipaddress
-        return metadata
-
-    def get_solution_domain_delegates_info(self, reservation):
-        delegated_domain = reservation.data_reservation.domain_delegates[0]
-        return {"Domain": delegated_domain.domain, "Gateway": delegated_domain.node_id}
 
     def deploy_network(self, tid, network_name, expiration, currency, bot, form_info=None):
         if not form_info:
@@ -418,13 +204,6 @@ to download your configuration
 
         bot.md_show(message, md=True)
 
-    def validate_user(self, user_info):
-        if not user_info["email"]:
-            raise j.exceptions.Value("Email shouldn't be empty")
-        if not user_info["username"]:
-            raise j.exceptions.Value("Name of logged in user shouldn't be empty")
-        return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
-
     def list_solutions(self, tid, solution_type, reload=False, next_action=NextAction.DEPLOY):
         if reload or not self.reservations[tid][solution_type.value]:
             self.load_user_reservations(tid, next_action=next_action.value)
@@ -471,34 +250,11 @@ to download your configuration
                 return True
         return False
 
-    def register_reservation(
-        self, reservation, expiration, customer_tid, expiration_provisioning=1000, currency=None, bot=None
-    ):
-        expiration_provisioning += j.data.time.get().timestamp
-        try:
-            reservation_create = j.sals.zos.reservation_register(
-                reservation,
-                expiration,
-                expiration_provisioning=expiration_provisioning,
-                customer_tid=customer_tid,
-                currencies=[currency],
-            )
-        except requests.HTTPError as e:
-            try:
-                msg = e.response.json()["error"]
-            except (KeyError, json.JSONDecodeError):
-                msg = e.response.text
-            raise StopChatFlow(f"The following error occured: {msg}")
-
-        rid = reservation_create.reservation_id
-        reservation.id = rid
-        return reservation_create
-
     def register_and_pay_reservation(
         self, reservation, expiration=None, customer_tid=None, currency=None, bot=None, use_wallet=False
     ):
         if customer_tid and expiration and currency:
-            reservation_create = self.register_reservation(
+            reservation_create = j.sals.reservation_chatflow.register_reservation(
                 reservation, expiration, customer_tid=customer_tid, currency=currency, bot=bot
             )
         else:
@@ -524,128 +280,10 @@ to download your configuration
                 raise StopChatFlow(f"Payment was unsuccessful. Please make sure you entered the correct data")
 
             j.sals.zos.billing.payout_farmers(payment["wallet"], reservation_create)
-            self.wait_payment(bot, resv_id)
+            j.sals.reservation_chatflow.wait_payment(bot, resv_id)
 
-        self.wait_reservation(bot, resv_id)
+        j.sals.reservation_chatflow.wait_reservation(bot, resv_id)
         return resv_id
-
-    def wait_reservation(self, bot, rid):
-        """
-        Wait for reservation results to be complete, have errors, or expire.
-        If there are errors then error message is previewed in the chatflow to the user and the chat is ended.
-
-        Args:
-            bot (GedisChatBot): bot instance
-            rid (int): user tid
-        """
-
-        def is_finished(reservation):
-            count = 0
-            count += len(reservation.data_reservation.volumes)
-            count += len(reservation.data_reservation.zdbs)
-            count += len(reservation.data_reservation.containers)
-            count += len(reservation.data_reservation.kubernetes)
-            count += len(reservation.data_reservation.proxies)
-            count += len(reservation.data_reservation.reverse_proxies)
-            count += len(reservation.data_reservation.subdomains)
-            count += len(reservation.data_reservation.domain_delegates)
-            count += len(reservation.data_reservation.gateway4to6)
-            for network in reservation.data_reservation.networks:
-                count += len(network.network_resources)
-            return len(reservation.results) >= count
-
-        def is_expired(reservation):
-            """[summary]
-
-            Args:
-                reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
-
-            Returns:
-                [bool]: True if the reservation is expired
-            """
-            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
-
-        reservation = self._explorer.reservations.get(rid)
-        while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
-                granularity=["minute", "second"]
-            )
-            deploying_message = f"""
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
-            self._reservation_failed(bot, reservation)
-
-            if is_finished(reservation):
-                if reservation.next_action != NextAction.DEPLOY:
-                    res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy\n"
-                    for x in reservation.results:
-                        if x.state == "ERROR":
-                            res += f"\n### {x.category}: ```{x.message}```\n"
-                    bot.stop(res, md=True, html=True)
-                return reservation.results
-            if is_expired(reservation):
-                res = f"# Sorry your reservation ```{reservation.id}``` failed to deploy in time:\n"
-                for x in reservation.results:
-                    if x.state == "ERROR":
-                        res += f"\n### {x.category}: ```{x.message}```\n"
-                link = f"{self._explorer.url}/reservations/{reservation.id}"
-                res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(rid)
-                bot.stop(res, md=True, html=True)
-            time.sleep(1)
-            reservation = self._explorer.reservations.get(rid)
-
-    def wait_payment(self, bot, rid, reservation_create_resp=None):
-        """wait slide untill payment is ready
-
-        Args:
-            bot (GedisChatBot): bot instance
-            rid (int): customer tid
-            threebot_app (bool, optional): is using threebot app payment. Defaults to False.
-            reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
-        """
-
-        # wait to check payment is actually done next_action changed from:PAY
-        def is_expired(reservation):
-            return reservation.data_reservation.expiration_provisioning.timestamp() < j.data.time.get().timestamp
-
-        reservation = self._explorer.reservations.get(rid)
-        while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
-                granularity=["minute", "second"]
-            )
-            deploying_message = f"""
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
-            if reservation.next_action != "PAY":
-                return
-            if is_expired(reservation):
-                res = f"# Failed to wait for payment for reservation:```{reservation.id}```:\n"
-                for x in reservation.results:
-                    if x.state == "ERROR":
-                        res += f"\n### {x.category}: ```{x.message}```\n"
-                link = f"{self._explorer.url}/reservations/{reservation.id}"
-                res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(rid)
-                bot.stop(res, md=True, html=True)
-            time.sleep(5)
-            reservation = self._explorer.reservations.get(rid)
-
-    def _reservation_failed(self, bot, reservation):
-        failed = j.sals.zos.reservation_failed(reservation)
-        if failed:
-            res = f"# Sorry your reservation ```{reservation.id}``` has failed :\n"
-            for x in reservation.results:
-                if x.state == "ERROR":
-                    res += f"\n### {x.category}: ```{x.message}```\n"
-            link = f"{self._explorer.url}/reservations/{reservation.id}"
-            res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-            j.sals.zos.reservation_cancel(reservation.id)
-            bot.stop(res, md=True, html=True)
 
 
 deployer = MarketPlaceDeployer()
@@ -653,10 +291,13 @@ deployer = MarketPlaceDeployer()
 
 class MarketPlaceChatflow(GedisChatBot):
     SOLUTION_TYPE = None
+    _tid = None
 
     def get_tid(self):
-        user = deployer.validate_user(self.user_info())
-        return user.id
+        if not self._tid:
+            user = j.sals.reservation_chatflow.validate_user(self.user_info())
+            self._tid = user.id
+        return self._tid
 
     @chatflow_step(title="Welcome")
     def welcome(self):
@@ -852,7 +493,7 @@ class MarketPlaceChatflow(GedisChatBot):
         if self.container_volume_attach:
             self.volume = j.sals.zos.volume.create(
                 self.reservation,
-                self.node.node_id,
+                self.node_selected.node_id,
                 size=self.user_form_data["Volume Size"],
                 type=self.vol_disk_type.value,
             )
@@ -863,7 +504,7 @@ class MarketPlaceChatflow(GedisChatBot):
         res = deployer.get_solution_metadata(
             self.user_form_data["Solution name"], self.SOLUTION_TYPE, self.tid, self.metadata
         )
-        reservation = deployer.add_reservation_metadata(self.reservation, res)
+        reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(
             reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
         )
