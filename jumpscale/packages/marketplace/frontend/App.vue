@@ -6,7 +6,7 @@
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
-            <v-icon left>mdi-account</v-icon> {{user.name}}
+            <v-icon left>mdi-account</v-icon> {{user.username}}
           </v-btn>
         </template>
         <v-card>
@@ -18,7 +18,7 @@
                 </v-avatar>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title>{{user.name}}</v-list-item-title>
+                <v-list-item-title>{{user.username}}</v-list-item-title>
                 <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
@@ -55,7 +55,7 @@
     methods: {
       getCurrentUser () {
         this.$api.admins.getCurrentUser().then((response) => {
-          this.user = JSON.parse(response.data).data
+          this.user = response.data
         })
       },
     },

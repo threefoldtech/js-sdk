@@ -137,6 +137,12 @@ def callback():
     session["email"] = email
     session["authorized"] = True
     session["signedAttempt"] = signedData
+    try:
+        tid = j.sals.reservation_chatflow.validate_user({"username": username, "email": email}).id
+        session["tid"] = tid
+    except Exception as e:
+        pass
+
     return redirect(session.get("next_url", "/"))
 
 
@@ -178,12 +184,15 @@ def get_user_info():
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
+    tid = session.get("tid")
+
     session.get("signedAttempt", "")
     response.content_type = "application/json"
     return j.data.serializers.json.dumps(
         {
             "username": tname.lower(),
             "email": temail.lower(),
+            "tid": tid,
             "devmode": not j.core.config.get_config().get("threebot_connect", True),
         }
     )

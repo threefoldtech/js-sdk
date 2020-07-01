@@ -18,9 +18,13 @@
 
           <v-tab-item v-for="solution in solutions" :key="solution.id + '-content'">
               <template>
-                <v-btn color="primary" text>
+                <v-btn color="primary" :to="'/solutions/'+solution.type" text>
                   <v-icon left>mdi-export</v-icon>New
                 </v-btn>
+                <v-btn color="primary" v-if="started(solution.id)" @click.stop="open(solution.id)">Continue</v-btn>
+                <v-chip class="ma-2" color="primary" min-width="100" v-for="(s, i) in deployedSolutions[solution.type]" :key="i" @click="showInfo(s)" outlined>
+                  {{ s.name }}
+                </v-chip>
               </template>
 
               <template>
@@ -31,29 +35,6 @@
                   :items="alerts"
                 ></v-data-table>
               </template>
-
-            <!-- <v-card class="pa-3 ml-3">
-            <v-card-title class="headline">
-              <v-avatar size="50px" class="mr-5" tile>
-                <v-img v-if="solution.image" :src="solution.image"></v-img>
-                <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
-              </v-avatar>
-              <span>{{solution.name}}</span>
-            </v-card-title>
-
-            <v-card-text>
-              <span>{{solution.description}}</span><br><br>
-              <v-btn color="primary" @click.stop="restart(solution.id)">New</v-btn>
-              <v-btn color="primary" v-if="started(solution.id)" @click.stop="open(solution.id)">Continue</v-btn>
-
-              <v-divider class="my-5"></v-divider>
-
-              <v-chip class="ma-2" color="primary" min-width="100" v-for="(s, i) in deployedSolutions[solution.type]" :key="i" @click="showInfo(s)" outlined>
-                {{ s.name }}
-              </v-chip>
-
-            </v-card-text>
-            </v-card>-->
           </v-tab-item>
         </v-tabs>
       </template>
