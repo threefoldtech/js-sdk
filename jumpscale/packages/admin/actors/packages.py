@@ -23,10 +23,6 @@ class Packages(BaseActor):
         return j.data.serializers.json.dumps({"data": self.threebot.packages.get_packages()})
 
     @actor_method
-    def get_installed_packages(self) -> str:
-        return j.data.serializers.json.dumps({"data": list(self.threebot.packages.list_all())})
-
-    @actor_method
     def add_package(self, path: str = "", giturl: str = "") -> str:
         if path:
             path = path.strip()
