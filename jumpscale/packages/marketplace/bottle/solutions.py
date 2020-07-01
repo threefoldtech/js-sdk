@@ -40,7 +40,7 @@ def cancel_solution(solution_type, reservation_id):
     tid = j.data.serializers.json.loads(get_user_info()).get("tid")
     if not tid:
         return abort(400, "User must be registered by explorer, If you register logout aand login again")
-    j.sals.marketplace.deployer.cancel_solution(tid, reservation_id)
+    j.sals.marketplace.deployer.cancel_reservation(tid, reservation_id)
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

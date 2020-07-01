@@ -20,6 +20,7 @@ module.exports = {
     cancel(solutionType, solutionId) {
       this.$api.solutions.cancelReservation(solutionType, solutionId).then(response => {
         console.log("cancel")
+        this.$router.go(0);
       }).catch(err => {
         console.log("failed")
       });
