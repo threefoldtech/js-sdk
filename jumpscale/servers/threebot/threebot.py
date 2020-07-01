@@ -17,11 +17,11 @@ GEDIS_HTTP_PORT = 8000
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {
-    "auth": os.path.dirname(j.packages.auth.__file__),
-    "chatflows": os.path.dirname(j.packages.chatflows.__file__),
-    "admin": os.path.dirname(j.packages.admin.__file__),
-    "weblibs": os.path.dirname(j.packages.weblibs.__file__),
-    "tfgrid_solutions": os.path.dirname(j.packages.tfgrid_solutions.__file__),
+    "auth": {"path": os.path.dirname(j.packages.auth.__file__), "giturl": ""},
+    "chatflows": {"path": os.path.dirname(j.packages.chatflows.__file__), "giturl": ""},
+    "admin": {"path": os.path.dirname(j.packages.admin.__file__), "giturl": ""},
+    "weblibs": {"path": os.path.dirname(j.packages.weblibs.__file__), "giturl": ""},
+    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": ""},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
@@ -162,8 +162,9 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email):
+    def __init__(self, path, default_domain, default_email, giturl=""):
         self.path = path
+        self.giturl = giturl
         self.config = self.load_config()
         self.name = self.config["name"]
         self.nginx_config = NginxPackageConfig(self)
@@ -277,25 +278,46 @@ class PackageManager(Base):
         return self._threebot
 
     def get(self, package_name):
-        package_path = self.packages.get(package_name)
-        if package_path:
+        if package_name in self.packages:
+            package_path = self.packages[package_name]["path"]
             return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
-        return [
-            {"name": pkg, "path": j.sals.fs.dirname(getattr(pkgnamespace, pkg).__file__)}
-            for path in set(pkgnamespace.__path__)
-            for pkg in os.listdir(path)
-        ]
+        all_pkgs = []
+
+        # Add installed packages including outer packages
+        for pkg in self.packages:
+            all_pkgs.append(
+                {"name": pkg, "path": self.get(pkg).path, "giturl": self.get(pkg).giturl, "installed": True}
+            )
+
+        # Add uninstalled sdk packages under j.packages
+        for path in set(pkgnamespace.__path__):
+            for pkg in os.listdir(path):
+                if pkg not in self.packages:
+                    all_pkgs.append(
+                        {
+                            "name": pkg,
+                            "path": j.sals.fs.dirname(getattr(j.packages, pkg).__file__),
+                            "giturl": "",
+                            "installed": False,
+                        }
+                    )
+
+        return all_pkgs
 
     def list_all(self):
         return self.packages.keys()
 
     def add(self, path: str = None, giturl: str = None):
-        # TODO: Check if package already exists
-
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
+
+        for pkg in self.packages:
+            if path == self.get(pkg).path:
+                raise j.exceptions.Value("Package with the same path already exists")
+            if giturl == self.get(pkg).giturl:
+                raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
             url = urlparse(giturl)
@@ -316,7 +338,11 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
         sys.path.append(path + "/../")  # TODO to be changed
         package = Package(path=path, default_domain=self.threebot.domain, default_email=self.threebot.email)
-        self.packages[package.name] = package.path
+
+        if package.name in self.packages:
+            raise j.exceptions.Value(f"Package with name {package.name} already exists")
+
+        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         # execute package install method
         package.install()
@@ -328,8 +354,8 @@ class PackageManager(Base):
 
         self.save()
 
-        # Return updated package info to actor (now we have path only)
-        return {"name": package.name, "path": package.path}
+        # Return updated package info
+        return {package.name: self.packages[package.name]}
 
     def delete(self, package_name):
         if package_name in DEFAULT_PACKAGES:
@@ -403,6 +429,24 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+
+    def reload(self, package_name):
+        package = self.get(package_name)
+        if not package:
+            raise j.exceptions.NotFound(f"{package_name} package not found")
+
+        # re-install package
+        package.install()
+
+        # install package if threebot is started
+        if self.threebot.started:
+            self.install(package)
+            self.threebot.nginx.reload()
+
+        self.save()
+
+        # Return updated package info
+        return {package.name: self.packages[package.name]}
 
     def install_all(self):
         for package in self.list_all():
