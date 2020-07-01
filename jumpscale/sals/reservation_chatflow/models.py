@@ -16,7 +16,6 @@ class SolutionType(Enum):
     Ubuntu = "ubuntu"
     Monitoring = "monitoring"
     Unknown = "unknown"
-    SDKOnline = "sdk_online"
 
 
 class TfgridSolution1(Base):
