@@ -23,18 +23,25 @@ class Poll(GedisChatBot):
     poll_name = None  # Required
 
     steps = [
+        "initialize",
         "welcome",
-        "payment",
-        "vote",
+        "custom_votes",
         "result",
     ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.QUESTIONS = {}
+        self.extra_data = {}
+        self.custom_answers = {}
+
+        if not j.clients.stellar.find(WALLET_NAME):
+            raise j.core.exceptions.Runtime(f"Wallet {WALLET_NAME} is not configured, please create it.")
+
+        self.wallet = j.clients.stellar.get(WALLET_NAME)
 
     @chatflow_step()
-    def welcome(self):
+    def initialize(self):
         user_info = self.user_info()
         j.sals.reservation_chatflow.validate_user(user_info)
 
@@ -48,13 +55,13 @@ class Poll(GedisChatBot):
             welcome_message += "\n<br/><br/>`Note: You have already voted.`"
 
         self.md_show(welcome_message, md=True)
+    
+    @chatflow_step()
+    def welcome(self):
+        pass
 
     @chatflow_step(title="Payment")
     def payment(self):
-        if not j.clients.stellar.find(WALLET_NAME):
-            raise j.core.exceptions.Runtime(f"Wallet {WALLET_NAME} is not configured, please create it.")
-        self.wallet = j.clients.stellar.get(WALLET_NAME)
-
         if not self.user.user_code:
             self.user.user_code = j.data.idgenerator.chars(10)
 
@@ -112,35 +119,25 @@ class Poll(GedisChatBot):
 
         return False
 
-    @chatflow_step(title="Please fill in the following form", disable_previous=True)
     def vote(self):
         answers = {}
-        form = self.new_form()
-        question, choices = "", ""
-        for question, choices in self.QUESTIONS.items():
-            answers[question] = form.single_choice(question, choices, required=True)
-        form.ask()
-        answers = {k: v.value for k, v in answers.items()}
-
-        # Customized stuff
-        custom_answers, extra_data = self.custom_votes()
-        answers.update(custom_answers)
-
+        answers.update(self.custom_answers)
         vote_data = self._map_vote_results(answers.copy())
         vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
         self.user.vote_data = vote_data
         self.user.vote_data_weighted = vote_data_weighted
         self.user.has_voted = True
-        self.user.extra_data = extra_data
+        self.user.extra_data = self.extra_data
         self.user.save()
 
+    @chatflow_step(title="Please fill in the following form", disable_previous=True)
     def custom_votes(self):
         """allow child classes to have its custom slides
 
         Returns:
             Dict, Dict: Has all questions and answer, extra saved data outside the poll
         """
-        return {}, {}
+        pass
 
     def _map_vote_results(self, form_answers, weighted=False):
         """takes form answers and returns a sparse array of what user chose
