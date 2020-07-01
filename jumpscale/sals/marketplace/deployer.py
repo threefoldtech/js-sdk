@@ -364,5 +364,39 @@ to download your configuration
         j.sals.reservation_chatflow.wait_reservation(bot, resv_id)
         return resv_id
 
+    def cancel_reservation(self, user_tid, resv_id):
+        reservation = j.sals.zos.reservation_get(resv_id)
+        try:
+            metadata = json.loads(j.sals.reservation_chatflow.decrypt_reservation_metadata(reservation.metadata))
+        except Exception as e:
+            raise j.exceptions.Input(
+                "failed to decrypt the reservation metadata. this reservation is not created by marketplace"
+            )
+
+        tid = metadata.get("tid")
+        if tid == user_tid:
+            if metadata.get("solution_type") == SolutionType.Network.value:
+                # TODO: comprehensive testing
+                curr_network_resv = reservation
+                while curr_network_resv:
+                    if curr_network_resv.metadata:
+                        try:
+                            network_metadata = j.sals.reservation_chatflow.decrypt_reservation_metadata(
+                                curr_network_resv.metadata
+                            )
+                            network_metadata = json.loads(network_metadata)
+                        except Exception:
+                            break
+                        j.sals.zos.reservation_cancel(resv_id)
+                        if "parent_network" in network_metadata:
+                            parent_resv = j.sals.zos.reservation_get(network_metadata["parent_network"])
+                            curr_network_resv = parent_resv
+                            continue
+                    curr_network_resv = None
+            else:
+                j.sals.zos.reservation_cancel(resv_id)
+        else:
+            raise j.exceptions.Input(f"this resevration is not owned by the specified user {tid}")
+
 
 deployer = MarketPlaceDeployer()
