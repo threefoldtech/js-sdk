@@ -401,7 +401,11 @@ class PackageManager(Base):
         # execute package start method
         package.start()
 
-    def install_all(self):
+    def _install_all(self):
+        """Install and apply all the packages configurations
+        This method shall not be called directly from the shell, 
+        it must be called only from the code on the running Gedis server
+        """
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
@@ -531,7 +535,7 @@ class ThreebotServer(Base):
             self.packages.install(package)
 
         # install all package
-        self.packages.install_all()
+        self.packages._install_all()
         j.logger.info("Reloading nginx")
         self.nginx.reload()
 
