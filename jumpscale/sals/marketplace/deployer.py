@@ -62,7 +62,18 @@ class Network(BaseNetwork):
         Returns:
             (Network): copy of the network
         """
-        return super().copy(j.core.identity.me.tid)
+        network_copy = None
+        explorer = j.clients.explorer.get_default()
+        reservation = explorer.reservations.get(self.resv_id)
+        networks = self._sal.list_networks(j.core.identity.me.tid, [reservation])
+        for key in networks.keys():
+            network, expiration, currency, resv_id = networks[key]
+            if network.name == self.name:
+                network_copy = Network(network, expiration, self._bot, [reservation], currency, resv_id)
+                break
+        if network_copy:
+            network_copy._used_ips = copy.copy(self._used_ips)
+        return network_copy
 
 
 class MarketPlaceDeployer:
