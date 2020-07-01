@@ -65,7 +65,7 @@ class SolutionExpose(BaseSolutionExpose):
                 self.user_domains[dom["name"]] = dom
         domain_ask_list = []
         for dom in self.user_domains:
-            if self.gateways.get(self.user_domains[dom].node_id):
+            if self.gateways.get(self.user_domains[dom]["node_id"]):
                 domain_ask_list.append(f"Delegated Domain: {dom}")
 
         self.managed_domains = dict()
