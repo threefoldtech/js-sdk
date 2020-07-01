@@ -10,7 +10,6 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network as BaseNetwork
 
-
 MARKET_WALLET_NAME = "TFMarketWallet"
 
 
