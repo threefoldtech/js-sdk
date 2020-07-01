@@ -10,7 +10,8 @@ SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
-def start(identity=None):
+@click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
+def start(identity=None, background=False):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
@@ -63,21 +64,24 @@ def start(identity=None):
         j.tools.console.printcolors(msg)
         sys.exit(1)
 
-    cmd = j.tools.startupcmd.get("threebot_default")
-    cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
-    cmd.process_strings_regex = [".*threebot_default.sh"]
-    cmd.ports = [8000, 8999]
-    cmd.start()
-    for service_name, service_port in SERVICES_PORTS.items():
-        if not j.sals.nettools.wait_connection_test("127.0.0.1", service_port, timeout=15):
-            j.tools.console.printcolors(
-                f"{{RED}}Could not start threebot server. Service: {service_name}, Port {service_port} couldn't start in 15 seconds. Please try again {{RESET}}"
-            )
-            sys.exit(1)
+    if background:
+        cmd = j.tools.startupcmd.get("threebot_default")
+        cmd.start_cmd = "jsng 'j.servers.threebot.start_default(wait=True)'"
+        cmd.process_strings_regex = [".*threebot_default.sh"]
+        cmd.ports = [8000, 8999]
+        cmd.start()
+        for service_name, service_port in SERVICES_PORTS.items():
+            if not j.sals.nettools.wait_connection_test("127.0.0.1", service_port, timeout=15):
+                j.tools.console.printcolors(
+                    f"{{RED}}Could not start threebot server. Service: {service_name}, Port {service_port} couldn't start in 15 seconds. Please try again {{RESET}}"
+                )
+                sys.exit(1)
 
-    print("\n✅ Threebot server started\n")
-    if j.sals.process.in_host():
-        j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{RESET}")
+        print("\n✅ Threebot server started\n")
+        if j.sals.process.in_host():
+            j.tools.console.printcolors("{WHITE}Visit admin dashboard at: {GREEN}http://localhost/\n{RESET}")
+    else:
+        j.servers.threebot.start_default(wait=True)
 
 
 @click.command()
