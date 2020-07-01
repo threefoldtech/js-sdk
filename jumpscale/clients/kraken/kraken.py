@@ -1,17 +1,23 @@
 import requests
 from jumpscale.loader import j
-from jumpscale.clients.base import Client
+from jumpscale.clients.base import Client, Base
 from jumpscale.core.base import fields
-from collections import namedtuple
 
-Price = namedtuple("Price", "ask bid last_trade")
+
+class Price(Base):
+    pair = fields.String()
+    ask = fields.String()
+    bid = fields.String()
+    last_trade = fields.String()
+    stored_date = fields.DateTime()
 
 
 class KrakenClient(Client):
     url = fields.String(default="https://api.kraken.com/")
+    _price = fields.Object(Price)
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args,)
+        super().__init__(*args, **kwargs)
         self._session = requests.Session()
 
     def _do_request(self, url, ex):
@@ -32,10 +38,16 @@ class KrakenClient(Client):
         Returns:
             Price: Object containing ask, bid and last trade price
         """
-        res = self._do_request(f"https://api.kraken.com/0/public/Ticker?pair={pair}", j.exceptions.Input)
-        data = res["result"]
-        prices = []
-        key = list(data.keys())[0]
-        for k in ["a", "b", "c"]:
-            prices.append(data[key][k][0])
-        return Price(*prices)
+        if self._price.pair != pair or (j.data.time.utcnow().datetime - self._price.stored_date).days > 0:
+            res = self._do_request(f"https://api.kraken.com/0/public/Ticker?pair={pair}", j.exceptions.Input)
+            result = res["result"]
+            key = list(result.keys())[0]
+            data = {
+                "pair": pair,
+                "ask": result[key]["a"][0],
+                "bid": result[key]["b"][0],
+                "last_trade": result[key]["c"][0],
+                "stored_date": j.data.time.utcnow().datetime,
+            }
+            self._price = Price(**data)
+        return self._price
