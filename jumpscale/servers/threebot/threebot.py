@@ -20,6 +20,7 @@ DEFAULT_PACKAGES = {
     "auth": os.path.dirname(j.packages.auth.__file__),
     "chatflows": os.path.dirname(j.packages.chatflows.__file__),
     "admin": os.path.dirname(j.packages.admin.__file__),
+    "admin_old": os.path.dirname(j.packages.admin_old.__file__),
     "weblibs": os.path.dirname(j.packages.weblibs.__file__),
     "tfgrid_solutions": os.path.dirname(j.packages.tfgrid_solutions.__file__),
 }
@@ -282,7 +283,16 @@ class PackageManager(Base):
             return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
-        return [{"name": package, "path": self.packages.get(package)} for package in self.packages.keys()]
+        packages = []
+        for package_name, package_path in self.packages.items():
+            packages.append(
+                {
+                    "name": package_name,
+                    "path": package_path,
+                    "system_package": package_name in DEFAULT_PACKAGES.keys()
+                }
+            ) 
+        return packages
 
     def list_all(self):
         return self.packages.keys()

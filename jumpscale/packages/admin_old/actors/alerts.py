@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.god import j
+from jumpscale.loader import j
 
 
 class Alerts(BaseActor):
