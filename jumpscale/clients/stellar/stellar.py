@@ -719,7 +719,7 @@ class Stellar(Client):
         wallet_address = response["_embedded"]["records"][0]["source_account"]
         return wallet_address
 
-    def check_transaction_amount(self, transaction_hash):
+    def check_transaction_has_amount(self, transaction_hash):
         """Some transactions doesn't have an amount like activating the wallet
         This helper method to help in iterating in transactions
 
