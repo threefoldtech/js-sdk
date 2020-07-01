@@ -67,15 +67,26 @@ class Network(BaseNetwork):
 
 
 class MarketPlaceDeployer:
-    """
-    """
-
     def __init__(self):
+        """This class is responsible for deploying reservations on behalf of the logged-in user for marketplace package
+        """
         self._explorer = j.clients.explorer.get_default()
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type": []}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
 
     def get_solution_metadata(self, solution_name, solution_type, tid, form_info=None):
+        """builds the metadata for the reservation
+
+        Args:
+            solution_name (str): name choosen by the user. it will be prefixed by {tid}_{solution_name}
+            solution_type (SolutionType)
+            tid: the id of the user (deploying on his behalf) in explorer
+            form_info (dict)
+
+        Returns:
+            dict: metadata dict
+        """
+
         form_info = form_info or {}
         metadata = {}
         metadata["name"] = f"{tid}_{solution_name}"
@@ -86,6 +97,16 @@ class MarketPlaceDeployer:
         return metadata
 
     def load_user_reservations(self, tid, next_action=NextAction.DEPLOY.value):
+        """Loads the reservations made on behalf of the specified user and saves it in-memory in self.reservations[tid]
+
+        Args:
+            tid: the id of the user (deploying on his behalf) in explorer
+            next_action (int): to be used in filtering the requested reservations. default 3
+
+        Returns:
+            list
+        """
+
         reservations = self._explorer.reservations.list(j.core.identity.me.tid, next_action)
         reservations_data = []
         networks = []
@@ -142,6 +163,17 @@ class MarketPlaceDeployer:
         return reservations_data
 
     def deploy_network(self, tid, network_name, expiration, currency, bot, form_info=None):
+        """ deploys a network on behalf of the user driven by a chatflow in one step
+
+        Args:
+            tid: the id of the user (deploying on his behalf) in explorer
+            network_name (str): name specified by the user. will be prefixed by the tid
+            expiration (int): timestamp for network expiration
+            currency (str): currency used for the reservation
+            bot (GedisChatBot): object of the chatflow
+            form_info (dict): to be added to metadata
+        """
+
         if not form_info:
             form_info = {}
         ips = ["IPv6", "IPv4"]
@@ -200,11 +232,30 @@ to download your configuration
         bot.md_show(message, md=True)
 
     def list_solutions(self, tid, solution_type, reload=False, next_action=NextAction.DEPLOY):
+        """ list reservations made on behalf a user by type
+
+        Args:
+            tid: the id of the user (deploying on his behalf) in explorer
+            solution_type (SolutionType): to filter the result with
+            reload (bool): if True it will update in-memory reservations from explorer
+            next_action (int): to be used in filtering
+        """
+
         if reload or not self.reservations[tid][solution_type.value]:
             self.load_user_reservations(tid, next_action=next_action.value)
         return self.reservations[tid][solution_type.value]
 
     def get_network_object(self, reservation_obj, bot):
+        """builds an object of Network class for the specified
+
+        Args:
+            reservation_obj (TfgridWorkloadsReservation1): reseravtion object of the network
+            bot (GedisChatBot)
+
+        Returns:
+            Network
+        """
+
         reservations = j.sals.zos.reservation_list(tid=j.core.identity.me.tid, next_action="DEPLOY")
         network = reservation_obj.data_reservation.networks[0]
         expiration = reservation_obj.data_reservation.expiration_reservation
@@ -213,6 +264,15 @@ to download your configuration
         return Network(network, expiration, bot, reservations, currency, resv_id)
 
     def show_wallet_payment_qrcode(self, resv_id, total_amount, currency, bot):
+        """prompts the user for payment to the marketplace wallet
+
+        Args:
+            resv_id: id of the reservation to be paid.
+            total_amount (float): cost of the reservation
+            currency: currency used for the reservation
+            bot (GedisChatBot)
+        """
+
         qr_code_content = j.sals.zos._escrow_to_qrcode(
             escrow_address=self.wallet.address, escrow_asset=currency, total_amount=total_amount, message=f"{resv_id}"
         )
@@ -229,8 +289,18 @@ to download your configuration
         bot.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True)
 
     def _check_payment(self, resv_id, currency, total_amount, timeout=300):
-        """Returns True if user has paied alaready, False if not
+        """Returns True if user has paid to the marketplace wallet within the specified timeout.
+
+        Args:
+            resv_id: reservation id to be paid for
+            currency (str): currency used for the reservation
+            total_amount (float): cost of the reservation
+            timeout (int): number of seconds to wait for the payment
+
+        Returns:
+            bool: True if payment was successful within the time limit. False if payment timedout
         """
+
         now = datetime.datetime.now()
         effects_sum = 0
         while now + datetime.timedelta(seconds=timeout) > datetime.datetime.now():
@@ -248,6 +318,20 @@ to download your configuration
     def register_and_pay_reservation(
         self, reservation, expiration=None, customer_tid=None, currency=None, bot=None, use_wallet=False
     ):
+        """register the reservation, pay and deploy
+
+        Args:
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+            expiration (int): epoch time when the reservation should be canceled automaticly
+            customer_tid (int): Id of the customer making the reservation
+            currency (str): "TFT" of "FreeTFT"
+            bot (GedisChatBot): bot instance
+            wallet (TfgridDirectoryWallet_address1): wallet object. Defaults to None.
+
+        Returns:
+            [int]: reservation id
+        """
+
         if customer_tid and expiration and currency:
             reservation_create = j.sals.reservation_chatflow.register_reservation(
                 reservation, expiration, customer_tid=customer_tid, currency=currency, bot=bot
