@@ -3,7 +3,8 @@ from jumpscale.loader import j
 import base64
 import sys
 import uuid
-import imp
+import importlib
+import os
 
 
 class ChatFlows(BaseActor):
@@ -57,13 +58,34 @@ class ChatFlows(BaseActor):
         package = j.sals.fs.basename(j.sals.fs.parent(path))
         for path in j.sals.fs.walk_files(path, recursive=False):
             if path.endswith(".py"):
-                name = j.sals.fs.basename(path)[:-3]
+                name = j.sals.fs.stem(path)
                 yield path, package, name
+
+    def _import_path(self, filepath):
+        absolute_path = os.path.abspath(filepath)
+        paths = sys.path[:]
+        paths.sort(key=lambda p: len(p), reverse=True)
+        for syspath in paths:
+            absolute_sys_path = os.path.abspath(syspath)
+            if absolute_path.startswith(absolute_sys_path):
+                parts = absolute_path[len(absolute_sys_path) + 1: -3].split(os.path.sep)
+                if "__init__" in parts:
+                    parts.remove("__init__")
+                module_name = ".".join(parts)
+                break
+        else:
+            module_name = absolute_path
+
+        spec = importlib.util.spec_from_file_location(module_name, absolute_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        return module
 
     @actor_method
     def load(self, path: str):
         for path, package, chat in self._scan_chats(path):
-            module = imp.load_source(name=chat, pathname=path)
+            module = self._import_path(path)
             if package not in self.chats:
                 self.chats[package] = {}
 
