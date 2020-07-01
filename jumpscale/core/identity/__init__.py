@@ -12,7 +12,10 @@ from jumpscale.sals.nettools import get_default_ip_config
 
 class Identity(Base):
     def _explorer_url_update(self, value):
-        if self._explorer and self._explorer.url != value:
+        if hasattr(self, "_explorer"):
+            if self._explorer and self._explorer.url != value:
+                self._explorer = None
+        else:
             self._explorer = None
 
     _tid = fields.Integer(default=-1)
