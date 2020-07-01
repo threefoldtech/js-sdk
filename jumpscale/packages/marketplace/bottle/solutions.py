@@ -21,4 +21,17 @@ def list_solutions(solution_type: str) -> str:
     return j.data.serializers.json.dumps({"data": solutions})
 
 
+@app.route("/api/solutions/count")
+@login_required
+def count_solutions():
+    tid = j.data.serializers.json.loads(get_user_info()).get("tid")
+    if not tid:
+        return abort(400, "User must be registered by explorer, If you register logout aand login again")
+    res = {}
+    j.sals.marketplace.deployer.load_user_reservations(tid)
+    for sol_type in j.sals.marketplace.deployer.reservations[tid]:
+        res[sol_type] = len(j.sals.marketplace.deployer.reservations[tid][sol_type])
+    return j.data.serializers.json.dumps({"data": res})
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
