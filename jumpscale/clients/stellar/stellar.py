@@ -718,3 +718,19 @@ class Stellar(Client):
         # not possible for a transaction to have more than a source, so will take first one
         wallet_address = response["_embedded"]["records"][0]["source_account"]
         return wallet_address
+
+    def check_transaction_amount(self, transaction_hash):
+        """Some transactions doesn't have an amount like activating the wallet
+        This helper method to help in iterating in transactions
+
+        Args:
+            transaction_hash (String): Transaction hash
+
+        Returns:
+            Bool: True if transaction has amount - False if not
+        """
+        server = self._get_horizon_server()
+        endpoint = server.operations().for_transaction(transaction_hash)
+        response = endpoint.call()
+        results = response["_embedded"]["records"][0]
+        return "amount" in results.keys()
