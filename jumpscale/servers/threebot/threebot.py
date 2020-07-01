@@ -300,7 +300,7 @@ class PackageManager(Base):
                             "name": pkg,
                             "path": j.sals.fs.dirname(getattr(j.packages, pkg).__file__),
                             "giturl": "",
-                            "system_package": package_name in DEFAULT_PACKAGES.keys(),
+                            "system_package": pkg in DEFAULT_PACKAGES.keys(),
                             "installed": False,
                         }
                     )
