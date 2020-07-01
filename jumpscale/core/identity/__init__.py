@@ -41,11 +41,11 @@ class Identity(Base):
         Raises: NotFound incase tid is passed but does not exists on the explorer
         Raises: Input: when params are missing
         """
+        self._explorer = None
         super().__init__(
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs
         )
         self._nacl = None
-        self._explorer = None
         self.verify_configuration()
 
     @property
