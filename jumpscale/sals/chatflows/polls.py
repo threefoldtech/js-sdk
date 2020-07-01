@@ -1,5 +1,3 @@
-import time
-
 from jumpscale.core.base import StoredFactory
 from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -150,7 +148,7 @@ class Poll(GedisChatBot):
 
         example: ["Blue", "Red", "Green", "Orange"]
         if user chose "Red" will [0, 1, 0, 0]
-
+        if user chose "Red" and weighted results will [0, <user_token_sum>, 0, 0]
         Args:
             form_answers (dict): form result dictionary
         """
