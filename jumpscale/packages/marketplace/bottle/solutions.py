@@ -15,7 +15,7 @@ def list_solutions(solution_type: str) -> str:
     tid = j.data.serializers.json.loads(get_user_info()).get("tid")
     if not tid:
         return abort(400, "User must be registered by explorer, If you register logout aand login again")
-    solutions = j.sals.marketplace.deployer.list_solutions(tid, SolutionType[solution_type.title()], reload=True)
+    solutions = j.sals.marketplace.deployer.list_solutions(tid, SolutionType[solution_type.captilize()], reload=True)
     for solution in solutions:
         solution["reservation"] = solution.pop("reservation_obj").json
     return j.data.serializers.json.dumps({"data": solutions})
