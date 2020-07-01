@@ -1,2 +1,0 @@
-name = "sdk_online"
-ports = [80, 443]
