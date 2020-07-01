@@ -7,8 +7,6 @@ import uuid
 
 
 class SolutionExpose(BaseSolutionExpose):
-    _tid = None
-
     def get_tid(self):
         if not self._tid:
             user = j.sals.reservation_chatflow.validate_user(self.user_info())
@@ -17,6 +15,7 @@ class SolutionExpose(BaseSolutionExpose):
 
     @chatflow_step(title="Welcome")
     def deployment_start(self):
+        self._tid = None
         self.user_form_data = dict()
         self.metadata = dict()
         self.query = dict()
