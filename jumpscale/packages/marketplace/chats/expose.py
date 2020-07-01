@@ -1,5 +1,5 @@
 from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose, kinds
-from jumpscale.sals.deployer import deployer, Network
+from jumpscale.sals.marketplace import deployer, Network
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.god import j

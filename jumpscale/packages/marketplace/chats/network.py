@@ -4,7 +4,7 @@ from jumpscale.god import j
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.deployer import deployer, MarketPlaceChatflow
+from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
 
 
 class NetworkDeploy(MarketPlaceChatflow):

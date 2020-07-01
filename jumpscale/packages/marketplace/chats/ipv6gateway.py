@@ -1,4 +1,4 @@
-from jumpscale.sals.deployer import deployer, MarketPlaceChatflow
+from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.god import j

@@ -291,7 +291,6 @@ deployer = MarketPlaceDeployer()
 
 class MarketPlaceChatflow(GedisChatBot):
     SOLUTION_TYPE = None
-    _tid = None
 
     def get_tid(self):
         if not self._tid:
@@ -301,6 +300,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def welcome(self):
+        self._tid = None
         self.user_form_data = dict()
         self.metadata = dict()
         self.query = dict()
