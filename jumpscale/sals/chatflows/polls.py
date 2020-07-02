@@ -6,6 +6,7 @@ from jumpscale.sals.chatflows.models.voter_model import User
 WALLET_NAME = "polls_receive"
 
 all_users = StoredFactory(User)
+all_users.always_reload = True
 
 
 class Poll(GedisChatBot):
@@ -25,6 +26,7 @@ class Poll(GedisChatBot):
     steps = [
         "initialize",
         "welcome",
+        "payment",
         "custom_votes",
         "result",
     ]
@@ -55,46 +57,82 @@ class Poll(GedisChatBot):
             welcome_message += "\n<br/><br/>`Note: You have already voted.`"
 
         self.md_show(welcome_message, md=True)
-    
+
     @chatflow_step()
     def welcome(self):
         pass
 
     @chatflow_step(title="Payment")
     def payment(self):
-        if not self.user.user_code:
-            self.user.user_code = j.data.idgenerator.chars(10)
-
-        if self.user.has_voted and self.user.transaction_hash:
-            self.md_show("You have already paid before, Press Next to modify your vote")
-        elif self.user.transaction_hash:
-            self.md_show("You have already paid before, Press Next to submit your vote")
-        else:
-            currency = self.single_choice(
-                "This will deduce 0.1 unit How would you like to pay in?", ["TFT", "TFTA"], required=True
+        def _pay(msg=""):
+            form = self.new_form()
+            currency = form.single_choice("How would you like to pay in?", ["TFT", "TFTA"], required=True)
+            amount = form.int_ask(
+                "Please provide the amount of tokens you want to pay. This will be counted in votes results",
+                required=True,
+                min=0,
+                md=True,
+                html=True,
             )
+            form.ask()
+
             qr_code_content = j.sals.zos._escrow_to_qrcode(
-                escrow_address=self.wallet.address, escrow_asset=currency, total_amount=0.1, message=self.user.user_code
+                escrow_address=self.wallet.address,
+                escrow_asset=currency.value,
+                total_amount=amount.value,
+                message=self.user.user_code,
             )
 
             message_text = f"""
-            <h3> Please make your payment </h3>
-            Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
-            Make sure to add the message (user code) as memo_text
-            Please make the transaction and press Next
-            <h4> Wallet address: </h4>  {self.wallet.address} \n
-            <h4> Currency: </h4>  {currency} \n
-            <h4> Amount: </h4>  0.1 \n
-            <h4> Message (User code): </h4>  {self.user.user_code} \n
+<h3> Please make your payment </h3>
+Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
+Make sure to add the message (user code) as memo_text
+Please make the transaction and press Next
+<h4> Wallet address: </h4>  {self.wallet.address} \n
+<h4> Currency: </h4>  {currency.value} \n
+<h4> Amount: </h4>  {amount.value} \n
+<h4> Message (User code): </h4>  {self.user.user_code} \n
             """
-            self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True)
+            self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True, md=True)
             if self._check_payment(timeout=360):
-                self.md_show("Payment was successful. Press Next to go to the poll form", md=True)
+                return True
             else:
-                raise StopChatFlow(f"Payment was unsuccessful. Please make sure you entered the correct data")
+                return False
+
+        def _pay_again(msg=""):
+            while True:
+                pay_again = self.single_choice(
+                    msg
+                    or f"Do you want to pay again ? Your current tokens amount for this vote: {self.user.tokens} tokens",
+                    ["YES", "NO"],
+                )
+                if pay_again == "NO":
+                    break
+                if not _pay():
+                    _pay_again("Payment was unsuccessful. do you want to try again ?")
+
+        if not self.user.user_code:
+            self.user.user_code = j.data.idgenerator.chars(10)
+
+        # Payment
+        if self.user.has_voted and self.user.tokens > 0:
+            self.md_show("You have already paid before, Press Next to pay again and modify your vote")
+            _pay_again(self._get_pay_again_msg())
+
+        elif self.user.tokens > 0:
+            self.md_show("You have already paid before, Press Next to to pay again and submit your vote")
+            _pay_again(self._get_pay_again_msg())
+        else:
+            if _pay():
+                _pay_again()
+            else:
+                self.stop("Your payment was unsuccessful, please try again")
+
+    def _get_pay_again_msg(self):
+        return
 
     def _check_payment(self, timeout):
-        """Returns True if user has paied alaready, False if not
+        """Returns True if user has paid already, False if not
         """
         now = j.data.time.get().timestamp
         remaning_time = j.data.time.get(now + timeout).timestamp
@@ -105,18 +143,19 @@ class Poll(GedisChatBot):
                 f"Process will be cancelled if payment is not successful {remaning_time_msg}"
             )
             self.md_show_update(payment_message, md=True)
-
+            current_tokens = self.user.tokens
             transactions = self.wallet.list_transactions()
             for transaction in transactions:
                 if transaction.memo_text == self.user.user_code:
-                    self.user.transaction_hash = transaction.hash
-                    self.user.wallet_address = self.wallet.get_sender_wallet_address(transaction.hash)
+                    if transaction.hash not in self.user.transaction_hashes:
+                        self.user.transaction_hashes.append(transaction.hash)
+                        self.user.tokens += float(self.wallet.get_transaction_effects(transaction.hash)[0].amount)
+                    user_wallet = self.wallet.get_sender_wallet_address(transaction.hash)
+                    if not user_wallet in self.user.wallets_addresses:
+                        self.user.wallets_addresses.append(user_wallet)
                     self.user.save()
-                    return True
-
-            if self.user.transaction_hash:
+            if self.user.tokens > current_tokens:
                 return True
-
         return False
 
     def vote(self):
@@ -153,7 +192,7 @@ class Poll(GedisChatBot):
             all_answers_init = len(self.QUESTIONS[question]) * [0.0]
             answer_index = self.QUESTIONS[question].index(answer)
             if weighted:
-                all_answers_init[answer_index] = self._get_voter_balance(self.user.wallet_address)
+                all_answers_init[answer_index] = self.user.tokens
             else:
                 all_answers_init[answer_index] = 1
             form_answers[question] = all_answers_init
