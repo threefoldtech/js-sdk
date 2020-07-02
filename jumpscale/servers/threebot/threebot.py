@@ -108,6 +108,7 @@ class NginxPackageConfig:
 
                 website = self.nginx.get_website(server_name, port=port)
                 website.ssl = server.get("ssl", port == 443)
+                website.includes = server.get("includes", [])
                 website.domain = server.get("domain", self.default_config[0].get("domain"))
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")

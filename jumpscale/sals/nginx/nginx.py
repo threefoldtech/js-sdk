@@ -111,7 +111,7 @@ class Website(Base):
         for include in self.includes:
             ## TODO validate location name and include
             website_name, location_name = include.split(".", 1)
-            website = self.websites.find(website_name)
+            website = self.parent.websites.find(website_name)
             if not website:
                 continue
             
