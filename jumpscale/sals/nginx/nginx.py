@@ -49,6 +49,7 @@ import os, pwd, grp
 class LocationType(Enum):
     STATIC = "static"
     PROXY = "proxy"
+    CUSTOM = "custom"
 
 
 class Location(Base):
@@ -66,6 +67,7 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    custom_config = fields.String(default=None)
 
     @property
     def cfg_dir(self):
