@@ -7,7 +7,7 @@ from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from enum import Enum
 from .balance import Balance, EscrowAccount, AccountBalances
-from .transaction import TransactionSummary, Effect
+from .transaction import TransactionSummary, Effect, PaymentSummary
 from stellar_sdk import Account as stellarAccount
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
@@ -460,6 +460,31 @@ class Stellar(Client):
                         return transaction.to_xdr()
             raise e
 
+    def list_payments(self, address=None):
+        """Get the transactions for an adddress
+        :param address: address of the effects.In None, the address of this wallet is taken
+        :type address: str
+        """
+        if address is None:
+            address = self.address
+        tx_endpoint = self._get_horizon_server().payments()
+        tx_endpoint.for_account(address)
+        tx_endpoint.limit(50)
+        payments = []
+        old_cursor = "old"
+        new_cursor = ""
+        while old_cursor != new_cursor:
+            old_cursor = new_cursor
+            tx_endpoint.cursor(new_cursor)
+            response = tx_endpoint.call()
+            next_link = response["_links"]["next"]["href"]
+            next_link_query = parse.urlsplit(next_link).query
+            new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+            response_payments = response["_embedded"]["records"]
+            for response_payment in response_payments:
+                payments.append(PaymentSummary.from_horizon_response(response_payment, address))
+        return payments
+
     def list_transactions(self, address=None):
         """Get the transactions for an adddres
 
@@ -718,3 +743,19 @@ class Stellar(Client):
         # not possible for a transaction to have more than a source, so will take first one
         wallet_address = response["_embedded"]["records"][0]["source_account"]
         return wallet_address
+
+    def check_transaction_has_amount(self, transaction_hash):
+        """Some transactions doesn't have an amount like activating the wallet
+        This helper method to help in iterating in transactions
+
+        Args:
+            transaction_hash (String): Transaction hash
+
+        Returns:
+            Bool: True if transaction has amount - False if not
+        """
+        server = self._get_horizon_server()
+        endpoint = server.operations().for_transaction(transaction_hash)
+        response = endpoint.call()
+        results = response["_embedded"]["records"][0]
+        return "amount" in results.keys()

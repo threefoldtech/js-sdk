@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar v-if="$route.query.noheader !== 'yes'" app>
+    <v-app-bar v-if="topheader" app>
       <img src="/chatflows/static/assets/images/3bot.png" width="24"/>
       <v-spacer></v-spacer>
       <v-menu v-model="menu" :close-on-content-click="false" :nudge-width="200" offset-x>
@@ -104,12 +104,18 @@
         loading: true,
         end: false,
         menu: false,
-        topic: TOPIC,
-        noheader: NOHEADER,
+        chat: CHAT,
+        package: PACKAGE,
         userInfo: {username: USERNAME, email: EMAIL}
       }
     },
     computed: {
+      topheader () {
+        return window.self === window.top
+      },
+      chatUID () {
+        return `${this.package}_${this.chat}`
+      },
       nextButtonDisable () {
         return ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
@@ -129,6 +135,7 @@
         switch (payload.category) {
           case 'end':
             this.end = true
+            localStorage.removeItem(this.chatUID)
             break
           case 'user_info':
             this.sendUserInfo()
@@ -159,10 +166,10 @@
           id: this.sessionId,
           state: this.state,
         }
-        localStorage.setItem(this.topic, JSON.stringify(session))
+        localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
       getSession () {
-        let session = localStorage.getItem(this.topic)
+        let session = localStorage.getItem(this.chatUID)
         if (session) {
           return JSON.parse(session)
         }
@@ -181,7 +188,8 @@
           method: "post",
           headers: {'Content-Type': 'application/json'},
           data: {
-            topic: TOPIC,
+            package: this.package,
+            chat: this.chat,
             client_ip: CLIENT_IP
           }
         }).then((response) => {

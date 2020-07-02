@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.loader import j
+from jumpscale.god import j
 from jumpscale.core.exceptions import JSException
 
 

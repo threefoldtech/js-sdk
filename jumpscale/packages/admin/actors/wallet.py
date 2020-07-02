@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.loader import j
+from jumpscale.god import j
 from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 
 
@@ -51,7 +51,7 @@ class Wallet(BaseActor):
         ret = []
         for name in wallets:
             wallet = j.clients.stellar.get(name=name)
-            ret.append({"name": wallet.instance_name, "address": wallet.address})
+            ret.append({"name": wallet.instance_name, "address": wallet.address, "network": wallet.network.name})
 
         return j.data.serializers.json.dumps({"data": ret})
 

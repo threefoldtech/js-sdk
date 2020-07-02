@@ -4,6 +4,7 @@ from jumpscale.loader import j
 
 class FarmManagemenet(BaseActor):
     def __init__(self):
+        super().__init__()
         self._explorer = j.clients.explorer.get_default()
 
     @actor_method
