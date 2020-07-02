@@ -54,7 +54,7 @@ class Poll(GedisChatBot):
         j.sals.reservation_chatflow.validate_user(user_info)
 
         username = user_info["username"].split(".")[0]
-        welcome_message = f"# Welcome `{username}` to {self.poll_name} Poll\n<br/>The detailed poll results are only visible to the tfgrid council members"
+        welcome_message = f"# Welcome `{username}` to {self.poll_name.capitalize()} Poll\n<br/>The detailed poll results are only visible to the tfgrid council members"
         self.user = all_users.get(name=f"{self.poll_name}_{username}")
         self.user.poll_name = self.poll_name
         if self.user.has_voted:

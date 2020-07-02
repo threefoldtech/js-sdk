@@ -48,7 +48,7 @@ VOTES = {
 
 
 class TFPoll(Poll):
-    poll_name = "Threefold"
+    poll_name = "threefold"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

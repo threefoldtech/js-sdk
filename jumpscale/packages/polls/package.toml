@@ -1,2 +1,25 @@
 name = "polls"
 ports = [80, 443]
+
+[[servers]]
+name = "root"
+ssl = true
+domain = "poll21.threefold.me"
+letsencryptemail = "ahmed.m.elsayed93@gmail.com"
+ports = [443]
+
+[[servers.locations]]
+name = "polls"
+type = "proxy"
+host = "127.0.0.1"
+port = 80
+path_url = "/"
+path_dest = "/polls/chats/tf_poll"
+
+[[servers.locations]]
+name = "chatflows"
+type = "proxy"
+host = "127.0.0.1"
+port = 80
+path_url = "/chatflows"
+path_dest = "/chatflows/"
