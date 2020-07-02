@@ -45,7 +45,7 @@ class Poll(GedisChatBot):
     def _get_wallets_as_md(self, wallets):
         result = "\n"
         for item in wallets:
-            result += f"- `{item}`\n"
+            result += f"- `{item}` has {self._get_voter_balance(item)} (TFT+TFTA)\n"
         return result
 
     @chatflow_step()
@@ -71,7 +71,11 @@ class Poll(GedisChatBot):
         def _pay(msg=""):
             amount = 0.1
             currency = self.single_choice(
-                "This will deduce 0.1 token from your wallet. Which token would you like to continue with?",
+                "We need to know how many tokens you have to allow weighted vote results, "
+                "in order to do this we need to know all of your wallets addresses you want us to consider in this poll. "
+                "The idea is you send us a small transaction that costs 0.1 tokens. "
+                "Then we will be able to calculate the sum of the TFTs and TFTAs you have in all of the wallets you added. Now you can start adding your wallets "
+                "Which token would you like to continue the transaction with?",
                 ["TFT", "TFTA"],
                 required=True,
             )
