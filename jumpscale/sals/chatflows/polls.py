@@ -42,15 +42,19 @@ class Poll(GedisChatBot):
 
         self.wallet = j.clients.stellar.get(WALLET_NAME)
 
+    def _get_wallets_as_md(self, wallets):
+        result = "\n"
+        for item in wallets:
+            result += f"- `{item}`\n"
+        return result
+
     @chatflow_step()
     def initialize(self):
         user_info = self.user_info()
         j.sals.reservation_chatflow.validate_user(user_info)
 
         username = user_info["username"].split(".")[0]
-        welcome_message = (
-            f"# Welcome `{username}` to {self.poll_name} Poll\n<br/>Please note that votes are completely anonymous"
-        )
+        welcome_message = f"# Welcome `{username}` to {self.poll_name} Poll\n<br/>The detailed poll results are only visible to the tfgrid council members"
         self.user = all_users.get(name=f"{self.poll_name}_{username}")
         self.user.poll_name = self.poll_name
         if self.user.has_voted:
@@ -62,24 +66,20 @@ class Poll(GedisChatBot):
     def welcome(self):
         pass
 
-    @chatflow_step(title="Payment")
+    @chatflow_step(title="Loading Wallets")
     def payment(self):
         def _pay(msg=""):
-            form = self.new_form()
-            currency = form.single_choice("How would you like to pay in?", ["TFT", "TFTA"], required=True)
-            amount = form.int_ask(
-                "Please provide the amount of tokens you want to pay. This will be counted in votes results",
+            amount = 0.1
+            currency = self.single_choice(
+                "This will deduce 0.1 token from your wallet. Which token would you like to continue with?",
+                ["TFT", "TFTA"],
                 required=True,
-                min=0,
-                md=True,
-                html=True,
             )
-            form.ask()
 
             qr_code_content = j.sals.zos._escrow_to_qrcode(
                 escrow_address=self.wallet.address,
-                escrow_asset=currency.value,
-                total_amount=amount.value,
+                escrow_asset=currency,
+                total_amount=amount,
                 message=self.user.user_code,
             )
 
@@ -89,8 +89,8 @@ Scan the QR code with your application (do not change the message) or enter the 
 Make sure to add the message (user code) as memo_text
 Please make the transaction and press Next
 <h4> Wallet address: </h4>  {self.wallet.address} \n
-<h4> Currency: </h4>  {currency.value} \n
-<h4> Amount: </h4>  {amount.value} \n
+<h4> Currency: </h4>  {currency} \n
+<h4> Amount: </h4>  {amount} \n
 <h4> Message (User code): </h4>  {self.user.user_code} \n
             """
             self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True, md=True)
@@ -103,33 +103,38 @@ Please make the transaction and press Next
             while True:
                 pay_again = self.single_choice(
                     msg
-                    or f"Do you want to pay again ? Your current tokens amount for this vote: {self.user.tokens} tokens",
+                    or f"Wallets added: {self._get_wallets_as_md(self.user.wallets_addresses)}\nDo you like to add another wallet?",
                     ["YES", "NO"],
+                    md=True,
                 )
                 if pay_again == "NO":
                     break
                 if not _pay():
-                    _pay_again("Payment was unsuccessful. do you want to try again ?")
+                    _pay_again(
+                        "Error adding the wallet, Please make sure you transaction is completed.\n do you want to try again ?"
+                    )
 
         if not self.user.user_code:
             self.user.user_code = j.data.idgenerator.chars(10)
-
         # Payment
-        if self.user.has_voted and self.user.tokens > 0:
-            self.md_show("You have already paid before, Press Next to pay again and modify your vote")
-            _pay_again(self._get_pay_again_msg())
+        if self.user.has_voted and len(self.user.wallets_addresses) > 0:
+            self.md_show(
+                f"You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and modify your vote",
+                md=True,
+            )
+            _pay_again()
 
-        elif self.user.tokens > 0:
-            self.md_show("You have already paid before, Press Next to to pay again and submit your vote")
-            _pay_again(self._get_pay_again_msg())
+        elif len(self.user.wallets_addresses) > 0:
+            self.md_show(
+                f"You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and submit your vote",
+                md=True,
+            )
+            _pay_again()
         else:
             if _pay():
                 _pay_again()
             else:
-                self.stop("Your payment was unsuccessful, please try again")
-
-    def _get_pay_again_msg(self):
-        return
+                self.stop("Error adding the wallet, Please make sure you transaction is completed.\n Please try again")
 
     def _check_payment(self, timeout):
         """Returns True if user has paid already, False if not
@@ -143,18 +148,18 @@ Please make the transaction and press Next
                 f"Process will be cancelled if payment is not successful {remaning_time_msg}"
             )
             self.md_show_update(payment_message, md=True)
-            current_tokens = self.user.tokens
+            user_wallets_count = len(self.user.wallets_addresses)
             transactions = self.wallet.list_transactions()
             for transaction in transactions:
                 if transaction.memo_text == self.user.user_code:
                     if transaction.hash not in self.user.transaction_hashes:
                         self.user.transaction_hashes.append(transaction.hash)
-                        self.user.tokens += float(self.wallet.get_transaction_effects(transaction.hash)[0].amount)
                     user_wallet = self.wallet.get_sender_wallet_address(transaction.hash)
                     if not user_wallet in self.user.wallets_addresses:
                         self.user.wallets_addresses.append(user_wallet)
+                        self.user.tokens += float(self._get_voter_balance(user_wallet))
                     self.user.save()
-            if self.user.tokens > current_tokens:
+            if len(self.user.wallets_addresses) > user_wallets_count:
                 return True
         return False
 

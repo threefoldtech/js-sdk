@@ -6,22 +6,20 @@ VOTES = {
     1: {
         "title": "Reading June 2020 update document",
         "content": "It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on [https://wiki.threefold.io/#/threefold_update_june2020.md](https://wiki.threefold.io/#/threefold_update_june2020.md)",
-        "options": [
-            "I have read the June 2020 update document",
-            "I have not read the June 2020 update document"
-        ]
+        "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
         "title": "Reading the manifesto",
         "content": "It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the [Decentralization Manifesto](http://decentralization2.threefold.io) of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.",
         "options": [
             "I have read the manifesto on http://decentralization2.threefold.io and I do agree with the contents of this manifesto.",
-            "I have not read the manifesto on http://decentralization2.threefold.io or I do not agree."
-        ]
+            "I have not read the manifesto on http://decentralization2.threefold.io or I do not agree.",
+        ],
     },
     3: {
         "title": "TFTA on Stellar rights",
-        "content": dedent("""\
+        "content": dedent(
+            """\
             TFTA on Stellar has all the same rights and more compared to the TFT on Rivine.
 
             I can
@@ -32,12 +30,10 @@ VOTES = {
             - Enjoy any other feature you would expect from a digital currency
 
             <br> No rights have been taken away from me by switching blockchains.
-        
-        """),
-        "options": [
-            "I do agree",
-            "I do not agree"
-        ]
+
+        """
+        ),
+        "options": ["I do agree", "I do not agree"],
     },
     4: {
         "title": "TFTA Availability",
@@ -45,14 +41,14 @@ VOTES = {
         "options": [
             "I am fine with the option to sell my TFTA (TFTv1) on the Stellar exchange or any other decentralized market mechanism and get automatic conversion to TFTv2 end of the year.",
             "I want my TFTA to be available on supported exchanges as TFT and agree with minimal price protection (0.15 USD, +2% increase per month starting with May 1), sales will happen through a sales bot.",
-            "I want my TFTA to be available on supported exchanges as TFT and there should be no price protection. I do realize this choice has the potential to damage the ThreeFold movement."
-        ]
-    }
+            "I want my TFTA to be available on supported exchanges as TFT and there should be no price protection. I do realize this choice has the potential to damage the ThreeFold movement.",
+        ],
+    },
 }
 
 
 class TFPoll(Poll):
-    poll_name = "tf_poll"
+    poll_name = "Threefold"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,13 +56,12 @@ class TFPoll(Poll):
         self.extra_data = {}
         self.custom_answers = {}
 
-
     def welcome(self):
-        
-        statement_1 = """\
-        Dear ThreeFold Token Holder, 
 
-        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
+        statement_1 = """\
+        Dear ThreeFold Token Holder,
+
+        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
 
@@ -77,7 +72,7 @@ class TFPoll(Poll):
         - % of votes as results per question, weighted and unweighted
         - Unweighted means: each vote = 1, weighted means each vote in relation to nr of tokens the vote represents.
         """
-        
+
         self.md_show(dedent(statement_1), md=True)
 
         full_name = self.string_ask("What is your full name ?", required=True)
@@ -95,12 +90,13 @@ class TFPoll(Poll):
             "I bought TFT from the market, which means through atomic swap, a public exchange or from any other TFT holder": "From Market",
             "I bought my TFT from Mazraa (ThreeFold FZC) = part of TF Foundation": "From Mazraa",
             "I bought my TFT from BetterToken = part of TF Foundation": "From BetterToken",
-            "Gift from TF Foundation": "From Gifts"
+            "Gift from TF Foundation": "From Gifts",
         }
 
-        question_1_answer = self.multi_choice(dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1)
+        question_1_answer = self.multi_choice(
+            dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1
+        )
         self.extra_data.update({"question_1": question_1_answer})
-
 
         message = "For every selected option above let us please now the percentage of your total amount of  TFT (if more than 1 option)"
 
@@ -116,13 +112,14 @@ class TFPoll(Poll):
 
             form.ask(form_message, md=True)
             return [v.value for v in percentages]
-        
+
         percentages = ask_for_percentages()
         while sum(percentages) != 100:
-            percentages = ask_for_percentages(f"The submission of the total percentages is equal to {sum(percentages)} and it must be equal to 100%")
+            percentages = ask_for_percentages(
+                f"The submission of the total percentages is equal to {sum(percentages)} and it must be equal to 100%"
+            )
 
         self.extra_data.update({"question_2": percentages})
-
 
     def custom_votes(self):
         super().custom_votes()
@@ -136,9 +133,13 @@ class TFPoll(Poll):
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_2_answer == VOTES[2]["options"][1]:
-            self.stop("The poll cannot continue because you did not agree with the decentralization manifesto. Thank you for your participation. Your answers have been recorded")
-        else: 
-            self.md_show("Thank you for confirming our \"Decentralization manifesto\", you have now digitally signed this document.")
+            self.stop(
+                "The poll cannot continue because you did not agree with the decentralization manifesto. Thank you for your participation. Your answers have been recorded"
+            )
+        else:
+            self.md_show(
+                'Thank you for confirming our "Decentralization manifesto", you have now digitally signed this document.'
+            )
 
         vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], md=True, required=True)
         self.QUESTIONS.update({VOTES[3]["title"]: VOTES[3]["options"]})
