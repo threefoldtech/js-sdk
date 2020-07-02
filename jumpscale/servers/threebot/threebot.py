@@ -134,6 +134,10 @@ class NginxPackageConfig:
                         loc.port = location.get("port")
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
+                    
+                    elif location_type == "custom":
+                        loc = website.get_proxy_location(location_name)
+                        loc.custom_config = location.get("custom_config")
 
                     if loc:
                         path_url = location.get("path_url", "/")
