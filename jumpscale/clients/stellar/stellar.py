@@ -766,37 +766,41 @@ class Stellar(Client):
         results = response["_embedded"]["records"][0]
         return "amount" in results.keys()
 
-    def get_asset_by_code(self, code="TFT") -> stellar_sdk.Asset:
+    def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
         """Gets an stellar_sdk.Asset object by code.
-        if the code is TFT or TFTA we quickly return the Asset object based on the code and the issuer.
+        if the code is TFT or TFTA we quickly return the Asset object based on the code.
         if the code is native (XLM) we return the Asset object with None issuer.
         if the code isn't unknown, exception is raised to manually construct the Asset object.
 
         Args:
             code (str, optional): code for the asset. Defaults to "TFT".
+            issuer (str, optional): issuer for the asset. Defaults to None.
 
         Raises:
-            ValueError: In case of issuer is None and not XLM or the code isn't for TFT or TFTA.
-
+            ValueError: empty code, In case of issuer is None and not XLM or the code isn't for TFT or TFTA.
+            stellar_sdk.exceptions.AssetIssuerInvalidError: Invalid issuer
         Returns:
             stellar_sdk.Asset: Asset object.
         """
         network = self.network.value
-        try:
-            asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
-            if asset_issuer is None and code != "XLM":
-                raise ValueError(
-                    f"not supported helper for the asset {code}, please import Asset from stellar_sdk and construct the Asset object manually."
-                )
-            asset_code = code
-        except Exception as e:
-            raise ValueError(
-                f"not supported helper for the asset {code}, please import Asset from stellar_sdk and construct the Asset object manually."
-            ) from e
-        else:
-            return Asset(asset_code, asset_issuer)
+        KNOWN_ASSETS = list(_NETWORK_KNOWN_TRUSTS[network].keys()) + ["XLM"]
 
-    def place_selling_order(
+        if issuer and code:
+            return Asset(code, issuer)
+
+        if not code:
+            raise ValueError("need to provide code")
+
+        if not issuer and code not in KNOWN_ASSETS:
+            raise ValueError(
+                f"Make sure to supply the issuer for {code}, issuer is allowed to be none only in case of {KNOWN_ASSETS}"
+            )
+
+        if not issuer and code in KNOWN_ASSETS:
+            asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
+            return Asset(code, asset_issuer)
+
+    def place_sell_order(
         self,
         selling_asset: stellar_sdk.Asset,
         buying_asset: stellar_sdk.Asset,
@@ -816,7 +820,6 @@ class Stellar(Client):
         Raises:
             ValueError: In case of invalid issuer.
             RuntimeError: Error happened during submission of the transaction.
-            RuntimeError: [description]
 
         Returns:
             (dict): response as the result of sumbit the transaction
