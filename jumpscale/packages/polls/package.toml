@@ -12,7 +12,7 @@ includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.polls*
 [[servers.locations]]
 name = "custom"
 type = "custom"
-custom_location = """
+custom_config = """
 location / {
    rewrite ^(.+) /polls/chats/threefold;
 }
