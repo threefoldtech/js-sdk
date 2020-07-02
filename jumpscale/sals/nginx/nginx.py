@@ -93,6 +93,7 @@ class Website(Base):
     ssl = fields.Boolean()
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
+    includes = fields.List(fields.String())
     letsencryptemail = fields.String()
     selfsigned = fields.Boolean(default=True)
 
@@ -103,6 +104,19 @@ class Website(Base):
     @property
     def cfg_file(self):
         return j.sals.fs.join_paths(self.cfg_dir, "server.conf")
+
+    @property
+    def include_paths(self):
+        paths = []
+        for include in self.includes:
+            ## TODO validate location name and include
+            website_name, location_name = include.split(".", 1)
+            website = self.websites.find(website_name)
+            if not website:
+                continue
+            
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+        return paths
 
     def get_locations(self):
         for location in self.locations.list_all():
@@ -150,6 +164,7 @@ class Website(Base):
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
+
         for location in self.get_locations():
             location.configure()
 
