@@ -208,7 +208,7 @@ Please make the transaction and press Next
         total_answers_weighted = {}
         for username in usersnames:
             user = all_users.get(username)
-            if user.poll_name == self.poll_name:
+            if user.poll_name == self.poll_name and user.has_voted:
                 total_votes += 1
                 user_votes = all_users.get(username).vote_data
                 user_votes_weighted = all_users.get(username).vote_data_weighted
