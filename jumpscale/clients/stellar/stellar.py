@@ -1,14 +1,20 @@
-import stellar_sdk
 import math
 import time
-from jumpscale.loader import j
+from enum import Enum
+import decimal
 from urllib import parse
+from typing import Union
+
+import stellar_sdk
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
-from enum import Enum
-from .balance import Balance, EscrowAccount, AccountBalances
-from .transaction import TransactionSummary, Effect, PaymentSummary
+from jumpscale.loader import j
 from stellar_sdk import Account as stellarAccount
+from stellar_sdk import Asset, TransactionBuilder
+
+from .balance import AccountBalances, Balance, EscrowAccount
+from .transaction import Effect, PaymentSummary, TransactionSummary
+
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
 _HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
@@ -759,3 +765,90 @@ class Stellar(Client):
         response = endpoint.call()
         results = response["_embedded"]["records"][0]
         return "amount" in results.keys()
+
+    def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
+        """Gets an stellar_sdk.Asset object by code.
+        if the code is TFT or TFTA we quickly return the Asset object based on the code.
+        if the code is native (XLM) we return the Asset object with None issuer.
+        if the code isn't unknown, exception is raised to manually construct the Asset object.
+
+        Args:
+            code (str, optional): code for the asset. Defaults to "TFT".
+            issuer (str, optional): issuer for the asset. Defaults to None.
+
+        Raises:
+            ValueError: empty code, In case of issuer is None and not XLM or the code isn't for TFT or TFTA.
+            stellar_sdk.exceptions.AssetIssuerInvalidError: Invalid issuer
+        Returns:
+            stellar_sdk.Asset: Asset object.
+        """
+        network = self.network.value
+        KNOWN_ASSETS = list(_NETWORK_KNOWN_TRUSTS[network].keys()) + ["XLM"]
+
+        if issuer and code:
+            return Asset(code, issuer)
+
+        if not code:
+            raise ValueError("need to provide code")
+
+        if not issuer and code not in KNOWN_ASSETS:
+            raise ValueError(
+                f"Make sure to supply the issuer for {code}, issuer is allowed to be none only in case of {KNOWN_ASSETS}"
+            )
+
+        if not issuer and code in KNOWN_ASSETS:
+            asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
+            return Asset(code, asset_issuer)
+
+    def place_sell_order(
+        self,
+        selling_asset: stellar_sdk.Asset,
+        buying_asset: stellar_sdk.Asset,
+        amount: Union[str, decimal.Decimal],
+        price: Union[str, decimal.Decimal],
+        timeout=30,
+    ):
+        """Places a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+
+        Args:
+            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
+            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            amount (Union[str, decimal.Decimal]): Amount to sell.
+            price (Union[str, decimal.Decimal]): Price for selling.
+            timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
+
+        Raises:
+            ValueError: In case of invalid issuer.
+            RuntimeError: Error happened during submission of the transaction.
+
+        Returns:
+            (dict): response as the result of sumbit the transaction
+        """
+        server = self._get_horizon_server()
+        tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
+        try:
+            tx = (
+                tb.append_manage_sell_offer_op(
+                    selling_code=selling_asset.code,
+                    selling_issuer=selling_asset.issuer,
+                    buying_code=buying_asset.code,
+                    buying_issuer=buying_asset.issuer,
+                    amount=amount,
+                    price=price,
+                )
+                .set_timeout(timeout)
+                .build()
+            )
+        except stellar_sdk.exceptions.AssetIssuerInvalidError as e:
+            raise ValueError("invalid issuer") from e
+        except Exception as e:
+            raise RuntimeError(
+                f"error happened for placing selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
+            ) from e
+        else:
+            tx.sign(self.secret)
+            try:
+                resp = server.submit_transaction(tx)
+            except Exception as e:
+                raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
+            return resp
