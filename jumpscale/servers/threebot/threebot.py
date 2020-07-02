@@ -136,7 +136,7 @@ class NginxPackageConfig:
                         loc.websocket = location.get("websocket", False)
                     
                     elif location_type == "custom":
-                        loc = website.get_proxy_location(location_name)
+                        loc = website.get_custom_location(location_name)
                         loc.custom_config = location.get("custom_config")
 
                     if loc:

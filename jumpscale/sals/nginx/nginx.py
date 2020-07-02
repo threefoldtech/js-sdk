@@ -129,6 +129,11 @@ class Website(Base):
         location.location_type = LocationType.PROXY
         return location
 
+    def get_custom_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.CUSTOM
+        return location
+
     def get_static_location(self, name):
         location = self.locations.get(name)
         location.location_type = LocationType.STATIC
