@@ -31,8 +31,8 @@ class Form:
         self.fields = []
         self.results = []
 
-    def ask(self, msg=None):
-        self._session.send_data({"category": "form", "msg": msg, "fields": self.fields}, is_slide=True)
+    def ask(self, msg=None, **kwargs):
+        self._session.send_data({"category": "form", "msg": msg, "fields": self.fields, "kwargs": kwargs}, is_slide=True)
         results = j.data.serializers.json.loads(self._session._queue_in.get())
         for result, resobject in zip(results, self.results):
             resobject.value = result
