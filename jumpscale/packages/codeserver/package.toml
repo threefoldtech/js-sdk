@@ -1,8 +1,6 @@
 name = "codeserver"
-ports = [80, 443]
 [[servers]]
 name = "default"
-ports = [80, 443]
 [[servers.locations]]
 type = "proxy"
 host = "127.0.0.1"
