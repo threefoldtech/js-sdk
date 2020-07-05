@@ -35,7 +35,7 @@
     </v-app-bar>
     <v-main>
       <div class="chat-container text-center">
-          <h1 class="display-2 font-weight-light">{{this.chat.split("_").slice(-1) == "deploy" ? this.titleCase(this.chat.split("_")[0]) : this.titleCase(this.chat)}}</h1><br><br>
+          <h1 class="display-2 font-weight-light">Zero Chat Bot</h1><br><br>
 
           <v-card v-if="end" class="mx-auto px-5 py-10" width="50%" raised shaped>
             <v-card-text>
@@ -253,14 +253,6 @@
       restart () {
         localStorage.clear()
         location.reload()
-      },
-      titleCase(str) {
-        let title = "";
-        let splittedStr = str.split("_")
-        for (let i in splittedStr) {
-          title += splittedStr[i].charAt(0).toUpperCase() + splittedStr[i].substring(1) + " ";
-        }
-        return title;
       }
     },
     mounted () {
