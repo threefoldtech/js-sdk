@@ -509,14 +509,15 @@ class Stellar(Client):
 
         return payments
 
-    def list_transactions(self, address=None):
+    def list_transactions(self, address: str = None, cursor:str=None):
         """Get the transactions for an adddres
-
-        Args:
-            address (str, optional): address of the effects.If None, the address of this wallet is taken. Defaults to None.
+        :param address (str, optional): address of the effects.If None, the address of this wallet is taken. Defaults to None.
+        :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
+         if a cursor is passed, a tuple of the payments and the cursor is returned 
 
         Returns:
             list: list of TransactionSummary objects
+            dictionary: {"transactions":list of TransactionSummary objects, "cursor":cursor} 
         """
         address = address or self.address
         tx_endpoint = self._get_horizon_server().transactions()
@@ -525,6 +526,8 @@ class Stellar(Client):
         transactions = []
         old_cursor = "old"
         new_cursor = ""
+        if cursor is not None:
+            new_cursor = cursor
         while old_cursor != new_cursor:
             old_cursor = new_cursor
             tx_endpoint.cursor(new_cursor)
@@ -536,6 +539,9 @@ class Stellar(Client):
             for response_transaction in response_transactions:
                 if response_transaction["successful"]:
                     transactions.append(TransactionSummary.from_horizon_response(response_transaction))
+        
+        if cursor is not None:
+            return {"transactions": transactions, "cursor": new_cursor}
         return transactions
 
     def get_transaction_effects(self, transaction_hash, address=None):
