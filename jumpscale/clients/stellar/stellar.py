@@ -509,7 +509,7 @@ class Stellar(Client):
 
         return payments
 
-    def list_transactions(self, address: str = None, cursor:str=None):
+    def list_transactions(self, address: str = None, cursor: str = None):
         """Get the transactions for an adddres
         :param address (str, optional): address of the effects.If None, the address of this wallet is taken. Defaults to None.
         :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
@@ -539,7 +539,7 @@ class Stellar(Client):
             for response_transaction in response_transactions:
                 if response_transaction["successful"]:
                     transactions.append(TransactionSummary.from_horizon_response(response_transaction))
-        
+
         if cursor is not None:
             return {"transactions": transactions, "cursor": new_cursor}
         return transactions

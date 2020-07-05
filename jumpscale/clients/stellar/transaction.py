@@ -1,5 +1,5 @@
 from .balance import Balance
-import decimal
+import decimal, base64, binascii
 
 
 class TransactionSummary:
@@ -8,6 +8,12 @@ class TransactionSummary:
         self.memo_text = memo_text
         self.memo_hash = memo_hash
         self.created_at = created_at
+
+    @property
+    def memo_hash_as_hex(self):
+        if not self.memo_hash:
+            return None
+        return binascii.hexlify(base64.b64decode(self.memo_hash)).decode("utf-8")
 
     @staticmethod
     def from_horizon_response(response_transaction):
