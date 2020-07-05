@@ -283,19 +283,18 @@ class PackageManager(Base):
             return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
 
     def get_packages(self):
-        all_pkgs = []
+        all_packages = []
 
         # Add installed packages including outer packages
         for pkg in self.packages:
-            all_pkgs.append(
-                {"name": pkg, "path": self.get(pkg).path, "giturl": self.get(pkg).giturl, "installed": True}
-            )
+            package = self.get(pkg)
+            all_packages.append({"name": pkg, "path": package.path, "giturl": package.giturl, "installed": True})
 
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
             for pkg in os.listdir(path):
                 if pkg not in self.packages:
-                    all_pkgs.append(
+                    all_packages.append(
                         {
                             "name": pkg,
                             "path": j.sals.fs.dirname(getattr(j.packages, pkg).__file__),
@@ -305,7 +304,7 @@ class PackageManager(Base):
                         }
                     )
 
-        return all_pkgs
+        return all_packages
 
     def list_all(self):
         return self.packages.keys()
@@ -314,10 +313,11 @@ class PackageManager(Base):
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
-        for pkg in self.packages:
-            if path == self.get(pkg).path:
+        for package_name in self.packages:
+            package = self.get(package_name)
+            if path == package.path:
                 raise j.exceptions.Value("Package with the same path already exists")
-            if giturl == self.get(pkg).giturl:
+            if giturl == package.giturl:
                 raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
@@ -433,19 +433,15 @@ class PackageManager(Base):
         package.start()
 
     def reload(self, package_name):
-        package = self.get(package_name)
-        if not package:
-            raise j.exceptions.NotFound(f"{package_name} package not found")
-
-        # re-install package
-        package.install()
-
-        # install package if threebot is started
         if self.threebot.started:
+            package = self.get(package_name)
+            if not package:
+                raise j.exceptions.NotFound(f"{package_name} package not found")
             self.install(package)
             self.threebot.nginx.reload()
-
-        self.save()
+            self.save()
+        else:
+            raise j.exceptions.Runtime("Can't reload package. Threebot server is not started")
 
         # Return updated package info
         return {package.name: self.packages[package.name]}
