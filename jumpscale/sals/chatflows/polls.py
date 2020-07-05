@@ -1,5 +1,5 @@
+from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
-from jumpscale.god import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.chatflows.models.voter_model import User
 

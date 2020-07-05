@@ -1,4 +1,4 @@
-from jumpscale.god import j
+from jumpscale.loader import j
 import os
 
 
@@ -7,18 +7,19 @@ class kyc:
         # Make sure zdb is started
         cmd = j.tools.startupcmd.get("zdbserver")
         self.zdb_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "zdb")
-        self. bcdb_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "bcdb")
+        self.bcdb_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "bcdb")
         self._started = False
 
     @property
     def started(self):
         return self._started
-    
+
     @property
     def _zdb_startupcmd(self):
         cmd = j.tools.startupcmd.get("zdbserver")
-        cmd.start_cmd =f"{self.zdb_path} --mode seq"
+        cmd.start_cmd = f"{self.zdb_path} --mode seq"
         return cmd
+
     @property
     def _bcdb_startupcmd(self):
         cmd = j.tools.startupcmd.get("bcdbserver")
@@ -41,9 +42,9 @@ class kyc:
         """Called when threebot is started
         """
         if not self.started:
-            
+
             self._zdb_startupcmd.start()
-            
+
             self._bcdb_startupcmd.start()
             self._started = True
 
