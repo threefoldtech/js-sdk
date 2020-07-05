@@ -374,7 +374,7 @@ description = "A Python library for the Docker Engine API."
 name = "docker"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "4.2.1"
+version = "4.2.2"
 
 [package.dependencies]
 requests = ">=2.14.2,<2.18.0 || >2.18.0"
@@ -533,13 +533,9 @@ marker = "python_version < \"3.7\""
 name = "importlib-resources"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
-version = "2.0.1"
+version = "3.0.0"
 
 [package.dependencies]
-[package.dependencies.importlib-metadata]
-python = "<3.8"
-version = "*"
-
 [package.dependencies.zipp]
 python = "<3.8"
 version = ">=0.4"
@@ -637,13 +633,14 @@ loguru = "^0.3.2"
 msgpack = "^0.6.1"
 netaddr = "^0.7.19"
 pdoc3 = "^0.6.3"
+pillow = "^6.2.2"
 prompt-toolkit = "<3.0.0"
 psutil = "^5.7.0"
 ptpython = "^2.0"
 pudb = "^2019.1"
 pycparser = "^2.20"
 pylzma = "^0.5.0"
-pynacl = "^1.3"
+pynacl = "1.3.0"
 pytoml = "^0.1.21"
 redis = "^3.3"
 secretconf = "^0.1.2"
@@ -652,10 +649,9 @@ watchdog = "^0.9.0"
 zipp = "^3.1.0"
 
 [package.source]
-reference = "a9b50a2a4724bde6696eb89598410650058111f1"
+reference = "98d93e303569fcfeeb5ff5c3822244630487dcd7"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
-
 [[package]]
 category = "main"
 description = "Python library for serializing any arbitrary object graph into JSON"
@@ -1429,7 +1425,7 @@ description = "Zope Component Architecture"
 name = "zope.component"
 optional = false
 python-versions = "*"
-version = "4.6.1"
+version = "4.6.2"
 
 [package.dependencies]
 setuptools = "*"
@@ -1732,8 +1728,8 @@ dnspython = [
     {file = "dnspython-1.16.0.zip", hash = "sha256:36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01"},
 ]
 docker = [
-    {file = "docker-4.2.1-py2.py3-none-any.whl", hash = "sha256:672f51aead26d90d1cfce84a87e6f71fca401bbc2a6287be18603583620a28ba"},
-    {file = "docker-4.2.1.tar.gz", hash = "sha256:380a20d38fbfaa872e96ee4d0d23ad9beb0f9ed57ff1c30653cbeb0c9c0964f2"},
+    {file = "docker-4.2.2-py2.py3-none-any.whl", hash = "sha256:03a46400c4080cb6f7aa997f881ddd84fef855499ece219d75fbdb53289c17ab"},
+    {file = "docker-4.2.2.tar.gz", hash = "sha256:26eebadce7e298f55b76a88c4f8802476c5eaddbdbe38dbc6cce8781c47c9b54"},
 ]
 docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
@@ -1817,8 +1813,8 @@ importlib-metadata = [
     {file = "importlib_metadata-1.7.0.tar.gz", hash = "sha256:90bb658cdbbf6d1735b6341ce708fc7024a3e14e99ffdc5783edea9f9b077f83"},
 ]
 importlib-resources = [
-    {file = "importlib_resources-2.0.1-py2.py3-none-any.whl", hash = "sha256:83985739b3a6679702f9ab33f0ad016ad564664d0568a31ac14d7c64789453e6"},
-    {file = "importlib_resources-2.0.1.tar.gz", hash = "sha256:f5edfcece1cc9435d0979c19e08739521f4cf1aa1adaf6e571f732df6f568962"},
+    {file = "importlib_resources-3.0.0-py2.py3-none-any.whl", hash = "sha256:d028f66b66c0d5732dae86ba4276999855e162a749c92620a38c1d779ed138a7"},
+    {file = "importlib_resources-3.0.0.tar.gz", hash = "sha256:19f745a6eca188b490b1428c8d1d4a0d2368759f32370ea8fb89cad2ab1106c3"},
 ]
 invoke = [
     {file = "invoke-1.4.1-py2-none-any.whl", hash = "sha256:93e12876d88130c8e0d7fd6618dd5387d6b36da55ad541481dfa5e001656f134"},
@@ -2306,8 +2302,8 @@ zipp = [
     {file = "zipp-3.1.0.tar.gz", hash = "sha256:c599e4d75c98f6798c509911d08a22e6c021d074469042177c8c86fb92eefd96"},
 ]
 "zope.component" = [
-    {file = "zope.component-4.6.1-py2.py3-none-any.whl", hash = "sha256:bfbe55d4a93e70a78b10edc3aad4de31bb8860919b7cbd8d66f717f7d7b279ac"},
-    {file = "zope.component-4.6.1.tar.gz", hash = "sha256:d9c7c27673d787faff8a83797ce34d6ebcae26a370e25bddb465ac2182766aca"},
+    {file = "zope.component-4.6.2-py2.py3-none-any.whl", hash = "sha256:607628e4c84f7887a69a958542b5c304663e726b73aba0882e3a3f059bff14f3"},
+    {file = "zope.component-4.6.2.tar.gz", hash = "sha256:91628918218b3e6f6323de2a7b845e09ddc5cae131c034896c051b084bba3c92"},
 ]
 "zope.deferredimport" = [
     {file = "zope.deferredimport-4.3.1-py2.py3-none-any.whl", hash = "sha256:9a0c211df44aa95f1c4e6d2626f90b400f56989180d3ef96032d708da3d23e0a"},
