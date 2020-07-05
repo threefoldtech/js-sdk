@@ -154,7 +154,7 @@ class MinioDeploy(MarketPlaceChatflow):
     @chatflow_step(title="Reserve zdb", disable_previous=True)
     def zdb_reservation(self):
         self.network = self.network_copy
-        self.network.update(self.get_tid(), currency=self.network.currency, bot=self)
+        self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
 
@@ -178,7 +178,11 @@ class MinioDeploy(MarketPlaceChatflow):
 
         # register the reservation for zdb db
         self.zdb_rid = deployer.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=self.get_tid(), currency=self.network.currency, bot=self,
+            self.reservation,
+            self.expiration,
+            customer_tid=self.user_info()["username"],
+            currency=self.network.currency,
+            bot=self,
         )
         res = f"# Database has been deployed with reservation id: {self.zdb_rid}. Click next to continue with deployment of the minio container"
 
@@ -284,7 +288,7 @@ class MinioDeploy(MarketPlaceChatflow):
         self.metadata["Solution expiration"] = self.expiration
         self.metadata["Primary IP"] = self.ip_address
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Minio, self.get_tid(), self.metadata
+            self.user_form_data["Solution name"], SolutionType.Minio, self.user_info()["username"], self.metadata
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

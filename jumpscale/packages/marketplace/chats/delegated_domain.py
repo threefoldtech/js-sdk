@@ -52,7 +52,10 @@ class DomainDelegation(MarketPlaceChatflow):
         )
 
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.DelegatedDomain, self.get_tid(), self.user_form_data
+            self.user_form_data["Solution name"],
+            SolutionType.DelegatedDomain,
+            self.user_info()["username"],
+            self.user_form_data,
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
 

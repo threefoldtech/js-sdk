@@ -183,7 +183,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
     @chatflow_step(title="Payment", disable_previous=True)
     def containers_pay(self):
         self.network = self.redis_network
-        self.network.update(self.get_tid(), currency=self.network.currency, bot=self)
+        self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
 
         storage_url = "zdb://hub.grid.tf:9900"
         redis_ip_address = self.ip_addresses["Redis"]
@@ -285,7 +285,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
         metadata["Redis IP"] = self.user_form_data["Redis IP Address"]
 
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Monitoring, self.get_tid(), metadata
+            self.user_form_data["Solution name"], SolutionType.Monitoring, self.user_info()["username"], metadata
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

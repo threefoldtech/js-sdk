@@ -154,8 +154,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Choose Network")
     def choose_network(self):
-        self.tid = self.get_tid()
-        networks_data = deployer.list_solutions(self.tid, SolutionType.Network, reload=True)
+        networks_data = deployer.list_solutions(self.user_info()["username"], SolutionType.Network, reload=True)
         if not networks_data:
             StopChatFlow("You don't have any available networks yet. please create a newtork first")
         network_names = []
@@ -182,7 +181,7 @@ class MarketPlaceChatflow(GedisChatBot):
             self.entry_point = None
 
         self.network = self.network_copy
-        self.network.update(self.get_tid(), currency=self.currency, bot=self)
+        self.network.update(self.user_info()["username"], currency=self.currency, bot=self)
         storage_url = "zdb://hub.grid.tf:9900"
 
         # create container
@@ -222,7 +221,7 @@ class MarketPlaceChatflow(GedisChatBot):
             )
 
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], self.SOLUTION_TYPE, self.tid, self.metadata
+            self.user_form_data["Solution name"], self.SOLUTION_TYPE, self.user_info()["username"], self.metadata
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

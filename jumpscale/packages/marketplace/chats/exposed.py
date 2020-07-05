@@ -29,7 +29,7 @@ class SolutionExpose(BaseSolutionExpose):
         self.user_form_data["kind"] = self.kind
 
         sol_type = kinds[self.kind]
-        solutions = deployer.list_solutions(self.get_tid(), sol_type, reload=True)
+        solutions = deployer.list_solutions(self.user_info()["username"], sol_type, reload=True)
 
         self.sols = {sol["name"]: sol for sol in solutions}
 
@@ -58,7 +58,7 @@ class SolutionExpose(BaseSolutionExpose):
                 g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
             }
 
-        user_domains = deployer.list_solutions(self.get_tid(), SolutionType.Exposed)
+        user_domains = deployer.list_solutions(self.user_info()["username"], SolutionType.Exposed)
         self.user_domains = {}
         for dom in user_domains:
             if dom["reservation_obj"].data_reservation.currencies[0] == self.solution_currency:
@@ -92,7 +92,7 @@ class SolutionExpose(BaseSolutionExpose):
             network.resv_id,
         )
         network.add_node(node_selected)
-        network.update(self.get_tid(), currency=self.solution_currency, bot=self)
+        network.update(self.user_info()["username"], currency=self.solution_currency, bot=self)
         ip_address = network.get_free_ip(node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
@@ -133,7 +133,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
         metadata = deployer.get_solution_metadata(
             self.user_form_data["Solution name"],
             SolutionType.Exposed,
-            self.get_tid(),
+            self.user_info()["username"],
             {"Solution expiration": self.expiration},
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, metadata)

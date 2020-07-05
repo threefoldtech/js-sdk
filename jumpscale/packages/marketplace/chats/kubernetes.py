@@ -101,7 +101,7 @@ class KubernetesDeploy(MarketPlaceChatflow):
     def cluster_reservation(self):
         self.network = self.network_copy
         # update network
-        self.network.update(self.get_tid(), currency=self.network.currency, bot=self)
+        self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
         # create new reservation
         self.reservation = j.sals.zos.reservation_create()
         # Create master and workers
@@ -135,7 +135,7 @@ class KubernetesDeploy(MarketPlaceChatflow):
         metadata = self.user_form_data.copy()
         metadata.pop("SSH keys")
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Kubernetes, self.get_tid(), metadata
+            self.user_form_data["Solution name"], SolutionType.Kubernetes, self.user_info()["username"], metadata
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

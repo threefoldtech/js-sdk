@@ -35,6 +35,7 @@ class FourToSixGateway(MarketPlaceChatflow):
 
         currencies = list()
         farm_id = self.gateway.farm_id
+        self.user_form_data["Public Key"] = self.publickey
         try:
             addresses = j.sals.zos._explorer.farms.get(farm_id).wallet_addresses
         except requests.HTTPError:
@@ -52,6 +53,13 @@ class FourToSixGateway(MarketPlaceChatflow):
 
         reservation = j.sals.zos.reservation_create()
         j.sals.zos._gateway.gateway_4to6(reservation=reservation, node_id=self.gateway_id, public_key=self.publickey)
+        metadata = deployer.get_solution_metadata(
+            self.user_form_data["Public Key"],
+            SolutionType.FourToSixGw,
+            self.user_info()["username"],
+            self.user_form_data,
+        )
+        reservation = j.sals.reservation_chatflow.add_reservation_metadata(reservation, metadata)
 
         self.resv_id = deployer.register_and_pay_reservation(
             reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=currency, bot=self
