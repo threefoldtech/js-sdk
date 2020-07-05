@@ -30,7 +30,7 @@ class ChatFlows(BaseActor):
     def fetch(self, session_id: str, restore: bool = False) -> dict:
         chatflow = self.sessions.get(session_id)
         if not chatflow:
-            return {"payload":{"category": "end"}}
+            return {"payload": {"category": "end"}}
 
         result = chatflow.get_work(restore)
 

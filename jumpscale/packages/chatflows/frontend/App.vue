@@ -120,7 +120,7 @@
         return ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
       backButtonDisable () {
-        return !this.work.info.previous || ['loading', 'infinite_loading'].includes(this.work.payload.category)
+        return !this.work.info.previous || ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
       stepId () {
         return `${this.work.info.step}_${this.work.info.slide}`

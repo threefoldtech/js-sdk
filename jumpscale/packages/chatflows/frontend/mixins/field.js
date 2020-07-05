@@ -27,6 +27,11 @@ validators = {
       if (field.val !== undefined) {
         return field.val <= max ? true : `Value is too large, maximum value is ${max}`
       }
+    },
+    isInteger: (field) => {
+      if (field.val !== undefined) {
+        return Number.isInteger(Number(field.val)) ? true : "Value must be an interger"
+      }
     }
   },
   secret_ask: {

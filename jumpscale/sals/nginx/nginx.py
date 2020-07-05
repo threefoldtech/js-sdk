@@ -49,6 +49,7 @@ import os, pwd, grp
 class LocationType(Enum):
     STATIC = "static"
     PROXY = "proxy"
+    CUSTOM = "custom"
 
 
 class Location(Base):
@@ -66,6 +67,7 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    custom_config = fields.String(default=None)
 
     @property
     def cfg_dir(self):
@@ -93,6 +95,7 @@ class Website(Base):
     ssl = fields.Boolean()
     port = fields.Integer(default=80)
     locations = fields.Factory(Location)
+    includes = fields.List(fields.String())
     letsencryptemail = fields.String()
     selfsigned = fields.Boolean(default=True)
 
@@ -104,6 +107,19 @@ class Website(Base):
     def cfg_file(self):
         return j.sals.fs.join_paths(self.cfg_dir, "server.conf")
 
+    @property
+    def include_paths(self):
+        paths = []
+        for include in self.includes:
+            ## TODO validate location name and include
+            website_name, location_name = include.split(".", 1)
+            website = self.parent.websites.find(website_name)
+            if not website:
+                continue
+            
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+        return paths
+
     def get_locations(self):
         for location in self.locations.list_all():
             yield self.locations.get(location)
@@ -111,6 +127,11 @@ class Website(Base):
     def get_proxy_location(self, name):
         location = self.locations.get(name)
         location.location_type = LocationType.PROXY
+        return location
+
+    def get_custom_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.CUSTOM
         return location
 
     def get_static_location(self, name):
@@ -150,6 +171,7 @@ class Website(Base):
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
+
         for location in self.get_locations():
             location.configure()
 

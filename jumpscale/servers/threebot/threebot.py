@@ -108,6 +108,7 @@ class NginxPackageConfig:
 
                 website = self.nginx.get_website(server_name, port=port)
                 website.ssl = server.get("ssl", port == 443)
+                website.includes = server.get("includes", [])
                 website.domain = server.get("domain", self.default_config[0].get("domain"))
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")
@@ -133,6 +134,10 @@ class NginxPackageConfig:
                         loc.port = location.get("port")
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
+                    
+                    elif location_type == "custom":
+                        loc = website.get_custom_location(location_name)
+                        loc.custom_config = location.get("custom_config")
 
                     if loc:
                         path_url = location.get("path_url", "/")

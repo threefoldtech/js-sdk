@@ -1,0 +1,19 @@
+name = "polls"
+ports = [80, 443]
+
+[[servers]]
+name = "root"
+ssl = true
+domain = "poll21.threefold.me"
+letsencryptemail = "ahmed.m.elsayed93@gmail.com"
+ports = [443, 80]
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.polls*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /polls/chats/threefold;
+}
+"""
