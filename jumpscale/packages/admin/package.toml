@@ -1,5 +1,4 @@
 name = "admin"
-ports = [80, 443]
 
 [[static_dirs]]
 name = "frontend"

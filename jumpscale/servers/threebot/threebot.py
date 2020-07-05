@@ -8,6 +8,7 @@ import shutil
 from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
+from jumpscale.sals.nginx.nginx import PORTS
 
 
 GEDIS = "gedis"
@@ -98,16 +99,17 @@ class NginxPackageConfig:
         return [default_server]
 
     def apply(self):
+        default_ports = [PORTS.HTTP, PORTS.HTTPS]
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
-            for port in server.get("ports", [80, 443]):
-
+            ports = server.get("ports", default_ports) or default_ports
+            for port in ports:
                 server_name = server.get("name")
                 if server_name != "default":
                     server_name = f"{self.package.name}_{server_name}"
 
                 website = self.nginx.get_website(server_name, port=port)
-                website.ssl = server.get("ssl", port == 443)
+                website.ssl = server.get("ssl", port == PORTS.HTTPS)
                 website.includes = server.get("includes", [])
                 website.domain = server.get("domain", self.default_config[0].get("domain"))
                 website.letsencryptemail = server.get(
@@ -131,7 +133,7 @@ class NginxPackageConfig:
                         loc = website.get_proxy_location(location_name)
                         loc.scheme = location.get("scheme", "http")
                         loc.host = location.get("host")
-                        loc.port = location.get("port")
+                        loc.port = location.get("port", PORTS.HTTP)
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
                     

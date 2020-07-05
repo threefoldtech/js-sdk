@@ -1,5 +1,4 @@
 name = "auth"
-ports = [ 80, 443]
 
 [[static_dirs]]
 name = "static"

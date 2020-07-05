@@ -1,2 +1,1 @@
 name = "tfgrid_solutions"
-ports = [ 80, 443]
