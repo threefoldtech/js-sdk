@@ -27,6 +27,8 @@ class UbuntuDeploy(GedisChatBot):
         "ubuntu_acess",
     ]
 
+    title = "Ubuntu"
+
     @chatflow_step()
     def ubuntu_start(self):
         self.user_form_data = dict()

@@ -7,6 +7,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 class NetworkDeploy(GedisChatBot):
     steps = ["network_reservation", "network_info"]
+    title = "Network"
 
     @chatflow_step(title="Deploy Network")
     def network_reservation(self):

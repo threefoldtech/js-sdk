@@ -28,6 +28,7 @@ class MinioDeploy(GedisChatBot):
         "minio_reservation",
         "success",
     ]
+    title = "Minio"
 
     @chatflow_step(title="")
     def deployment_start(self):

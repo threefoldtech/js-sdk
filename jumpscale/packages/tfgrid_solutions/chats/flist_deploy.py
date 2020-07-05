@@ -27,6 +27,7 @@ class FlistDeploy(GedisChatBot):
         "container_pay",
         "container_acess",
     ]
+    title = "Flist"
 
     @chatflow_step()
     def flist_start(self):
