@@ -86,7 +86,7 @@ class PaymentSummary(object):
         transaction_hash = response_payment["transaction_hash"]
         created_at = response_payment["created_at"]
         payment_type = response_payment["type"]
-        
+
         if payment_type == "create_account":
             return PaymentSummary(
                 transaction_hash,
@@ -98,7 +98,7 @@ class PaymentSummary(object):
                 my_address,
             )
 
-        if payment_type=="account_merge":
+        if payment_type == "account_merge":
             return PaymentSummary(
                 transaction_hash,
                 None,
@@ -129,8 +129,8 @@ class PaymentSummary(object):
                 representation = f"Account created with {self.balance} by {self.from_address}"
             else:
                 representation = f"Created account {self.to_address} with {self.balance}"
-        elif self.payment_type=="account_merge":
-            representation=f"Account {self.from_address} merged"
+        elif self.payment_type == "account_merge":
+            representation = f"Account {self.from_address} merged"
         else:
             if self.to_address == self.my_address:
                 representation = f"{self.balance} received from {self.from_address}"

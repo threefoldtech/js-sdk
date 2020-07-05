@@ -466,12 +466,12 @@ class Stellar(Client):
                         return transaction.to_xdr()
             raise e
 
-    def list_payments(self, address=None, asset=None):
+    def list_payments(self, address: str = None, asset: str = None, cursor: str = None):
         """Get the transactions for an adddress
         :param address: address of the effects.In None, the address of this wallet is taken
-        :type address: str
         :param asset: stellar asset in the code:issuer form( except for XLM, which does not need an issuer)
-        :type asset: str
+        :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
+         if a cursor is passed, a tuple of the payments and the cursor is returned 
         """
         if address is None:
             address = self.address
@@ -481,6 +481,8 @@ class Stellar(Client):
         payments = []
         old_cursor = "old"
         new_cursor = ""
+        if cursor is not None:
+            new_cursor = cursor
         while old_cursor != new_cursor:
             old_cursor = new_cursor
             tx_endpoint.cursor(new_cursor)
@@ -490,18 +492,21 @@ class Stellar(Client):
             new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
             response_payments = response["_embedded"]["records"]
             for response_payment in response_payments:
-                ps=PaymentSummary.from_horizon_response(response_payment, address)
+                ps = PaymentSummary.from_horizon_response(response_payment, address)
                 if asset:
-                    split_asset=asset.split(":")
-                    assetcode=split_asset[0]
+                    split_asset = asset.split(":")
+                    assetcode = split_asset[0]
                     assetissuer = None
-                    if len(split_asset)> 1:
-                        assetissuer=split_asset[1]
-                    if ps.balance and ps.balance.asset_code==assetcode:
-                        if assetissuer and assetissuer==ps.balance.asset_issuer:
+                    if len(split_asset) > 1:
+                        assetissuer = split_asset[1]
+                    if ps.balance and ps.balance.asset_code == assetcode:
+                        if assetissuer and assetissuer == ps.balance.asset_issuer:
                             payments.append(ps)
                 else:
                     payments.append(ps)
+        if cursor is not None:
+            return {"payments": payments, "cursor": new_cursor}
+
         return payments
 
     def list_transactions(self, address=None):
