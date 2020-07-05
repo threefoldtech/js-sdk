@@ -25,6 +25,7 @@ class GiteaDeploy(GedisChatBot):
         "container_pay",
         "container_acess",
     ]
+    title = "Gitea"
 
     @chatflow_step()
     def gitea_start(self):

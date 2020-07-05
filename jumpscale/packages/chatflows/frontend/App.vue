@@ -35,7 +35,7 @@
     </v-app-bar>
     <v-main>
       <div class="chat-container text-center">
-          <h1 class="display-2 font-weight-light">{{this.chat.split("_").slice(-1) == "deploy" ? this.titleCase(this.chat.split("_")[0]) : this.titleCase(this.chat)}}</h1><br><br>
+          <h1 class="display-2 font-weight-light">{{title}}</h1><br><br>
 
           <v-card v-if="end" class="mx-auto px-5 py-10" width="50%" raised shaped>
             <v-card-text>
@@ -105,6 +105,7 @@
         end: false,
         menu: false,
         chat: CHAT,
+        title: null,
         package: PACKAGE,
         userInfo: {username: USERNAME, email: EMAIL}
       }
@@ -165,6 +166,7 @@
         let session = {
           id: this.sessionId,
           state: this.state,
+          title: this.title,
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
@@ -194,6 +196,7 @@
           }
         }).then((response) => {
             this.sessionId = response.data.sessionId
+            this.title = response.data.title
             console.log(this.sessionId)
             this.getWork()
         })
@@ -201,6 +204,7 @@
       restoreSession (session) {
         this.sessionId = session.id
         this.state = session.state
+        this.title = session.title
         this.getWork(true)
       },
       getWork (restore) {
@@ -253,14 +257,6 @@
       restart () {
         localStorage.clear()
         location.reload()
-      },
-      titleCase(str) {
-        let title = "";
-        let splittedStr = str.split("_")
-        for (let i in splittedStr) {
-          title += splittedStr[i].charAt(0).toUpperCase() + splittedStr[i].substring(1) + " ";
-        }
-        return title;
       }
     },
     mounted () {

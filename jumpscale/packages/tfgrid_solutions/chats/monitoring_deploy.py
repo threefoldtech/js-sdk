@@ -26,6 +26,7 @@ class MonitoringDeploy(GedisChatBot):
         "containers_pay",
         "success",
     ]
+    title = "Monitoring"
 
     @chatflow_step()
     def deployment_start(self):
