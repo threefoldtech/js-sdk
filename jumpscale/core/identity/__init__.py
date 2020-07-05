@@ -12,7 +12,8 @@ from jumpscale.sals.nettools import get_default_ip_config
 
 class Identity(Base):
     def _explorer_url_update(self, value):
-        self._explorer = None
+        if self._explorer and self._explorer.url != value:
+            self._explorer = None
 
     _tid = fields.Integer(default=-1)
     words = fields.Secret()
@@ -37,11 +38,11 @@ class Identity(Base):
         Raises: NotFound incase tid is passed but does not exists on the explorer
         Raises: Input: when params are missing
         """
+        self._explorer = None
         super().__init__(
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs
         )
         self._nacl = None
-        self._explorer = None
         self.verify_configuration()
 
     @property

@@ -23,4 +23,13 @@
    font-weight: 600 !important;
    font-family: sans-serif !important;
  }
+
+ p, ul, li, code {
+   font-size: 18px;
+   line-height: 140%;
+ }
+
+ li {
+   margin-bottom: 8px;
+ }
 </style>

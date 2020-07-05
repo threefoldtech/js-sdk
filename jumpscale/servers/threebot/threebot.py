@@ -107,6 +107,7 @@ class NginxPackageConfig:
 
                 website = self.nginx.get_website(server_name, port=port)
                 website.ssl = server.get("ssl", port == 443)
+                website.includes = server.get("includes", [])
                 website.domain = server.get("domain", self.default_config[0].get("domain"))
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")
@@ -132,6 +133,10 @@ class NginxPackageConfig:
                         loc.port = location.get("port")
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
+
+                    elif location_type == "custom":
+                        loc = website.get_custom_location(location_name)
+                        loc.custom_config = location.get("custom_config")
 
                     if loc:
                         path_url = location.get("path_url", "/")
@@ -288,7 +293,15 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            all_packages.append({"name": pkg, "path": package.path, "giturl": package.giturl, "installed": True})
+            all_packages.append(
+                {
+                    "name": pkg,
+                    "path": package.path,
+                    "giturl": package.giturl,
+                    "system_package": pkg in DEFAULT_PACKAGES.keys(),
+                    "installed": True,
+                }
+            )
 
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
@@ -446,7 +459,11 @@ class PackageManager(Base):
         # Return updated package info
         return {package.name: self.packages[package.name]}
 
-    def install_all(self):
+    def _install_all(self):
+        """Install and apply all the packages configurations
+        This method shall not be called directly from the shell,
+        it must be called only from the code on the running Gedis server
+        """
         for package in self.list_all():
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
@@ -572,11 +589,17 @@ class ThreebotServer(Base):
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             j.logger.info(f"Configuring package {package_name}")
-            package = self.packages.get(package_name)
-            self.packages.install(package)
+            try:
+                package = self.packages.get(package_name)
+                self.packages.install(package)
+            except Exception as e:
+                self.stop()
+                raise j.core.exceptions.Runtime(
+                    f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}"
+                )
 
         # install all package
-        self.packages.install_all()
+        self.packages._install_all()
         j.logger.info("Reloading nginx")
         self.nginx.reload()
 
