@@ -1,3 +1,7 @@
+from gevent import monkey
+
+monkey.patch_all(subprocess=False)
+
 import sys
 
 import click
