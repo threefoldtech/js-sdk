@@ -95,7 +95,7 @@ def stop():
     j.tools.nginx.get("default").stop()
     threebot_cmd = j.tools.startupcmd.get("threebot_default")
     threebot_cmd.stop()
-    j.servers.threebot.get().redis.cmd.stop()
+    j.servers.threebot.get().redis.stop()
     print("Threebot server Stopped")
 
 
