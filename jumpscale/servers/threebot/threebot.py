@@ -542,8 +542,13 @@ class ThreebotServer(Base):
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             j.logger.info(f"Configuring package {package_name}")
-            package = self.packages.get(package_name)
-            self.packages.install(package)
+            try:
+                package = self.packages.get(package_name)
+                self.packages.install(package)
+            except Exception as e:
+                self.stop()
+                raise j.core.exceptions.Runtime(f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}")
+
 
         # install all package
         self.packages.install_all()
