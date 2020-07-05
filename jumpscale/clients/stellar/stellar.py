@@ -466,10 +466,12 @@ class Stellar(Client):
                         return transaction.to_xdr()
             raise e
 
-    def list_payments(self, address=None):
+    def list_payments(self, address=None, asset=None):
         """Get the transactions for an adddress
         :param address: address of the effects.In None, the address of this wallet is taken
         :type address: str
+        :param asset: stellar asset in the code:issuer form( except for XLM, which does not need an issuer)
+        :type asset: str
         """
         if address is None:
             address = self.address
@@ -488,7 +490,18 @@ class Stellar(Client):
             new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
             response_payments = response["_embedded"]["records"]
             for response_payment in response_payments:
-                payments.append(PaymentSummary.from_horizon_response(response_payment, address))
+                ps=PaymentSummary.from_horizon_response(response_payment, address)
+                if asset:
+                    split_asset=asset.split(":")
+                    assetcode=split_asset[0]
+                    assetissuer = None
+                    if len(split_asset)> 1:
+                        assetissuer=split_asset[1]
+                    if ps.balance and ps.balance.asset_code==assetcode:
+                        if assetissuer and assetissuer==ps.balance.asset_issuer:
+                            payments.append(ps)
+                else:
+                    payments.append(ps)
         return payments
 
     def list_transactions(self, address=None):
