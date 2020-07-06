@@ -56,6 +56,7 @@ class NginxPackageConfig:
                     "path_location": self.package.resolve_staticdir_location(static_dir),
                     "is_auth": static_dir.get("is_auth", False),
                     "is_admin": static_dir.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https"),
                 }
             )
 
@@ -71,6 +72,7 @@ class NginxPackageConfig:
                     "websocket": bottle_server.get("websocket"),
                     "is_auth": bottle_server.get("is_auth", False),
                     "is_admin": bottle_server.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https"),
                 }
             )
 
@@ -83,6 +85,7 @@ class NginxPackageConfig:
                     "port": GEDIS_HTTP_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
                     "path_dest": self.package.base_url,
+                    "force_https": self.package.config.get("force_https"),
                 }
             )
 
@@ -95,6 +98,7 @@ class NginxPackageConfig:
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
                     "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
+                    "force_https": self.package.config.get("force_https"),
                 }
             )
 
@@ -138,7 +142,7 @@ class NginxPackageConfig:
                         loc.port = location.get("port", PORTS.HTTP)
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
-                    
+
                     elif location_type == "custom":
                         loc = website.get_custom_location(location_name)
                         loc.custom_config = location.get("custom_config")
@@ -295,12 +299,8 @@ class PackageManager(Base):
         packages = []
         for package_name, package_path in self.packages.items():
             packages.append(
-                {
-                    "name": package_name,
-                    "path": package_path,
-                    "system_package": package_name in DEFAULT_PACKAGES.keys()
-                }
-            ) 
+                {"name": package_name, "path": package_path, "system_package": package_name in DEFAULT_PACKAGES.keys()}
+            )
         return packages
 
     def list_all(self):
@@ -422,7 +422,7 @@ class PackageManager(Base):
 
     def _install_all(self):
         """Install and apply all the packages configurations
-        This method shall not be called directly from the shell, 
+        This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         """
         for package in self.list_all():
@@ -558,7 +558,9 @@ class ThreebotServer(Base):
                 self.packages.install(package)
             except Exception as e:
                 self.stop()
-                raise j.core.exceptions.Runtime(f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}")
+                raise j.core.exceptions.Runtime(
+                    f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}"
+                )
 
         # install all package
         self.packages._install_all()

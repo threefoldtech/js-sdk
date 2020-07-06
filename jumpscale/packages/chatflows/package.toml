@@ -1,8 +1,11 @@
 name = "chatflows"
+force_https = true
+
 [[static_dirs]]
 name = "frontend"
 path_url = "/static"
 path_location = "frontend"
+force_https = true
 
 [[bottle_servers]]
 name = "main"
@@ -11,3 +14,4 @@ path_url = "/"
 path_dest = "/"
 host = "0.0.0.0"
 port = 8552
+force_https = true
