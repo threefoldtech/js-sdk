@@ -31,7 +31,7 @@
               <v-chip class="ma-2" color="primary" min-width="100" v-for="(s, i) in deployedSolutions[solution.type]" :key="i" @click="showInfo(s)" outlined>
                 {{ s.name }}
               </v-chip>
-              
+
             </v-card-text>
           </v-card>
         </v-tab-item>
@@ -91,6 +91,9 @@
       }
     },
     mounted () {
+      this.getSolutionCount()
+    },
+    updated () {
       this.getSolutionCount()
     }
   }
