@@ -606,6 +606,8 @@ class GedisChatBot:
     def stop(self, msg=None, **kwargs):
         raise StopChatFlow(msg=msg, **kwargs)
 
+    def end(self):
+        self.send_data({"category": "end"})
 
 def chatflow_step(title=None, disable_previous=False):
     def decorator(func):
