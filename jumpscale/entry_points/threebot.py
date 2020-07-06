@@ -18,10 +18,11 @@ def test_privileged_ports_bind():
     config = b"""\
 worker_processes  1;
 daemon off;
+error_log stderr notice;
 pid /tmp/nginxtest.pid;
 events { worker_connections  1024; }
 http {
-    access_log /dev/null;
+    access_log off;
     server {
         listen       80;
         server_name  localhost;
@@ -33,6 +34,8 @@ http {
         file.flush()
         proc = subprocess.Popen(["nginx", "-t", "-c", file.name], stderr=subprocess.PIPE)
         proc.wait()
+        for line in proc.stderr.readlines():
+            j.logger.debug(line.decode().strip())
         return proc.returncode == 0
 
 
