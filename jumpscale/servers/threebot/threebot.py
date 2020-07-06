@@ -555,7 +555,6 @@ class ThreebotServer(Base):
                 self.stop()
                 raise j.core.exceptions.Runtime(f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}")
 
-
         # install all package
         self.packages._install_all()
         j.logger.info("Reloading nginx")
@@ -563,7 +562,7 @@ class ThreebotServer(Base):
 
         # mark server as started
         self._started = True
-        j.logger.info("Starting rack")
+        j.logger.info(f"Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}")
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
