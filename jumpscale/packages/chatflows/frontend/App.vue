@@ -167,7 +167,7 @@
           id: this.sessionId,
           state: this.state,
           title: this.title,
-          final: data.info.final_step
+          final: data.info ? data.info.final_step : false
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
