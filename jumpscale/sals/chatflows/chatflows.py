@@ -133,6 +133,7 @@ class GedisChatBot:
             "first_step": self.is_first_step,
             "first_slide": self.is_first_slide,
             "slide": self.step_info.get("slide", 1),
+            "final_step": self.step_info.get("final_step")
         }
 
     def _execute_current_step(self, spawn=True):
@@ -615,11 +616,11 @@ class GedisChatBot:
         self.send_data({"category": "end"})
 
 
-def chatflow_step(title=None, disable_previous=False):
+def chatflow_step(title=None, final_step=False, disable_previous=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             self_ = args[0]
-            self_.step_info.update(title=title, slide=0, previous=(not disable_previous))
+            self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
             return func(*args, **kwargs)
 
         return wrapper

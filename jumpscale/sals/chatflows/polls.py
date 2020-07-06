@@ -219,7 +219,7 @@ Please make the transaction and press Next
             form_answers[question] = all_answers_init
         return form_answers
 
-    @chatflow_step(title="Vote Results")
+    @chatflow_step(title="Vote Results", final_step=True)
     def result(self):
         usersnames = all_users.list_all()
         total_votes = 0

@@ -162,11 +162,12 @@
       sendUserInfo () {
         this.reportWork(JSON.stringify(this.userInfo))
       },
-      saveSession () {
+      saveSession (data) {
         let session = {
           id: this.sessionId,
           state: this.state,
           title: this.title,
+          final: data.info.final_step
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
@@ -178,7 +179,7 @@
       },
       start () {
         let session = this.getSession()
-        if (session) {
+        if (session && !session.final) {
           this.restoreSession(session)
         } else {
           this.newSession()
@@ -217,7 +218,7 @@
           }
         }).then((response) => {
             this.loading = false
-            this.saveSession()
+            this.saveSession(response.data)
             this.handleResponse(response.data)
         }).catch((response) => {
           alert("Request timedout. please refresh the page.")
