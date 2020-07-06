@@ -25,23 +25,28 @@ const baseDialog = httpVueLoader('./components/base/Dialog.vue')
 const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
+const code = httpVueLoader('./components/base/Code.vue')
 
 const app = httpVueLoader('./App.vue')
 const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
+
 
 Vue.component("base-component", baseComponent)
 Vue.component("base-section", baseSection)
 Vue.component("base-dialog", baseDialog)
 Vue.component("external", external)
 Vue.component("popup", popup)
+Vue.component("code-area", code)
 
 const router = new VueRouter({
   routes: [
-    { name: "Solutions", path: '/', component: solutions, meta: {icon: "mdi-apps", listed: true } },
+    { name: "Solutions", path: '/:topic', component: solutions, props: true, meta: {icon: "mdi-apps" } },
     { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: {icon: "mdi-tune" } },
   ]
 })
+
+Vue.use(VueCodemirror)
 
 new Vue({
   el: '#app',

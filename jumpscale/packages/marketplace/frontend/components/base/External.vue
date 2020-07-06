@@ -12,6 +12,11 @@ module.exports = {
   props: {
     url: String,
   },
+  data() {
+    return {
+      iframeLoading: true,
+    }
+  },
   methods: {
   },
   mounted() {
