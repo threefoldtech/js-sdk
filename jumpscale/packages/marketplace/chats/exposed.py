@@ -2,11 +2,13 @@ from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionEx
 from jumpscale.sals.marketplace import deployer, Network
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.god import j
+from jumpscale.loader import j
 import uuid
 
 
 class SolutionExpose(BaseSolutionExpose):
+    title = "Solution Expose"
+
     def get_tid(self):
         if not self._tid:
             user = j.sals.reservation_chatflow.validate_user(self.user_info())

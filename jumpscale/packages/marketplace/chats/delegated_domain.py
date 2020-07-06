@@ -1,6 +1,6 @@
 import requests
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
@@ -10,6 +10,7 @@ class DomainDelegation(MarketPlaceChatflow):
     SOLUTION_TYPE = SolutionType.DelegatedDomain
 
     steps = ["welcome", "domain_name", "expiration_time", "domain_pay", "success"]
+    title = "Domain Delegation"
 
     @chatflow_step(title="Domain name & Choose gateway")
     def domain_name(self):

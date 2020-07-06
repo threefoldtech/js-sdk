@@ -1,6 +1,6 @@
 import time
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
@@ -29,6 +29,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         "container_pay",
         "ubuntu_acess",
     ]
+    title = "Ubuntu"
 
     @chatflow_step(title="Ubuntu version")
     def ubuntu_version(self):

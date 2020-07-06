@@ -1,6 +1,6 @@
 import time
 import uuid
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.explorer.models import Category, DiskType, Mode
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
@@ -31,6 +31,7 @@ class MinioDeploy(MarketPlaceChatflow):
         "minio_reservation",
         "success",
     ]
+    title = "Minio"
 
     @chatflow_step(title="Setup type")
     def setup_type(self):

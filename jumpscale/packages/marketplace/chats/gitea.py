@@ -1,6 +1,6 @@
 import time
 
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
@@ -29,6 +29,7 @@ class GiteaDeploy(MarketPlaceChatflow):
         "container_pay",
         "container_access",
     ]
+    title = "Gitea"
 
     flist_url = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
 

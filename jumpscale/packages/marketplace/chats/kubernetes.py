@@ -1,6 +1,6 @@
 import time
 import uuid
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.clients.explorer.models import Category, DiskType, Mode
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
@@ -23,6 +23,7 @@ class KubernetesDeploy(MarketPlaceChatflow):
         "cluster_reservation",
         "success",
     ]
+    title = "Kubernetes"
 
     @chatflow_step(title="Master and Worker nodes selection")
     def nodes_selection(self):

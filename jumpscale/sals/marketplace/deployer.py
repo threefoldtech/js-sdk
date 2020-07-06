@@ -5,7 +5,7 @@ import datetime
 from collections import defaultdict
 
 from jumpscale.clients.explorer.models import NextAction
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network as BaseNetwork

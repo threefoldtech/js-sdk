@@ -1,7 +1,7 @@
 from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.god import j
+from jumpscale.loader import j
 import requests
 import uuid
 
@@ -10,6 +10,7 @@ class FourToSixGateway(MarketPlaceChatflow):
     SOLUTION_TYPE = SolutionType.FourToSixGw
 
     steps = ["welcome", "expiration_time", "wireguard_public_get", "wg_reservation", "wg_config"]
+    title = "4to6 GW"
 
     @chatflow_step(title="welcome")
     def welcome(self):
