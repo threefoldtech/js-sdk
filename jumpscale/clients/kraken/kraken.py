@@ -1,3 +1,30 @@
+"""Kraken client is a growing client support kraken.com API
+
+## Getting kraken clientn
+
+Kraken client is available from `j.clients.kraken` and it's' cached for at least one day before attempting to invalidate
+```
+JS-NG> k1 = j.clients.kraken.get("k1")
+```                                                                                
+
+## Getting a pair price
+
+Here we try to get the value of `XLMUSD` (it's the default as well.)
+```
+JS-NG> p1 = k1.get_pair_price()                                                                                       
+JS-NG> p1.last_trade                                                                                                  
+'0.06943500'
+
+JS-NG> p1.bid                                                                                                         
+'0.06930000'
+
+JS-NG> p1.ask                                                                                                         
+'0.06943500'
+```
+
+
+"""
+
 import requests
 from jumpscale.loader import j
 from jumpscale.clients.base import Client, Base

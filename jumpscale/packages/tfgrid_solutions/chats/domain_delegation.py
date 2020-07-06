@@ -7,6 +7,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 class DomainDelegation(GedisChatBot):
     steps = ["domain_delegation_name", "domain_name", "expiration_time", "domain_pay", "success"]
+    title = "Domain Delegation"
 
     @chatflow_step(title="Domain delegation name")
     def domain_delegation_name(self):

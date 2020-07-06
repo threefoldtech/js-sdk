@@ -16,6 +16,7 @@ class kubernetesDeploy(GedisChatBot):
         "cluster_reservation",
         "success",
     ]
+    title = "Kubernetes"
 
     @chatflow_step(title="")
     def deployment_start(self):

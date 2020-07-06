@@ -1,4 +1,5 @@
 from jumpscale.core.base import StoredFactory
+from jumpscale.sals.nginx.nginx import PORTS
 
 
 class ThreebotServerFactory(StoredFactory):
@@ -21,7 +22,8 @@ class ThreebotServerFactory(StoredFactory):
         """
         return super().get("default", *args, **kwargs)
 
-    def start_default(self, wait=False):
+    def start_default(self, wait=False, local=False):
+        PORTS.init_default_ports(local)
         server = self.get("default")
         server.save()
         server.start(wait=wait)

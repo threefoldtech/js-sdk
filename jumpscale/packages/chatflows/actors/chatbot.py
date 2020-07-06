@@ -21,16 +21,16 @@ class ChatFlows(BaseActor):
         chatflow = package.get(chat)
         if not chatflow:
             raise j.exceptions.Value(f"Chat {chat} not found")
-        
+
         obj = chatflow()
         self.sessions[obj.session_id] = obj
-        return {"sessionId": obj.session_id}
+        return {"sessionId": obj.session_id, "title": obj.title}
 
     @actor_method
     def fetch(self, session_id: str, restore: bool = False) -> dict:
         chatflow = self.sessions.get(session_id)
         if not chatflow:
-            return {"payload":{"category": "end"}}
+            return {"payload": {"category": "end"}}
 
         result = chatflow.get_work(restore)
 

@@ -7,6 +7,13 @@
 
 <script>  
   module.exports = {
+    data () {
+      return {
+        validators: {
+          isInteger: true
+        },
+      }
+    },
     mixins: [field],
     props: {payload: Object}
   }

@@ -43,12 +43,33 @@ from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
-import os, pwd, grp
+
+
+class PORTS:
+    HTTP = 80
+    HTTPS = 443
+
+    @classmethod
+    def init_default_ports(cls, local=False):
+        if local:
+            for port in range(8080, 8180):
+                if not j.sals.process.is_port_listenting(port):
+                    cls.HTTP = port
+                    break
+            else:
+                j.exception.Runtime("Could not find free port to listen on")
+            for port in range(8443, 8500):
+                if not j.sals.process.is_port_listenting(port):
+                    cls.HTTPS = port
+                    break
+            else:
+                j.exception.Runtime("Could not find free port to listen on")
 
 
 class LocationType(Enum):
     STATIC = "static"
     PROXY = "proxy"
+    CUSTOM = "custom"
 
 
 class Location(Base):
@@ -66,6 +87,7 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    custom_config = fields.String(default=None)
 
     @property
     def cfg_dir(self):
@@ -91,8 +113,9 @@ class Location(Base):
 class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
-    port = fields.Integer(default=80)
+    port = fields.Integer(default=PORTS.HTTP)
     locations = fields.Factory(Location)
+    includes = fields.List(fields.String())
     letsencryptemail = fields.String()
     selfsigned = fields.Boolean(default=True)
 
@@ -104,6 +127,19 @@ class Website(Base):
     def cfg_file(self):
         return j.sals.fs.join_paths(self.cfg_dir, "server.conf")
 
+    @property
+    def include_paths(self):
+        paths = []
+        for include in self.includes:
+            ## TODO validate location name and include
+            website_name, location_name = include.split(".", 1)
+            website = self.parent.websites.find(website_name)
+            if not website:
+                continue
+            
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+        return paths
+
     def get_locations(self):
         for location in self.locations.list_all():
             yield self.locations.get(location)
@@ -111,6 +147,11 @@ class Website(Base):
     def get_proxy_location(self, name):
         location = self.locations.get(name)
         location.location_type = LocationType.PROXY
+        return location
+
+    def get_custom_location(self, name):
+        location = self.locations.get(name)
+        location.location_type = LocationType.CUSTOM
         return location
 
     def get_static_location(self, name):
@@ -150,6 +191,7 @@ class Website(Base):
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
+
         for location in self.get_locations():
             location.configure()
 
@@ -211,7 +253,8 @@ class NginxConfig(Base):
         j.sals.fs.write_file(self.cfg_file, configtext)
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
-    def get_website(self, name: str, port: int = 80):
+    def get_website(self, name: str, port: int = 0):
+        port = port or PORTS.HTTP
         website_name = f"{name}_{port}"
         website = self.websites.find(website_name)
         if website:

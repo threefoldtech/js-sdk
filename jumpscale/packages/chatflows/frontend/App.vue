@@ -35,7 +35,7 @@
     </v-app-bar>
     <v-main>
       <div class="chat-container text-center">
-          <h1 class="display-2 font-weight-light">Zero Chat Bot</h1><br><br>
+          <h1 class="display-2 font-weight-light">{{title}}</h1><br><br>
 
           <v-card v-if="end" class="mx-auto px-5 py-10" width="50%" raised shaped>
             <v-card-text>
@@ -105,6 +105,7 @@
         end: false,
         menu: false,
         chat: CHAT,
+        title: null,
         package: PACKAGE,
         userInfo: {username: USERNAME, email: EMAIL}
       }
@@ -120,7 +121,7 @@
         return ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
       backButtonDisable () {
-        return !this.work.info.previous || ['loading', 'infinite_loading'].includes(this.work.payload.category)
+        return !this.work.info.previous || ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
       stepId () {
         return `${this.work.info.step}_${this.work.info.slide}`
@@ -165,6 +166,7 @@
         let session = {
           id: this.sessionId,
           state: this.state,
+          title: this.title,
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
@@ -194,6 +196,7 @@
           }
         }).then((response) => {
             this.sessionId = response.data.sessionId
+            this.title = response.data.title
             console.log(this.sessionId)
             this.getWork()
         })
@@ -201,6 +204,7 @@
       restoreSession (session) {
         this.sessionId = session.id
         this.state = session.state
+        this.title = session.title
         this.getWork(true)
       },
       getWork (restore) {

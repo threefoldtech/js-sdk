@@ -32,6 +32,7 @@ class SolutionExpose(GedisChatBot):
         "tcp_router_reservation",
         "success",
     ]
+    title = "Solution Expose"
 
     @chatflow_step(title="")
     def deployment_start(self):
