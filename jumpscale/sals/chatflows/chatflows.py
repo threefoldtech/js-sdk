@@ -555,7 +555,12 @@ class GedisChatBot:
         Args:
             data (dict): the data to be shown in the table
         """
-        self.send_data({"category": "confirm", "data": data, "kwargs": kwargs}, is_slide=True)
+        if "msg" in kwargs:
+            msg = kwargs["msg"]
+        else:
+            msg = "Please make sure of the entered values before starting deployment"
+
+        self.send_data({"category": "confirm", "data": data, "kwargs": kwargs, "msg": msg}, is_slide=True)
         self._queue_in.get()
 
     def loading_show(self, msg, wait, **kwargs):
@@ -608,6 +613,7 @@ class GedisChatBot:
 
     def end(self):
         self.send_data({"category": "end"})
+
 
 def chatflow_step(title=None, disable_previous=False):
     def decorator(func):
