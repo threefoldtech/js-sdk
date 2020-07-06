@@ -5,6 +5,8 @@ import os
 import sys
 import toml
 import shutil
+import gevent
+import signal
 from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
@@ -533,6 +535,9 @@ class ThreebotServer(Base):
 
     def start(self, wait: bool = False):
         # start default servers in the rack
+        # handle signals
+        for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
+            gevent.signal(signal_type, self.stop)
 
         # mark app as started
         if self.is_running():
@@ -566,9 +571,9 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        self.rack.stop()
         self.nginx.stop()
-        self.redis.stop()
-        self._started = False
-        # mark app as stopped
+        # mark app as stopped, do this before stopping redis
         j.application.stop()
+        self.redis.stop()
+        self.rack.stop()
+        self._started = False
