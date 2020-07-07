@@ -75,7 +75,7 @@ class DomainDelegation(GedisChatBot):
             self.reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=currency, bot=self
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         j.sals.reservation_chatflow.save_reservation(
             self.resv_id, self.user_form_data["Solution name"], SolutionType.DelegatedDomain, self.user_form_data
