@@ -40,6 +40,10 @@ class ChatFlows(BaseActor):
         return result
 
     @actor_method
+    def validate(self, session_id: str) -> dict:
+        return {"valid": session_id in self.sessions}
+
+    @actor_method
     def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)
         chatflow.set_work(result)

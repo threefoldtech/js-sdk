@@ -242,7 +242,7 @@ class FlistDeploy(GedisChatBot):
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Flist, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def container_acess(self):
         if self.interactive:
             res = f"""\

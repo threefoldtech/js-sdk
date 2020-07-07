@@ -100,6 +100,7 @@
       return {
         state: {},
         sessionId: null,
+        validSession: null,
         work: null,
         loading: true,
         end: false,
@@ -180,10 +181,29 @@
       start () {
         let session = this.getSession()
         if (session && !session.final) {
-          this.restoreSession(session)
+          this.validateSession(session.id).then(() => {
+            if(this.validSession) {
+              this.restoreSession(session)
+            } else {
+              localStorage.removeItem(this.chatUID)
+              this.newSession()
+            }
+          })
         } else {
           this.newSession()
         }
+      },
+      validateSession(sessionId) {
+        return axios({
+          url: `${baseUrl}/validate`,
+          method: "post",
+          headers: {'Content-Type': 'application/json'},
+          data: {
+            session_id: sessionId
+          }
+        }).then((response) => {
+          this.validSession = response.data.valid
+        })
       },
       newSession () {
         axios({
