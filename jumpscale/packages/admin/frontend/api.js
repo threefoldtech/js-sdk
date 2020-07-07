@@ -67,7 +67,7 @@ const apiClient = {
       return axios({
         url: `${baseURL}/wallet/import_wallet`,
         method: "post",
-        data: {name: name, secret: secret, network: network}
+        data: { name: name, secret: secret, network: network }
       })
     },
     delete: (name) => {
@@ -84,12 +84,12 @@ const apiClient = {
         url: `${baseURL}/packages/list_packages`
       })
     },
-    add: (path, giturl) => {
+    add: (path, giturl, extras) => {
       return axios({
         url: `${baseURL}/packages/add_package`,
         method: "post",
-        headers: {'Content-Type': 'application/json'},
-        data: {path: path, giturl: giturl}
+        headers: { 'Content-Type': 'application/json' },
+        data: { path: path, giturl: giturl, extras: extras }
       })
     },
     delete: (name) => {
