@@ -94,8 +94,8 @@ const SOLUTIONS = {
   },
   all: {
     topic: "all",
-    type: "all_reservation",
-    name:"All Reservation",
+    type: "all_reservations",
+    name:"All Reservations",
     icon: "mdi-clipboard-list-outline",
     url: "/solutions/all",
     description: ""

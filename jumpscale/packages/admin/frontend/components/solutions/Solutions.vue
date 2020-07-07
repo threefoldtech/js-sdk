@@ -13,7 +13,7 @@
               <v-icon v-else color="primary">{{solution.icon}}</v-icon>
             </v-avatar>
             {{solution.name}}
-            <v-chip v-if="solutionCount[solution.type]" :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type]}}</v-chip>
+            <v-chip v-if="solutionCount[solution.type] !== undefined" :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type]}}</v-chip>
           </v-tab>
 
           <v-tab-item v-for="solution in solutions" :key="solution.topic + '-content'">
