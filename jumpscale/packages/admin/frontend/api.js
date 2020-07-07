@@ -167,6 +167,11 @@ const apiClient = {
         headers: {'Content-Type': 'application/json'},
         data: {solution_type: solution_type}
       })
+    },
+    getAll: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
+      })
     }
   },
   health: {
