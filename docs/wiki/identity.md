@@ -11,6 +11,8 @@ To configure your identity:
 me = j.core.identity.new("name", "threebot_name", "threebot_mail", "words")
 ```
 
+> Note: you can generate new words with `words = j.data.encryption.generate_mnemonic()`
+
 To access his threebot id:
 
 ```python
