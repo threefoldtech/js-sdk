@@ -42,7 +42,7 @@ class Wallet(BaseActor):
                 {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer,}
             )
 
-        ret = {"address": wallet.address, "secret": wallet.secret, "balances": balances_data}
+        ret = {"address": wallet.address, "network": wallet.network.value, "secret": wallet.secret, "balances": balances_data}
         return j.data.serializers.json.dumps({"data": ret})
 
     @actor_method
