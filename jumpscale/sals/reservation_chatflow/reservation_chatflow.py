@@ -416,7 +416,7 @@ class ReservationChatflow:
                 except Exception:
                     continue
                 if "form_info" not in metadata:
-                    solution_type = self.check_solution_type(reservation)
+                    solution_type = self.check_solution_type(reservation).value
                 else:
                     solution_type = metadata["form_info"].pop("chatflow", SolutionType.Unknown.value)
                 if solution_type == SolutionType.Unknown.value:
@@ -437,7 +437,7 @@ class ReservationChatflow:
                     meta = metadata
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
-                    metadata["name"] = metadata["form_info"]["Domain"]
+                    metadata["name"] = metadata["form_info"].get("Domain")
                 info = metadata["form_info"]
                 name = metadata["name"]
             else:
