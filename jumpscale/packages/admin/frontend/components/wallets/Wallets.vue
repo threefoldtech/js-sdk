@@ -15,7 +15,7 @@
         <v-row align="start" justify="start">
           <v-card class="ma-4 mt-2" width="300" v-for="wallet in wallets" :key="wallet.name" @click.stop="open(wallet.name)">
             <v-card-title class="primary--text">{{wallet.name}}</v-card-title>
-
+            <v-card-subtitle>{{wallet.network}}</v-card-subtitle>
             <v-card-text>{{wallet.address}}</v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>

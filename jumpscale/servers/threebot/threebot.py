@@ -486,7 +486,6 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
-        self._chatbot = None
         self._packages = None
         self._started = False
         self._nginx = None
@@ -542,9 +541,7 @@ class ThreebotServer(Base):
 
     @property
     def chatbot(self):
-        if self._chatbot is None:
-            self._chatbot = self.gedis._loaded_actors.get("chatflows_chatbot")
-        return self._chatbot
+        return self.gedis._loaded_actors.get("chatflows_chatbot")
 
     @property
     def packages(self):
