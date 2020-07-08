@@ -252,9 +252,9 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
-    def install(self):
+    def install(self, **kwargs):
         if self.module and hasattr(self.module, "install"):
-            self.module.install()
+            self.module.install(**kwargs)
 
     def uninstall(self):
         if self.module and hasattr(self.module, "uninstall"):
@@ -333,7 +333,8 @@ class PackageManager(Base):
     def list_all(self):
         return self.packages.keys()
 
-    def add(self, path: str = None, giturl: str = None):
+    def add(self, path: str = None, giturl: str = None, **kwargs):
+        # TODO: Check if package already exists
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
@@ -372,7 +373,7 @@ class PackageManager(Base):
         self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         # execute package install method
-        package.install()
+        package.install(**kwargs)
 
         # install package if threebot is started
         if self.threebot.started:
