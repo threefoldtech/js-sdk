@@ -24,8 +24,14 @@ export default class PackageDetailsView extends JetView {
                     label: "Git url",
                     name: "giturl",
                     readonly: true,
-                }
-            ]
+                },
+                {
+                    view: "text",
+                    label: "Installed",
+                    name: "installed",
+                    readonly: true,
+                },
+            ],
         };
 
         return {
@@ -59,4 +65,4 @@ export default class PackageDetailsView extends JetView {
     init() {
         this.form = $$("form");
     }
-}   
+}

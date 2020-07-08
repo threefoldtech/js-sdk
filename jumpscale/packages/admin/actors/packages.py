@@ -27,6 +27,11 @@ class Packages(BaseActor):
 
     @actor_method
     def add_package(self, path: str = "", giturl: str = "") -> str:
+        if path:
+            path = path.strip()
+        if giturl:
+            giturl = giturl.strip()
+
         return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl)})
 
     @actor_method
