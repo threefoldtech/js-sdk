@@ -609,7 +609,7 @@ class ThreebotServer(Base):
             except Exception as e:
                 self.stop()
                 raise j.core.exceptions.Runtime(
-                    f"Error happened during getting or installing {package.name} package, the detailed error is {str(e)}"
+                    f"Error happened during getting or installing {package_name} package, the detailed error is {str(e)}"
                 )
 
         # install all package
