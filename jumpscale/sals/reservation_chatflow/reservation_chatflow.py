@@ -462,7 +462,7 @@ class ReservationChatflow:
                 elif solution_type == SolutionType.Exposed.value:
                     info = self.get_solution_exposed_info(reservation)
                     info["Solution name"] = name
-                    name = info["Domain"]
+                    name = info.get("Domain")
 
             count = dupnames.setdefault(solution_type, {}).setdefault(name, 1)
             if count != 1:
