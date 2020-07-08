@@ -3,7 +3,7 @@
     <div v-if="package && !installed">
       <v-alert v-if="package && !installed" text prominent class="ma-5" border="right" type="info" icon="mdi-package-variant-closed">
       <span>Package is not installed</span>
-      <v-btn text class="ml-5" color="info" :loading="installLoading" @click.stop="install">Install now</v-btn>    
+      <v-btn text class="ml-5" color="info" :loading="installLoading" @click.stop="install">Install now</v-btn>
     </v-alert>
     </div>
     <div v-else>
@@ -20,7 +20,7 @@ module.exports = {
   props: {
     url: String,
     name: String,
-    path: String,
+    giturl: String,
     package: Boolean
   },
   data () {
@@ -32,13 +32,13 @@ module.exports = {
   },
   methods: {
     isInstalled () {
-      this.$api.packages.getInstalled(this.path).then((response) => {
+      this.$api.packages.getInstalled(this.giturl).then((response) => {
         this.installed = JSON.parse(response.data).data.includes(this.name)
       })
     },
     install () {
       this.installLoading = true
-      this.$api.packages.add(this.path).then((response) => {
+      this.$api.packages.add("", this.giturl).then((response) => {
         location.reload()
       }).catch((error) => {
         this.alert(error.message, "error")

@@ -290,7 +290,13 @@ class PackageManager(Base):
     def get(self, package_name):
         if package_name in self.packages:
             package_path = self.packages[package_name]["path"]
-            return Package(path=package_path, default_domain=self.threebot.domain, default_email=self.threebot.email)
+            package_giturl = self.packages[package_name]["giturl"]
+            return Package(
+                path=package_path,
+                default_domain=self.threebot.domain,
+                default_email=self.threebot.email,
+                giturl=package_giturl,
+            )
 
     def get_packages(self):
         all_packages = []
@@ -333,9 +339,9 @@ class PackageManager(Base):
 
         for package_name in self.packages:
             package = self.get(package_name)
-            if path == package.path:
+            if path and path == package.path:
                 raise j.exceptions.Value("Package with the same path already exists")
-            if giturl == package.giturl:
+            if giturl and giturl == package.giturl:
                 raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
@@ -356,7 +362,9 @@ class PackageManager(Base):
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
-        package = Package(path=path, default_domain=self.threebot.domain, default_email=self.threebot.email)
+        package = Package(
+            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+        )
 
         if package.name in self.packages:
             raise j.exceptions.Value(f"Package with name {package.name} already exists")
