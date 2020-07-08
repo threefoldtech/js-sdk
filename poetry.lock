@@ -4,10 +4,10 @@ description = "ACME protocol implementation in Python"
 name = "acme"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "1.5.0"
+version = "1.6.0"
 
 [package.dependencies]
-PyOpenSSL = ">=0.13.1"
+PyOpenSSL = ">=0.15.1"
 cryptography = ">=1.2.3"
 josepy = ">=1.1.0"
 pyrfc3339 = "*"
@@ -182,11 +182,11 @@ description = "ACME client"
 name = "certbot"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "1.5.0"
+version = "1.6.0"
 
 [package.dependencies]
 ConfigArgParse = ">=0.9.3"
-acme = ">=1.4.0"
+acme = ">=1.6.0"
 configobj = "*"
 cryptography = ">=1.2.3"
 distro = ">=1.0.1"
@@ -281,9 +281,6 @@ name = "configobj"
 optional = false
 python-versions = "*"
 version = "5.0.6"
-
-[package.dependencies]
-six = "*"
 
 [[package]]
 category = "main"
@@ -649,7 +646,7 @@ watchdog = "^0.9.0"
 zipp = "^3.1.0"
 
 [package.source]
-reference = "98d93e303569fcfeeb5ff5c3822244630487dcd7"
+reference = "f98e37499db30ef0e66e2b341581e786e5115b3f"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
@@ -1152,7 +1149,7 @@ category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = "*"
 version = "5.3.1"
 
 [[package]]
@@ -1543,8 +1540,8 @@ python-versions = "^3.6"
 
 [metadata.files]
 acme = [
-    {file = "acme-1.5.0-py2.py3-none-any.whl", hash = "sha256:66de67b394bb7606f97f2c21507e6eb6a88936db2a940f5c4893025f87e3852a"},
-    {file = "acme-1.5.0.tar.gz", hash = "sha256:b051ff7dd3935b2032c2f8c8386e905d9b658eba9f3455e352650d85bea9c8f0"},
+    {file = "acme-1.6.0-py2.py3-none-any.whl", hash = "sha256:dc532fee475dde07a843232f69f54b185ba23af6cce9d2e1a1dc132ce2e34f64"},
+    {file = "acme-1.6.0.tar.gz", hash = "sha256:fe76e06ae1e9b12304f9e9691ff901da6d2fd588fea2765f891b8cd15d6b3f2b"},
 ]
 aiohttp = [
     {file = "aiohttp-3.6.2-cp35-cp35m-macosx_10_13_x86_64.whl", hash = "sha256:1e984191d1ec186881ffaed4581092ba04f7c61582a177b187d3a2f07ed9719e"},
@@ -1620,8 +1617,8 @@ captcha = [
     {file = "captcha-0.3.tar.gz", hash = "sha256:a6b28a120de0a37c44415e70225978e36b2645940133f2474c7a109b2d4683e2"},
 ]
 certbot = [
-    {file = "certbot-1.5.0-py2.py3-none-any.whl", hash = "sha256:ec1f01af06b52a6f079f5b02cb70e88f0671a7b13ecb3e45b040563e32c6e53a"},
-    {file = "certbot-1.5.0.tar.gz", hash = "sha256:c52017a4f84137e1312c898d6ae69c5f7977d79d2bd4c2df013cbbf39b6539bf"},
+    {file = "certbot-1.6.0-py2.py3-none-any.whl", hash = "sha256:7237ac851ef7f3ff2d5ddb49e692e4bd5346273734cbc531531e4ad56d14d460"},
+    {file = "certbot-1.6.0.tar.gz", hash = "sha256:d373ee0f24ab06f561efa2b00f68cff43521b003d87fbf4d9e869e7cc7395481"},
 ]
 certbot-nginx = [
     {file = "certbot-nginx-1.5.0.tar.gz", hash = "sha256:b38f101588af6d2b8ea7c2e3334f249afbe14461a85add2f1420091d860df983"},

@@ -100,7 +100,7 @@ module.exports = {
       });
     },
     getDeployedSolutions(solution_type) {
-      if (solution_type === "all_reservation") {
+      if (solution_type === "all_reservations") {
         this.$api.solutions.getAll().then(response => {
           this.$set(
             this.deployedSolutions,
