@@ -32,7 +32,7 @@ module.exports = {
   },
   methods: {
     isInstalled () {
-      this.$api.packages.getInstalled(this.giturl).then((response) => {
+      this.$api.packages.getInstalled().then((response) => {
         this.installed = JSON.parse(response.data).data.includes(this.name)
       })
     },
