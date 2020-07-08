@@ -2,7 +2,7 @@ import math
 import random, time
 import datetime
 import netaddr
-from jumpscale.god import j
+from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
 from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network
 
