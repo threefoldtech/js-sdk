@@ -250,7 +250,7 @@ Please make the transaction and press Next
         for question, answers in total_answers_with_percent.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
-                answer_name = self.user.vote_data[question][i]
+                answer_name = self.get_vote_answer(question)
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n\n"
 
@@ -259,7 +259,7 @@ Please make the transaction and press Next
         for question, answers in total_answers_weighted_with_percent.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
-                answer_name = self.user.vote_data[question][i]
+                answer_name = self.get_vote_answer(question)
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n"
 
