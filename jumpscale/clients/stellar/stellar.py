@@ -3,6 +3,7 @@ import time
 from enum import Enum
 import decimal
 from urllib import parse
+from urllib.parse import urlparse 
 from typing import Union
 
 import stellar_sdk
@@ -76,7 +77,15 @@ class Stellar(Client):
     secret = fields.String(on_update=secret_updated)
 
     def _get_horizon_server(self):
-        return stellar_sdk.Server(horizon_url=_HORIZON_NETWORKS[self.network.value])
+        server_url = _HORIZON_NETWORKS[self.network.value]
+        server = stellar_sdk.Server(horizon_url=server_url)
+        parsed_url = urlparse(server.horizon_url)
+        port = 443
+        if parsed_url.scheme == "http":
+            port = 80
+        if not j.sals.nettools.wait_connection_test(parsed_url.netloc, port, 5):
+            raise j.exceptions.Timeout(f"Can not connect to server {server_url}, connection timeout")
+        return server
 
     def _get_free_balances(self, address=None):
         address = address or self.address
@@ -94,6 +103,8 @@ class Stellar(Client):
 
     def _get_url(self, endpoint):
         url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[self.network.value]
+        if not j.sals.nettools.wait_connection_test(url, 443, 5):
+            raise j.exceptions.Timeout(f"Can not connect to server {url}, connection timeout")
         endpoint = _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT[endpoint]
         return f"https://{url}{endpoint}"
 

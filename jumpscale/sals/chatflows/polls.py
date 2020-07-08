@@ -53,7 +53,14 @@ class Poll(GedisChatBot):
         if self.user.has_voted:
             welcome_message += "\n<br/><br/>`Note: You have already voted.`"
 
-        self.md_show(welcome_message, md=True)
+        if self.user.has_voted:
+            actions = ["Edit My Vote", "See Results"]
+            action = self.single_choice(welcome_message, options=actions, required=True, md=True)
+            if action == actions[1]:
+                self.result()
+                self.end()
+        else:
+            self.md_show(welcome_message, md=True)
 
     @chatflow_step()
     def welcome(self):
@@ -160,6 +167,18 @@ Please make the transaction and press Next
                 return True
         return False
 
+    def get_vote_answer(self, vote_title):
+        answer_array = self.user.vote_data.get(vote_title)
+        if answer_array:
+            options = self.QUESTIONS.get(vote_title)
+            try:
+                return options[answer_array.index(1)]
+            except ValueError:
+                pass
+    
+    def get_question_answer(self, question_title):
+        return self.user.extra_data.get(question_title)
+
     def vote(self):
         answers = {}
         answers.update(self.custom_answers)
@@ -200,7 +219,7 @@ Please make the transaction and press Next
             form_answers[question] = all_answers_init
         return form_answers
 
-    @chatflow_step(title="Vote Results")
+    @chatflow_step(title="Vote Results", final_step=True)
     def result(self):
         usersnames = all_users.list_all()
         total_votes = 0
@@ -231,7 +250,7 @@ Please make the transaction and press Next
         for question, answers in total_answers_with_percent.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
-                answer_name = self.QUESTIONS[question][i]
+                answer_name = self.get_vote_answer(question)
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n\n"
 
@@ -240,7 +259,7 @@ Please make the transaction and press Next
         for question, answers in total_answers_weighted_with_percent.items():
             result_msg += f"### {question}\n"
             for i in range(len(answers)):
-                answer_name = self.QUESTIONS[question][i]
+                answer_name = self.get_vote_answer(question)
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n"
 

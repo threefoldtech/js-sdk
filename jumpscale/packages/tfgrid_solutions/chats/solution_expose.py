@@ -32,6 +32,7 @@ class SolutionExpose(GedisChatBot):
         "tcp_router_reservation",
         "success",
     ]
+    title = "Solution Expose"
 
     @chatflow_step(title="")
     def deployment_start(self):
@@ -241,7 +242,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
             resv_id, self.user_form_data["Domain"], SolutionType.Exposed, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         domain = self.user_form_data["Domain"]
         res_md = f"Use this Gateway to connect to your exposed solutions `{domain}`"

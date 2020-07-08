@@ -43,7 +43,27 @@ from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
-import os, pwd, grp
+
+
+class PORTS:
+    HTTP = 80
+    HTTPS = 443
+
+    @classmethod
+    def init_default_ports(cls, local=False):
+        if local:
+            for port in range(8080, 8180):
+                if not j.sals.process.is_port_listenting(port):
+                    cls.HTTP = port
+                    break
+            else:
+                j.exception.Runtime("Could not find free port to listen on")
+            for port in range(8443, 8500):
+                if not j.sals.process.is_port_listenting(port):
+                    cls.HTTPS = port
+                    break
+            else:
+                j.exception.Runtime("Could not find free port to listen on")
 
 
 class LocationType(Enum):
@@ -93,7 +113,7 @@ class Location(Base):
 class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
-    port = fields.Integer(default=80)
+    port = fields.Integer(default=PORTS.HTTP)
     locations = fields.Factory(Location)
     includes = fields.List(fields.String())
     letsencryptemail = fields.String()
@@ -233,7 +253,8 @@ class NginxConfig(Base):
         j.sals.fs.write_file(self.cfg_file, configtext)
         j.sals.fs.copy_tree(f"{DIR_PATH}/resources/", self.cfg_dir)
 
-    def get_website(self, name: str, port: int = 80):
+    def get_website(self, name: str, port: int = 0):
+        port = port or PORTS.HTTP
         website_name = f"{name}_{port}"
         website = self.websites.find(website_name)
         if website:

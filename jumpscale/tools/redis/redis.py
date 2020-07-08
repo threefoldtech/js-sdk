@@ -4,11 +4,19 @@ import shutil
 
 
 class RedisServer(Base):
-    name = fields.String(default="redis")
+
+    host = fields.String(default="127.0.0.1")
+    port = fields.Integer(default=6379)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.cmd = j.tools.startupcmd.get(self.name)
+        self._cmd = j.tools.startupcmd.get(f"redis_{self.instance_name}")
+
+    @property
+    def cmd(self):
+        self._cmd.start_cmd = f"redis-server --bind {self.host} --port {self.port}"
+        self._cmd.ports = [self.port]
+        return self._cmd
 
     @property
     def installed(self) -> bool:
@@ -19,17 +27,11 @@ class RedisServer(Base):
         """
         return shutil.which("redis-server")
 
-    def start(self, host: str = "127.0.0.1", port: int = 6379):
+    def start(self):
         """start redis server in tmux
-
-        Args:
-            host (str, optional): redis bind address. Defaults to "127.0.0.1".
-            port (int, optional): redis port. Defaults to 6379.
         """
         # Port is not busy (Redis is not started)
-        if not j.sals.nettools.tcp_connection_test("127.0.0.1", 6379, timeout=1):
-            self.cmd.start_cmd = f"redis-server --bind {host} --port {port}"
-            self.cmd.ports = [port]
+        if not j.sals.nettools.tcp_connection_test(self.host, self.port, timeout=1):
             self.cmd.start()
 
     def stop(self):

@@ -31,6 +31,7 @@ Some components will be defined by default based on the parent package classes i
     Example
     ```
     name = "chatflows"
+    # optional ports ommit incase your package runs on the standard ports
     ports = [ 80,443]
 
     [[static_dirs]]
@@ -206,6 +207,7 @@ is_admin = true
 
 [[servers]]
 name = "default"
+# ommmit portsincase your package runs on the standard ports
 ports = [80, 443]
 domain = "waleed.grid.tf" # your domain name
 letsencryptemail = "aa@example.com" # email to get notifications from lets encrypt
@@ -213,6 +215,7 @@ letsencryptemail = "aa@example.com" # email to get notifications from lets encry
 [[servers.locations]]
 type = "proxy"
 host = "127.0.0.1"
+# if your redirect port is the standard http port of the server you can ommit it
 port = 80
 name = "admin"
 path_url = "/"

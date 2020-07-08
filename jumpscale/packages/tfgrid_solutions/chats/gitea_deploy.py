@@ -25,6 +25,7 @@ class GiteaDeploy(GedisChatBot):
         "container_pay",
         "container_acess",
     ]
+    title = "Gitea"
 
     @chatflow_step()
     def gitea_start(self):
@@ -213,7 +214,7 @@ class GiteaDeploy(GedisChatBot):
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Gitea, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def container_acess(self):
         res = f"""\
 # gitea has been deployed successfully: your reservation id is: {self.resv_id}

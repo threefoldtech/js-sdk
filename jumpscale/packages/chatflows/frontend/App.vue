@@ -35,7 +35,7 @@
     </v-app-bar>
     <v-main>
       <div class="chat-container text-center">
-          <h1 class="display-2 font-weight-light">{{this.chat.split("_").slice(-1) == "deploy" ? this.titleCase(this.chat.split("_")[0]) : this.titleCase(this.chat)}}</h1><br><br>
+          <h1 class="display-2 font-weight-light">{{title}}</h1><br><br>
 
           <v-card v-if="end" class="mx-auto px-5 py-10" width="50%" raised shaped>
             <v-card-text>
@@ -100,11 +100,13 @@
       return {
         state: {},
         sessionId: null,
+        validSession: null,
         work: null,
         loading: true,
         end: false,
         menu: false,
         chat: CHAT,
+        title: null,
         package: PACKAGE,
         userInfo: {username: USERNAME, email: EMAIL}
       }
@@ -161,10 +163,12 @@
       sendUserInfo () {
         this.reportWork(JSON.stringify(this.userInfo))
       },
-      saveSession () {
+      saveSession (data) {
         let session = {
           id: this.sessionId,
           state: this.state,
+          title: this.title,
+          final: data.info ? data.info.final_step : false
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
@@ -176,11 +180,30 @@
       },
       start () {
         let session = this.getSession()
-        if (session) {
-          this.restoreSession(session)
+        if (session && !session.final) {
+          this.validateSession(session.id).then(() => {
+            if(this.validSession) {
+              this.restoreSession(session)
+            } else {
+              localStorage.removeItem(this.chatUID)
+              this.newSession()
+            }
+          })
         } else {
           this.newSession()
         }
+      },
+      validateSession(sessionId) {
+        return axios({
+          url: `${baseUrl}/validate`,
+          method: "post",
+          headers: {'Content-Type': 'application/json'},
+          data: {
+            session_id: sessionId
+          }
+        }).then((response) => {
+          this.validSession = response.data.valid
+        })
       },
       newSession () {
         axios({
@@ -194,6 +217,7 @@
           }
         }).then((response) => {
             this.sessionId = response.data.sessionId
+            this.title = response.data.title
             console.log(this.sessionId)
             this.getWork()
         })
@@ -201,6 +225,7 @@
       restoreSession (session) {
         this.sessionId = session.id
         this.state = session.state
+        this.title = session.title
         this.getWork(true)
       },
       getWork (restore) {
@@ -213,7 +238,7 @@
           }
         }).then((response) => {
             this.loading = false
-            this.saveSession()
+            this.saveSession(response.data)
             this.handleResponse(response.data)
         }).catch((response) => {
           alert("Request timedout. please refresh the page.")
@@ -253,14 +278,6 @@
       restart () {
         localStorage.clear()
         location.reload()
-      },
-      titleCase(str) {
-        let title = "";
-        let splittedStr = str.split("_")
-        for (let i in splittedStr) {
-          title += splittedStr[i].charAt(0).toUpperCase() + splittedStr[i].substring(1) + " ";
-        }
-        return title;
       }
     },
     mounted () {

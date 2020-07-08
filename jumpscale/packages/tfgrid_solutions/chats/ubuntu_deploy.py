@@ -27,6 +27,8 @@ class UbuntuDeploy(GedisChatBot):
         "ubuntu_acess",
     ]
 
+    title = "Ubuntu"
+
     @chatflow_step()
     def ubuntu_start(self):
         self.user_form_data = dict()
@@ -200,7 +202,7 @@ class UbuntuDeploy(GedisChatBot):
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Ubuntu, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def ubuntu_acess(self):
         res = f"""\
 # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}

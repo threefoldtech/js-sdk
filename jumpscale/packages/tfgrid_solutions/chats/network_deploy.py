@@ -7,6 +7,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 class NetworkDeploy(GedisChatBot):
     steps = ["network_reservation", "network_info"]
+    title = "Network"
 
     @chatflow_step(title="Deploy Network")
     def network_reservation(self):
@@ -66,7 +67,7 @@ class NetworkDeploy(GedisChatBot):
                     continue
                 raise
 
-    @chatflow_step(title="Network Information", disable_previous=True)
+    @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
     def network_info(self):
         print(self.config)
         message = """

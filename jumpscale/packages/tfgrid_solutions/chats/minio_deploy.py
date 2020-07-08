@@ -28,6 +28,7 @@ class MinioDeploy(GedisChatBot):
         "minio_reservation",
         "success",
     ]
+    title = "Minio"
 
     @chatflow_step(title="")
     def deployment_start(self):
@@ -366,7 +367,7 @@ class MinioDeploy(GedisChatBot):
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Minio, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         res = f"""\
 # Minio cluster has been deployed successfully. Your reservation id is: {self.resv_id}
