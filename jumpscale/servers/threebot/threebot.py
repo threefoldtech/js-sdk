@@ -275,7 +275,7 @@ class Package:
 
 
 class PackageManager(Base):
-    packages = fields.Typed(dict, default=DEFAULT_PACKAGES)
+    packages = fields.Typed(dict, default=DEFAULT_PACKAGES.copy())
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
