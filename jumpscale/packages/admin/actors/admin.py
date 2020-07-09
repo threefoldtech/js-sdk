@@ -1,6 +1,6 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.god import j
-from jumpscale.core.exceptions import JSException
+from jumpscale.core.exceptions import JSException, NotFound
 
 explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
@@ -74,6 +74,50 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps(
                 {"data": f"{explorer_type} is not a valid explorer type, must be 'testnet' or 'main'"}
             )
+
+    @actor_method
+    def list_identities(self) -> str:
+        identities = {}
+        for name in j.core.identity.list_all():
+            identity = j.core.identity.get(name)
+            identities[name] = {
+                "name": identity.name,
+                "tname": identity.tname,
+                "tid": identity.tid,
+                "email": identity.email,
+            }
+        return j.data.serializers.json.dumps({"data": {"identities": identities}})
+
+    @actor_method
+    def get_identity(self) -> str:
+        try:
+            identity = j.core.identity.me
+        except NotFound:
+            return j.data.serializers.json.dumps({"data": "Identity not found"})
+        return j.data.serializers.json.dumps(
+            {"data": {"name": identity.name, "tname": identity.tname, "tid": identity.tid, "email": identity.email}}
+        )
+
+    @actor_method
+    def set_identity(self, identity_name: str) -> str:
+        if identity_name not in j.core.identity.list_all():
+            return "Identity not found"
+        j.core.identity.set_default(identity_name)
+
+    @actor_method
+    def add_identity(self, instance_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
+        explorer_url = f"https://{explorers[explorer_type]}/explorer"
+        if instance_name in j.core.identity.list_all():
+            return "Identity already exists"  # or add check in front end
+        new_identity = j.core.identity.new(
+            name=instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+        )
+        new_identity.register()
+        return "Identity added"
+
+    def delete_identity(self, identity_name: str) -> str:
+        j.core.identity.delete(identity_name)
+        return "Deleted"
 
 
 Actor = Admin
