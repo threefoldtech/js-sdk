@@ -101,7 +101,7 @@ class TFPoll(Poll):
         )
         self.extra_data.update({"question_1": question_1_answer})
 
-        message = "For every selected option above let us please now the percentage of your total amount of  TFT (if more than 1 option)"
+        message = "For every selected option above let us please know the percentage of your total amount of  TFT (if more than 1 option)"
         def ask_for_percentages(msg=""):
             form = self.new_form()
             percentages = []
