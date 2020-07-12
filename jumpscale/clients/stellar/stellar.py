@@ -785,7 +785,7 @@ class Stellar(Client):
         wallet_address = response["_embedded"]["records"][0]["source_account"]
         return wallet_address
 
-    def check_transaction_has_amount(self, transaction_hash):
+    def check_is_payment_transaction(self, transaction_hash):
         """Some transactions doesn't have an amount like activating the wallet
         This helper method to help in iterating in transactions
 
@@ -795,11 +795,12 @@ class Stellar(Client):
         Returns:
             Bool: True if transaction has amount - False if not
         """
+
         server = self._get_horizon_server()
         endpoint = server.operations().for_transaction(transaction_hash)
         response = endpoint.call()
         results = response["_embedded"]["records"][0]
-        return "amount" in results.keys()
+        return results["type"] == "payment"
 
     def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
         """Gets an stellar_sdk.Asset object by code.
