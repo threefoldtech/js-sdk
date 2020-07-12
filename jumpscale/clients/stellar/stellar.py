@@ -836,7 +836,26 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def manage_sell_order(
+    def cancel_sell_order(
+        self,
+        offer_id,
+        selling_asset: stellar_sdk.Asset,
+        buying_asset: stellar_sdk.Asset,
+        price: Union[str, decimal.Decimal],
+    ):
+        """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+
+        Args:
+            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
+            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            offer_id (int): pass the current offer id and set the amount to 0 to cancel this offer
+            price (str): order price
+        """
+        return self._manage_sell_order(
+            selling_asset=selling_asset, buying_asset=buying_asset, amount="0", price=price, offer_id=offer_id
+        )
+
+    def _manage_sell_order(
         self,
         selling_asset: stellar_sdk.Asset,
         buying_asset: stellar_sdk.Asset,
@@ -891,6 +910,8 @@ class Stellar(Client):
             except Exception as e:
                 raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
             return resp
+
+    place_sell_order = _manage_sell_order
 
     def get_created_offers(self, wallet_address: str = None):
         """Returns a list of the currently created offers
