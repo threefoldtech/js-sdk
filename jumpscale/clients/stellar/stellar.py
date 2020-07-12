@@ -3,7 +3,7 @@ import time
 from enum import Enum
 import decimal
 from urllib import parse
-from urllib.parse import urlparse 
+from urllib.parse import urlparse
 from typing import Union
 
 import stellar_sdk
@@ -482,7 +482,7 @@ class Stellar(Client):
         :param address: address of the effects.In None, the address of this wallet is taken
         :param asset: stellar asset in the code:issuer form( except for XLM, which does not need an issuer)
         :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
-         if a cursor is passed, a tuple of the payments and the cursor is returned 
+         if a cursor is passed, a tuple of the payments and the cursor is returned
         """
         if address is None:
             address = self.address
@@ -524,11 +524,11 @@ class Stellar(Client):
         """Get the transactions for an adddres
         :param address (str, optional): address of the effects.If None, the address of this wallet is taken. Defaults to None.
         :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
-         if a cursor is passed, a tuple of the payments and the cursor is returned 
+         if a cursor is passed, a tuple of the payments and the cursor is returned
 
         Returns:
             list: list of TransactionSummary objects
-            dictionary: {"transactions":list of TransactionSummary objects, "cursor":cursor} 
+            dictionary: {"transactions":list of TransactionSummary objects, "cursor":cursor}
         """
         address = address or self.address
         tx_endpoint = self._get_horizon_server().transactions()
@@ -879,6 +879,82 @@ class Stellar(Client):
         except Exception as e:
             raise RuntimeError(
                 f"error happened for placing selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
+            ) from e
+        else:
+            tx.sign(self.secret)
+            try:
+                resp = server.submit_transaction(tx)
+            except Exception as e:
+                raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
+            return resp
+
+    def get_created_offers(self, wallet_address=None):
+        """Return dict of current offers and ids
+        """
+        wallet_address = wallet_address or self.self.address
+        server = self._get_horizon_server()
+        offers = server.offers(wallet_address)
+        response = offers.call()
+        offers = response["_embedded"]["records"]
+        return offers
+
+    def get_created_offers(self, wallet_address=None):
+        """Return dict of current offers and ids
+        """
+        wallet_address = wallet_address or self.address
+        server = self._get_horizon_server()
+        offers = server.offers()
+        offers.account(wallet_address)
+        response = offers.call()
+        offers = response["_embedded"]["records"]
+        return offers
+
+    def cancel_sell_order(
+        self,
+        selling_asset: stellar_sdk.Asset,
+        buying_asset: stellar_sdk.Asset,
+        amount: Union[str, decimal.Decimal],
+        price: Union[str, decimal.Decimal],
+        timeout=30,
+        offer_id=0,
+    ):
+        """Cancel a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+
+        Args:
+            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
+            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            amount (Union[str, decimal.Decimal]): Amount to sell.
+            price (Union[str, decimal.Decimal]): Price for selling.
+            timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
+
+        Raises:
+            ValueError: In case of invalid issuer.
+            RuntimeError: Error happened during submission of the transaction.
+
+        Returns:
+            (dict): response as the result of sumbit the transaction
+        """
+        server = self._get_horizon_server()
+        tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
+        try:
+            tx = (
+                tb.append_manage_sell_offer_op(
+                    selling_code=selling_asset.code,
+                    selling_issuer=selling_asset.issuer,
+                    buying_code=buying_asset.code,
+                    buying_issuer=buying_asset.issuer,
+                    amount=amount,
+                    price=price,
+                    offer_id=offer_id,
+                )
+                .set_timeout(timeout)
+                .build()
+            )
+        except stellar_sdk.exceptions.AssetIssuerInvalidError as e:
+            raise ValueError("invalid issuer") from e
+        except Exception as e:
+            raise RuntimeError(
+                f"error happened for cancelling selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
             ) from e
         else:
             tx.sign(self.secret)
