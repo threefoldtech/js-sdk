@@ -901,9 +901,10 @@ class Stellar(Client):
         Returns:
             list
         """
-        wallet_address = wallet_address or self.self.address
+        wallet_address = wallet_address or self.address
         server = self._get_horizon_server()
-        offers = server.offers(wallet_address)
-        response = offers.call()
+        endpoint = server.offers()
+        endpoint.account(wallet_address)
+        response = endpoint.call()
         offers = response["_embedded"]["records"]
         return offers
