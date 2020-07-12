@@ -3,7 +3,7 @@ import time
 from enum import Enum
 import decimal
 from urllib import parse
-from urllib.parse import urlparse 
+from urllib.parse import urlparse
 from typing import Union
 
 import stellar_sdk
@@ -482,7 +482,7 @@ class Stellar(Client):
         :param address: address of the effects.In None, the address of this wallet is taken
         :param asset: stellar asset in the code:issuer form( except for XLM, which does not need an issuer)
         :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
-         if a cursor is passed, a tuple of the payments and the cursor is returned 
+         if a cursor is passed, a tuple of the payments and the cursor is returned
         """
         if address is None:
             address = self.address
@@ -524,11 +524,11 @@ class Stellar(Client):
         """Get the transactions for an adddres
         :param address (str, optional): address of the effects.If None, the address of this wallet is taken. Defaults to None.
         :param cursor:pass a cursor to continue after the last call or an empty str to start receivibg a cursor
-         if a cursor is passed, a tuple of the payments and the cursor is returned 
+         if a cursor is passed, a tuple of the payments and the cursor is returned
 
         Returns:
             list: list of TransactionSummary objects
-            dictionary: {"transactions":list of TransactionSummary objects, "cursor":cursor} 
+            dictionary: {"transactions":list of TransactionSummary objects, "cursor":cursor}
         """
         address = address or self.address
         tx_endpoint = self._get_horizon_server().transactions()
@@ -785,7 +785,7 @@ class Stellar(Client):
         wallet_address = response["_embedded"]["records"][0]["source_account"]
         return wallet_address
 
-    def check_transaction_has_amount(self, transaction_hash):
+    def check_is_payment_transaction(self, transaction_hash):
         """Some transactions doesn't have an amount like activating the wallet
         This helper method to help in iterating in transactions
 
@@ -795,11 +795,12 @@ class Stellar(Client):
         Returns:
             Bool: True if transaction has amount - False if not
         """
+
         server = self._get_horizon_server()
         endpoint = server.operations().for_transaction(transaction_hash)
         response = endpoint.call()
         results = response["_embedded"]["records"][0]
-        return "amount" in results.keys()
+        return results["type"] == "payment"
 
     def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
         """Gets an stellar_sdk.Asset object by code.
@@ -835,15 +836,35 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def place_sell_order(
+    def cancel_sell_order(
+        self,
+        offer_id,
+        selling_asset: stellar_sdk.Asset,
+        buying_asset: stellar_sdk.Asset,
+        price: Union[str, decimal.Decimal],
+    ):
+        """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+
+        Args:
+            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
+            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            offer_id (int): pass the current offer id and set the amount to 0 to cancel this offer
+            price (str): order price
+        """
+        return self._manage_sell_order(
+            selling_asset=selling_asset, buying_asset=buying_asset, amount="0", price=price, offer_id=offer_id
+        )
+
+    def _manage_sell_order(
         self,
         selling_asset: stellar_sdk.Asset,
         buying_asset: stellar_sdk.Asset,
         amount: Union[str, decimal.Decimal],
         price: Union[str, decimal.Decimal],
         timeout=30,
+        offer_id=0,
     ):
-        """Places a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+        """Places/Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
             selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
@@ -851,6 +872,7 @@ class Stellar(Client):
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
+            offer_id: pass the current offer id and set the amount to 0 to cancel this offer
 
         Raises:
             ValueError: In case of invalid issuer.
@@ -870,6 +892,7 @@ class Stellar(Client):
                     buying_issuer=buying_asset.issuer,
                     amount=amount,
                     price=price,
+                    offer_id=offer_id,
                 )
                 .set_timeout(timeout)
                 .build()
@@ -885,5 +908,26 @@ class Stellar(Client):
             try:
                 resp = server.submit_transaction(tx)
             except Exception as e:
-                raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
+                raise RuntimeError(
+                    f"couldn't submit sell offer, probably wallet is unfunded. Please check the error stacktrace for more information."
+                ) from e
             return resp
+
+    place_sell_order = _manage_sell_order
+
+    def get_created_offers(self, wallet_address: str = None):
+        """Returns a list of the currently created offers
+
+        Args:
+            wallet_address (Str, optional): wallet address you want to get offers to. Defaults to self.address.
+
+        Returns:
+            list
+        """
+        wallet_address = wallet_address or self.address
+        server = self._get_horizon_server()
+        endpoint = server.offers()
+        endpoint.account(wallet_address)
+        response = endpoint.call()
+        offers = response["_embedded"]["records"]
+        return offers
