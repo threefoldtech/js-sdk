@@ -908,7 +908,9 @@ class Stellar(Client):
             try:
                 resp = server.submit_transaction(tx)
             except Exception as e:
-                raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
+                raise RuntimeError(
+                    f"couldn't submit sell offer, probably wallet is unfunded. Please check the error stacktrace for more information."
+                ) from e
             return resp
 
     place_sell_order = _manage_sell_order
