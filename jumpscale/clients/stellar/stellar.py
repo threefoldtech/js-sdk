@@ -835,15 +835,16 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def place_sell_order(
+    def manage_sell_order(
         self,
         selling_asset: stellar_sdk.Asset,
         buying_asset: stellar_sdk.Asset,
         amount: Union[str, decimal.Decimal],
         price: Union[str, decimal.Decimal],
         timeout=30,
+        offer_id=0,
     ):
-        """Places a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
+        """Places/Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
             selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
@@ -851,6 +852,7 @@ class Stellar(Client):
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
+            offer_id: pass the current offer id and set the amount to 0 to cancel this offer
 
         Raises:
             ValueError: In case of invalid issuer.
@@ -870,6 +872,7 @@ class Stellar(Client):
                     buying_issuer=buying_asset.issuer,
                     amount=amount,
                     price=price,
+                    offer_id=offer_id,
                 )
                 .set_timeout(timeout)
                 .build()
@@ -903,58 +906,3 @@ class Stellar(Client):
         response = offers.call()
         offers = response["_embedded"]["records"]
         return offers
-
-    def cancel_sell_order(
-        self,
-        selling_asset: stellar_sdk.Asset,
-        buying_asset: stellar_sdk.Asset,
-        amount: Union[str, decimal.Decimal],
-        price: Union[str, decimal.Decimal],
-        timeout=30,
-        offer_id=0,
-    ):
-        """Cancel a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
-
-        Args:
-            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
-            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
-            amount (Union[str, decimal.Decimal]): Amount to sell.
-            price (Union[str, decimal.Decimal]): Price for selling.
-            timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
-
-        Raises:
-            ValueError: In case of invalid issuer.
-            RuntimeError: Error happened during submission of the transaction.
-
-        Returns:
-            (dict): response as the result of sumbit the transaction
-        """
-        server = self._get_horizon_server()
-        tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
-        try:
-            tx = (
-                tb.append_manage_sell_offer_op(
-                    selling_code=selling_asset.code,
-                    selling_issuer=selling_asset.issuer,
-                    buying_code=buying_asset.code,
-                    buying_issuer=buying_asset.issuer,
-                    amount=amount,
-                    price=price,
-                    offer_id=offer_id,
-                )
-                .set_timeout(timeout)
-                .build()
-            )
-        except stellar_sdk.exceptions.AssetIssuerInvalidError as e:
-            raise ValueError("invalid issuer") from e
-        except Exception as e:
-            raise RuntimeError(
-                f"error happened for cancelling selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
-            ) from e
-        else:
-            tx.sign(self.secret)
-            try:
-                resp = server.submit_transaction(tx)
-            except Exception as e:
-                raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
-            return resp
