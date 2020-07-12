@@ -888,23 +888,18 @@ class Stellar(Client):
                 raise RuntimeError(f"couldn't sumbit transaction, probably unfunded") from e
             return resp
 
-    def get_created_offers(self, wallet_address=None):
-        """Return dict of current offers and ids
+    def get_created_offers(self, wallet_address: str = None):
+        """Returns a list of the currently created offers
+
+        Args:
+            wallet_address (Str, optional): wallet address you want to get offers to. Defaults to self.address.
+
+        Returns:
+            list
         """
         wallet_address = wallet_address or self.self.address
         server = self._get_horizon_server()
         offers = server.offers(wallet_address)
-        response = offers.call()
-        offers = response["_embedded"]["records"]
-        return offers
-
-    def get_created_offers(self, wallet_address=None):
-        """Return dict of current offers and ids
-        """
-        wallet_address = wallet_address or self.address
-        server = self._get_horizon_server()
-        offers = server.offers()
-        offers.account(wallet_address)
         response = offers.call()
         offers = response["_embedded"]["records"]
         return offers
