@@ -32,7 +32,13 @@
   - tmux `brew install tmux`
 
 ## Installation in system (Experts)
-(note: for mac OSX use root user during installation to be able to use ports (80, 443) `sudo su -`) or `--local` if you don't want to use root permissions
+General note: the system can be used to host websites and applications, thus it requires binding on 80, 443. which means elevated permissions on the user machine, on linux can be resolved using setcap for nginx, and on mac it will require root user. 
+
+```
+sudo setcap cap_net_bind_service=+ep `which nginx`
+```
+If you don't want to use 80, 443 and not hosting on a public IP, then you can use `--local` flag when starting the server which will bind on `8080, 80443` instead
+
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
 - Install the js-ng
 
@@ -56,7 +62,7 @@ to be able to run as a normal user, you don't need it if you are root.
   threebot start --local
   ```
 
-if you want to listen on 80, 443 use `threebot start`
+if you want to listen on 80, 443 use `threebot start` (used when on public IP with domain)
 
 - This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
 
