@@ -12,11 +12,15 @@ class Admin(BaseActor):
 
     @actor_method
     def add_admin(self, name: str):
+        if name in j.core.identity.me.admins:
+            raise j.exceptions.Value(f"Admin {name} already exists")
         j.core.identity.me.admins.append(name)
         j.core.identity.me.save()
 
     @actor_method
     def delete_admin(self, name: str):
+        if name not in j.core.identity.me.admins:
+            raise j.exceptions.Value(f"Admin {name} does not exist")
         j.core.identity.me.admins.remove(name)
         j.core.identity.me.save()
 
