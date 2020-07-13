@@ -65,7 +65,17 @@ to be able to run as a normal user, you don't need it if you are root.
 - After success you can visit the admin dashboard at http://localhost and start creating reservations
 
   ![configure](images/success.png)
+## Starting threebot 
+- You have some options available to start three bot 
+```
+threebot start <--identity user.3bot> <--background> <--local>
+```
 
+if you specified `--indentity user.3bot`, then the passed identity will be the default identity in the running 3bot
+
+if you specified `--background` then the server will run in background mode
+
+if you specified `--local` then the server will run on ports 8443/https and 8080 https instead of 443/https and 80/http
 ## Create a reservation via jsng Shell (without admin panel)
 
 See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a393a9ae2a838d78c22/docs/wiki/tutorials/deploy_ubuntu_container.md)
@@ -73,6 +83,7 @@ See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a39
 ## Access admin panel
 
 Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
+Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://172.17.0.2:8443/admin/`
 
 ## Create a new wallet
 
