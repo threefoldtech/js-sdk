@@ -129,7 +129,8 @@ class Identity(Base):
                 )
             tid = user.id
         self._tid = tid
-        self.admins.append(self.tname)
+        if self.tname not in self.admins:
+            self.admins.append(self.tname)
         self.save()
         return tid
 
