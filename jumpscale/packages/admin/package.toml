@@ -1,5 +1,4 @@
 name = "admin"
-force_https = true
 
 [[static_dirs]]
 name = "frontend"
