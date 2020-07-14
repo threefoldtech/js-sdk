@@ -56,6 +56,7 @@ class NginxPackageConfig:
                     "path_location": self.package.resolve_staticdir_location(static_dir),
                     "is_auth": static_dir.get("is_auth", False),
                     "is_admin": static_dir.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -71,6 +72,7 @@ class NginxPackageConfig:
                     "websocket": bottle_server.get("websocket"),
                     "is_auth": bottle_server.get("is_auth", False),
                     "is_admin": bottle_server.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -83,6 +85,7 @@ class NginxPackageConfig:
                     "port": GEDIS_HTTP_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
                     "path_dest": self.package.base_url,
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -95,6 +98,7 @@ class NginxPackageConfig:
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
                     "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 

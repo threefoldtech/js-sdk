@@ -1,4 +1,5 @@
 name = "chatflows"
+
 [[static_dirs]]
 name = "frontend"
 path_url = "/static"
