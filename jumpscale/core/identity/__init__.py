@@ -73,7 +73,7 @@ class Identity(Base):
         else:
             for key in ["email", "tname"]:
                 if not getattr(self, key):
-                    raise Value("Threebot not configured")
+                    raise Value(f"Threebot {key} not configured")
 
     @property
     def explorer(self):
@@ -129,7 +129,8 @@ class Identity(Base):
                 )
             tid = user.id
         self._tid = tid
-        self.admins.append(self.tname)
+        if self.tname not in self.admins:
+            self.admins.append(self.tname)
         self.save()
         return tid
 

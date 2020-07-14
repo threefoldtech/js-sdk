@@ -52,9 +52,9 @@ class TFPoll(Poll):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.QUESTIONS = {}
         self.extra_data = {}
         self.custom_answers = {}
+        self.QUESTIONS = {vote["title"] : vote["options"] for vote in VOTES.values()}
 
     def welcome(self):
         stored_extra_data = self.user.extra_data
@@ -101,7 +101,7 @@ class TFPoll(Poll):
         )
         self.extra_data.update({"question_1": question_1_answer})
 
-        message = "For every selected option above let us please now the percentage of your total amount of  TFT (if more than 1 option)"
+        message = "For every selected option above let us please know the percentage of your total amount of  TFT (if more than 1 option)"
         def ask_for_percentages(msg=""):
             form = self.new_form()
             percentages = []
@@ -126,15 +126,11 @@ class TFPoll(Poll):
     def custom_votes(self):
         super().custom_votes()
 
-        self.QUESTIONS.update({VOTES[1]["title"]: VOTES[1]["options"]})
         default_answer = self.get_vote_answer(VOTES[1]["title"])
-
         vote_1_answer = self.single_choice(VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[1]["title"]: vote_1_answer})
 
-        self.QUESTIONS.update({VOTES[2]["title"]: VOTES[2]["options"]})
         default_answer = self.get_vote_answer(VOTES[2]["title"])
-
         vote_2_answer = self.single_choice(VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
@@ -147,15 +143,11 @@ class TFPoll(Poll):
                 'Thank you for confirming our "Decentralization manifesto", you have now digitally signed this document.'
             )
 
-        self.QUESTIONS.update({VOTES[3]["title"]: VOTES[3]["options"]})
         default_answer = self.get_vote_answer(VOTES[3]["title"])
-        
         vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[3]["title"]: vote_3_answer})
 
-        self.QUESTIONS.update({VOTES[4]["title"]: VOTES[4]["options"]})
-        default_answer = self.get_vote_answer(VOTES[4]["title"])
-        
+        default_answer = self.get_vote_answer(VOTES[4]["title"])        
         vote_4_answer = self.single_choice(VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[4]["title"]: vote_4_answer})
 

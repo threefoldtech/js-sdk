@@ -1,5 +1,5 @@
 <template>
-  <external :package="package" :name="name" :path="path" :url="url"></external>
+  <external :package="package" :name="name" :giturl="giturl" :url="url"></external>
 </template>
 
 <script>
@@ -8,7 +8,7 @@
       return {
         package: true,
         name: "codeserver",
-        path: "/sandbox/code/github/js-next/js-sdk/jumpscale/packages/codeserver",
+        giturl: "https://github.com/threefoldtech/js-sdk/blob/development/jumpscale/packages/codeserver",
         url: "/codeserver/"
       }
     }

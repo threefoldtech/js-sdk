@@ -9,6 +9,10 @@
               <td>{{ name }}</td>
             </tr>
             <tr>
+              <td>Network</td>
+              <td>{{ wallet.network }}</td>
+            </tr>
+            <tr>
               <td>Address</td>
               <td>{{ wallet.address }}</td>
             </tr>

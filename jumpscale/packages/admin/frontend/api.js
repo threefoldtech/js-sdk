@@ -67,7 +67,7 @@ const apiClient = {
       return axios({
         url: `${baseURL}/wallet/import_wallet`,
         method: "post",
-        data: {name: name, secret: secret, network: network}
+        data: { name: name, secret: secret, network: network }
       })
     },
     delete: (name) => {
@@ -84,12 +84,12 @@ const apiClient = {
         url: `${baseURL}/packages/list_packages`
       })
     },
-    add: (path, giturl) => {
+    add: (path, giturl, extras) => {
       return axios({
         url: `${baseURL}/packages/add_package`,
         method: "post",
-        headers: {'Content-Type': 'application/json'},
-        data: {path: path, giturl: giturl}
+        headers: { 'Content-Type': 'application/json' },
+        data: { path: path, giturl: giturl, extras: extras }
       })
     },
     delete: (name) => {
@@ -166,6 +166,19 @@ const apiClient = {
         method: "post",
         headers: {'Content-Type': 'application/json'},
         data: {solution_type: solution_type}
+      })
+    },
+    getAll: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
+      })
+    },
+    cancelReservation: (solutionType, solutionName) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
+        method: "post",
+        headers: {'Content-Type': 'application/json'},
+        data: {solution_type: solutionType, solution_name: solutionName}
       })
     }
   },

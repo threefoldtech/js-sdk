@@ -121,7 +121,8 @@ export default class PackagesView extends JetView {
 
     loadPackages() {
         packages.list().then(data => {
-            this.packageTable.parse(JSON.parse(data.json()).data);
+            let ret = JSON.parse(data.json()).data
+            this.packageTable.parse(Object.values(ret));
         });
     }
 
@@ -131,7 +132,7 @@ export default class PackagesView extends JetView {
         self.errorView = this.ui(ErrorView);
         self.packageDetailsView = self.ui(PackageDetailsView);
 
-        self._requiredpackages = ["chatflows", "admin"]
+        self._requiredPackages = ["auth", "chatflows", "admin", "weblibs", "tfgrid_solutions"]
 
         const menu = webix.ui({
             view: "contextmenu",
@@ -187,18 +188,20 @@ export default class PackagesView extends JetView {
             checkAction(id, self.packageTable.getSelectedId());
         });
 
-
         webix.event(self.packageTable.$view, "contextmenu", function (e /*MouseEvent*/) {
             const pos = self.packageTable.locate(e);
             if (pos) {
                 const item = self.packageTable.getItem(pos.row);
 
-                if (self._requiredpackages.includes(item.name)) {
+                if (self._requiredPackages.includes(item.name)) {
                     webix.message({ type: "error", text: `${item.name} is a required package` });
                     return
                 }
 
-                const actions = ['install', 'delete']
+                const actions = ['delete'];
+                if(!item.installed){
+                    actions.push('install');
+                }
                 menu.clearAll();
                 menu.parse(actions);
                 menu.show(e);

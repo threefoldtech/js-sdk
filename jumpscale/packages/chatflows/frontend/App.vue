@@ -100,6 +100,7 @@
       return {
         state: {},
         sessionId: null,
+        validSession: null,
         work: null,
         loading: true,
         end: false,
@@ -162,11 +163,12 @@
       sendUserInfo () {
         this.reportWork(JSON.stringify(this.userInfo))
       },
-      saveSession () {
+      saveSession (data) {
         let session = {
           id: this.sessionId,
           state: this.state,
           title: this.title,
+          final: data.info ? data.info.final_step : false
         }
         localStorage.setItem(this.chatUID, JSON.stringify(session))
       },
@@ -178,11 +180,30 @@
       },
       start () {
         let session = this.getSession()
-        if (session) {
-          this.restoreSession(session)
+        if (session && !session.final) {
+          this.validateSession(session.id).then(() => {
+            if(this.validSession) {
+              this.restoreSession(session)
+            } else {
+              localStorage.removeItem(this.chatUID)
+              this.newSession()
+            }
+          })
         } else {
           this.newSession()
         }
+      },
+      validateSession(sessionId) {
+        return axios({
+          url: `${baseUrl}/validate`,
+          method: "post",
+          headers: {'Content-Type': 'application/json'},
+          data: {
+            session_id: sessionId
+          }
+        }).then((response) => {
+          this.validSession = response.data.valid
+        })
       },
       newSession () {
         axios({
@@ -217,7 +238,7 @@
           }
         }).then((response) => {
             this.loading = false
-            this.saveSession()
+            this.saveSession(response.data)
             this.handleResponse(response.data)
         }).catch((response) => {
           alert("Request timedout. please refresh the page.")
