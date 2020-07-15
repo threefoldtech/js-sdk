@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
-from jumpscale.sals.nginx.nginx import PORTS
+from jumpscale.sals.nginx.nginx import LocationType, PORTS
 
 
 GEDIS = "gedis"
@@ -148,9 +148,18 @@ class NginxPackageConfig:
                         loc.custom_config = location.get("custom_config")
 
                     if loc:
+                        loc.location_type = location_type
                         path_url = location.get("path_url", "/")
-                        if not path_url.endswith("/"):
-                            path_url += "/"
+                        if loc.location_type == LocationType.PROXY:
+                            # proxy location needs / (as we append slash to the backend server too)
+                            # and nginx always redirects to the same location with slash
+                            # this way, requests will go to backend servers without double slashes...etc
+                            if not path_url.endswith("/"):
+                                path_url += "/"
+                        else:
+                            # for other locations, slash is not required
+                            if path_url != "/":
+                                path_url = path_url.rstrip("/")
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")
