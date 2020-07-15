@@ -175,7 +175,7 @@ Please make the transaction and press Next
                 return options[answer_array.index(1)]
             except ValueError:
                 pass
-    
+
     def get_question_answer(self, question_title):
         return self.user.extra_data.get(question_title)
 
@@ -289,10 +289,17 @@ Please make the transaction and press Next
         Args:
             wallet_address (String): Wallet address
         """
-        assets = self.wallet.get_balance(wallet_address).balances
+        assets = self.wallet.get_balance(wallet_address)
         total_balance = 0.0
-        for asset in assets:
+        # get free balances
+        for asset in assets.balances:
             if asset.asset_code == "TFT" or asset.asset_code == "TFTA":
                 total_balance += float(asset.balance)
+
+        # add locked funds too
+        for locked_account in assets.escrow_accounts:
+            for locked_asset in locked_account.balances:
+                if locked_asset.asset_code == "TFT" or locked_asset.asset_code == "TFTA":
+                    total_balance += float(locked_asset.balance)
 
         return total_balance
