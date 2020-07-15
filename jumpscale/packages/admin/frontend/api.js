@@ -133,11 +133,6 @@ const apiClient = {
         url: `${baseURL}/admin/get_current_user`
       })
     },
-    getIdentity: () => {
-      return axios({
-        url: `${baseURL}/health/get_identity`
-      })
-    },
     setExplorer: (explorerType) => {
       return axios({
         url: `${baseURL}/admin/set_explorer`,
@@ -196,6 +191,33 @@ const apiClient = {
     getRunningProcesses () {
       return axios({
         url: `${baseURL}/health/get_running_processes`
+      })
+    }
+  },
+  identity: {
+    get: () => {
+      return axios({
+        url: `${baseURL}/identity/get_identity`
+      })
+    },
+    list: () => {
+      return axios({
+        url: `${baseURL}/identity/list_identities`
+      })
+    },
+    set: (label, tname, email, words) => {
+      return axios({
+        url: `${baseURL}/identity/set_identity`,
+        method: "post",
+        headers: {'Content-Type': 'application/json'},
+        data: {label: label, tname: tname, email: email, words: words}
+      })
+    }
+  },
+  user: {
+    currentUser: () => {
+      return axios({
+        url: "/auth/authenticated"
       })
     }
   }

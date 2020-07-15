@@ -25,18 +25,6 @@ class Admin(BaseActor):
         j.core.identity.me.save()
 
     @actor_method
-    def get_current_user(self) -> str:
-        return j.data.serializers.json.dumps(
-            {
-                "data": {
-                    "name": j.core.identity.me.tname,
-                    "email": j.core.identity.me.email,
-                    "tid": j.core.identity.me.tid,
-                }
-            }
-        )
-
-    @actor_method
     def list_explorers(self) -> str:
         return j.data.serializers.json.dumps({"data": explorers})
 

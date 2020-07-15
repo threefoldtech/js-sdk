@@ -41,9 +41,10 @@ http {
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
+@click.option("--development", default=False, is_flag=True, help="start in development mode (no identity is required)")
 @click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
 @click.option("--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443")
-def start(identity=None, background=False, local=False):
+def start(identity=None, background=False, local=False, development=False):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
@@ -59,7 +60,7 @@ def start(identity=None, background=False, local=False):
     SERVICES_PORTS["nginx_http"] = PORTS.HTTP
     SERVICES_PORTS["nginx_https"] = PORTS.HTTPS
 
-    if identity:
+    if not development and identity:
         if j.core.identity.find(identity):
             print(f"Setting default identity to {identity}\nStarting threebot server...")
             j.core.identity.set_default(identity)
@@ -70,7 +71,7 @@ def start(identity=None, background=False, local=False):
             )
             sys.exit(1)
 
-    if not j.core.identity.list_all():
+    if not development and not j.core.identity.list_all():
         identity_data = IdentityManager()
         identity_info = identity_data.ask_identity()
         me = j.core.identity.new(
