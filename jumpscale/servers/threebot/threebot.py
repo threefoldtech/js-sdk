@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
-from jumpscale.sals.nginx.nginx import PORTS
+from jumpscale.sals.nginx.nginx import LocationType, PORTS
 
 
 GEDIS = "gedis"
@@ -56,6 +56,7 @@ class NginxPackageConfig:
                     "path_location": self.package.resolve_staticdir_location(static_dir),
                     "is_auth": static_dir.get("is_auth", False),
                     "is_admin": static_dir.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -71,6 +72,7 @@ class NginxPackageConfig:
                     "websocket": bottle_server.get("websocket"),
                     "is_auth": bottle_server.get("is_auth", False),
                     "is_admin": bottle_server.get("is_admin", False),
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -83,6 +85,7 @@ class NginxPackageConfig:
                     "port": GEDIS_HTTP_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "actors"),
                     "path_dest": self.package.base_url,
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -95,6 +98,7 @@ class NginxPackageConfig:
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
                     "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
+                    "force_https": self.package.config.get("force_https", True),
                 }
             )
 
@@ -144,9 +148,18 @@ class NginxPackageConfig:
                         loc.custom_config = location.get("custom_config")
 
                     if loc:
+                        loc.location_type = location_type
                         path_url = location.get("path_url", "/")
-                        if not path_url.endswith("/"):
-                            path_url += "/"
+                        if loc.location_type == LocationType.PROXY:
+                            # proxy location needs / (as we append slash to the backend server too)
+                            # and nginx always redirects to the same location with slash
+                            # this way, requests will go to backend servers without double slashes...etc
+                            if not path_url.endswith("/"):
+                                path_url += "/"
+                        else:
+                            # for other locations, slash is not required
+                            if path_url != "/":
+                                path_url = path_url.rstrip("/")
 
                         loc.path_url = path_url
                         loc.force_https = location.get("force_https")

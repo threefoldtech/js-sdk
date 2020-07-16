@@ -6,7 +6,7 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 class Wallet(BaseActor):
     @actor_method
     def create_wallet(self, name: str) -> str:
-        explorer = j.clients.explorer.get_default()
+        explorer = j.core.identity.me.explorer
         wallettype = "STD"
         if "testnet" in explorer.url or "devnet" in explorer.url:
             wallettype = "TEST"

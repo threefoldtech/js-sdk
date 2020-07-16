@@ -234,3 +234,12 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
     ```
 
     where the IP address is the one you chose in the chatflow earlier and is shown in the previous success message.
+
+
+### Troubleshooting
+
+- For macOS chrome may complain about self-signed certificate. In terminal execute the following
+
+  ```
+  open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security --ignore-certificate-errors
+  ```

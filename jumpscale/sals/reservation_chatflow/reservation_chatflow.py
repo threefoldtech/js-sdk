@@ -156,7 +156,7 @@ class Network:
             (Network): copy of the network
         """
         network_copy = None
-        explorer = j.clients.explorer.get_default()
+        explorer = j.core.identity.me.explorer
         reservation = explorer.reservations.get(self.resv_id)
         networks = self._sal.list_networks(customer_tid, [reservation])
         for key in networks.keys():
@@ -217,7 +217,7 @@ class ReservationChatflow:
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
-        self._explorer = j.clients.explorer.get_default()
+        self._explorer = j.core.identity.me.explorer
         self.update_local_reservations()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
