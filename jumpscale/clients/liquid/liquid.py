@@ -61,10 +61,10 @@ class LiquidClient(Client):
             Price: Object containing ask, bid and last trade price
         """
         res = self._do_request(f"{self._url}/products", j.exceptions.Input)
-        result = [p for p in res if p["product_type"]=="CurrencyPair" and p["currency_pair_code"]==pair]
+        result = [p for p in res if p["product_type"] == "CurrencyPair" and p["currency_pair_code"] == pair]
         if not result:
             raise j.exceptions.Input()
-        result=result[0]
+        result = result[0]
         data = {
             "pair": pair,
             "ask": result["market_ask"],
