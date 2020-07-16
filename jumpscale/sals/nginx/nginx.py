@@ -262,6 +262,7 @@ class NginxConfig(Base):
 
         website = self.websites.get(website_name)
         website.port = port
+        website.ssl = port in [443, 8443]
         return website
 
     def clean(self):
