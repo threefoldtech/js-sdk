@@ -3,7 +3,7 @@ name = "js-sdk"
 packages = [{ include = "jumpscale" }]
 
 version = "11.0.0-alpha.1"
-description = ""
+description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "MIT"
 
