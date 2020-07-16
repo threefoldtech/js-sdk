@@ -65,7 +65,6 @@ class LiquidClient(Client):
         if not result:
             raise j.exceptions.Input()
         result=result[0]
-        print(result)
         data = {
             "pair": pair,
             "ask": result["market_ask"],
