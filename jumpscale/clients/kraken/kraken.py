@@ -2,7 +2,7 @@
 
 ## Getting kraken clientn
 
-Kraken client is available from `j.clients.kraken` and it's' cached for at least one day before attempting to invalidate
+Kraken client is available from `j.clients.kraken`
 ```
 JS-NG> k1 = j.clients.kraken.get("k1")
 ```                                                                                
@@ -40,8 +40,6 @@ class Price(Base):
 
 
 class KrakenClient(Client):
-    url = fields.String(default="https://api.kraken.com/")
-    _price = fields.Object(Price)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,16 +63,14 @@ class KrakenClient(Client):
         Returns:
             Price: Object containing ask, bid and last trade price
         """
-        if self._price.pair != pair or (j.data.time.utcnow().datetime - self._price.stored_date).days > 0:
-            res = self._do_request(f"https://api.kraken.com/0/public/Ticker?pair={pair}", j.exceptions.Input)
-            result = res["result"]
-            key = list(result.keys())[0]
-            data = {
-                "pair": pair,
-                "ask": result[key]["a"][0],
-                "bid": result[key]["b"][0],
-                "last_trade": result[key]["c"][0],
-                "stored_date": j.data.time.utcnow().datetime,
-            }
-            self._price = Price(**data)
-        return self._price
+        res = self._do_request(f"https://api.kraken.com/0/public/Ticker?pair={pair}", j.exceptions.Input)
+        result = res["result"]
+        key = list(result.keys())[0]
+        data = {
+            "pair": pair,
+            "ask": result[key]["a"][0],
+            "bid": result[key]["b"][0],
+            "last_trade": result[key]["c"][0],
+            "stored_date": j.data.time.utcnow().datetime,
+        }
+        return Price(**data)
