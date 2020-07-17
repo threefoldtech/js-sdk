@@ -872,7 +872,7 @@ class Stellar(Client):
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
-            offer_id: pass the current offer id and set the amount to 0 to cancel this offer
+            offer_id: pass the current offer id and set the amount to 0 to cancel this offer or another amount to update the offer
 
         Raises:
             ValueError: In case of invalid issuer.
