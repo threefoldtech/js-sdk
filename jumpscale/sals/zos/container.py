@@ -10,17 +10,18 @@ from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationContainerLogs1,
     TfgridWorkloadsReservationNetworkConnection1,
     DiskType,
+    Type,
 )
 
 
 class Container:
     def create(
         self,
-        reservation,
         node_id,
         network_name,
         ip_address,
         flist,
+        capacity_pool_id,
         env={},
         cpu=1,
         memory=1024,
@@ -57,8 +58,9 @@ class Container:
         """
 
         cont = TfgridWorkloadsReservationContainer1()
-        cont.node_id = node_id
-        cont.workload_id = _next_workload_id(reservation)
+        cont.info.node_id = node_id
+        cont.info.pool_id = capacity_pool_id
+        cont.info.workload_type = Type.Container
 
         cont.flist = flist
         cont.storage_url = storage_url
@@ -66,16 +68,6 @@ class Container:
         cont.secret_environment = secret_env
         cont.entrypoint = entrypoint
         cont.interactive = interactive
-
-        nw = None
-        for nw in reservation.data_reservation.networks:
-            if nw.name == network_name:
-                ip = netaddr.IPAddress(ip_address)
-                subnet = netaddr.IPNetwork(nw.iprange)
-                if ip not in subnet:
-                    raise Input(
-                        f"ip address {str(ip)} is not in the range of the network resource of the node {str(subnet)}"
-                    )
 
         net = TfgridWorkloadsReservationNetworkConnection1()
         net.network_id = network_name
@@ -87,7 +79,6 @@ class Container:
         cont.capacity.memory = memory
         cont.capacity.disk_size = disk_size
         cont.capacity.disk_type = disk_type
-        reservation.data_reservation.containers.append(cont)
 
         return cont
 

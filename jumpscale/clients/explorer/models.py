@@ -227,7 +227,7 @@ class TfgridWorkloadsReservationInfo1(Base):
     signatures_farmer = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     signatures_delete = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
     epoch = fields.DateTime(default=datetime.utcnow)
-    metadata = fields.String()
+    metadata = fields.String(default="")
     result = fields.Object(TfgridWorkloadsReservationResult1)
     workload_type = fields.Enum(Type)
 
@@ -374,6 +374,7 @@ class TfgridWorkloadsReservationCreate1(Base):
 
 class TfgridWorkloadsReservationContainer1(Base):
     flist = fields.String(default="")
+    hub_url = fields.String(default="")
     storage_url = fields.String(default="")
     environment = fields.Typed(dict)
     secret_environment = fields.Typed(dict)
