@@ -8,6 +8,7 @@ from .reservations import Reservations
 from .gateway import Gateway
 from .errors import raise_for_status
 from .pools import Pools
+from .workloads import Workoads
 
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
@@ -27,3 +28,4 @@ class Explorer(Client):
         self.reservations = Reservations(self)
         self.gateway = Gateway(self)
         self.pools = Pools(self)
+        self.workloads = Workoads(self)

@@ -26,6 +26,7 @@ class NextAction(Enum):
     DELETE = 4
     INVALID = 5
     DELETED = 6
+    MIGRATED = 7
 
 
 class Category(Enum):
@@ -57,6 +58,8 @@ class Type(Enum):
     Reverse_proxie = 6
     Subdomain = 7
     Domain_delegate = 8
+    Gateway_4_to_6 = 9
+    Network_resource = 10
 
 
 class Mode(Enum):
@@ -199,39 +202,64 @@ class TfgridWorkloadsReservationContainerCapacity1(Base):
     disk_type = fields.Enum(DiskType)
 
 
-class TfgridWorkloadsReservationGatewayProxy1(Base):
+class TfgridWorkloadsReservationResult1(Base):
+    category = fields.Enum(Category)
+    workload_id = fields.String(default="")
+    data_json = fields.Json()
+    signature = fields.Bytes()
+    state = fields.Enum(State)
+    message = fields.String(default="")
+    epoch = fields.DateTime()
+
+
+class TfgridWorkloadsReservationInfo1(Base):
     workload_id = fields.Integer()
-    node_id = fields.String(default="")
+    node_id = fields.String()
+    pool_id = fields.Integer()
+    description = fields.String(default="")
+    reference = fields.String(default="")
+    customer_tid = fields.Integer()
+    customer_signature = fields.String()
+    next_action = fields.Enum(NextAction)
+    signatures_provision = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
+    signing_request_provision = fields.Object(TfgridWorkloadsReservationSigningRequest1)
+    signing_request_delete = fields.Object(TfgridWorkloadsReservationSigningRequest1)
+    signatures_farmer = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
+    signatures_delete = fields.List(fields.Object(TfgridWorkloadsReservationSigningSignature1))
+    epoch = fields.DateTime(default=datetime.utcnow)
+    metadata = fields.String()
+    result = fields.Object(TfgridWorkloadsReservationResult1)
+    workload_type = fields.Enum(Type)
+
+
+class TfgridWorkloadsReservationGatewayProxy1(Base):
     domain = fields.String(default="")
     addr = fields.String(default="")
     port = fields.Integer()
     port_tls = fields.Integer()
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGatewayReverse_proxy1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     domain = fields.String(default="")
     secret = fields.String(default="")
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGatewaySubdomain1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     domain = fields.String(default="")
     ips = fields.List(fields.String())
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGatewayDelegate1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     domain = fields.String(default="")
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGateway4to61(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     public_key = fields.String(default="")
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationStatsaggregator1(Base):
@@ -241,8 +269,6 @@ class TfgridWorkloadsReservationStatsaggregator1(Base):
 
 
 class TfgridWorkloadsReservationK8s1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     size = fields.Integer()
     network_id = fields.String(default="")
     ipaddress = fields.IPAddress()
@@ -250,7 +276,7 @@ class TfgridWorkloadsReservationK8s1(Base):
     master_ips = fields.List(fields.IPAddress())
     ssh_keys = fields.List(fields.String())
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
-    farmer_tid = fields.Integer()
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsWireguardPeer1(Base):
@@ -258,16 +284,6 @@ class TfgridWorkloadsWireguardPeer1(Base):
     allowed_iprange = fields.List(fields.IPRange())
     endpoint = fields.String(default="")
     iprange = fields.IPRange(default="10.10.11.0/24")
-
-
-class TfgridWorkloadsReservationResult1(Base):
-    category = fields.Enum(Category)
-    workload_id = fields.String(default="")
-    data_json = fields.Json()
-    signature = fields.Bytes()
-    state = fields.Enum(State)
-    message = fields.String(default="")
-    epoch = fields.DateTime()
 
 
 class TfgridWorkloadsReservationWorkload1(Base):
@@ -357,8 +373,6 @@ class TfgridWorkloadsReservationCreate1(Base):
 
 
 class TfgridWorkloadsReservationContainer1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     flist = fields.String(default="")
     storage_url = fields.String(default="")
     environment = fields.Typed(dict)
@@ -371,15 +385,18 @@ class TfgridWorkloadsReservationContainer1(Base):
     farmer_tid = fields.Integer()
     logs = fields.List(fields.Object(TfgridWorkloadsReservationContainerLogs1))
     capacity = fields.Object(TfgridWorkloadsReservationContainerCapacity1)
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsNetworkNet_resource1(Base):
-    node_id = fields.String(default="")
+    name = fields.String(default="")
+    network_iprange = fields.IPRange(default="10.10.0.0/16")
     wireguard_private_key_encrypted = fields.String(default="")
     wireguard_public_key = fields.String(default="")
     wireguard_listen_port = fields.Integer()
     iprange = fields.IPRange(default="10.10.10.0/24")
     peers = fields.List(fields.Object(TfgridWorkloadsWireguardPeer1))
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationNetwork1(Base):
@@ -392,12 +409,10 @@ class TfgridWorkloadsReservationNetwork1(Base):
 
 
 class TfgridWorkloadsReservationVolume1(Base):
-    workload_id = fields.Integer()
-    node_id = fields.String(default="")
     size = fields.Integer()
     type = fields.Enum(DiskType)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
-    farmer_tid = fields.Integer()
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationZdb1(Base):
@@ -409,7 +424,7 @@ class TfgridWorkloadsReservationZdb1(Base):
     disk_type = fields.Enum(DiskType)
     public = fields.Boolean(default=False)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
-    farmer_tid = fields.Integer()
+    info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationData1(Base):
@@ -469,7 +484,7 @@ class TfgridWorkloadsPool1(Base):
     last_updated = fields.DateTime()
     active_cu = fields.Float()
     active_su = fields.Float()
-    empty_at = fields.Integer()  # can't be set to data because of max int64 value
+    empty_at = fields.Integer()  # can't be set to date because of max int64 value
     customer_tid = fields.Integer()
     active_workload_ids = fields.List(fields.String())
 
