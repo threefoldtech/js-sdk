@@ -444,3 +444,42 @@ class TfgridWorkloadsReservation1(Base):
     epoch = fields.DateTime(default=datetime.utcnow)
     metadata = fields.String(default="")
     results = fields.List(fields.Object(TfgridWorkloadsReservationResult1))
+
+
+class TfgridWorkloadsPoolCreateData1(Base):
+    pool_id = fields.Integer()
+    cus = fields.Integer()
+    sus = fields.Integer()
+    node_ids = fields.List(fields.String())
+    currencies = fields.List(fields.String())
+
+
+class TfgridWorkloadsPoolCreate1(Base):
+    json = fields.String()
+    data_reservation = fields.Object(TfgridWorkloadsPoolCreateData1)
+    customer_tid = fields.Integer()
+    customer_signature = fields.String()
+
+
+class TfgridWorkloadsPool1(Base):
+    pool_id = fields.Integer()
+    cus = fields.Float()
+    sus = fields.Float()
+    node_ids = fields.List(fields.String())
+    last_updated = fields.DateTime()
+    active_cu = fields.Float()
+    active_su = fields.Float()
+    empty_at = fields.Integer()  # can't be set to data because of max int64 value
+    customer_tid = fields.Integer()
+    active_workload_ids = fields.List(fields.String())
+
+
+class TfgridWorkloadsPoolEscrow1(Base):
+    address = fields.String()
+    asset = fields.String()
+    amount = fields.Integer()
+
+
+class TfgridWorkloadsPoolCreated1(Base):
+    reservation_id = fields.Integer()
+    escrow_information = fields.Object(TfgridWorkloadsPoolEscrow1)

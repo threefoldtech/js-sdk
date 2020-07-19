@@ -7,6 +7,7 @@ from .volumes import Volumes
 from .zdb import ZDB
 from .billing import Billing
 from .gateway import Gateway
+from .pools import Pools
 from jumpscale.data.time import now
 from jumpscale.data.serializers.json import dump_to_file, load_from_file, dumps, loads
 from jumpscale.data.nacl import payload_build
@@ -28,6 +29,7 @@ class Zosv2:
         self._kubernetes = Kubernetes(self._explorer)
         self._billing = Billing()
         self._gateway = Gateway(self._explorer)
+        self._pools = Pools(self._explorer)
 
     @property
     def network(self):
@@ -60,6 +62,10 @@ class Zosv2:
     @property
     def billing(self):
         return self._billing
+
+    @property
+    def pools(self):
+        return self._pools
 
     def reservation_create(self):
         """Creates a new empty reservation schema
