@@ -17,7 +17,7 @@ apt-get install restic
 
 ```python
 instance = j.clients.restic.get("instance")
-instance.path = /path/to/repo  # Where restic will store its data can be local or SFTP or rest check https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
+instance.repo = /path/to/repo  # Where restic will store its data can be local or SFTP or rest check https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html
 instance.password = pass  # Password for the repo needed to access the data after init
 instance.init_repo()
 ```
@@ -65,14 +65,37 @@ instance.forget(keep_last=10)  # Will prune all snapshots and keep the last 10 t
 """
 from jumpscale.core.base import Base, fields
 from jumpscale.core.exceptions import NotFound, Runtime
+from io import BytesIO
 
 import subprocess
 import json
 import os
 
 
+CRON_SCRIPT = """
+export RESTIC_REPOSITORY={repo}
+export RESTIC_PASSWORD={password}
+
+restic unlock &
+wait $!
+
+restic backup \
+       --one-file-system \
+       {path} &
+wait $!
+
+restic forget \
+       --keep-last 20 \
+       --prune
+wait $!
+
+restic check &
+wait $!
+"""
+
+
 class ResticRepo(Base):
-    path = fields.String(required=True)
+    repo = fields.String(required=True)
     password = fields.Secret(required=True)
     extra_env = fields.Typed(dict, default={})
 
@@ -91,20 +114,20 @@ class ResticRepo(Base):
         if not self._env:
             self.validate()
             self._env = os.environ.copy()
-            self._env.update({"RESTIC_PASSWORD": self.password, "RESTIC_REPOSITORY": self.path}, **self.extra_env)
+            self._env.update({"RESTIC_PASSWORD": self.password, "RESTIC_REPOSITORY": self.repo}, **self.extra_env)
         return self._env
 
     def _run_cmd(self, cmd, check=True):
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=self.env)
-        if check and p.returncode:
-            raise Runtime(f"Restic command failed with {p.stderr.decode()}")
-        return p
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=self.env)
+        if check and proc.returncode:
+            raise Runtime(f"Restic command failed with {proc.stderr.decode()}")
+        return proc
 
     def init_repo(self):
         """Init restic repo with data specified in the instances
         """
-        p = self._run_cmd(["restic", "cat", "config"], False)
-        if p.returncode > 0:
+        proc = self._run_cmd(["restic", "cat", "config"], False)
+        if proc.returncode > 0:
             self._run_cmd(["restic", "init"])
 
     def backup(self, path, tag=None):
@@ -151,8 +174,8 @@ class ResticRepo(Base):
         cmd = ["restic", "snapshots", "--json"]
         if tag:
             cmd.extend(["--tag", tag])
-        p = self._run_cmd(cmd)
-        return json.loads(p.stdout)
+        proc = self._run_cmd(cmd)
+        return json.loads(proc.stdout)
 
     def forget(self, keep_last=10, prune=True):
         """Deletes data in the repo
@@ -165,3 +188,17 @@ class ResticRepo(Base):
         if prune:
             cmd.append("--prune")
         self._run_cmd(cmd)
+
+    def auto_backup(self, path):
+        script_path = os.path.expanduser("~/restic_cron")
+        proc = subprocess.run(["crontab", "-l"], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+        if proc.stdout.decode().find(script_path) < 0:  # Check if cron job already running
+            cron_script = CRON_SCRIPT.format(repo=self.repo, password=self.password, path=path)
+            with open(script_path, "w") as rfd:
+                rfd.write(cron_script)
+
+            cron_cmd = f"0 0 * * * {script_path} -with args \n"
+            proc = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc_res = proc.communicate(input=cron_cmd.encode())
+            if proc.returncode > 0:
+                raise Runtime(f"Couldn't start cron job, failed with {proc_res[1]}")
