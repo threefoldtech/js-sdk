@@ -31,8 +31,8 @@ class Backup(BaseActor):
         box = Box(PRIVATE_KEY, verify_key.to_curve25519_public_key())
         password_backup = box.decrypt(passwd.encode(), encoder = nacl.encoding.Base64Encoder).decode()
 
-        self._htpasswd(self.ssh_server1, threebot_name, password_backup)
-        self._htpasswd(self.ssh_server2, threebot_name, password_backup)
+        self._htpasswd(self.ssh_server1, threebot_name.split(".")[0], password_backup)
+        self._htpasswd(self.ssh_server2, threebot_name.split(".")[0], password_backup)
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 
