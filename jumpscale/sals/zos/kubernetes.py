@@ -1,14 +1,14 @@
 from jumpscale.core.exceptions import Input
 from .crypto import encrypt_for_node
 from .id import _next_workload_id
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationK8s1
+from jumpscale.clients.explorer.models import TfgridWorkloadsReservationK8s1, Type
 
 
 class Kubernetes:
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 
-    def add_master(self, reservation, node_id, network_name, cluster_secret, ip_address, size, ssh_keys=[]):
+    def add_master(self, node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id):
         """Add a master node to a kubernets cluster
 
         Args:
@@ -30,8 +30,9 @@ class Kubernetes:
             raise Input("size can only be 1 or 2")
 
         master = TfgridWorkloadsReservationK8s1()
-        master.node_id = node_id
-        master.workload_id = _next_workload_id(reservation)
+        master.info.node_id = node_id
+        master.info.workload_type = Type.Kubernetes
+        master.info.pool_id = pool_id
 
         node = self._nodes.get(node_id)
         master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret).decode()
@@ -42,10 +43,9 @@ class Kubernetes:
             ssh_keys = [ssh_keys]
         master.ssh_keys = ssh_keys
 
-        reservation.data_reservation.kubernetes.append(master)
         return master
 
-    def add_worker(self, reservation, node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys=[]):
+    def add_worker(self, node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id):
         """Add a worker node to a kubernets cluster
 
         Args:
@@ -65,13 +65,13 @@ class Kubernetes:
             [type]: Worker node
         """
         worker = self.add_master(
-            reservation=reservation,
             node_id=node_id,
             network_name=network_name,
             cluster_secret=cluster_secret,
             ip_address=ip_address,
             size=size,
             ssh_keys=ssh_keys,
+            pool_id=pool_id,
         )
         worker.master_ips = [master_ip]
         return worker
