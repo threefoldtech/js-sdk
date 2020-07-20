@@ -6,6 +6,7 @@ import  requests
 import nacl.signing
 import binascii
 from  nacl.public import Box
+import  nacl.encoding
 
 BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
@@ -20,7 +21,7 @@ class Backup(BaseActor):
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def server_connect(self, threebot_name:str, passwd:str) -> list:
+    def init(self, threebot_name:str, passwd:str) -> list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
@@ -28,7 +29,7 @@ class Backup(BaseActor):
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(PRIVATE_KEY, verify_key.to_curve25519_public_key())
-        password_backup = box.decrypt(passwd.encode()).decode()
+        password_backup = box.decrypt(passwd.encode(), encoder = nacl.encoding.Base64Encoder).decode()
 
         self._htpasswd(self.ssh_server1, threebot_name, password_backup)
         self._htpasswd(self.ssh_server2, threebot_name, password_backup)
