@@ -1,14 +1,14 @@
 from .crypto import encrypt_for_node
 from jumpscale.core.exceptions import Input
 from .id import _next_workload_id
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationZdb1, DiskType, Mode
+from jumpscale.clients.explorer.models import TfgridWorkloadsReservationZdb1, DiskType, Mode, Type
 
 
 class ZDB:
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 
-    def create(self, reservation, node_id, size, mode, password, disk_type=DiskType.SSD, public=False):
+    def create(self, node_id, size, mode, password, pool_id, disk_type=DiskType.SSD, public=False):
         """add a 0-db namespace workload to the reservation
 
         Args:
@@ -29,13 +29,13 @@ class ZDB:
         """
 
         zdb = TfgridWorkloadsReservationZdb1()
-        zdb.workload_id = _next_workload_id(reservation)
-        zdb.node_id = node_id
+        zdb.info.node_id = node_id
+        zdb.info.pool_id = pool_id
+        zdb.info.workload_type = Type.Zdb
         zdb.size = size
         zdb.mode = mode
         if password:
             node = self._nodes.get(node_id)
             zdb.password = encrypt_for_node(node.public_key_hex, password).decode()
         zdb.disk_type = disk_type
-        reservation.data_reservation.zdbs.append(zdb)
         return zdb
