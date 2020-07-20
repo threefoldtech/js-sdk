@@ -4,17 +4,20 @@ import nacl.secret
 import nacl.utils
 import  requests
 import nacl.signing
-import  binascii
+import binascii
+from  nacl.public import Box
 
 BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
 
+PRIVATE_KEY = j.core.identity.me.nacl.private_key
 class Backup(BaseActor):
     def __init__(self):
         super().__init__()
         self.explorer = j.clients.explorer.get_default()
         self.ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
         self.ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
+        self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
     def server_connect(self, threebot_name:str, passwd:str):
@@ -23,10 +26,9 @@ class Backup(BaseActor):
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f"Threebot name {threebot_name} is not found")
 
-        public_key = user.pubkey
-        public_key_unhex = binascii.unhexlify(public_key)
-        sign = nacl.signing.VerifyKey(public_key_unhex)
-        password_backup = sign.verify(passwd.encode()).decode()
+        verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
+        box = Box(PRIVATE_KEY, verify_key.to_curve25519_public_key())
+        password_backup = box.decrypt(passwd.encode()).decode()
 
         self._htpasswd(self.ssh_server1, threebot_name, password_backup)
         self._htpasswd(self.ssh_server2, threebot_name, password_backup)
@@ -35,5 +37,10 @@ class Backup(BaseActor):
 
     def _htpasswd(self, server, threebot_name, password_backup):
         server.sshclient.run(f"cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}")
+
+    @actor_method
+    def public_key (self):
+        return self.pub_key
+
 
 Actor = Backup
