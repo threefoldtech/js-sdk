@@ -85,7 +85,7 @@ restic backup \
 wait $!
 
 restic forget \
-       --keep-last 20 \
+       --keep-last {keep_last} \
        --prune
 wait $!
 
@@ -102,12 +102,12 @@ class ResticRepo(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._check_install()
+        self._check_install("restic")
         self._env = None
 
-    def _check_install(self):
-        if subprocess.call(["which", "restic"], stdout=subprocess.DEVNULL):
-            raise NotFound("Restic not installed")
+    def _check_install(self, binary):
+        if subprocess.call(["which", binary], stdout=subprocess.DEVNULL):
+            raise NotFound(f"{binary} not installed")
 
     @property
     def env(self):
@@ -189,16 +189,48 @@ class ResticRepo(Base):
             cmd.append("--prune")
         self._run_cmd(cmd)
 
-    def auto_backup(self, path):
-        script_path = os.path.expanduser("~/restic_cron")
+    def _get_script_path(self, path):
+        return os.path.join(path, "restic_cron")
+
+    def _get_crons_jobs(self):
         proc = subprocess.run(["crontab", "-l"], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
-        if proc.stdout.decode().find(script_path) < 0:  # Check if cron job already running
-            cron_script = CRON_SCRIPT.format(repo=self.repo, password=self.password, path=path)
+        return proc.stdout.decode()
+
+    def auto_backup(self, path, keep_last=20):
+        """Runs a cron job that backups the repo and prunes the last specified backups
+
+        Args:
+            path (str): local path to backup
+            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+        """
+        self._check_install("crontab")
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        if cronjobs.find(script_path) < 0:  # Check if cron job already running
+            cron_script = CRON_SCRIPT.format(repo=self.repo, password=self.password, path=path, keep_last=keep_last)
             with open(script_path, "w") as rfd:
                 rfd.write(cron_script)
 
-            cron_cmd = f"0 0 * * * {script_path} -with args \n"
+            cron_cmd = cronjobs + f"0 0 * * * bash {script_path} \n"
             proc = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
             proc_res = proc.communicate(input=cron_cmd.encode())
             if proc.returncode > 0:
                 raise Runtime(f"Couldn't start cron job, failed with {proc_res[1]}")
+
+    def disable_auto_backup(self, path):
+        """Removes cron jon based on the path being backed
+
+        Args:
+            path (str): local path to backup in the cron job
+        """
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        other_crons = []
+        for cronjob in cronjobs.splitlines():
+            if script_path not in cronjob:
+                other_crons.append(cronjob)
+        proc = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        cron_cmd = "\n".join(other_crons) + "\n"
+        proc_res = proc.communicate(input=cron_cmd.encode())
+        if proc.returncode > 0:
+            raise Runtime(f"Couldn't remove cron job, failed with {proc_res[1]}")
