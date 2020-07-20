@@ -1,6 +1,6 @@
 from .container import Container
 from .kubernetes import Kubernetes
-from .network import Network
+from .network import NetworkGenerator
 from .node_finder import NodeFinder
 from .gateway_finder import GatewayFinder
 from .volumes import Volumes
@@ -23,7 +23,7 @@ class Zosv2:
         self._explorer = j.core.identity.me.explorer
         self._nodes_finder = NodeFinder(self._explorer)
         self._gateways_finder = GatewayFinder(self._explorer)
-        self._network = Network(self._explorer)
+        self._network = NetworkGenerator(self._explorer)
         self._container = Container()
         self._volume = Volumes()
         self._zdb = ZDB(self._explorer)
