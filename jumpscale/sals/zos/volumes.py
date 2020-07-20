@@ -4,11 +4,12 @@ from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationVolume1,
     DiskType,
     TfgridWorkloadsReservationContainerMount1,
+    Type,
 )
 
 
 class Volumes:
-    def create(self, reservation, node_id, size=5, type=DiskType.HDD):
+    def create(self, node_id, pool_id, size=5, type=DiskType.HDD):
         """add a volume to the reservation
 
         Args:
@@ -25,26 +26,12 @@ class Volumes:
         """
 
         volume = TfgridWorkloadsReservationVolume1()
-        volume.workload_id = _next_workload_id(reservation)
         volume.size = size
         volume.type = type
-        volume.node_id = node_id
-        reservation.data_reservation.volumes.append(volume)
+        volume.info.node_id = node_id
+        volume.info.pool_id = pool_id
+        volume.info.workload_type = Type.Volume
         return volume
-
-    def attach(self, container, volume, mount_point):
-        """attach a volume to a container.
-           The volume must be defined in the same reservation
-
-        Args:
-            container ([type]): container object from create_container function
-            volume ([type]): Volume object that is returned from add_volume function
-            mount_point (str): path where to mount the volume in the container
-        """
-        vol = TfgridWorkloadsReservationContainerMount1()
-        vol.volume_id = f"-{volume.workload_id}"
-        vol.mountpoint = mount_point
-        container.volumes.append(vol)
 
     def attach_existing(self, container, volume_id, mount_point):
         """attach an existing volume to a container.
