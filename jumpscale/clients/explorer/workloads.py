@@ -118,7 +118,7 @@ class Workoads:
 
     def sign_provision(self, workload_id, tid, signature):
         url = self._base_url + f"/{workload_id}/sign/provision"
-        data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.epoch})
+        data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.now().timestamp})
         self._session.post(url, data=data)
         return True
 
@@ -128,6 +128,6 @@ class Workoads:
         if isinstance(signature, bytes):
             signature = binascii.hexlify(signature).decode()
 
-        data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.epoch})
+        data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.now().timestamp})
         self._session.post(url, data=data)
         return True
