@@ -73,20 +73,18 @@ import os
 
 
 CRON_SCRIPT = """
+epoch=$(date +%s)
+
 export RESTIC_REPOSITORY={repo}
 export RESTIC_PASSWORD={password}
 
 restic unlock &
 wait $!
 
-restic backup \
-       --one-file-system \
-       {path} &
+restic backup --one-file-system --tag $epoch {path} &
 wait $!
 
-restic forget \
-       --keep-last {keep_last} \
-       --prune
+restic forget --keep-last {keep_last} --prune &
 wait $!
 
 restic check &
@@ -130,15 +128,16 @@ class ResticRepo(Base):
         if proc.returncode > 0:
             self._run_cmd(["restic", "init"])
 
-    def backup(self, path, tag=None):
+    def backup(self, path, tags=None):
         """Backup a path to the repo
 
         Args:
             path (str): local path to backup
-            tag (str): tag to set to the backup
+            tags (list): list of tags to set to the backup
         """
+        tags = tags or []
         cmd = ["restic", "backup", path]
-        if tag:
+        for tag in tags:
             cmd.extend(["--tag", tag])
         self._run_cmd(cmd)
 
@@ -166,14 +165,22 @@ class ResticRepo(Base):
         else:
             raise ValueError("Please specify either `snapshot_id` or `latest` flag")
 
-    def list_snapshots(self, tag=None):
+    def list_snapshots(self, tags=None, last=False):
         """List all snapshots in the repo
+
+        Args:
+            tags (list): list of tags to filter on
+            last (bool): if True will get last snapshot only while respecting the other filters
+
         Returns
             list : all snapshots as dicts
         """
+        tags = tags or []
         cmd = ["restic", "snapshots", "--json"]
-        if tag:
+        for tag in tags:
             cmd.extend(["--tag", tag])
+        if last:
+            cmd.append("--last")
         proc = self._run_cmd(cmd)
         return json.loads(proc.stdout)
 
