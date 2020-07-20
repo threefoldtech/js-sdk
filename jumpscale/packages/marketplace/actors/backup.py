@@ -24,7 +24,7 @@ class Backup(BaseActor):
             raise j.exceptions.NotFound(f"Threebot name {threebot_name} is not found")
 
         public_key = user.pubkey
-        public_key_hex = binascii.hexlify(public_key)
+        public_key_hex = binascii.unhexlify(public_key)
         sign = nacl.signing.VerifyKey(public_key_hex)
         password_backup = sign.verify(passwd).decode()
 
