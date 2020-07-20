@@ -7,6 +7,7 @@ from jumpscale.clients.explorer.models import (
     TfgridWorkloadsReservationGatewayProxy1,
     TfgridWorkloadsReservationGatewayReverse_proxy1,
     TfgridWorkloadsReservationGateway4to61,
+    Type,
 )
 from .crypto import encrypt_for_node
 
@@ -15,54 +16,54 @@ class Gateway:
     def __init__(self, explorer):
         self._gateways = explorer.gateway
 
-    def sub_domain(self, reservation, node_id, domain, ips):
+    def sub_domain(self, node_id, domain, ips, pool_id):
         for ip in ips:
             if not _is_valid_ip(ip):
                 raise Input(f"{ip} is not valid IP address")
 
         sb = TfgridWorkloadsReservationGatewaySubdomain1()
-        sb.node_id = node_id
-        sb.workload_id = _next_workload_id(reservation)
+        sb.info.node_id = node_id
         sb.domain = domain
         sb.ips = ips
-        reservation.data_reservation.subdomains.append(sb)
+        sb.info.workload_type = Type.Subdomain
+        sb.info.pool_id = pool_id
         return sb
 
-    def delegate_domain(self, reservation, node_id, domain):
+    def delegate_domain(self, node_id, domain, pool_id):
         d = TfgridWorkloadsReservationGatewayDelegate1()
-        d.node_id = node_id
-        d.workload_id = _next_workload_id(reservation)
+        d.info.node_id = node_id
         d.domain = domain
-        reservation.data_reservation.domain_delegates.append(d)
+        d.info.workload_type = Type.Domain_delegate
+        d.info.pool_id = pool_id
         return d
 
-    def tcp_proxy(self, reservation, node_id, domain, addr, port, port_tls=None):
+    def tcp_proxy(self, node_id, domain, addr, port, port_tls, pool_id):
         p = TfgridWorkloadsReservationGatewayProxy1()
-        p.node_id = node_id
-        p.workload_id = _next_workload_id(reservation)
+        p.info.node_id = node_id
+        p.info.pool_id = pool_id
+        p.info.workload_type = Type.Proxie
         p.domain = domain
         p.addr = addr
         p.port = port
         p.port_tls = port_tls
-        reservation.data_reservation.proxies.append(p)
         return p
 
-    def tcp_proxy_reverse(self, reservation, node_id, domain, secret):
+    def tcp_proxy_reverse(self, node_id, domain, secret, pool_id):
         p = TfgridWorkloadsReservationGatewayReverse_proxy1()
-        p.node_id = node_id
+        p.info.node_id = node_id
+        p.info.pool_id = pool_id
+        p.info.workload_type = Type.Reverse_proxie
         p.domain = domain
-        p.workload_id = _next_workload_id(reservation)
         node = self._gateways.get(node_id)
         p.secret = encrypt_for_node(node.public_key_hex, secret).decode()
-        reservation.data_reservation.reverse_proxies.append(p)
         return p
 
-    def gateway_4to6(self, reservation, node_id, public_key):
+    def gateway_4to6(self, node_id, public_key, pool_id):
         gw = TfgridWorkloadsReservationGateway4to61()
         gw.public_key = public_key
-        gw.node_id = node_id
-        gw.workload_id = _next_workload_id(reservation)
-        reservation.data_reservation.gateway4to6.append(gw)
+        gw.info.node_id = node_id
+        gw.info.pool_id = pool_id
+        gw.info.workload_type = Type.Gateway_4_to_6
         return gw
 
 
