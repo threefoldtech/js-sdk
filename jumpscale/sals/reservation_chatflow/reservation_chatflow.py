@@ -218,7 +218,7 @@ class ReservationChatflow:
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
         self._explorer = j.core.identity.me.explorer
-        self.update_local_reservations()
+        # self.update_local_reservations()
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
@@ -1528,3 +1528,6 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
         return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
+
+
+reservation_chatflow = ReservationChatflow()

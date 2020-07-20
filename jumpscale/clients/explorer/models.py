@@ -233,6 +233,7 @@ class TfgridWorkloadsReservationInfo1(Base):
 
 
 class TfgridWorkloadsReservationGatewayProxy1(Base):
+    id = fields.Integer()
     domain = fields.String(default="")
     addr = fields.String(default="")
     port = fields.Integer()
@@ -241,23 +242,27 @@ class TfgridWorkloadsReservationGatewayProxy1(Base):
 
 
 class TfgridWorkloadsReservationGatewayReverse_proxy1(Base):
+    id = fields.Integer()
     domain = fields.String(default="")
     secret = fields.String(default="")
     info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGatewaySubdomain1(Base):
+    id = fields.Integer()
     domain = fields.String(default="")
     ips = fields.List(fields.String())
     info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGatewayDelegate1(Base):
+    id = fields.Integer()
     domain = fields.String(default="")
     info = fields.Object(TfgridWorkloadsReservationInfo1)
 
 
 class TfgridWorkloadsReservationGateway4to61(Base):
+    id = fields.Integer()
     public_key = fields.String(default="")
     info = fields.Object(TfgridWorkloadsReservationInfo1)
 
@@ -269,6 +274,7 @@ class TfgridWorkloadsReservationStatsaggregator1(Base):
 
 
 class TfgridWorkloadsReservationK8s1(Base):
+    id = fields.Integer()
     size = fields.Integer()
     network_id = fields.String(default="")
     ipaddress = fields.IPAddress()
@@ -373,6 +379,7 @@ class TfgridWorkloadsReservationCreate1(Base):
 
 
 class TfgridWorkloadsReservationContainer1(Base):
+    id = fields.Integer()
     flist = fields.String(default="")
     hub_url = fields.String(default="")
     storage_url = fields.String(default="")
@@ -390,6 +397,7 @@ class TfgridWorkloadsReservationContainer1(Base):
 
 
 class TfgridWorkloadsNetworkNet_resource1(Base):
+    id = fields.Integer()
     name = fields.String(default="")
     network_iprange = fields.IPRange(default="10.10.0.0/16")
     wireguard_private_key_encrypted = fields.String(default="")
@@ -410,6 +418,7 @@ class TfgridWorkloadsReservationNetwork1(Base):
 
 
 class TfgridWorkloadsReservationVolume1(Base):
+    id = fields.Integer()
     size = fields.Integer()
     type = fields.Enum(DiskType)
     stats_aggregator = fields.List(fields.Object(TfgridWorkloadsReservationStatsaggregator1))
