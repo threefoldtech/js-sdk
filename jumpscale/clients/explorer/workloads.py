@@ -80,7 +80,7 @@ class Workoads:
             if customer_tid:
                 query["customer_tid"] = customer_tid
             if next_action:
-                query["next_action"] = self._next_action(next_action)
+                query["next_action"] = self._next_action(next_action).value
             workloads, _ = get_page(self._session, page, Decoder, url, query)
         else:
             workloads = list(self.iter(customer_tid, next_action))
@@ -89,8 +89,6 @@ class Workoads:
     def _next_action(self, next_action):
         if isinstance(next_action, str):
             next_action = NextAction[next_action.upper()]
-        if not isinstance(next_action, int):
-            raise j.core.exceptions.Input("next_action should be of type int")
         return next_action
 
     def iter(self, customer_tid=None, next_action=None):
@@ -100,7 +98,7 @@ class Workoads:
         def filter_next_action(reservation):
             if next_action is None:
                 return True
-            return reservation.next_action == next_action
+            return reservation.info.next_action == next_action
 
         url = self._base_url
 
@@ -108,7 +106,7 @@ class Workoads:
         if customer_tid:
             query["customer_tid"] = customer_tid
         if next_action:
-            query["next_action"] = next_action
+            query["next_action"] = next_action.value
         yield from filter(filter_next_action, get_all(self._session, Decoder, url, query))
 
     def get(self, workload_id):
