@@ -26,7 +26,7 @@ class Backup(BaseActor):
         public_key = user.pubkey
         public_key_unhex = binascii.unhexlify(public_key)
         sign = nacl.signing.VerifyKey(public_key_unhex)
-        password_backup = sign.verify(passwd).decode()
+        password_backup = sign.verify(passwd.encode()).decode()
 
         self._htpasswd(self.ssh_server1, threebot_name, password_backup)
         self._htpasswd(self.ssh_server2, threebot_name, password_backup)
