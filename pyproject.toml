@@ -2,13 +2,14 @@
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
 
-version = "0.1.0"
-description = ""
+version = "11.0.0-alpha.1"
+description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-js-ng = { git = "https://github.com/threefoldtech/js-ng.git", branch="development" }
+#js-ng = { git = "https://github.com/threefoldtech/js-ng.git", branch="development" }
+js-ng = "11.0.0-alpha.1"
 python = "^3.6"
 pillow = "^6.1"
 sendgrid = "^6.0"
