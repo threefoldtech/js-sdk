@@ -13,6 +13,8 @@ class Backup(BaseActor):
     def __init__(self):
         super().__init__()
         self.explorer = j.clients.explorer.get_default()
+        self.ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
+        self.ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
 
     @actor_method
     def server_connect(self, threebot_name:str, passwd:str):
@@ -26,12 +28,10 @@ class Backup(BaseActor):
         sign = nacl.signing.VerifyKey(public_key_unhex)
         password_backup = sign.verify(passwd).decode()
 
-        ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
-        ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
+        self._htpasswd(self.ssh_server1, threebot_name, password_backup)
+        self._htpasswd(self.ssh_server2, threebot_name, password_backup)
 
-        self._htpasswd(ssh_server1, threebot_name, password_backup)
-        self._htpasswd(ssh_server2, threebot_name, password_backup)
-        return ssh_server1.host, ssh_server2.host
+        return [self.ssh_server1.host, self.ssh_server2.host]
 
     def _htpasswd(self, server, threebot_name, password_backup):
         server.sshclient.run(f"cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}")
