@@ -24,8 +24,8 @@ class Backup(BaseActor):
             raise j.exceptions.NotFound(f"Threebot name {threebot_name} is not found")
 
         public_key = user.pubkey
-        public_key_hex = binascii.unhexlify(public_key)
-        sign = nacl.signing.VerifyKey(public_key_hex)
+        public_key_unhex = binascii.unhexlify(public_key)
+        sign = nacl.signing.VerifyKey(public_key_unhex)
         password_backup = sign.verify(passwd).decode()
 
         ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
