@@ -20,7 +20,7 @@ class Backup(BaseActor):
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def server_connect(self, threebot_name:str, passwd:str):
+    def server_connect(self, threebot_name:str, passwd:str) -> list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
@@ -39,7 +39,7 @@ class Backup(BaseActor):
         server.sshclient.run(f"cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}")
 
     @actor_method
-    def public_key (self):
+    def public_key (self) -> str:
         return self.pub_key
 
 
