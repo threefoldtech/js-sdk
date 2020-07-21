@@ -1,9 +1,10 @@
 ## System requirements for installation on the host
 
-The SDK uses python3, pip3, git, poetry, nginx, redis to be completely functional. the following are the instructions for installations on ubuntu and mac osx
+- Ubuntu 18.04 or higher, MacOS 10.9 or higher
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io)
+
+
 ### Ubuntu
-- Ubuntu 18.04 or later, MacOS 10.9 or more
-- packages needed [python3, python3-pip, git, poetry, nginx, redis]
 
   ```
   apt-get update
