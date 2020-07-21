@@ -20,7 +20,4 @@ poetry update
 poetry install
 
 echo "[*] Starting threebot in background ..."
-threebot start --background --development
-
-echo "[*] Sleeping forever ..."
-/usr/bin/sleep 1000d
+threebot start --development --domain "${DOMAIN}" --email "${EMAIL}"

@@ -30,6 +30,12 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step()
     def start(self):
         self.user_info = self.user_info()
+
+        threebots = j.sals.reservation_chatflow.get_solutions(SolutionType.Threebot)
+        if len(threebots) > 0:
+            domain = threebots[0]["reservation"]["data_reservation"]["containers"][0]["environment"]["DOMAIN"] 
+            self.stop(f"You already have a Threebot deployed at {domain}")
+
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
         self.solution_currency = "TFT"
@@ -166,7 +172,8 @@ class ThreebotDeploy(GedisChatBot):
             "SDK_VERSION": self.branch,
             "THREEBOT_NAME": self.user_info.get("username"),
             "SSHKEY": self.public_key,
-            "DOMAIN": self.domain
+            "DOMAIN": self.domain,
+            "EMAIL": self.user_info.get("email")
         }
 
         j.sals.zos.container.create(
