@@ -19,7 +19,7 @@ class ThreebotDeploy(GedisChatBot):
         "select_farm",
         "select_ip_address",
         "select_expiration_time",
-        "domain",
+        "domain_select",
         "overview",
         "deploy",
         "success",

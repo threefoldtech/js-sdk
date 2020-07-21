@@ -5,8 +5,7 @@
       <v-menu v-if="user.username" v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
-            <v-icon color="primary" left>mdi-account</v-icon>
-            {{user.name}}
+            <v-icon color="primary" left>mdi-account</v-icon> {{user.username}}
           </v-btn>
         </template>
         <v-card>
@@ -45,9 +44,8 @@
     >
       <v-sheet color="#148F77">
         <v-list class="text-center">
-          <img src="./assets/3bot.png" :width="mini ? 40 : 128" />
-          <br />
-          <v-list-item>
+          <img src="./assets/3bot.png" :width="mini ? 40 : 128"/><br>
+          <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
               <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
@@ -94,35 +92,41 @@
 </template>
 
 <script>
-module.exports = {
-  data() {
+module.exports =  {
+  data () { 
     return {
       user: {},
-      identity: {},
+      identity: null,
       menu: false,
-      mini: false
-    };
+      mini:false,
+      dialogs: {
+        identity: false
+      }
+    } 
+  },
+  components: {
+    identities: httpVueLoader("./Identity.vue")
   },
   computed: {},
   methods: {},
   computed: {
-    pages() {
-      return this.$router.options.routes.filter(page => {
-        return page.meta.listed;
-      });
+    pages () {
+      return this.$router.options.routes.filter((page) => {
+        return page.meta.listed
+      })
     }
   },
   methods: {
-    getCurrentUser() {
-      this.$api.admins.getCurrentUser().then(response => {
-        this.user = JSON.parse(response.data).data;
-      });
+    getCurrentUser () {
+      this.$api.user.currentUser().then((response) => {
+        this.user = response.data
+      })
     },
-    getIdentity() {
-      this.$api.admins.getIdentity().then(response => {
-        this.identity = JSON.parse(response.data).data;
-      });
-    }
+    getIdentity () {
+      this.$api.identity.get().then((response) => {
+        this.identity = JSON.parse(response.data)
+      })
+    },
   },
   mounted() {
     this.getIdentity();
