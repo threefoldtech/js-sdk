@@ -44,7 +44,8 @@ class notebooks:
         rc,_,_ = j.sals.process.execute("python -c 'import jupyterlab'")
         if rc:
             for package in self.python_packages:
-                rc,_, err = j.sals.process.execute(f"pip install {package}", showout=True, timeout=60000)
+                print(f"Installing {package}...")
+                rc,_, err = j.sals.process.execute(f"pip install {package}")
                 if rc:
                     raise j.exceptions.Runtime(err)
 
@@ -61,7 +62,8 @@ class notebooks:
             jupyter nbextension enable voila --sys-prefix --py
 
             """
-            rc,_,err = j.sals.process.execute(cmd, showout=True, timeout=60000)
+            print("Installing jupyter labextensions...")
+            rc,_,err = j.sals.process.execute(cmd, showout=True)
             if rc:
                 raise j.exceptions.Runtime(err)
 
@@ -71,7 +73,7 @@ class notebooks:
         rc,_,_ = j.sals.process.execute("python -c 'import jupyterlab'")
         if not rc:
             for package in self.python_packages:
-                rc,_, err = j.sals.process.execute(f"pip uninstall -y {package}", showout=True, timeout=60000)
+                rc,_, err = j.sals.process.execute(f"pip uninstall -y {package}", showout=True)
                 if rc:
                     raise j.exceptions.Runtime(err)
 
