@@ -165,12 +165,13 @@ class ResticRepo(Base):
         else:
             raise ValueError("Please specify either `snapshot_id` or `latest` flag")
 
-    def list_snapshots(self, tags=None, last=False):
+    def list_snapshots(self, tags=None, last=False, path=None):
         """List all snapshots in the repo
 
         Args:
             tags (list): list of tags to filter on
             last (bool): if True will get last snapshot only while respecting the other filters
+            last (str): path to filter on
 
         Returns
             list : all snapshots as dicts
@@ -179,6 +180,9 @@ class ResticRepo(Base):
         cmd = ["restic", "snapshots", "--json"]
         for tag in tags:
             cmd.extend(["--tag", tag])
+
+        if path:
+            cmd.extend(["--path", path])
         if last:
             cmd.append("--last")
         proc = self._run_cmd(cmd)
