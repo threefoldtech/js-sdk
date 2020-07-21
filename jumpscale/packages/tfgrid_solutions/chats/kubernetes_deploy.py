@@ -176,7 +176,7 @@ class kubernetesDeploy(GedisChatBot):
             self.resv_id, self.user_form_data["Solution name"], SolutionType.Kubernetes, self.user_form_data
         )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         res = f"# Kubernetes cluster has been deployed successfully: your reservation id is: {self.resv_id}"
         for i, ip in enumerate(self.user_form_data["IP Address"]):

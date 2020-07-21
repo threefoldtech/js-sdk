@@ -32,7 +32,13 @@
   - tmux `brew install tmux`
 
 ## Installation in system (Experts)
-(note: for mac OSX use root user during installation to be able to use ports (80, 443) `sudo su -`)
+General note: the system can be used to host websites and applications, thus it requires binding on 80, 443. which means elevated permissions on the user machine, on linux can be resolved using setcap for nginx, and on mac it will require root user. 
+
+```
+sudo setcap cap_net_bind_service=+ep `which nginx`
+```
+If you don't want to use 80, 443 and not hosting on a public IP, then you can use `--local` flag when starting the server which will bind on `8080, 80443` instead
+
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
 - Install the js-ng
 
@@ -44,17 +50,19 @@
   ```
 
 
-- Make sure to setcap for nginx (for linux only)
+- Make sure to setcap for nginx "if you want to access on 80, 443 otherwise use --local flag" (for linux only)
 ```
 sudo setcap cap_net_bind_service=+ep `which nginx`
 ```
 to be able to run as a normal user, you don't need it if you are root.
 
-- After that we will just do
+- After that we will just do 
 
   ```bash
-  threebot start
+  threebot start --local
   ```
+
+if you want to listen on 80, 443 use `threebot start` (used when on public IP with domain)
 
 - This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
 
@@ -65,7 +73,17 @@ to be able to run as a normal user, you don't need it if you are root.
 - After success you can visit the admin dashboard at http://localhost and start creating reservations
 
   ![configure](images/success.png)
+## Starting threebot 
+- You have some options available to start three bot 
+```
+threebot start <--identity user.3bot> <--background> <--local>
+```
 
+if you specified `--indentity user.3bot`, then the passed identity will be the default identity in the running 3bot
+
+if you specified `--background` then the server will run in background mode
+
+if you specified `--local` then the server will run on ports 8443/https and 8080 https instead of 443/https and 80/http
 ## Create a reservation via jsng Shell (without admin panel)
 
 See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a393a9ae2a838d78c22/docs/wiki/tutorials/deploy_ubuntu_container.md)
@@ -73,6 +91,7 @@ See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a39
 ## Access admin panel
 
 Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
+Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://172.17.0.2:8443/admin/`
 
 ## Create a new wallet
 
@@ -215,3 +234,12 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
     ```
 
     where the IP address is the one you chose in the chatflow earlier and is shown in the previous success message.
+
+
+### Troubleshooting
+
+- For macOS chrome may complain about self-signed certificate. In terminal execute the following
+
+  ```
+  open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security --ignore-certificate-errors
+  ```

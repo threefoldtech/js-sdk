@@ -1,5 +1,6 @@
 name = "kyc"
-ports = [ 80, 443]
+[[servers]]
+name = "kyc"
 [[static_dirs]]
 name = "frontend"
 path_url = "/static"

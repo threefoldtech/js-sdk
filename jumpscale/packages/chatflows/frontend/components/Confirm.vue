@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3 class="title font-regular mb-5">Please make sure of the entered values before starting deployment</h3>
     <Message :payload="payload"></Message>
     <v-simple-table>
       <template v-slot:default>

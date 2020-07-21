@@ -53,13 +53,13 @@ class PORTS:
     def init_default_ports(cls, local=False):
         if local:
             for port in range(8080, 8180):
-                if not j.sals.process.is_port_listenting(port):
+                if not j.sals.process.is_port_listening(port):
                     cls.HTTP = port
                     break
             else:
                 j.exception.Runtime("Could not find free port to listen on")
             for port in range(8443, 8500):
-                if not j.sals.process.is_port_listenting(port):
+                if not j.sals.process.is_port_listening(port):
                     cls.HTTPS = port
                     break
             else:
@@ -262,6 +262,7 @@ class NginxConfig(Base):
 
         website = self.websites.get(website_name)
         website.port = port
+        website.ssl = port in [443, 8443]
         return website
 
     def clean(self):

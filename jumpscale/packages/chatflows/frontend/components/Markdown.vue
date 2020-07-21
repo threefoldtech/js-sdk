@@ -24,7 +24,7 @@
    font-family: sans-serif !important;
  }
 
- p, ul, li, code {
+ span, p, ul, li, code {
    font-size: 18px;
    line-height: 140%;
  }

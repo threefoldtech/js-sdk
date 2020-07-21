@@ -82,23 +82,23 @@ export class ExternalView extends JetView {
         this.externalIframe = this.$$("iframe-external");
         this.externalIframe.disable();
         self.packagesToInstall = {};
-        
+
         webix.extend(this.externalIframe, webix.ProgressBar);
-        
+
         self.requiredPackagesNames = Object.keys(self.requiredPackages); // only names
 
         if (!self.requiredPackagesNames.length) {
             self.showIframe();
             return;
         }
-        
+
         self.requiredPackagesDiv = self.$$("required_packages_div");
         self.installPackageContainer = self.$$("install-packages");
         self.installButton = self.$$("install_btn");
 
         // check which packages to install
         // if any is already installed, then just ignore it
-        packages.packagesNames().then(data => {
+        packages.getInstalledPackages().then(data => {
             const packageList = JSON.parse(data.json()).data;
 
             // now go over required packages

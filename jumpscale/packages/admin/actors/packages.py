@@ -26,8 +26,13 @@ class Packages(BaseActor):
         return j.data.serializers.json.dumps({"data": list(self.threebot.packages.list_all())})
 
     @actor_method
-    def add_package(self, path: str = "", giturl: str = "") -> str:
-        return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl)})
+    def add_package(self, path: str = "", giturl: str = "", extras=None) -> str:
+        extras = extras or {}
+        if path:
+            path = path.strip()
+        if giturl:
+            giturl = giturl.strip()
+        return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl, **extras)})
 
     @actor_method
     def delete_package(self, name: str) -> str:

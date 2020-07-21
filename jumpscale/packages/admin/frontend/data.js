@@ -91,6 +91,14 @@ const SOLUTIONS = {
     icon: "mdi-router",
     url: "/solutions/4to6gw",
     description: ""
+  },
+  all: {
+    topic: "all",
+    type: "all_reservations",
+    name:"All Reservations",
+    icon: "mdi-clipboard-list-outline",
+    url: "/solutions/all",
+    description: ""
   }
 }
 

@@ -9,6 +9,10 @@
               <td>{{ name }}</td>
             </tr>
             <tr>
+              <td>Network</td>
+              <td>{{ wallet.network }}</td>
+            </tr>
+            <tr>
               <td>Address</td>
               <td>{{ wallet.address }}</td>
             </tr>
@@ -38,9 +42,10 @@
       </v-simple-table>
     </template>
     <template #actions>
+      <v-btn text @click="updateTrustlines">Update trustlines</v-btn>
       <v-btn text @click="close">Close</v-btn>
     </template>
-  </base-dialog>  
+  </base-dialog>
 </template>
 
 <script>
@@ -71,6 +76,15 @@ module.exports = {
       }).finally(() => {
         this.loading = false
       })
+    },
+    updateTrustlines(){
+      this.loading = true
+      this.$api.wallets.updateTrustlines(this.name).then((response) => {
+        this.done("Trustlines updated", "success")
+      }).finally(() => {
+        this.loading = false
+      })
+
     }
   }
 }

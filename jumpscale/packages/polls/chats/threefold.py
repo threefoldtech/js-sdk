@@ -5,12 +5,12 @@ from textwrap import dedent
 VOTES = {
     1: {
         "title": "Reading June 2020 update document",
-        "content": "It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on [https://wiki.threefold.io/#/threefold_update_june2020.md](https://wiki.threefold.io/#/threefold_update_june2020.md)",
+        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on <a href="https://wiki.threefold.io/#/threefold_update_june2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_june2020.md</a></span>""",
         "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
         "title": "Reading the manifesto",
-        "content": "It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the [Decentralization Manifesto](http://decentralization2.threefold.io) of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.",
+        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the <a href="http://decentralization2.threefold.io" target="_blank">Decentralization Manifesto</a> of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.</span>""",
         "options": [
             "I have read the manifesto on http://decentralization2.threefold.io and I do agree with the contents of this manifesto.",
             "I have not read the manifesto on http://decentralization2.threefold.io or I do not agree.",
@@ -52,33 +52,35 @@ class TFPoll(Poll):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.QUESTIONS = {}
         self.extra_data = {}
         self.custom_answers = {}
+        self.QUESTIONS = {vote["title"] : vote["options"] for vote in VOTES.values()}
 
     def welcome(self):
+        stored_extra_data = self.user.extra_data
 
         statement_1 = """\
-        Dear ThreeFold Token Holder,
+        <span>Dear ThreeFold Token Holder,
 
         This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
 
-        The detailed poll results will only be visible & consulted by the members of the TFgrid Council: see https://wiki.threefold.io/#/threefold_councils.md
+        The detailed poll results will only be visible & consulted by the members of the TFgrid Council: see <a href="https://wiki.threefold.io/#/threefold_councils.md" target="_blank">https://wiki.threefold.io/#/threefold_councils.md</a>
 
         Only the end results will be visible by the general community which is:
         - The voting questions (comes at end of this poll)
         - % of votes as results per question, weighted and unweighted
-        - Unweighted means: each vote = 1, weighted means each vote in relation to nr of tokens the vote represents.
+        - Unweighted means: each vote = 1, weighted means each vote in relation to nr of tokens the vote represents.</span>
         """
 
         self.md_show(dedent(statement_1), md=True)
 
-        full_name = self.string_ask("What is your full name ?", required=True)
+        default_answer = self.get_question_answer("full_name")
+        full_name = self.string_ask("What is your full name ?", required=True, default=default_answer)
         self.extra_data.update({"full_name": full_name})
 
-        statement_2 = "Please read the decentralization manifesto on http://decentralization2.threefold.io"
+        statement_2 = """<span>Please read the decentralization manifesto on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
         self.md_show(dedent(statement_2), md=True)
 
         question_1 = """\
@@ -93,13 +95,13 @@ class TFPoll(Poll):
             "Gift from TF Foundation": "From Gifts",
         }
 
+        default_answer = self.get_question_answer("question_1")
         question_1_answer = self.multi_choice(
-            dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1
+            dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1, default=default_answer
         )
         self.extra_data.update({"question_1": question_1_answer})
 
-        message = "For every selected option above let us please now the percentage of your total amount of  TFT (if more than 1 option)"
-
+        message = "For every selected option above let us please know the percentage of your total amount of  TFT (if more than 1 option)"
         def ask_for_percentages(msg=""):
             form = self.new_form()
             percentages = []
@@ -124,12 +126,12 @@ class TFPoll(Poll):
     def custom_votes(self):
         super().custom_votes()
 
-        vote_1_answer = self.single_choice(VOTES[1]["content"].strip(), VOTES[1]["options"], md=True, required=True)
-        self.QUESTIONS.update({VOTES[1]["title"]: VOTES[1]["options"]})
+        default_answer = self.get_vote_answer(VOTES[1]["title"])
+        vote_1_answer = self.single_choice(VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[1]["title"]: vote_1_answer})
 
-        vote_2_answer = self.single_choice(VOTES[2]["content"].strip(), VOTES[2]["options"], md=True, required=True)
-        self.QUESTIONS.update({VOTES[2]["title"]: VOTES[2]["options"]})
+        default_answer = self.get_vote_answer(VOTES[2]["title"])
+        vote_2_answer = self.single_choice(VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_2_answer == VOTES[2]["options"][1]:
@@ -141,12 +143,12 @@ class TFPoll(Poll):
                 'Thank you for confirming our "Decentralization manifesto", you have now digitally signed this document.'
             )
 
-        vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], md=True, required=True)
-        self.QUESTIONS.update({VOTES[3]["title"]: VOTES[3]["options"]})
+        default_answer = self.get_vote_answer(VOTES[3]["title"])
+        vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[3]["title"]: vote_3_answer})
 
-        vote_4_answer = self.single_choice(VOTES[4]["content"].strip(), VOTES[4]["options"], md=True, required=True)
-        self.QUESTIONS.update({VOTES[4]["title"]: VOTES[4]["options"]})
+        default_answer = self.get_vote_answer(VOTES[4]["title"])        
+        vote_4_answer = self.single_choice(VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True)
         self.custom_answers.update({VOTES[4]["title"]: vote_4_answer})
 
         self.vote()

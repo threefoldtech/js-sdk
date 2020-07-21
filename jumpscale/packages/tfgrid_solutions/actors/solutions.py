@@ -13,6 +13,7 @@ class Solutions(BaseActor):
 
     @actor_method
     def list_solutions(self, solution_type: str) -> str:
+        j.sals.reservation_chatflow.update_local_reservations()
         solutions = []
         j.sals.reservation_chatflow.update_local_reservations()
         solutions = j.sals.reservation_chatflow.get_solutions(SolutionType(solution_type))

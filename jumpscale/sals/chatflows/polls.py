@@ -53,7 +53,14 @@ class Poll(GedisChatBot):
         if self.user.has_voted:
             welcome_message += "\n<br/><br/>`Note: You have already voted.`"
 
-        self.md_show(welcome_message, md=True)
+        if self.user.has_voted:
+            actions = ["Edit My Vote", "See Results"]
+            action = self.single_choice(welcome_message, options=actions, required=True, md=True)
+            if action == actions[1]:
+                self.result()
+                self.end()
+        else:
+            self.md_show(welcome_message, md=True)
 
     @chatflow_step()
     def welcome(self):
@@ -160,6 +167,18 @@ Please make the transaction and press Next
                 return True
         return False
 
+    def get_vote_answer(self, vote_title):
+        answer_array = self.user.vote_data.get(vote_title)
+        if answer_array:
+            options = self.QUESTIONS.get(vote_title)
+            try:
+                return options[answer_array.index(1)]
+            except ValueError:
+                pass
+
+    def get_question_answer(self, question_title):
+        return self.user.extra_data.get(question_title)
+
     def vote(self):
         answers = {}
         answers.update(self.custom_answers)
@@ -200,7 +219,7 @@ Please make the transaction and press Next
             form_answers[question] = all_answers_init
         return form_answers
 
-    @chatflow_step(title="Vote Results")
+    @chatflow_step(title="Vote Results", final_step=True)
     def result(self):
         usersnames = all_users.list_all()
         total_votes = 0
@@ -270,10 +289,17 @@ Please make the transaction and press Next
         Args:
             wallet_address (String): Wallet address
         """
-        assets = self.wallet.get_balance(wallet_address).balances
+        assets = self.wallet.get_balance(wallet_address)
         total_balance = 0.0
-        for asset in assets:
+        # get free balances
+        for asset in assets.balances:
             if asset.asset_code == "TFT" or asset.asset_code == "TFTA":
                 total_balance += float(asset.balance)
+
+        # add locked funds too
+        for locked_account in assets.escrow_accounts:
+            for locked_asset in locked_account.balances:
+                if locked_asset.asset_code == "TFT" or locked_asset.asset_code == "TFTA":
+                    total_balance += float(locked_asset.balance)
 
         return total_balance

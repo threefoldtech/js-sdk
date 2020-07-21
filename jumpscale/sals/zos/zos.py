@@ -18,7 +18,7 @@ import binascii
 
 class Zosv2:
     def __init__(self):
-        self._explorer = j.clients.explorer.get_default()
+        self._explorer = j.core.identity.me.explorer
         self._nodes_finder = NodeFinder(self._explorer)
         self._gateways_finder = GatewayFinder(self._explorer)
         self._network = Network(self._explorer)
