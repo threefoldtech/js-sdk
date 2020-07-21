@@ -39,7 +39,7 @@ class Wallet(BaseActor):
         balances_data = []
         for item in balances.balances:
             balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer,}
+                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
             )
 
         ret = {
@@ -78,8 +78,17 @@ class Wallet(BaseActor):
 
     @actor_method
     def import_wallet(self, name: str, secret: str, network: str) -> str:
+        if name in j.clients.stellar.list_all():
+            return j.data.serializers.json.dumps({"error": "Wallet name already exists"})
         network = network or "TEST"
         wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        try:
+            wallet.get_balance()
+        except:
+            j.clients.stellar.delete(name)
+            return j.data.serializers.json.dumps(
+                {"error": "Import failed.Make sure wallet is activated and network matches the wallet's network."}
+            )
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
 
