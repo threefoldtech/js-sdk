@@ -5,11 +5,12 @@
 # name: Codescalers Test
 # organization: fakeForTest2
 
+from unittest import TestCase
+
 from jumpscale.loader import j
-from tests.base_tests import BaseTests
 
 
-class GithubClientTest(BaseTests):
+class GithubClientTest(TestCase):
     def setUp(self):
         super().setUp()
 
