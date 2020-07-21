@@ -10,9 +10,9 @@ import stellar_sdk
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from jumpscale.loader import j
-from stellar_sdk import Account as stellarAccount
 from stellar_sdk import Asset, TransactionBuilder
 
+from .wrapped import Account
 from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 
@@ -48,23 +48,6 @@ class Network(Enum):
     STD = "STD"
     TEST = "TEST"
 
-
-class Account(stellarAccount):
-    def __init__(self, account_id: str, sequence: int, wallet) -> None:
-        stellarAccount.__init__(self, account_id, sequence)
-        self.wallet = wallet
-
-    def increment_sequence_number(self):
-        """
-        Increments sequence number in this object by one.
-        """
-        stellarAccount.increment_sequence_number(self)
-        self.wallet.sequence = self.sequence
-        self.wallet.sequencedate = int(time.time())
-
-    @property
-    def last_created_sequence_is_used(self):
-        return self.wallet.sequence <= self.sequence
 
 
 class Stellar(Client):

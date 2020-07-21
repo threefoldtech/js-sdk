@@ -18,6 +18,7 @@ class ThreebotDeploy(GedisChatBot):
         "select_farm",
         "select_ip_address",
         "select_expiration_time",
+        "domain",
         "overview",
         "deploy",
         "success",
@@ -111,6 +112,11 @@ class ThreebotDeploy(GedisChatBot):
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=j.data.time.get().timestamp + 3900,
         )
+
+    @chatflow_step(title="Domain")
+    def domain(self):
+        pass
+
 
     @chatflow_step(title="Confirmation")
     def overview(self):
