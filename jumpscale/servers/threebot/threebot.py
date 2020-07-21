@@ -636,6 +636,9 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
+        for package_name in self.packages.list_all():
+            package = self.packages.get(package_name)
+            package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
         j.application.stop()
