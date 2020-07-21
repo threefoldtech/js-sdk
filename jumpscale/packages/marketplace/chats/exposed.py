@@ -31,7 +31,7 @@ class SolutionExpose(BaseSolutionExpose):
             explorer_name = "mainnet"
         else:
             raise StopChatFlow(f"Unsupported explorer {explorer_url}")
-        instance_name = f"{explorer_name}_{tname.replace('3bot', '')}"
+        instance_name = f"{explorer_name}_{tname.replace('.3bot', '')}"
         if instance_name in user_factory.list_all():
             user_entry = user_factory.get(instance_name)
             if not user_entry.has_agreed:
