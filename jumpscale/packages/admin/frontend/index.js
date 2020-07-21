@@ -41,6 +41,7 @@ const wallets = httpVueLoader('./components/wallets/Wallets.vue')
 const capacity = httpVueLoader('./components/external/Capacity.vue')
 const farmmanagement = httpVueLoader('./components/external/FarmManagement.vue')
 const codeserver = httpVueLoader('./components/external/CodeServer.vue')
+const notebooks = httpVueLoader('./components/external/Notebooks.vue')
 const settings = httpVueLoader('./components/settings/Settings.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
 
@@ -77,6 +78,7 @@ const router = new VueRouter({
     { name: "Capacity", path: '/capacity', component: capacity, meta: {icon: "mdi-server", listed: true } },
     { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: {icon: "mdi-server", listed: true } },
     { name: "Codeserver", path: '/codeserver', component: codeserver, meta: {icon: "mdi-code-braces", listed: true } },
+    { name: "Notebooks", path: '/notebooks', component: notebooks, meta: {icon: "mdi-language-python", listed: true } },
     { name: "Settings", path: '/settings', component: settings, meta: {icon: "mdi-tune", listed: true } },
     { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: {icon: "mdi-tune" } },
   ]
