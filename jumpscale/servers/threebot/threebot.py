@@ -623,7 +623,7 @@ class ThreebotServer(Base):
                 self.stop()
                 raise j.core.exceptions.Runtime(
                     f"Error happened during getting or installing {package_name} package, the detailed error is {str(e)}"
-                )
+                ) from e
 
         # install all package
         self.packages._install_all()

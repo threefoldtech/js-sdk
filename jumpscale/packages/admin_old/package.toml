@@ -1,9 +1,0 @@
-name = "admin_old"
-
-[[static_dirs]]
-name = "frontend"
-path_url = ""
-path_location = "frontend/output/"
-index = "index.html"
-spa = true
-is_admin = true
