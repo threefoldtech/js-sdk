@@ -1,6 +1,6 @@
 from jumpscale.core.base import StoredFactory
 from stellar_sdk import Keypair
-
+from .exceptions import *
 
 class StellarFactory(StoredFactory):
     def new(self, name, secret=None, *args, **kwargs):
