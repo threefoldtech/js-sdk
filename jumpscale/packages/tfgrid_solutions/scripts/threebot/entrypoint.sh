@@ -16,6 +16,9 @@ cd ${SDK_PATH}
 git fetch --all
 git reset --hard origin/${SDK_VERSION}
 
+poetry update
+poetry install
+
 echo "[*] Starting threebot in background ..."
 threebot start --background --development
 

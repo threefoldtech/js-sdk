@@ -52,6 +52,14 @@ const SOLUTIONS = {
     url: "/solutions/network_deploy",
     description: "Deploy a network on the grid and to connect your solutions together."
   },
+  threebot: {
+    topic: "threebot",
+    type: "threebot",
+    name: "Threebot",
+    image: "./assets/3bot.png",
+    url: "/solutions/threebot",
+    description: "Deploy your Threebot on container."
+  },
   expose: {
     topic: "solution_expose",
     type: "exposed",

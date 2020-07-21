@@ -148,6 +148,11 @@ const apiClient = {
         url: `${baseURL}/admin/get_explorer`
       })
     },
+    list: () => {
+      return axios({
+        url: `${baseURL}/admin/list_explorers`
+      })
+    },
   },
   solutions: {
     getCount: () => {
