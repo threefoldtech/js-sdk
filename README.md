@@ -1,12 +1,10 @@
 # js-sdk
 
-
 ![[https://pypi.python.org/pypi/js-sdk](pypi)](https://img.shields.io/pypi/v/js-sdk.svg)
-![[https://travis-ci.org/threefoldtech/js-sdk]](https://travis-ci.org/threefoldtech/js-sdk.png)
+[![Actions Status](https://github.com/threefoldtech/js-sdk/workflows/js-sdk/badge.svg?query=branch%3Adevelopment)](https://github.com/threefoldtech/js-sdk/actions?query=branch%3Adevelopment)
 ![[https://codecov.io/gh/threefoldtech/js-sdk]](https://codecov.io/gh/threefoldtech/js-sdk/branch/master/graph/badge.svg)
 
-official extenions to js framework 
-
+official extenions to js framework
 
 ## Contribution
 
@@ -15,23 +13,27 @@ official extenions to js framework
 - Tests
 
 ## Development environment
+
 - clone repo
 - `poetry install`
-- `poetry shell` 
+- `poetry shell`
 
 ## Running tests
+
 - `make tests`
 
 ## Generating docs
+
 - `make docs`
 
 
 ## building dists
+
 - `poetry build`
 
-## publishing 
-- `poetry publish`
+## publishing
 
+- `poetry publish`
 
 ## API Docs
 
