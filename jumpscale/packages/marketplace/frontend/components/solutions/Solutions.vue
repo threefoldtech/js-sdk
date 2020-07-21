@@ -16,11 +16,7 @@
             <br />
             <br />
             <v-btn color="primary" @click.stop="restart(topic)">New</v-btn>
-            <v-btn
-              color="primary"
-              v-if="started(topic)"
-              @click.stop="open(topic)"
-            >Continue</v-btn>
+            <v-btn color="primary" v-if="started(topic)" @click.stop="open(topic)">Continue</v-btn>
 
             <v-divider class="my-5"></v-divider>
 
@@ -49,7 +45,7 @@ module.exports = {
     "solution-info": httpVueLoader("./Info.vue")
   },
   watch: {
-      "topic": function() {
+    topic: function() {
       this.getDeployedSolutions(this.topic);
     }
   },
@@ -152,7 +148,7 @@ module.exports = {
     }
   },
   mounted() {
-     this.getDeployedSolutions(this.topic);
+    this.getDeployedSolutions(this.topic);
   },
   updated() {}
 };

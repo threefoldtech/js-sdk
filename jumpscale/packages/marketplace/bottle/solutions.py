@@ -7,9 +7,6 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
-user_factory = StoredFactory(UserEntry)
-user_factory.always_reload = True
-
 app = Bottle()
 
 
@@ -47,6 +44,8 @@ def cancel_solution(solution_type, reservation_id):
 @app.route("/api/allowed", method="GET")
 @login_required
 def allowed():
+    user_factory = StoredFactory(UserEntry)
+
     user_info = j.data.serializers.json.loads(get_user_info())
     tname = user_info["username"]
     explorer_url = j.core.identity.me.explorer.url
@@ -61,6 +60,8 @@ def allowed():
 @app.route("/api/accept", method="GET")
 @login_required
 def accept():
+    user_factory = StoredFactory(UserEntry)
+
     user_info = j.data.serializers.json.loads(get_user_info())
     tname = user_info["username"]
     explorer_url = j.core.identity.me.explorer.url

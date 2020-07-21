@@ -3,7 +3,7 @@ Vue.use(Vuetify)
 
 Vue.prototype.$api = apiClient
 
-const vuetify =  new Vuetify({
+const vuetify = new Vuetify({
   icons: {
     iconfont: 'mdi'
   },
@@ -30,6 +30,7 @@ const code = httpVueLoader('./components/base/Code.vue')
 const app = httpVueLoader('./App.vue')
 const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
+const license = httpVueLoader('./components/License.vue')
 
 
 Vue.component("base-component", baseComponent)
@@ -41,9 +42,21 @@ Vue.component("code-area", code)
 
 const router = new VueRouter({
   routes: [
-    { name: "Solutions", path: '/:topic', component: solutions, props: true, meta: {icon: "mdi-apps" } },
-    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: {icon: "mdi-tune" } },
+    { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
+    { name: "Solutions", path: '/:topic', component: solutions, props: true, meta: { icon: "mdi-apps" } },
+    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: { icon: "mdi-tune" } },
   ]
+})
+
+router.beforeEach((to, from, next) => {
+  const AllowedEndPoint = "api/allowed";
+  axios.get(AllowedEndPoint).then(results => {
+    let agreed = results.data.allowed;
+    if (to.name !== "License" && !agreed) {
+      next("/license");
+    }
+  })
+  next();
 })
 
 Vue.use(VueCodemirror)

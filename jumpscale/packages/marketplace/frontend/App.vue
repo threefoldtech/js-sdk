@@ -35,6 +35,7 @@
     </v-app-bar>
 
     <v-navigation-drawer
+      v-if="sidebar"
       color="primary"
       class="elevation-3"
       :mini-variant="mini"
@@ -91,7 +92,8 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
-      solutionCount: {}
+      solutionCount: {},
+      sidebar: true
     };
   },
   computed: {},
@@ -177,6 +179,10 @@ module.exports = {
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
-  },
+
+    this.$root.$on("sidebar", sidebar => {
+      this.sidebar = sidebar;
+    });
+  }
 };
 </script>

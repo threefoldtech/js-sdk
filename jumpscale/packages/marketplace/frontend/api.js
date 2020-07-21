@@ -6,7 +6,7 @@ const apiClient = {
       return axios({
         url: "/auth/authenticated/"
       })
-    }
+    },
   },
   explorers: {
     get: () => {
@@ -26,7 +26,7 @@ const apiClient = {
       return axios({
         url: `/marketplace/api/solutions/${solutionType}/`,
         method: "get",
-        headers: {'Content-Type': 'application/json'}
+        headers: { 'Content-Type': 'application/json' }
       })
     },
     cancelReservation: (solutionType, reservationId) => {
@@ -35,5 +35,13 @@ const apiClient = {
         method: "delete"
       })
     }
+  },
+  license: {
+    accept: () => {
+      return axios({
+        url: `/marketplace/api/accept/`,
+        method: "get"
+      })
+    },
   }
 }
