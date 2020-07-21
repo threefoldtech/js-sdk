@@ -175,12 +175,7 @@ class Website(Base):
             if rc > 0:
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
 
-        elif self.selfsigned:
-            self.generate_self_signed_certificates()
-            j.sals.fs.write_file(self.cfg_file, self.get_config())
-
     def generate_self_signed_certificates(self):
-        self.selfsigned = True
         if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(f"{self.parent.cfg_dir}/cert.pem"):
             return
         res = j.sals.process.execute(
@@ -195,12 +190,10 @@ class Website(Base):
         for location in self.get_locations():
             location.configure()
 
-        failback = self.selfsigned
-        self.selfsigned = False
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-        self.selfsigned = failback
 
         if generate_certificates and self.ssl:
+            self.generate_self_signed_certificates()
             self.generate_certificates()
 
     def clean(self):
