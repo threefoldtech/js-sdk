@@ -1,19 +1,19 @@
 from jumpscale.loader import j
-import os
+
+PYTHON_PACKAGES = [
+    "jupyterlab",
+    "voila",
+    "voila-gridstack",
+    "voila-vuetify",
+    "matplotlib",
+    "ipywidgets",
+    "jupyterlab_code_formatter",
+]
 
 
 class notebooks:
     def __init__(self):
-        self.notebook_dir = j.sals.fs.join_paths(j.core.dirs.HOMEDIR, "sandbox")
-        self.python_packages = [
-            "jupyterlab",
-            "voila",
-            "voila-gridstack",
-            "voila-vuetify",
-            "matplotlib",
-            "ipywidgets",
-            "jupyterlab_code_formatter"
-        ]
+        self.notebook_dir = j.sals.fs.join_paths(j.core.dirs.BASEDIR)
 
     def get_cmd(self, voila=False, base_url=None, ip="127.0.0.1", port=8888):
         if not voila:
@@ -34,18 +34,18 @@ class notebooks:
         cmd = j.tools.startupcmd.get("notebooks")
         start_cmd = self.get_cmd(base_url="/notebooks/")
         cmd.start_cmd = start_cmd
-        cmd.ports = [ 8888 ]
+        cmd.ports = [8888]
         cmd.save()
         return cmd
 
     def install(self):
         """Called when package is added
         """
-        rc,_,_ = j.sals.process.execute("python -c 'import jupyterlab'")
+        rc, _, _ = j.sals.process.execute("python -c 'import jupyterlab'")
         if rc:
-            for package in self.python_packages:
-                print(f"Installing {package}...")
-                rc,_, err = j.sals.process.execute(f"pip install {package}")
+            for package in PYTHON_PACKAGES:
+                j.logger.info(f"Installing {package}...")
+                rc, _, err = j.sals.process.execute(f"pip install {package}")
                 if rc:
                     raise j.exceptions.Runtime(err)
 
@@ -62,21 +62,20 @@ class notebooks:
             jupyter nbextension enable voila --sys-prefix --py
 
             """
-            print("Installing jupyter labextensions...")
-            rc,_,err = j.sals.process.execute(cmd, showout=True)
+            j.logger.info("Installing jupyter labextensions...")
+            rc, _, err = j.sals.process.execute(cmd, showout=True)
             if rc:
                 raise j.exceptions.Runtime(err)
 
     def uninstall(self):
         """Called when package is deleted
         """
-        rc,_,_ = j.sals.process.execute("python -c 'import jupyterlab'")
+        rc, _, _ = j.sals.process.execute("python -c 'import jupyterlab'")
         if not rc:
-            for package in self.python_packages:
-                rc,_, err = j.sals.process.execute(f"pip uninstall -y {package}", showout=True)
+            for package in PYTHON_PACKAGES:
+                rc, _, err = j.sals.process.execute(f"pip uninstall -y {package}", showout=True)
                 if rc:
                     raise j.exceptions.Runtime(err)
-
 
     def start(self):
         """Called when threebot is started
