@@ -8,7 +8,8 @@ explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 class Admin(BaseActor):
     @actor_method
     def list_admins(self) -> str:
-        return j.data.serializers.json.dumps({"data": j.core.identity.me.admins})
+        admins = list(set(j.core.identity.me.admins))
+        return j.data.serializers.json.dumps({"data": admins})
 
     @actor_method
     def add_admin(self, name: str):
