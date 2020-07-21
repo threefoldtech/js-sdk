@@ -1,4 +1,5 @@
 from gevent import monkey
+
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
@@ -12,6 +13,25 @@ from jumpscale.threesdk.identitymanager import IdentityManager
 from jumpscale.sals.nginx.nginx import PORTS
 
 SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 16000}
+
+THREEBOT_DEPS_BINS = ["nginx", "redis-server", "tmux", "git"]
+
+
+def check_for_bins():
+    for b in THREEBOT_DEPS_BINS:
+        notfoundbins = []
+        if not j.sals.process.is_installed(b):
+            notfoundbins.append(b)
+
+    if notfoundbins:
+        bins = ",".join(notfoundbins)
+        j.logger.error(
+            f"{bins} not found in $PATH. Please check https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/installation.md for more info on installation requirements"
+        )
+        exit(1)
+    else:
+        bins = ",".join(THREEBOT_DEPS_BINS)
+        j.logger.info(f"✅ binaries {bins} required are installed.")
 
 
 def test_privileged_ports_bind():
@@ -42,7 +62,9 @@ http {
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
 @click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
-@click.option("--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443")
+@click.option(
+    "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
+)
 def start(identity=None, background=False, local=False):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
@@ -55,6 +77,7 @@ def start(identity=None, background=False, local=False):
         identity (str, optional): threebot name. Defaults to None.
         explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
+    check_for_bins()
     PORTS.init_default_ports(local)
     SERVICES_PORTS["nginx_http"] = PORTS.HTTP
     SERVICES_PORTS["nginx_https"] = PORTS.HTTPS
@@ -98,7 +121,9 @@ def start(identity=None, background=False, local=False):
 
     canbind = test_privileged_ports_bind()
     if not local and not canbind:
-        j.tools.console.printcolors("{RED}Nginx could not bind on privileged ports{RESET}, please run with local flag or give nginx extra permission 'sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)'")
+        j.tools.console.printcolors(
+            "{RED}Nginx could not bind on privileged ports{RESET}, please run with local flag or give nginx extra permission 'sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)'"
+        )
         sys.exit(1)
     if used_ports:
         j.tools.console.printcolors(msg)
@@ -119,7 +144,9 @@ def start(identity=None, background=False, local=False):
 
         print("\n✅ Threebot server started\n")
         if j.sals.process.in_host():
-            j.tools.console.printcolors(f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}")
+            j.tools.console.printcolors(
+                f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}"
+            )
     else:
         j.servers.threebot.start_default(wait=True, local=local)
 
