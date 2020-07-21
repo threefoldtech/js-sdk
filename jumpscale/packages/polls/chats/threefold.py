@@ -54,7 +54,7 @@ class TFPoll(Poll):
         super().__init__(*args, **kwargs)
         self.extra_data = {}
         self.custom_answers = {}
-        self.QUESTIONS = {vote["title"] : vote["options"] for vote in VOTES.values()}
+        self.QUESTIONS = {vote["title"]: vote["options"] for vote in VOTES.values()}
 
     def welcome(self):
         stored_extra_data = self.user.extra_data
@@ -83,55 +83,19 @@ class TFPoll(Poll):
         statement_2 = """<span>Please read the decentralization manifesto on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
         self.md_show(dedent(statement_2), md=True)
 
-        question_1 = """\
-        Mark all which is relevant how you got your tokens. (This is confidential information and is only visible to the TFGrid Council).
-        """
-
-        question_1_choices = {
-            "My TFT as the result of farming IT capacity": "Result of farming IT capacity",
-            "I bought TFT from the market, which means through atomic swap, a public exchange or from any other TFT holder": "From Market",
-            "I bought my TFT from Mazraa (ThreeFold FZC) = part of TF Foundation": "From Mazraa",
-            "I bought my TFT from BetterToken = part of TF Foundation": "From BetterToken",
-            "Gift from TF Foundation": "From Gifts",
-        }
-
-        default_answer = self.get_question_answer("question_1")
-        question_1_answer = self.multi_choice(
-            dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1, default=default_answer
-        )
-        self.extra_data.update({"question_1": question_1_answer})
-
-        message = "For every selected option above let us please know the percentage of your total amount of  TFT (if more than 1 option)"
-        def ask_for_percentages(msg=""):
-            form = self.new_form()
-            percentages = []
-            for answer in question_1_answer:
-                percentages.append(form.int_ask(question_1_choices[answer], required=True, max=100))
-
-            form_message = message
-            if msg:
-                form_message += f"<br><br> <code>{msg}</code>"
-
-            form.ask(form_message, md=True)
-            return [v.value for v in percentages]
-
-        percentages = ask_for_percentages()
-        while sum(percentages) != 100:
-            percentages = ask_for_percentages(
-                f"The submission of the total percentages is equal to {sum(percentages)} and it must be equal to 100%"
-            )
-
-        self.extra_data.update({"question_2": percentages})
-
     def custom_votes(self):
         super().custom_votes()
 
         default_answer = self.get_vote_answer(VOTES[1]["title"])
-        vote_1_answer = self.single_choice(VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True)
+        vote_1_answer = self.single_choice(
+            VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[1]["title"]: vote_1_answer})
 
         default_answer = self.get_vote_answer(VOTES[2]["title"])
-        vote_2_answer = self.single_choice(VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True)
+        vote_2_answer = self.single_choice(
+            VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_2_answer == VOTES[2]["options"][1]:
@@ -144,11 +108,15 @@ class TFPoll(Poll):
             )
 
         default_answer = self.get_vote_answer(VOTES[3]["title"])
-        vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True)
+        vote_3_answer = self.single_choice(
+            VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[3]["title"]: vote_3_answer})
 
-        default_answer = self.get_vote_answer(VOTES[4]["title"])        
-        vote_4_answer = self.single_choice(VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True)
+        default_answer = self.get_vote_answer(VOTES[4]["title"])
+        vote_4_answer = self.single_choice(
+            VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[4]["title"]: vote_4_answer})
 
         self.vote()
