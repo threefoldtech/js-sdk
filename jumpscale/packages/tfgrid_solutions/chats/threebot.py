@@ -1,5 +1,6 @@
 import math
 from textwrap import dedent
+import uuid
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
@@ -31,6 +32,7 @@ class ThreebotDeploy(GedisChatBot):
         self.user_info = self.user_info()
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
+        self.solution_currency = "TFT"
 
     @chatflow_step(title="Network")
     def select_network(self):
@@ -77,7 +79,6 @@ class ThreebotDeploy(GedisChatBot):
             "Please enter the nodeid you would like to deploy on if left empty a node will be chosen for you"
         )
        
-        self.reservation = j.sals.zos.reservation_create()
         while self.nodeid:
             try:
                 self.node_selected = j.sals.reservation_chatflow.validate_node(
@@ -114,9 +115,27 @@ class ThreebotDeploy(GedisChatBot):
         )
 
     @chatflow_step(title="Domain")
-    def domain(self):
-        pass
+    def domain_select(self):
+        self.gateways = {
+            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
+        }
 
+        domains = dict()
+        for gateway in self.gateways.values():
+            for domain in gateway.managed_domains:
+                domains[domain] = gateway
+
+        self.domain = self.single_choice("Please choose the domain you wish to use", list(domains.keys()), required=True)
+        self.gateway = domains[self.domain]
+        
+        subdomain = j.data.text.removesuffix(self.user_info['username'], ".3bot")
+        self.domain = f"{subdomain}.{self.domain}"
+
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -134,6 +153,10 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Payment", disable_previous=True)
     def deploy(self):
+        self.reservation = j.sals.zos.reservation_create()
+        j.sals.zos._gateway.sub_domain(self.reservation, self.gateway.node_id, self.domain, self.addresses)
+        j.sals.zos._gateway.tcp_proxy_reverse(self.reservation, self.gateway.node_id, self.domain, self.secret)
+
         self.network = self.network_copy
         self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
         
@@ -142,7 +165,8 @@ class ThreebotDeploy(GedisChatBot):
         environment_vars = {
             "SDK_VERSION": self.branch,
             "THREEBOT_NAME": self.user_info.get("username"),
-            "SSHKEY": self.public_key
+            "SSHKEY": self.public_key,
+            "DOMAIN": self.domain
         }
 
         j.sals.zos.container.create(
@@ -158,6 +182,33 @@ class ThreebotDeploy(GedisChatBot):
             cpu=self.container_cpu,
             memory=self.container_memory,
             disk_size=self.container_rootfs_size,
+        )
+
+        query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
+        node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
+        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)
+        network.add_node(node_selected)
+        network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
+        ip_address = network.get_free_ip(node_selected)
+        if not ip_address:
+            raise j.exceptions.Value("No available free ips")
+
+        secret_env = {}
+        secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.secret)
+        secret_env["TRC_SECRET"] = secret_encrypted
+        remote = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+        local = f"{self.ip_address}:80"
+        localtls = f"{self.ip_address}:443"
+        entrypoint = f"/bin/trc -local {local} -local-tls {localtls} -remote {remote}"
+
+        j.sals.zos.container.create(
+            reservation=self.reservation,
+            node_id=node_selected.node_id,
+            network_name=self.network.name,
+            ip_address=ip_address,
+            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
+            entrypoint=entrypoint,
+            secret_env=secret_env,
         )
 
         metadata = {
@@ -182,9 +233,10 @@ class ThreebotDeploy(GedisChatBot):
     def success(self):
         message = f"""
         Your Threebot has been deployed successfully.
+        Domain          : {self.domain}
         Reservation ID  : {self.reservation_id}
         IP Address      : {self.ip_address}
-        """        
+        """
         self.md_show(dedent(message), md=True)
 
 
