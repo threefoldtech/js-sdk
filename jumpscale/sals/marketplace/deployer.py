@@ -408,7 +408,6 @@ to download your configuration
             if solution_uuid:
                 # delete solution by uuid
                 self.cancel_solution_by_uuid(user_tid, solution_uuid)
-                return
 
             if metadata.get("solution_type") == SolutionType.Network.value:
                 # TODO: comprehensive testing
