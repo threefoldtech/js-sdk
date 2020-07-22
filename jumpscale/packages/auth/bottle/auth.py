@@ -141,7 +141,9 @@ def callback():
         tid = j.sals.reservation_chatflow.validate_user({"username": username, "email": email}).id
         session["tid"] = tid
     except Exception as e:
-        pass
+        j.logger.warning(
+            f"Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}"
+        )
 
     return redirect(session.get("next_url", "/"))
 
