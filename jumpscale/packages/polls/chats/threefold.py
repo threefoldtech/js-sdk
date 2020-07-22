@@ -31,6 +31,8 @@ VOTES = {
             - Sell TFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
             - Transfer TFTA to anyone
 
+            <br>No rights have been taken away from me by switching blockchains. Please realize this question has nothing to do in relation to Liquid and BTCAlpha public exchange integration, this is next question.
+
         """
         ),
         "options": ["I do agree", "I do not agree"],
