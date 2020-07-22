@@ -88,6 +88,8 @@ class Location(Base):
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
+    nginx_proxy_buffers = fields.String()
+    nginx_proxy_buffer_size = fields.String()
 
     @property
     def cfg_dir(self):
@@ -136,8 +138,8 @@ class Website(Base):
             website = self.parent.websites.find(website_name)
             if not website:
                 continue
-            
-            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))
         return paths
 
     def get_locations(self):
