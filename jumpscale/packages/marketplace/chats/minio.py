@@ -154,9 +154,11 @@ class MinioDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Reserve zdb", disable_previous=True)
     def zdb_reservation(self):
+        self.md_show_update("Preparing Network on Nodes.....")
         self.network = self.network_copy
         self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
         # create new reservation
+        self.md_show_update("Preparing ZDB reservation.....")
         self.reservation = j.sals.zos.reservation_create()
 
         self.password = uuid.uuid4().hex
@@ -192,6 +194,7 @@ class MinioDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Reserve minio container", disable_previous=True)
     def minio_reservation(self):
+        self.md_show_update("Preparing Minio reservation.....")
         # read the IP address of the 0-db namespaces after they are deployed to be used in the creation of the minio container
         self.namespace_config = []
         for result in self.reservation_result:
