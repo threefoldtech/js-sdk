@@ -171,7 +171,7 @@ class ResticRepo(Base):
         Args:
             tags (list): list of tags to filter on
             last (bool): if True will get last snapshot only while respecting the other filters
-            last (str): path to filter on
+            path (str): path to filter on
 
         Returns
             list : all snapshots as dicts

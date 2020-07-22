@@ -26,15 +26,27 @@ class MinioBackup(BaseActor):
 
     def _get_instance(self):
         if INSTANCE_NAME not in j.tools.restic.list_all():
-            raise j.exceptions.Value("Please init repo first")
+            raise j.exceptions.Value("Please configure backup first")
         return j.tools.restic.get(INSTANCE_NAME)
 
     @actor_method
     def backup(self, tags=None) -> str:
-        tags = tags or []
+        if tags:
+            tags = tags.split(",")
+        else:
+            tags = []
+
+        tags.append(str(j.data.time.now().timestamp))
         instance = self._get_instance()
         instance.backup(j.core.dirs.JSCFGDIR, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
+
+    @actor_method
+    def snapshots(self, tags=None) -> str:
+        if tags:
+            tags = tags.split(",")
+        instance = self._get_instance()
+        return j.data.serializers.json.dumps({"data": instance.list_snapshots(tags=tags)})
 
     @actor_method
     def restore(self) -> str:
