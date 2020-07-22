@@ -160,6 +160,12 @@ module.exports = {
           type: "4to6gw",
           path: "/4to6gw",
           meta: { icon: "mdi-router" }
+        },
+        {
+          name: "Publisher",
+          type: "publisher",
+          path: "/publisher",
+          meta: { icon: "mdi-web-box" }
         }
       ];
     }

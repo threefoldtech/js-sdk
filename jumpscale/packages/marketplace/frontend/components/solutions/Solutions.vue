@@ -116,6 +116,13 @@ module.exports = {
           type: "4to6gw",
           name: "4 to 6 Gateway",
           icon: "mdi-router"
+        },
+        {
+          type: "publisher",
+          name: "Publisher",
+          icon: "mdi-web-box",
+          description:
+            "Deploy a wiki, blog, website and access it via an IP or a public domain"
         }
       ],
       deployedSolutions: {}
