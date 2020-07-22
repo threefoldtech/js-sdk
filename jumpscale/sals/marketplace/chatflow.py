@@ -184,6 +184,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Choose Network")
     def choose_network(self):
+        self.md_show_update("Listing User Networks....")
         networks_data = deployer.list_solutions(self.user_info()["username"], SolutionType.Network, reload=True)
         if not networks_data:
             StopChatFlow("You don't have any available networks yet. please create a newtork first")

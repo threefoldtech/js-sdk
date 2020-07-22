@@ -19,7 +19,7 @@ class Publisher(MarketPlaceChatflow):
         "configuration",
         "public_key_get",
         "container_node_id",
-        "container_node_id",
+        "container_farm",
         "container_ip",
         "expiration_time",
         "domain_select",
@@ -32,6 +32,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Welcome")
     def welcome(self):
+        self.storage_url = "zdb://hub.grid.tf:9900"
         self._validate_user()
         self._tid = None
         self.user_form_data = dict()
@@ -46,9 +47,7 @@ class Publisher(MarketPlaceChatflow):
     @chatflow_step(title="Solution name")
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice(
-            "Choose the type", options=["wiki", "www", "data", "blog"], default="wiki", required=True
-        )
+        ttype = form.single_choice("Choose the type", options=["wiki", "www", "blog"], default="wiki", required=True)
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
@@ -92,7 +91,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Confirmation")
     def overview(self):
-        info = {"Solution name": self.solution_name, "Expiration time": j.data.time.get(self.expiration).humanize()}
+        info = {"Solution name": self.name, "Expiration time": j.data.time.get(self.expiration).humanize()}
         self.md_show_confirm(info)
 
     @chatflow_step(title="Payment", disable_previous=True)
@@ -100,11 +99,10 @@ class Publisher(MarketPlaceChatflow):
         self.reservation = j.sals.zos.reservation_create()
         j.sals.zos._gateway.sub_domain(self.reservation, self.gateway.node_id, self.domain, self.addresses)
         j.sals.zos._gateway.tcp_proxy_reverse(self.reservation, self.gateway.node_id, self.domain, self.secret)
-
+        self.md_show_update("Preparing Network on Node.....")
         self.network = self.network_copy
-        self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
-
-        self.envars["SSHKEY"] = self.public_key
+        self.network.update(self.user_info()["username"], currency=self.currency, bot=self)
+        self.envars["SSHKEY"] = self.user_form_data["Public key"]
 
         j.sals.zos.container.create(
             reservation=self.reservation,
@@ -122,11 +120,11 @@ class Publisher(MarketPlaceChatflow):
             memory=self.resources["memory"],
         )
 
-        query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
+        query = {"mru": 1, "cru": 1, "currency": self.currency, "sru": 2}
         node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
-        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)
+        network = self.network.copy()
         network.add_node(node_selected)
-        network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
+        network.update(self.user_info()["username"], currency=self.currency, bot=self)
         ip_address = network.get_free_ip(node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
@@ -149,23 +147,21 @@ class Publisher(MarketPlaceChatflow):
             secret_env=secret_env,
         )
 
-        metadata = {"Solution name": self.solution_name, "version": 1, "chatflow": "publisher"}
+        metadata = {"Solution name": self.name, "version": 1, "chatflow": "publisher"}
 
-        res = j.sals.reservation_chatflow.get_solution_metadata(self.solution_name, SolutionType.Publisher, metadata)
+        res = deployer.get_solution_metadata(self.name, self.SOLUTION_TYPE, self.user_info()["username"], metadata)
+
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
 
-        self.reservation_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.query["currency"], bot=self
-        )
-
-        j.sals.reservation_chatflow.save_reservation(
-            self.reservation_id, self.solution_name, SolutionType.Publisher, metadata
+        self.reservation_id = deployer.register_and_pay_reservation(
+            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
         )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""
         You can access your container using:
+        Reservation ID: {self.reservation_id}
         Domain: {self.domain}
         IP address: {self.ip_address}
         """

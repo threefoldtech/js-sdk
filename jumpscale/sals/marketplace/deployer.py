@@ -65,7 +65,7 @@ class Network(BaseNetwork):
         network_copy = None
         explorer = j.clients.explorer.get_default()
         reservation = explorer.reservations.get(self.resv_id)
-        networks = self._sal.list_networks(j.core.identity.me.tid, [reservation])
+        networks = self._sal.list_networks(j.core.identity.me.tid)
         for key in networks.keys():
             network, expiration, currency, resv_id = networks[key]
             if network.name == self.name:
@@ -73,6 +73,7 @@ class Network(BaseNetwork):
                 break
         if network_copy:
             network_copy._used_ips = copy.copy(self._used_ips)
+        print("return copy: ", network_copy)
         return network_copy
 
 
