@@ -201,7 +201,7 @@ class ResticRepo(Base):
         self._run_cmd(cmd)
 
     def _get_script_path(self, path):
-        return os.path.join(path, "restic_cron")
+        return os.path.join(path, f"{self.instance_name}_restic_cron")
 
     def _get_crons_jobs(self):
         proc = subprocess.run(["crontab", "-l"], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
@@ -217,7 +217,7 @@ class ResticRepo(Base):
         self._check_install("crontab")
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
-        if cronjobs.find(script_path) < 0:  # Check if cron job already running
+        if not self.auto_backup_running(path):  # Check if cron job already running
             cron_script = CRON_SCRIPT.format(repo=self.repo, password=self.password, path=path, keep_last=keep_last)
             with open(script_path, "w") as rfd:
                 rfd.write(cron_script)
@@ -227,6 +227,19 @@ class ResticRepo(Base):
             proc_res = proc.communicate(input=cron_cmd.encode())
             if proc.returncode > 0:
                 raise Runtime(f"Couldn't start cron job, failed with {proc_res[1]}")
+
+    def auto_backup_running(self, path):
+        """Checks if auto backup for the specified path is running or not
+
+        Args:
+            path (str): local path to backup in the cron job
+
+        Returns:
+            bool: Whether it is running or not
+        """
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        return cronjobs.find(script_path) >= 0
 
     def disable_auto_backup(self, path):
         """Removes cron jon based on the path being backed
