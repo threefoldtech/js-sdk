@@ -41,7 +41,7 @@ class Publisher(MarketPlaceChatflow):
         self.env = dict()
         self.secret_env = dict()
         self.resources = {"cpu": 1, "memory": 1024, "rootfs": 2048}
-        self.flist_url = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-https.flist"
+        self.flist_url = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
         self.md_show("This wizard will help you publish a Wiki, a Website or Blog", md=True)
 
     @chatflow_step(title="Solution name")
@@ -103,6 +103,11 @@ class Publisher(MarketPlaceChatflow):
         self.network = self.network_copy
         self.network.update(self.user_info()["username"], currency=self.currency, bot=self)
         self.envars["SSHKEY"] = self.user_form_data["Public key"]
+        self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+
+        secret_env = {}
+        secret_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.secret)
+        secret_env["TRC_SECRET"] = secret_encrypted
 
         j.sals.zos.container.create(
             reservation=self.reservation,
@@ -118,32 +123,6 @@ class Publisher(MarketPlaceChatflow):
             entrypoint="/bin/bash /start.sh",
             cpu=self.resources["cpu"],
             memory=self.resources["memory"],
-        )
-
-        query = {"mru": 1, "cru": 1, "currency": self.currency, "sru": 2}
-        node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
-        network = self.network.copy()
-        network.add_node(node_selected)
-        network.update(self.user_info()["username"], currency=self.currency, bot=self)
-        ip_address = network.get_free_ip(node_selected)
-        if not ip_address:
-            raise j.exceptions.Value("No available free ips")
-
-        secret_env = {}
-        secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.secret)
-        secret_env["TRC_SECRET"] = secret_encrypted
-        remote = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
-        local = f"{self.ip_address}:80"
-        localtls = f"{self.ip_address}:443"
-        entrypoint = f"/bin/trc -local {local} -local-tls {localtls} -remote {remote}"
-
-        j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=node_selected.node_id,
-            network_name=self.network.name,
-            ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
-            entrypoint=entrypoint,
             secret_env=secret_env,
         )
 
