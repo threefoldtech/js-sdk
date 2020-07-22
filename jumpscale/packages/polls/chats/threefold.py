@@ -5,7 +5,7 @@ from textwrap import dedent
 VOTES = {
     1: {
         "title": "Reading June 2020 update document",
-        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on <a href="https://wiki.threefold.io/#/threefold_update_june2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_june2020.md</a></span>""",
+        "content": """<span>We have prepared a new update of what has been happening please go to <a href="https://wiki.threefold.io/#/threefold_update_july2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_july2020.md</a></span>""",
         "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
