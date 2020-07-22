@@ -21,7 +21,7 @@ class Backup(BaseActor):
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def init(self, threebot_name:str, passwd:str) -> list:
+    def init(self, threebot_name:str, passwd:str, new=True) -> list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
@@ -30,9 +30,15 @@ class Backup(BaseActor):
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(PRIVATE_KEY, verify_key.to_curve25519_public_key())
         password_backup = box.decrypt(passwd.encode(), encoder = nacl.encoding.Base64Encoder).decode()
-
-        self._htpasswd(self.ssh_server1, threebot_name.split(".")[0], password_backup)
-        self._htpasswd(self.ssh_server2, threebot_name.split(".")[0], password_backup)
+        if new:
+            self._htpasswd(self.ssh_server1, threebot_name.split(".")[0], password_backup)
+            self._htpasswd(self.ssh_server2, threebot_name.split(".")[0], password_backup)
+        else:
+            try:
+                self.ssh_server1.sshclient.run(f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}")
+                self.ssh_server2.sshclient.run(f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}")
+            except:
+                raise j.exceptions.Value(f"Threebot name or password are incorrect")
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 
