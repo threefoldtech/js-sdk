@@ -10,19 +10,17 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 class ThreebotDeploy(GedisChatBot):
     steps = [
         "start",
-        "select_network",
         "set_solution_name",
+        "select_network",
         "threebot_branch",
         "container_resources",
         "upload_public_key",
-        "select_node",
-        "select_farm",
-        "select_ip_address",
-        "select_expiration_time",
         "domain_select",
+        "select_expiration_time",
+        "select_farm",
         "overview",
         "deploy",
-        "success",
+        "success"
     ]
 
     title = "Threebot"
@@ -31,10 +29,10 @@ class ThreebotDeploy(GedisChatBot):
     def start(self):
         self.user_info = self.user_info()
 
-        threebots = j.sals.reservation_chatflow.get_solutions(SolutionType.Threebot)
-        if len(threebots) > 0:
-            domain = threebots[0]["reservation"]["data_reservation"]["containers"][0]["environment"]["DOMAIN"] 
-            self.stop(f"You already have a Threebot deployed at {domain}")
+        # threebots = j.sals.reservation_chatflow.get_solutions(SolutionType.Threebot)
+        # if len(threebots) > 0:
+        #     domain = threebots[0]["reservation"]["data_reservation"]["containers"][0]["environment"]["DOMAIN"] 
+        #     self.stop(f"You already have a Threebot deployed at {domain}")
 
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
@@ -71,45 +69,17 @@ class ThreebotDeploy(GedisChatBot):
         self.public_key = self.upload_file(
             "Please upload your public ssh key, this will allow you to access your threebot container using ssh", required=True
         ).strip()
-
-    @chatflow_step(title="Select Node")
-    def select_node(self):
+   
+    @chatflow_step(title="Select farm")
+    def select_farm(self):
         self.query = dict(
             currency=self.network.currency,
             cru=self.container_cpu,
             mru=math.ceil(self.container_memory / 1024),
             sru=math.ceil(self.container_rootfs_size / 1024),
         )
-        
-        self.nodeid = self.string_ask(
-            "Please enter the nodeid you would like to deploy on if left empty a node will be chosen for you"
-        )
-       
-        while self.nodeid:
-            try:
-                self.node_selected = j.sals.reservation_chatflow.validate_node(
-                    self.nodeid, self.query, self.network.currency
-                )
-                break
-
-            except (j.exceptions.Value, j.exceptions.NotFound) as e:
-                message = "<br> Please enter a different nodeid to deploy on or leave it empty"
-                self.nodeid = self.string_ask(str(e) + message, html=True, retry=True)
-        
-
-    @chatflow_step(title="Select farm")
-    def select_farm(self):
-        if not self.nodeid:
-            farms = j.sals.reservation_chatflow.get_farm_names(1, self, ** self.query)
-            self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, ** self.query)[0]
-
-    @chatflow_step(title="Select IP")
-    def select_ip_address(self):
-        self.network_copy = self.network.copy(j.core.identity.me.tid)
-        self.network_copy.add_node(self.node_selected)
-        self.ip_address = self.network_copy.ask_ip_from_node(
-            self.node_selected, "Please choose IP Address for your solution"
-        )
+        farms = j.sals.reservation_chatflow.get_farm_names(1, self, ** self.query)
+        self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, ** self.query)[0]
 
     @chatflow_step(title="Expiration time")
     def select_expiration_time(self):
@@ -152,22 +122,25 @@ class ThreebotDeploy(GedisChatBot):
             "Memory": self.container_memory,
             "Root filesystem type": DiskType.SSD.name,
             "Root filesystem size": self.container_rootfs_size,
-            "IP address": self.ip_address,
             "Expiration time": j.data.time.get(self.expiration).humanize()
         }
         self.md_show_confirm(info)
 
     @chatflow_step(title="Payment", disable_previous=True)
     def deploy(self):
+        self.network_copy = self.network.copy(j.core.identity.me.tid)
+        self.network_copy.add_node(self.node_selected)
+        self.ip_address = self.network_copy.get_free_ip(self.node_selected)
+
+        self.network = self.network_copy
+        self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
+
         self.reservation = j.sals.zos.reservation_create()
         j.sals.zos._gateway.sub_domain(self.reservation, self.gateway.node_id, self.domain, self.addresses)
         j.sals.zos._gateway.tcp_proxy_reverse(self.reservation, self.gateway.node_id, self.domain, self.secret)
 
-        self.network = self.network_copy
-        self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
-        
         flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-dev.flist"
-        entry_point = "/bin/bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
+        entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         environment_vars = {
             "SDK_VERSION": self.branch,
             "THREEBOT_NAME": self.user_info.get("username"),
@@ -235,14 +208,14 @@ class ThreebotDeploy(GedisChatBot):
             self.reservation_id, self.solution_name, SolutionType.Threebot, metadata
         )
 
-
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""
         Your Threebot has been deployed successfully.
-        Domain          : {self.domain}
-        Reservation ID  : {self.reservation_id}
-        IP Address      : {self.ip_address}
+        Reservation ID  : {self.reservation_id}<br>
+        Domain          : <a href="{self.domain}">{self.domain}</a><br>
+        Reservation ID  : {self.reservation_id}<br>
+        IP Address      : {self.ip_address}<br>
         """
         self.md_show(dedent(message), md=True)
 

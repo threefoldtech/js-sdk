@@ -19,7 +19,7 @@ module.exports = {
     submit() {
       this.loading = true;
       this.error = null;
-      this.$api.backup
+      this.$api.miniobackup
         .backup(this.form.tag)
         .then(response => {
           this.done("Backup is created");

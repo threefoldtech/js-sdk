@@ -1,16 +1,17 @@
 <template>
   <div>
-    <base-component title="Backup" icon="mdi-database" :loading="loading">
+    <base-section title="Marketplace" icon="mdi-shopping-outline" :loading="loading">
       <template #actions>
         <v-btn text @click.stop="dialogs.take = true" :disabled="!inited">
-          <v-icon left>mdi-plus</v-icon>Backup
+          <v-icon left>mdi-backup-restore</v-icon>Backup
         </v-btn>
         <v-switch
           v-model="autoBackup"
           :disabled="!inited"
           single-line
           hide-details
-          label="AUTO BACKUP"
+          label="Auto backup"
+          dense
         ></v-switch>
       </template>
 
@@ -25,10 +26,29 @@
             @click.stop="dialogs.init = true"
           >Init now</v-btn>
         </v-alert>
+
+        <v-list v-if="inited" three-line>
+          <v-subheader>Snapshots</v-subheader>
+          <v-list-item v-for="snapshot in snapshots" :key="snapshot.id">
+            <v-list-item-avatar>
+              <v-icon>mdi-layers-outline</v-icon>
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-title v-html="snapshot.id"></v-list-item-title>
+              <v-list-item-subtitle>{{new Date(snapshot.time).toLocaleString()}}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <v-chip v-for="tag in snapshot.tags" :key="snapshot.id + tag" class="mr-1 mt-2" small outlined>
+                  {{ tag }}
+                </v-chip>
+              </v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+
       </template>
-    </base-component>
+    </base-section>
     <init-repos v-model="dialogs.init"></init-repos>
-    <take-backup v-model="dialogs.take"></take-backup>
+    <take-backup v-model="dialogs.take" @done="listSnapshots"></take-backup>
   </div>
 </template>
 
@@ -60,7 +80,7 @@ module.exports = {
   },
   methods: {
     checkReposInit() {
-      this.$api.miniobackup
+      this.$api.mrktbackup
         .inited()
         .then(response => {
           this.inited = response.data;
@@ -69,37 +89,47 @@ module.exports = {
           this.error = error.message;
         });
     },
+    listSnapshots () {
+      this.$api.mrktbackup
+        .snapshots()
+        .then(response => {
+          this.snapshots = JSON.parse(response.data).data;
+        })
+        .catch(error => {
+          this.error = error.response.data.message;
+        })
+    },
     checkAutoBackup() {
-      this.$api.miniobackup
+      this.$api.mrktbackup
         .enabled()
         .then(response => {
           this.autoBackup = response.data;
         })
         .catch(error => {
-          this.error = error.message;
+          this.error = error.response.data.message;
         });
     },
     changeAutoBackup() {
       if (this.autoBackup == true) {
-        this.$api.miniobackup
+        this.$api.mrktbackup
           .enable()
           .then(response => {
             this.done("Auto backup is enabled");
           })
           .catch(error => {
-            this.error = error.message;
+            this.error = error.response.data.message;
           })
           .finally(() => {
             this.loading = false;
           });
       } else {
-        this.$api.miniobackup
+        this.$api.mrktbackup
           .disable()
           .then(response => {
             this.done("Auto backup is disbaled");
           })
           .catch(error => {
-            this.error = error.message;
+            this.error = error.response.data.message;
           })
           .finally(() => {
             this.loading = false;
@@ -110,6 +140,7 @@ module.exports = {
   mounted() {
     this.checkReposInit();
     this.checkAutoBackup();
+    this.listSnapshots();
   }
 };
 </script>

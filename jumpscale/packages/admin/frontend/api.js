@@ -253,6 +253,11 @@ const apiClient = {
         url: `/backup/actors/marketplace/repos_exist`
       })
     },
+    snapshots() {
+      return axios({
+        url: `/backup/actors/marketplace/snapshots`
+      })
+    },
     init(password) {
       return axios({
         url: `/backup/actors/marketplace/init`,
@@ -289,6 +294,11 @@ const apiClient = {
     inited() {
       return axios({
         url: `/backup/actors/minio/repos_exist`
+      })
+    },
+    snapshots() {
+      return axios({
+        url: `/backup/actors/minio/snapshots`
       })
     },
     init(minio_url, password, access_key, secret_key) {

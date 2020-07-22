@@ -1,5 +1,5 @@
 <template>
-  <base-dialog title="Take Backup" v-model="dialog" :error="error" :loading="loading">
+  <base-dialog title="Init repo" v-model="dialog" :error="error" :loading="loading">
     <template #default>
       <v-form>
         <v-text-field v-model="form.password" type="password" label="password" dense></v-text-field>
@@ -23,6 +23,7 @@ module.exports = {
       this.$api.mrktbackup
         .init(this.form.password)
         .then(response => {
+          console.log(this.form)
           this.done("repos is inited");
           location.reload();
         })
