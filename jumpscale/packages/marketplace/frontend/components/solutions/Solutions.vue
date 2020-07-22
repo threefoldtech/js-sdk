@@ -122,7 +122,7 @@ module.exports = {
           name: "Publisher",
           icon: "mdi-web-box",
           description:
-            "Deploy a wiki, blog, website and access it via an IP or a public domain"
+            "Deploy a wiki, blog, website and access it via an IP and a public domain"
         }
       ],
       deployedSolutions: {}
