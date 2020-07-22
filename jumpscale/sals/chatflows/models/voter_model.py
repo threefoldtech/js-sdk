@@ -11,3 +11,4 @@ class User(Base):
     extra_data = fields.Typed(dict, default={})
     vote_data_weighted = fields.Typed(dict, default={})
     has_voted = fields.Boolean(default=False)
+    manifesto_version = fields.String(default="2.0.0")

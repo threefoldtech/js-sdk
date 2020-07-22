@@ -22,7 +22,7 @@ module.exports = {
       this.$api.admins.remove(this.name).then((response) => {
         this.done("Admin is removed")
       }).catch((error) => {
-        this.error = error.message
+        this.error = error.response.data.error
       }).finally(() => {
         this.loading = false
       })

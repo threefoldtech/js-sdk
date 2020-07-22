@@ -136,8 +136,8 @@ class Website(Base):
             website = self.parent.websites.find(website_name)
             if not website:
                 continue
-            
-            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))
         return paths
 
     def get_locations(self):
@@ -176,13 +176,23 @@ class Website(Base):
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
 
     def generate_self_signed_certificates(self):
-        if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(f"{self.parent.cfg_dir}/cert.pem"):
-            return
-        res = j.sals.process.execute(
-            f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
-        )
-        if res[0] != 0:
-            raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
+        keypempath = f"{self.parent.cfg_dir}/key.pem"
+        certpempath = f"{self.parent.cfg_dir}/cert.pem"
+        if j.sals.process.is_installed("mkcert"):
+            res = j.sals.process.execute(
+                f"mkcert -key-file {keypempath} -cert-file {certpempath} localhost *.localhost 127.0.0.1 ::1"
+            )
+            if res[0] != 0:
+                raise j.exceptions.JSException(f"Failed to generate self-signed certificate (using mkcert).{res}")
+
+        else:
+            if j.sals.fs.exists(f"{keypempath}") and j.sals.fs.exists(f"{certpempath}"):
+                return
+            res = j.sals.process.execute(
+                f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {keypempath} -out {certpempath} -days 365 -subj '/CN=localhost'"
+            )
+            if res[0] != 0:
+                raise j.exceptions.JSException(f"Failed to generate self-signed certificate (using openssl).{res}")
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)

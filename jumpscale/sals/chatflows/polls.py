@@ -4,6 +4,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 from jumpscale.sals.chatflows.models.voter_model import User
 
 WALLET_NAME = "polls_receive"
+MANIFESTO_VERSION = "2.0.1"
 
 all_users = StoredFactory(User)
 all_users.always_reload = True
@@ -29,6 +30,7 @@ class Poll(GedisChatBot):
         super().__init__(*args, **kwargs)
         self.QUESTIONS = {}
         self.extra_data = {}
+        self.metadata = {}
         self.custom_answers = {}
 
         if not j.clients.stellar.find(WALLET_NAME):
@@ -188,6 +190,7 @@ Please make the transaction and press Next
         self.user.vote_data_weighted = vote_data_weighted
         self.user.has_voted = True
         self.user.extra_data = self.extra_data
+        self.user.manifesto_version = MANIFESTO_VERSION
         self.user.save()
 
     @chatflow_step(title="Please fill in the following form", disable_previous=True)
@@ -248,7 +251,9 @@ Please make the transaction and press Next
 
         result_msg = "## Non weighted results %\n\n<br />\n\n"
         for question, answers in total_answers_with_percent.items():
-            result_msg += f"### {question}\n"
+            question_current_title = question
+            question_new_title = self.metadata["new_title_keys"][question_current_title]
+            result_msg += f"### {question_new_title}\n"
             for i in range(len(answers)):
                 answer_name = self.QUESTIONS[question][i]
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
@@ -257,7 +262,9 @@ Please make the transaction and press Next
         result_msg += "\n<br />\n\n"
         result_msg += "## Weighted results %\n\n<br />\n\n"
         for question, answers in total_answers_weighted_with_percent.items():
-            result_msg += f"### {question}\n"
+            question_current_title = question
+            question_new_title = self.metadata["new_title_keys"][question_current_title]
+            result_msg += f"### {question_new_title}\n"
             for i in range(len(answers)):
                 answer_name = self.QUESTIONS[question][i]
                 result_msg += f"- {answer_name}: {answers[i]}%\n"

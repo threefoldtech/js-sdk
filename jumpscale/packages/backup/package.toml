@@ -1,0 +1,9 @@
+name = "backup"
+
+[[static_dirs]]
+name = "frontend"
+path_url = "/static"
+path_location = "frontend/"
+index = "index.html"
+is_auth = true
+is_admin = true

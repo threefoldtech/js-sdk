@@ -1,35 +1,37 @@
-from jumpscale.sals.chatflows.polls import Poll
+from jumpscale.sals.chatflows.polls import Poll, MANIFESTO_VERSION
 from textwrap import dedent
 
 
 VOTES = {
     1: {
         "title": "Reading June 2020 update document",
-        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on <a href="https://wiki.threefold.io/#/threefold_update_june2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_june2020.md</a></span>""",
+        "content": """<span>We have prepared a new update of what has been happening please go to <a href="https://wiki.threefold.io/#/threefold_update_july2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_july2020.md</a></span>""",
         "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
         "title": "Reading the manifesto",
-        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the <a href="http://decentralization2.threefold.io" target="_blank">Decentralization Manifesto</a> of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.</span>""",
+        "content": f"""<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the <a href="http://decentralization2.threefold.io" target="_blank">Decentralization Manifesto v{MANIFESTO_VERSION}</a> of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.</span>""",
         "options": [
-            "I have read the manifesto on http://decentralization2.threefold.io and I do agree with the contents of this manifesto.",
-            "I have not read the manifesto on http://decentralization2.threefold.io or I do not agree.",
+            "I have read the manifesto and I do agree with the contents of this manifesto.",
+            "I have not read the manifesto or I do not agree.",
         ],
     },
     3: {
         "title": "TFTA on Stellar rights",
         "content": dedent(
             """\
-            TFTA on Stellar has all the same rights and more compared to the TFT on Rivine.
+            From May 2020, TFT v1 (Rivine) users can migrate their tokens towards a new public blockchain called Stellar.
+            Each user had to do this action him/herself.
+            TFTv1 is called TFTA on Stellar. TFTA and TFTv1 are identical and have all the same properties.
+            Additional benefits are: Stellar Exchange and a public blockchain with more users so more chance for liquidity.
 
             I can
 
             - Buy any capacity on the TF Grid, which represents the main use-case of this token.
-            - SellTFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
+            - Sell TFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
             - Transfer TFTA to anyone
-            - Enjoy any other feature you would expect from a digital currency
 
-            <br> No rights have been taken away from me by switching blockchains.
+            <br>No rights have been taken away from me by switching blockchains. Please realize this question has nothing to do in relation to Liquid and BTCAlpha public exchange integration, this is next question.
 
         """
         ),
@@ -46,6 +48,14 @@ VOTES = {
     },
 }
 
+# to upgrade the titles
+NEW_TITLE_KEYS = {
+    "Reading June 2020 update document": "Reading June 2020 update document",
+    "Reading the manifesto": "Reading the manifesto",
+    "TFTA on Stellar rights": "TFTA on Stellar rights",
+    "TFTA Availability": "TFTA trading mechanism support",
+}
+
 
 class TFPoll(Poll):
     poll_name = "threefold"
@@ -54,6 +64,7 @@ class TFPoll(Poll):
         super().__init__(*args, **kwargs)
         self.extra_data = {}
         self.custom_answers = {}
+        self.metadata = {"new_title_keys": NEW_TITLE_KEYS}
         self.QUESTIONS = {vote["title"]: vote["options"] for vote in VOTES.values()}
 
     def welcome(self):
@@ -80,7 +91,7 @@ class TFPoll(Poll):
         full_name = self.string_ask("What is your full name ?", required=True, default=default_answer)
         self.extra_data.update({"full_name": full_name})
 
-        statement_2 = """<span>Please read the decentralization manifesto on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
+        statement_2 = f"""<span>Please read the decentralization manifesto v{MANIFESTO_VERSION} on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
         self.md_show(dedent(statement_2), md=True)
 
     def custom_votes(self):
@@ -99,12 +110,12 @@ class TFPoll(Poll):
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_2_answer == VOTES[2]["options"][1]:
-            self.stop(
-                "The poll cannot continue because you did not agree with the decentralization manifesto. Thank you for your participation. Your answers have been recorded"
+            self.md_show(
+                f"You did not agree with the decentralization manifesto v{MANIFESTO_VERSION}. Thank you for your participation."
             )
         else:
             self.md_show(
-                'Thank you for confirming our "Decentralization manifesto", you have now digitally signed this document.'
+                f'Thank you for confirming our "Decentralization manifesto v{MANIFESTO_VERSION}", you have now digitally signed this document.'
             )
 
         default_answer = self.get_vote_answer(VOTES[3]["title"])

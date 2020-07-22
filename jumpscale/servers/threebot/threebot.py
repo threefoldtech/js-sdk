@@ -25,7 +25,8 @@ DEFAULT_PACKAGES = {
     "chatflows": {"path": os.path.dirname(j.packages.chatflows.__file__), "giturl": ""},
     "admin": {"path": os.path.dirname(j.packages.admin.__file__), "giturl": ""},
     "weblibs": {"path": os.path.dirname(j.packages.weblibs.__file__), "giturl": ""},
-    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": "",},
+    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": ""},
+    "backup": {"path": os.path.dirname(j.packages.backup.__file__), "giturl": ""},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 

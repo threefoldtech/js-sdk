@@ -47,7 +47,7 @@ module.exports = {
                         this.done("New Identity added", "success")
                     }
                 }).catch((error) => {
-                    this.error = error.message
+                    this.error = error.response.data.error
                 }).finally(() => {
                     this.loading = false
                 })
