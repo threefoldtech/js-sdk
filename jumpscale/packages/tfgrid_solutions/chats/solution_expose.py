@@ -11,6 +11,7 @@ kinds = {
     "ubuntu": SolutionType.Ubuntu,
     "flist": SolutionType.Flist,
     "gitea": SolutionType.Gitea,
+    "threebot": SolutionType.Threebot
 }
 
 domain_types = {"delegate": Category.Domain_delegate, "sub": Category.Subdomain}
@@ -179,6 +180,7 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
             addresses = []
             for ns in self.domain_gateway.dns_nameserver:
                 addresses.append(j.sals.nettools.get_host_by_name(ns))
+            
             j.sals.zos._gateway.sub_domain(
                 self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], addresses
             )
