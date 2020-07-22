@@ -23,7 +23,7 @@ module.exports = {
       this.$api.admins.add(this.form.name).then((response) => {
         this.done("Admin is added")
       }).catch((error) => {
-        this.error = error.message
+        this.error = error.response.data.error
       }).finally(() => {
         this.loading = false
       })

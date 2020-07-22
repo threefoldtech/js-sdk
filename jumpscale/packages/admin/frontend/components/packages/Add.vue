@@ -61,7 +61,7 @@ module.exports = {
           this.done("Package is added");
         })
         .catch(error => {
-          this.error = error.message;
+          this.error = error.response.data.error
         })
         .finally(() => {
           this.loading = false;

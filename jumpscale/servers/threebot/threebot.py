@@ -25,7 +25,7 @@ DEFAULT_PACKAGES = {
     "chatflows": {"path": os.path.dirname(j.packages.chatflows.__file__), "giturl": ""},
     "admin": {"path": os.path.dirname(j.packages.admin.__file__), "giturl": ""},
     "weblibs": {"path": os.path.dirname(j.packages.weblibs.__file__), "giturl": ""},
-    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": ""},
+    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": "",},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
@@ -377,13 +377,17 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
         )
 
         if package.name in self.packages:
             raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
-        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
+        self.packages[package.name] = {
+            "name": package.name,
+            "path": package.path,
+            "giturl": package.giturl,
+        }
 
         # execute package install method
         package.install(**kwargs)
@@ -636,6 +640,9 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
+        for package_name in self.packages.list_all():
+            package = self.packages.get(package_name)
+            package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
         j.application.stop()

@@ -20,7 +20,7 @@
         this.$api.alerts.deleteAll().then((response) => {
           this.done("alerts are deleted")
         }).catch((error) => {
-          this.error = error.message
+          this.error = error.response.data.error
         }).finally(() => {
           this.loading = false
         })
