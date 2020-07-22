@@ -47,7 +47,9 @@ class Publisher(GedisChatBot):
     @chatflow_step(title="Solution name")
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice("Choose the type", options=["wiki", "www", "data", "blog"], default="wiki", required=True)
+        ttype = form.single_choice(
+            "Choose the type", options=["wiki", "www", "data", "blog"], default="wiki", required=True
+        )
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
@@ -75,7 +77,7 @@ class Publisher(GedisChatBot):
             mru=math.ceil(self.resources["memory"] / 1024),
             sru=math.ceil(self.resources["rootfs"] / 1024),
         )
-        
+
         self.nodeid = self.string_ask(
             "Please enter the nodeid you would like to deploy on if left empty a node will be chosen for you"
         )
@@ -89,13 +91,12 @@ class Publisher(GedisChatBot):
             except (j.exceptions.Value, j.exceptions.NotFound) as e:
                 message = "<br> Please enter a different nodeid to deploy on or leave it empty"
                 self.nodeid = self.string_ask(str(e) + message, html=True, retry=True)
-        
 
     @chatflow_step(title="Select farm")
     def select_farm(self):
         if not self.nodeid:
-            farms = j.sals.reservation_chatflow.get_farm_names(1, self, ** self.query)
-            self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, ** self.query)[0]
+            farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
+            self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
 
     @chatflow_step(title="Select IP")
     def select_ip_address(self):
@@ -125,8 +126,12 @@ class Publisher(GedisChatBot):
             for domain in gateway.managed_domains:
                 domains[domain] = gateway
 
-        self.domain = self.single_choice("Please choose the domain you wish to use", list(domains.keys()), required=True)
-        self.sub_domain = self.string_ask(f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True)
+        self.domain = self.single_choice(
+            "Please choose the domain you wish to use", list(domains.keys()), required=True
+        )
+        self.sub_domain = self.string_ask(
+            f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
+        )
         self.gateway = domains[self.domain]
         self.domain = f"{self.sub_domain}.{self.domain}"
 
@@ -140,10 +145,7 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Confirmation")
     def overview(self):
-        info = {
-            "Solution name": self.solution_name,
-            "Expiration time": j.data.time.get(self.expiration).humanize()
-        }
+        info = {"Solution name": self.solution_name, "Expiration time": j.data.time.get(self.expiration).humanize()}
         self.md_show_confirm(info)
 
     @chatflow_step(title="Payment", disable_previous=True)
@@ -155,8 +157,12 @@ class Publisher(GedisChatBot):
         self.network = self.network_copy
         self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
 
-        flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-https.flist"
+        flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
         self.envars["SSHKEY"] = self.public_key
+        self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+        secret_env = {}
+        secret_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.secret)
+        secret_env["TRC_SECRET"] = secret_encrypted
 
         j.sals.zos.container.create(
             reservation=self.reservation,
@@ -168,47 +174,16 @@ class Publisher(GedisChatBot):
             disk_type=DiskType.SSD.value,
             disk_size=self.resources["rootfs"],
             env=self.envars,
-            interactive=False,
-            entrypoint="/bin/bash /start.sh",
+            interactive=True,
+            # entrypoint="/bin/bash /start.sh",
             cpu=self.resources["cpu"],
             memory=self.resources["memory"],
-        )
-
-        query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
-        node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
-        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)
-        network.add_node(node_selected)
-        network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
-        ip_address = network.get_free_ip(node_selected)
-        if not ip_address:
-            raise j.exceptions.Value("No available free ips")
-
-        secret_env = {}
-        secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.secret)
-        secret_env["TRC_SECRET"] = secret_encrypted
-        remote = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
-        local = f"{self.ip_address}:80"
-        localtls = f"{self.ip_address}:443"
-        entrypoint = f"/bin/trc -local {local} -local-tls {localtls} -remote {remote}"
-
-        j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=node_selected.node_id,
-            network_name=self.network.name,
-            ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
-            entrypoint=entrypoint,
             secret_env=secret_env,
         )
-        
 
-        metadata = {
-            "Solution name": self.solution_name, "version": 1, "chatflow": "publisher"
-        }
+        metadata = {"Solution name": self.solution_name, "version": 1, "chatflow": "publisher"}
 
-        res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.solution_name, SolutionType.Publisher, metadata
-        )
+        res = j.sals.reservation_chatflow.get_solution_metadata(self.solution_name, SolutionType.Publisher, metadata)
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
 
         self.reservation_id = j.sals.reservation_chatflow.register_and_pay_reservation(
@@ -227,5 +202,6 @@ class Publisher(GedisChatBot):
         IP address: {self.ip_address}
         """
         self.md_show(dedent(message), md=True)
+
 
 chat = Publisher
