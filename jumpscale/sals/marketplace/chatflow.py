@@ -111,6 +111,7 @@ class MarketPlaceChatflow(GedisChatBot):
             required=True,
         ).split("\n")[0]
         self.env["pub_key"] = self.user_form_data["Public key"]
+        self.public_key = self.user_form_data["Public key"]
 
     @chatflow_step(title="Container node id")
     def container_node_id(self):

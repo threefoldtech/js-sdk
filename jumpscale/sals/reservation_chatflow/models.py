@@ -17,6 +17,7 @@ class SolutionType(Enum):
     Monitoring = "monitoring"
     Publisher = "publisher"
     Unknown = "unknown"
+    Threebot = "threebot"
 
 
 class TfgridSolution1(Base):
