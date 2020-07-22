@@ -4,7 +4,7 @@
       <v-form>
         <v-text-field v-model="form.minio_url" label="Minio URL" dense></v-text-field>
         <v-text-field v-model="form.access_key" label="Access Key" dense></v-text-field>
-        <v-text-field v-model="form.secret_key" label="secret_key" dense></v-text-field>
+        <v-text-field v-model="form.secret_key" label="Secret key" dense></v-text-field>
         <v-text-field v-model="form.password" type="password" label="Password" dense></v-text-field>
       </v-form>
     </template>

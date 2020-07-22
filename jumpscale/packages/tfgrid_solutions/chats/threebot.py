@@ -20,7 +20,7 @@ class ThreebotDeploy(GedisChatBot):
         "select_farm",
         "overview",
         "deploy",
-        "success"
+        "success",
     ]
 
     title = "Threebot"
@@ -28,11 +28,6 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step()
     def start(self):
         self.user_info = self.user_info()
-
-        # threebots = j.sals.reservation_chatflow.get_solutions(SolutionType.Threebot)
-        # if len(threebots) > 0:
-        #     domain = threebots[0]["reservation"]["data_reservation"]["containers"][0]["environment"]["DOMAIN"] 
-        #     self.stop(f"You already have a Threebot deployed at {domain}")
 
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
@@ -56,7 +51,7 @@ class ThreebotDeploy(GedisChatBot):
         cpu = form.int_ask("Please add how many CPU cores are needed", default=2, required=True)
         memory = form.int_ask("Please add the amount of memory in MB", default=2048, required=True)
         rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=2048)
-        
+
         form.ask()
 
         self.container_cpu = cpu.value
@@ -67,9 +62,10 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step(title="Access key")
     def upload_public_key(self):
         self.public_key = self.upload_file(
-            "Please upload your public ssh key, this will allow you to access your threebot container using ssh", required=True
+            "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+            required=True,
         ).strip()
-   
+
     @chatflow_step(title="Select farm")
     def select_farm(self):
         self.query = dict(
@@ -78,8 +74,8 @@ class ThreebotDeploy(GedisChatBot):
             mru=math.ceil(self.container_memory / 1024),
             sru=math.ceil(self.container_rootfs_size / 1024),
         )
-        farms = j.sals.reservation_chatflow.get_farm_names(1, self, ** self.query)
-        self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, ** self.query)[0]
+        farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
+        self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
 
     @chatflow_step(title="Expiration time")
     def select_expiration_time(self):
@@ -101,10 +97,12 @@ class ThreebotDeploy(GedisChatBot):
             for domain in gateway.managed_domains:
                 domains[domain] = gateway
 
-        self.domain = self.single_choice("Please choose the domain you wish to use", list(domains.keys()), required=True)
+        self.domain = self.single_choice(
+            "Please choose the domain you wish to use", list(domains.keys()), required=True
+        )
         self.gateway = domains[self.domain]
-        
-        subdomain = j.data.text.removesuffix(self.user_info['username'], ".3bot")
+
+        subdomain = j.data.text.removesuffix(self.user_info["username"], ".3bot")
         self.domain = f"{subdomain}.{self.domain}"
 
         self.addresses = []
@@ -122,7 +120,7 @@ class ThreebotDeploy(GedisChatBot):
             "Memory": self.container_memory,
             "Root filesystem type": DiskType.SSD.name,
             "Root filesystem size": self.container_rootfs_size,
-            "Expiration time": j.data.time.get(self.expiration).humanize()
+            "Expiration time": j.data.time.get(self.expiration).humanize(),
         }
         self.md_show_confirm(info)
 
@@ -139,14 +137,14 @@ class ThreebotDeploy(GedisChatBot):
         j.sals.zos._gateway.sub_domain(self.reservation, self.gateway.node_id, self.domain, self.addresses)
         j.sals.zos._gateway.tcp_proxy_reverse(self.reservation, self.gateway.node_id, self.domain, self.secret)
 
-        flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-dev.flist"
+        flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         environment_vars = {
             "SDK_VERSION": self.branch,
             "THREEBOT_NAME": self.user_info.get("username"),
             "SSHKEY": self.public_key,
             "DOMAIN": self.domain,
-            "EMAIL": self.user_info.get("email")
+            "EMAIL": self.user_info.get("email"),
         }
 
         j.sals.zos.container.create(
@@ -191,13 +189,9 @@ class ThreebotDeploy(GedisChatBot):
             secret_env=secret_env,
         )
 
-        metadata = {
-            "Solution name": self.solution_name, "Version": self.branch, "chatflow": "threebot"
-        }
+        metadata = {"Solution name": self.solution_name, "Version": self.branch, "chatflow": "threebot"}
 
-        res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.solution_name, SolutionType.Threebot, metadata
-        )
+        res = j.sals.reservation_chatflow.get_solution_metadata(self.solution_name, SolutionType.Threebot, metadata)
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
 
         self.reservation_id = j.sals.reservation_chatflow.register_and_pay_reservation(
