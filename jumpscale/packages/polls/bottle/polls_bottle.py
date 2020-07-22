@@ -39,7 +39,8 @@ def names():
     data = {"names": []}
     for voter_name in all_users.list_all():
         voter = all_users.get(voter_name)
-        data["names"].append(voter.extra_data["full_name"])
+        tname = j.data.text.removeprefix(voter_name, "threefold_")
+        data["names"].append(voter.extra_data.get("full_name", tname))
     data["-Number of voters"] = all_users.count
     return data
 
