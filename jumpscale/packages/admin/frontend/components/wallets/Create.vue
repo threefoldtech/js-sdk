@@ -23,7 +23,7 @@ module.exports = {
       this.$api.wallets.create(this.form.name).then((response) => {
         this.done("Wallet is created")
       }).catch((error) => {
-        this.error = error.message
+        this.error = error.response.data.error
       }).finally(() => {
         this.loading = false
       })
