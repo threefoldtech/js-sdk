@@ -138,7 +138,11 @@ class KubernetesDeploy(MarketPlaceChatflow):
         metadata = self.user_form_data.copy()
         metadata.pop("SSH keys")
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Kubernetes, self.user_info()["username"], metadata
+            self.user_form_data["Solution name"],
+            SolutionType.Kubernetes,
+            self.user_info()["username"],
+            metadata,
+            self.solution_uuid,
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

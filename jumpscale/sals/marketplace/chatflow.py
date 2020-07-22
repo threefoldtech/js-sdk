@@ -8,6 +8,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+import uuid
 
 from .deployer import deployer
 
@@ -48,6 +49,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def welcome(self):
+        self.solution_uuid = uuid.uuid4().hex
         self._validate_user()
         self._tid = None
         self.user_form_data = dict()
@@ -252,7 +254,11 @@ class MarketPlaceChatflow(GedisChatBot):
             )
 
         res = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"], self.SOLUTION_TYPE, self.user_info()["username"], self.metadata
+            self.user_form_data["Solution name"],
+            self.SOLUTION_TYPE,
+            self.user_info()["username"],
+            self.metadata,
+            self.solution_uuid,
         )
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.resv_id = deployer.register_and_pay_reservation(

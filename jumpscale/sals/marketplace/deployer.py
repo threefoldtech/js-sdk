@@ -9,6 +9,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow.reservation_chatflow import Network as BaseNetwork
+import uuid
 
 MARKET_WALLET_NAME = "TFMarketWallet"
 
@@ -85,7 +86,7 @@ class MarketPlaceDeployer:
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type": []}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
 
-    def get_solution_metadata(self, solution_name, solution_type, tid, form_info=None):
+    def get_solution_metadata(self, solution_name, solution_type, tid, form_info=None, solution_uuid=None):
         """builds the metadata for the reservation
 
         Args:
@@ -100,6 +101,9 @@ class MarketPlaceDeployer:
 
         form_info = form_info or {}
         metadata = {}
+        if not solution_uuid:
+            solution_uuid = uuid.uuid4().hex
+        metadata["solution_uuid"] = solution_uuid
         metadata["name"] = f"{tid}_{solution_name}"
         metadata["form_info"] = form_info
         metadata["solution_type"] = solution_type.value
@@ -133,6 +137,7 @@ class MarketPlaceDeployer:
                 if metadata.get("tid") != tid:
                     continue
                 solution_type = metadata.get("solution_type", SolutionType.Unknown.value)
+                solution_uuid = metadata.get("solution_uuid")
                 if solution_type == SolutionType.Unknown.value:
                     continue
                 elif solution_type == SolutionType.Ubuntu.value:
@@ -168,6 +173,7 @@ class MarketPlaceDeployer:
                     "status": reservation.next_action.name,
                     "reservation_date": reservation.epoch.ctime(),
                     "reservation_obj": reservation,
+                    "solution_uuid": solution_uuid,
                 }
                 reservations_data.append(reservation_info)
                 self.reservations[tid][solution_type].append(reservation_info)

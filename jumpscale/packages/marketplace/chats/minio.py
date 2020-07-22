@@ -180,6 +180,14 @@ class MinioDeploy(MarketPlaceChatflow):
             )
 
         # register the reservation for zdb db
+        res = deployer.get_solution_metadata(
+            self.user_form_data["Solution name"],
+            SolutionType.Minio,
+            self.user_info()["username"],
+            {"AK": self.user_form_data["Access key"]},
+            self.solution_uuid,
+        )
+        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
         self.zdb_rid = deployer.register_and_pay_reservation(
             self.reservation,
             self.expiration,
