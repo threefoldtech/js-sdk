@@ -247,6 +247,82 @@ const apiClient = {
       })
     }
   },
+  mrktbackup: {
+    inited() {
+      return axios({
+        url: `/backup/actors/marketplace/repos_exist`
+      })
+    },
+    init(password) {
+      return axios({
+        url: `/backup/actors/marketplace/init`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { password: password }
+      })
+    },
+    backup(tags) {
+      return axios({
+        url: `/backup/actors/marketplace/backup`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { tags: tags }
+      })
+    },
+    enable: () => {
+      return axios({
+        url: `/backup/actors/marketplace/enable_auto_backup`
+      })
+    },
+    disable() {
+      return axios({
+        url: `/backup/actors/marketplace/disable_auto_backup`
+      })
+    },
+    enabled() {
+      return axios({
+        url: `/backup/actors/marketplace/check_auto_backup`
+      })
+    },
+  },
+  miniobackup: {
+    inited() {
+      return axios({
+        url: `/backup/actors/minio/repos_exist`
+      })
+    },
+    init(minio_url, password, access_key, secret_key) {
+      return axios({
+        url: `/backup/actors/minio/init`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { minio_url: minio_url, password: password, access_key: access_key, secret_key: secret_key }
+      })
+    },
+    backup(tags) {
+      return axios({
+        url: `/backup/actors/minio/backup`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { tags: tags }
+      })
+    },
+    enable: () => {
+      return axios({
+        url: `/backup/actors/minio/enable_auto_backup`
+      })
+    },
+    disable() {
+      return axios({
+        url: `/backup/actors/minio/disable_auto_backup`
+      })
+    },
+    enabled() {
+      return axios({
+        url: `/backup/actors/minio/check_auto_backup`
+      })
+    },
+  },
   identity: {
     get: () => {
       return axios({
@@ -273,8 +349,5 @@ const apiClient = {
         url: "/auth/authenticated"
       })
     }
-  },
-  backup: {
-    
   }
 }

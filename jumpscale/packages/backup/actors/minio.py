@@ -7,6 +7,10 @@ MINIO_URL = "s3:{}/threebotbackup"
 
 class MinioBackup(BaseActor):
     @actor_method
+    def repos_exist(self) -> bool:
+        return INSTANCE_NAME in j.tools.restic.list_all()
+
+    @actor_method
     def init(self, minio_url, password, access_key, secret_key) -> str:
         minio = j.tools.restic.get(INSTANCE_NAME)
         minio.repo = MINIO_URL.format(minio_url)
@@ -52,7 +56,7 @@ class MinioBackup(BaseActor):
     @actor_method
     def disable_auto_backup(self) -> str:
         instance = self._get_instance()
-        instance.disable_auto_backup(j.core.dirs.JSJSCFGDIR)
+        instance.disable_auto_backup(j.core.dirs.JSCFGDIR)
         return j.data.serializers.json.dumps({"data": "auto backup disabled"})
 
 

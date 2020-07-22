@@ -12,7 +12,8 @@ REPO_NAMES = ["config_backup_1", "config_backup_2"]
 
 
 class Backup(BaseActor):
-    def repos_exist(self):
+    @actor_method
+    def repos_exist(self) -> bool:
         restic_repos = j.tools.restic.list_all()
         for repo in REPO_NAMES:
             if repo not in restic_repos:
@@ -51,12 +52,31 @@ class Backup(BaseActor):
     def backup(self, tags=None) -> str:
         if not self.repos_exist():
             raise j.exceptions.Value("repos are not inited, please call init first")
-        tags = tags or []
+        if tags  and not isinstance(tags, list):
+            tags = [tags]
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
-
+    # def list_snapshots(self, tag=None):
+    #     if not self.repos_exist():
+    #         raise j.exceptions.Value("repos are not inited, please call init first")
+    #     if tag:
+    #         tags = [tags]
+    #     else:
+    #         tags = []
+    #     snapshots = {}
+    #     for repo_name in REPO_NAMES:
+    #         repo = j.tools.restic.get(repo_name)
+    #         repo_snapshots = repo.list_snapshots(tags=tags, path=j.core.dirs.JSCFGDIR)
+    #         if repo_snapshots:
+    #             for snapshot in repo_snapshots:
+    #                 if snapshot["tags"][0] in snapshots:
+    #                     continue
+    #                 snapshot["repo_name"] = repo_name
+    #                 snapshots[snapshot["tags"][0]] = snapshot
+    #     return j.data.serializers.json.dumps({"data": snapshots})
+        
     def get_last_snapshot(self, tags=None):
         def _add_snapshot_timestamp(snapshot):
             snapshot["time"] = j.data.time.get(snapshot["time"]).timestamp
@@ -110,7 +130,7 @@ class Backup(BaseActor):
             raise j.exceptions.Value("repos are not inited, please call init first")
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
-            repo.disable_auto_backup(j.core.dirs.JSJSCFGDIR)
+            repo.disable_auto_backup(j.core.dirs.JSCFGDIR)
         return j.data.serializers.json.dumps({"data": "auto backup disabled"})
 
 
