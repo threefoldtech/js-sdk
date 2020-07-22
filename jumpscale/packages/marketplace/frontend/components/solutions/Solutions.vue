@@ -123,6 +123,12 @@ module.exports = {
           icon: "mdi-web-box",
           description:
             "Deploy a wiki, blog, website and access it via an IP and a public domain"
+        },
+        {
+          type: "threebot",
+          name: "Threebot",
+          image: "./assets/3bot.png",
+          description: "Deploy your Threebot on container."
         }
       ],
       deployedSolutions: {}

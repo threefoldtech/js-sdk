@@ -166,6 +166,12 @@ module.exports = {
           type: "publisher",
           path: "/publisher",
           meta: { icon: "mdi-web-box" }
+        },
+        {
+          type: "threebot",
+          name: "Threebot",
+          path: "/threebot",
+          meta: { img: "./assets/3bot.png" }
         }
       ];
     }
