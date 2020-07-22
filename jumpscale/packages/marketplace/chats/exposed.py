@@ -112,6 +112,7 @@ class SolutionExpose(BaseSolutionExpose):
     def confirmation(self):
         query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
         node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
+        self.md_show_update("Preparing Network on Node.....")
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network_name)
         # get MarketPlace Network object
         network = Network(
@@ -124,6 +125,7 @@ class SolutionExpose(BaseSolutionExpose):
         )
         network.add_node(node_selected)
         network.update(self.user_info()["username"], currency=self.solution_currency, bot=self)
+        self.md_show_update("Preparing TCPRouter Container.....")
         ip_address = network.get_free_ip(node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
@@ -157,6 +159,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
     @chatflow_step(title="Reserve TCP router container", disable_previous=True)
     def tcp_router_reservation(self):
         # create proxy
+        self.md_show_update("Preparing TCP Reverse Proxy.....")
         j.sals.zos._gateway.tcp_proxy_reverse(
             self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
         )

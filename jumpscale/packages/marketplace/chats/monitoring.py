@@ -156,6 +156,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Prometheus container IP")
     def prometheus_container_ip(self):
+        self.md_show_update("Finding Available IPs....")
         self.prometheus_network = self.network.copy()
         self.prometheus_network.add_node(self.nodes_selected["Prometheus"])
         self.ip_addresses["Prometheus"] = self.prometheus_network.ask_ip_from_node(
@@ -165,6 +166,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Grafana container IP")
     def grafana_container_ip(self):
+        self.md_show_update("Finding Available IPs....")
         self.grafana_network = self.prometheus_network.copy()
         self.grafana_network.add_node(self.nodes_selected["Grafana"])
         self.ip_addresses["Grafana"] = self.grafana_network.ask_ip_from_node(
@@ -174,6 +176,7 @@ class MonitoringDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Redis container IP")
     def redis_container_ip(self):
+        self.md_show_update("Finding Available IPs....")
         self.redis_network = self.grafana_network.copy()
         self.redis_network.add_node(self.nodes_selected["Redis"])
         self.ip_addresses["Redis"] = self.redis_network.ask_ip_from_node(
@@ -183,9 +186,11 @@ class MonitoringDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Payment", disable_previous=True)
     def containers_pay(self):
+        self.md_show_update("Preparing Network on Nodes....")
         self.network = self.redis_network
         self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
 
+        self.md_show_update("Preparing Containers Reservations....")
         storage_url = "zdb://hub.grid.tf:9900"
         redis_ip_address = self.ip_addresses["Redis"]
 

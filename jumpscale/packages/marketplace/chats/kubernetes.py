@@ -100,6 +100,7 @@ class KubernetesDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Cluster reservations", disable_previous=True)
     def cluster_reservation(self):
+        self.md_show_update("Preparing network on nodes.....")
         self.network = self.network_copy
         # update network
         self.network.update(self.user_info()["username"], currency=self.network.currency, bot=self)
@@ -107,6 +108,7 @@ class KubernetesDeploy(MarketPlaceChatflow):
         self.reservation = j.sals.zos.reservation_create()
         # Create master and workers
         # Master is in the first node from the selected nodes
+        self.md_show_update("Preparing cluster reservation......")
         master = None
         for idx, master_node in enumerate(self.master_nodes_selected):
             master = j.sals.zos.kubernetes.add_master(

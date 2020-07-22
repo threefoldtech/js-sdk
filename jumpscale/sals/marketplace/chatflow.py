@@ -143,6 +143,7 @@ class MarketPlaceChatflow(GedisChatBot):
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
+        self.md_show_update("Finding Available IPs.....")
         self.network_copy = self.network.copy()
         self.network_copy.add_node(self.node_selected)
         self.ip_address = self.network_copy.ask_ip_from_node(
@@ -208,7 +209,7 @@ class MarketPlaceChatflow(GedisChatBot):
             self.interactive = False
         if not hasattr(self, "entry_point"):
             self.entry_point = None
-
+        self.md_show_update("Preparing Network on Node.....")
         self.network = self.network_copy
         self.network.update(self.user_info()["username"], currency=self.currency, bot=self)
         storage_url = "zdb://hub.grid.tf:9900"
