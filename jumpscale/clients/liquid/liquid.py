@@ -52,7 +52,7 @@ class LiquidClient(Client):
         """Gets price of specified pair
 
         Args:
-            pair (str): pair name. Defaults to XLMUSD
+            pair (str): pair name. Defaults to TFTBTC
 
         Raises:
             j.exceptions.Input: If incorrect pair is provided
