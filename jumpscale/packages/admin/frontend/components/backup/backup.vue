@@ -1,50 +1,51 @@
 <template>
   <div>
     <base-component title="Backup" icon="mdi-database" :loading="loading">
+      
       <template #actions>
-        <v-btn color="primary" text @click.stop="addDialog = true">
-          <v-icon left>mdi-plus</v-icon>Add
+        <v-btn text @click.stop="dialogs.take = true">
+          <v-icon left>mdi-plus</v-icon> Backup
         </v-btn>
+        <v-switch v-model="autoBackup" single-line hide-details label="AUTO BACKUP"></v-switch>
       </template>
 
-      <template #default></template>
+      <template #default>
+      </template>
+
     </base-component>
 
-    <add-package v-model="addDialog" @done="listPackages"></add-package>
-    <delete-package v-model="deleteDialog" :name="selected" @done="listPackages"></delete-package>
+    <take-backup v-model="dialogs.take"></take-backup>
   </div>
 </template>
 
 <script>
 module.exports = {
   components: {
-    "add-package": httpVueLoader("./Add.vue"),
-    "delete-package": httpVueLoader("./Delete.vue")
+    'take-backup': httpVueLoader("./TakeBackup.vue")
   },
   data() {
     return {
       loading: false,
-      packages: [],
-      selected: null,
-      addDialog: false,
-      deleteDialog: false
+      snapshots: [],
+      autoBackup: false,
+      dialogs: {
+        take: false
+      }
     };
   },
+  watch: {
+    autoBackup () {
+      this.changeAutoBackup()
+    }
+  },
   methods: {
-    listPackages() {
-      this.loading = true;
-      this.$api.packages
-        .list()
-        .then(response => {
-          this.packages = JSON.parse(response.data).data;
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+    listSnapshots() {},
+    changeAutoBackup () {
+      console.log(this.autoBackup)
     }
   },
   mounted() {
-    this.listPackages();
+    this.listSnapshots();
   }
 };
 </script>
