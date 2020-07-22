@@ -9,3 +9,4 @@ port = 8080
 path_url = "/codeserver"
 path_dest = "/"
 websocket = true
+increase_buffers_size = true

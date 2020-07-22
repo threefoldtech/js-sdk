@@ -9,3 +9,4 @@ port = 8888
 path_url = "/notebooks"
 path_dest = "/notebooks"
 websocket = true
+increase_buffers_size = true
