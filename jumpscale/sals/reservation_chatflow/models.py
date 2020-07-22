@@ -18,7 +18,6 @@ class SolutionType(Enum):
     Publisher = "publisher"
     Threebot = "threebot"
     Unknown = "unknown"
-    Threebot = "threebot"
 
 
 class TfgridSolution1(Base):
