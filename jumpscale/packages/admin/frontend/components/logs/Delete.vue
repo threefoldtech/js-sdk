@@ -21,7 +21,7 @@
         this.$api.logs.delete(this.appname).then((response) => {
           this.done("logs are deleted")
         }).catch((error) => {
-          this.error = error.message
+          this.error = error.response.data.error
         }).finally(() => {
           this.loading = false
         })

@@ -41,7 +41,7 @@ module.exports = {
             this.done("Wallet is imported")
           }
         }).catch((error) => {
-          this.error = error.message
+          this.error = error.response.data.error
         }).finally(() => {
           this.loading = false
         })

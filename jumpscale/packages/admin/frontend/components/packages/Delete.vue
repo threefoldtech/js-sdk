@@ -22,7 +22,7 @@ module.exports = {
       this.$api.packages.delete(this.name).then((response) => {
         this.done("Package is deleted")
       }).catch((error) => {
-        this.error = error.message
+        this.error = error.response.data.error
       }).finally(() => {
         this.loading = false
       })
