@@ -94,6 +94,17 @@ class Backup(BaseActor):
         return j.data.serializers.json.dumps({"data": "auto backup enabled"})
 
     @actor_method
+    def check_auto_backup(self) -> bool:
+        if not self.repos_exist():
+            raise j.exceptions.Value("repos are not inited, please call init first")
+
+        for repo_name in REPO_NAMES:
+            repo = j.tools.restic.get(repo_name)
+            if not repo.auto_backup_running(j.core.dirs.JSCFGDIR):
+                return False
+        return True
+
+    @actor_method
     def disable_auto_backup(self) -> str:
         if not self.repos_exist():
             raise j.exceptions.Value("repos are not inited, please call init first")
