@@ -28,14 +28,13 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step()
     def start(self):
         self.user_info = self.user_info()
-
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
-        self.solution_currency = "TFT"
 
     @chatflow_step(title="Network")
     def select_network(self):
         self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
+        self.solution_currency = self.network.currency
 
     @chatflow_step(title="Solution name")
     def set_solution_name(self):
@@ -70,9 +69,10 @@ class ThreebotDeploy(GedisChatBot):
     def select_farm(self):
         self.query = dict(
             currency=self.network.currency,
-            cru=self.container_cpu,
-            mru=math.ceil(self.container_memory / 1024),
+            cru=self.container_cpu + 1,
+            mru=math.ceil(self.container_memory / 1024) + 1,
             sru=math.ceil(self.container_rootfs_size / 1024),
+            hru=1,
         )
         farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
         self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
@@ -162,17 +162,16 @@ class ThreebotDeploy(GedisChatBot):
             disk_size=self.container_rootfs_size,
         )
 
-        query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
-        node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)
-        network.add_node(node_selected)
+        network.add_node(self.node_selected)
         network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
-        ip_address = network.get_free_ip(node_selected)
+        network._used_ips.append(self.ip_address)
+        ip_address = network.get_free_ip(self.node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
 
         secret_env = {}
-        secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.secret)
+        secret_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.secret)
         secret_env["TRC_SECRET"] = secret_encrypted
         remote = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
         local = f"{self.ip_address}:80"
@@ -181,7 +180,7 @@ class ThreebotDeploy(GedisChatBot):
 
         j.sals.zos.container.create(
             reservation=self.reservation,
-            node_id=node_selected.node_id,
+            node_id=self.node_selected.node_id,
             network_name=self.network.name,
             ip_address=ip_address,
             flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
