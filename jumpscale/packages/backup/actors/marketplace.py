@@ -51,32 +51,48 @@ class Backup(BaseActor):
     @actor_method
     def backup(self, tags=None) -> str:
         if not self.repos_exist():
-            raise j.exceptions.Value("repos are not inited, please call init first")
-        if tags  and not isinstance(tags, list):
-            tags = [tags]
+            raise j.exceptions.Value("Please configure backup first")
+        if tags:
+            tags = tags.split(",")
+        else:
+            tags = []
+        tags.append(str(j.data.time.now().timestamp))
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
-    # def list_snapshots(self, tag=None):
-    #     if not self.repos_exist():
-    #         raise j.exceptions.Value("repos are not inited, please call init first")
-    #     if tag:
-    #         tags = [tags]
-    #     else:
-    #         tags = []
-    #     snapshots = {}
-    #     for repo_name in REPO_NAMES:
-    #         repo = j.tools.restic.get(repo_name)
-    #         repo_snapshots = repo.list_snapshots(tags=tags, path=j.core.dirs.JSCFGDIR)
-    #         if repo_snapshots:
-    #             for snapshot in repo_snapshots:
-    #                 if snapshot["tags"][0] in snapshots:
-    #                     continue
-    #                 snapshot["repo_name"] = repo_name
-    #                 snapshots[snapshot["tags"][0]] = snapshot
-    #     return j.data.serializers.json.dumps({"data": snapshots})
-        
+
+    @actor_method
+    def snapshots(self, tags=None) -> str:
+        if tags:
+            tags = tags.split(",")
+        snapshots = []
+
+        for repo_name in REPO_NAMES:
+            repo = j.tools.restic.get(repo_name)
+            snapshots.append(repo.list_snapshots(tags=tags))
+
+        processed = set()
+        result = []
+
+        min_size = min(len(snapshots[0]), len(snapshots[1]))
+        size = min_size if min_size < 10 else 10
+        for i in range(size):
+            snap_1 = snapshots[0][i]
+            snap_2 = snapshots[1][i]
+
+            tag_1 = snap_1.get("tags", [""])[-1]
+            tag_2 = snap_2.get("tags", [""])[-1]
+            if tag_1 not in processed:
+                processed.add(tag_1)
+                result.append(snap_1)
+
+            if tag_2 not in processed:
+                processed.add(tag_2)
+                result.append(snap_2)
+        result = list(reversed(result))
+        return j.data.serializers.json.dumps({"data": result})
+
     def get_last_snapshot(self, tags=None):
         def _add_snapshot_timestamp(snapshot):
             snapshot["time"] = j.data.time.get(snapshot["time"]).timestamp
@@ -98,7 +114,7 @@ class Backup(BaseActor):
     @actor_method
     def restore(self, tags=None) -> str:
         if not self.repos_exist():
-            raise j.exceptions.Value("repos are not inited, please call init first")
+            raise j.exceptions.Value("Please configure backup first")
         snapshot = self.get_last_snapshot(tags=tags)
         repo = j.tools.restic.get(snapshot["repo_name"])
         repo.restore("/", snapshot_id=snapshot["id"])
@@ -107,7 +123,7 @@ class Backup(BaseActor):
     @actor_method
     def enable_auto_backup(self) -> str:
         if not self.repos_exist():
-            raise j.exceptions.Value("repos are not inited, please call init first")
+            raise j.exceptions.Value("Please configure backup first")
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.auto_backup(j.core.dirs.JSCFGDIR)
@@ -116,7 +132,7 @@ class Backup(BaseActor):
     @actor_method
     def check_auto_backup(self) -> bool:
         if not self.repos_exist():
-            raise j.exceptions.Value("repos are not inited, please call init first")
+            raise j.exceptions.Value("Please configure backup first")
 
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
@@ -127,7 +143,7 @@ class Backup(BaseActor):
     @actor_method
     def disable_auto_backup(self) -> str:
         if not self.repos_exist():
-            raise j.exceptions.Value("repos are not inited, please call init first")
+            raise j.exceptions.Value("Please configure backup first")
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.disable_auto_backup(j.core.dirs.JSCFGDIR)

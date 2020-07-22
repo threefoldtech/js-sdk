@@ -46,7 +46,8 @@ class MinioBackup(BaseActor):
         if tags:
             tags = tags.split(",")
         instance = self._get_instance()
-        return j.data.serializers.json.dumps({"data": instance.list_snapshots(tags=tags)})
+        result = list(reversed(instance.list_snapshots(tags=tags)))
+        return j.data.serializers.json.dumps({"data": result})
 
     @actor_method
     def restore(self) -> str:
