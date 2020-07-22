@@ -59,6 +59,7 @@ class Publisher(MarketPlaceChatflow):
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
+            "EMAIL": self.user_info["email"],
         }
 
     @chatflow_step(title="Domain")
