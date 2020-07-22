@@ -19,5 +19,8 @@ git reset --hard origin/${SDK_VERSION}
 poetry update
 poetry install
 
+echo "DOMAIN=${DOMAIN}" >> ~/.bashrc
+echo "EMAIL=${EMAIL}" >> ~/.bashrc
+
 echo "[*] Starting threebot in background ..."
 threebot start --development --domain "${DOMAIN}" --email "${EMAIL}"
