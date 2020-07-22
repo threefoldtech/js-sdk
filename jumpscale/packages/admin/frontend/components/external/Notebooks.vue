@@ -8,7 +8,7 @@
       return {
         package: true,
         name: "notebooks",
-        giturl: "https://github.com/threefoldtech/js-sdk/blob/development_notebooks_package/jumpscale/packages/notebooks",
+        giturl: "https://github.com/threefoldtech/js-sdk/blob/development/jumpscale/packages/notebooks",
         url: "/notebooks/"
       }
     }
