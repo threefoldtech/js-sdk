@@ -14,6 +14,25 @@ from jumpscale.sals.nginx.nginx import PORTS
 
 SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 16000}
 
+THREEBOT_DEPS_BINS = ["nginx", "redis-server", "tmux", "git"]
+
+
+def check_for_bins():
+    for b in THREEBOT_DEPS_BINS:
+        notfoundbins = []
+        if not j.sals.process.is_installed(b):
+            notfoundbins.append(b)
+
+    if notfoundbins:
+        bins = ",".join(notfoundbins)
+        j.logger.error(
+            f"{bins} not found in $PATH. Please check https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/installation.md for more info on installation requirements"
+        )
+        exit(1)
+    else:
+        bins = ",".join(THREEBOT_DEPS_BINS)
+        j.logger.info(f"✅ binaries {bins} required are installed.")
+
 
 def test_privileged_ports_bind():
     config = b"""\
@@ -58,6 +77,7 @@ def start(identity=None, background=False, local=False):
         identity (str, optional): threebot name. Defaults to None.
         explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
+    check_for_bins()
     PORTS.init_default_ports(local)
     SERVICES_PORTS["nginx_http"] = PORTS.HTTP
     SERVICES_PORTS["nginx_https"] = PORTS.HTTPS

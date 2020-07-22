@@ -92,6 +92,14 @@ const SOLUTIONS = {
     url: "/solutions/4to6gw",
     description: ""
   },
+  publisher: {
+    topic: "publisher",
+    type: "publisher",
+    name: "Publisher",
+    icon: "mdi-web-box",
+    url: "/solutions/publisher",
+    description: ""
+  },
   all: {
     topic: "all",
     type: "all_reservations",
