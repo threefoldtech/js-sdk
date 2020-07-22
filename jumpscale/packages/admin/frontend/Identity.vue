@@ -7,6 +7,7 @@
         <v-text-field v-model="form.tname" label="Threebot name" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
         <v-text-field type="password" v-model="form.words" label="Secret words" dense></v-text-field>
+        <v-text-field type="password" v-model="form.backup_password" label="Specify backup password(Optional). If set will restore last snapshot" dense></v-text-field>
       </v-form>
     </template>
     <template #actions>
@@ -54,7 +55,7 @@ module.exports = {
     submit () {
       this.loading = true
       this.error = null
-      this.$api.identity.set(this.form.label, this.form.tname, this.form.email, this.form.words).then((response) => {
+      this.$api.identity.set(this.form.label, this.form.tname, this.form.email, this.form.words, this.form.backup_password).then((response) => {
         this.done("Identity is updated")
         location.reload()
       }).catch((error) => {
