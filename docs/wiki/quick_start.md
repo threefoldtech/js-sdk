@@ -3,7 +3,7 @@
 ## System requirements for installation on the host
 
 - Ubuntu 18.04 or higher, MacOS 10.9 or higher
-- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates.
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment.
 
 
 ### Ubuntu
