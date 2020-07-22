@@ -1,9 +1,7 @@
 Vue.use(Vuex)
 Vue.use(Vuetify)
 
-
-Vue.prototype.$alert =
-  Vue.prototype.$api = apiClient
+Vue.prototype.$api = apiClient
 
 const vuetify = new Vuetify({
   icons: {
