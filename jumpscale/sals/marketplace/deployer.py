@@ -381,6 +381,18 @@ to download your configuration
         j.sals.reservation_chatflow.wait_reservation(bot, resv_id)
         return resv_id
 
+    def cancel_solution_by_uuid(self, user_tid, uuid):
+        self.load_user_reservations(user_tid)
+        ids = []
+        for sol_type in self.reservations:
+            reservations = self.reservations[sol_type][user_tid]
+            for res in reservations:
+                if res.get("solution_uuid") == uuid:
+                    if res.get("id"):
+                        ids.append(res["id"])
+        for resv_id in ids:
+            j.sals.zos.reservation_cancel(resv_id)
+
     def cancel_reservation(self, user_tid, resv_id):
         reservation = j.sals.zos.reservation_get(resv_id)
         try:
@@ -392,6 +404,12 @@ to download your configuration
 
         tid = metadata.get("tid")
         if tid == user_tid:
+            solution_uuid = metadata.get("solution_uuid")
+            if solution_uuid:
+                # delete solution by uuid
+                self.cancel_solution_by_uuid(user_tid, solution_uuid)
+                return
+
             if metadata.get("solution_type") == SolutionType.Network.value:
                 # TODO: comprehensive testing
                 curr_network_resv = reservation

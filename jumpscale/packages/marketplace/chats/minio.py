@@ -303,13 +303,17 @@ class MinioDeploy(MarketPlaceChatflow):
             self.user_form_data["Solution name"], SolutionType.Minio, self.user_info()["username"], self.metadata
         )
         self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
-        self.resv_id = deployer.register_and_pay_reservation(
-            self.reservation,
-            self.expiration,
-            customer_tid=j.core.identity.me.tid,
-            currency=self.network.currency,
-            bot=self,
-        )
+        try:
+            self.resv_id = deployer.register_and_pay_reservation(
+                self.reservation,
+                self.expiration,
+                customer_tid=j.core.identity.me.tid,
+                currency=self.network.currency,
+                bot=self,
+            )
+        except Exception as e:
+            deployer.cancel_reservation(self.user_info()["username"], self.zdb_rid)
+            raise e
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
