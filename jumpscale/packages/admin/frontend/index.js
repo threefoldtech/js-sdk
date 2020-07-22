@@ -2,10 +2,10 @@ Vue.use(Vuex)
 Vue.use(Vuetify)
 
 
-Vue.prototype.$alert = 
-Vue.prototype.$api = apiClient
+Vue.prototype.$alert =
+  Vue.prototype.$api = apiClient
 
-const vuetify =  new Vuetify({
+const vuetify = new Vuetify({
   icons: {
     iconfont: 'mdi'
   },
@@ -43,6 +43,7 @@ const farmmanagement = httpVueLoader('./components/external/FarmManagement.vue')
 const codeserver = httpVueLoader('./components/external/CodeServer.vue')
 const settings = httpVueLoader('./components/settings/Settings.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
+const backup = httpVueLoader('./components/backup/backup.vue')
 
 
 Vue.use(VueCodemirror)
@@ -50,7 +51,7 @@ Vue.use(VueCodemirror)
 
 Vue.mixin({
   methods: {
-    alert (message, status) {
+    alert(message, status) {
       this.$root.$emit('popup', message, status)
     }
   }
@@ -66,19 +67,20 @@ Vue.component("code-area", code)
 
 const router = new VueRouter({
   routes: [
-    { name: "Dashboard",  path: '/', component: dashboard, meta: {icon: "mdi-view-dashboard", listed: true} },
-    { name: "Logs", path: '/logs', component: logs, meta: {icon: "mdi-text", listed: true } },
-    { name: "Alerts", path: '/alerts', component: alerts, meta: {icon: "mdi-alert-outline", listed: true } },
-    { name: "Wikis", path: '/wikis', component: wikis, meta: {icon: "mdi-book-open-outline", listed: true } },
-    { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: {icon: "mdi-book-open" } },
-    { name: "Packages", path: '/packages', component: packages, meta: {icon: "mdi-package-variant-closed", listed: true } },
-    { name: "Wallets", path: '/wallets', component: wallets, meta: {icon: "mdi-wallet", listed: true } },
-    { name: "Solutions", path: '/solutions', component: solutions, meta: {icon: "mdi-apps", listed: true } },
-    { name: "Capacity", path: '/capacity', component: capacity, meta: {icon: "mdi-server", listed: true } },
-    { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: {icon: "mdi-server", listed: true } },
-    { name: "Codeserver", path: '/codeserver', component: codeserver, meta: {icon: "mdi-code-braces", listed: true } },
-    { name: "Settings", path: '/settings', component: settings, meta: {icon: "mdi-tune", listed: true } },
-    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: {icon: "mdi-tune" } },
+    { name: "Dashboard", path: '/', component: dashboard, meta: { icon: "mdi-view-dashboard", listed: true } },
+    { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
+    { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
+    { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
+    { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
+    { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
+    { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
+    { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
+    { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
+    { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
+    { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
+    { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
+    { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
+    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: { icon: "mdi-tune" } },
   ]
 })
 
