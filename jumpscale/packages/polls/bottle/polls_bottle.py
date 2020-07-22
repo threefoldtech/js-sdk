@@ -1,17 +1,12 @@
-import csv
-
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, static_file
+from bottle import Bottle
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, admin_only
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, admin_only, login_required
 from jumpscale.packages.polls.chats.threefold import VOTES
 from jumpscale.sals.chatflows.polls import all_users
 
 app = Bottle()
-
-templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
-env = j.tools.jinja2.get_env(templates_path)
 
 
 def _map_vote_results(user_votes, votes_questions):
