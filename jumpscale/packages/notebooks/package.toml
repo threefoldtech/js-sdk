@@ -9,4 +9,5 @@ port = 8888
 path_url = "/notebooks"
 path_dest = "/notebooks"
 websocket = true
-increase_buffers_size = true
+nginx_proxy_buffers = "8 256k"
+nginx_proxy_buffer_size = "256k"
