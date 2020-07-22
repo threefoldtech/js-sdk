@@ -24,7 +24,9 @@ VOTES = {
             Each user had to do this action him/herself.
             TFTv1 is called TFTA on Stellar. TFTA and TFTv1 are identical and have all the same properties.
             Additional benefits are: Stellar Exchange and a public blockchain with more users so more chance for liquidity.
+
             I can
+
             - Buy any capacity on the TF Grid, which represents the main use-case of this token.
             - Sell TFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
             - Transfer TFTA to anyone
