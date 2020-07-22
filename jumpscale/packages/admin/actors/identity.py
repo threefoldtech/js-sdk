@@ -1,6 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.packages.backup.actors.backup import Backup
+from jumpscale.packages.backup.actors.marketplace import Backup
 import os
 
 BACKUP_ACTOR = Backup()
