@@ -20,15 +20,14 @@ VOTES = {
         "title": "TFTA on Stellar rights",
         "content": dedent(
             """\
-            May 2020, TFT users could migrate their tokens towards a new public blockchain called Stellar.
-            Each user had to do this action him/herself. The result of the migration is the ownership of a digital asset called TFTA on the public blockchain Stellar. TFTA on Stellar has all the same rights as the TFT on Rivine. Additional benefits are: Stellar Exchange and a public blockchain with more users so more chance for liquidity.
-
+            From May 2020, TFT v1 (Rivine) users can migrate their tokens towards a new public blockchain called Stellar.
+            Each user had to do this action him/herself.
+            TFTv1 is called TFTA on Stellar. TFTA and TFTv1 are identical and have all the same properties.
+            Additional benefits are: Stellar Exchange and a public blockchain with more users so more chance for liquidity.
             I can
             - Buy any capacity on the TF Grid, which represents the main use-case of this token.
             - Sell TFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
             - Transfer TFTA to anyone
-
-            <br>No rights have been taken away from me by switching blockchains. Please realize this question has nothing to do in relation to Liquid and BTCAlpha public exchange integration, this is next question.
 
         """
         ),
