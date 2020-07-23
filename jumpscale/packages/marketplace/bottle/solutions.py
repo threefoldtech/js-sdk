@@ -31,8 +31,6 @@ def count_solutions():
     j.sals.marketplace.deployer.load_user_reservations(user_info["username"])
     for sol_type in j.sals.marketplace.deployer.reservations[user_info["username"]]:
         res[sol_type] = len(j.sals.marketplace.deployer.reservations[user_info["username"]][sol_type])
-    minio_count = len(j.sals.marketplace.deployer.reservations[user_info["username"]]["minio"])
-    res["minio"] = minio_count / 2
     return j.data.serializers.json.dumps({"data": res})
 
 
