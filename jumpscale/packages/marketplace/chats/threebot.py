@@ -7,18 +7,20 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
+from jumpscale.data.nacl.jsnacl import NACL
 
 
 class ThreebotDeploy(MarketPlaceChatflow):
     SOLUTION_TYPE = SolutionType.Threebot
     steps = [
         "welcome",
-        "solution_name",
+        "set_solution_name",
+        "set_backup_password",
         "choose_network",
+        "domain_select",
         "threebot_branch",
         "container_resources",
         "public_key_get",
-        "domain_select",
         "expiration_time",
         "select_farm",
         "overview",
@@ -38,8 +40,39 @@ class ThreebotDeploy(MarketPlaceChatflow):
         self.query = dict()
         self.env = dict()
         self.secret_env = dict()
+        self.explorer = j.core.identity.me.explorer
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info())
+
+    def _verify_password(self, password):
+        try:
+            name = f"{self.threebot_name}_{self.name}"
+            user = self.explorer.users.get(name=name)
+            words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
+            seed = j.data.encryption.mnemonic_to_key(words)
+            pubkey = NACL(seed).get_verify_key_hex()
+            return pubkey == user.pubkey
+        except j.exceptions.NotFound:
+            return True
+
+    @chatflow_step(title="Solution name")
+    def set_solution_name(self):
+        message = "Please enter a name for your threebot (without spaces or special characters)"
+        self.name = self.string_ask(message, required=True)
+
+        while not self.name.isidentifier():
+            error = message + "<br><br> <code>Invalid name</code>"
+            self.name = self.string_ask(error, md=True, required=True)
+
+    @chatflow_step(title="Password")
+    def set_backup_password(self):
+        messege = "Please enter the password (using this password, you can recover any 3bot you deploy online)"
+        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+
+        while not self._verify_password(self.backup_password):
+            error = messege + f"<br><br><code>Incorrect password for threebot name {self.name}</code>"
+            self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Threebot version")
     def threebot_branch(self):
@@ -67,16 +100,20 @@ class ThreebotDeploy(MarketPlaceChatflow):
 
         domains = dict()
         for gateway in self.gateways.values():
+            if self.currency == "FreeTFT" and not gateway.free_to_use:
+                continue
             for domain in gateway.managed_domains:
                 domains[domain] = gateway
+
+        if not domains:
+            self.stop(f"There are no gateways available that accept {self.currency}.")
 
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
-        self.gateway = domains[self.domain]
 
-        subdomain = self.string_ask("Please choose the subdomain", required=True)
-        self.domain = f"{subdomain}.{self.domain}"
+        self.gateway = domains[self.domain]
+        self.domain = f"{self.threebot_name}-{self.name}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -126,12 +163,12 @@ class ThreebotDeploy(MarketPlaceChatflow):
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         environment_vars = {
             "SDK_VERSION": self.branch,
-            "THREEBOT_NAME": self.user_info()["username"],
-            "SSHKEY": self.public_key,
+            "INSTANCE_NAME": self.name,
+            "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,
-            "EMAIL": self.user_info().get("email"),
+            "SSHKEY": self.public_key,
         }
-
+        backup_pass_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.backup_password)
         j.sals.zos.container.create(
             reservation=self.reservation,
             node_id=self.node_selected.node_id,
@@ -145,6 +182,7 @@ class ThreebotDeploy(MarketPlaceChatflow):
             cpu=self.container_cpu,
             memory=self.container_memory,
             disk_size=self.container_rootfs_size,
+            secret_env={"BACKUP_PASSWORD": backup_pass_encrypted},
         )
 
         self.network_copy._used_ips.append(self.ip_address)
@@ -170,7 +208,7 @@ class ThreebotDeploy(MarketPlaceChatflow):
             secret_env=secret_env,
         )
 
-        metadata = {"Solution name": self.name, "Version": self.branch, "chatflow": "threebot"}
+        metadata = {"Solution name": self.name, "Branch": self.branch, "chatflow": "threebot"}
 
         res = deployer.get_solution_metadata(self.name, self.SOLUTION_TYPE, self.user_info()["username"], metadata)
         reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)

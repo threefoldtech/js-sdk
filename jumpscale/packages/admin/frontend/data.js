@@ -71,7 +71,7 @@ const SOLUTIONS = {
   flist: {
     topic: "flist_deploy",
     type: "flist",
-    name: "Generic Flist",
+    name: "Generic Container",
     icon: "mdi-folder-multiple",
     url: "/solutions/flist_deploy",
     description: "Spawn a container using specific flist provided by the user in the chatflow."

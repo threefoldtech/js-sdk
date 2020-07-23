@@ -34,7 +34,7 @@ class ThreebotDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.user_info["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
-        self.explorer = j.clients.explorer.get_default()
+        self.explorer = j.core.identity.me.explorer
 
     @chatflow_step(title="Network")
     def select_network(self):
@@ -61,9 +61,9 @@ class ThreebotDeploy(GedisChatBot):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="Backup Password")
+    @chatflow_step(title="Password")
     def set_backup_password(self):
-        messege = "Please enter the backup secret"
+        messege = "Please enter the password (using this password, you can recover any 3bot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
@@ -172,10 +172,10 @@ class ThreebotDeploy(GedisChatBot):
             "SDK_VERSION": self.branch,
             "INSTANCE_NAME": self.solution_name,
             "THREEBOT_NAME": self.threebot_name,
-            "BACKUP_PASSWORD": self.backup_password,
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
         }
+        backup_pass_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.backup_password)
 
         j.sals.zos.container.create(
             reservation=self.reservation,
@@ -190,6 +190,7 @@ class ThreebotDeploy(GedisChatBot):
             cpu=self.container_cpu,
             memory=self.container_memory,
             disk_size=self.container_rootfs_size,
+            secret_env={"BACKUP_PASSWORD": backup_pass_encrypted},
         )
 
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)

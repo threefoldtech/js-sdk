@@ -97,7 +97,7 @@ module.exports = {
         },
         {
           type: "flist",
-          name: "Generic Flist",
+          name: "Generic Container",
           icon: "mdi-folder-multiple",
           description:
             "Spawn a container using specific flist provided by the user in the chatflow."

@@ -30,7 +30,7 @@ class FlistDeploy(MarketPlaceChatflow):
         "container_pay",
         "container_access",
     ]
-    title = "Flist"
+    title = "Generic Container"
 
     @chatflow_step(title="Flist url")
     def flist_url(self):

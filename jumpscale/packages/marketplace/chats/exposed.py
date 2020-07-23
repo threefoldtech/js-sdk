@@ -58,6 +58,7 @@ class SolutionExpose(BaseSolutionExpose):
     def solution_type(self):
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
         self.user_form_data["kind"] = self.kind
+        self.md_show_update("Finding Solutions....")
 
         sol_type = kinds[self.kind]
         solutions = deployer.list_solutions(self.user_info()["username"], sol_type, reload=True)
@@ -74,9 +75,10 @@ class SolutionExpose(BaseSolutionExpose):
         self.reservation_data = solution["reservation_obj"].data_reservation.to_dict()
         self.solution_currency = self.reservation_data["currencies"][0]
 
-    @chatflow_step(title="Domain 1")
+    @chatflow_step(title="Domain")
     def domain_1(self):
         # List all available domains
+        self.md_show_update("Listing Available Domains....")
         free_to_use = False
         if "FreeTFT" == self.solution_currency:
             self.gateways = {
