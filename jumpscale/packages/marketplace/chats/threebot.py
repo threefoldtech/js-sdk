@@ -65,9 +65,9 @@ class ThreebotDeploy(MarketPlaceChatflow):
             error = message + "<br><br> <code>Invalid name</code>"
             self.name = self.string_ask(error, md=True, required=True)
 
-    @chatflow_step(title="Backup Password")
+    @chatflow_step(title="Password")
     def set_backup_password(self):
-        messege = "Please enter the backup secret"
+        messege = "Please enter the password (using this password, you can recover any 3bot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
