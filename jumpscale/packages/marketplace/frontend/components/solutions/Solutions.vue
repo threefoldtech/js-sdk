@@ -26,7 +26,9 @@
               min-width="100"
               v-for="(s, i) in deployedSolutions[topic]"
               :key="i"
+              close
               @click="showInfo(s)"
+              @click:close="showRemove(s)"
               outlined
             >{{ s.name }}</v-chip>
           </v-card-text>
@@ -34,7 +36,8 @@
       </template>
     </base-component>
 
-    <solution-info v-if="selected" v-model="dialog" :data="selected"></solution-info>
+    <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
+    <solution-delete v-if="selected" v-model="dialogs.remove" :data="selected"></solution-delete>
   </div>
 </template>
 
@@ -42,7 +45,8 @@
 module.exports = {
   props: { topic: String },
   components: {
-    "solution-info": httpVueLoader("./Info.vue")
+    "solution-info": httpVueLoader("./Info.vue"),
+    "solution-delete": httpVueLoader("./Delete.vue")
   },
   watch: {
     topic: function() {
@@ -53,7 +57,10 @@ module.exports = {
     return {
       loading: false,
       selected: null,
-      dialog: false,
+      dialogs: {
+        info: false,
+        remove: false
+      },
       solutions: [
         {
           type: "ubuntu",
@@ -147,7 +154,11 @@ module.exports = {
     },
     showInfo(data) {
       this.selected = data;
-      this.dialog = true;
+      this.dialogs.info = true;
+    },
+    showRemove(data) {
+      this.selected = data;
+      this.dialogs.remove = true;
     },
     getDeployedSolutions(solution_type) {
       this.$api.solutions.getDeployed(solution_type).then(response => {
