@@ -66,6 +66,12 @@ class PORTS:
                 j.exception.Runtime("Could not find free port to listen on")
 
 
+class ProxyBuffering(Enum):
+    UNSET = ""
+    ON = "on"
+    OFF = "off"
+
+
 class LocationType(Enum):
     STATIC = "static"
     PROXY = "proxy"
@@ -88,6 +94,9 @@ class Location(Base):
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
+    proxy_buffering = fields.Enum(ProxyBuffering)
+    proxy_buffers = fields.String()
+    proxy_buffer_size = fields.String()
 
     @property
     def cfg_dir(self):

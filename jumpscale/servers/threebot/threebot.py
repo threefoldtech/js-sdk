@@ -143,6 +143,9 @@ class NginxPackageConfig:
                         loc.port = location.get("port", PORTS.HTTP)
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
+                        loc.proxy_buffering = location.get("proxy_buffering", "")
+                        loc.proxy_buffers = location.get("proxy_buffers")
+                        loc.proxy_buffer_size = location.get("proxy_buffer_size")
 
                     elif location_type == "custom":
                         loc = website.get_custom_location(location_name)
