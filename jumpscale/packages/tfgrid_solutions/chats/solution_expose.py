@@ -11,7 +11,6 @@ kinds = {
     "ubuntu": SolutionType.Ubuntu,
     "flist": SolutionType.Flist,
     "gitea": SolutionType.Gitea,
-    "threebot": SolutionType.Threebot,
 }
 
 domain_types = {"delegate": Category.Domain_delegate, "sub": Category.Subdomain}
