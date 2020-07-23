@@ -3,10 +3,7 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.core.exceptions import JSException
 
 
-explorers = {
-    "main": "https://explorer.grid.tf",
-    "testnet": "https://explorer.testnet.grid.tf"
-}
+explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
 
 class Admin(BaseActor):
