@@ -40,12 +40,12 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def set_solution_name(self):
-        message = "Please enter a name for your threebot (without spaces or special chars)"
+        message = "Please enter a name for your threebot (without spaces or special characters)"
         self.solution_name = self.string_ask(message, required=True)
 
         while not self.solution_name.isidentifier():
-            error = message + "<br> <code>Invalid name</code>"
-            self.solution_name = self.string_ask(error, required=True)
+            error = message + "<br><br> <code>Invalid name</code>"
+            self.solution_name = self.string_ask(error, md=True, required=True)
 
     @chatflow_step(title="Backup Password")
     def set_backup_password(self):
