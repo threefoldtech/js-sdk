@@ -133,7 +133,7 @@ class GedisChatBot:
             "first_step": self.is_first_step,
             "first_slide": self.is_first_slide,
             "slide": self.step_info.get("slide", 1),
-            "final_step": self.step_info.get("final_step")
+            "final_step": self.step_info.get("final_step"),
         }
 
     def _execute_current_step(self, spawn=True):
@@ -367,7 +367,7 @@ class GedisChatBot:
         Returns:
             str: user input
         """
-        result = self.ask(self.multi_choice_msg(msg, options, **kwargs))
+        result = self.ask(self.multi_list_choice_msg(msg, options, **kwargs))
         return j.data.serializers.json.loads(result)
 
     def drop_down_choice_msg(self, msg, options, **kwargs):

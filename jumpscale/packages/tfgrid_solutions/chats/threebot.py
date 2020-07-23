@@ -20,6 +20,7 @@ class ThreebotDeploy(GedisChatBot):
         "select_farm",
         "overview",
         "deploy",
+        "intializing",
         "success",
     ]
 
@@ -201,13 +202,20 @@ class ThreebotDeploy(GedisChatBot):
             self.reservation_id, self.solution_name, SolutionType.Threebot, metadata
         )
 
+        self.threebot_url = f"https://{self.domain}/admin"
+
+    @chatflow_step(title="Intializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Intializing your Threebot ...")
+        if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
+            self.stop("Failed to initialize threebot, please contact support")
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""
         Your Threebot has been deployed successfully.
         Reservation ID  : {self.reservation_id}<br>
-        Domain          : <a href="{self.domain}">{self.domain}</a><br>
-        Reservation ID  : {self.reservation_id}<br>
+        Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
         IP Address      : {self.ip_address}<br>
         """
         self.md_show(dedent(message), md=True)
