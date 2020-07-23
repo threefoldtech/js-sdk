@@ -14,7 +14,7 @@ domain = os.environ.get("DOMAIN")
 backup_password = os.environ.get("BACKUP_PASSWORD", None)
 
 tname = f"{threebot_name}_{instance_name}"
-email = f"{tname}@threefold.marketplace"
+email = f"{tname}@threefold.me"
 words = j.data.encryption.key_to_mnemonic(backup_password.encode().zfill(32))
 
 new = True
