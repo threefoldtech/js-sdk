@@ -165,6 +165,9 @@ class MarketPlaceDeployer:
                 if count != 1:
                     dupnames[solution_type][name] = count + 1
                     name = f"{name}_{count}"
+                if solution_type == "minio":
+                    if len(reservation.data_reservation.containers) == 0:
+                        continue
                 reservation_info = {
                     "id": reservation.id,
                     "name": name.split(f"{tid}_")[1],
