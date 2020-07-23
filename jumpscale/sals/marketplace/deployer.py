@@ -404,11 +404,6 @@ to download your configuration
 
         tid = metadata.get("tid")
         if tid == user_tid:
-            solution_uuid = metadata.get("solution_uuid")
-            if solution_uuid:
-                # delete solution by uuid
-                self.cancel_solution_by_uuid(user_tid, solution_uuid)
-
             if metadata.get("solution_type") == SolutionType.Network.value:
                 # TODO: comprehensive testing
                 curr_network_resv = reservation
