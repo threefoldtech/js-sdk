@@ -34,7 +34,7 @@ class ThreebotDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.user_info["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info)
-        self.explorer = j.clients.explorer.get_default()
+        self.explorer = j.core.identity.me.explorer
 
     @chatflow_step(title="Network")
     def select_network(self):
