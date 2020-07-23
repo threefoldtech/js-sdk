@@ -67,9 +67,9 @@ class PORTS:
 
 
 class ProxyBuffering(Enum):
+    UNSET = ""
     ON = "on"
     OFF = "off"
-    UNSET = ""
 
 
 class LocationType(Enum):
