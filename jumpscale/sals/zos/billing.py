@@ -41,10 +41,14 @@ class Billing:
             for balance in client.get_balance().balances:
                 if f"{balance.asset_code}:{balance.asset_issuer}" == asset:
                     if total_amount_dec > Decimal(balance.balance):
-                        raise InsufficientFunds(f"Wallet {client.instance_name} does not have enough funds to pay for {total_amount_dec:0f} {asset}")
+                        raise InsufficientFunds(
+                            f"Wallet {client.instance_name} does not have enough funds to pay for {total_amount_dec:0f} {asset}"
+                        )
                     break
             else:
-                raise MissingTrustLine(f"Wallet {client.instance_name} does not have a valid trustline to pay for {asset}")
+                raise MissingTrustLine(
+                    f"Wallet {client.instance_name} does not have a valid trustline to pay for {asset}"
+                )
 
             try:
                 txhash = client.transfer(escrow_address, total_amount, asset=asset, memo_text=str(reservation_id))
@@ -53,3 +57,12 @@ class Billing:
                 raise e
 
         return transaction_hashes
+
+    def get_reservation_amount(self, reservation_response):
+        if reservation_response.escrow_information.details:
+            asset = reservation_response.escrow_information.asset
+            total_amount = sum([d.total_amount for d in reservation_response.escrow_information.details])
+            total_amount = Decimal(total_amount) / Decimal(1e7)
+            total_amount = "{0:f}".format(total_amount)
+
+            return total_amount
