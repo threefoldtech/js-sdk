@@ -66,31 +66,36 @@ class Backup(BaseActor):
     def snapshots(self, tags=None) -> str:
         if tags:
             tags = tags.split(",")
+
         snapshots = []
 
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
-            snapshots.append(repo.list_snapshots(tags=tags))
+            repo_snapshots = repo.list_snapshots(tags=tags)
+            if repo_snapshots:
+                snapshots.append(repo_snapshots)
 
         processed = set()
         result = []
 
-        min_size = min(len(snapshots[0]), len(snapshots[1]))
-        size = min_size if min_size < 10 else 10
-        for i in range(size):
-            snap_1 = snapshots[0][i]
-            snap_2 = snapshots[1][i]
+        if snapshots:
+            min_size = min(len(snapshots[0]), len(snapshots[1]))
+            size = min_size if min_size < 10 else 10
+            for i in range(size):
+                snap_1 = snapshots[0][i]
+                snap_2 = snapshots[1][i]
 
-            tag_1 = snap_1.get("tags", [""])[-1]
-            tag_2 = snap_2.get("tags", [""])[-1]
-            if tag_1 not in processed:
-                processed.add(tag_1)
-                result.append(snap_1)
+                tag_1 = snap_1.get("tags", [""])[-1]
+                tag_2 = snap_2.get("tags", [""])[-1]
+                if tag_1 not in processed:
+                    processed.add(tag_1)
+                    result.append(snap_1)
 
-            if tag_2 not in processed:
-                processed.add(tag_2)
-                result.append(snap_2)
-        result = list(reversed(result))
+                if tag_2 not in processed:
+                    processed.add(tag_2)
+                    result.append(snap_2)
+            result = list(reversed(result))
+
         return j.data.serializers.json.dumps({"data": result})
 
     def get_last_snapshot(self, tags=None):

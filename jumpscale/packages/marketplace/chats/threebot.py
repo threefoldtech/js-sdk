@@ -75,7 +75,7 @@ class ThreebotDeploy(MarketPlaceChatflow):
         )
         self.gateway = domains[self.domain]
 
-        subdomain = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        subdomain = self.string_ask("Please choose the subdomain", required=True)
         self.domain = f"{subdomain}.{self.domain}"
 
         self.addresses = []
