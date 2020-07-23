@@ -7,6 +7,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
+from jumpscale.data.nacl.jsnacl import NACL
 
 
 class ThreebotDeploy(MarketPlaceChatflow):
@@ -20,7 +21,6 @@ class ThreebotDeploy(MarketPlaceChatflow):
         "threebot_branch",
         "container_resources",
         "public_key_get",
-        # "domain_select",
         "expiration_time",
         "select_farm",
         "overview",
@@ -40,8 +40,21 @@ class ThreebotDeploy(MarketPlaceChatflow):
         self.query = dict()
         self.env = dict()
         self.secret_env = dict()
+        self.explorer = j.core.identity.me.explorer
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         j.sals.reservation_chatflow.validate_user(self.user_info())
+
+    def _verify_password(self, password):
+        try:
+            name = f"{self.threebot_name}_{self.name}"
+            user = self.explorer.users.get(name=name)
+            words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
+            seed = j.data.encryption.mnemonic_to_key(words)
+            pubkey = NACL(seed).get_verify_key_hex()
+            return pubkey == user.pubkey
+        except j.exceptions.NotFound:
+            return True
 
     @chatflow_step(title="Solution name")
     def set_solution_name(self):
@@ -54,8 +67,12 @@ class ThreebotDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Backup Password")
     def set_backup_password(self):
-        message = "Please enter the backup secret"  # TODO
-        self.backup_password = self.secret_ask(message, required=True, max_length=32)
+        messege = "Please enter the backup secret"
+        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+
+        while not self._verify_password(self.backup_password):
+            error = messege + f"<br><br><code>Incorrect password for threebot name {self.name}</code>"
+            self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Threebot version")
     def threebot_branch(self):
@@ -96,7 +113,6 @@ class ThreebotDeploy(MarketPlaceChatflow):
         )
 
         self.gateway = domains[self.domain]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.domain = f"{self.threebot_name}-{self.name}.{self.domain}"
 
         self.addresses = []
