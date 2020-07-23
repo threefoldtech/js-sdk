@@ -18,6 +18,16 @@ class SolutionExpose(BaseSolutionExpose):
             self._tid = user.id
         return self._tid
 
+    @chatflow_step(title="Expiration time")
+    def expiration_time(self):
+        super().expiration_time()
+        # DONT REMOVE THIS until capacity pool migration is done on mainnet
+        while self.expiration > 1596672000:
+            self.md_show(
+                "the maximum expiration in marketplace is currently 08/06/2020 @ 12:00am (UTC). please click next to try again"
+            )
+            super().expiration_time()
+
     def _validate_user(self):
         tname = self.user_info()["username"]
         user_factory = StoredFactory(UserEntry)

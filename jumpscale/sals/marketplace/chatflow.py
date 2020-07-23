@@ -72,6 +72,17 @@ class MarketPlaceChatflow(GedisChatBot):
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=j.data.time.get().timestamp + 3900,
         )
+        # DONT REMOVE THIS until capacity pool migration is done on mainnet
+        while self.expiration > 1596672000:
+            self.md_show(
+                "the maximum expiration in marketplace is currently 08/06/2020 @ 12:00am (UTC). please click next to try again"
+            )
+            self.expiration = self.datetime_picker(
+                "Please enter solution expiration time.",
+                required=True,
+                min_time=[3600, "Date/time should be at least 1 hour from now"],
+                default=j.data.time.get().timestamp + 3900,
+            )
         self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
         self.metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
 
