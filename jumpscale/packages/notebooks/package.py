@@ -45,7 +45,7 @@ class notebooks:
         if rc:
             for package in PYTHON_PACKAGES:
                 j.logger.info(f"Installing {package}...")
-                rc, _, err = j.sals.process.execute(f"pip install {package}")
+                rc, _, err = j.sals.process.execute(f"pip3 install {package}")
                 if rc:
                     raise j.exceptions.Runtime(err)
 
@@ -73,7 +73,7 @@ class notebooks:
         rc, _, _ = j.sals.process.execute("python -c 'import jupyterlab'")
         if not rc:
             for package in PYTHON_PACKAGES:
-                rc, _, err = j.sals.process.execute(f"pip uninstall -y {package}", showout=True)
+                rc, _, err = j.sals.process.execute(f"pip3 uninstall -y {package}", showout=True)
                 if rc:
                     raise j.exceptions.Runtime(err)
 
