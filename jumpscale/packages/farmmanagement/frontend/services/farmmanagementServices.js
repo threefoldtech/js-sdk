@@ -5,7 +5,7 @@ export default {
     return axios.get("/admin/actors/admin/get_explorer");
   },
   getUser() {
-    return axios.get("/admin/actors/identity/get_identity");
+    return axios.get("/auth/authenticated");
   },
   getFarms(tfgridUrl, user_id) {
     return axios.get(`${tfgridUrl}/farms`, {
