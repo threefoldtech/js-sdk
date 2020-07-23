@@ -155,10 +155,10 @@ class ThreebotDeploy(GedisChatBot):
             "SDK_VERSION": self.branch,
             "INSTANCE_NAME": self.solution_name,
             "THREEBOT_NAME": self.threebot_name,
-            "BACKUP_PASSWORD": self.backup_password,
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
         }
+        backup_pass_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.backup_password)
 
         j.sals.zos.container.create(
             reservation=self.reservation,
@@ -173,6 +173,7 @@ class ThreebotDeploy(GedisChatBot):
             cpu=self.container_cpu,
             memory=self.container_memory,
             disk_size=self.container_rootfs_size,
+            secret_env={"BACKUP_PASSWORD": backup_pass_encrypted},
         )
 
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)

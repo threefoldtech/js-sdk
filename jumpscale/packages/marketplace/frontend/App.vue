@@ -114,7 +114,7 @@ module.exports = {
           meta: { img: "./assets/ubuntu.png" }
         },
         {
-          name: "Generic Flist",
+          name: "Generic Container",
           type: "flist",
           path: "/flist",
           meta: { icon: "mdi-folder-multiple" }
