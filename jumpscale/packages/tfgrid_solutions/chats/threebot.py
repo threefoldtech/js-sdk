@@ -11,6 +11,7 @@ class ThreebotDeploy(GedisChatBot):
     steps = [
         "start",
         "set_solution_name",
+        "set_backup_password",
         "select_network",
         "threebot_branch",
         "container_resources",
@@ -20,6 +21,7 @@ class ThreebotDeploy(GedisChatBot):
         "select_farm",
         "overview",
         "deploy",
+        "intializing",
         "success",
     ]
 
@@ -38,7 +40,17 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def set_solution_name(self):
-        self.solution_name = self.string_ask("Please enter a name for your threebot container", required=True)
+        message = "Please enter a name for your threebot (without spaces or special characters)"
+        self.solution_name = self.string_ask(message, required=True)
+
+        while not self.solution_name.isidentifier():
+            error = message + "<br><br> <code>Invalid name</code>"
+            self.solution_name = self.string_ask(error, md=True, required=True)
+
+    @chatflow_step(title="Backup Password")
+    def set_backup_password(self):
+        message = "Please enter the backup secret"  # TODO
+        self.backup_password = self.secret_ask(message, required=True, max_length=32)
 
     @chatflow_step(title="Threebot version")
     def threebot_branch(self):
@@ -100,10 +112,10 @@ class ThreebotDeploy(GedisChatBot):
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
-        self.gateway = domains[self.domain]
 
-        subdomain = j.data.text.removesuffix(self.user_info["username"], ".3bot")
-        self.domain = f"{subdomain}.{self.domain}"
+        self.gateway = domains[self.domain]
+        self.threebot_name = j.data.text.removesuffix(self.user_info["username"], ".3bot")
+        self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -141,10 +153,11 @@ class ThreebotDeploy(GedisChatBot):
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         environment_vars = {
             "SDK_VERSION": self.branch,
-            "THREEBOT_NAME": self.user_info.get("username"),
-            "SSHKEY": self.public_key,
+            "INSTANCE_NAME": self.solution_name,
+            "THREEBOT_NAME": self.threebot_name,
+            "BACKUP_PASSWORD": self.backup_password,
             "DOMAIN": self.domain,
-            "EMAIL": self.user_info.get("email"),
+            "SSHKEY": self.public_key,
         }
 
         j.sals.zos.container.create(
@@ -201,13 +214,20 @@ class ThreebotDeploy(GedisChatBot):
             self.reservation_id, self.solution_name, SolutionType.Threebot, metadata
         )
 
+        self.threebot_url = f"https://{self.domain}/admin"
+
+    @chatflow_step(title="Intializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Intializing your Threebot ...")
+        if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
+            self.stop("Failed to initialize threebot, please contact support")
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""
         Your Threebot has been deployed successfully.
         Reservation ID  : {self.reservation_id}<br>
-        Domain          : <a href="{self.domain}">{self.domain}</a><br>
-        Reservation ID  : {self.reservation_id}<br>
+        Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
         IP Address      : {self.ip_address}<br>
         """
         self.md_show(dedent(message), md=True)
