@@ -17,7 +17,7 @@ PRIVATE_KEY = j.core.identity.me.nacl.private_key
 class Backup(BaseActor):
     def __init__(self):
         super().__init__()
-        self.explorer = j.clients.explorer.get_default()
+        self.explorer = j.core.identity.me.explorer
         self.ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
         self.ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()

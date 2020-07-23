@@ -15,14 +15,14 @@ class UbuntuDeploy(MarketPlaceChatflow):
 
     steps = [
         "welcome",
-        "solution_name",
         "choose_network",
-        "ubuntu_version",
         "container_resources",
-        "container_logs",
-        "public_key_get",
         "container_node_id",
         "container_farm",
+        "solution_name",
+        "ubuntu_version",
+        "container_logs",
+        "public_key_get",
         "container_ip",
         "expiration_time",
         "overview",

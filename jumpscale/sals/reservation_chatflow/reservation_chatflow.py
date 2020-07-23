@@ -1239,7 +1239,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             ip_range = str(first_digit) + "." + str(second_digit) + ".0.0/16"
         return ip_range
 
-    def select_farms(self, bot, message=None, currency=None, retry=False):
+    def select_farms(self, bot, message=None, currency=None, retry=False, sru=None, cru=None, hru=None, mru=None):
         """prompt user to select farm to deploy on
 
         Args:
@@ -1255,10 +1255,39 @@ Deployment will be cancelled if it is not successful {remaning_time}
         farms = self._explorer.farms.list()
         farm_names = []
         for f in farms:
-            if j.sals.zos.nodes_finder.filter_farm_currency(f, currency):
+            if j.sals.zos.nodes_finder.filter_farm_currency(f, currency) and self.check_farm_resources(
+                farm_id=f.id, sru=sru, cru=cru, hru=hru, mru=mru, currency=currency
+            ):
                 farm_names.append(f.name)
+        if not farm_names:
+            bot.stop("No farms with available resources that match the specified.")
         farms_selected = bot.multi_list_choice(message, farm_names, retry=retry, auto_complete=True)
         return farms_selected
+
+    def check_farm_resources(self, farm_id, sru=None, mru=None, hru=None, cru=None, currency=None):
+        farm_nodes = self._explorer.nodes.list(farm_id=farm_id)
+        nodes = []
+        for node in farm_nodes:
+            if currency == "FreeTFT" and not node.free_to_use:
+                continue
+            if sru:
+                available_sru = node.total_resources.sru - node.reserved_resources.sru
+                if sru > available_sru:
+                    continue
+            if cru:
+                available_cru = node.total_resources.cru - node.reserved_resources.cru
+                if cru > available_cru:
+                    continue
+            if hru:
+                available_hru = node.total_resources.hru - node.reserved_resources.hru
+                if hru > available_hru:
+                    continue
+            if mru:
+                available_mru = node.total_resources.mru - node.reserved_resources.mru
+                if mru > available_mru:
+                    continue
+            nodes.append(node)
+        return nodes
 
     def select_network(self, bot, customer_tid):
         """prompt user to select a specific network
@@ -1447,7 +1476,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
         all_farms = self._explorer.farms.list()
         retry = False
         while True:
-            farms = self.select_farms(bot, farms_message, currency=currency, retry=retry)
+            farms = self.select_farms(
+                bot, farms_message, currency=currency, retry=retry, cru=cru, sru=sru, hru=hru, mru=mru
+            )
             farms_with_no_resources = self.check_farms(
                 1, farm_names=farms, cru=cru, sru=sru, mru=mru, hru=hru, currency=currency
             )

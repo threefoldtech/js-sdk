@@ -16,10 +16,11 @@ class ThreebotDeploy(MarketPlaceChatflow):
         "set_solution_name",
         "set_backup_password",
         "choose_network",
+        "domain_select",
         "threebot_branch",
         "container_resources",
         "public_key_get",
-        "domain_select",
+        # "domain_select",
         "expiration_time",
         "select_farm",
         "overview",
@@ -82,8 +83,13 @@ class ThreebotDeploy(MarketPlaceChatflow):
 
         domains = dict()
         for gateway in self.gateways.values():
+            if self.currency == "FreeTFT" and not gateway.free_to_use:
+                continue
             for domain in gateway.managed_domains:
                 domains[domain] = gateway
+
+        if not domains:
+            self.stop(f"There are no gateways available that accept {self.currency}.")
 
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
