@@ -2,7 +2,11 @@ from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.core.exceptions import JSException
 
-explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
+
+explorers = {
+    "main": "https://explorer.grid.tf",
+    "testnet": "https://explorer.testnet.grid.tf"
+}
 
 
 class Admin(BaseActor):
@@ -24,20 +28,6 @@ class Admin(BaseActor):
             raise j.exceptions.Value(f"Admin {name} does not exist")
         j.core.identity.me.admins.remove(name)
         j.core.identity.me.save()
-
-    @actor_method
-    def get_current_user(self) -> str:
-        return j.data.serializers.json.dumps(
-            {
-                "data": {
-                    "instance_name": j.core.identity.me.instance_name,
-                    "name": j.core.identity.me.tname,
-                    "email": j.core.identity.me.email,
-                    "tid": j.core.identity.me.tid,
-                    "explorer_url": j.core.identity.me.explorer_url,
-                }
-            }
-        )
 
     @actor_method
     def list_explorers(self) -> str:

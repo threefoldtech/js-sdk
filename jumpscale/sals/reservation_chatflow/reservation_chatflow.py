@@ -438,6 +438,7 @@ class ReservationChatflow:
                     metadata = {"form_info": meta}
                     metadata["form_info"].update(self.get_solution_exposed_info(reservation))
                     metadata["name"] = metadata["form_info"].get("Domain")
+
                 info = metadata["form_info"]
                 name = metadata["name"]
             else:

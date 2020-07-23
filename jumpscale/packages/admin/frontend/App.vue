@@ -2,11 +2,10 @@
   <v-app>
     <v-app-bar app>
       <v-spacer></v-spacer>
-      <v-menu v-model="menu" :close-on-content-click="false" offset-x>
+      <v-menu v-if="user.username" v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
-            <v-icon color="primary" left>mdi-account</v-icon>
-            {{user.name}}
+            <v-icon color="primary" left>mdi-account</v-icon> {{user.username}}
           </v-btn>
         </template>
         <v-card>
@@ -18,7 +17,7 @@
                 </v-avatar>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title>{{user.name}}</v-list-item-title>
+                <v-list-item-title>{{user.username}}</v-list-item-title>
                 <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
@@ -45,13 +44,18 @@
     >
       <v-sheet color="#148F77">
         <v-list class="text-center">
-          <img src="./assets/3bot.png" :width="mini ? 40 : 128" />
-          <br />
-          <v-list-item>
+          <img src="./assets/3bot.png" :width="mini ? 40 : 128"/><br>
+          <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
               <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
             </v-list-item-content>
+          </v-list-item>
+
+          <v-list-item v-else>
+            <v-btn text block @click.stop="dialogs.identity = true">
+              <v-icon left>mdi-account-cog</v-icon> Set identity
+            </v-btn>
           </v-list-item>
         </v-list>
       </v-sheet>
@@ -81,41 +85,48 @@
 
     <v-main>
       <router-view></router-view>
+      <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
   </v-app>
 </template>
 
 <script>
-module.exports = {
-  data() {
+module.exports =  {
+  data () { 
     return {
       user: {},
-      identity: {},
+      identity: null,
       menu: false,
-      mini: false
-    };
+      mini:false,
+      dialogs: {
+        identity: false
+      }
+    } 
+  },
+  components: {
+    identities: httpVueLoader("./Identity.vue")
   },
   computed: {},
   methods: {},
   computed: {
-    pages() {
-      return this.$router.options.routes.filter(page => {
-        return page.meta.listed;
-      });
+    pages () {
+      return this.$router.options.routes.filter((page) => {
+        return page.meta.listed
+      })
     }
   },
   methods: {
-    getCurrentUser() {
-      this.$api.admins.getCurrentUser().then(response => {
-        this.user = JSON.parse(response.data).data;
-      });
+    getCurrentUser () {
+      this.$api.user.currentUser().then((response) => {
+        this.user = response.data
+      })
     },
-    getIdentity() {
-      this.$api.admins.getIdentity().then(response => {
-        this.identity = JSON.parse(response.data).data;
-      });
-    }
+    getIdentity () {
+      this.$api.identity.get().then((response) => {
+        this.identity = JSON.parse(response.data)
+      })
+    },
   },
   mounted() {
     this.getIdentity();
