@@ -234,9 +234,9 @@ class ThreebotDeploy(GedisChatBot):
 
         self.threebot_url = f"https://{self.domain}/admin"
 
-    @chatflow_step(title="Intializing", disable_previous=True)
+    @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
-        self.md_show_update("Intializing your Threebot ...")
+        self.md_show_update("Initializing your Threebot ...")
         if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
             self.stop("Failed to initialize threebot, please contact support")
 

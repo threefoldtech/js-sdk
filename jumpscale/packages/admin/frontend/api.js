@@ -138,15 +138,7 @@ const apiClient = {
     },
     getCurrentUser: () => {
       return axios({
-        url: `${baseURL}/admin/get_current_user`
-      })
-    },
-    setExplorer: (explorerType) => {
-      return axios({
-        url: `${baseURL}/admin/set_explorer`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { explorer_type: explorerType }
+        url: `/auth/authenticated/`
       })
     }
   },
