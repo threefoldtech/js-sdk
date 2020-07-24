@@ -1,5 +1,4 @@
 from jumpscale.loader import j
-import os
 
 
 class marketplace:
