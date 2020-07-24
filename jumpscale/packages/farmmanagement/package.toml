@@ -1,4 +1,7 @@
 name = "farmmanagement"
+is_auth = true
+is_admin = true
+
 [[static_dirs]]
 name = "frontend"
 path_url = "/"

@@ -1,4 +1,7 @@
 name = "notebooks"
+is_auth = true
+is_admin = true
+
 [[servers]]
 name = "default"
 [[servers.locations]]

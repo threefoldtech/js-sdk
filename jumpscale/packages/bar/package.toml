@@ -1,3 +1,0 @@
-name = "bar"
-ports = [ 80, 81,]
-actors_dir = "actors"

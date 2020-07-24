@@ -1,4 +1,6 @@
 name = "polls"
+is_auth = true
+is_admin = false
 
 [[bottle_servers]]
 name = "main"
