@@ -138,7 +138,7 @@ const apiClient = {
     },
     getCurrentUser: () => {
       return axios({
-        url: `${baseURL}/admin/get_current_user`
+        url: `/auth/authenticated/`
       })
     },
     setExplorer: (explorerType) => {
