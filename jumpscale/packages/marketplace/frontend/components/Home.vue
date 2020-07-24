@@ -7,13 +7,20 @@
         <a
           target="_blank"
           href="https://threefold.io/"
-        >Threefold grid</a> as an enabling infrastructure of an open-source,
+        >Threefold grid</a>
+        as an enabling infrastructure of an open-source,
         enabling bootstrapping personal threebot and the deployment of opensource solutions (Minio, gitea, kubernetes, ubuntu, web publishing platform, ..)
         on the
         <a
           target="_blank"
           href="https://threefold.io/"
         >Threefold grid</a>
+        <br />
+        <br />In case you have only TFTA, you can convert them into TFTs on
+        <a
+          href="https://selltfta.threefoldtoken.com/"
+          target="_blank"
+        >TFTA Trader</a>
       </div>
     </v-card-text>
   </v-card>
