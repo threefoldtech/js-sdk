@@ -2,7 +2,14 @@
   <div>
     <v-card flat height="100%" class="pa-5" outlined>
       <v-card-title class="justify-center">Terms and Conditions for using Threefold Marketplace</v-card-title>
-      <v-card-text>PLACEHOLDER FOR TERMS AND CONDITIONS</v-card-text>
+      <v-card-text>
+        It's very important that you as a Marketplace user you agree to the
+        <a
+          href="http://decentralization2.threefold.io/"
+          target="_blank"
+        >Decentralization Manifesto.</a>
+        Please check here: for the terms and conditions.
+      </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
         <v-spacer></v-spacer>
@@ -27,18 +34,18 @@
 <script>
 module.exports = {
   methods: {
-    accept: function(event) {
-      this.$api.license.accept().then(result => {
+    accept: function (event) {
+      this.$api.license.accept().then((result) => {
         this.$root.$emit("sidebar", true);
         this.$router.push({ path: "/" });
       });
-    }
+    },
   },
   data() {
     return { showConfirmation: false };
   },
   mounted() {
     this.$root.$emit("sidebar", false);
-  }
+  },
 };
 </script>
