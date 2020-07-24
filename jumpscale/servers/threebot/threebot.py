@@ -46,17 +46,20 @@ class NginxPackageConfig:
             "letsencryptemail": self.package.default_email,
         }
 
+        is_auth = self.package.config.get("is_auth", True)
+        is_admin = self.package.config.get("is_admin", True)
+
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
                     "path_location": self.package.resolve_staticdir_location(static_dir),
-                    "is_auth": static_dir.get("is_auth", False),
-                    "is_admin": static_dir.get("is_admin", False),
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
@@ -64,6 +67,8 @@ class NginxPackageConfig:
         for bottle_server in self.package.bottle_servers:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
@@ -71,8 +76,6 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
-                    "is_auth": bottle_server.get("is_auth", False),
-                    "is_admin": bottle_server.get("is_admin", False),
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
@@ -80,6 +83,8 @@ class NginxPackageConfig:
         if self.package.actors_dir:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": "actors",
                     "host": GEDIS_HTTP_HOST,
@@ -93,6 +98,8 @@ class NginxPackageConfig:
         if self.package.chats_dir:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": "chats",
                     "host": CHATFLOW_SERVER_HOST,
@@ -479,6 +486,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+        self.threebot.nginx.reload()
 
     def reload(self, package_name):
         if self.threebot.started:
