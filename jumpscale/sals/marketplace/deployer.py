@@ -64,7 +64,7 @@ class Network(BaseNetwork):
             (Network): copy of the network
         """
         network_copy = None
-        explorer = j.clients.explorer.get_default()
+        explorer = j.core.identity.me.explorer
         reservation = explorer.reservations.get(self.resv_id)
         networks = self._sal.list_networks(j.core.identity.me.tid)
         for key in networks.keys():
@@ -82,7 +82,7 @@ class MarketPlaceDeployer:
     def __init__(self):
         """This class is responsible for deploying reservations on behalf of the logged-in user for marketplace package
         """
-        self._explorer = j.clients.explorer.get_default()
+        self._explorer = j.core.identity.me.explorer
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type": []}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
 

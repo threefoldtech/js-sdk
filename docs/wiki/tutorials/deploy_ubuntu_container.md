@@ -140,7 +140,7 @@ time.sleep(5)
 ```python
 from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 def create_wallet(name):
-        explorer = j.clients.explorer.get_default()
+        explorer = j.core.identity.me.explorer
         wallettype = "STD"
         if "testnet" in explorer.url or "devnet" in explorer.url:
             wallettype = "TEST"
