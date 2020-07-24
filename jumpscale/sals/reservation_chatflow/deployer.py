@@ -15,9 +15,8 @@ from collections import defaultdict
 
 
 class NetworkView:
-    def __init__(self, name, pool_id, workloads=None):
+    def __init__(self, name, workloads=None):
         self.name = name
-        self.pool_id = pool_id
         if not workloads:
             workloads = j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)
         self.workloads = workloads
@@ -29,8 +28,6 @@ class NetworkView:
 
     def _init_network_workloads(self, workloads):
         for workload in workloads:
-            if workload.info.pool_id != self.pool_id:
-                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == Type.Network_resource and workload.name == self.name:
@@ -38,8 +35,6 @@ class NetworkView:
 
     def _fill_used_ips(self, workloads):
         for workload in workloads:
-            if workload.info.pool_id != self.pool_id:
-                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == Type.Kubernetes:
@@ -49,7 +44,7 @@ class NetworkView:
                     if conn.network_id == self.name:
                         self.used_ips.append(conn.ipaddress)
 
-    def add_node(self, node):
+    def add_node(self, node, pool_id):
         used_ip_ranges = set()
         for workload in self.network_workloads:
             if workload.info.node_id == node.node_id:
@@ -74,14 +69,12 @@ class NetworkView:
 
     def get_node_range(self, node):
         for workload in self.network_workloads:
-            if workload.info.pool_id != self.pool_id:
-                continue
             if workload.info.node_id == node.node_id:
                 return workload.iprange
         raise StopChatFlow(f"Node {node.node_id} is not part of network")
 
     def copy(self):
-        return NetworkView(self.name, self.pool_id)
+        return NetworkView(self.name)
 
     def get_node_free_ips(self, node):
         ip_range = self.get_node_range(node)
@@ -101,6 +94,7 @@ class NetworkView:
         for host in hosts:
             ip = str(host)
             if ip not in self.used_ips:
+                self.used_ips.append(ip)
                 return ip
         return None
 
@@ -130,29 +124,20 @@ class ChatflowDeployer:
         except:
             return "{}"
 
-    def list_networks(self, next_action=NextAction.DEPLOY, capacity_pool_id=None, sync=True):
+    def list_networks(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
         for pool_id in self.workloads[next_action][Type.Network_resource]:
-            if capacity_pool_id and capacity_pool_id != pool_id:
-                continue
             for workload in self.workloads[next_action][Type.Network_resource][pool_id]:
-                networks[f"{pool_id}-{workload.name}"] = workload
+                networks[workload.name] = workload
         all_workloads = []
         for pools_workloads in self.workloads[next_action].values():
             for pool_id, workload_list in pools_workloads.items():
-                if capacity_pool_id and capacity_pool_id != pool_id:
-                    continue
                 all_workloads += workload_list
         network_views = {}
         for network_name in networks:
-            name_splits = network_name.split("-")
-            if len(name_splits[1:]) == 1:
-                name = name_splits[1]
-            else:
-                name = "-".join(name_splits[1:])
-            network_views[network_name] = NetworkView(name, networks[network_name].info.pool_id, all_workloads)
+            network_views[network_name] = NetworkView(network_name, all_workloads)
         return network_views
 
 
