@@ -6,19 +6,6 @@
       <template #default>
         <v-row align="start" justify="start">
           <v-col class="mt-0 pt-0" cols="12" md="4">
-            <base-section title="Explorer" icon="mdi-earth" :loading="loading.explorers">
-              <v-radio-group v-model="explorer" :mandatory="false" @change="setExplorer">
-                <v-radio
-                  v-for="(explorer, i) in explorers"
-                  :key="i"
-                  :label="explorer.name"
-                  :value="explorer.type"
-                ></v-radio>
-              </v-radio-group>
-            </base-section>
-          </v-col>
-
-          <v-col class="mt-0 pt-0" cols="12" md="4">
             <base-section title="Admins" icon="mdi-account-lock" :loading="loading.admins">
               <template #actions>
                 <v-btn text @click.stop="dialogs.addAdmin = true">
@@ -40,8 +27,6 @@
               >{{ admin }}</v-chip>
             </base-section>
           </v-col>
-        </v-row>
-        <v-row align="start" justify="start">
           <v-col class="mt-0 pt-0" cols="12" md="4">
             <base-section
               title="Identities"
@@ -86,7 +71,6 @@ module.exports = {
   data() {
     return {
       loading: {
-        explorers: false,
         admins: false,
         identities: false,
       },
@@ -98,15 +82,6 @@ module.exports = {
         addIdentity: false,
       },
       admins: [],
-      explorers: [
-        { name: "Main Network", url: "https://explorer.grid.tf", type: "main" },
-        {
-          name: "Test Network",
-          url: "https://explorer.testnet.grid.tf",
-          type: "testnet",
-        },
-      ],
-      explorer: null,
       identity: null,
       selectedIdentity: null,
       identities: [],
@@ -127,27 +102,6 @@ module.exports = {
     removeAdmin(name) {
       this.selectedAdmin = name;
       this.dialogs.removeAdmin = true;
-    },
-    getCurrentExplorer() {
-      this.loading.explorers = true;
-      this.$api.explorers
-        .get()
-        .then((response) => {
-          this.explorer = JSON.parse(response.data).data.type;
-        })
-        .finally(() => {
-          this.loading.explorers = false;
-        });
-    },
-    setExplorer(explorer) {
-      this.$api.admins
-        .setExplorer(explorer)
-        .then((response) => {
-          this.alert("Explorer is updated", "success");
-        })
-        .catch((error) => {
-          this.alert("Failed to update explorer", "error");
-        });
     },
     listIdentities() {
       this.getCurrentIdentity();
@@ -196,7 +150,6 @@ module.exports = {
   },
   mounted() {
     this.listAdmins();
-    this.getCurrentExplorer();
     this.getCurrentIdentity();
     this.listIdentities();
   },

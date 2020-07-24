@@ -606,49 +606,53 @@ category = "main"
 description = ""
 name = "js-ng"
 optional = false
-python-versions = ">=3.6,<4.0"
-version = "11.0.0a1"
+python-versions = "^3.6"
+version = "11.0.0-alpha.1"
 
 [package.dependencies]
-GitPython = ">=3.0,<4.0"
-PyYAML = ">=5.1,<6.0"
-Whoosh = ">=2.7.4,<3.0.0"
-arrow = ">=0.15.7,<0.16.0"
-base58 = ">=2.0.0,<3.0.0"
-better-exceptions = ">=0.2.2,<0.3.0"
-bottle = ">=0.12.18,<0.13.0"
-captcha = ">=0.3,<0.4"
-certifi = ">=2019.6,<2020.0"
-click = ">=7.0,<8.0"
-colorama = ">=0.4.1,<0.5.0"
-cryptocompare = ">=0.6.4,<0.7.0"
-dill = ">=0.3.0,<0.4.0"
-distro = ">=1.4,<2.0"
-docker = ">=4.2.0,<5.0.0"
-fabric = ">=2.4,<3.0"
-faker = ">=2.0,<3.0"
+GitPython = "^3.0"
+PyYAML = "^5.1"
+Whoosh = "^2.7.4"
+arrow = "^0.15.7"
+base58 = "^2.0.0"
+better-exceptions = "^0.2.2"
+bottle = "^0.12.18"
+captcha = "^0.3"
+certifi = "^2019.6"
+click = "^7.0"
+colorama = "^0.4.1"
+cryptocompare = "^0.6.4"
+dill = "^0.3.0"
+distro = "^1.4"
+docker = "^4.2.0"
+fabric = "^2.4"
+faker = "^2.0"
 gevent = "1.4.0"
-jinja2 = ">=2.11.1,<3.0.0"
-libtmux = ">=0.8.2,<0.9.0"
-loguru = ">=0.3.2,<0.4.0"
-msgpack = ">=0.6.1,<0.7.0"
-netaddr = ">=0.7.19,<0.8.0"
-pdoc3 = ">=0.6.3,<0.7.0"
-pillow = ">=6.2.2,<7.0.0"
+jinja2 = "^2.11.1"
+libtmux = "^0.8.2"
+loguru = "^0.3.2"
+msgpack = "^0.6.1"
+netaddr = "^0.7.19"
+pdoc3 = "^0.6.3"
+pillow = "^6.2.2"
 prompt-toolkit = "<3.0.0"
-psutil = ">=5.7.0,<6.0.0"
-ptpython = ">=2.0,<3.0"
-pudb = ">=2019.1,<2020.0"
-pycparser = ">=2.20,<3.0"
-pylzma = ">=0.5.0,<0.6.0"
+psutil = "^5.7.0"
+ptpython = "^2.0"
+pudb = "^2019.1"
+pycparser = "^2.20"
+pylzma = "^0.5.0"
 pynacl = "1.3.0"
-pytoml = ">=0.1.21,<0.2.0"
-redis = ">=3.3,<4.0"
-secretconf = ">=0.1.2,<0.2.0"
-terminaltables = ">=3.1,<4.0"
-watchdog = ">=0.9.0,<0.10.0"
-zipp = ">=3.1.0,<4.0.0"
+pytoml = "^0.1.21"
+redis = "^3.3"
+secretconf = "^0.1.2"
+terminaltables = "^3.1"
+watchdog = "^0.9.0"
+zipp = "^3.1.0"
 
+[package.source]
+reference = "e29b1305927dac6a979b5241dd57d5b600d252cd"
+type = "git"
+url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
 category = "main"
 description = "Python library for serializing any arbitrary object graph into JSON"
@@ -1218,7 +1222,7 @@ description = "Twilio SendGrid library for Python"
 name = "sendgrid"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "6.4.3"
+version = "6.4.4"
 
 [package.dependencies]
 python-http-client = ">=3.2.1"
@@ -1317,7 +1321,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
-version = "1.25.9"
+version = "1.25.10"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
@@ -1535,7 +1539,7 @@ docs = ["sphinx", "repoze.sphinx.autointerface"]
 test = ["zope.security", "zope.testrunner"]
 
 [metadata]
-content-hash = "f9b888293c6764f304409832e0d0e04b0d3f86b470a412ec17eaa49f27a1501e"
+content-hash = "a974b358ce6e0b702736dce3a9da842aea34c9a660658dde60088a3b13e7bf81"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1830,10 +1834,7 @@ josepy = [
     {file = "josepy-1.3.0-py2.py3-none-any.whl", hash = "sha256:e54882c64be12a2a76533f73d33cba9e331950fda9e2731e843490b774e7a01c"},
     {file = "josepy-1.3.0.tar.gz", hash = "sha256:c341ffa403399b18e9eae9012f804843045764d1390f9cb4648980a7569b1619"},
 ]
-js-ng = [
-    {file = "js-ng-11.0.0a1.tar.gz", hash = "sha256:6ecce38ac3c8f75458449c9e7b8a29ec81ff6ece6c28dffe9ba709f914eb4337"},
-    {file = "js_ng-11.0.0a1-py3-none-any.whl", hash = "sha256:b4e7cdc8dbbd137ca2f484249125f8def528da917917e7ff64f6e6c647b14b64"},
-]
+js-ng = []
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},
     {file = "jsonpickle-1.4.1.tar.gz", hash = "sha256:e8d4b7cd0bd6826001a74377df1079a76ad8bae0f909282de2554164c837c8ba"},
@@ -2075,6 +2076,7 @@ pycryptodomex = [
     {file = "pycryptodomex-3.9.8-cp38-cp38-win_amd64.whl", hash = "sha256:914fbb18e29c54585e6aa39d300385f90d0fa3b3cc02ed829b08f95c1acf60c2"},
     {file = "pycryptodomex-3.9.8-cp39-cp39-manylinux1_i686.whl", hash = "sha256:35b9c9177a9fe7288b19dd41554c9c8ca1063deb426dd5a02e7e2a7416b6bd11"},
     {file = "pycryptodomex-3.9.8-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:e070a1f91202ed34c396be5ea842b886f6fa2b90d2db437dc9fb35a26c80c060"},
+    {file = "pycryptodomex-3.9.8.tar.gz", hash = "sha256:48cc2cfc251f04a6142badeb666d1ff49ca6fdfc303fd72579f62b768aaa52b9"},
 ]
 pygithub = [
     {file = "PyGithub-1.51-py3-none-any.whl", hash = "sha256:8375a058ec651cc0774244a3bc7395cf93617298735934cdd59e5bcd9a1df96e"},
@@ -2210,8 +2212,8 @@ secretconf = [
     {file = "secretconf-0.1.2.tar.gz", hash = "sha256:89aa68c7bcd995aad277a0dadaaf9f92c2e22d56a17bc4f923a01077e097eb47"},
 ]
 sendgrid = [
-    {file = "sendgrid-6.4.3-py3-none-any.whl", hash = "sha256:ebebc00e12b75f12a1a19f644e3bbec6e2c2ae8d19d5f78360f15c668f241c84"},
-    {file = "sendgrid-6.4.3.tar.gz", hash = "sha256:ce465ee8fedc87d3c2d15d8c9b4b3b7f4aa34eb84a61cddf3ba567b1db2c7948"},
+    {file = "sendgrid-6.4.4-py3-none-any.whl", hash = "sha256:9d218bba09c811d8791b7b8116402b2869d7b065c96313e7bb8362fcb880cdae"},
+    {file = "sendgrid-6.4.4.tar.gz", hash = "sha256:c265d97825a3fd67852d6a8cf1e622691c798edaa50fdd4afa97af00a15615ef"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
@@ -2248,8 +2250,8 @@ typing-extensions = [
     {file = "typing_extensions-3.7.4.2.tar.gz", hash = "sha256:79ee589a3caca649a9bfd2a8de4709837400dfa00b6cc81962a1e6a1815969ae"},
 ]
 urllib3 = [
-    {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},
-    {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
+    {file = "urllib3-1.25.10-py2.py3-none-any.whl", hash = "sha256:e7983572181f5e1522d9c98453462384ee92a0be7fac5f1413a1e35c56cc0461"},
+    {file = "urllib3-1.25.10.tar.gz", hash = "sha256:91056c15fa70756691db97756772bb1eb9678fa585d9184f24534b100dc60f4a"},
 ]
 urwid = [
     {file = "urwid-2.1.0.tar.gz", hash = "sha256:0896f36060beb6bf3801cb554303fef336a79661401797551ba106d23ab4cd86"},

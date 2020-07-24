@@ -26,11 +26,20 @@ except j.exceptions.NotFound:
     pass
 
 j.logger.info("Generating guest identity ...")
-identity = j.core.identity.new("default", tname=tname, email=email, words=words)
-identity.admins.append(f"{threebot_name}.3bot")
-identity.register()
-identity.save()
-j.core.identity.set_default("default")
+identity_main = j.core.identity.new(
+    "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/explorer"
+)
+identity_test = j.core.identity.new(
+    "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/explorer"
+)
+
+identities = [identity_main, identity_test]
+for identity in identities:
+    identity.admins.append(f"{threebot_name}.3bot")
+    identity.register()
+    identity.save()
+
+j.core.identity.set_default("main")
 
 if backup_password:
     try:

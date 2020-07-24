@@ -140,14 +140,6 @@ const apiClient = {
       return axios({
         url: `/auth/authenticated/`
       })
-    },
-    setExplorer: (explorerType) => {
-      return axios({
-        url: `${baseURL}/admin/set_explorer`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { explorer_type: explorerType }
-      })
     }
   },
   explorers: {
