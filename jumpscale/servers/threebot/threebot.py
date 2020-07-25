@@ -26,6 +26,7 @@ DEFAULT_PACKAGES = {
     "admin": {"path": os.path.dirname(j.packages.admin.__file__), "giturl": ""},
     "weblibs": {"path": os.path.dirname(j.packages.weblibs.__file__), "giturl": ""},
     "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": ""},
+    "backup": {"path": os.path.dirname(j.packages.backup.__file__), "giturl": ""},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
 
@@ -45,17 +46,20 @@ class NginxPackageConfig:
             "letsencryptemail": self.package.default_email,
         }
 
+        is_auth = self.package.config.get("is_auth", True)
+        is_admin = self.package.config.get("is_admin", True)
+
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
                     "index": static_dir.get("index"),
                     "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
                     "path_location": self.package.resolve_staticdir_location(static_dir),
-                    "is_auth": static_dir.get("is_auth", False),
-                    "is_admin": static_dir.get("is_admin", False),
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
@@ -63,6 +67,8 @@ class NginxPackageConfig:
         for bottle_server in self.package.bottle_servers:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
@@ -70,8 +76,6 @@ class NginxPackageConfig:
                     "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
                     "path_dest": bottle_server.get("path_dest"),
                     "websocket": bottle_server.get("websocket"),
-                    "is_auth": bottle_server.get("is_auth", False),
-                    "is_admin": bottle_server.get("is_admin", False),
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
@@ -79,6 +83,8 @@ class NginxPackageConfig:
         if self.package.actors_dir:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": "actors",
                     "host": GEDIS_HTTP_HOST,
@@ -92,6 +98,8 @@ class NginxPackageConfig:
         if self.package.chats_dir:
             default_server["locations"].append(
                 {
+                    "is_auth": is_auth,
+                    "is_admin": is_admin,
                     "type": "proxy",
                     "name": "chats",
                     "host": CHATFLOW_SERVER_HOST,
@@ -142,6 +150,9 @@ class NginxPackageConfig:
                         loc.port = location.get("port", PORTS.HTTP)
                         loc.path_dest = location.get("path_dest", "")
                         loc.websocket = location.get("websocket", False)
+                        loc.proxy_buffering = location.get("proxy_buffering", "")
+                        loc.proxy_buffers = location.get("proxy_buffers")
+                        loc.proxy_buffer_size = location.get("proxy_buffer_size")
 
                     elif location_type == "custom":
                         loc = website.get_custom_location(location_name)
@@ -377,13 +388,17 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
         )
 
         if package.name in self.packages:
             raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
-        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
+        self.packages[package.name] = {
+            "name": package.name,
+            "path": package.path,
+            "giturl": package.giturl,
+        }
 
         # execute package install method
         package.install(**kwargs)
@@ -471,6 +486,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+        self.threebot.nginx.reload()
 
     def reload(self, package_name):
         if self.threebot.started:
@@ -623,7 +639,7 @@ class ThreebotServer(Base):
                 self.stop()
                 raise j.core.exceptions.Runtime(
                     f"Error happened during getting or installing {package_name} package, the detailed error is {str(e)}"
-                )
+                ) from e
 
         # install all package
         self.packages._install_all()
@@ -636,6 +652,9 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
+        for package_name in self.packages.list_all():
+            package = self.packages.get(package_name)
+            package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
         j.application.stop()

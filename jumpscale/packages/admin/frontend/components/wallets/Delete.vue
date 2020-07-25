@@ -22,7 +22,7 @@ module.exports = {
       this.$api.wallets.delete(this.name).then((response) => {
         this.done("Wallet is deleted")
       }).catch((error) => {
-        this.error = error.message
+        this.error = error.response.data.error
       }).finally(() => {
         this.loading = false
       })

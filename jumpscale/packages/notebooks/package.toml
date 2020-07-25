@@ -1,0 +1,17 @@
+name = "notebooks"
+is_auth = true
+is_admin = true
+
+[[servers]]
+name = "default"
+[[servers.locations]]
+type = "proxy"
+host = "127.0.0.1"
+name = "notebooks"
+port = 8888
+path_url = "/notebooks"
+path_dest = "/notebooks"
+websocket = true
+proxy_buffering = "on"
+proxy_buffers = "8 256k"
+proxy_buffer_size = "256k"

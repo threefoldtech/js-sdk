@@ -18,18 +18,6 @@ class Health(BaseActor):
         return "All is good"
 
     @actor_method
-    def get_identity(self) -> str:
-        return j.data.serializers.json.dumps(
-            {
-                "data": {
-                    "name": j.core.identity.me.tname,
-                    "email": j.core.identity.me.email,
-                    "id": j.core.identity.me.tid,
-                }
-            }
-        )
-
-    @actor_method
     def network_info(self) -> str:
         return j.data.serializers.json.dumps({"data": j.sals.nettools.get_default_ip_config()})
 

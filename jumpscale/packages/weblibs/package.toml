@@ -1,4 +1,7 @@
 name = "weblibs"
+is_auth = false
+is_admin = false
+
 [[static_dirs]]
 name = "static"
 path_url = "/"

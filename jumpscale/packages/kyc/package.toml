@@ -1,4 +1,7 @@
 name = "kyc"
+is_auth = true
+is_admin = true
+
 [[servers]]
 name = "kyc"
 [[static_dirs]]
@@ -6,8 +9,6 @@ name = "frontend"
 path_url = "/static"
 path_location = "frontend/"
 index = "index.html"
-is_auth = true
-is_admin = true
 
 [[bottle_servers]]
 name = "main"

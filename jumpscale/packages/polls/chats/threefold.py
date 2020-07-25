@@ -1,35 +1,37 @@
-from jumpscale.sals.chatflows.polls import Poll
+from jumpscale.sals.chatflows.polls import Poll, MANIFESTO_VERSION
 from textwrap import dedent
 
 
 VOTES = {
     1: {
         "title": "Reading June 2020 update document",
-        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read our latest update document on <a href="https://wiki.threefold.io/#/threefold_update_june2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_june2020.md</a></span>""",
+        "content": """<span>We have prepared a new update of what has been happening please go to <a href="https://wiki.threefold.io/#/threefold_update_july2020.md" target="_blank">https://wiki.threefold.io/#/threefold_update_july2020.md</a></span>""",
         "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
         "title": "Reading the manifesto",
-        "content": """<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the <a href="http://decentralization2.threefold.io" target="_blank">Decentralization Manifesto</a> of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.</span>""",
+        "content": f"""<span>It's very important that you as a ThreeFold token holder (TFTA) or TFGrid user have read and agree with the <a href="http://decentralization2.threefold.io" target="_blank">Decentralization Manifesto v{MANIFESTO_VERSION}</a> of our TFGrid. <br><br>This manifesto is the basis of our further evolution and needs to be accepted by all of us.</span>""",
         "options": [
-            "I have read the manifesto on http://decentralization2.threefold.io and I do agree with the contents of this manifesto.",
-            "I have not read the manifesto on http://decentralization2.threefold.io or I do not agree.",
+            "I have read the manifesto and I do agree with the contents of this manifesto.",
+            "I have not read the manifesto or I do not agree.",
         ],
     },
     3: {
         "title": "TFTA on Stellar rights",
         "content": dedent(
             """\
-            TFTA on Stellar has all the same rights and more compared to the TFT on Rivine.
+            From May 2020, TFT v1 (Rivine) users can migrate their tokens towards a new public blockchain called Stellar.
+            Each user had to do this action him/herself.
+            TFTv1 is called TFTA on Stellar. TFTA and TFTv1 are identical and have all the same properties.
+            Additional benefits are: Stellar Exchange and a public blockchain with more users so more chance for liquidity.
 
             I can
 
             - Buy any capacity on the TF Grid, which represents the main use-case of this token.
-            - SellTFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
+            - Sell TFTA to anyone (directly or using Stellar Exchange or using atomic swaps)
             - Transfer TFTA to anyone
-            - Enjoy any other feature you would expect from a digital currency
 
-            <br> No rights have been taken away from me by switching blockchains.
+            <br>No rights have been taken away from me by switching blockchains. Please realize this question has nothing to do in relation to Liquid and BTCAlpha public exchange integration, this is next question.
 
         """
         ),
@@ -46,6 +48,14 @@ VOTES = {
     },
 }
 
+# to upgrade the titles
+NEW_TITLE_KEYS = {
+    "Reading June 2020 update document": "Reading June 2020 update document",
+    "Reading the manifesto": "Reading the manifesto",
+    "TFTA on Stellar rights": "TFTA on Stellar rights",
+    "TFTA Availability": "TFTA trading mechanism support",
+}
+
 
 class TFPoll(Poll):
     poll_name = "threefold"
@@ -54,7 +64,8 @@ class TFPoll(Poll):
         super().__init__(*args, **kwargs)
         self.extra_data = {}
         self.custom_answers = {}
-        self.QUESTIONS = {vote["title"] : vote["options"] for vote in VOTES.values()}
+        self.metadata = {"new_title_keys": NEW_TITLE_KEYS}
+        self.QUESTIONS = {vote["title"]: vote["options"] for vote in VOTES.values()}
 
     def welcome(self):
         stored_extra_data = self.user.extra_data
@@ -80,75 +91,43 @@ class TFPoll(Poll):
         full_name = self.string_ask("What is your full name ?", required=True, default=default_answer)
         self.extra_data.update({"full_name": full_name})
 
-        statement_2 = """<span>Please read the decentralization manifesto on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
+        statement_2 = f"""<span>Please read the decentralization manifesto v{MANIFESTO_VERSION} on <a href="http://decentralization2.threefold.io" target="_blank">http://decentralization2.threefold.io</a></span>"""
         self.md_show(dedent(statement_2), md=True)
-
-        question_1 = """\
-        Mark all which is relevant how you got your tokens. (This is confidential information and is only visible to the TFGrid Council).
-        """
-
-        question_1_choices = {
-            "My TFT as the result of farming IT capacity": "Result of farming IT capacity",
-            "I bought TFT from the market, which means through atomic swap, a public exchange or from any other TFT holder": "From Market",
-            "I bought my TFT from Mazraa (ThreeFold FZC) = part of TF Foundation": "From Mazraa",
-            "I bought my TFT from BetterToken = part of TF Foundation": "From BetterToken",
-            "Gift from TF Foundation": "From Gifts",
-        }
-
-        default_answer = self.get_question_answer("question_1")
-        question_1_answer = self.multi_choice(
-            dedent(question_1), options=list(question_1_choices.keys()), md=True, required=True, min_options=1, default=default_answer
-        )
-        self.extra_data.update({"question_1": question_1_answer})
-
-        message = "For every selected option above let us please know the percentage of your total amount of  TFT (if more than 1 option)"
-        def ask_for_percentages(msg=""):
-            form = self.new_form()
-            percentages = []
-            for answer in question_1_answer:
-                percentages.append(form.int_ask(question_1_choices[answer], required=True, max=100))
-
-            form_message = message
-            if msg:
-                form_message += f"<br><br> <code>{msg}</code>"
-
-            form.ask(form_message, md=True)
-            return [v.value for v in percentages]
-
-        percentages = ask_for_percentages()
-        while sum(percentages) != 100:
-            percentages = ask_for_percentages(
-                f"The submission of the total percentages is equal to {sum(percentages)} and it must be equal to 100%"
-            )
-
-        self.extra_data.update({"question_2": percentages})
 
     def custom_votes(self):
         super().custom_votes()
 
         default_answer = self.get_vote_answer(VOTES[1]["title"])
-        vote_1_answer = self.single_choice(VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True)
+        vote_1_answer = self.single_choice(
+            VOTES[1]["content"].strip(), VOTES[1]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[1]["title"]: vote_1_answer})
 
         default_answer = self.get_vote_answer(VOTES[2]["title"])
-        vote_2_answer = self.single_choice(VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True)
+        vote_2_answer = self.single_choice(
+            VOTES[2]["content"].strip(), VOTES[2]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_2_answer == VOTES[2]["options"][1]:
-            self.stop(
-                "The poll cannot continue because you did not agree with the decentralization manifesto. Thank you for your participation. Your answers have been recorded"
+            self.md_show(
+                f"You did not agree with the decentralization manifesto v{MANIFESTO_VERSION}. Thank you for your participation."
             )
         else:
             self.md_show(
-                'Thank you for confirming our "Decentralization manifesto", you have now digitally signed this document.'
+                f'Thank you for confirming our "Decentralization manifesto v{MANIFESTO_VERSION}", you have now digitally signed this document.'
             )
 
         default_answer = self.get_vote_answer(VOTES[3]["title"])
-        vote_3_answer = self.single_choice(VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True)
+        vote_3_answer = self.single_choice(
+            VOTES[3]["content"].strip(), VOTES[3]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[3]["title"]: vote_3_answer})
 
-        default_answer = self.get_vote_answer(VOTES[4]["title"])        
-        vote_4_answer = self.single_choice(VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True)
+        default_answer = self.get_vote_answer(VOTES[4]["title"])
+        vote_4_answer = self.single_choice(
+            VOTES[4]["content"].strip(), VOTES[4]["options"], default=default_answer, md=True, required=True
+        )
         self.custom_answers.update({VOTES[4]["title"]: vote_4_answer})
 
         self.vote()

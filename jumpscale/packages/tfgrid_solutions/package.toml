@@ -1,1 +1,3 @@
 name = "tfgrid_solutions"
+is_auth = true
+is_admin = true

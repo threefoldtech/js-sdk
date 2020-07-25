@@ -2,19 +2,13 @@
 Helper to get nameservers information and resolving domains.
 
 """
-# TODO: update code
 
-
-try:
-    import dns
-    import dns.message
-    import dns.rdataclass
-    import dns.rdatatype
-    import dns.query
-    import dns.resolver
-
-except ImportError as e:
-    print("WARNING install dnspython: 'pip3 install dnspython'")
+import dns
+import dns.message
+import dns.rdataclass
+import dns.rdatatype
+import dns.query
+import dns.resolver
 
 
 class DNSClient:
@@ -27,7 +21,7 @@ class DNSClient:
         self.resolver.nameservers = self.nameservers
         self.resolver.port = port
 
-    def nameservers_get(self, domain="threefoldtoken.org"):
+    def get_nameservers(self, domain="threefoldtoken.org"):
         answer = self.resolver.query(domain, "NS")
 
         res = []
@@ -35,7 +29,7 @@ class DNSClient:
             res.append(rr.target.to_text())
         return res
 
-    def namerecords_get(self, url="www.threefoldtoken.org"):
+    def get_namerecords(self, url="www.threefoldtoken.org"):
         """
         return ip addr for a full name
         """
@@ -46,5 +40,16 @@ class DNSClient:
             res.append(rr.address)
         return res
 
+    def is_free(self, domain, domain_type="A"):
+        try:
+            self.query(domain, domain_type)
+        except:
+            return True
+        return False
 
-resolver = DNSClient()
+    def query(self, *args, **kwargs):
+        return self.resolver.query(*args, **kwargs)
+
+
+def export_module_as():
+    return DNSClient()

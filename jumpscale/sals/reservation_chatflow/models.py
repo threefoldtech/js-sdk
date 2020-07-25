@@ -15,6 +15,8 @@ class SolutionType(Enum):
     Network = "network"
     Ubuntu = "ubuntu"
     Monitoring = "monitoring"
+    Publisher = "publisher"
+    Threebot = "threebot"
     Unknown = "unknown"
 
 

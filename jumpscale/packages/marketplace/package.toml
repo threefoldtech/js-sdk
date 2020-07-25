@@ -1,0 +1,35 @@
+name = "marketplace"
+ports = [ 80, 443]
+is_auth = true
+is_admin = false
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/solutions.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+port = 5555
+
+
+[[servers]]
+name = "marketplace_root_proxy"
+domain = "marketplace.grid.tf"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplace*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /marketplace;
+}
+"""

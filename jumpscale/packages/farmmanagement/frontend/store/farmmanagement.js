@@ -31,8 +31,7 @@ export default {
     },
     getUser: async context => {
       var response = await tfService.getUser();
-      response = JSON.parse(response.data)
-      if (response.data.name.length > 0) {
+      if (response.data.username.length > 0) {
         context.commit("setUser", response.data);
       }
     },

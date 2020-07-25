@@ -1,4 +1,5 @@
 from gevent import monkey
+
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
@@ -12,6 +13,25 @@ from jumpscale.threesdk.identitymanager import IdentityManager
 from jumpscale.sals.nginx.nginx import PORTS
 
 SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 16000}
+
+THREEBOT_DEPS_BINS = ["nginx", "redis-server", "tmux", "git"]
+
+
+def check_for_bins():
+    for b in THREEBOT_DEPS_BINS:
+        notfoundbins = []
+        if not j.sals.process.is_installed(b):
+            notfoundbins.append(b)
+
+    if notfoundbins:
+        bins = ",".join(notfoundbins)
+        j.logger.error(
+            f"{bins} not found in $PATH. Please check https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/installation.md for more info on installation requirements"
+        )
+        exit(1)
+    else:
+        bins = ",".join(THREEBOT_DEPS_BINS)
+        j.logger.info(f"✅ binaries {bins} required are installed.")
 
 
 def test_privileged_ports_bind():
@@ -41,9 +61,12 @@ http {
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
+@click.option("--domain", default=None, help="threebot domain")
+@click.option("--email", default=None, help="threebot ssl email")
+@click.option("--development", default=False, is_flag=True, help="start in development mode (no identity is required)")
 @click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
 @click.option("--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443")
-def start(identity=None, background=False, local=False):
+def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
@@ -55,11 +78,12 @@ def start(identity=None, background=False, local=False):
         identity (str, optional): threebot name. Defaults to None.
         explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
+    check_for_bins()
     PORTS.init_default_ports(local)
     SERVICES_PORTS["nginx_http"] = PORTS.HTTP
     SERVICES_PORTS["nginx_https"] = PORTS.HTTPS
 
-    if identity:
+    if not development and identity:
         if j.core.identity.find(identity):
             print(f"Setting default identity to {identity}\nStarting threebot server...")
             j.core.identity.set_default(identity)
@@ -70,7 +94,7 @@ def start(identity=None, background=False, local=False):
             )
             sys.exit(1)
 
-    if not j.core.identity.list_all():
+    if not development and not j.core.identity.list_all():
         identity_data = IdentityManager()
         identity_info = identity_data.ask_identity()
         me = j.core.identity.new(
@@ -98,7 +122,9 @@ def start(identity=None, background=False, local=False):
 
     canbind = test_privileged_ports_bind()
     if not local and not canbind:
-        j.tools.console.printcolors("{RED}Nginx could not bind on privileged ports{RESET}, please run with local flag or give nginx extra permission 'sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)'")
+        j.tools.console.printcolors(
+            "{RED}Nginx could not bind on privileged ports{RESET}, please run with local flag or give nginx extra permission 'sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)'"
+        )
         sys.exit(1)
     if used_ports:
         j.tools.console.printcolors(msg)
@@ -106,7 +132,7 @@ def start(identity=None, background=False, local=False):
 
     if background:
         cmd = j.tools.startupcmd.get("threebot_default")
-        cmd.start_cmd = f"jsng 'j.servers.threebot.start_default(wait=True, local={local})'"
+        cmd.start_cmd = f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})'"
         cmd.process_strings_regex = [".*threebot_default.sh"]
         cmd.ports = [8000, 8999]
         cmd.start()
@@ -119,9 +145,11 @@ def start(identity=None, background=False, local=False):
 
         print("\n✅ Threebot server started\n")
         if j.sals.process.in_host():
-            j.tools.console.printcolors(f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}")
+            j.tools.console.printcolors(
+                f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}"
+            )
     else:
-        j.servers.threebot.start_default(wait=True, local=local)
+        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email)
 
 
 @click.command()

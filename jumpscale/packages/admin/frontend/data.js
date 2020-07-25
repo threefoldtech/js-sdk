@@ -52,6 +52,14 @@ const SOLUTIONS = {
     url: "/solutions/network_deploy",
     description: "Deploy a network on the grid and to connect your solutions together."
   },
+  threebot: {
+    topic: "threebot",
+    type: "threebot",
+    name: "Threebot",
+    image: "./assets/3bot.png",
+    url: "/solutions/threebot",
+    description: "Deploy your Threebot on container."
+  },
   expose: {
     topic: "solution_expose",
     type: "exposed",
@@ -63,7 +71,7 @@ const SOLUTIONS = {
   flist: {
     topic: "flist_deploy",
     type: "flist",
-    name: "Generic Flist",
+    name: "Generic Container",
     icon: "mdi-folder-multiple",
     url: "/solutions/flist_deploy",
     description: "Spawn a container using specific flist provided by the user in the chatflow."
@@ -90,6 +98,14 @@ const SOLUTIONS = {
     name: "4 to 6 Gateway",
     icon: "mdi-router",
     url: "/solutions/4to6gw",
+    description: ""
+  },
+  publisher: {
+    topic: "publisher",
+    type: "publisher",
+    name: "Publisher",
+    icon: "mdi-web-box",
+    url: "/solutions/publisher",
     description: ""
   },
   all: {

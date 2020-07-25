@@ -1,37 +1,38 @@
-## Requirements for insystem installation
+## System requirements for installation on the host
 
-- Ubuntu 18.04 or later, MacOS 10.9 or more
-- packages [python3, python3-pip, git, poetry, nginx, redis]
+- Ubuntu 18.04 or higher, MacOS 10.9 or higher
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment.
 
-- Install packages on Ubuntu
 
-  These are for certbot:
-  ```bash
-  apt-get install -y software-properties-common;
-  add-apt-repository universe;
-  add-apt-repository ppa:certbot/certbot;
+### Ubuntu
+
   ```
-
-  Then:
-  ```bash
   apt-get update
-  apt-get install -y git python3-venv python3-pip redis-server tmux;
-  apt-get install -y nginx certbot python-certbot-nginx;
+  apt-get install -y git python3-venv python3-pip redis-server tmux nginx;
   pip3 install poetry
   ```
 
-- Install packages on MacOS
-  - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
-  - certbot `brew install certbot`
-  - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
-  - git from [here](https://www.atlassian.com/git/tutorials/install-git)
-  - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
-  - tmux `brew install tmux`
+### Mac OSX
+Install packages (git, nginx, redis-server, tmux, python3) on MacOS
+  ```
+  brew install nginx redis-server tmux git python3
+  ```
 
-## Installation in system (Experts)
-(note: for mac OSX use root user during installation to be able to use ports (80, 443) `sudo su -`)
+
+## Installing js-sdk
+
+After preparing the dependencies on your system
+### Installation using pip
+
+Just doing `python3 -m pip install js-sdk` is enough
+
+### Installation for experts or developers
+
+This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
+
+- To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
-- Install the js-ng
+- Prepare the environment and the python dependencies
 
   ```bash
   cd js-sdk
@@ -40,8 +41,17 @@
   poetry shell
   ```
 
+## Runnning 3bot
 
-- Make sure to setcap for nginx (for linux only)
+After the installation steps you should have an executable `threebot`
+
+- in case of pip it should be available for the user
+- in case of poetry you need to be in the isolated environment using `poetry shell`
+
+threebot server can run using `threebot start --local` starts a server on `8443, 8080`. If you want to use `80, 443` ports you need to set capabilities for nginx binary (in case of linux) or install as root in case of OSX
+
+### Setting capabilities for nginx
+
 ```
 sudo setcap cap_net_bind_service=+ep `which nginx`
 ```
@@ -62,3 +72,6 @@ to be able to run as a normal user, you don't need it if you are root.
 - After success you can visit the admin dashboard at http://localhost and start creating reservations
 
   ![configure](images/success.png)
+
+## Stopping 3bot
+You can stop threebot using `threebot stop`

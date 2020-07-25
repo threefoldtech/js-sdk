@@ -45,6 +45,7 @@ class SolutionExpose(GedisChatBot):
     def solution_type(self):
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
         self.user_form_data["kind"] = self.kind
+        self.md_show_update("Finding Solutions....")
 
         sol_type = kinds[self.kind]
         solutions = j.sals.reservation_chatflow.get_solutions(sol_type)
@@ -71,9 +72,10 @@ class SolutionExpose(GedisChatBot):
         self.user_form_data["Port"] = port.value
         self.user_form_data["tls-port"] = tlsport.value
 
-    @chatflow_step(title="Domain 1")
+    @chatflow_step(title="Domain")
     def domain_1(self):
         # List all available domains
+        self.md_show_update("Listing Available Domains....")
         free_to_use = False
         if "FreeTFT" == self.solution_currency:
             self.gateways = {
@@ -102,7 +104,7 @@ class SolutionExpose(GedisChatBot):
 
         self.chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
 
-    @chatflow_step(title="Domain 2")
+    @chatflow_step(title="Subdomain")
     def domain_2(self):
         if self.chosen_domain == "Custom Domain":
             domain = self.string_ask("Please specify the domain name you wish to bind to:")
@@ -131,11 +133,15 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{domain_name}",
                     retry=retry,
                 )
+                self.md_show_update("Validating Domain....")
                 if "." in domain:
                     retry = True
                     self.md_show("You can't nest domains. please click next to try again")
-                else:
+                if j.tools.dnstool.is_free(domain + "." + domain_name):
                     break
+                else:
+                    self.md_show(f"the specified domain {domain + '.' + domain_name} is already registered")
+
             domain = domain + "." + domain_name
         self.user_form_data["Domain"] = domain
         self.user_form_data["Gateway"] = self.domain_gateway.node_id
@@ -153,6 +159,7 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
 
     @chatflow_step(title="Domain 3", disable_previous=True)
     def domain_3(self):
+        self.md_show_update("Fetching Solution IP....")
         self.reservation = j.sals.zos.reservation_create()
         # create tcprouter
         if self.kind == "kubernetes":
@@ -176,15 +183,18 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
 
         if self.chosen_domain != "Custom Domain":
             # create a subdomain
+            self.md_show_update("Preparing Domain Reservation....")
             addresses = []
             for ns in self.domain_gateway.dns_nameserver:
                 addresses.append(j.sals.nettools.get_host_by_name(ns))
+
             j.sals.zos._gateway.sub_domain(
                 self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], addresses
             )
 
     @chatflow_step(title="Confirmation", disable_previous=True)
     def confirmation(self):
+        self.md_show_update("Preparing Network on Nodes....")
         query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
         node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
         network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network_name)
@@ -193,7 +203,7 @@ Please create a `CNAME` record in your dns manager for domain: `{{domain}}` poin
         ip_address = network.get_free_ip(node_selected)
         if not ip_address:
             raise j.exceptions.Value("No available free ips")
-
+        self.md_show_update("Preparing TCPClient Reservation....")
         secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         self.user_form_data["Secret"] = secret
         secret_env = {}
@@ -223,6 +233,7 @@ Tcp routers are used in the process of being able to expose your solutions. This
     @chatflow_step(title="Reserve TCP router container", disable_previous=True)
     def tcp_router_reservation(self):
         # create proxy
+        self.md_show_update("Preparing TCP Proxy Reservation....")
         j.sals.zos._gateway.tcp_proxy_reverse(
             self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
         )

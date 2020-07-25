@@ -66,6 +66,12 @@ class PORTS:
                 j.exception.Runtime("Could not find free port to listen on")
 
 
+class ProxyBuffering(Enum):
+    UNSET = ""
+    ON = "on"
+    OFF = "off"
+
+
 class LocationType(Enum):
     STATIC = "static"
     PROXY = "proxy"
@@ -88,6 +94,9 @@ class Location(Base):
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
+    proxy_buffering = fields.Enum(ProxyBuffering)
+    proxy_buffers = fields.String()
+    proxy_buffer_size = fields.String()
 
     @property
     def cfg_dir(self):
@@ -136,8 +145,8 @@ class Website(Base):
             website = self.parent.websites.find(website_name)
             if not website:
                 continue
-            
-            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))  
+
+            paths.append(j.sals.fs.join_paths(website.cfg_dir, "locations", location_name))
         return paths
 
     def get_locations(self):
@@ -175,19 +184,24 @@ class Website(Base):
             if rc > 0:
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
 
-        elif self.selfsigned:
-            self.generate_self_signed_certificates()
-            j.sals.fs.write_file(self.cfg_file, self.get_config())
-
     def generate_self_signed_certificates(self):
-        self.selfsigned = True
-        if j.sals.fs.exists(f"{self.parent.cfg_dir}/key.pem") and j.sals.fs.exists(f"{self.parent.cfg_dir}/cert.pem"):
-            return
-        res = j.sals.process.execute(
-            f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {self.parent.cfg_dir}/key.pem -out {self.parent.cfg_dir}/cert.pem -days 365 -subj '/CN=localhost'"
-        )
-        if res[0] != 0:
-            raise j.exceptions.JSException(f"Failed to generate self-signed certificate.{res}")
+        keypempath = f"{self.parent.cfg_dir}/key.pem"
+        certpempath = f"{self.parent.cfg_dir}/cert.pem"
+        if j.sals.process.is_installed("mkcert"):
+            res = j.sals.process.execute(
+                f"mkcert -key-file {keypempath} -cert-file {certpempath} localhost *.localhost 127.0.0.1 ::1"
+            )
+            if res[0] != 0:
+                raise j.exceptions.JSException(f"Failed to generate self-signed certificate (using mkcert).{res}")
+
+        else:
+            if j.sals.fs.exists(f"{keypempath}") and j.sals.fs.exists(f"{certpempath}"):
+                return
+            res = j.sals.process.execute(
+                f"openssl req -nodes -x509 -newkey rsa:4096 -keyout {keypempath} -out {certpempath} -days 365 -subj '/CN=localhost'"
+            )
+            if res[0] != 0:
+                raise j.exceptions.JSException(f"Failed to generate self-signed certificate (using openssl).{res}")
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
@@ -195,12 +209,10 @@ class Website(Base):
         for location in self.get_locations():
             location.configure()
 
-        failback = self.selfsigned
-        self.selfsigned = False
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-        self.selfsigned = failback
 
         if generate_certificates and self.ssl:
+            self.generate_self_signed_certificates()
             self.generate_certificates()
 
     def clean(self):

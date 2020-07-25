@@ -1,4 +1,6 @@
 name = "chatflows"
+is_auth = true
+is_admin = false
 
 [[static_dirs]]
 name = "frontend"

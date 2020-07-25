@@ -22,9 +22,11 @@ class ThreebotServerFactory(StoredFactory):
         """
         return super().get("default", *args, **kwargs)
 
-    def start_default(self, wait=False, local=False):
+    def start_default(self, wait=False, local=False, domain=None, email=None):
         PORTS.init_default_ports(local)
         server = self.get("default")
+        server.domain = domain
+        server.email = email
         server.save()
         server.start(wait=wait)
 

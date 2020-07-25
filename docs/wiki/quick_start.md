@@ -1,46 +1,40 @@
 # Quick Start with js-sdk
 
-## Requirments for insystem installation
+## System requirements for installation on the host
 
-- Ubuntu 18.04 or later, MacOS 10.9 or more
-- packages [python3, python3-pip, git, poetry, nginx, redis]
+- Ubuntu 18.04 or higher, MacOS 10.9 or higher
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment.
 
-- Install packages on Ubuntu
 
-  These are for certbot:
-  ```bash
-  apt-get install -y software-properties-common;
-  add-apt-repository universe;
-  add-apt-repository ppa:certbot/certbot;
+### Ubuntu
+
   ```
-
-  Then:
-  ```bash
   apt-get update
-  apt-get install -y git python3-venv python3-pip redis-server tmux;
-  apt-get install -y nginx certbot python-certbot-nginx;
+  apt-get install -y git python3-venv python3-pip redis-server tmux nginx;
   pip3 install poetry
   ```
 
-- Install packages on MacOS
-  - nginx [here](https://www.javatpoint.com/installing-nginx-on-mac)
-  - certbot `brew install certbot`
-  - redis-server [here](https://medium.com/@petehouston/install-and-config-redis-on-mac-os-x-via-homebrew-eb8df9a4f298)
-  - git from [here](https://www.atlassian.com/git/tutorials/install-git)
-  - python3 [here](https://docs.python-guide.org/starting/install3/osx/)
-  - poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
-  - tmux `brew install tmux`
+### Mac OSX
+Install packages (git, nginx, redis-server, tmux, python3) on MacOS
+  ```
+  brew install nginx redis-server tmux git python3
+  ```
 
-## Installation in system (Experts)
-General note: the system can be used to host websites and applications, thus it requires binding on 80, 443. which means elevated permissions on the user machine, on linux can be resolved using setcap for nginx, and on mac it will require root user. 
 
-```
-sudo setcap cap_net_bind_service=+ep `which nginx`
-```
-If you don't want to use 80, 443 and not hosting on a public IP, then you can use `--local` flag when starting the server which will bind on `8080, 80443` instead
+## Installing js-sdk
 
+After preparing the dependencies on your system
+### Installation using pip
+
+Just doing `python3 -m pip install js-sdk` is enough
+
+### Installation for experts or developers
+
+This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
+
+- To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
-- Install the js-ng
+- Prepare the environment and the python dependencies
 
   ```bash
   cd js-sdk
@@ -49,20 +43,18 @@ If you don't want to use 80, 443 and not hosting on a public IP, then you can us
   poetry shell
   ```
 
+## Runnning 3bot
 
-- Make sure to setcap for nginx "if you want to access on 80, 443 otherwise use --local flag" (for linux only)
-```
-sudo setcap cap_net_bind_service=+ep `which nginx`
-```
-to be able to run as a normal user, you don't need it if you are root.
+After the installation steps you should have an executable `threebot`
 
-- After that we will just do 
+- in case of pip it should be available for the user
+- in case of poetry you need to be in the isolated environment using `poetry shell`
+
+threebot server can run using `threebot start --local` starts a server on `8443, 8080`. If you want to use `80, 443` ports you need to set [capabilities](runninng3bot.md) for nginx binary (in case of linux) or install as root in case of OSX
 
   ```bash
   threebot start --local
   ```
-
-if you want to listen on 80, 443 use `threebot start` (used when on public IP with domain)
 
 - This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
 
@@ -72,18 +64,12 @@ if you want to listen on 80, 443 use `threebot start` (used when on public IP wi
 
 - After success you can visit the admin dashboard at http://localhost and start creating reservations
 
+
+- After success you can visit the admin dashboard at http://localhost and start creating reservations
+
   ![configure](images/success.png)
-## Starting threebot 
-- You have some options available to start three bot 
-```
-threebot start <--identity user.3bot> <--background> <--local>
-```
 
-if you specified `--indentity user.3bot`, then the passed identity will be the default identity in the running 3bot
 
-if you specified `--background` then the server will run in background mode
-
-if you specified `--local` then the server will run on ports 8443/https and 8080 https instead of 443/https and 80/http
 ## Create a reservation via jsng Shell (without admin panel)
 
 See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a393a9ae2a838d78c22/docs/wiki/tutorials/deploy_ubuntu_container.md)

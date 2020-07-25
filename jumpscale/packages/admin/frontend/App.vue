@@ -2,10 +2,10 @@
   <v-app>
     <v-app-bar app>
       <v-spacer></v-spacer>
-      <v-menu v-model="menu" :close-on-content-click="false" offset-x>
+      <v-menu v-if="user.username" v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
-            <v-icon color="primary" left>mdi-account</v-icon> {{user.name}}
+            <v-icon color="primary" left>mdi-account</v-icon> {{user.username}}
           </v-btn>
         </template>
         <v-card>
@@ -17,46 +17,48 @@
                 </v-avatar>
               </v-list-item-avatar>
               <v-list-item-content>
-                <v-list-item-title>{{user.name}}</v-list-item-title>
+                <v-list-item-title>{{user.username}}</v-list-item-title>
                 <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-list>
 
           <v-divider></v-divider>
-          
-          <v-card-actions>
-            <v-btn block text href="/admin_old/">
-              <v-icon color="primary" class="mr-2" left>mdi-history</v-icon> Old Dashboard
-            </v-btn>
-          </v-card-actions>
-
-          <v-divider></v-divider>
 
           <v-card-actions>
             <v-btn block text href="/auth/logout">
-              <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon> Logout
+              <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon>Logout
             </v-btn>
           </v-card-actions>
         </v-card>
       </v-menu>
-
     </v-app-bar>
 
-    <v-navigation-drawer color="primary" class="elevation-3" :mini-variant="mini" app permanent dark>
-
+    <v-navigation-drawer
+      color="primary"
+      class="elevation-3"
+      :mini-variant="mini"
+      app
+      permanent
+      dark
+    >
       <v-sheet color="#148F77">
         <v-list class="text-center">
           <img src="./assets/3bot.png" :width="mini ? 40 : 128"/><br>
-          <v-list-item>
+          <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
               <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
+
+          <v-list-item v-else>
+            <v-btn text block @click.stop="dialogs.identity = true">
+              <v-icon left>mdi-account-cog</v-icon> Set identity
+            </v-btn>
+          </v-list-item>
         </v-list>
       </v-sheet>
-
 
       <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
 
@@ -79,50 +81,56 @@
           </v-btn>
         </div>
       </template>
-
     </v-navigation-drawer>
 
     <v-main>
       <router-view></router-view>
+      <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
   </v-app>
 </template>
 
 <script>
-  module.exports =  {
-    data () { 
-      return {
-        user: {},
-        identity: {},
-        menu: false,
-        mini:false
-      } 
-    },
-    computed: {},
-    methods: {},
-    computed: {
-      pages () {
-        return this.$router.options.routes.filter((page) => {
-          return page.meta.listed
-        })
+module.exports =  {
+  data () { 
+    return {
+      user: {},
+      identity: null,
+      menu: false,
+      mini:false,
+      dialogs: {
+        identity: false
       }
-    },
-    methods: {
-      getCurrentUser () {
-        this.$api.admins.getCurrentUser().then((response) => {
-          this.user = JSON.parse(response.data).data
-        })
-      },
-      getIdentity () {
-        this.$api.admins.getIdentity().then((response) => {
-          this.identity = JSON.parse(response.data).data
-        })
-      },
-    },
-    mounted () {
-      this.getIdentity()
-      this.getCurrentUser()
+    } 
+  },
+  components: {
+    identities: httpVueLoader("./Identity.vue")
+  },
+  computed: {},
+  methods: {},
+  computed: {
+    pages () {
+      return this.$router.options.routes.filter((page) => {
+        return page.meta.listed
+      })
     }
+  },
+  methods: {
+    getCurrentUser () {
+      this.$api.user.currentUser().then((response) => {
+        this.user = response.data
+      })
+    },
+    getIdentity () {
+      this.$api.identity.get().then((response) => {
+        this.identity = JSON.parse(response.data)
+      })
+    },
+  },
+  mounted() {
+    this.getIdentity();
+    this.getCurrentUser();
   }
+};
 </script>
