@@ -95,6 +95,7 @@ class NetworkGenerator:
         nr.info.workload_type = Type.Network_resource
         network.network_resources.append(nr)
 
+        nr.network_iprange = network.iprange
         nr.iprange = ip_range
         nr.info.node_id = node_id
         nr.wireguard_listen_port = wg_port
