@@ -426,7 +426,7 @@ class TfgridWorkloadsReservationVolume1(Base):
 
 
 class TfgridWorkloadsReservationZdb1(Base):
-    workload_id = fields.Integer()
+    id = fields.Integer()
     node_id = fields.String(default="")
     size = fields.Integer()
     mode = fields.Enum(Mode)

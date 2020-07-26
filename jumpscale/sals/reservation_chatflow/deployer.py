@@ -1,8 +1,7 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.stellar.stellar import Network as StellarNetwork
-from jumpscale.clients.explorer.models import NextAction, Type, DiskType
+from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode
 from nacl.public import Box
 import netaddr
 import time
@@ -679,6 +678,285 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             selected_nodes.append(node)
             selected_pool_ids.append(pool_id)
         return selected_nodes, selected_pool_ids
+
+    def list_pool_gateways(self, pool_id):
+        """
+        return dict of gateways where keys are descriptive string of each gateway
+        """
+        farm_id = self.get_pool_farm_id(pool_id)
+        gateways = self._explorer.gateway.list(farm_id=farm_id)
+        if not gateways:
+            raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
+        result = {}
+        for g in gateways:
+            if not g.dns_nameserver:
+                continue
+            result[f"{g.dns_nameserver[0]} {g.location.continent} {g.location.country} {g.node_id}"] = g
+        return result
+
+    def list_all_gateways(self, pool_ids=None):
+        """
+        Args:
+            pool_ids: if specified it will only list gateways inside these pools
+
+        Returns:
+            dict: {"gateway_message": {"gateway": g, "pool": pool},}
+        """
+        all_gateways = filter(j.sals.zos.nodes_finder.filter_is_up, self._explorer.gateway.list())
+        if not all_gateways:
+            raise StopChatFlow(f"no available gateways")
+        all_pools = j.sals.zos.pools.list()
+        result_gateways = {}  # "gateway_message": {"gateway": g, "pool": pool}
+        available_node_ids = {}  # node_id: pool
+        if pool_ids:
+            for pool in all_pools:
+                if pool.pool_id in pool_ids:
+                    available_node_ids.update({node_id: pool for node_id in pool.node_ids})
+        else:
+            for pool in all_pools:
+                available_node_ids.update({node_id: pool for node_id in pool.node_ids})
+        result = {}
+        for gateway in all_gateways:
+            if gateway.node_id in available_node_ids:
+                pool = available_node_ids[gateway.node_id]
+                message = f"Pool: {pool.pool_id} {g.dns_nameserver[0]} {g.location.continent} {g.location.country} {g.node_id}"
+                result[message] = {"gateway": gateway, "pool": pool}
+        return result
+
+    def select_gateway(self, bot, pool_ids=None):
+        """
+        Args:
+            pool_ids: if specified it will only list gateways inside these pools
+
+        Returns:
+            gateway, pool_objects
+        """
+        gateways = self.list_all_gateways(pool_ids)
+        if not gateways:
+            raise StopChatFlow("No available gateways")
+        selected = bot.single_choice("Please select a gateway", list(gateways.keys()))
+        return gateways[selected]["gateway"], gateways[selected]["pool"]
+
+    def create_ipv6_gateway(self, gateway_id, pool_id, public_key, **metadata):
+        workload = j.sals.zos.gateway.gateway_4to6(gateway_id, public_key, pool_id)
+        if metadata:
+            workload.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(workload)
+
+    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, **metadata):
+        workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
+        if metadata:
+            workload.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(workload)
+
+    def create_subdomain(self, pool_id, gateway_id, subdomain, addresses=None, **metadata):
+        """
+        creates an A record pointing to the specified addresses
+        if no addresses are specified, the record will point the gateway IP address (used for exposing solutions)
+        """
+        if not addresses:
+            gateway = self._explorer.gateway.get(gateway_id)
+            addresses = [j.sals.nettools.get_host_by_name(ns) for ns in gateway.dns_nameserver]
+        workload = j.sals.zos.gateway.sub_domain(gateway_id, subdomain, addresses, pool_id)
+        if metadata:
+            workload.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(workload)
+
+    def create_proxy(self, pool_id, gateway_id, domain_name, trc_secret, **metadata):
+        """
+        creates a reverse tunnel on the gateway node
+        """
+        workload = j.sals.zos.gateway.tcp_proxy_reverse(gateway_id, domain_name, trc_secret, pool_id)
+        if metadata:
+            workload.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(workload)
+
+    def expose_address(self, pool_id, gateway_id, network_name, local_ip, port, tls_port, trc_secret, **metadata):
+        gateway = self._explorer.gateway.get(gateway_id)
+        remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
+        secret_env = {"TRC_SECRET": trc_secret}
+        entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port} -remote {remote}"
+        node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+
+        res = self.add_network_node(network_name, node, pool_id)
+        if res:
+            for wid in res["ids"]:
+                success = self.wait_workload(wid)
+                if not success:
+                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+        network_view = NetworkView(network_name)
+        ip_address = network_view.get_free_ip(node)
+
+        resv_id = self.deploy_container(
+            pool_id=pool_id,
+            node_id=node.node_id,
+            network_name=network_name,
+            ip_address=ip_address,
+            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
+            disk_type="HDD",
+            entrypoint=entry_point,
+            secret_env=secret_env,
+            **metadata,
+        )
+        return resv_id
+
+    def deploy_minio_zdb(
+        self,
+        pool_id,
+        password,
+        node_ids=None,
+        zdb_no=None,
+        disk_type=DiskType.HDD,
+        disk_size=10,
+        pool_ids=None,
+        **metadata,
+    ):
+        """
+        deploy zdb workloads on the specified node_ids if specified or deploy workloads as specifdied by the zdb_no
+        Args:
+            pool_id: used to deploy all workloads in this pool (overriden when pool_ids is specified)
+            node_ids: if specified, it will be used for deployment of workloads.
+            pool_ids: if specified, zdb workloads will be
+            zdb_no: if specified and no node_ids, it will automatically schedule zdb workloads matching pool config
+
+        Returns:
+            []: list of workload ids deployed
+        """
+        node_ids = node_ids or []
+        if not (zdb_no or node_ids):
+            raise StopChatFlow("you must pass at least one of zdb_no or node_ids")
+
+        if node_ids:
+            pool_ids = pool_ids or [pool_id] * len(node_ids)
+        else:
+            pool_ids = pool_ids or [pool_id] * zdb_no
+
+        if len(pool_ids) != len(node_ids):
+            raise StopChatFlow("pool_ids must be same length as node_ids")
+
+        if not node_ids and zdb_no:
+            query = {}
+            if disk_type == DiskType.SSD:
+                query["sru"] = disk_size
+            else:
+                query["hru"] = disk_size
+            for pool_id in pool_ids:
+                farm_id = self.get_pool_farm_id(pool_id)
+                node = j.sals.reservation_chatflow.reservation_chatflow.nodes_get(
+                    farm_id=farm_id, number_of_nodes=1, **query
+                )[0]
+                node_ids.append(node.node_id)
+
+        result = []
+        for i in range(len(node_ids)):
+            node_id = node_ids[i]
+            pool_id = pool_ids[i]
+            resv_id = self.deploy_zdb(
+                pool_id=pool_id,
+                node_id=node_id,
+                size=disk_size,
+                mode=Mode.Seq,
+                password=password,
+                disk_type=disk_type,
+                **metadata,
+            )
+            result.append(resv_id)
+        return result
+
+    def deploy_minio_containers(
+        self,
+        pool_id,
+        network_name,
+        minio_nodes,
+        minio_ip_addresses,
+        zdb_configs,
+        ak,
+        sk,
+        ssh_key,
+        cpu,
+        memory,
+        data,
+        parity,
+        disk_type=DiskType.SSD,
+        disk_size=10,
+        log_config=None,
+        mode="Single",
+        bot=None,
+        secondary_pool_id=None,
+        **metadata,
+    ):
+        secondary_pool_id = secondary_pool_id or pool_id
+        secret_env = {}
+        if mode == "Master/Slave":
+            secret_env["TLOG"] = zdb_configs.pop(-1)
+        shards = ",".join(zdb_configs)
+        secret_env["SHARDS"] = shards
+        secret_env["SECRET_KEY"] = sk
+        env = {
+            "DATA": str(data),
+            "PARITY": str(parity),
+            "ACCESS_KEY": ak,
+            "SSH_KEY": ssh_key,
+            "MINIO_PROMETHEUS_AUTH_TYPE": "public",
+        }
+        result = []
+        master_volume_id = self.deploy_volume(pool_id, minio_nodes[0], disk_size, disk_type, **metadata)
+        success = self.wait_workload(master_volume_id, bot)
+        if not success:
+            raise StopChatFlow(
+                f"Failed to create volume {master_volume_id} for minio container on node {minio_nodes[0]}"
+            )
+        master_cont_id = self.deploy_container(
+            pool_id=pool_id,
+            node_id=minio_nodes[0],
+            network_name=network_name,
+            ip_address=minio_ip_addresses[0],
+            env=env,
+            cpu=cpu,
+            memory=memory,
+            secret_env=secret_env,
+            log_config=log_config,
+            volumes={"/data": master_volume_id},
+            flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+            **metadata,
+        )
+        result.append(master_cont_id)
+        if mode == "Master/Slave":
+            secret_env["MASTER"] = secret_env.pop("TLOG")
+            slave_volume_id = self.deploy_volume(pool_id, minio_nodes[1], disk_size, disk_type, **metadata)
+            success = self.wait_workload(slave_volume_id, bot)
+            if not success:
+                raise StopChatFlow(
+                    f"Failed to create volume {slave_volume_id} for minio container on node {minio_nodes[1]}"
+                )
+            slave_cont_id = self.deploy_container(
+                pool_id=secondary_pool_id,
+                node_id=minio_nodes[1],
+                network_name=network_name,
+                ip_address=minio_ip_addresses[1],
+                env=env,
+                cpu=cpu,
+                memory=memory,
+                secret_env=secret_env,
+                log_config=log_config,
+                volumes={"/data": slave_volume_id},
+                flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+                **metadata,
+            )
+            result.append(slave_cont_id)
+        return result
+
+    def get_zdb_url(self, zdb_id, password):
+        workload = j.sals.zos.workloads.get(zdb_id)
+        result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+        if "IPs" in result_json:
+            ip = result_json["IPs"][0]
+        else:
+            ip = result_json["IP"]
+        namespace = result_json["Namespace"]
+        port = result_json["Port"]
+        url = f"{namespace}:{password}@[{ip}]:{port}"
+        return url
 
 
 deployer = ChatflowDeployer()
