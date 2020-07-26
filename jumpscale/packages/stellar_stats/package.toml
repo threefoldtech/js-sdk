@@ -1,0 +1,19 @@
+name = "stellar_stats"
+is_auth = false
+is_admin = false
+
+[[bottle_servers]]
+name = "elmain"
+file_path = "bottle/stellar_stats.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+port = 8558
+is_auth = false
+is_admin = false
+
+[[servers]]
+name = "root"
+domain = "statsdata.threefoldtoken.com"
+letsencryptemail = "testemail@gmail.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.stellar_stats*"]
