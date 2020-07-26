@@ -276,8 +276,8 @@ class ChatflowDeployer:
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def select_pool(self, bot, cu=None, su=None):
-        available_pools = self.list_pools(cu, su)
+    def select_pool(self, bot, cu=None, su=None, available_pools=None):
+        available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
             raise StopChatFlow("no available pools")
         pool_messages = {}
@@ -536,6 +536,140 @@ Deployment will be cancelled if it is not successful in {remaning_time}
 
     def get_network_view(self, network_name, workloads=None):
         return NetworkView(network_name, workloads)
+
+    def delegate_domain(self, pool_id, gateway_id, domain_name, **metadata):
+        domain_delegate = j.sals.zos.gateway.delegate_domain(gateway_id, domain_name, pool_id)
+        if metadata:
+            domain_delegate.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(domain_delegate)
+
+    def deploy_kubernetes_master(
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
+    ):
+        master = j.sals.zos.kubernetes.add_master(
+            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
+        )
+        master.info.description = j.data.serializers.json.dumps({"role": "master"})
+        if metadata:
+            master.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(master)
+
+    def deploy_kubernetes_worker(
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
+    ):
+        worker = j.sals.zos.kubernetes.add_worker(
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
+        )
+        worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
+        if metadata:
+            worker.info.metadata = self.encrypt_metadata(metadata)
+        return j.sals.zos.workloads.deploy(worker)
+
+    def deploy_kubernetes_cluster(
+        self,
+        pool_id,
+        node_ids,
+        network_name,
+        cluster_secret,
+        ssh_keys,
+        size=1,
+        ip_addresses=None,
+        slave_pool_ids=None,
+        **metadata,
+    ):
+        """
+        deplou k8s cluster with the same number of nodes as specifed in node_ids
+
+        Args:
+            pool_id: this one is always used for master.
+            node_ids: list() of node ids to deploy on. first node_id is used for master reservation
+            ip_addresses: if specified it will be mapped 1-1 with node_ids for workloads. if not specified it will choose any free_ip from the node
+            slave_pool_ids: if specified, k8s workers will deployed on each of these pools respectively. if empty it will use the master pool_id
+
+        Return:
+            list: [{"node_id": "ip_address"}, ...] first dict is master's result
+        """
+        slave_pool_ids = slave_pool_ids or [pool_id] * len(node_ids) - 1
+        pool_ids = [pool_id] + slave_pool_ids
+        result = []  # [{"node_id": id,  "ip_address": ip, "reservation_id": 16}] first dict is master's result
+        if ip_addresses and len(ip_addresses) != len(node_ids):
+            raise StopChatFlow("length of ips != node_ids")
+
+        if not ip_addresses:
+            # get free_ips for the nodes
+            ip_addresses = []
+            for i in range(len(node_ids)):
+                node_id = node_ids[i]
+                pool_id = pool_ids[i]
+                node = self._explorer.nodes.get(node_id)
+                res = self.add_network_node(network_name, node, pool_id)
+                if res:
+                    for wid in res["ids"]:
+                        success = self.wait_workload(wid)
+                        if not success:
+                            raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                network_view = NetworkView(network_name)
+                address = network_view.get_free_ip(node)
+                if not address:
+                    raise StopChatFlow(f"No free IPs for network {network_name} on the specifed node {node_id}")
+                ip_addresses.append(address)
+
+        # deploy_master
+        master_ip = ip_addresses[0]
+        master_resv_id = self.deploy_kubernetes_master(
+            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
+        )
+        result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
+        for i in range(1, len(node_ids)):
+            node_id = node_ids[i]
+            pool_id = pool_ids[i]
+            ip_address = ip_addresses[i]
+            resv_id = self.deploy_kubernetes_worker(
+                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
+            )
+            result.append({"node_id": node_id, "ip_address": ip_address, "reservation_id": resv_id})
+        return result
+
+    def ask_multi_pool_placement(
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
+    ):
+        """
+        Ask and schedule workloads accross multiple pools
+
+        Args:
+            bot: chatflow object
+            number_of_nodes: number of required nodes for deployment
+            resource_query_list: list of query dicts {"cru": 1, "sru": 2, "mru": 1, "hru": 1}. if specified it must be same length as number_of_nodes
+            pool_ids: if specfied it will limit the pools shown in the chatflow to only these pools
+            workload_names: if specified they will shown when asking the user for node selection for each workload. if specified it must be same length as number_of_nodes
+
+        Returns:
+            ([], []): first list contains the selected node objects. second list contains selected pool ids
+        """
+        resource_query_list = resource_query_list or [dict()] * number_of_nodes
+        workload_names = workload_names or [None] * number_of_nodes
+        if len(resource_query_list) != number_of_nodes:
+            raise StopChatFlow("resource query_list must be same length as number of nodes")
+        if len(workload_names) != number_of_nodes:
+            raise StopChatFlow("workload_names must be same length as number of nodes")
+
+        pools = self.list_pools()
+        if pool_ids:
+            filtered_pools = {}
+            for pool_id in pools:
+                if pool_id in pool_ids:
+                    filtered_pools[pool_id] = pools[pool_id]
+            pools = filtered_pools
+        selected_nodes = []
+        selected_pool_ids = []
+        for i in range(number_of_nodes):
+            pool_id = self.select_pool(bot, available_pools=pools)
+            node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
+            if not node:
+                node = self.schedule_container(pool_id, **resource_query_list[i])
+            selected_nodes.append(node)
+            selected_pool_ids.append(pool_id)
+        return selected_nodes, selected_pool_ids
 
 
 deployer = ChatflowDeployer()

@@ -55,7 +55,7 @@ class ChatflowSolutions:
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.workloads.list(j.me.tid, next_action="DEPLOY"):
+            for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
                 if solution_uuid == self.get_solution_uuid(workload):
                     ids_to_delete.append(workload.id)
         else:
@@ -68,7 +68,7 @@ class ChatflowSolutions:
         if workload.info.metadata:
             try:
                 metadata = j.data.serializers.json.loads(
-                    j.sals.chatflow_deployer.decrypt_metadata(workload.info.metadata)
+                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
                 )
             except:
                 return
