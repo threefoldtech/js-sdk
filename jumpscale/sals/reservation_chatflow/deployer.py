@@ -276,14 +276,17 @@ class ChatflowDeployer:
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def select_pool(self, bot, cu=None, su=None, available_pools=None):
+    def select_pool(self, bot, cu=None, su=None, available_pools=None, workload_name=None):
         available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
             raise StopChatFlow("no available pools")
         pool_messages = {}
         for pool in available_pools:
             pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su: {available_pools[pool][1]}"] = pool
-        pool = bot.single_choice("Please select a pool", list(pool_messages.keys()))
+        msg = "Please select a pool"
+        if workload_name:
+            msg += f" for {workload_name}"
+        pool = bot.single_choice(msg, list(pool_messages.keys()))
         return pool_messages[pool]
 
     def get_pool_farm_id(self, pool_id):
@@ -663,7 +666,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            pool_id = self.select_pool(bot, available_pools=pools)
+            pool_id = self.select_pool(bot, available_pools=pools, workload_name=workload_names[i])
             node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
             if not node:
                 node = self.schedule_container(pool_id, **resource_query_list[i])

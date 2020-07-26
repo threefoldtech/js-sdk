@@ -30,8 +30,7 @@ class kubernetesDeploy(GedisChatBot):
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
-            # k8s_solutions = solutions.list_kubernetes_solutions(sync=False)
-            k8s_solutions = []
+            k8s_solutions = solutions.list_kubernetes_solutions(sync=False)
             valid = True
             for sol in k8s_solutions:
                 if sol["Name"] == self.solution_name:
@@ -60,7 +59,7 @@ class kubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Containers' node id")
     def nodes_selection(self):
         queries = [self.master_query] * (self.workernodes.value + 1)
-        workload_names = ["Master Node"] + (["Slave Node"] * self.workernodes.value)
+        workload_names = ["Master node"] + [f"Slave node {i+1}" for i in range(self.workernodes.value)]
         self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_placement(
             self, len(queries), queries, workload_names=workload_names
         )

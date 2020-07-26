@@ -49,6 +49,41 @@ class ChatflowSolutions:
                     )
         return result
 
+    def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes].values():
+            for workload in kube_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                name = metadata["form_info"].get("Solution name", metadata.get("name"))
+                if name:
+                    if f"{name}" in result:
+                        if len(workload.master_ips) != 0:
+                            result[f"{name}"]["wids"].append(workload.id)
+                            result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+                        continue
+                    result[f"{name}"] = {
+                        "wids": [workload.id],
+                        "Name": name,
+                        "Network": workload.network_id,
+                        "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
+                        "Slave IPs": [],
+                        "Pool": workload.info.pool_id,
+                    }
+                    if len(workload.master_ips) != 0:
+                        result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+        return list(result.values())
+
     def cancel_solution(self, solution_wids):
         workload = j.sals.zos.workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
