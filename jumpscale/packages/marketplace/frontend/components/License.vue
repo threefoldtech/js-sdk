@@ -3,12 +3,11 @@
     <v-card flat height="100%" class="pa-5" outlined>
       <v-card-title class="justify-center">Terms and Conditions for using Threefold Marketplace</v-card-title>
       <v-card-text>
-        It's very important that you as a Marketplace user you agree to the
+        It's required that you as a Marketplace user you agree to the
         <a
-          href="http://decentralization2.threefold.io/"
           target="_blank"
-        >Decentralization Manifesto.</a>
-        Please check here: for the terms and conditions.
+          href="https://wiki.threefold.io/#/terms_conditions"
+        >Terms and Conditions</a>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
