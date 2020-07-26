@@ -214,6 +214,8 @@ class MonitoringDeploy(GedisChatBot):
                     env=self.env_var_dict,
                     interactive=False,
                     entrypoint="",
+                    volumes=volume_config,
+                    log_config=log_config,
                     **metadata,
                     solution_uuid=self.solution_id,
                 )
