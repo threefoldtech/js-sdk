@@ -5,7 +5,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 import uuid
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class UbuntuDeploy(GedisChatBot):
@@ -40,7 +40,17 @@ class UbuntuDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
-        self.solution_name = deployer.ask_name(self)
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            ubuntu_solutions = solutions.list_ubuntu_solutions(sync=False)
+            valid = True
+            for sol in ubuntu_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
     @chatflow_step(title="Ubuntu version")
     def ubuntu_version(self):

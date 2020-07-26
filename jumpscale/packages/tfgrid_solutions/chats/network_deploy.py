@@ -3,7 +3,7 @@ import time
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class NetworkDeploy(GedisChatBot):
@@ -17,7 +17,17 @@ class NetworkDeploy(GedisChatBot):
 
     @chatflow_step(title="Network Name")
     def start(self):
-        self.solution_name = deployer.ask_name(self)
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            network_solutions = solutions.list_network_solutions(sync=False)
+            valid = True
+            for sol in network_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
     @chatflow_step(title="IP Configuration")
     def ip_config(self):

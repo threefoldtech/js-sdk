@@ -155,7 +155,7 @@ class kubernetesDeploy(GedisChatBot):
             To connect ssh rancher@{self.reservations[0]["ip_address"]}
         """
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f"""Worker {idx} reservation id is: {resv["reservation_id"]}
+            res += f"""Worker {idx + 1} reservation id is: {resv["reservation_id"]}
                 IP: {resv["ip_address"]}
                 To connect ssh rancher@{resv["ip_address"]}
             """

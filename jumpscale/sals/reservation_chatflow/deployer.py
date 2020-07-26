@@ -666,7 +666,13 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            pool_id = self.select_pool(bot, available_pools=pools, workload_name=workload_names[i])
+            cu, su = self.calculate_capacity_units(**resource_query_list[i])
+            pool_choices = {}
+            for p in pools:
+                if pools[p][0] < cu or pools[p][1] < su:
+                    continue
+                pool_choices[p] = pools[p]
+            pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
             if not node:
                 node = self.schedule_container(pool_id, **resource_query_list[i])
