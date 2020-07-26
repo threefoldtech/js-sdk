@@ -1471,7 +1471,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             message (str): message to user. Defaults to ""
 
         """
-        farms_message = f"Select 1 or more farms to distribute the {message} nodes on. If no selectiosn is made, the farms will be chosen randomly"
+        farms_message = f"Select 1 or more farms to distribute the {message} nodes on. If no selection is made, the farms will be chosen randomly"
         empty_farms = set()
         all_farms = self._explorer.farms.list()
         retry = False
