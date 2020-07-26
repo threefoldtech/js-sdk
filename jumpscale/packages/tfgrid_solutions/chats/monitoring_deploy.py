@@ -2,346 +2,238 @@ import math
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.reservation_chatflow import deployer, solutions
+import uuid
 
 
 class MonitoringDeploy(GedisChatBot):
     steps = [
         "deployment_start",
-        "network_selection",
-        "solution_name",
+        "choose_name",
         "public_key_get",
         "prometheus_container_resources",
         "prometheus_volume_details",
         "grafana_container_resources",
         "redis_container_resources",
-        "container_node_id",
-        "farm_selection",
-        "prometheus_container_ip",
-        "grafana_container_ip",
-        "redis_container_ip",
-        "expiration_time",
+        "container_node_ids",
+        "network_selection",
+        "ip_selection",
         "overview",
-        "containers_pay",
+        "reservation",
         "success",
     ]
     title = "Monitoring"
 
     @chatflow_step()
     def deployment_start(self):
-        self.user_info = self.user_info()
-        j.sals.reservation_chatflow.validate_user(self.user_info)
-        self.user_form_data = {}
-        self.user_form_data["chatflow"] = "monitoring"
+        self.tools_names = ["Redis", "Prometheus", "Grafana"]
+        self.flists = [
+            "https://hub.grid.tf/tf-official-apps/redis_zinit.flist",
+            "https://hub.grid.tf/tf-official-apps/prometheus:latest.flist",
+            "https://hub.grid.tf/azmy.3bot/grafana-grafana-latest.flist",
+        ]
+        self.solution_id = uuid.uuid4().hex
+        self.env_var_dict = dict()
+        self.prometheus_query = dict()
+        self.grafana_query = dict()
+        self.redis_query = dict()
+        self.query = {"Prometheus": self.prometheus_query, "Grafana": self.grafana_query, "Redis": self.redis_query}
+        self.ip_addresses = {"Prometheus": "", "Grafana": "", "Redis": ""}
         self.md_show(
             "# This wizard will help you deploy a monitoring system that includes Prometheus, Grafana, and redis",
             md=True,
         )
-        self.env_var_dict = {}
-        self.prometheus_query = {}
-        self.grafana_query = {}
-        self.redis_query = {}
-        self.query = {"Prometheus": self.prometheus_query, "Grafana": self.grafana_query, "Redis": self.redis_query}
-        self.ip_addresses = {"Prometheus": "", "Grafana": "", "Redis": ""}
-
-    @chatflow_step(title="Network")
-    def network_selection(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
 
     @chatflow_step(title="Solution name")
-    def solution_name(self):
-        self.user_form_data["Solution name"] = self.string_ask(
-            "Please enter a name for your monitoring solution name", required=True, field="name"
-        )
+    def choose_name(self):
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            monitoring_solutions = solutions.list_monitoring_solutions(sync=False)
+            valid = True
+            for sol in monitoring_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
-    @chatflow_step(title="Access keys")
+    @chatflow_step()
     def public_key_get(self):
-        self.user_form_data["Public key"] = self.upload_file(
+        self.env_var_dict["SSH_KEY"] = self.upload_file(
             """Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                    Just upload the file with the key""",
+                Just upload the file with the key.
+                Note: please use keys compatible with Dropbear server eg: rsa """,
             required=True,
         ).split("\n")[0]
 
     @chatflow_step(title="Prometheus container resources")
     def prometheus_container_resources(self):
-        form = self.new_form()
-        cpu = form.int_ask(
-            "Please add how many CPU cores are needed for the Prometheus container", default=1, required=True
-        )
-        memory = form.int_ask("Please add the amount of memory in MB", default=3072, required=True)
-        rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
-        form.ask()
-
-        self.prometheus_rootfs_type = DiskType.SSD
-        self.user_form_data["Prometheus CPU"] = cpu.value
-        self.user_form_data["Prometheus Memory"] = memory.value
-        self.user_form_data["Prometheus Root filesystem Type"] = DiskType.SSD.name
-        self.user_form_data["Prometheus Root filesystem Size"] = rootfs_size.value
-
-        self.prometheus_query["mru"] = math.ceil(self.user_form_data["Prometheus Memory"] / 1024)
-        self.prometheus_query["cru"] = self.user_form_data["Prometheus CPU"]
-        storage_units = math.ceil(self.user_form_data["Prometheus Root filesystem Size"] / 1024)
-        if self.prometheus_rootfs_type.value == "SSD":
-            self.prometheus_query["sru"] = storage_units
-        else:
-            self.prometheus_query["hru"] = storage_units
+        self.prometheus_query = deployer.ask_container_resources(self)
+        self.query["Prometheus"] = self.prometheus_query
 
     @chatflow_step(title="Prometheus volume details")
     def prometheus_volume_details(self):
         form = self.new_form()
         vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
         form.ask()
-        self.prometheus_vol_disk_type = DiskType.SSD
-        self.user_form_data["Prometheus Volume Disk type"] = DiskType.SSD.name
-        self.user_form_data["Prometheus Volume Size"] = vol_disk_size.value
+        self.vol_size = vol_disk_size.value
+        self.vol_mount_point = "/data"
 
     @chatflow_step(title="Grafana container resources")
     def grafana_container_resources(self):
-        form = self.new_form()
-        cpu = form.int_ask(
-            "Please add how many CPU cores are needed for the Grafana container", default=1, required=True
-        )
-        memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
-        form.ask()
-        self.grafana_rootfs_type = DiskType.SSD
-        self.user_form_data["Grafana CPU"] = cpu.value
-        self.user_form_data["Grafana Memory"] = memory.value
-        self.user_form_data["Grafana Root filesystem Type"] = DiskType.SSD.name
-        self.user_form_data["Grafana Root filesystem Size"] = rootfs_size.value
-
-        self.grafana_query["mru"] = math.ceil(self.user_form_data["Grafana Memory"] / 1024)
-        self.grafana_query["cru"] = self.user_form_data["Grafana CPU"]
-        storage_units = math.ceil(self.user_form_data["Grafana Root filesystem Size"] / 1024)
-        if self.grafana_rootfs_type.value == "SSD":
-            self.grafana_query["sru"] = storage_units
-        else:
-            self.grafana_query["hru"] = storage_units
+        self.grafana_query = deployer.ask_container_resources(self)
+        self.query["Grafana"] = self.grafana_query
 
     @chatflow_step(title="Redis container resources")
     def redis_container_resources(self):
-        form = self.new_form()
-        cpu = form.int_ask("Please add how many CPU cores are needed for the redis container", default=1, required=True)
-        memory = form.int_ask("Please add the amount of memory in MB", default=1024, required=True)
-        rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=256)
-        form.ask()
-        self.redis_rootfs_type = DiskType.SSD
-        self.user_form_data["Redis CPU"] = cpu.value
-        self.user_form_data["Redis Memory"] = memory.value
-        self.user_form_data["Redis Root filesystem Type"] = DiskType.SSD.name
-        self.user_form_data["Redis Root filesystem Size"] = rootfs_size.value
+        self.redis_query = deployer.ask_container_resources(self)
+        self.query["Redis"] = self.redis_query
 
-        self.redis_query["mru"] = math.ceil(self.user_form_data["Redis Memory"] / 1024)
-        self.redis_query["cru"] = self.user_form_data["Redis CPU"]
-        storage_units = math.ceil(self.user_form_data["Redis Root filesystem Size"] / 1024)
-        if self.redis_rootfs_type.value == "SSD":
-            self.redis_query["sru"] = storage_units
-        else:
-            self.redis_query["hru"] = storage_units
-
-    @chatflow_step(title="Containers' node id")
-    def container_node_id(self):
-        self.env_var_dict["SSH_KEY"] = self.user_form_data["Public key"]
-        # create new reservation
-        self.reservation = j.sals.zos.reservation_create()
-        self.nodes_selected = {"Prometheus": None, "Grafana": None, "Redis": None}
-        self.tools_names = ["Prometheus", "Grafana", "Redis"]
+    @chatflow_step(title="Container's node ids")
+    def container_node_ids(self):
+        queries = []
         for name in self.tools_names:
-            nodeid = self.string_ask(
-                f"Please enter the nodeid you would like to deploy {name} on. If left empty a node will be chosen for you"
+            queries.append(
+                {
+                    "cru": self.query[name]["cpu"],
+                    "mru": math.ceil(self.query[name]["memory"] / 1024),
+                    "sru": math.ceil(self.query[name]["disk_size"] / 1024),
+                }
             )
-            node_selected = None
-            while nodeid:
-                try:
-                    node_selected = j.sals.reservation_chatflow.validate_node(
-                        nodeid, self.query[name], self.network.currency
-                    )
-                    break
-                except (j.exceptions.Value, j.exceptions.NotFound) as e:
-                    message = f"<br> Please enter a different nodeid to deploy {name} on or leave it empty"
-                    nodeid = self.string_ask(str(e) + message, html=True, retry=True)
-            self.nodes_selected[name] = node_selected or None
-            self.query[name]["currency"] = self.network.currency
-
-    @chatflow_step(title="Container farms for Prometheus Grafana and Redis")
-    def farm_selection(self):
-        for name, node_id in self.nodes_selected.items():
-            if not node_id:
-                farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query[name], message=name)
-                self.nodes_selected[name] = j.sals.reservation_chatflow.get_nodes(
-                    1, farm_names=farms, **self.query[name]
-                )[0]
-
-    @chatflow_step(title="Prometheus container IP")
-    def prometheus_container_ip(self):
-        self.prometheus_network = self.network.copy(j.core.identity.me.tid)
-        self.prometheus_network.add_node(self.nodes_selected["Prometheus"])
-        self.ip_addresses["Prometheus"] = self.prometheus_network.ask_ip_from_node(
-            self.nodes_selected["Prometheus"], "Please choose IP Address for your Prometheus container"
+        self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_placement(
+            self, 3, queries, workload_names=self.tools_names
         )
-        self.user_form_data["Prometheus IP Address"] = self.ip_addresses["Prometheus"]
 
-    @chatflow_step(title="Grafana container IP")
-    def grafana_container_ip(self):
-        self.grafana_network = self.prometheus_network.copy(j.core.identity.me.tid)
-        self.grafana_network.add_node(self.nodes_selected["Grafana"])
-        self.ip_addresses["Grafana"] = self.grafana_network.ask_ip_from_node(
-            self.nodes_selected["Grafana"], "Please choose IP Address for your Grafana container"
-        )
-        self.user_form_data["Grafana IP Address"] = self.ip_addresses["Grafana"]
+    @chatflow_step(title="Network")
+    def network_selection(self):
+        self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Redis container IP")
-    def redis_container_ip(self):
-        self.redis_network = self.grafana_network.copy(j.core.identity.me.tid)
-        self.redis_network.add_node(self.nodes_selected["Redis"])
-        self.ip_addresses["Redis"] = self.redis_network.ask_ip_from_node(
-            self.nodes_selected["Redis"], "Please choose IP Address for your Redis container"
-        )
-        self.user_form_data["Redis IP Address"] = self.ip_addresses["Redis"]
+    @chatflow_step(title="IP selection")
+    def ip_selection(self):
+        self.md_show_update("Deploying Network on Nodes....")
+        # deploy network on nodes
+        for i in range(len(self.selected_nodes)):
+            node = self.selected_nodes[i]
+            pool_id = self.selected_pool_ids[i]
+            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view)
+            if not result:
+                continue
+            for wid in result["ids"]:
+                success = deployer.wait_workload(wid)
+                if not success:
+                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+            self.network_view = self.network_view.copy()
 
-    @chatflow_step(title="Expiration time")
-    def expiration_time(self):
-        self.expiration = self.datetime_picker(
-            "Please enter solution expiration time.",
-            required=True,
-            min_time=[3600, "Date/time should be at least 1 hour from now"],
-            default=j.data.time.get().timestamp + 3900,
-        )
-        self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
+        # get ip addresses
+        self.ip_addresses = []
+        for i in range(3):
+            free_ips = self.network_view.get_node_free_ips(self.selected_nodes[i])
+            self.ip_addresses.append(
+                self.drop_down_choice(f"Please choose IP Address for {self.tools_names[i]}", free_ips, required=True)
+            )
+            self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title="Confirmation")
     def overview(self):
-        self.md_show_confirm(self.user_form_data)
+        self.metatata = {
+            "Solution Name": self.solution_name,
+            "Network": self.network_view.name,
+            "Prometheus Node ID": self.selected_nodes[1].node_id,
+            "Prometheus CPU": self.query["Prometheus"]["cpu"],
+            "Prometheus Memory": self.query["Prometheus"]["memory"],
+            "Prometheus Disk Size": self.query["Prometheus"]["disk_size"],
+            "Prometheus IP Address": self.ip_addresses[1],
+            "Grafana Node ID": self.selected_nodes[2].node_id,
+            "Grafana CPU": self.query["Grafana"]["cpu"],
+            "Grafana Memory": self.query["Grafana"]["memory"],
+            "Grafana Disk Size": self.query["Grafana"]["disk_size"],
+            "Grafana IP Address": self.ip_addresses[2],
+            "Redis Node ID": self.selected_nodes[0].node_id,
+            "Redis CPU": self.query["Redis"]["cpu"],
+            "Redis Memory": self.query["Redis"]["memory"],
+            "Redis Disk Size": self.query["Redis"]["disk_size"],
+            "Redis IP Address": self.ip_addresses[0],
+        }
+        self.md_show_confirm(self.metatata)
 
-    @chatflow_step(title="Payment", disable_previous=True)
-    def containers_pay(self):
-        self.network = self.redis_network
-        self.network.update(j.core.identity.me.tid, currency=self.network.currency, bot=self)
+    @chatflow_step(title="Reservation")
+    def reservation(self):
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": "monitoring", "Solution name": self.solution_name,},
+        }
+        self.md_show_update("Deploying Volume....")
 
-        storage_url = "zdb://hub.grid.tf:9900"
-        redis_ip_address = self.ip_addresses["Redis"]
-
-        # create redis container
-        redis_flist = f"https://hub.grid.tf/ranatarek.3bot/redis_zinit.flist"
-
-        redis_cont = j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.nodes_selected["Redis"].node_id,
-            network_name=self.network.name,
-            ip_address=redis_ip_address,
-            flist=redis_flist,
-            storage_url=storage_url,
-            disk_type=self.redis_rootfs_type,
-            disk_size=self.user_form_data["Redis Root filesystem Size"],
-            env=self.env_var_dict,
-            interactive=False,
-            entrypoint="",
-            cpu=self.user_form_data["Redis CPU"],
-            memory=self.user_form_data["Redis Memory"],
+        vol_id = deployer.deploy_volume(
+            self.selected_pool_ids[1], self.selected_nodes[1].node_id, self.vol_size, solution_uuid=self.solution_id
         )
+        success = deployer.wait_workload(vol_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to add node {self.nodes_selected['Prometheus'].node_id} to network {vol_id}")
+        volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
-        # create prometheus container
-        prometheus_flist = "https://hub.grid.tf/tf-official-apps/prometheus:latest.flist"
+        log_configs = [
+            {},
+            {
+                "channel_type": "redis",
+                "channel_host": self.ip_addresses[0],
+                "channel_port": 6379,
+                "channel_name": "prometheus",
+            },
+            {
+                "channel_type": "redis",
+                "channel_host": self.ip_addresses[0],
+                "channel_port": 6379,
+                "channel_name": "grafana",
+            },
+        ]
 
-        prometheus_cont = j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.nodes_selected["Prometheus"].node_id,
-            network_name=self.network.name,
-            ip_address=self.ip_addresses["Prometheus"],
-            flist=prometheus_flist,
-            storage_url=storage_url,
-            disk_type=self.prometheus_rootfs_type,
-            disk_size=self.user_form_data["Prometheus Root filesystem Size"],
-            env=self.env_var_dict,
-            interactive=False,
-            entrypoint="",
-            cpu=self.user_form_data["Prometheus CPU"],
-            memory=self.user_form_data["Prometheus Memory"],
-        )
-        j.sals.zos.container.add_logs(
-            prometheus_cont,
-            channel_type="redis",
-            channel_host=redis_ip_address,
-            channel_port=6379,
-            channel_name="prometheus",
-        )
+        self.reservation_ids = []
 
-        self.prometheus_volume = j.sals.zos.volume.create(
-            self.reservation,
-            self.nodes_selected["Prometheus"].node_id,
-            size=self.user_form_data["Prometheus Volume Size"],
-            type=self.prometheus_vol_disk_type,
-        )
-        j.sals.zos.volume.attach(container=prometheus_cont, volume=self.prometheus_volume, mount_point="/data")
+        for i in range(3):
+            self.md_show_update(f"Deploying {self.tools_names[i]}....")
+            flist = self.flists[i]
+            node = self.selected_nodes[i]
+            pool_id = self.selected_pool_ids[i]
+            volume_config = volume_configs[i]
+            log_config = log_configs[i]
+            ip_address = self.ip_addresses[i]
+            self.reservation_ids.append(
+                deployer.deploy_container(
+                    pool_id=pool_id,
+                    node_id=node.node_id,
+                    network_name=self.network_view.name,
+                    ip_address=ip_address,
+                    flist=flist,
+                    cpu=self.query[self.tools_names[i]]["cpu"],
+                    memory=self.query[self.tools_names[i]]["memory"],
+                    disk_size=self.query[self.tools_names[i]]["disk_size"],
+                    env=self.env_var_dict,
+                    interactive=False,
+                    entrypoint="",
+                    **metadata,
+                    solution_uuid=self.solution_id,
+                )
+            )
+            success = deployer.wait_workload(self.reservation_ids[i], self)
+            if not success:
+                solutions.cancel_solution(self.reservation_ids)
+                raise StopChatFlow(f"Failed to deploy {self.tools_names[i]}")
 
-        # create grafana container
-        grafana_flist = "https://hub.grid.tf/azmy.3bot/grafana-grafana-latest.flist"
-
-        grafana_cont = j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.nodes_selected["Grafana"].node_id,
-            network_name=self.network.name,
-            ip_address=self.ip_addresses["Grafana"],
-            flist=grafana_flist,
-            storage_url=storage_url,
-            disk_type=self.grafana_rootfs_type,
-            disk_size=self.user_form_data["Grafana Root filesystem Size"],
-            env={},
-            interactive=False,
-            entrypoint="",
-            cpu=self.user_form_data["Grafana CPU"],
-            memory=self.user_form_data["Grafana Memory"],
-        )
-        j.sals.zos.container.add_logs(
-            grafana_cont, channel_type="redis", channel_host=redis_ip_address, channel_port=6379, channel_name="grafana"
-        )
-
-        metadata = dict()
-        metadata["chatflow"] = self.user_form_data["chatflow"]
-        metadata["Solution name"] = self.user_form_data["Solution name"]
-        metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
-        metadata["Prometheus CPU"] = self.user_form_data["Prometheus CPU"]
-        metadata["Prometheus Memory"] = self.user_form_data["Prometheus Memory"]
-        metadata["Prometheus Root filesystem Type"] = self.user_form_data["Prometheus Root filesystem Type"]
-        metadata["Prometheus Root filesystem Size"] = self.user_form_data["Prometheus Root filesystem Size"]
-        metadata["Grafana CPU"] = self.user_form_data["Grafana CPU"]
-        metadata["Grafana Memory"] = self.user_form_data["Grafana Memory"]
-        metadata["Grafana Root filesystem Type"] = self.user_form_data["Grafana Root filesystem Type"]
-        metadata["Grafana Root filesystem Size"] = self.user_form_data["Grafana Root filesystem Size"]
-        metadata["Redis CPU"] = self.user_form_data["Redis CPU"]
-        metadata["Redis Memory"] = self.user_form_data["Redis Memory"]
-        metadata["Redis Root filesystem Type"] = self.user_form_data["Redis Root filesystem Type"]
-        metadata["Redis Root filesystem Size"] = self.user_form_data["Redis Root filesystem Size"]
-
-        metadata["Prometheus IP"] = self.user_form_data["Prometheus IP Address"]
-        metadata["Grafana IP"] = self.user_form_data["Grafana IP Address"]
-        metadata["Redis IP"] = self.user_form_data["Redis IP Address"]
-
-        res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Monitoring, metadata
-        )
-        reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
-        self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.network.currency, bot=self
-        )
-
-        j.sals.reservation_chatflow.save_reservation(
-            self.resv_id, self.user_form_data["Solution name"], SolutionType.Monitoring, self.user_form_data
-        )
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = f"""\
-# Your containers have been deployed successfully. Your reservation id is: {self.resv_id}
+# Your containers have been deployed successfully. Your reservation ids are: {self.reservation_ids[0]}, {self.reservation_ids[1]}, {self.reservation_ids[2]}
 ## Prometheus
-#### Access container by ```ssh root@{self.ip_addresses["Prometheus"]}``` where you can manually customize the solutions you want to monitor <br /><br />
-
-#### Access Prometheus UI through ```{self.ip_addresses["Prometheus"]}:9090/graph``` which is accessed through your browser <br /><br />
-## Grafana <br />
-#### Access Grafana UI through ```{self.ip_addresses["Grafana"]}:3000``` which is accessed through your browser where you can manually configure to use prometheus <br /><br />
-## Redis <br />
-#### Access redis cli through ```redis-cli -h {self.ip_addresses["Redis"]}``` <br /><br />
+#### Access container by ```ssh root@{self.ip_addresses[1]}``` where you can manually customize the solutions you want to monitor
+#### Access Prometheus UI through ```{self.ip_addresses[1]}:9090/graph``` which is accessed through your browser
+## Grafana
+#### Access Grafana UI through ```{self.ip_addresses[2]}:3000``` which is accessed through your browser where you can manually configure to use prometheus
+## Redis
+```redis-cli -h {self.ip_addresses[0]}```
 ## It may take a few minutes.
             """
         self.md_show(res, md=True)
