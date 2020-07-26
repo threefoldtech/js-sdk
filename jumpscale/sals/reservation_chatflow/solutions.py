@@ -235,6 +235,87 @@ class ChatflowSolutions:
                     )
         return result
 
+    def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not [next_action][Type.Gateway_4_to_6]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway_4_to_6].values():
+            for g in gateways:
+                result.append(
+                    {
+                        "wids": [g.id],
+                        "Name": g.public_key,
+                        "Public Key": g.public_key,
+                        "Gateway": g.info.node_id,
+                        "Pool": g.info.pool_id,
+                    }
+                )
+        return result
+
+    def list_delegated_domain_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate]:
+            j.sal.chatflow_deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for domains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate].values():
+            for dom in domains:
+                result.append(
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
+                )
+        return result
+
+    def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxie]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        pools = set()
+        name_to_proxy = {}
+        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxie].values():
+            for proxy in proxies:
+                result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                    "wids": [proxy.id],
+                    "Name": proxy.domain,
+                    "Gateway": proxy.info.node_id,
+                    "Pool": proxy.info.pool_id,
+                }
+                if proxy.info.metadata:
+                    metadata = j.data.serializers.json.loads(proxy.info.metadata)
+                    if not metadata:
+                        continue
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
+                    if name:
+                        result[f"{proxy.domain}"]["Solution name"] = name
+                        name_to_proxy[f"{name}"] = proxy.domain
+                pools.add(proxy.info.pool_id)
+
+        # link tcp router containers to proxy reservations
+        for pool_id in pools:
+            for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container][
+                pool_id
+            ]:
+                if (
+                    container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
+                    or not container_workload.info.metadata
+                ):
+                    continue
+                metadata = j.data.serializers.json.loads(container_workload.info.metadata)
+                if not metadata:
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
+                )
+                if not solution_name:
+                    continue
+                if name_to_proxy.get(f"{solution_name}"):
+                    domain = name_to_proxy.get(f"{solution_name}")
+                    result[f"{domain}"]["wids"].append(container_workload.id)
+        return list(result.values())
+
     def cancel_solution(self, solution_wids):
         workload = j.sals.zos.workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
