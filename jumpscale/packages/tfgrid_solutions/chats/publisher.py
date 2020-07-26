@@ -128,9 +128,14 @@ class Publisher(GedisChatBot):
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
-        self.sub_domain = self.string_ask(
-            f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
-        )
+        while True:
+            self.sub_domain = self.string_ask(
+                f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
+            )
+            if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
+                break
+            else:
+                self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
         self.gateway = domains[self.domain]
         self.domain = f"{self.sub_domain}.{self.domain}"
 
