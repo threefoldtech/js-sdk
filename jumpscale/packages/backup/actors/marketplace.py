@@ -78,12 +78,14 @@ class Backup(BaseActor):
         processed = set()
         result = []
 
+        n = len(snapshots[0])
+        m = len(snapshots[1])
         if snapshots:
-            min_size = min(len(snapshots[0]), len(snapshots[1]))
+            min_size = min(n, m)
             size = min_size if min_size < 10 else 10
             for i in range(size):
-                snap_1 = snapshots[0][i]
-                snap_2 = snapshots[1][i]
+                snap_1 = snapshots[0][n - i - 1]
+                snap_2 = snapshots[1][m - i - 1]
 
                 tag_1 = snap_1.get("tags", [""])[-1]
                 tag_2 = snap_2.get("tags", [""])[-1]
@@ -94,7 +96,6 @@ class Backup(BaseActor):
                 if tag_2 not in processed:
                     processed.add(tag_2)
                     result.append(snap_2)
-            result = list(reversed(result))
 
         return j.data.serializers.json.dumps({"data": result})
 
