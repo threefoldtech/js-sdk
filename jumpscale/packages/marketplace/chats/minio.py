@@ -124,23 +124,20 @@ class MinioDeploy(MarketPlaceChatflow):
         nodequery["cru"] = self.user_form_data["CPU"]
         nodequery["sru"] = 1
         cont_farms = j.sals.reservation_chatflow.get_farm_names(1, self, message="minio container", **nodequery)
-        minio_nodes = j.sals.reservation_chatflow.get_nodes(
+        self.minio_nodes = j.sals.reservation_chatflow.get_nodes(
             number_of_nodes=self.number_of_minio_nodes, farm_names=cont_farms, **nodequery
         )
-        self.cont_node = minio_nodes[0]
-        if self.user_form_data["Setup type"] == "Master/Slave Setup" and len(minio_nodes) > 1:
-            self.slave_node = minio_nodes[1]
+        self.cont_node = self.minio_nodes[0]
+        if self.user_form_data["Setup type"] == "Master/Slave Setup" and len(self.minio_nodes) > 1:
+            self.slave_node = self.minio_nodes[1]
 
     @chatflow_step(title="Minio container IP")
     def ip_selection(self):
         self.network_copy = self.network.copy()
         selected_ids = []
-        for node_selected in self.nodes_selected:
+        for node_selected in self.minio_nodes:
             self.network_copy.add_node(node_selected)
             selected_ids.append(node_selected.node_id)
-
-        if self.cont_node.node_id not in selected_ids:
-            self.network_copy.add_node(self.cont_node)
 
         self.ip_address = self.network_copy.ask_ip_from_node(
             self.cont_node, "Please choose IP Address for your solution"
