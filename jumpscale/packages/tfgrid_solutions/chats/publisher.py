@@ -22,6 +22,8 @@ class Publisher(GedisChatBot):
         "container_node_id",
         "domain_select",
         "overview",
+        "deploy",
+        "success",
     ]
 
     title = "Publisher"

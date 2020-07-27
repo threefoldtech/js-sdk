@@ -21,6 +21,9 @@ class ThreebotDeploy(GedisChatBot):
         "upload_public_key",
         "domain_select",
         "overview",
+        "deploy",
+        "intializing",
+        "success",
     ]
     title = "Threebot"
 
