@@ -288,7 +288,7 @@ class ChatflowSolutions:
                     if not metadata:
                         continue
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
-                    if name:
+                    if name and proxy.domain in result:
                         result[f"{proxy.domain}"]["Solution name"] = name
                         name_to_proxy[f"{name}"] = proxy.domain
                 pools.add(proxy.info.pool_id)
@@ -341,32 +341,34 @@ class ChatflowSolutions:
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
                     }
-        for workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
-            if not workload.info.metadata:
-                continue
-            metadata = j.data.serializers.json.loads(workload.info.metadata)
-            if not metadata:
-                continue
-            if not metadata.get("form_info"):
-                continue
-            if metadata["form_info"].get("chatflow") == "publisher":
-                name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                if name in result:
-                    result[name]["wids"].append(workload.id)
-                    result[name]["Domain"] = workload.domain
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+            for workload in proxy_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "publisher":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+                        result[name]["Domain"] = workload.domain
 
-        for workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
-            if not workload.info.metadata:
-                continue
-            metadata = j.data.serializers.json.loads(workload.info.metadata)
-            if not metadata:
-                continue
-            if not metadata.get("form_info"):
-                continue
-            if metadata["form_info"].get("chatflow") == "publisher":
-                name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                if name in result:
-                    result[name]["wids"].append(workload.id)
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+            for workload in subdomain_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "publisher":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
         return list(result.values())
 
     def cancel_solution(self, solution_wids):
