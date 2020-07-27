@@ -13,7 +13,13 @@
               <v-icon v-else color="primary">{{solution.icon}}</v-icon>
             </v-avatar>
             {{solution.name}}
-            <v-chip v-if="solutionCount[solution.type] !== undefined" :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type]}}</v-chip>
+            <v-chip
+              v-if="solutionCount[solution.type] !== undefined"
+              :loading="true"
+              class="ml-2"
+              small
+              outlined
+            >{{solutionCount[solution.type]}}</v-chip>
           </v-tab>
 
           <v-tab-item v-for="solution in solutions" :key="solution.topic + '-content'">
@@ -30,7 +36,11 @@
                 <span>{{solution.description}}</span>
                 <br />
                 <br />
-                <v-btn v-if="solution.topic !== 'all'" color="primary" @click.stop="restart(solution.topic)">New</v-btn>
+                <v-btn
+                  v-if="solution.topic !== 'all'"
+                  color="primary"
+                  @click.stop="restart(solution.topic)"
+                >New</v-btn>
                 <v-btn
                   color="primary"
                   v-if="started(solution.topic)"
@@ -47,7 +57,7 @@
                   :key="i"
                   @click="showInfo(s)"
                   outlined
-                >{{ solution.topic !== 'all' ? s.Name : `${s.id}` }}</v-chip>
+                >{{ solution.topic === 'all' ? s.id : solution.topic === "pools_reservation" ? s.pool_id : s.Name }}</v-chip>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -62,7 +72,7 @@
 <script>
 module.exports = {
   components: {
-    "solution-info": httpVueLoader("./Info.vue")
+    "solution-info": httpVueLoader("./Info.vue"),
   },
   data() {
     return {
@@ -71,7 +81,7 @@ module.exports = {
       dialog: false,
       solutions: Object.values(SOLUTIONS),
       deployedSolutions: {},
-      solutionCount: {}
+      solutionCount: {},
     };
   },
   methods: {
@@ -95,13 +105,21 @@ module.exports = {
       }
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then(response => {
+      this.$api.solutions.getCount().then((response) => {
         this.solutionCount = JSON.parse(response.data).data;
       });
     },
     getDeployedSolutions(solution_type) {
       if (solution_type === "all_reservations") {
-        this.$api.solutions.getAll().then(response => {
+        this.$api.solutions.getAll().then((response) => {
+          this.$set(
+            this.deployedSolutions,
+            solution_type,
+            JSON.parse(response.data).data
+          );
+        });
+      } else if (solution_type === "pools") {
+        this.$api.solutions.getPools().then((response) => {
           this.$set(
             this.deployedSolutions,
             solution_type,
@@ -109,18 +127,18 @@ module.exports = {
           );
         });
       } else
-        this.$api.solutions.getDeployed(solution_type).then(response => {
+        this.$api.solutions.getDeployed(solution_type).then((response) => {
           this.$set(
             this.deployedSolutions,
             solution_type,
             JSON.parse(response.data).data
           );
         });
-    }
+    },
   },
   mounted() {
     this.getSolutionCount();
-  }
+  },
 };
 </script>
 

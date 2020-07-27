@@ -208,6 +208,11 @@ const apiClient = {
         data: { solution_type: solution_type }
       })
     },
+    getPools: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/list_pools`,
+      })
+    },
     getAll: () => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
