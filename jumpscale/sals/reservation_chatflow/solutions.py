@@ -288,7 +288,7 @@ class ChatflowSolutions:
                     if not metadata:
                         continue
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
-                    if name:
+                    if name and proxy.domain in result:
                         result[f"{proxy.domain}"]["Solution name"] = name
                         name_to_proxy[f"{name}"] = proxy.domain
                 pools.add(proxy.info.pool_id)
