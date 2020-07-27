@@ -5,7 +5,7 @@
         <code-area mode="python" :content="json"></code-area>
       </template>
       <template #actions>
-        <v-btn text color="error" @click.stop="cancel()">Delete Reservation</v-btn>
+        <v-btn v-if="data.Name !== undefined" text color="error" @click.stop="cancel()">Delete Reservation</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
