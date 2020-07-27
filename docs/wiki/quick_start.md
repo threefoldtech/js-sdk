@@ -17,7 +17,7 @@
 ### Mac OSX
 Install packages (git, nginx, redis-server, tmux, python3) on MacOS
   ```
-  brew install nginx redis-server tmux git python3
+  brew install nginx redis tmux git python3
   ```
 
 
@@ -44,6 +44,10 @@ This version of the SDK tries to be isolated as possible in case of developers o
   ```
 
 ## Runnning 3bot
+
+
+### using mkcert
+[mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment. All you need to do is install it in your system under the name `mkcert` and do `mkcert -install`
 
 After the installation steps you should have an executable `threebot`
 

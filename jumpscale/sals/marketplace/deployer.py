@@ -200,7 +200,7 @@ class MarketPlaceDeployer:
         ipversion = bot.single_choice(
             "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
         )
-        farms = j.sals.reservation_chatflow.get_farm_names(1, bot)
+        farms = j.sals.reservation_chatflow.get_farm_names(1, bot, currency=currency)
         access_node = j.sals.reservation_chatflow.get_nodes(
             1, farm_names=farms, currency=currency, ip_version=ipversion
         )[0]
