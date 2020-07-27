@@ -1,6 +1,8 @@
 import hashlib
 from io import StringIO, SEEK_END
 from jumpscale.clients.explorer.models import Type
+
+
 def sign_workload(workload, signing_key):
     challenge = _hash_signing_challenge(workload)
     h = _hash(challenge)
