@@ -238,10 +238,10 @@ class ChatflowSolutions:
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway_4_to_6]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway_4_to_6].values():
+        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6].values():
             for g in gateways:
                 result.append(
                     {
@@ -270,12 +270,12 @@ class ChatflowSolutions:
     def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxie]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_Proxy]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
         pools = set()
         name_to_proxy = {}
-        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxie].values():
+        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
             for proxy in proxies:
                 result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
                     "wids": [proxy.id],

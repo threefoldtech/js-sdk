@@ -41,7 +41,7 @@ class Gateway:
         p = TfgridWorkloadsReservationGatewayProxy1()
         p.info.node_id = node_id
         p.info.pool_id = pool_id
-        p.info.workload_type = Type.Proxie
+        p.info.workload_type = Type.Proxy
         p.domain = domain
         p.addr = addr
         p.port = port
@@ -52,7 +52,7 @@ class Gateway:
         p = TfgridWorkloadsReservationGatewayReverse_proxy1()
         p.info.node_id = node_id
         p.info.pool_id = pool_id
-        p.info.workload_type = Type.Reverse_proxie
+        p.info.workload_type = Type.Reverse_proxy
         p.domain = domain
         node = self._gateways.get(node_id)
         p.secret = encrypt_for_node(node.public_key_hex, secret).decode()
@@ -63,7 +63,7 @@ class Gateway:
         gw.public_key = public_key
         gw.info.node_id = node_id
         gw.info.pool_id = pool_id
-        gw.info.workload_type = Type.Gateway_4_to_6
+        gw.info.workload_type = Type.Gateway4to6
         return gw
 
 

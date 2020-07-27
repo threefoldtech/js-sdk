@@ -54,11 +54,11 @@ class Type(Enum):
     Volume = 2
     Network = 3
     Kubernetes = 4
-    Proxie = 5
-    Reverse_proxie = 6
+    Proxy = 5
+    Reverse_proxy = 6
     Subdomain = 7
     Domain_delegate = 8
-    Gateway_4_to_6 = 9
+    Gateway4to6 = 9
     Network_resource = 10
 
 

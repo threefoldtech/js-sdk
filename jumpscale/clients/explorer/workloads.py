@@ -31,11 +31,11 @@ class Decoder:
             Type.Container: TfgridWorkloadsReservationContainer1,
             Type.Zdb: TfgridWorkloadsReservationZdb1,
             Type.Kubernetes: TfgridWorkloadsReservationK8s1,
-            Type.Proxie: TfgridWorkloadsReservationGatewayProxy1,
-            Type.Reverse_proxie: TfgridWorkloadsReservationGatewayReverse_proxy1,
+            Type.Proxy: TfgridWorkloadsReservationGatewayProxy1,
+            Type.Reverse_proxy: TfgridWorkloadsReservationGatewayReverse_proxy1,
             Type.Subdomain: TfgridWorkloadsReservationGatewaySubdomain1,
             Type.Domain_delegate: TfgridDomainsDelegate1,
-            Type.Gateway_4_to_6: TfgridWorkloadsReservationGateway4to61,
+            Type.Gateway4to6: TfgridWorkloadsReservationGateway4to61,
             Type.Network_resource: TfgridWorkloadsNetworkNet_resource1,
         }
 

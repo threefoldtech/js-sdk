@@ -1,8 +1,6 @@
 import hashlib
 from io import StringIO, SEEK_END
 from jumpscale.clients.explorer.models import Type
-
-
 def sign_workload(workload, signing_key):
     challenge = _hash_signing_challenge(workload)
     h = _hash(challenge)
@@ -55,11 +53,11 @@ def _hash_signing_challenge(workload):
         Type.Volume: _volume_challenge,
         # "network": _network_challenge,
         Type.Kubernetes: _k8s_challenge,
-        Type.Proxie: _proxy_challenge,
-        Type.Reverse_proxie: _reverse_proxy_challenge,
+        Type.Proxy: _proxy_challenge,
+        Type.Reverse_proxy: _reverse_proxy_challenge,
         Type.Subdomain: _subdomain_challenge,
         Type.Domain_delegate: _delegate_challenge,
-        Type.Gateway_4_to_6: _gateway4to6_challenge,
+        Type.Gateway4to6: _gateway4to6_challenge,
         Type.Network_resource: _network_resource_challenge,
     }
     b = StringIO()
