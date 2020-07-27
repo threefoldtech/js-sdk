@@ -9,7 +9,7 @@
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
-    <cancel-solution v-model="dialogs.cancelSolution" :name="data.name" :type="data.type"></cancel-solution>
+    <cancel-solution v-model="dialogs.cancelSolution" :wids="data.wids"></cancel-solution>
   </div>
 </template>
 

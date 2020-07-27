@@ -213,12 +213,12 @@ const apiClient = {
         url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
       })
     },
-    cancelReservation: (solutionType, solutionName) => {
+    cancelReservation: (wids) => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
-        data: { solution_type: solutionType, solution_name: solutionName }
+        data: { wids: wids}
       })
     }
   },
