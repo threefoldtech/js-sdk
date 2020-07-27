@@ -15,6 +15,7 @@ class Solutions(BaseActor):
 
     @actor_method
     def list_solutions(self, solution_type: str) -> str:
+        # TODO: use getattr instead
         listings = {
             "network": solutions.list_network_solutions,
             "ubuntu": solutions.list_ubuntu_solutions,
@@ -26,6 +27,7 @@ class Solutions(BaseActor):
             "delegated_domain": solutions.list_delegated_domain_solutions,
             "exposed": solutions.list_exposed_solutions,
             "monitoring": solutions.list_monitoring_solutions,
+            "publisher": solutions.list_publisher_solutions,
         }
 
         result = []
@@ -57,6 +59,13 @@ class Solutions(BaseActor):
     def migrate(self) -> str:
         j.sals.zos.conversion()
         return j.data.serializers.json.dumps({"result": True})
+
+    @actor_method
+    def list_pools(self) -> str:
+        res = []
+        for pool in j.sals.zos.pools.list():
+            res.append(pool.to_dict())
+        return j.data.serializers.json.dumps(res)
 
 
 Actor = Solutions
