@@ -17,7 +17,7 @@
 ### Mac OSX
 Install packages (git, nginx, redis-server, tmux, python3) on MacOS
   ```
-  brew install nginx redis-server tmux git python3
+  brew install nginx redis tmux git python3
   ```
 
 
