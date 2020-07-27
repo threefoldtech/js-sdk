@@ -45,7 +45,7 @@ class Admin(BaseActor):
     def set_explorer(self, explorer_type: str) -> str:
         if explorer_type in explorers:
             me = j.core.identity.me
-            url = f"https://{explorers[explorer_type]}/explorer"
+            url = f"https://{explorers[explorer_type]}/api/v1"
             client = j.clients.explorer.get(name=explorer_type, url=url)
             # check if we can switch with existing identity
             try:

@@ -210,7 +210,7 @@ class ChatflowSolutions:
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sal.chatflow_deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
@@ -238,7 +238,7 @@ class ChatflowSolutions:
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not [next_action][Type.Gateway_4_to_6]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway_4_to_6]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway_4_to_6].values():
@@ -258,7 +258,7 @@ class ChatflowSolutions:
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate]:
-            j.sal.chatflow_deployer.load_user_workloads(next_action=next_action)
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         for domains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate].values():
             for dom in domains:
@@ -330,6 +330,25 @@ class ChatflowSolutions:
 
         for wid in ids_to_delete:
             j.sals.zos.workloads.decomission(wid)
+
+    def count_solutions(self, next_action=NextAction.DEPLOY):
+        count_dict = {
+            "network": 0,
+            "ubuntu": 0,
+            "kubernetes": 0,
+            "minio": 0,
+            "monitoring": 0,
+            "flist": 0,
+            "gitea": 0,
+            "4to6gw": 0,
+            "delegated_domain": 0,
+            "exposed": 0,
+        }
+        j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        for key in count_dict.keys():
+            method = getattr(self, f"list_{key}_solutions")
+            count_dict[key] = len(method(next_action=next_action, sync=False))
+        return count_dict
 
     def get_solution_uuid(self, workload):
         if workload.info.metadata:

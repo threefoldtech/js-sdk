@@ -3,35 +3,45 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.loader import j
 from jumpscale.core.exceptions import JSException
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.reservation_chatflow import solutions
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 
 
 class Solutions(BaseActor):
     @actor_method
     def list_all_solutions(self) -> str:
-        res = j.sals.reservation_chatflow.get_solutions_explorer(deployed=False)
+        res = j.sals.zos.workloads.list(j.core.identity.me.tid)
         return j.data.serializers.json.dumps({"data": res})
 
     @actor_method
     def list_solutions(self, solution_type: str) -> str:
-        j.sals.reservation_chatflow.update_local_reservations()
-        solutions = []
-        j.sals.reservation_chatflow.update_local_reservations()
-        solutions = j.sals.reservation_chatflow.get_solutions(SolutionType(solution_type))
-        return j.data.serializers.json.dumps({"data": solutions})
+        listings = {
+            "network": solutions.list_network_solutions,
+            "ubuntu": solutions.list_ubuntu_solutions,
+            "flist": solutions.list_flist_solutions,
+            "minio": solutions.list_minio_solutions,
+            "kubernetes": solutions.list_kubernetes_solutions,
+            "gitea": solutions.list_gitea_solutions,
+            "4to6gw": solutions.list_4to6gw_solutions,
+            "delegated_domain": solutions.list_delegated_domain_solutions,
+            "exposed": solutions.list_exposed_solutions,
+            "monitoring": solutions.list_monitoring_solutions,
+        }
+
+        result = []
+        if solution_type in listings:
+            result = listings[solution_type]()
+
+        return j.data.serializers.json.dumps({"data": result})
 
     @actor_method
-    def cancel_solution(self, solution_type, solution_name) -> bool:
-        if solution_type:
-            j.sals.reservation_chatflow.cancel_solution_reservation(SolutionType(solution_type), solution_name)
-            return True
-        return False
+    def cancel_solution(self, wids) -> bool:
+        solutions.cancel_solution(wids)
+        return True
 
     @actor_method
     def count_solutions(self) -> str:
-        res = {}
-        for solution_type in SolutionType:
-            res[solution_type.value] = len(j.sals.reservation_chatflow.get_solutions(solution_type))
+        res = solutions.count_solutions()
         return j.data.serializers.json.dumps({"data": res})
 
     @actor_method
