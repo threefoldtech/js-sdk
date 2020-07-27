@@ -15,24 +15,10 @@ class Solutions(BaseActor):
 
     @actor_method
     def list_solutions(self, solution_type: str) -> str:
-        # TODO: use getattr instead
-        listings = {
-            "network": solutions.list_network_solutions,
-            "ubuntu": solutions.list_ubuntu_solutions,
-            "flist": solutions.list_flist_solutions,
-            "minio": solutions.list_minio_solutions,
-            "kubernetes": solutions.list_kubernetes_solutions,
-            "gitea": solutions.list_gitea_solutions,
-            "4to6gw": solutions.list_4to6gw_solutions,
-            "delegated_domain": solutions.list_delegated_domain_solutions,
-            "exposed": solutions.list_exposed_solutions,
-            "monitoring": solutions.list_monitoring_solutions,
-            "publisher": solutions.list_publisher_solutions,
-        }
-
         result = []
-        if solution_type in listings:
-            result = listings[solution_type]()
+        method_name = f"list_{solution_type}_solutions"
+        if hasattr(solutions, method_name):
+            result = getattr(solutions, method_name)()
 
         return j.data.serializers.json.dumps({"data": result})
 
