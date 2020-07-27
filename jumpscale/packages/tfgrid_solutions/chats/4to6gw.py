@@ -48,13 +48,40 @@ class FourToSixGateway(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).result
+        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
         res = """
 # Use the following template to configure your wireguard connection. This will give you access to your network.
 ## Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
 Click next
 to download your configuration
         """
+        self.md_show(res)
+
+    @chatflow_step(title="Wireguard configuration", disable_previous=True)
+    def wg_config(self):
+        cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
+        wgconfigtemplate = """\
+[Interface]
+Address = {{cfg.ips[0]}}
+PrivateKey = {{privatekey}}
+{% for peer in cfg.peers %}
+[Peer]
+PublicKey = {{peer.public_key}}
+AllowedIPs = {{",".join(peer.allowed_ips)}}
+{% if peer.endpoint -%}
+Endpoint = {{peer.endpoint}}
+{% endif %}
+{% endfor %}
+            """
+        config = j.tools.jinja2.render_template(text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode())
+        config = config
+
+        filename = "wg-{}.conf".format(self.resv_id)
+        self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=filename, html=True)
+        res = f"""
+    # In order to connect to the 4 to 6 gateway execute this command:
+    ## ```wg-quick up ./{filename}```
+                    """
         self.md_show(res)
 
 
