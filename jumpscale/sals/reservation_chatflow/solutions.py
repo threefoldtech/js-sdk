@@ -270,7 +270,7 @@ class ChatflowSolutions:
     def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_Proxy]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
         pools = set()
