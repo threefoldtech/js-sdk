@@ -29,11 +29,11 @@ module.exports = {
   },
   computed: {
     json() {
-      return JSON.stringify(JSON.parse(this.data.reservation.json), null, 2);
+      return JSON.stringify(this.data, null, 2);
     },
     title() {
-      return this.data.status === "DELETED"
-        ? "Reservation details"
+      return this.data.Name === undefined
+        ? "Workload details"
         : "Solution details";
     },
   },

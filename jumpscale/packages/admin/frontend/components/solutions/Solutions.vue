@@ -47,7 +47,7 @@
                   :key="i"
                   @click="showInfo(s)"
                   outlined
-                >{{ solution.topic !== 'all' ? s.name : `${s.id} - ${s.status}` }}</v-chip>
+                >{{ solution.topic !== 'all' ? s.Name : `${s.id}` }}</v-chip>
               </v-card-text>
             </v-card>
           </v-tab-item>

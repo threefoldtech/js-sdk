@@ -10,7 +10,7 @@ from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 class Solutions(BaseActor):
     @actor_method
     def list_all_solutions(self) -> str:
-        res = j.sals.zos.workloads.list(j.core.identity.me.tid)
+        res = [workload.to_dict() for workload in j.sals.zos.workloads.list(j.core.identity.me.tid)]
         return j.data.serializers.json.dumps({"data": res})
 
     @actor_method

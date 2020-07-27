@@ -111,7 +111,7 @@ const SOLUTIONS = {
   all: {
     topic: "all",
     type: "all_reservations",
-    name:"All Reservations",
+    name:"All Workloads",
     icon: "mdi-clipboard-list-outline",
     url: "/solutions/all",
     description: ""
