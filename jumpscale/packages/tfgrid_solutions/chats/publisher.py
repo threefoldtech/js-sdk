@@ -24,6 +24,8 @@ class Publisher(GedisChatBot):
         "overview",
     ]
 
+    title = "Publisher"
+
     @chatflow_step()
     def start(self):
         self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
@@ -146,7 +148,7 @@ class Publisher(GedisChatBot):
                 success = deployer.wait_workload(wid, self)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
-        self.ip_address = self.network_view_copy.get_free_ips(self.selected_node)
+        self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
         # 2- reserve subdomain
         self.workload_ids.append(

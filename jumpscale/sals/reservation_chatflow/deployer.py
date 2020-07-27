@@ -772,25 +772,50 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
-    def expose_address(self, pool_id, gateway_id, network_name, local_ip, port, tls_port, trc_secret, **metadata):
+    def expose_address(
+        self,
+        pool_id,
+        gateway_id,
+        network_name,
+        local_ip,
+        port,
+        tls_port,
+        trc_secret,
+        node_id=None,
+        reserve_proxy=False,
+        domain_name=None,
+        **metadata,
+    ):
         gateway = self._explorer.gateway.get(gateway_id)
+
+        if reserve_proxy:
+            if not domain_name:
+                raise StopChatFlow("you must pass domain_name when you ise reserv_proxy")
+            resv_id = self.create_proxy(
+                pool_id=pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata,
+            )
+
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {"TRC_SECRET": trc_secret}
         entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port} -remote {remote}"
-        node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+        if not node_id:
+            node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+            node_id = node.node_id
 
         res = self.add_network_node(network_name, node, pool_id)
         if res:
             for wid in res["ids"]:
                 success = self.wait_workload(wid)
                 if not success:
+                    if reserve_proxy:
+                        j.sals.reservation_chatflows.solutions.cancel_solution([resv_id])
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
         network_view = NetworkView(network_name)
         ip_address = network_view.get_free_ip(node)
 
         resv_id = self.deploy_container(
             pool_id=pool_id,
-            node_id=node.node_id,
+            node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
             flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
