@@ -58,9 +58,6 @@ class Admin(BaseActor):
 
             j.clients.explorer.default_addr_set(url=url)
 
-            # update our solutions
-            j.sals.reservation_chatflow.update_local_reservations()
-
             return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
         else:
             return j.data.serializers.json.dumps(
@@ -103,9 +100,6 @@ class Admin(BaseActor):
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
             j.core.identity.set_default(identity_instance_name)
-
-            # update our solutions
-            j.sals.reservation_chatflow.update_local_reservations()
 
             return j.data.serializers.json.dumps({"data": {"instance_name": identity_instance_name}})
         else:

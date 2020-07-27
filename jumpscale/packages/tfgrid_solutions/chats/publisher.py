@@ -35,18 +35,17 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def publisher_name(self):
-        self.solution_name = deployer.ask_name(self)
-        # valid = False
-        # while not valid:
-        #     self.solution_name = deployer.ask_name(self)
-        #     publisher_solutions = solutions.list_publisher_solutions(sync=False)
-        #     valid = True
-        #     for sol in publisher_solutions:
-        #         if sol["Name"] == self.solution_name:
-        #             valid = False
-        #             self.md_show("The specified solution name already exists. please choose another.")
-        #             break
-        #         valid = True
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            publisher_solutions = solutions.list_publisher_solutions(sync=False)
+            valid = True
+            for sol in publisher_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
     @chatflow_step(title="Pool")
     def select_pool(self):
@@ -135,7 +134,7 @@ class Publisher(GedisChatBot):
         # 1- deploy network on selected node
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"},
+            "form_info": {"Solution name": self.solution_name, "chatflow": "publisher"},
         }
         self.workload_ids = []
         self.network_view_copy = self.network_view.copy()
