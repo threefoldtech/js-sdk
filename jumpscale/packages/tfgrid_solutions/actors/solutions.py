@@ -3,6 +3,7 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.loader import j
 from jumpscale.core.exceptions import JSException
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 
 
 class Solutions(BaseActor):
@@ -32,6 +33,20 @@ class Solutions(BaseActor):
         for solution_type in SolutionType:
             res[solution_type.value] = len(j.sals.reservation_chatflow.get_solutions(solution_type))
         return j.data.serializers.json.dumps({"data": res})
+
+    @actor_method
+    def has_migrated(self) -> str:
+        try:
+            if j.sals.zos._explorer.conversion.initialize():
+                return j.data.serializers.json.dumps({"result": False})
+        except AlreadyConvertedError:
+            pass
+        return j.data.serializers.json.dumps({"result": True})
+
+    @actor_method
+    def migrate(self) -> str:
+        j.sals.zos.conversion()
+        return j.data.serializers.json.dumps({"result": True})
 
 
 Actor = Solutions
