@@ -14,6 +14,9 @@ from jumpscale.data.serializers.json import dump_to_file, load_from_file, dumps,
 from jumpscale.data.nacl import payload_build
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import TfgridWorkloadsReservation1
+from jumpscale.clients.explorer.conversion import AlreadyConvertedError
+from jumpscale.clients.explorer.workloads import Decoder
+from .signature import sign_workload
 from jumpscale.core import identity
 import binascii
 
@@ -72,6 +75,23 @@ class Zosv2:
     @property
     def workloads(self):
         return self._workloads
+
+    def conversion(self):
+        me = j.core.identity.me
+
+        try:
+            raw = self._explorer.conversion.initialize()
+        except AlreadyConvertedError as err:
+            self._log_info(str(err))
+            return
+
+        if raw:
+            for i, data in enumerate(raw):
+                w = Decoder.from_dict(datadict=data)
+                signature = sign_workload(w, me.nacl.signing_key)
+                raw[i]["customer_signature"] = binascii.hexlify(signature).decode()
+
+            self._explorer.conversion.finalize(raw)
 
     def reservation_create(self):
         """Creates a new empty reservation schema
