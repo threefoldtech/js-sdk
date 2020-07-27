@@ -2,10 +2,34 @@
 
 ## Index
 
+- [Reserve some capacity](#create-capacity-pool)
 - [Create a network](#create-a-network)
 - [Create a container](#create-a-container)
 - [Create a Kubernetes cluster](#create-k8s-cluster)
 - [Reserve storage](#reserve-storage)
+
+## Create capacity pool
+
+The first step before being able to deploy some workloads on the grid is to reserve some capacity. 
+You reserve capacity by creating a pool of capacity on a certain farm.
+
+```python
+zos = j.sals.zos
+
+# create a capacity pool container 500 cloud units, 500 storage units on the farm called "farm_name"
+# and ask to pay using TFT
+payment_detail = zos.pools.create(cu=500,su=500,farm="farm_name", currencies=['TFT'])
+pool_id = payment_detail.reservation_id
+# get your wallet ready
+wallet = j.clients.stellar.get('my_wallet')
+
+# pay for the capacity pool
+# txs contains the list of transactions made on stellar to pay for the capacity
+txs = zos.billing.payout_farmers(wallet,payment_detail)
+
+# get the detail of your capacity pool
+pool = zos.pools.get(pool_id)
+```
 
 ## Create a network
 
