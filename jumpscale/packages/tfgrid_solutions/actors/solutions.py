@@ -65,7 +65,7 @@ class Solutions(BaseActor):
         res = []
         for pool in j.sals.zos.pools.list():
             res.append(pool.to_dict())
-        return j.data.serializers.json.dumps(res)
+        return j.data.serializers.json.dumps({"data": res})
 
 
 Actor = Solutions
