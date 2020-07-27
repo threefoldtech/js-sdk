@@ -21,11 +21,11 @@ class FourToSixGateway(GedisChatBot):
     @chatflow_step(title="Pool")
     def select_pool(self):
         self.solution_id = uuid.uuid4().hex
-        self.pool_id = deployer.select_pool(self)
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):
-        self.gateway = deployer.select_gateway(self, self.pool_id)
+        self.gateway, pool = deployer.select_gateway(bot=self)
+        self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
 
     @chatflow_step(title="Wireguard public key")

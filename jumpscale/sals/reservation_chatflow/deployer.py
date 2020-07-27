@@ -721,6 +721,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 pool = available_node_ids[gateway.node_id]
                 message = f"Pool: {pool.pool_id} {g.dns_nameserver[0]} {g.location.continent} {g.location.country} {g.node_id}"
                 result[message] = {"gateway": gateway, "pool": pool}
+        if not result:
+            raise StopChatFlow(f"no available gateways")
         return result
 
     def select_gateway(self, bot, pool_ids=None):
@@ -731,18 +733,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         Returns:
             gateway, pool_objects
         """
-        if pool_ids:
-            gateways = self.list_all_gateways(pool_ids)
-        else:
-            gateways = {}
-            for pool in j.sals.zos.pools.list():
-                try:
-                    pool_gateways = self.list_gateways(pool.pool_id)
-                except StopChatFlow:
-                    continue
-                gateways.update(pool_gateways)
-        if not gateways:
-            raise StopChatFlow("No available gateways")
+        gateways = self.list_all_gateways(pool_ids)
+
         selected = bot.single_choice("Please select a gateway", list(gateways.keys()))
         return gateways[selected]["gateway"], gateways[selected]["pool"]
 
