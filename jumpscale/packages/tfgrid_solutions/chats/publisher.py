@@ -24,6 +24,8 @@ class Publisher(GedisChatBot):
         "overview",
     ]
 
+    title = "Publisher"
+
     @chatflow_step()
     def start(self):
         self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
@@ -110,9 +112,14 @@ class Publisher(GedisChatBot):
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
-        self.sub_domain = self.string_ask(
-            f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
-        )
+        while True:
+            self.sub_domain = self.string_ask(
+                f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
+            )
+            if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
+                break
+            else:
+                self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
         self.gateway = domains[self.domain]
         self.domain = f"{self.sub_domain}.{self.domain}"
 
@@ -146,7 +153,7 @@ class Publisher(GedisChatBot):
                 success = deployer.wait_workload(wid, self)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
-        self.ip_address = self.network_view_copy.get_free_ips(self.selected_node)
+        self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
         # 2- reserve subdomain
         self.workload_ids.append(

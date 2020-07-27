@@ -293,6 +293,20 @@ class ChatflowSolutions:
                         name_to_proxy[f"{name}"] = proxy.domain
                 pools.add(proxy.info.pool_id)
 
+        # link subdomains to proxy_reservations
+        for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+            for workload in subdomains:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
+                )
+                if not solution_name:
+                    continue
+                if name_to_proxy.get(f"{solution_name}"):
+                    result[f"{domain}"]["wids"].append(workload.id)
+
         # link tcp router containers to proxy reservations
         for pool_id in pools:
             for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container][
@@ -371,6 +385,78 @@ class ChatflowSolutions:
                         result[name]["wids"].append(workload.id)
         return list(result.values())
 
+    def list_threebot_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "threebot":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    result[name] = {
+                        "wids": [workload.id],
+                        "Name": name,
+                        "IP Address": workload.network_connection[0].ipaddress,
+                        "Network": workload.network_connection[0].network_id,
+                        "Node": workload.info.node_id,
+                        "Pool": workload.info.pool_id,
+                    }
+
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+            for workload in proxy_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "publisher":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+                        result[name]["Domain"] = workload.domain
+
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+            for workload in subdomain_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "publisher":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+            for workload in container_workloads:
+                if workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
+                    continue
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "threebot":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+        return list(result.values())
+
     def cancel_solution(self, solution_wids):
         workload = j.sals.zos.workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
@@ -399,6 +485,7 @@ class ChatflowSolutions:
             "delegated_domain": 0,
             "exposed": 0,
             "publisher": 0,
+            "threebot": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():
