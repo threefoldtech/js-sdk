@@ -496,7 +496,7 @@ class TfgridWorkloadsPool1(Base):
     active_su = fields.Float()
     empty_at = fields.Integer()  # can't be set to date because of max int64 value
     customer_tid = fields.Integer()
-    active_workload_ids = fields.List(fields.String())
+    active_workload_ids = fields.List(fields.Integer())
 
 
 class TfgridWorkloadsPoolEscrow1(Base):
