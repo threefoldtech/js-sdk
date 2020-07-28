@@ -43,7 +43,6 @@ class ThreebotDeploy(MarketPlaceChatflow):
         self.explorer = j.core.identity.me.explorer
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
-        j.sals.reservation_chatflow.validate_user(self.user_info())
 
     def _verify_password(self, password):
         try:
