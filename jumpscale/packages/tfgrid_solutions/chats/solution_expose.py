@@ -125,7 +125,7 @@ class SolutionExpose(GedisChatBot):
             self.domain = domain + "." + domain_name
             self.name_server = self.domain_gateway.dns_nameserver[0]
             self.gateway_id = self.domain_gateway.node_id
-            self.secret = f"{j.me.tid}:{uuid.uuid4().hex}"
+            self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation", disable_previous=True)
     def confirmation(self):
