@@ -245,7 +245,7 @@ class ThreebotDeploy(GedisChatBot):
     def success(self):
         message = f"""
         Your Threebot has been deployed successfully.
-        Reservation ID  : {self.reservation_id}<br>
+        Reservation ID  : {self.workload_ids[-1]}<br>
         Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
         IP Address      : {self.ip_address}<br>
         """
