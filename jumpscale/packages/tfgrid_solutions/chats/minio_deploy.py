@@ -182,13 +182,17 @@ class MinioDeploy(GedisChatBot):
         self.ip_addresses = []
         free_ips = self.network_view.get_node_free_ips(self.minio_nodes[0])
         self.ip_addresses.append(
-            self.drop_down_choice("Please choose IP Address for Primary container", free_ips, required=True)
+            self.drop_down_choice(
+                "Please choose IP Address for Primary container", free_ips, required=True, default=free_ips[0]
+            )
         )
         self.network_view.used_ips.append(self.ip_addresses[0])
         if self.mode == "Master/Slave":
             free_ips = self.network_view.get_node_free_ips(self.minio_nodes[0])
             self.ip_addresses.append(
-                self.drop_down_choice("Please choose IP Address for Secondary container", free_ips, required=True)
+                self.drop_down_choice(
+                    "Please choose IP Address for Secondary container", free_ips, required=True, default=free_ips[0]
+                )
             )
             self.network_view.used_ips.append(self.ip_addresses[0])
 

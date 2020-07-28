@@ -154,6 +154,7 @@ class kubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = f"""# Kubernetes cluster has been deployed successfully:
+
 Master reservation id is: {self.reservations[0]["reservation_id"]}
 IP: {self.reservations[0]["ip_address"]}
 To connect ssh rancher@{self.reservations[0]["ip_address"]}

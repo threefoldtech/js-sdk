@@ -108,7 +108,9 @@ class GiteaDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
+        self.ip_address = self.drop_down_choice(
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+        )
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -163,7 +165,9 @@ class GiteaDeploy(GedisChatBot):
     def container_acess(self):
         res = f"""\
 # gitea has been deployed successfully: your reservation id is: {self.resv_id}
+\n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
+\n<br />\n
 open gitea from browser at ```{self.ip_address}:3000```
                 """
         self.md_show(res, md=True)
