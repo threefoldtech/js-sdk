@@ -132,7 +132,9 @@ class MonitoringDeploy(GedisChatBot):
         for i in range(3):
             free_ips = self.network_view.get_node_free_ips(self.selected_nodes[i])
             self.ip_addresses.append(
-                self.drop_down_choice(f"Please choose IP Address for {self.tools_names[i]}", free_ips, required=True)
+                self.drop_down_choice(
+                    f"Please choose IP Address for {self.tools_names[i]}", free_ips, required=True, default=free_ips[0]
+                )
             )
             self.network_view.used_ips.append(self.ip_addresses[i])
 
