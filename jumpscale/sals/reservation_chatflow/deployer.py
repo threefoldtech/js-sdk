@@ -706,7 +706,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if not all_gateways:
             raise StopChatFlow(f"no available gateways")
         all_pools = j.sals.zos.pools.list()
-        result_gateways = {}  # "gateway_message": {"gateway": g, "pool": pool}
         available_node_ids = {}  # node_id: pool
         if pool_ids:
             for pool in all_pools:
@@ -741,6 +740,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         return gateways[selected]["gateway"], gateways[selected]["pool"]
 
     def create_ipv6_gateway(self, gateway_id, pool_id, public_key, **metadata):
+        if isinstance(public_key, bytes):
+            public_key = public_key.decode()
         workload = j.sals.zos.gateway.gateway_4to6(gateway_id, public_key, pool_id)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)

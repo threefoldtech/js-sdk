@@ -18,7 +18,7 @@ class DomainDelegation(GedisChatBot):
 
     @chatflow_step(title="Domain delegation name")
     def domain_name(self):
-        domain = self.string_ask("Please enter a domain name to delegate", required=True)
+        self.domain = self.string_ask("Please enter a domain name to delegate", required=True)
         self.gateway_id = self.gateway.node_id
 
     @chatflow_step(title="Reservation")

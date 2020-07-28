@@ -76,6 +76,10 @@ class Zosv2:
     def workloads(self):
         return self._workloads
 
+    @property
+    def gateway(self):
+        return self._gateway
+
     def conversion(self):
         me = j.core.identity.me
 

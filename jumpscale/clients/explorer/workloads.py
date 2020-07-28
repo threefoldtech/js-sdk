@@ -8,7 +8,7 @@ from .models import (
     TfgridWorkloadsReservationGatewayProxy1,
     TfgridWorkloadsReservationGatewayReverse_proxy1,
     TfgridWorkloadsReservationGatewaySubdomain1,
-    TfgridDomainsDelegate1,
+    TfgridWorkloadsReservationGatewayDelegate1,
     TfgridWorkloadsReservationGateway4to61,
     TfgridWorkloadsNetworkNet_resource1,
     TfgridWorkloadsReservationInfo1,
@@ -34,7 +34,7 @@ class Decoder:
             Type.Proxy: TfgridWorkloadsReservationGatewayProxy1,
             Type.Reverse_proxy: TfgridWorkloadsReservationGatewayReverse_proxy1,
             Type.Subdomain: TfgridWorkloadsReservationGatewaySubdomain1,
-            Type.Domain_delegate: TfgridDomainsDelegate1,
+            Type.Domain_delegate: TfgridWorkloadsReservationGatewayDelegate1,
             Type.Gateway4to6: TfgridWorkloadsReservationGateway4to61,
             Type.Network_resource: TfgridWorkloadsNetworkNet_resource1,
         }
