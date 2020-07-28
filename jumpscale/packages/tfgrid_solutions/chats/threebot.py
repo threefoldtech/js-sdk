@@ -52,7 +52,7 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Container resources")
     def container_resources(self):
-        self.resources = deployer.ask_container_resources(self)
+        self.resources = deployer.ask_container_resources(self, default_disk_size=2048, default_memory=2048)
 
     @chatflow_step(title="Pool")
     def select_pool(self):
@@ -222,7 +222,7 @@ class ThreebotDeploy(GedisChatBot):
                 tls_port=443,
                 trc_secret=self.secret,
                 node_id=self.selected_node.node_id,
-                reserv_proxy=True,
+                reserve_proxy=True,
                 domain_name=self.domain,
                 **metadata,
             )

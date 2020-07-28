@@ -523,16 +523,29 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             j.sals.zos.container.add_logs(container, **log_config)
         return j.sals.zos.workloads.deploy(container)
 
-    def ask_container_resources(self, bot, cpu=True, memory=True, disk_size=True, disk_type=False):
+    def ask_container_resources(
+        self,
+        bot,
+        cpu=True,
+        memory=True,
+        disk_size=True,
+        disk_type=False,
+        default_cpu=1,
+        default_memory=1024,
+        default_disk_size=256,
+        default_disk_type="SSD",
+    ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask("Please specify how many cpus", default=1)
+            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu)
         if memory:
-            memory_answer = form.int_ask("Please specify how much memory", default=1024)
+            memory_answer = form.int_ask("Please specify how much memory", default=default_memory)
         if disk_size:
-            disk_size_answer = form.int_ask("Please specify the size of root filesystem", default=256)
+            disk_size_answer = form.int_ask("Please specify the size of root filesystem", default=default_disk_size)
         if disk_type:
-            disk_type_answer = form.single_choice("Please choose the root filesystem disktype", ["SSD", "HDD"])
+            disk_type_answer = form.single_choice(
+                "Please choose the root filesystem disktype", ["SSD", "HDD"], default=default_disk_type
+            )
         form.ask()
         resources = {}
         if cpu:
