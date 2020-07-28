@@ -719,7 +719,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
                 pool = available_node_ids[gateway.node_id]
-                message = f"Pool: {pool.pool_id} {g.dns_nameserver[0]} {g.location.continent} {g.location.country} {g.node_id}"
+                message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]} {gateway.location.continent} {gateway.location.country} {gateway.node_id}"
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")

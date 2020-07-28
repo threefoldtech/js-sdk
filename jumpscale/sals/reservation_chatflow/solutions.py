@@ -49,6 +49,35 @@ class ChatflowSolutions:
                     )
         return result
 
+    def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "peertube":
+                    result.append(
+                        {
+                            "wids": [workload.id],
+                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
+                            "IP Address": workload.network_connection[0].ipaddress,
+                            "Network": workload.network_connection[0].network_id,
+                            "Node": workload.info.node_id,
+                            "Pool": workload.info.pool_id,
+                        }
+                    )
+        return result
+
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
@@ -304,6 +333,7 @@ class ChatflowSolutions:
                 )
                 if not solution_name:
                     continue
+                domain = workload.domain
                 if name_to_proxy.get(f"{solution_name}"):
                     result[f"{domain}"]["wids"].append(workload.id)
 
@@ -458,6 +488,9 @@ class ChatflowSolutions:
         return list(result.values())
 
     def cancel_solution(self, solution_wids):
+        """
+        solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
+        """
         workload = j.sals.zos.workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
         ids_to_delete = []
