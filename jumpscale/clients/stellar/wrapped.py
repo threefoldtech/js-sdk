@@ -1,7 +1,8 @@
-# some wrapped stellar_sdk objects to modify the behavior  
+# some wrapped stellar_sdk objects to modify the behavior
 
 from stellar_sdk import Account as stellarAccount
 import time
+
 
 class Account(stellarAccount):
     def __init__(self, account_id: str, sequence: int, wallet) -> None:

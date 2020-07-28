@@ -1,4 +1,5 @@
 import math
+import base64
 import time
 from enum import Enum
 import decimal
@@ -47,7 +48,6 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
 class Network(Enum):
     STD = "STD"
     TEST = "TEST"
-
 
 
 class Stellar(Client):
@@ -914,3 +914,48 @@ class Stellar(Client):
         response = endpoint.call()
         offers = response["_embedded"]["records"]
         return offers
+
+    def set_data_entry(self, name: str, value: str, address: str = None):
+        """Sets, modifies or deletes a data entry (name/value pair) for an account
+        
+        To delete a data entry, set the value to an empty string.
+        
+        """
+
+        address = address or self.address
+        signing_key = stellar_sdk.Keypair.from_secret(self.secret)
+        horizon_server = self._get_horizon_server()
+        if address == self.address:
+            account = self.load_account()
+        else:
+            account = horizon_server.load_account(address)
+        base_fee = horizon_server.fetch_base_fee()
+        transaction = (
+            stellar_sdk.TransactionBuilder(
+                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee,
+            )
+            .append_manage_data_op(name, value)
+            .set_timeout(30)
+            .build()
+        )
+
+        transaction.sign(signing_key)
+
+        try:
+            response = horizon_server.submit_transaction(transaction)
+            j.logger.info("Transaction hash: {}".format(response["hash"]))
+        except stellar_sdk.exceptions.BadRequestError as e:
+            j.logger.debug(e)
+            raise e
+
+    def get_data_entries(self, address: str = None):
+        address = address or self.address
+        horizon_server = self._get_horizon_server()
+        horizon_server.horizon_url
+        response = j.tools.http.get(f"{horizon_server.horizon_url}/accounts/{address}")
+        response.raise_for_status()
+        account = response.json()
+        data = {}
+        for data_name, data_value in account["data"].items():
+            data[data_name] = base64.b64decode(data_value).decode("utf-8")
+        return data
