@@ -9,7 +9,7 @@ class Gateway(BaseResource):
     def _query(self, farm_id=None, country=None, city=None, cru=None, sru=None, mru=None, hru=None):
         query = {}
         args = {
-            "farm": farm_id,
+            "farm_id": farm_id,
             "city": city,
             "cru": cru,
             "sru": sru,
