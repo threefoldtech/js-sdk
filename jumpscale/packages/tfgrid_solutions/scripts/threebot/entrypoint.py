@@ -27,10 +27,10 @@ except j.exceptions.NotFound:
 
 j.logger.info("Generating guest identity ...")
 identity_main = j.core.identity.new(
-    "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/explorer"
+    "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
 )
 identity_test = j.core.identity.new(
-    "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/explorer"
+    "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
 )
 
 identities = [identity_main, identity_test]

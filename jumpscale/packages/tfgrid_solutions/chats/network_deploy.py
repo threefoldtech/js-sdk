@@ -84,7 +84,9 @@ to download your configuration
 
         message = f"""
 ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
+\n<br />\n
 #### ```wg-quick up /etc/wireguard/{filename}```
+\n<br />\n
 # Click next
             """
 

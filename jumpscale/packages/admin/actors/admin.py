@@ -107,7 +107,7 @@ class Admin(BaseActor):
 
     @actor_method
     def add_identity(self, identity_instance_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
-        explorer_url = f"https://{explorers[explorer_type]}/explorer"
+        explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
         new_identity = j.core.identity.new(

@@ -119,7 +119,9 @@ class UbuntuDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
+        self.ip_address = self.drop_down_choice(
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+        )
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -167,6 +169,7 @@ class UbuntuDeploy(GedisChatBot):
     def ubuntu_access(self):
         res = f"""\
 # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
+\n<br />\n
 To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
                 """
         self.md_show(res, md=True)

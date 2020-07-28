@@ -511,10 +511,12 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     ):
         if not workload_name:
             workload_name = "your workload"
-        manual_choice = bot.single_choice(
-            f"Do you want to manually select a node for deployment or automatically for {workload_name}?", ["YES", "NO"]
+        automatic_choice = bot.single_choice(
+            f"Do you want to automatically select a node for deployment or manually for {workload_name}?",
+            ["YES", "NO"],
+            default="YES",
         )
-        if manual_choice == "NO":
+        if automatic_choice == "YES":
             return None
         farm_id = self.get_pool_farm_id(pool_id)
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)

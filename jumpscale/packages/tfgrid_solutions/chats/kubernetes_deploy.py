@@ -99,13 +99,17 @@ class kubernetesDeploy(GedisChatBot):
         self.ip_addresses = []
         master_free_ips = self.network_view.get_node_free_ips(self.selected_nodes[0])
         self.ip_addresses.append(
-            self.drop_down_choice("Please choose IP Address for Master node", master_free_ips, required=True)
+            self.drop_down_choice(
+                "Please choose IP Address for Master node", master_free_ips, required=True, default=master_free_ips[0]
+            )
         )
         self.network_view.used_ips.append(self.ip_addresses[0])
         for i in range(1, len(self.selected_nodes)):
             free_ips = self.network_view.get_node_free_ips(self.selected_nodes[i])
             self.ip_addresses.append(
-                self.drop_down_choice(f"Please choose IP Address for Slave node {i}", free_ips, required=True)
+                self.drop_down_choice(
+                    f"Please choose IP Address for Slave node {i}", free_ips, required=True, default=free_ips[0]
+                )
             )
             self.network_view.used_ips.append(self.ip_addresses[i])
 
@@ -150,15 +154,16 @@ class kubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = f"""# Kubernetes cluster has been deployed successfully:
-            Master reservation id is: {self.reservations[0]["reservation_id"]}
-            IP: {self.reservations[0]["ip_address"]}
-            To connect ssh rancher@{self.reservations[0]["ip_address"]}
-        """
+Master reservation id is: {self.reservations[0]["reservation_id"]}
+IP: {self.reservations[0]["ip_address"]}
+To connect ssh rancher@{self.reservations[0]["ip_address"]}
+
+"""
         for idx, resv in enumerate(self.reservations[1:]):
             res += f"""Worker {idx + 1} reservation id is: {resv["reservation_id"]}
-                IP: {resv["ip_address"]}
-                To connect ssh rancher@{resv["ip_address"]}
-            """
+IP: {resv["ip_address"]}
+To connect ssh rancher@{resv["ip_address"]}
+"""
         self.md_show(res)
 
 

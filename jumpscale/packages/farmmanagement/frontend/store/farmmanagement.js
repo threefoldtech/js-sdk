@@ -41,7 +41,7 @@ export default {
         context.commit("setTotalSpecs", response.data);
       });
     },
-    setNodeFree(context, {node_id, free}) {
+    setNodeFree(context, { node_id, free }) {
       return tfService.setNodeFree(node_id, free)
     },
     getFarms: context => {
