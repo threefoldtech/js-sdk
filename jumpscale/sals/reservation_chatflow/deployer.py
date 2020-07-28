@@ -8,6 +8,7 @@ import time
 from collections import defaultdict
 from decimal import Decimal
 import gevent
+from jumpscale.sals.zos.network import wg_routing_ip
 
 
 class NetworkView:
@@ -63,8 +64,59 @@ class NetworkView:
             j.sals.zos.network.add_node(network, node.node_id, str(subnet), pool_id)
             return network
 
-    def add_access(self, node, pool_id):
-        pass
+    def add_access(self, node_id=None, use_ipv4=True):
+        node_id = node_id or self.network_workloads[0].info.node_id
+        used_ip_ranges = set()
+        for workload in self.network_workloads:
+            used_ip_ranges.add(workload.iprange)
+            for peer in workload.peers:
+                used_ip_ranges.add(peer.iprange)
+        else:
+            network_range = netaddr.IPNetwork(self.iprange)
+            for idx, subnet in enumerate(network_range.subnet(24)):
+                if str(subnet) not in used_ip_ranges:
+                    break
+            else:
+                raise StopChatFlow("Failed to find free network")
+        network = j.sals.zos.network.create(self.iprange, self.name)
+        node_workloads = {}
+        for net_workload in self.network_workloads:
+            node_workloads[net_workload.info.node_id] = net_workload
+        network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
+        wg_quick = j.sals.zos.network.add_access(network, node_id, str(subnet), ipv4=use_ipv4)
+        return network, wg_quick
+
+    def delete_access(self, ip_range, node_id=None):
+        node_id = node_id or self.network_workloads[0].info.node_id
+        node_workloads = {}
+        for net_workload in self.network_workloads:
+            node_workloads[net_workload.info.node_id] = net_workload
+        node_ranges = []
+        for workload in node_workloads.values():
+            node_ranges.append(workload.iprange)
+        if ip_range in node_ranges:
+            raise StopChatFlow("Can't delete a zos node peer")
+        workload = node_workloads[node_id]
+        new_peers = []
+        # remove the range from access node
+        for peer in workload.peers:
+            if peer.iprange != ip_range:
+                new_peers.append(peer)
+        workload.peers = new_peers
+        # remove the range from allowed ips on all nodes
+        node_range = node_workloads[node_id].iprange
+        routing_range = wg_routing_ip(ip_range)
+        for network_resource in node_workloads.values():
+            for peer in network_resource.peers:
+                if node_range == peer.iprange:
+                    if ip_range in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(ip_range)
+                    if routing_range in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(routing_range)
+
+        network = j.sals.zos.network.create(self.iprange, self.name)
+        network.network_resources = list(node_workloads.values())
+        return network
 
     def get_node_range(self, node):
         for workload in self.network_workloads:
@@ -356,6 +408,15 @@ class ChatflowDeployer:
         network_config["ids"] = ids
         network_config["rid"] = ids[0]
         return network_config
+
+    def add_access(self, network_name, network_view=None, node_id=None, use_ipv4=True):
+        network_view = network_view or NetworkView(network_name)
+        network, wg = network_view.add_access(node_id, use_ipv4)
+        result = {"ids": [], "wg": wg}
+        for resource in network.network_resources:
+            result["ids"].append(j.sals.zos.workloads.deploy(resource))
+        result["rid"] = result["ids"][0]
+        return result
 
     def wait_workload(self, workload_id, bot=None):
         expiration_provisioning = j.data.time.now().timestamp + 15 * 60

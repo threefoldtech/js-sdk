@@ -8,6 +8,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class NetworkDeploy(GedisChatBot):
     steps = [
+        "welcome",
         "start",
         "ip_config",
         "network_reservation",
@@ -15,19 +16,32 @@ class NetworkDeploy(GedisChatBot):
     ]
     title = "Network"
 
+    @chatflow_step(title="Welcome")
+    def welcome(self):
+        if solutions.list_network_solutions():
+            self.action = self.single_choice(
+                "Do you want to create a new network or add access to an existing one?",
+                options=["Create", "Add Access"],
+            )
+        else:
+            self.action = "Create"
+
     @chatflow_step(title="Network Name")
     def start(self):
-        valid = False
-        while not valid:
-            self.solution_name = deployer.ask_name(self)
-            network_solutions = solutions.list_network_solutions(sync=False)
-            valid = True
-            for sol in network_solutions:
-                if sol["Name"] == self.solution_name:
-                    valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
-                    break
+        if self.action == "Create":
+            valid = False
+            while not valid:
+                self.solution_name = deployer.ask_name(self)
+                network_solutions = solutions.list_network_solutions(sync=False)
                 valid = True
+                for sol in network_solutions:
+                    if sol["Name"] == self.solution_name:
+                        valid = False
+                        self.md_show("The specified solution name already exists. please choose another.")
+                        break
+                    valid = True
+        elif self.action == "Add Access":
+            self.network_view = deployer.select_network(self)
 
     @chatflow_step(title="IP Configuration")
     def ip_config(self):
@@ -53,16 +67,22 @@ class NetworkDeploy(GedisChatBot):
                 break
         if not self.access_node:
             raise StopChatFlow("There are no available access nodes in your existing pools")
-        self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
+        if self.action == "Create":
+            self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
 
     @chatflow_step(title="Reservation")
     def network_reservation(self):
-        try:
-            self.config = deployer.deploy_network(
-                self.solution_name, self.access_node, self.ip_range, self.ipversion, self.pool
+        if self.action == "Create":
+            try:
+                self.config = deployer.deploy_network(
+                    self.solution_name, self.access_node, self.ip_range, self.ipversion, self.pool
+                )
+            except Exception as e:
+                raise StopChatFlow(f"Failed to register workload due to error {str(e)}")
+        else:
+            self.config = deployer.add_access(
+                self.network_view.name, self.network_view, self.access_node.node_id, self.ipversion == "IPv4"
             )
-        except Exception as e:
-            raise StopChatFlow(f"Failed to register workload due to error {str(e)}")
         for wid in self.config["ids"]:
             success = deployer.wait_workload(wid, self)
             if not success:
