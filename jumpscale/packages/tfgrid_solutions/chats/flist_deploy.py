@@ -160,7 +160,9 @@ class FlistDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
+        self.ip_address = self.drop_down_choice(
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+        )
 
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
