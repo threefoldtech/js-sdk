@@ -313,6 +313,13 @@ class ChatflowDeployer:
         name = bot.string_ask("Please enter a name for you workload", required=True, field="name")
         return name
 
+    def ask_ipv6(self, bot, workload_name=None):
+        workload_name = workload_name or "your workload"
+        ipv6 = bot.single_choice(
+            f"Do you want to assign a global IPv6 address to {workload_name}?", options=["YES", "NO"], default="NO"
+        )
+        return ipv6 == "YES"
+
     def encrypt_metadata(self, metadata):
         if isinstance(metadata, dict):
             metadata = j.data.serializers.json.dumps(metadata)
@@ -415,7 +422,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         secret_env=None,
         volumes=None,
         log_config=None,
-        public_ipv6=True,
+        public_ipv6=False,
         **metadata,
     ):
         """
@@ -916,6 +923,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         log_config=None,
         mode="Single",
         bot=None,
+        public_ipv6=False,
         secondary_pool_id=None,
         **metadata,
     ):
@@ -951,6 +959,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             secret_env=secret_env,
             log_config=log_config,
             volumes={"/data": master_volume_id},
+            public_ipv6=public_ipv6,
             flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
             **metadata,
         )
@@ -974,6 +983,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 secret_env=secret_env,
                 log_config=log_config,
                 volumes={"/data": slave_volume_id},
+                public_ipv6=public_ipv6,
                 flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
                 **metadata,
             )

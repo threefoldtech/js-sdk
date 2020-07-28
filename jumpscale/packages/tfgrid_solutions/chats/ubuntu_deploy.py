@@ -23,6 +23,7 @@ class UbuntuDeploy(GedisChatBot):
         "public_key_get",
         "container_node_id",
         "container_ip",
+        "ipv6_config",
         "overview",
         "reservation",
         "ubuntu_access",
@@ -123,6 +124,10 @@ class UbuntuDeploy(GedisChatBot):
             "Please choose IP Address for your solution", free_ips, default=free_ips[0]
         )
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+
     @chatflow_step(title="Confirmation")
     def overview(self):
         self.metadata = {
@@ -158,6 +163,7 @@ class UbuntuDeploy(GedisChatBot):
             interactive=False,
             entrypoint="/bin/bash /start.sh",
             log_config=self.log_config,
+            public_ipv6=self.public_ipv6,
             **metadata,
             solution_uuid=self.solution_id,
         )

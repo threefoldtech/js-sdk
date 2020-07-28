@@ -21,6 +21,7 @@ class Publisher(GedisChatBot):
         "upload_public_key",
         "container_node_id",
         "domain_select",
+        "ipv6_config",
         "overview",
         "deploy",
         "success",
@@ -133,9 +134,13 @@ class Publisher(GedisChatBot):
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+
     @chatflow_step(title="Confirmation")
     def overview(self):
-        info = {"Solution name": self.solution_name, "Expiration time": j.data.time.get(self.expiration).humanize()}
+        info = {"Solution name": self.solution_name, "domain": self.domain}
         self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
@@ -211,6 +216,7 @@ class Publisher(GedisChatBot):
                 secret_env=secret_env,
                 interactive=False,
                 solution_uuid=self.solution_id,
+                public_ipv6=self.public_ipv6,
                 **metadata,
             )
         )

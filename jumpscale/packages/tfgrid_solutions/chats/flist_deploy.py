@@ -25,6 +25,7 @@ class FlistDeploy(GedisChatBot):
         "container_node_id",
         "container_logs",
         "container_ip",
+        "ipv6_config",
         "overview",
         "reservation",
         "container_access",
@@ -161,6 +162,10 @@ class FlistDeploy(GedisChatBot):
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+
     @chatflow_step(title="Confirmation")
     def overview(self):
         self.metadata = {
@@ -209,6 +214,7 @@ class FlistDeploy(GedisChatBot):
             entrypoint=self.entrypoint,
             log_config=self.log_config,
             volumes=volume_config,
+            public_ipv6=self.public_ipv6,
             **metadata,
             solution_uuid=self.solution_id,
         )

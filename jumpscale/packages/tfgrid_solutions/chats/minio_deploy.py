@@ -22,6 +22,7 @@ class MinioDeploy(GedisChatBot):
         "container_logs",
         "public_key",
         "ip_selection",
+        "ipv6_config",
         "overview",
         "zdb_reservation",
         "minio_reservation",
@@ -191,6 +192,10 @@ class MinioDeploy(GedisChatBot):
             )
             self.network_view.used_ips.append(self.ip_addresses[0])
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+
     @chatflow_step(title="Confirmation")
     def overview(self):
         self.metadata = {
@@ -259,6 +264,7 @@ class MinioDeploy(GedisChatBot):
             bot=self,
             pool_ids=self.minio_pool_ids,
             solution_uuid=self.solution_id,
+            public_ipv6=self.public_ipv6,
             **metadata,
         )
         for resv_id in self.minio_result:
