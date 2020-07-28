@@ -415,7 +415,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         secret_env=None,
         volumes=None,
         log_config=None,
-        public_ipv6=False,
+        public_ipv6=True,
         **metadata,
     ):
         """
@@ -591,7 +591,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         Return:
             list: [{"node_id": "ip_address"}, ...] first dict is master's result
         """
-        slave_pool_ids = slave_pool_ids or [pool_id] * len(node_ids) - 1
+        slave_pool_ids = slave_pool_ids or ([pool_id] * (len(node_ids) - 1))
         pool_ids = [pool_id] + slave_pool_ids
         result = []  # [{"node_id": id,  "ip_address": ip, "reservation_id": 16}] first dict is master's result
         if ip_addresses and len(ip_addresses) != len(node_ids):
@@ -804,6 +804,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
+        else:
+            node = self._explorer.nodes.get(node_id)
 
         res = self.add_network_node(network_name, node, pool_id)
         if res:
@@ -811,7 +813,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 success = self.wait_workload(wid)
                 if not success:
                     if reserve_proxy:
-                        j.sals.reservation_chatflows.solutions.cancel_solution([resv_id])
+                        j.sals.reservation_chatflows.solutions.cancel_solution([wid])
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
         network_view = NetworkView(network_name)
         ip_address = network_view.get_free_ip(node)
@@ -825,6 +827,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             disk_type="HDD",
             entrypoint=entry_point,
             secret_env=secret_env,
+            public_ipv6=False,
             **metadata,
         )
         return resv_id

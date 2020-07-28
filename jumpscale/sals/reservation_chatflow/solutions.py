@@ -41,7 +41,8 @@ class ChatflowSolutions:
                         {
                             "wids": [workload.id],
                             "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IP Address": workload.network_connection[0].ipaddress,
+                            "IPv4 Address": workload.network_connection[0].ipaddress,
+                            "IPv6 Address": self.get_ipv6_address(workload),
                             "Network": workload.network_connection[0].network_id,
                             "Node": workload.info.node_id,
                             "Pool": workload.info.pool_id,
@@ -70,7 +71,8 @@ class ChatflowSolutions:
                         {
                             "wids": [workload.id],
                             "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IP Address": workload.network_connection[0].ipaddress,
+                            "IPv4 Address": workload.network_connection[0].ipaddress,
+                            "IPv6 Address": self.get_ipv6_address(workload),
                             "Network": workload.network_connection[0].network_id,
                             "Node": workload.info.node_id,
                             "Pool": workload.info.pool_id,
@@ -139,7 +141,8 @@ class ChatflowSolutions:
                     if name:
                         if f"{name}" in result:
                             result[f"{name}"]["wids"].append(workload.id)
-                            result[f"{name}"]["Secondary IP"] = workload.network_connection[0].ipaddress
+                            result[f"{name}"]["Secondary IPv4"] = workload.network_connection[0].ipaddress
+                            result[f"{name}"]["Secondary IPv6"] = self.get_ipv6_address(workload)
                             result[f"{name}"]["Secondary Node"] = workload.network_connection[0].ipaddress
                             if workload.volumes:
                                 for vol in workload.volumes:
@@ -149,7 +152,8 @@ class ChatflowSolutions:
                             "wids": [workload.id],
                             "Name": name,
                             "Network": workload.network_connection[0].network_id,
-                            "Primary IP": workload.network_connection[0].ipaddress,
+                            "Primary IPv4": workload.network_connection[0].ipaddress,
+                            "Primary IPv6": self.get_ipv6_address(workload),
                             "Primary Node": workload.info.node_id,
                             "Pool": workload.info.pool_id,
                         }
@@ -199,7 +203,8 @@ class ChatflowSolutions:
                         "Name": solution_name,
                         "Pool": pool_id,
                         "Network": workload.network_connection[0].network_id,
-                        f"{container_type} IP": workload.network_connection[0].ipaddress,
+                        f"{container_type} IPv4": workload.network_connection[0].ipaddress,
+                        f"{container_type} IPv6": self.get_ipv6_address(workload),
                     }
                     if workload.volumes:
                         for vol in workload.volumes:
@@ -225,7 +230,8 @@ class ChatflowSolutions:
                     solution_dict = {
                         "wids": [workload.id],
                         "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                        "IP Address": workload.network_connection[0].ipaddress,
+                        "IPv4 Address": workload.network_connection[0].ipaddress,
+                        "IPv6 Address": self.get_ipv6_address(workload),
                         "Network": workload.network_connection[0].network_id,
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
@@ -256,7 +262,8 @@ class ChatflowSolutions:
                         {
                             "wids": [workload.id],
                             "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IP Address": workload.network_connection[0].ipaddress,
+                            "IPv4 Address": workload.network_connection[0].ipaddress,
+                            "IPv6 Address": self.get_ipv6_address(workload),
                             "Network": workload.network_connection[0].network_id,
                             "Node": workload.info.node_id,
                             "Pool": workload.info.pool_id,
@@ -380,7 +387,8 @@ class ChatflowSolutions:
                     result[name] = {
                         "wids": [workload.id],
                         "Name": name,
-                        "IP Address": workload.network_connection[0].ipaddress,
+                        "IPv4 Address": workload.network_connection[0].ipaddress,
+                        "IPv6 Address": self.get_ipv6_address(workload),
                         "Network": workload.network_connection[0].network_id,
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
@@ -435,7 +443,8 @@ class ChatflowSolutions:
                     result[name] = {
                         "wids": [workload.id],
                         "Name": name,
-                        "IP Address": workload.network_connection[0].ipaddress,
+                        "IPv4 Address": workload.network_connection[0].ipaddress,
+                        "IPv6 Address": self.get_ipv6_address(workload),
                         "Network": workload.network_connection[0].network_id,
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
@@ -538,6 +547,10 @@ class ChatflowSolutions:
             if metadata:
                 solution_uuid = metadata.get("solution_uuid")
                 return solution_uuid
+
+    def get_ipv6_address(self, workload):
+        result = j.data.serializers.json.loads(workload.info.result.data_json)
+        return result.get("ipv6")
 
 
 solutions = ChatflowSolutions()
