@@ -68,9 +68,9 @@ class SolutionExpose(GedisChatBot):
         if self.kind == "kubernetes":
             self.solution_ip = self.solution["Master IP"]
         elif self.kind == "minio":
-            self.solution_ip = self.solution["Primary IP"]
+            self.solution_ip = self.solution["Primary IPv4"]
         else:
-            self.solution_ip = self.solution["IP Address"]
+            self.solution_ip = self.solution["IPv4 Address"]
 
     @chatflow_step(title="Domain 1")
     def domain_1(self):
@@ -99,7 +99,7 @@ class SolutionExpose(GedisChatBot):
             - {{dns}}
             {% endfor %}
             """
-            res = j.tools.jinja2.render_template(text=res, gateway=self.domain_gateway, domain=self.domain)
+            res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
             self.md_show(res)
 
         else:
@@ -155,7 +155,7 @@ class SolutionExpose(GedisChatBot):
                 if not success:
                     raise StopChatFlow(f"Failed to add node to network {wid}")
 
-        self.network_view = deployer.get_network_view(self.network_name, self.pool_id)
+        self.network_view = deployer.get_network_view(self.network_name)
         self.tcprouter_ip = self.network_view.get_free_ip(self.selected_node)
         if not self.tcprouter_ip:
             raise StopChatFlow(
@@ -183,7 +183,7 @@ class SolutionExpose(GedisChatBot):
             **metadata,
             solution_uuid=self.solution_id,
         )
-        success = deployer.wait_workload(self.proxy_id)
+        success = deployer.wait_workload(self.proxy_id, self)
         if not success:
             j.sal.chatflow_solutions.cancel_solution([self.proxy_id])
             raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
@@ -196,6 +196,7 @@ class SolutionExpose(GedisChatBot):
             port=self.port,
             tls_port=self.tls_port,
             trc_secret=self.secret,
+            bot=self,
             **metadata,
             solution_uuid=self.solution_id,
         )

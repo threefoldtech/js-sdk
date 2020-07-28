@@ -493,6 +493,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         volumes: dict {"mountpoint (/)": volume_id}
         log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel_name")
         """
+        env = env or {}
         encrypted_secret_env = {}
         if secret_env:
             for key, val in secret_env.items():
@@ -860,6 +861,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         node_id=None,
         reserve_proxy=False,
         domain_name=None,
+        bot=None,
         **metadata,
     ):
         gateway = self._explorer.gateway.get(gateway_id)
@@ -883,7 +885,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         res = self.add_network_node(network_name, node, pool_id)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid)
+                success = self.wait_workload(wid, bot)
                 if not success:
                     if reserve_proxy:
                         j.sals.reservation_chatflows.solutions.cancel_solution([wid])
@@ -897,7 +899,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             network_name=network_name,
             ip_address=ip_address,
             flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
-            disk_type="HDD",
+            disk_type=DiskType.HDD,
             entrypoint=entry_point,
             secret_env=secret_env,
             public_ipv6=False,

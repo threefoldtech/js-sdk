@@ -73,7 +73,9 @@ Endpoint = {{peer.endpoint}}
 {% endif %}
 {% endfor %}
             """
-        config = j.tools.jinja2.render_template(text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode())
+        config = j.tools.jinja2.render_template(
+            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+        )
         config = config
 
         filename = "wg-{}.conf".format(self.resv_id)

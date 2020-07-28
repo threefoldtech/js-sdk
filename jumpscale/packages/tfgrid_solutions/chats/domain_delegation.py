@@ -43,7 +43,9 @@ Please create an `NS` record in your dns manager for domain: `{{domain}}` pointi
 - {{dns}}
 {% endfor %}
             """
-        res = j.tools.jinja2.render_template(text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id)
+        res = j.tools.jinja2.render_template(
+            template_text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
+        )
         self.md_show(res)
 
 
