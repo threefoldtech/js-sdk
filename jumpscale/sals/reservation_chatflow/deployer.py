@@ -63,6 +63,9 @@ class NetworkView:
             j.sals.zos.network.add_node(network, node.node_id, str(subnet), pool_id)
             return network
 
+    def add_access(self, node, pool_id):
+        pass
+
     def get_node_range(self, node):
         for workload in self.network_workloads:
             if workload.info.next_action != NextAction.DEPLOY:

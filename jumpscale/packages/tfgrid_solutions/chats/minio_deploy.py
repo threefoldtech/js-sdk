@@ -188,13 +188,13 @@ class MinioDeploy(GedisChatBot):
         )
         self.network_view.used_ips.append(self.ip_addresses[0])
         if self.mode == "Master/Slave":
-            free_ips = self.network_view.get_node_free_ips(self.minio_nodes[0])
+            free_ips = self.network_view.get_node_free_ips(self.minio_nodes[1])
             self.ip_addresses.append(
                 self.drop_down_choice(
                     "Please choose IP Address for Secondary container", free_ips, required=True, default=free_ips[0]
                 )
             )
-            self.network_view.used_ips.append(self.ip_addresses[0])
+            self.network_view.used_ips.append(self.ip_addresses[1])
 
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
