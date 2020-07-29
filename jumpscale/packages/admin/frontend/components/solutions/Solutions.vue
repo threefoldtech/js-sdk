@@ -77,15 +77,9 @@
         </v-card>
       </template>
     </base-component>
-  </div>
-</template>
-      </template>
-    </base-component>
-
     <solution-info v-if="selected" v-model="dialog" :data="selected" :type="selected"></solution-info>
   </div>
 </template>
-
 <script>
 module.exports = {
   components: {
