@@ -17,7 +17,10 @@ class Wallet(BaseActor):
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
-            wallet.activate_through_threefold_service()
+            if wallettype == "TEST":
+                wallet.activate_through_friendbot()
+            else:
+                wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException("Error on wallet activation")
