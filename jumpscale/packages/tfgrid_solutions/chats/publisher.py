@@ -155,7 +155,7 @@ class Publisher(GedisChatBot):
         self.workload_ids = []
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, **self.solution_metadata
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
         )
         if result:
             for wid in result["ids"]:

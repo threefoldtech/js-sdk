@@ -20,7 +20,6 @@ class ChatflowSolutions:
                 {
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
-                    "Pool": n.network_workloads[-1].info.pool_id,
                     "nodes": {res.info.node_id: res.iprange for res in n.network_workloads},
                     "wids": [res.id for res in n.network_workloads],
                 }
@@ -111,6 +110,7 @@ class ChatflowSolutions:
                         if len(workload.master_ips) != 0:
                             result[f"{name}"]["wids"].append(workload.id)
                             result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
                         continue
                     result[f"{name}"] = {
                         "wids": [workload.id],
@@ -118,7 +118,8 @@ class ChatflowSolutions:
                         "Network": workload.network_id,
                         "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
                         "Slave IPs": [],
-                        "Pool": workload.info.pool_id,
+                        "Slave Pools": [],
+                        "Master Pool": workload.info.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
@@ -154,6 +155,7 @@ class ChatflowSolutions:
                             result[f"{name}"]["Secondary IPv4"] = workload.network_connection[0].ipaddress
                             result[f"{name}"]["Secondary IPv6"] = self.get_ipv6_address(workload)
                             result[f"{name}"]["Secondary Node"] = workload.network_connection[0].ipaddress
+                            result[f"{name}"]["Secondary Pool"] = workload.info.pool_id
                             for key, value in self.get_workload_capacity(workload).items():
                                 result[name][f"Secondary {key}"] = value
                             if workload.volumes:
@@ -167,7 +169,7 @@ class ChatflowSolutions:
                             "Primary IPv4": workload.network_connection[0].ipaddress,
                             "Primary IPv6": self.get_ipv6_address(workload),
                             "Primary Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
+                            "Primary Pool": workload.info.pool_id,
                         }
                         for key, value in self.get_workload_capacity(workload).items():
                             result[name][f"Primary {key}"] = value
@@ -211,13 +213,14 @@ class ChatflowSolutions:
                             for vol in workload.volumes:
                                 result[name]["wids"].append(vol.volume_id.split("-")[0])
                         result[name][f"{container_type} IP"] = workload.network_connection[0].ipaddress
+                        result[name][f"{container_type} Pool"] = pool_id
                         for key, value in self.get_workload_capacity(workload).items():
                             result[name][f"{container_type} {key}"] = value
                         continue
                     result[name] = {
                         "wids": [workload.id],
                         "Name": solution_name,
-                        "Pool": pool_id,
+                        f"{container_type} Pool": pool_id,
                         "Network": workload.network_connection[0].network_id,
                         f"{container_type} IPv4": workload.network_connection[0].ipaddress,
                         f"{container_type} IPv6": self.get_ipv6_address(workload),

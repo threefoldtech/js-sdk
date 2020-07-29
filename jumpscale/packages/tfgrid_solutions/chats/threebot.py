@@ -145,14 +145,13 @@ class ThreebotDeploy(GedisChatBot):
     def deploy(self):
         # 1- add node to network
         metadata = {
-            "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"},
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, **self.solution_metadata
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
         )
         if result:
             for wid in result["ids"]:
@@ -186,6 +185,7 @@ class ThreebotDeploy(GedisChatBot):
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
         }
+        self.network_view = self.network_view.copy()
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         self.workload_ids.append(
             deployer.deploy_container(
