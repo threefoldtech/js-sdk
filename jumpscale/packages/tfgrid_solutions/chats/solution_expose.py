@@ -160,7 +160,12 @@ class SolutionExpose(GedisChatBot):
         result = deployer.add_network_node(self.network_name, self.selected_node, self.pool_id)
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                try:
+                    success = deployer.wait_workload(wid, self)
+                except StopChatFlow as e:
+                    for wid in result["ids"]:
+                        j.sals.zos.workloads.decomission(wid)
+                    raise e
                 if not success:
                     raise StopChatFlow(f"Failed to add node to network {wid}")
 

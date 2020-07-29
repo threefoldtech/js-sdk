@@ -104,8 +104,15 @@ class GiteaDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                try:
+                    success = deployer.wait_workload(wid, self)
+                except StopChatFlow as e:
+                    for wid in result["ids"]:
+                        j.sals.zos.workloads.decomission(wid)
+                    raise e
                 if not success:
+                    for wid in result["ids"]:
+                        j.sals.zos.workloads.decomission(wid)
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)

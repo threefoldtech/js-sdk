@@ -1,7 +1,7 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode
+from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode, State
 from nacl.public import Box
 import netaddr
 import time
@@ -29,6 +29,8 @@ class NetworkView:
     def _init_network_workloads(self, workloads):
         for workload in workloads:
             if workload.info.next_action != NextAction.DEPLOY:
+                continue
+            if workload.info.result.state != State.Ok:
                 continue
             if workload.info.workload_type == Type.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
@@ -448,7 +450,7 @@ class ChatflowDeployer:
         return result
 
     def wait_workload(self, workload_id, bot=None):
-        expiration_provisioning = j.data.time.now().timestamp + 15 * 60
+        expiration_provisioning = j.data.time.now().timestamp + 10 * 60
         while True:
             workload = j.sals.zos.workloads.get(workload_id)
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
@@ -728,7 +730,12 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 res = self.add_network_node(network_name, node, pool_id)
                 if res:
                     for wid in res["ids"]:
-                        success = self.wait_workload(wid)
+                        try:
+                            success = self.wait_workload(wid)
+                        except StopChatFlow as e:
+                            for wid in res["ids"]:
+                                j.sals.zos.workloads.decomission(wid)
+                            raise e
                         if not success:
                             raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
                 network_view = NetworkView(network_name)
@@ -944,7 +951,12 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         res = self.add_network_node(network_name, node, pool_id)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot)
+                try:
+                    success = self.wait_workload(wid, bot)
+                except StopChatFlow as e:
+                    for wid in res["ids"]:
+                        j.sals.zos.workloads.decomission(wid)
+                    raise e
                 if not success:
                     if reserve_proxy:
                         j.sals.reservation_chatflows.solutions.cancel_solution([wid])
