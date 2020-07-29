@@ -148,6 +148,9 @@ class GedisChatBot:
             except Exception as e:
                 internal_error = True
                 j.logger.exception("error", exception=e)
+                j.tools.alerthandler.alert_raise(
+                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                )
                 self.send_error("Something wrong happened, please contact support")
 
             if not internal_error:

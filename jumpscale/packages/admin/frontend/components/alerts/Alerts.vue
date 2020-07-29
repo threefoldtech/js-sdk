@@ -9,11 +9,11 @@
 
       <template #default>
         <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data">
-          
+
           <template v-slot:item.id="{ item }">
-            <a @click="open(item)">{{ item.id }}</a>
+            <a @click.stop="open(item)">{{ item.id }}</a>
           </template>
-          
+
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
            </template>
@@ -53,7 +53,7 @@
       </template>
     </base-component>
 
-    <show-alert v-if="selected" v-model="dialogs.show" :alert="selected"></show-alert>
+    <show-alert v-if="selected" v-model="dialogs.show" :alertdata="selected"></show-alert>
     <delete-alerts v-model="dialogs.delete" @done="getAlerts"></delete-alerts>
   </div>
 </template>
@@ -113,6 +113,7 @@
     },
     methods: {
       open (record) {
+        console.log(record)
         this.selected = record
         this.dialogs.show = true
       },
