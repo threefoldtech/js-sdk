@@ -143,7 +143,10 @@ class ChatflowDeployer:
         self.workloads = defaultdict(
             lambda: defaultdict(lambda: defaultdict(list))
         )  # Next Action: workload_type: pool_id: [workloads]
-        self._explorer = j.core.identity.me.explorer
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     def load_user_workloads(self, next_action=NextAction.DEPLOY):
         all_workloads = j.sals.zos.workloads.list(j.core.identity.me.tid, next_action)
