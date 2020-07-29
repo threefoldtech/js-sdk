@@ -24,6 +24,7 @@ class kubernetesDeploy(GedisChatBot):
     def deployment_start(self):
         self.solution_id = uuid.uuid4().hex
         self.md_show("# This wizard will help you deploy a kubernetes cluster")
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def kubernetes_name(self):
@@ -131,7 +132,7 @@ class kubernetesDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "kubernetes", "Solution name": self.solution_name},
         }
-        metadata["form_info"].update(self.metadata)
+        self.solution_metadata.update(metadata)
         self.reservations = deployer.deploy_kubernetes_cluster(
             pool_id=self.selected_pool_ids[0],
             node_ids=[n.node_id for n in self.selected_nodes],
@@ -142,7 +143,7 @@ class kubernetesDeploy(GedisChatBot):
             ip_addresses=self.ip_addresses,
             slave_pool_ids=self.selected_pool_ids[1:],
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         for resv in self.reservations:

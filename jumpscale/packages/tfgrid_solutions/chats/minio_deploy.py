@@ -36,6 +36,7 @@ class MinioDeploy(GedisChatBot):
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "minio"
         self.md_show("# This wizard will help you deploy a minio cluster")
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def minio_name(self):
@@ -208,6 +209,7 @@ class MinioDeploy(GedisChatBot):
             "Setup Type": self.mode,
             "Master IP": self.ip_addresses[0],
         }
+        self.solution_metadata.update(self.metadata)
         if self.mode == "Master/Slave":
             self.metadata["Slave IP"] = self.ip_addresses[1]
         self.md_show_confirm(self.metadata)
@@ -222,7 +224,7 @@ class MinioDeploy(GedisChatBot):
             zdb_no=self.zdb_number,
             pool_ids=self.zdb_pool_ids,
             solution_uuid=self.solution_id,
-            **self.metadata,
+            **self.solution_metadata,
         )
         for resv_id in self.zdb_result:
             success = deployer.wait_workload(resv_id, self)
@@ -245,6 +247,7 @@ class MinioDeploy(GedisChatBot):
                 "ZDB URLS": zdb_configs,
             },
         }
+        self.solution_metadata.update(metadata)
 
         if self.mode == "Master/Slave":
             metadata["form_info"]["Slave IP"] = self.ip_addresses[1]
@@ -269,7 +272,7 @@ class MinioDeploy(GedisChatBot):
             pool_ids=self.minio_pool_ids,
             solution_uuid=self.solution_id,
             public_ipv6=self.public_ipv6,
-            **metadata,
+            **self.solution_metadata,
         )
         for resv_id in self.minio_result:
             success = deployer.wait_workload(resv_id)

@@ -37,6 +37,7 @@ class FlistDeploy(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.env = dict()
         self.md_show("# This wizard will help you deploy a container using any flist provided", md=True)
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def flist_name(self):
@@ -202,6 +203,7 @@ class FlistDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "flist", "Solution name": self.solution_name, "env": self.env},
         }
+        self.solution_metadata.update(metadata)
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -217,7 +219,7 @@ class FlistDeploy(GedisChatBot):
             log_config=self.log_config,
             volumes=volume_config,
             public_ipv6=self.public_ipv6,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)

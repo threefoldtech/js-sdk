@@ -45,6 +45,7 @@ class MonitoringDeploy(GedisChatBot):
             "# This wizard will help you deploy a monitoring system that includes Prometheus, Grafana, and redis",
             md=True,
         )
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def choose_name(self):
@@ -167,6 +168,7 @@ class MonitoringDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "monitoring", "Solution name": self.solution_name,},
         }
+        self.solution_metadata.update(metadata)
         self.md_show_update("Deploying Volume....")
 
         vol_id = deployer.deploy_volume(
@@ -218,7 +220,7 @@ class MonitoringDeploy(GedisChatBot):
                     entrypoint="",
                     volumes=volume_config,
                     log_config=log_config,
-                    **metadata,
+                    **self.solution_metadata,
                     solution_uuid=self.solution_id,
                 )
             )

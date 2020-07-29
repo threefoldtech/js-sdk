@@ -15,17 +15,18 @@ class DomainDelegation(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
+        self.solution_metadata = {}
 
     @chatflow_step(title="Domain delegation name")
     def domain_name(self):
         self.domain = self.string_ask("Please enter a domain name to delegate", required=True)
         self.gateway_id = self.gateway.node_id
+        self.solution_metadata.update({"SolutionName": self.domain, "ٍSolutionType": "domain_delegate"})
 
     @chatflow_step(title="Reservation")
     def reservation(self):
-        metadata = {"SolutionName": self.domain, "ٍSolutionType": "domain_delegate"}
         self.resv_id = deployer.delegate_domain(
-            self.pool_id, self.gateway_id, self.domain, **metadata, solution_uuid=self.solution_id
+            self.pool_id, self.gateway_id, self.domain, **self.solution_metadata, solution_uuid=self.solution_id
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:

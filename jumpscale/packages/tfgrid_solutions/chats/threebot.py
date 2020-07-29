@@ -35,6 +35,7 @@ class ThreebotDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
         self.explorer = j.core.identity.me.explorer
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def set_threebot_name(self):
@@ -147,10 +148,11 @@ class ThreebotDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"},
         }
+        self.solution_metadata.update(metadata)
         self.workload_ids = []
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, **self.solution_metadata
         )
         if result:
             for wid in result["ids"]:
@@ -167,7 +169,7 @@ class ThreebotDeploy(GedisChatBot):
                 subdomain=self.domain,
                 addresses=self.addresses,
                 solution_uuid=self.solution_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
@@ -201,7 +203,7 @@ class ThreebotDeploy(GedisChatBot):
                 interactive=False,
                 solution_uuid=self.solution_id,
                 public_ipv6=self.public_ipv6,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
@@ -225,7 +227,7 @@ class ThreebotDeploy(GedisChatBot):
                 reserve_proxy=True,
                 domain_name=self.domain,
                 solution_uuid=self.solution_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         success = deployer.wait_workload(self.workload_ids[2], self)

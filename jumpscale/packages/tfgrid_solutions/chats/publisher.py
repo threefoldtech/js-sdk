@@ -37,6 +37,7 @@ class Publisher(GedisChatBot):
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
         self.md_show("This wizard will help you publish a Wiki, a Website or Blog", md=True)
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def publisher_name(self):
@@ -150,10 +151,11 @@ class Publisher(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": "publisher"},
         }
+        self.solution_metadata.update(metadata)
         self.workload_ids = []
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, **self.solution_metadata
         )
         if result:
             for wid in result["ids"]:
@@ -170,7 +172,7 @@ class Publisher(GedisChatBot):
                 subdomain=self.domain,
                 addresses=self.addresses,
                 solution_uuid=self.solution_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
@@ -187,7 +189,7 @@ class Publisher(GedisChatBot):
                 domain_name=self.domain,
                 trc_secret=self.secret,
                 solution_uuid=self.solution_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
@@ -217,7 +219,7 @@ class Publisher(GedisChatBot):
                 interactive=False,
                 solution_uuid=self.solution_id,
                 public_ipv6=self.public_ipv6,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         if not success:

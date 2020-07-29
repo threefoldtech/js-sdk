@@ -21,6 +21,7 @@ class FourToSixGateway(GedisChatBot):
     @chatflow_step(title="Pool")
     def select_pool(self):
         self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):
@@ -43,7 +44,12 @@ class FourToSixGateway(GedisChatBot):
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
 
         self.resv_id = deployer.create_ipv6_gateway(
-            self.gateway_id, self.pool_id, self.publickey, SolutionType="4to6GW", solution_uuid=self.solution_id
+            self.gateway_id,
+            self.pool_id,
+            self.publickey,
+            SolutionType="4to6GW",
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:

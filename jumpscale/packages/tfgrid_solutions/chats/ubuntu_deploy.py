@@ -38,6 +38,7 @@ class UbuntuDeploy(GedisChatBot):
         self.query = dict()
         self.user_form_data["chatflow"] = "ubuntu"
         self.md_show("# This wizard will help you deploy an ubuntu container", md=True)
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
@@ -150,6 +151,7 @@ class UbuntuDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "ubuntu", "Solution name": self.solution_name},
         }
+        self.solution_metadata.update(metadata)
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -164,7 +166,7 @@ class UbuntuDeploy(GedisChatBot):
             entrypoint="/bin/bash /start.sh",
             log_config=self.log_config,
             public_ipv6=self.public_ipv6,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)

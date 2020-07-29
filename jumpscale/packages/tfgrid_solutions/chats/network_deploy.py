@@ -25,6 +25,7 @@ class NetworkDeploy(GedisChatBot):
             )
         else:
             self.action = "Create"
+        self.solution_metadata = {}
 
     @chatflow_step(title="Network Name")
     def start(self):
@@ -75,13 +76,23 @@ class NetworkDeploy(GedisChatBot):
         if self.action == "Create":
             try:
                 self.config = deployer.deploy_network(
-                    self.solution_name, self.access_node, self.ip_range, self.ipversion, self.pool
+                    self.solution_name,
+                    self.access_node,
+                    self.ip_range,
+                    self.ipversion,
+                    self.pool,
+                    **self.solution_metadata,
                 )
             except Exception as e:
                 raise StopChatFlow(f"Failed to register workload due to error {str(e)}")
         else:
             self.config = deployer.add_access(
-                self.network_view.name, self.network_view, self.access_node.node_id, self.pool, self.ipversion == "IPv4"
+                self.network_view.name,
+                self.network_view,
+                self.access_node.node_id,
+                self.pool,
+                self.ipversion == "IPv4",
+                **self.solution_metadata,
             )
         for wid in self.config["ids"]:
             try:

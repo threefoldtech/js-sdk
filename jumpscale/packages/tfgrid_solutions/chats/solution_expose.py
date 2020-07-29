@@ -38,6 +38,7 @@ class SolutionExpose(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = {}
         self.md_show("# This wizard will help you expose a deployed solution using the web gateway")
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
@@ -144,6 +145,7 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         metadata = {"name": self.domain, "form_info": {"Solution name": self.domain, "chatflow": "exposed"}}
+        self.solution_metadata.update(metadata)
         query = {"mru": 1, "cru": 1, "sru": 1}
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
         self.network_name = self.solution["Network"]
@@ -167,7 +169,7 @@ class SolutionExpose(GedisChatBot):
                 pool_id=self.pool_id,
                 gateway_id=self.gateway_id,
                 subdomain=self.domain,
-                **metadata,
+                **self.solution_metadata,
                 solution_uuid=self.solution_id,
             )
             success = deployer.wait_workload(self.dom_id)
@@ -180,7 +182,7 @@ class SolutionExpose(GedisChatBot):
             gateway_id=self.gateway_id,
             domain_name=self.domain,
             trc_secret=self.secret,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.proxy_id, self)
@@ -197,7 +199,7 @@ class SolutionExpose(GedisChatBot):
             tls_port=self.tls_port,
             trc_secret=self.secret,
             bot=self,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.tcprouter_id)

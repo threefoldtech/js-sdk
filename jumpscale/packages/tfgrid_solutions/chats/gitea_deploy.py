@@ -34,6 +34,7 @@ class GiteaDeploy(GedisChatBot):
         self.HUB_URL = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def gitea_name(self):
@@ -138,6 +139,7 @@ class GiteaDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
         }
+        self.solution_metadata.update(metadata)
 
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
@@ -153,7 +155,7 @@ class GiteaDeploy(GedisChatBot):
             log_config=self.log_config,
             public_ipv6=True,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)
