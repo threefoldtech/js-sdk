@@ -69,10 +69,10 @@ module.exports = {
   },
   computed: {
     json() {
-      if (this.data.last_updated !== undefined)
-        this.data.last_updated = new Date(this.data.last_updated * 1000);
-      if (this.data.empty_at !== undefined)
-        this.data.empty_at = new Date(this.data.empty_at * 1000);
+      if (this.data["Last updated"] !== undefined)
+        this.data["Last updated"] = new Date(this.data["Last updated"] * 1000);
+      if (this.data["Empty at"] !== undefined)
+        this.data["Empty at"] = new Date(this.data["Empty at"] * 1000);
       return this.data;
     },
     title() {
