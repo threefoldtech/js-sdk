@@ -13,7 +13,7 @@
                   <tr v-for="(item, key)  in json" :key="key">
                     <th>{{ key }}</th>
                     <td
-                      v-if="key === 'Node ids' || key === 'wids' || key === 'Active workload ids'"
+                      v-if="KeysWithTypeList.includes(key)"
                       class="pt-2"
                     >
                       <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
@@ -79,6 +79,9 @@ module.exports = {
       return this.data.Name === undefined
         ? "Workload details"
         : "Solution details";
+    },
+    KeysWithTypeList() {
+      return ["Node ids", "wids", "Active workload ids"]
     },
   },
   methods: {
