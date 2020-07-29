@@ -21,7 +21,10 @@ class NetworkView:
         self.network_workloads = []
         self._fill_used_ips(self.workloads)
         self._init_network_workloads(self.workloads)
-        self.iprange = self.network_workloads[0].network_iprange
+        if len(self.network_workloads) > 0:
+            self.iprange = self.network_workloads[0].network_iprange
+        else:
+            self.iprange = "can't be retrieved"
 
     def _init_network_workloads(self, workloads):
         for workload in workloads:
