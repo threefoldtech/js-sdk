@@ -192,7 +192,7 @@ class ChatflowDeployer:
         all_farms = self._explorer.farms.list()
         available_farms = {}
         for farm in all_farms:
-            res = self.check_farm_capacity(farm.name, currencies, cru=None, sru=None)
+            res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
             if available:
