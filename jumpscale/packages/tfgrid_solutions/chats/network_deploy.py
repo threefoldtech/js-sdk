@@ -81,10 +81,18 @@ class NetworkDeploy(GedisChatBot):
                 raise StopChatFlow(f"Failed to register workload due to error {str(e)}")
         else:
             self.config = deployer.add_access(
-                self.network_view.name, self.network_view, self.access_node.node_id, self.ipversion == "IPv4"
+                self.network_view.name, self.network_view, self.access_node.node_id, self.pool, self.ipversion == "IPv4"
             )
         for wid in self.config["ids"]:
-            success = deployer.wait_workload(wid, self)
+            try:
+                success = deployer.wait_workload(wid, self)
+            except StopChatFlow as e:
+                if self.action == "Create":
+                    solutions.cancel_solution(self.config["ids"])
+                elif self.action == "Add Access":
+                    for wid in self.config["ids"]:
+                        j.sals.zos.workload.decomission(wid)
+                raise e
             if not success:
                 raise StopChatFlow(f"Failed to deploy workload {wid}")
 

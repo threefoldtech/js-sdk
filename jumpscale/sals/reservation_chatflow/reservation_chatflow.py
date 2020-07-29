@@ -1268,6 +1268,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         farm_nodes = self._explorer.nodes.list(farm_id=farm_id)
         nodes = []
         for node in farm_nodes:
+            if not j.sals.zos.nodes_finder.filter_is_up(node):
+                continue
             if currency == "FreeTFT" and not node.free_to_use:
                 continue
             if sru:

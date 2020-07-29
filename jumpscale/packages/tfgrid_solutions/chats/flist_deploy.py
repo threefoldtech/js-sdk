@@ -83,7 +83,7 @@ class FlistDeploy(GedisChatBot):
         if self.container_volume_attach:
             query["sru"] += math.ceil(self.vol_size / 1024)
         cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
 
     @chatflow_step(title="Network")
     def flist_network(self):

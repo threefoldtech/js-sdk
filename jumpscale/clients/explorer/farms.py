@@ -36,7 +36,7 @@ class Farms(BaseResource):
         return TfgridDirectoryFarm1()
 
     def register(self, farm):
-        resp = self._session.post(self._url, json=farm._get_dict())
+        resp = self._session.post(self._url, json=farm.to_dict())
         return resp.json()["id"]
 
     def get(self, farm_id=None, farm_name=None):
@@ -58,5 +58,5 @@ class Farms(BaseResource):
         auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=["(created)", "date", "threebot-id"])
         headers = {"threebot-id": str(me.tid)}
 
-        self._session.put(f"{self._url}/{farm.id}", auth=auth, headers=headers, json=farm._ddict)
+        self._session.put(f"{self._url}/{farm.id}", auth=auth, headers=headers, json=farm.to_dict())
         return True

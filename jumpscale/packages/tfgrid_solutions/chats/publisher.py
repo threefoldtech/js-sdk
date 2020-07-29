@@ -60,7 +60,7 @@ class Publisher(GedisChatBot):
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
 
     @chatflow_step(title="Network")
     def publisher_network(self):

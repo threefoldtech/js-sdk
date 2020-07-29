@@ -180,6 +180,36 @@ class NetworkGenerator:
             wg_private_key.decode(), ip_range, access_point_nr.wireguard_public_key, network.iprange, endpoint
         )
 
+    def delete_access(self, network, node_id, iprange):
+        node_workloads = {}
+        node_ranges = set()
+        for net_workload in network.network_resources:
+            node_workloads[net_workload.info.node_id] = net_workload
+            node_ranges.add(net_workload.iprange)
+        if iprange in node_ranges:
+            raise Input("Can't delete zos node peer")
+
+        access_workload = node_workloads.get(node_id)
+        if not access_workload:
+            raise Input(f"Node {node_id} is not part of network")
+        # remove peer from access node
+        new_peers = []
+        for peer in access_workload.peers:
+            if peer.iprange != iprange:
+                new_peers.append(peer)
+        access_workload.peers = new_peers
+        # remove peer from allowed ips on all nodes
+        access_node_range = node_workloads[node_id]
+        routing_range = wg_routing_ip(iprange)
+        for network_resource in node_workloads.values():
+            for peer in network_resource.peers:
+                if peer.iprange != access_node_range:
+                    if iprange in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(iprange)
+                    if routing_range in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(routing_range)
+        return network
+
 
 def generate_peers(network):
     """Generate  peers in the network
@@ -187,7 +217,6 @@ def generate_peers(network):
     Args:
         network ([type]): network object
     """
-
     public_nr = None
     if has_hidden_nodes(network):
         public_nr = find_public_node(network.network_resources)
@@ -234,7 +263,6 @@ def generate_peers(network):
             ipv6_only_subnets[nr.info.node_id] = nr.iprange
 
     for nr in network.network_resources:
-
         nr.peers = []
         for onr in network.network_resources:
             # skip ourself
@@ -242,8 +270,9 @@ def generate_peers(network):
                 continue
 
             endpoint = ""
-
-            allowed_ips = [onr.iprange, wg_routing_ip(onr.iprange)]
+            allowed_ips = set()
+            allowed_ips.add(onr.iprange)
+            allowed_ips.add(wg_routing_ip(onr.iprange))
 
             if len(nr.public_endpoints) == 0:
                 # If node is hidden, set only public peers (with IPv4), and set first public peer to
@@ -258,12 +287,12 @@ def generate_peers(network):
                         if owner == nr.info.node_id:
                             continue
 
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                     for subnet in ipv6_only_subnets.values():
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                     for pep in onr.public_endpoints:
                         if pep.version == 4:
@@ -291,8 +320,8 @@ def generate_peers(network):
                 # if this is the selected public_nr - also need to add allowedIPs for the hidden nodes
                 if public_nr and onr.info.node_id == public_nr.info.node_id:
                     for subnet in hidden_subnets.values():
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                 # Since the node is not hidden, we know that it MUST have at least 1 IPv6 address
                 for pep in onr.public_endpoints:
@@ -308,10 +337,13 @@ def generate_peers(network):
                             break
 
             # Add subnets for external access
+            new_allowed_ips = set()
             for aip in allowed_ips:
+                new_allowed_ips.add(aip)
                 for subnet in external_subnet.get(aip, []):
-                    allowed_ips.append(subnet)
-                    allowed_ips.append(wg_routing_ip(subnet))
+                    new_allowed_ips.add(subnet)
+                    new_allowed_ips.add(wg_routing_ip(subnet))
+            allowed_ips = new_allowed_ips
 
             peer = TfgridWorkloadsWireguardPeer1()
             peer.iprange = str(onr.iprange)
@@ -319,7 +351,6 @@ def generate_peers(network):
             peer.allowed_iprange = [str(x) for x in allowed_ips]
             peer.public_key = onr.wireguard_public_key
             nr.peers.append(peer)
-
         #  Add configured external access peers
         for ea in access_points.get(nr.info.node_id, []):
             allowed_ips = [str(ea.subnet), wg_routing_ip(ea.subnet)]

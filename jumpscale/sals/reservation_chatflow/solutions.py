@@ -1,6 +1,11 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, Type
 
+K8S_SIZES = {
+    1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"},
+    2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"},
+}
+
 
 class ChatflowSolutions:
     def list_network_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -9,6 +14,8 @@ class ChatflowSolutions:
             networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=False)
         result = []
         for n in networks.values():
+            if len(n.network_workloads) == 0:
+                continue
             result.append(
                 {
                     "Name": n.name,
@@ -48,6 +55,7 @@ class ChatflowSolutions:
                             "Pool": workload.info.pool_id,
                         }
                     )
+                    result[-1].update(self.get_workload_capacity(workload))
         return result
 
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -78,6 +86,7 @@ class ChatflowSolutions:
                             "Pool": workload.info.pool_id,
                         }
                     )
+                    result[-1].update(self.get_workload_capacity(workload))
         return result
 
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -111,6 +120,7 @@ class ChatflowSolutions:
                         "Slave IPs": [],
                         "Pool": workload.info.pool_id,
                     }
+                    result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
                         result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
@@ -144,6 +154,8 @@ class ChatflowSolutions:
                             result[f"{name}"]["Secondary IPv4"] = workload.network_connection[0].ipaddress
                             result[f"{name}"]["Secondary IPv6"] = self.get_ipv6_address(workload)
                             result[f"{name}"]["Secondary Node"] = workload.network_connection[0].ipaddress
+                            for key, value in self.get_workload_capacity(workload).items():
+                                result[name][f"Secondary {key}"] = value
                             if workload.volumes:
                                 for vol in workload.volumes:
                                     result[f"{name}"]["wids"].append(vol.volume_id.split("-")[0])
@@ -157,6 +169,8 @@ class ChatflowSolutions:
                             "Primary Node": workload.info.node_id,
                             "Pool": workload.info.pool_id,
                         }
+                        for key, value in self.get_workload_capacity(workload).items():
+                            result[name][f"Primary {key}"] = value
                         if workload.volumes:
                             for vol in workload.volumes:
                                 result[f"{name}"]["wids"].append(vol.volume_id.split("-")[0])
@@ -197,6 +211,8 @@ class ChatflowSolutions:
                             for vol in workload.volumes:
                                 result[name]["wids"].append(vol.volume_id.split("-")[0])
                         result[name][f"{container_type} IP"] = workload.network_connection[0].ipaddress
+                        for key, value in self.get_workload_capacity(workload).items():
+                            result[name][f"{container_type} {key}"] = value
                         continue
                     result[name] = {
                         "wids": [workload.id],
@@ -206,6 +222,8 @@ class ChatflowSolutions:
                         f"{container_type} IPv4": workload.network_connection[0].ipaddress,
                         f"{container_type} IPv6": self.get_ipv6_address(workload),
                     }
+                    for key, value in self.get_workload_capacity(workload).items():
+                        result[name][f"{container_type} {key}"] = value
                     if workload.volumes:
                         for vol in workload.volumes:
                             result[name]["wids"].append(vol.volume_id.split("-")[0])
@@ -236,6 +254,7 @@ class ChatflowSolutions:
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
                     }
+                    solution_dict.update(self.get_workload_capacity(workload))
                     if workload.volumes:
                         for vol in workload.volumes:
                             solution_dict["wids"].append(vol.volume_id.split("-")[0])
@@ -269,6 +288,7 @@ class ChatflowSolutions:
                             "Pool": workload.info.pool_id,
                         }
                     )
+                    result[-1].update(self.get_workload_capacity(workload))
         return result
 
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -318,10 +338,14 @@ class ChatflowSolutions:
                     "Name": proxy.domain,
                     "Gateway": proxy.info.node_id,
                     "Pool": proxy.info.pool_id,
+                    "Domain": proxy.domain,
                 }
                 if proxy.info.metadata:
                     metadata = j.data.serializers.json.loads(proxy.info.metadata)
                     if not metadata:
+                        continue
+                    chatflow = metadata.get("form_info", {}).get("chatflow")
+                    if chatflow and chatflow != "exposed":
                         continue
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     if name and proxy.domain in result:
@@ -334,6 +358,9 @@ class ChatflowSolutions:
             for workload in subdomains:
                 metadata = j.data.serializers.json.loads(workload.info.metadata)
                 if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
                     "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
@@ -356,6 +383,9 @@ class ChatflowSolutions:
                     continue
                 metadata = j.data.serializers.json.loads(container_workload.info.metadata)
                 if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
                     "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
@@ -393,6 +423,7 @@ class ChatflowSolutions:
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
                     }
+                    result[name].update(self.get_workload_capacity(workload))
         for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
             for workload in proxy_workloads:
                 if not workload.info.metadata:
@@ -429,8 +460,11 @@ class ChatflowSolutions:
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
+
         for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
             for workload in container_workloads:
+                if workload.flist == "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
+                    continue
                 if not workload.info.metadata:
                     continue
                 metadata = j.data.serializers.json.loads(workload.info.metadata)
@@ -449,6 +483,7 @@ class ChatflowSolutions:
                         "Node": workload.info.node_id,
                         "Pool": workload.info.pool_id,
                     }
+                    result[name].update(self.get_workload_capacity(workload))
 
         for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
             for workload in proxy_workloads:
@@ -459,7 +494,7 @@ class ChatflowSolutions:
                     continue
                 if not metadata.get("form_info"):
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == "threebot":
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)
@@ -474,7 +509,7 @@ class ChatflowSolutions:
                     continue
                 if not metadata.get("form_info"):
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == "threebot":
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)
@@ -550,7 +585,23 @@ class ChatflowSolutions:
 
     def get_ipv6_address(self, workload):
         result = j.data.serializers.json.loads(workload.info.result.data_json)
+        if not result:
+            result = {}
         return result.get("ipv6")
+
+    def get_workload_capacity(self, workload):
+        result = {}
+        if workload.info.workload_type == Type.Container:
+            result["CPU"] = workload.capacity.cpu
+            result["Memory"] = workload.capacity.memory
+            result["RootFS Type"] = workload.capacity.disk_type.name
+            result["RootFS Size"] = workload.capacity.disk_size
+        elif workload.info.workload_type == Type.Kubernetes:
+            result.update(K8S_SIZES.get(workload.size, {}))
+        elif workload.info.workload_type == Type.Volume:
+            result["Size"] = workload.size * 1024
+            result["Type"] = workload.type.name
+        return result
 
 
 solutions = ChatflowSolutions()

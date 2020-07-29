@@ -42,7 +42,7 @@ class GiteaDeploy(GedisChatBot):
     @chatflow_step(title="Pool")
     def select_pool(self):
         cu, su = deployer.calculate_capacity_units(**self.query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **self.query)
 
     @chatflow_step(title="Network")
     def gitea_network(self):
