@@ -80,7 +80,12 @@ To get yourself FreeTFTs and TFTs on testnet network you can follow the followin
         
   ## From the admin dashboard
   
-   From your 3bot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using friendbot
+From your 3bot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using friendbot
+![admin walletmanager](../images/walletmanager.jpg)
+
+and after creating a new wallet it will be funded with 10000 XLM
+![admin walletdetails](../images/walletdetails.jpg)
+
 
 - To get TFTs we can sell from the XLM tokens in the wallet in exchange for TFTs by following the next steps:
     - Access [https://testnet.interstellar.exchange/app](https://testnet.interstellar.exchange/app) and proceed with the steps until you can **Enter Account**.
