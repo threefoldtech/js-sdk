@@ -316,13 +316,23 @@ class ChatflowDeployer:
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def select_pool(self, bot, cu=None, su=None, available_pools=None, workload_name=None):
+    def select_pool(
+        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
+    ):
         available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
             raise StopChatFlow("no available pools")
         pool_messages = {}
         for pool in available_pools:
+            farm_id = self.get_pool_farm_id(pool)
+            nodes = j.sals.reservation_chatflow.reservation_chatflow.check_farm_resources(
+                farm_id, sru=sru, cru=cru, hru=hru, mru=mru
+            )
+            if not nodes:
+                continue
             pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su: {available_pools[pool][1]}"] = pool
+        if not pool_messages:
+            raise StopChatFlow("no available resources in the farms bound to your pools")
         msg = "Please select a pool"
         if workload_name:
             msg += f" for {workload_name}"
@@ -777,6 +787,12 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             pool_choices = {}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
+                    continue
+                farm_id = self.get_pool_farm_id(p)
+                nodes = j.sals.reservation_chatflow.reservation_chatflow.check_farm_resources(
+                    farm_id, **resource_query_list[i]
+                )
+                if not nodes:
                     continue
                 pool_choices[p] = pools[p]
             pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)

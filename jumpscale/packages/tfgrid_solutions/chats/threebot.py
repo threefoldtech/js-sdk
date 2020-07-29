@@ -62,7 +62,7 @@ class ThreebotDeploy(GedisChatBot):
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Network")
