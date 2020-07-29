@@ -1,14 +1,13 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode
+from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode, State
 from nacl.public import Box
 import netaddr
 import time
 from collections import defaultdict
 from decimal import Decimal
 import gevent
-from jumpscale.sals.zos.network import wg_routing_ip
 
 
 class NetworkView:
@@ -29,6 +28,8 @@ class NetworkView:
     def _init_network_workloads(self, workloads):
         for workload in workloads:
             if workload.info.next_action != NextAction.DEPLOY:
+                continue
+            if workload.info.result.state != State.OK:
                 continue
             if workload.info.workload_type == Type.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
