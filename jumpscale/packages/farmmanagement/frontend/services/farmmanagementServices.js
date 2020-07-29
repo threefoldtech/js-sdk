@@ -25,6 +25,14 @@ export default {
       }
     })
   },
+  deleteNodeFarm(node) {
+    return axios.post('/farmmanagement/actors/farm_management/delete_node_farm', {
+      args: {
+        farm_id: node.farmer.id,
+        node_id: node.id,
+      }
+    })
+  },
   getNodes(tfgridUrl, farm_id = undefined) {
     return axios.get(`${tfgridUrl}/nodes`, {
       params: {
@@ -33,7 +41,6 @@ export default {
     })
   },
   setNodeFree(node_id, free) {
-    console.log(node_id, free)
     return axios.post('/farmmanagement/actors/farm_management/mark_node_free', {
       args: {
         node_id: node_id,

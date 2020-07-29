@@ -55,6 +55,9 @@ export default {
     updateFarm(context, farm) {
       return tfService.updateFarm(farm.id, farm);
     },
+    deleteNodeFarm(context, node) {
+      return tfService.deleteNodeFarm(node)
+    }
   },
   mutations: {
     setFarms(state, value) {

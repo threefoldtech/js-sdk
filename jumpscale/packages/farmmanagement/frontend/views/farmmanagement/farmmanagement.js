@@ -267,7 +267,6 @@ module.exports = new Promise(async (resolve, reject) => {
             }
         },
         async mounted() {
-            console.log("MOUNT")
             await this.getTfgridUrl();
             await this.getUser();
             this.getFarms();
