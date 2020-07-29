@@ -162,12 +162,7 @@ class Publisher(GedisChatBot):
         result = deployer.add_network_node(self.network_view.name, self.selected_node, self.pool_id, self.network_view)
         if result:
             for wid in result["ids"]:
-                try:
-                    success = deployer.wait_workload(wid, self)
-                except StopChatFlow as e:
-                    for wid in result["ids"]:
-                        j.sals.zos.workloads.decomission(wid)
-                    raise e
+                success = deployer.wait_workload(wid, self)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()

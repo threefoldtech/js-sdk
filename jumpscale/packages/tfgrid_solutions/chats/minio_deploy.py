@@ -175,12 +175,7 @@ class MinioDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                try:
-                    success = deployer.wait_workload(wid)
-                except StopChatFlow as e:
-                    for wid in result["ids"]:
-                        j.sals.zos.workloads.decomission(wid)
-                    raise e
+                success = deployer.wait_workload(wid)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
