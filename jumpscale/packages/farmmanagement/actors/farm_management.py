@@ -14,6 +14,7 @@ class FarmManagemenet(BaseActor):
         farm["id"] = farm_id
         self._explorer.farms.update(farm)
 
+    @actor_method
     def delete_node_farm(self, farm_id, node_id):
         self._explorer.farms.delete(farm_id, node_id)
 
