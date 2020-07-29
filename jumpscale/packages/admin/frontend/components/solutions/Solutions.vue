@@ -2,7 +2,7 @@
   <div>
     <base-component title="Solutions" icon="mdi-apps" :loading="loading">
       <template #default>
-        <v-tabs class="text--left" background-color="transparent" vertical>
+        <v-tabs v-if="hasMigrated" class="text--left" background-color="transparent" vertical>
           <v-tab
             v-for="solution in solutions"
             :key="solution.topic"
@@ -62,6 +62,23 @@
             </v-card>
           </v-tab-item>
         </v-tabs>
+          <v-card v-else class="mx-auto" max-width="344">
+            <v-card-text>
+              <div>Have to migrate first</div>
+              <p class="display-1 text--primary">migrate</p>
+              <div class="text--primary">
+                The explporer has been upgraded, so you need to initialize the migration of your old reservations to be able to use them.
+                <br />To migrate please click on the bellow button.
+              </div>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn text color="deep-purple accent-4" @click="migrate">migrate</v-btn>
+            </v-card-actions>
+          </v-card>
+      </template>
+    </base-component>
+  </div>
+</template>
       </template>
     </base-component>
 
@@ -79,6 +96,7 @@ module.exports = {
       loading: false,
       selected: null,
       dialog: false,
+      hasMigrated: true,
       solutions: Object.values(SOLUTIONS),
       deployedSolutions: {},
       solutionCount: {},
@@ -135,9 +153,19 @@ module.exports = {
           );
         });
     },
+    migrate() {
+      this.$api.solutions.migrate().then((response) => {
+        window.location.reload();
+      });
+    },
   },
   mounted() {
     this.getSolutionCount();
+  },
+  created() {
+    this.$api.solutions.hasMigrated().then((response) => {
+      this.hasMigrated = JSON.parse(response.data).result;
+    });
   },
 };
 </script>

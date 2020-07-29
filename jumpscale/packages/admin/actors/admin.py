@@ -42,29 +42,6 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
 
     @actor_method
-    def set_explorer(self, explorer_type: str) -> str:
-        if explorer_type in explorers:
-            me = j.core.identity.me
-            url = f"https://{explorers[explorer_type]}/api/v1"
-            client = j.clients.explorer.get(name=explorer_type, url=url)
-            # check if we can switch with existing identity
-            try:
-                user = client.users.get(name=me.tname, email=me.email)
-            except j.exceptions.NotFound:
-                raise j.exceptions.NotFound(f"Your identity does not exist on {explorer_type}")
-
-            if user.pubkey != j.core.identity.me.nacl.get_verify_key_hex():
-                raise j.exceptions.Value(f"Your identity does not match on {explorer_type}")
-
-            j.clients.explorer.default_addr_set(url=url)
-
-            return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
-        else:
-            return j.data.serializers.json.dumps(
-                {"data": f"{explorer_type} is not a valid explorer type, must be 'testnet' or 'main'"}
-            )
-
-    @actor_method
     def list_identities(self) -> str:
         identities = j.core.identity.list_all()
         identity_data = {}

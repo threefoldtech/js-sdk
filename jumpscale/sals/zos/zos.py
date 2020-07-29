@@ -22,63 +22,53 @@ import binascii
 
 
 class Zosv2:
-    def __init__(self):
-        self._explorer = j.core.identity.me.explorer
-        self._nodes_finder = NodeFinder(self._explorer)
-        self._gateways_finder = GatewayFinder(self._explorer)
-        self._network = NetworkGenerator(self._explorer)
-        self._container = Container()
-        self._volume = Volumes()
-        self._zdb = ZDB(self._explorer)
-        self._kubernetes = Kubernetes(self._explorer)
-        self._billing = Billing()
-        self._gateway = Gateway(self._explorer)
-        self._pools = Pools(self._explorer)
-        self._workloads = Workloads(self._explorer)
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     @property
     def network(self):
-        return self._network
+        return NetworkGenerator(self._explorer)
 
     @property
     def container(self):
-        return self._container
+        return Container()
 
     @property
     def volume(self):
-        return self._volume
+        return Volumes()
 
     @property
     def zdb(self):
-        return self._zdb
+        return ZDB(self._explorer)
 
     @property
     def kubernetes(self):
-        return self._kubernetes
+        return Kubernetes(self._explorer)
 
     @property
     def nodes_finder(self):
-        return self._nodes_finder
+        return NodeFinder(self._explorer)
 
     @property
     def gateways_finder(self):
-        return self._gateways_finder
+        return GatewayFinder(self._explorer)
 
     @property
     def billing(self):
-        return self._billing
+        return Billing()
 
     @property
     def pools(self):
-        return self._pools
+        return Pools(self._explorer)
 
     @property
     def workloads(self):
-        return self._workloads
+        return Workloads(self._explorer)
 
     @property
     def gateway(self):
-        return self._gateway
+        return Gateway(self._explorer)
 
     def conversion(self):
         me = j.core.identity.me
