@@ -25,8 +25,7 @@ class SolutionExpose(GedisChatBot):
         "solution_type",
         "exposed_solution",
         "exposed_ports",
-        "domain_1",
-        "domain_2",
+        "domain",
         "confirmation",
         "reservation",
         "success",
@@ -38,7 +37,6 @@ class SolutionExpose(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = {}
         self.md_show("# This wizard will help you expose a deployed solution using the web gateway")
-        self.solution_metadata = {}
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
@@ -73,27 +71,60 @@ class SolutionExpose(GedisChatBot):
         else:
             self.solution_ip = self.solution["IPv4 Address"]
 
-    @chatflow_step(title="Domain 1")
-    def domain_1(self):
-        self.gateways = deployer.list_pool_gateways(self.pool_id)
-        domain_ask_list = []
-        self.user_domains = {}
-        for dom in deployer.workloads["DEPLOY"]["DOMAIN-DELEGATE"][self.pool_id]:
-            domain_ask_list.append(f"Delegated Domain: {dom.domain}")
-            self.user_domains[dom.domain] = dom
-        self.managed_domains = {}
-        for gateway in self.gateways.values():
-            for dom in gateway.managed_domains:
-                self.managed_domains[dom] = gateway
-                domain_ask_list.append(f"Managed Domain: {dom}")
-        domain_ask_list.append("Custom Domain")
-        self.chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
+    @chatflow_step(title="Domain")
+    def domain(self):
+        # {"domain": {"gateway": gw, "pool": p}}
 
-    @chatflow_step(title="Domain 2")
-    def domain_2(self):
-        if self.chosen_domain == "Custom Domain":
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
+
+        # add managed domains
+        gateway_id_dict = {}
+        pool_id_dict = {}
+        messages = {}
+        for gw_dict in gateways.values():
+            gateway_id_dict[gw_dict["gateway"].node_id] = gw_dict["gateway"]
+            pool_id_dict[gw_dict["pool"].pool_id] = gw_dict["pool"]
+            for dom in gw_dict["gateway"].managed_domains:
+                messages[f"Managed {dom}"] = gw_dict
+
+        # add delegate domains
+        delegated_domains = solutions.list_delegated_domain_solutions()
+        for dom in delegated_domains:
+            gw_dict = {"gateway": gateway_id_dict[dom["Gateway"]], "pool": pool_id_dict[dom["Pool"]]}
+            messages[f"Delegated {dom['Name']}"] = gw_dict
+
+        domain_ask_list = list(messages.keys())
+        # add custom_domain
+        domain_ask_list.append("Custom Domain")
+        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
+        if chosen_domain != "Custom Domain":
+            self.domain_gateway = messages[chosen_domain]["gateway"]
+            self.domain_pool = messages[chosen_domain]["pool"]
+            splits = chosen_domain.split()
+            self.domain_type = splits[0]
+            self.domain = splits[1]
+            retry = False
+            while True:
+                domain = self.string_ask(
+                    f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
+                    retry=retry,
+                )
+                if "." in domain:
+                    retry = True
+                    self.md_show("You can't nest domains. please click next to try again")
+                else:
+                    if j.tools.dnstool.is_free(domain + "." + self.domain):
+                        break
+                    else:
+                        self.md_show(f"domain {domain + '.' + self.domain} is not available")
+
+            self.domain = domain + "." + self.domain
+        else:
             self.domain = self.string_ask("Please specify the domain name you wish to bind to:")
-            self.domain_gateway = deployer.select_gateway(self, self.pool_id)
+            self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
+            self.domain_type = "Custom Domain"
             res = """\
             Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
@@ -102,31 +133,8 @@ class SolutionExpose(GedisChatBot):
             """
             res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
             self.md_show(res)
-
-        else:
-            temp = self.chosen_domain.split()
-            domain_type = temp[0]
-            domain_name = temp[-1]
-            if domain_type == "Managed":
-                self.domain_gateway = self.managed_domains[domain_name]
-            elif domain_type == "Delegated":
-                domain_obj = self.user_domains[domain_name]
-                self.domain_gateway = deployer._explorer.gateway.get(domain_obj.info.node_id)
-            retry = False
-            while True:
-                domain = self.string_ask(
-                    f"Please specify the sub domain name you wish to bind to. will be (subdomain).{domain_name}",
-                    retry=retry,
-                )
-                if "." in domain:
-                    retry = True
-                    self.md_show("You can't nest domains. please click next to try again")
-                else:
-                    break
-            self.domain = domain + "." + domain_name
-            self.name_server = self.domain_gateway.dns_nameserver[0]
-            self.gateway_id = self.domain_gateway.node_id
-            self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
+        self.name_server = self.domain_gateway.dns_nameserver[0]
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation", disable_previous=True)
     def confirmation(self):
@@ -136,7 +144,7 @@ class SolutionExpose(GedisChatBot):
             "Solution Exposed IP": self.solution_ip,
             "Port": self.port,
             "TLS Port": self.tls_port,
-            "Gateway": self.gateway_id,
+            "Gateway": self.domain_gateway.node_id,
             "Pool": self.pool_id,
             "TRC Secret": self.secret,
         }
@@ -145,7 +153,6 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         metadata = {"name": self.domain, "form_info": {"Solution name": self.domain, "chatflow": "exposed"}}
-        self.solution_metadata.update(metadata)
         query = {"mru": 1, "cru": 1, "sru": 1}
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
         self.network_name = self.solution["Network"]
@@ -164,47 +171,47 @@ class SolutionExpose(GedisChatBot):
                 f"No available ips one for network {self.network_view.name} node {self.selected_node.node_id}"
             )
 
-        if self.chosen_domain != "Custom":
+        if self.domain_type != "Custom Domain":
             self.dom_id = deployer.create_subdomain(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway_id,
+                pool_id=self.domain_pool.pool_id,
+                gateway_id=self.domain_gateway.node_id,
                 subdomain=self.domain,
-                **self.solution_metadata,
+                **metadata,
                 solution_uuid=self.solution_id,
             )
             success = deployer.wait_workload(self.dom_id)
             if not success:
-                j.sal.chatflow_solutions.cancel_solution([self.dom_id])
+                solutions.cancel_solution([self.dom_id])
                 raise StopChatFlow(f"Failed to reserve sub-domain workload {self.dom_id}")
 
         self.proxy_id = deployer.create_proxy(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway_id,
+            pool_id=self.domain_pool.pool_id,
+            gateway_id=self.domain_gateway.node_id,
             domain_name=self.domain,
             trc_secret=self.secret,
-            **self.solution_metadata,
+            **metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            j.sal.chatflow_solutions.cancel_solution([self.proxy_id])
+            solutions.cancel_solution([self.proxy_id])
             raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
-            gateway_id=self.gateway_id,
+            gateway_id=self.domain_gateway.node_id,
             network_name=self.network_name,
             local_ip=self.solution_ip,
             port=self.port,
             tls_port=self.tls_port,
             trc_secret=self.secret,
             bot=self,
-            **self.solution_metadata,
+            **metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.tcprouter_id)
         if not success:
-            j.sal.chatflow_solutions.cancel_solution([self.tcprouter_id])
+            solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
