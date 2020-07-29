@@ -180,6 +180,36 @@ class NetworkGenerator:
             wg_private_key.decode(), ip_range, access_point_nr.wireguard_public_key, network.iprange, endpoint
         )
 
+    def delete_access(self, network, node_id, iprange):
+        node_workloads = {}
+        node_ranges = set()
+        for net_workload in network.network_resources:
+            node_workloads[net_workload.info.node_id] = net_workload
+            node_ranges.add(net_workload.iprange)
+        if iprange in node_ranges:
+            raise Input("Can't delete zos node peer")
+
+        access_workload = node_workloads.get(node_id)
+        if not access_workload:
+            raise Input(f"Node {node_id} is not part of network")
+        # remove peer from access node
+        new_peers = []
+        for peer in access_workload.peers:
+            if peer.iprange != iprange:
+                new_peers.append(peer)
+        access_workload.peers = new_peers
+        # remove peer from allowed ips on all nodes
+        access_node_range = node_workloads[node_id]
+        routing_range = wg_routing_ip(iprange)
+        for network_resource in node_workloads.values():
+            for peer in network_resource.peers:
+                if peer.iprange != access_node_range:
+                    if iprange in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(iprange)
+                    if routing_range in peer.allowed_iprange:
+                        peer.allowed_iprange.remove(routing_range)
+        return network
+
 
 def generate_peers(network):
     """Generate  peers in the network
