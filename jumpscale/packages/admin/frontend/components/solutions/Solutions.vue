@@ -62,19 +62,19 @@
             </v-card>
           </v-tab-item>
         </v-tabs>
-          <v-card v-else class="mx-auto" max-width="344">
-            <v-card-text>
-              <div>Have to migrate first</div>
-              <p class="display-1 text--primary">migrate</p>
-              <div class="text--primary">
-                The explporer has been upgraded, so you need to initialize the migration of your old reservations to be able to use them.
-                <br />To migrate please click on the bellow button.
-              </div>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn text color="deep-purple accent-4" @click="migrate">migrate</v-btn>
-            </v-card-actions>
-          </v-card>
+        <v-card v-else class="mx-auto" max-width="344">
+          <v-card-text>
+            <div>Have to migrate first</div>
+            <p class="display-1 text--primary">migrate</p>
+            <div class="text--primary">
+              The explorer has been upgraded, so you need to initialize the migration of your old reservations to be able to use them.
+              <br />To migrate please click on the bellow button.
+            </div>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn text color="deep-purple accent-4" @click="migrate">migrate</v-btn>
+          </v-card-actions>
+        </v-card>
       </template>
     </base-component>
   </div>
