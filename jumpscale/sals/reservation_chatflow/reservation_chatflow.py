@@ -217,8 +217,10 @@ class ReservationChatflow:
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
-        self._explorer = j.core.identity.me.explorer
-        # self.update_local_reservations()
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
