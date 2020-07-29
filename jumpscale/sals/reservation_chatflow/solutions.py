@@ -318,10 +318,14 @@ class ChatflowSolutions:
                     "Name": proxy.domain,
                     "Gateway": proxy.info.node_id,
                     "Pool": proxy.info.pool_id,
+                    "Domain": proxy.domain,
                 }
                 if proxy.info.metadata:
                     metadata = j.data.serializers.json.loads(proxy.info.metadata)
                     if not metadata:
+                        continue
+                    chatflow = metadata.get("form_info", {}).get("chatflow")
+                    if chatflow and chatflow != "exposed":
                         continue
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     if name and proxy.domain in result:
@@ -334,6 +338,9 @@ class ChatflowSolutions:
             for workload in subdomains:
                 metadata = j.data.serializers.json.loads(workload.info.metadata)
                 if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
                     "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
@@ -356,6 +363,9 @@ class ChatflowSolutions:
                     continue
                 metadata = j.data.serializers.json.loads(container_workload.info.metadata)
                 if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
                     "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
@@ -429,8 +439,11 @@ class ChatflowSolutions:
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
+
         for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
             for workload in container_workloads:
+                if workload.flist == "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
+                    continue
                 if not workload.info.metadata:
                     continue
                 metadata = j.data.serializers.json.loads(workload.info.metadata)
@@ -459,7 +472,7 @@ class ChatflowSolutions:
                     continue
                 if not metadata.get("form_info"):
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == "threebot":
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)
@@ -474,7 +487,7 @@ class ChatflowSolutions:
                     continue
                 if not metadata.get("form_info"):
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == "threebot":
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)

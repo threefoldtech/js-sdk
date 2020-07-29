@@ -224,6 +224,7 @@ class ThreebotDeploy(GedisChatBot):
                 node_id=self.selected_node.node_id,
                 reserve_proxy=True,
                 domain_name=self.domain,
+                solution_uuid=self.solution_id,
                 **metadata,
             )
         )
