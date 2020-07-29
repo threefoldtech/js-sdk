@@ -223,9 +223,19 @@ const apiClient = {
         url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
-        data: { wids: wids}
+        data: { wids: wids }
       })
-    }
+    },
+    hasMigrated: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/has_migrated`,
+      })
+    },
+    migrate: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/migrate`,
+      })
+    },
   },
   health: {
     getMemoryUsage() {
