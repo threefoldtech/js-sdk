@@ -913,17 +913,23 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         trc_secret,
         node_id=None,
         reserve_proxy=False,
+        proxy_pool_id=None,
         domain_name=None,
         bot=None,
         **metadata,
     ):
+        proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 
         if reserve_proxy:
             if not domain_name:
                 raise StopChatFlow("you must pass domain_name when you ise reserv_proxy")
             resv_id = self.create_proxy(
-                pool_id=pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata,
+                pool_id=proxy_pool_id,
+                gateway_id=gateway_id,
+                domain_name=domain_name,
+                trc_secret=trc_secret,
+                **metadata,
             )
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
