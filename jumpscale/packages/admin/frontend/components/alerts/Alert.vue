@@ -6,35 +6,34 @@
         <tbody>
           <tr>
             <td>Id</td>
-            <td>{{ alert.id }}</td>
+            <td>{{ alertdata.id }}</td>
           </tr>
           <tr>
             <td>Application</td>
-            <td>{{ alert.appname }}</td>
+            <td>{{ alertdata.appname }}</td>
           </tr>
           <tr>
             <td>Category</td>
-            <td>{{ alert.category }}</td>
+            <td>{{ alertdata.category }}</td>
           </tr>
           <tr>
             <td>Message</td>
-            <td><code>{{ alert.message }}</code></td>
+            <td><code>{{ alertdata.message }}</code></td>
           </tr>
         </tbody>
         </template>
       </v-simple-table>
-      <code-area mode="python" :content="alert.tracebacks[0].raw"></code-area>
+      <code-area v-if="alertdata.tracebacks[0]" mode="python" :content="alertdata.tracebacks[0].raw"></code-area>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
     </template>
-  </base-dialog>  
+  </base-dialog>
 </template>
 
 <script>
   module.exports = {
-    props: {alert: Object},
+    props: { alertdata: Object },
     mixins: [dialog]
   }
 </script>
-
