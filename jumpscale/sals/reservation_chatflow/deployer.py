@@ -385,7 +385,7 @@ class ChatflowDeployer:
         for workload in network.network_resources:
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            workload.metadata = self.encrypt_metadata(metadata)
+            workload.info.metadata = self.encrypt_metadata(metadata)
             ids.append(j.sals.zos.workloads.deploy(workload))
             parent_id = ids[-1]
         network_config["ids"] = ids
@@ -403,9 +403,10 @@ class ChatflowDeployer:
 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
+            resource.info.reference = ""
             resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            resource.metadata = self.encrypt_metadata(metadata)
+            resource.info.metadata = self.encrypt_metadata(metadata)
             result["ids"].append(j.sals.zos.workloads.deploy(resource))
             parent_id = result["ids"][-1]
         result["rid"] = result["ids"][0]
@@ -422,9 +423,10 @@ class ChatflowDeployer:
         parent_id = network_view.network_workloads[-1].id
         result = []
         for resource in node_workloads.values():
+            resource.info.reference = ""
             resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            resource.metadata = self.encrypt_metadata(metadata)
+            resource.info.metadata = self.encrypt_metadata(metadata)
             result.append(j.sals.zos.workloads.deploy(resource))
             parent_id = result[-1]
         return result
@@ -437,13 +439,17 @@ class ChatflowDeployer:
             if bot:
                 deploying_message = f"""
 # Deploying...\n
+
+Workload ID: {workload_id} \n
+
 Deployment will be cancelled if it is not successful in {remaning_time}
                 """
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:
                 return workload.info.result.state.value == 1
             if expiration_provisioning < j.data.time.get().timestamp:
-                j.sal.chatflow_solutions.cancel_solution([workload_id])
+                if workload.info.workload_type != Type.Network_resource:
+                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
 
@@ -460,9 +466,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
         for workload in node_workloads.values():
+            workload.info.reference = ""
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            workload.metadata = self.encrypt_metadata(metadata)
+            workload.info.metadata = self.encrypt_metadata(metadata)
             ids.append(j.sals.zos.workloads.deploy(workload))
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}

@@ -217,7 +217,6 @@ def generate_peers(network):
     Args:
         network ([type]): network object
     """
-
     public_nr = None
     if has_hidden_nodes(network):
         public_nr = find_public_node(network.network_resources)
@@ -264,7 +263,6 @@ def generate_peers(network):
             ipv6_only_subnets[nr.info.node_id] = nr.iprange
 
     for nr in network.network_resources:
-
         nr.peers = []
         for onr in network.network_resources:
             # skip ourself
@@ -272,8 +270,9 @@ def generate_peers(network):
                 continue
 
             endpoint = ""
-
-            allowed_ips = [onr.iprange, wg_routing_ip(onr.iprange)]
+            allowed_ips = set()
+            allowed_ips.add(onr.iprange)
+            allowed_ips.add(wg_routing_ip(onr.iprange))
 
             if len(nr.public_endpoints) == 0:
                 # If node is hidden, set only public peers (with IPv4), and set first public peer to
@@ -288,12 +287,12 @@ def generate_peers(network):
                         if owner == nr.info.node_id:
                             continue
 
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                     for subnet in ipv6_only_subnets.values():
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                     for pep in onr.public_endpoints:
                         if pep.version == 4:
@@ -321,8 +320,8 @@ def generate_peers(network):
                 # if this is the selected public_nr - also need to add allowedIPs for the hidden nodes
                 if public_nr and onr.info.node_id == public_nr.info.node_id:
                     for subnet in hidden_subnets.values():
-                        allowed_ips.append(subnet)
-                        allowed_ips.append(wg_routing_ip(subnet))
+                        allowed_ips.add(subnet)
+                        allowed_ips.add(wg_routing_ip(subnet))
 
                 # Since the node is not hidden, we know that it MUST have at least 1 IPv6 address
                 for pep in onr.public_endpoints:
@@ -338,10 +337,13 @@ def generate_peers(network):
                             break
 
             # Add subnets for external access
+            new_allowed_ips = set()
             for aip in allowed_ips:
+                new_allowed_ips.add(aip)
                 for subnet in external_subnet.get(aip, []):
-                    allowed_ips.append(subnet)
-                    allowed_ips.append(wg_routing_ip(subnet))
+                    new_allowed_ips.add(subnet)
+                    new_allowed_ips.add(wg_routing_ip(subnet))
+            allowed_ips = new_allowed_ips
 
             peer = TfgridWorkloadsWireguardPeer1()
             peer.iprange = str(onr.iprange)
@@ -349,7 +351,6 @@ def generate_peers(network):
             peer.allowed_iprange = [str(x) for x in allowed_ips]
             peer.public_key = onr.wireguard_public_key
             nr.peers.append(peer)
-
         #  Add configured external access peers
         for ea in access_points.get(nr.info.node_id, []):
             allowed_ips = [str(ea.subnet), wg_routing_ip(ea.subnet)]
