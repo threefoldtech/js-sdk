@@ -64,9 +64,14 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        self.gateways = {}
+        for g in filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos._explorer.gateway.list()):
+            if self.currency == "FreeTFT" and not g.free_to_use:
+                continue
+            self.gateways[g.node_id] = g
+
+        if not self.gateways:
+            self.stop(f"There are no gateways that support the currency {self.currency}")
 
         domains = dict()
         for gateway in self.gateways.values():
