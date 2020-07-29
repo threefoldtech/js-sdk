@@ -9,7 +9,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class PeerTubeDeploy(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/chocobozzz-peertube-v2.3.0-buster.flist"
+    FLIST_URL = "https://hub.grid.tf/omar0.3bot/ashraffouda-peertube-latest.flist"
 
     steps = [
         "peertube_start",
@@ -19,6 +19,7 @@ class PeerTubeDeploy(GedisChatBot):
         "peertube_network",
         "container_logs",
         "public_key_get",
+        "select_domain",
         "container_node_id",
         "container_ip",
         "overview",
@@ -35,6 +36,7 @@ class PeerTubeDeploy(GedisChatBot):
         self.query = dict()
         self.user_form_data["chatflow"] = "peertube"
         self.md_show("# This wizard will help you deploy peertube", md=True)
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
 
     @chatflow_step(title="Solution name")
     def peertube_name(self):
@@ -107,6 +109,30 @@ class PeerTubeDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0]
         )
+    
+    @chatflow_step(title="Domain")
+    def select_domain(self):
+        self.gateways = {
+            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
+        }
+
+        domains = dict()
+        for gateway in self.gateways.values():
+            for domain in gateway.managed_domains:
+                domains[domain] = gateway
+
+        self.domain = self.single_choice(
+            "Please choose the domain you wish to use", list(domains.keys()), required=True
+        )
+
+        self.gateway = domains[self.domain]
+        self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -124,11 +150,50 @@ class PeerTubeDeploy(GedisChatBot):
         self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
-    def reservation(self):
+    def reservation(self):   
+        # reserve subdomain
+        _id = deployer.create_subdomain(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            raise StopChatFlow(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {_id}"
+            )
+
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
         }
+
+        # expose threebot container
+        _id = deployer.expose_address(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                network_name=self.network_view.name,
+                local_ip=self.ip_address,
+                port=9000,
+                tls_port=443,
+                trc_secret=self.secret,
+                node_id=self.selected_node.node_id,
+                reserve_proxy=True,
+                domain_name=self.domain,
+                solution_uuid=self.solution_id,
+                **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            # solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(
+                f"Failed to create trc container on node {self.selected_node.node_id} {_id}"
+            )
+        self.threebot_url = f"https://{self.domain}"
+        # reserve container
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -152,7 +217,7 @@ class PeerTubeDeploy(GedisChatBot):
     def peertube_access(self):
         res = f"""\
 # Peertube has been deployed successfully: your reservation id is: {self.resv_id}
-To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
+To connect ```ssh root@{self.ip_address}```  ``` {self.threebot_url}```.It may take a few minutes.
                 """
         self.md_show(res, md=True)
 
