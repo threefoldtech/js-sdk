@@ -205,10 +205,14 @@ class MarketPlaceChatflow(GedisChatBot):
         network_names = []
         networks_dict = {}
         for net in networks_data:
-            network_names.append(net["name"])
-            networks_dict[net["name"]] = net
+            message = f"{net['name']} Currency: {net['reservation_obj'].data_reservation.currencies[0]}"
+            network_names.append(message)
+            networks_dict[message] = net
         network_name = self.single_choice(
-            "Please choose the network you want to connect your container to", network_names, required=True
+            "Please choose the network you want to connect your container to\n<br>\n<br>\n`The currency of the network will be used for the solution`",
+            network_names,
+            required=True,
+            md=True,
         )
         self.user_form_data["Network Name"] = network_name
         network_reservation = networks_dict[network_name]
