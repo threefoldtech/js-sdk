@@ -2,34 +2,41 @@
   <div>
     <base-dialog :title="title" v-model="dialog" :loading="loading">
       <template #default>
-        <v-list-item v-for="(item, key)  in json" :key="key">
-          <v-list-item-content v-if="key === 'nodes'">
-            <v-list-item-title v-text="key"></v-list-item-title>
-            <v-list-item v-for="(node, key)  in item" :key="key">
-              <v-list-item-title v-text="node"></v-list-item-title>
-              <v-list-item-subtitle v-text="key"></v-list-item-subtitle>
-            </v-list-item>
-          </v-list-item-content>
-          <v-list-item-content v-else-if="key === 'node_ids' ||key === 'active_workload_ids'">
-            <v-list-group :key="key" no-action>
-              <v-list-tile slot="activator">
-                <v-list-tile-content>
-                  <v-list-tile-title>{{ key }}</v-list-tile-title>
-                </v-list-tile-content>
-              </v-list-tile>
-              <v-list-tile v-for="node in item" :key="node">
-                <v-list-tile-content>
-                  <v-list-item-subtitle v-text="`- ${node}`"></v-list-item-subtitle>
-                </v-list-tile-content>
-              </v-list-tile>
-            </v-list-group>
-          </v-list-item-content>
-          <v-list-item-content v-else>
-            <v-list-item-title v-text="key"></v-list-item-title>
-            <v-list-item-subtitle v-text="item"></v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-        <!-- <code-area mode="python" :content="json"></code-area> -->
+        <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
+          <v-tab :key="title">{{ title }}</v-tab>
+          <v-tab :key="'moredetails'">More details</v-tab>
+
+          <v-tab-item :key="title">
+            <v-simple-table>
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="(item, key)  in json" :key="key">
+                    <th>{{ key }}</th>
+                    <td
+                      v-if="key === 'Node ids' || key === 'wids' || key === 'Active workload ids'"
+                      class="pt-2"
+                    >
+                      <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
+                    </td>
+                    <td v-else-if="key === 'nodes'">
+                      <v-chip
+                        class="ma-1"
+                        v-for="(ip, node) in item"
+                        :key="node"
+                      >{{ ip }} / ({{ node }})</v-chip>
+                    </td>
+                    <td v-else>{{ item }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </v-tab-item>
+          <v-tab-item :key="'moredetails'">
+            <v-card flat>
+              <json-tree :raw="JSON.stringify(json)"></json-tree>
+            </v-card>
+          </v-tab-item>
+        </v-tabs>
       </template>
       <template #actions>
         <v-btn
@@ -57,11 +64,11 @@ module.exports = {
       dialogs: {
         cancelSolution: false,
       },
+      tab: 0,
     };
   },
   computed: {
     json() {
-      console.log(this.data);
       if (this.data.last_updated !== undefined)
         this.data.last_updated = new Date(this.data.last_updated * 1000);
       if (this.data.empty_at !== undefined)
