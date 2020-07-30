@@ -170,6 +170,8 @@ class NetworkView:
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(f"Network nodes dry run failed on node {resource.info.node_id}")
+        for wid in result:
+            j.sals.zos.workloads.decomission(wid)
 
 
 class ChatflowDeployer:
