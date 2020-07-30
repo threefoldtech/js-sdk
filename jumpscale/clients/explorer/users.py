@@ -1,23 +1,46 @@
-from jumpscale.core.exceptions import NotFound
 from jumpscale.core import identity
-from .models import TfgridPhonebookUser1
+from jumpscale.core.exceptions import NotFound
+
 from .base import BaseResource
+from .models import TfgridPhonebookUser1
+from .pagination import get_all, get_page
+from .auth import HTTPSignatureAuth
+from nacl.encoding import Base64Encoder
+from jumpscale.core import identity
 
 
 class Users(BaseResource):
     _resource = "users"
 
-    def list(self, name=None, email=None):
+    def _query(self, name=None, email=None):
         query = {}
         if name is not None:
             query["name"] = name
         if email is not None:
             query["email"] = email
-        resp = self._session.get(self._url, params=query)
-        users = []
-        for user_data in resp.json():
-            user = TfgridPhonebookUser1.from_dict(user_data)
-            users.append(user)
+        return query
+
+    def iter(self, name=None, email=None):
+        me = identity.get_identity()
+        secret = me.nacl.signing_key.encode(Base64Encoder)
+
+        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=["(created)", "date", "threebot-id"])
+        headers = {"threebot-id": str(me.tid)}
+
+        query = self._query(name=name,email=email)
+        yield from get_all(self._session, TfgridPhonebookUser1, self._url, query, auth=auth, headers=headers)
+
+    def list(self, name=None, email=None, page=None):
+        query = self._query(name=name,email=email)
+        if page:
+            me = identity.get_identity()
+            secret = me.nacl.signing_key.encode(Base64Encoder)
+
+            auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=["(created)", "date", "threebot-id"])
+            headers = {"threebot-id": str(me.tid)}
+            users, _ = get_page(self._session, page, TfgridPhonebookUser1, self._url, query, auth=auth, headers=headers)
+        else:
+            users = list(self.iter(name=name,email=email))
         return users
 
     def new(self):
@@ -28,7 +51,7 @@ class Users(BaseResource):
         return resp.json()["id"]
 
     def validate(self, tid, payload, signature):
-        url = self._base_url + f"/users/{tid}/validate"
+        url = self._url + f"/users/{tid}/validate"
         data = {
             "payload": payload,
             "signature": signature,
