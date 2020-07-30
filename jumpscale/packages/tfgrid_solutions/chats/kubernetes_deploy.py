@@ -87,7 +87,7 @@ class kubernetesDeploy(GedisChatBot):
         for i in range(len(self.selected_nodes)):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
-            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view)
+            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view, bot=self)
             if not result:
                 continue
             for wid in result["ids"]:
