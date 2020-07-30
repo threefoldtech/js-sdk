@@ -152,7 +152,7 @@ class FlistDeploy(GedisChatBot):
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, bot=self
         )
         if result:
             for wid in result["ids"]:
