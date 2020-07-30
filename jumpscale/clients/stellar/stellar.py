@@ -669,6 +669,14 @@ class Stellar(Client):
         j.logger.info(response)
         j.logger.info(f"Set the signers of {address} to {public_key_signer} and {preauth_tx_hash}")
 
+    def get_signing_requirements(self, address: str = None):
+        address = address or self.address
+        response = self._get_horizon_server().accounts().account_id(address).call()
+        signing_requirements = {}
+        signing_requirements["thresholds"] = response["thresholds"]
+        signing_requirements["signers"] = response["signers"]
+        return signing_requirements
+
     def modify_signing_requirements(
         self, public_keys_signers, signature_count, low_treshold=1, high_treshold=2, master_weight=2
     ):
@@ -951,11 +959,8 @@ class Stellar(Client):
     def get_data_entries(self, address: str = None):
         address = address or self.address
         horizon_server = self._get_horizon_server()
-        horizon_server.horizon_url
-        response = j.tools.http.get(f"{horizon_server.horizon_url}/accounts/{address}")
-        response.raise_for_status()
-        account = response.json()
+        response = horizon_server.accounts().account_id(address).call()
         data = {}
-        for data_name, data_value in account["data"].items():
+        for data_name, data_value in response["data"].items():
             data[data_name] = base64.b64decode(data_value).decode("utf-8")
         return data
