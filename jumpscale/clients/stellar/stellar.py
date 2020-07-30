@@ -13,7 +13,7 @@ from jumpscale.core.base import fields
 from jumpscale.loader import j
 from stellar_sdk import Asset, TransactionBuilder
 
-from .wrapped import Account
+from .wrapped import Account, Server
 from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 
@@ -61,7 +61,7 @@ class Stellar(Client):
 
     def _get_horizon_server(self):
         server_url = _HORIZON_NETWORKS[self.network.value]
-        server = stellar_sdk.Server(horizon_url=server_url)
+        server = Server(horizon_url=server_url)
         parsed_url = urlparse(server.horizon_url)
         port = 443
         if parsed_url.scheme == "http":
@@ -678,7 +678,7 @@ class Stellar(Client):
         return signing_requirements
 
     def modify_signing_requirements(
-        self, public_keys_signers, signature_count, low_treshold=1, high_treshold=2, master_weight=2
+        self, public_keys_signers, signature_count, low_treshold=0, high_treshold=2, master_weight=2
     ):
         """modify_signing_requirements sets to amount of signatures required for the creation of multisig account. It also adds
            the public keys of the signer to this account

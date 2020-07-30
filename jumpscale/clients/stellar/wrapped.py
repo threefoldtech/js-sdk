@@ -1,7 +1,10 @@
 # some wrapped stellar_sdk objects to modify the behavior
 
+import stellar_sdk
 from stellar_sdk import Account as stellarAccount
+from stellar_sdk import Server as stellarServer
 import time
+from .exceptions import NoTrustLine,TooLate
 
 
 class Account(stellarAccount):
@@ -20,3 +23,20 @@ class Account(stellarAccount):
     @property
     def last_created_sequence_is_used(self):
         return self.wallet.sequence <= self.sequence
+
+
+class Server(stellarServer):
+    def __init__(self, horizon_url):
+        super().__init__(horizon_url)
+
+    def submit_transaction(self, transaction_envelope):
+        try:
+            return super().submit_transaction(transaction_envelope)
+        except stellar_sdk.exceptions.BadRequestError as e:
+            if e.status == 400:
+                resultcodes = e.extras["result_codes"]
+                if resultcodes["transaction"] =='tx_too_late':
+                    raise TooLate()
+                if resultcodes["transaction"] == "tx_failed" and "op_no_trust" in resultcodes["operations"]:
+                    raise NoTrustLine()
+            raise e
