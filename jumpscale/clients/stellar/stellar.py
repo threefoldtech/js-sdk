@@ -241,7 +241,7 @@ class Stellar(Client):
 
         resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
         resp.raise_for_status()
-        j.logger.info("account with address: {} funded through friendbot".format(self.address))
+        j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
 
     def activate_through_threefold_service(self):
         """

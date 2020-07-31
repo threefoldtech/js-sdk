@@ -4,7 +4,7 @@ import stellar_sdk
 from stellar_sdk import Account as stellarAccount
 from stellar_sdk import Server as stellarServer
 import time
-from .exceptions import NoTrustLine,TooLate
+from .exceptions import NoTrustLine, TooLate, UnAuthorized
 
 
 class Account(stellarAccount):
@@ -35,8 +35,10 @@ class Server(stellarServer):
         except stellar_sdk.exceptions.BadRequestError as e:
             if e.status == 400:
                 resultcodes = e.extras["result_codes"]
-                if resultcodes["transaction"] =='tx_too_late':
+                if resultcodes["transaction"] == "tx_too_late":
                     raise TooLate()
+                if resultcodes["transaction"] == "tx_bad_auth":
+                    raise UnAuthorized(e.extras["envelope_xdr"])
                 if resultcodes["transaction"] == "tx_failed" and "op_no_trust" in resultcodes["operations"]:
                     raise NoTrustLine()
             raise e
