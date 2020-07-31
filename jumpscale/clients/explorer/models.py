@@ -287,7 +287,7 @@ class ReservationInfo(Base):
     epoch = fields.DateTime(default=datetime.utcnow)
     metadata = fields.String(default="")
     result = fields.Object(ReservationResult)
-    workload_type = fields.Enum(NicType)
+    workload_type = fields.Enum(WorkloadType)
 
 
 class GatewayProxy(Base):
@@ -350,15 +350,15 @@ class WireguardPeer(Base):
     iprange = fields.IPRange(default="10.10.11.0/24")
 
 
-class Workload(Base):
-    workload_id = fields.String(default="")
-    user = fields.String(default="")
-    type = fields.Enum(NicType)
-    content = fields.Typed(dict)
-    created = fields.DateTime()
-    duration = fields.Integer()
-    signature = fields.String(default="")
-    to_delete = fields.Boolean()
+# class Workload(Base):
+#     workload_id = fields.String(default="")
+#     user = fields.String(default="")
+#     type = fields.Enum(WorkloadType)
+#     content = fields.Typed(dict)
+#     created = fields.DateTime()
+#     duration = fields.Integer()
+#     signature = fields.String(default="")
+#     to_delete = fields.Boolean()
 
 
 class EscrowDetail(Base):
