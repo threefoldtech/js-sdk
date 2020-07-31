@@ -1,6 +1,6 @@
 from jumpscale.core.exceptions import NotFound
 from jumpscale.core import identity
-from .models import TfgridPhonebookUser1
+from .models import User
 from .base import BaseResource
 
 
@@ -16,12 +16,12 @@ class Users(BaseResource):
         resp = self._session.get(self._url, params=query)
         users = []
         for user_data in resp.json():
-            user = TfgridPhonebookUser1.from_dict(user_data)
+            user = User.from_dict(user_data)
             users.append(user)
         return users
 
     def new(self):
-        return TfgridPhonebookUser1()
+        return User()
 
     def register(self, user):
         resp = self._session.post(self._url, json=user.to_dict())
@@ -52,7 +52,7 @@ class Users(BaseResource):
     def get(self, tid=None, name=None, email=None):
         if tid is not None:
             resp = self._session.get(f"{self._url}/{tid}")
-            return TfgridPhonebookUser1.from_dict(resp.json())
+            return User.from_dict(resp.json())
 
         results = self.list(name=name, email=email)
         if results:

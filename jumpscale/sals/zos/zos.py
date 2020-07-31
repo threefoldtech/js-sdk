@@ -1,7 +1,7 @@
 import binascii
 
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservation1
+from jumpscale.clients.explorer.models import Reservation, TfgridWorkloadsReservation1
 from jumpscale.clients.explorer.workloads import Decoder
 from jumpscale.core import identity
 from jumpscale.data.nacl import payload_build

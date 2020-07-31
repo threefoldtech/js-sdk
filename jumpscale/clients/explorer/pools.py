@@ -1,5 +1,5 @@
 from .pagination import get_page, get_all
-from .models import TfgridWorkloadsPool1, TfgridWorkloadsPoolCreate1, TfgridWorkloadsPoolCreated1
+from .models import Pool, PoolCreate, PoolCreated
 from jumpscale.loader import j
 
 
@@ -7,9 +7,9 @@ class Pools:
     def __init__(self, client):
         self._session = client._session
         self._client = client
-        self._model = TfgridWorkloadsPool1
-        self._model_create = TfgridWorkloadsPoolCreate1
-        self._model_created = TfgridWorkloadsPoolCreated1
+        self._model = Pool
+        self._model_create = PoolCreate
+        self._model_created = PoolCreated
 
     @property
     def _base_url(self):

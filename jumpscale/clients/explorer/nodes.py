@@ -1,5 +1,5 @@
 from .pagination import get_page, get_all
-from .models import TfgridDirectoryNode2
+from .models import Node
 from .base import BaseResource
 from nacl.encoding import Base64Encoder
 from .auth import HTTPSignatureAuth
@@ -33,21 +33,21 @@ class Nodes(BaseResource):
 
         query = self._query(farm_id, country, city, cru, sru, mru, hru, proofs)
         if page:
-            nodes, _ = get_page(self._session, page, TfgridDirectoryNode2, self._url, query)
+            nodes, _ = get_page(self._session, page, Node, self._url, query)
         else:
             nodes = list(self.iter(farm_id, country, city, cru, sru, mru, hru, proofs))
         return nodes
 
     def iter(self, farm_id=None, country=None, city=None, cru=None, sru=None, mru=None, hru=None, proofs=False):
         query = self._query(farm_id, country, city, cru, sru, mru, hru, proofs)
-        yield from get_all(self._session, TfgridDirectoryNode2, self._url, query)
+        yield from get_all(self._session, Node, self._url, query)
 
     def get(self, node_id, proofs=False):
         params = {}
         if proofs:
             params["proofs"] = "true"
         resp = self._session.get(f"{self._url}/{node_id}", params=params)
-        return TfgridDirectoryNode2.from_dict(resp.json())
+        return Node.from_dict(resp.json())
 
     def configure_free_to_use(self, node_id, free):
         if not isinstance(free, bool):

@@ -1,6 +1,6 @@
 import hashlib
 from io import StringIO, SEEK_END
-from jumpscale.clients.explorer.models import Type
+from jumpscale.clients.explorer.models import WorkloadType
 
 
 def sign_workload(workload, signing_key):
@@ -50,17 +50,17 @@ def _hash(challenge):
 
 def _hash_signing_challenge(workload):
     _encoders = {
-        Type.Zdb: _zdb_challenge,
-        Type.Container: _container_challenge,
-        Type.Volume: _volume_challenge,
+        WorkloadType.Zdb: _zdb_challenge,
+        WorkloadType.Container: _container_challenge,
+        WorkloadType.Volume: _volume_challenge,
         # "network": _network_challenge,
-        Type.Kubernetes: _k8s_challenge,
-        Type.Proxy: _proxy_challenge,
-        Type.Reverse_proxy: _reverse_proxy_challenge,
-        Type.Subdomain: _subdomain_challenge,
-        Type.Domain_delegate: _delegate_challenge,
-        Type.Gateway4to6: _gateway4to6_challenge,
-        Type.Network_resource: _network_resource_challenge,
+        WorkloadType.Kubernetes: _k8s_challenge,
+        WorkloadType.Proxy: _proxy_challenge,
+        WorkloadType.Reverse_proxy: _reverse_proxy_challenge,
+        WorkloadType.Subdomain: _subdomain_challenge,
+        WorkloadType.Domain_delegate: _delegate_challenge,
+        WorkloadType.Gateway4to6: _gateway4to6_challenge,
+        WorkloadType.Network_resource: _network_resource_challenge,
     }
     b = StringIO()
     b.write(_workload_info_challenge(workload.info))

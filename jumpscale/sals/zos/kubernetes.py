@@ -1,7 +1,7 @@
 from jumpscale.core.exceptions import Input
 from .crypto import encrypt_for_node
 from .id import _next_workload_id
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationK8s1, Type
+from jumpscale.clients.explorer.models import K8s, WorkloadType
 
 
 class Kubernetes:
@@ -29,9 +29,9 @@ class Kubernetes:
         if size not in [1, 2]:
             raise Input("size can only be 1 or 2")
 
-        master = TfgridWorkloadsReservationK8s1()
+        master = K8s()
         master.info.node_id = node_id
-        master.info.workload_type = Type.Kubernetes
+        master.info.workload_type = WorkloadType.Kubernetes
         master.info.pool_id = pool_id
 
         node = self._nodes.get(node_id)

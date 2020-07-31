@@ -6,11 +6,11 @@ from .id import _next_workload_id
 from nacl import public
 import binascii
 from jumpscale.clients.explorer.models import (
-    TfgridWorkloadsReservationContainer1,
-    TfgridWorkloadsReservationContainerLogs1,
-    TfgridWorkloadsReservationNetworkConnection1,
+    Container,
+    ContainerLogs,
+    ContainerNetworkConnection,
     DiskType,
-    Type,
+    WorkloadType,
 )
 
 
@@ -57,10 +57,10 @@ class Container:
             jumpscale.clients.explorer.models.TfgridWorkloadsReservationContainer1: container object
         """
 
-        cont = TfgridWorkloadsReservationContainer1()
+        cont = Container()
         cont.info.node_id = node_id
         cont.info.pool_id = capacity_pool_id
-        cont.info.workload_type = Type.Container
+        cont.info.workload_type = WorkloadType.Container
 
         cont.flist = flist
         cont.storage_url = storage_url
@@ -69,7 +69,7 @@ class Container:
         cont.entrypoint = entrypoint
         cont.interactive = interactive
 
-        net = TfgridWorkloadsReservationNetworkConnection1()
+        net = ContainerNetworkConnection()
         net.network_id = network_name
         net.ipaddress = ip_address
         net.public_ip6 = public_ipv6
@@ -110,7 +110,7 @@ class Container:
         :rtype: tfgrid.workloads.reservation.container.logs.1
 
         """
-        cont_logs = TfgridWorkloadsReservationContainerLogs1()
+        cont_logs = ContainerLogs()
         cont_logs.type = channel_type
         cont_logs.data.stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
         cont_logs.data.stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"

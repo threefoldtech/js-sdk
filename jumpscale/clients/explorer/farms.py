@@ -1,7 +1,7 @@
 from jumpscale.core.exceptions import Input, NotFound
 from jumpscale.core import identity
 from .pagination import get_page, get_all
-from .models import TfgridDirectoryFarm1
+from .models import Farm
 from nacl.encoding import Base64Encoder
 from .auth import HTTPSignatureAuth
 from .base import BaseResource
@@ -18,7 +18,7 @@ class Farms(BaseResource):
             query["name"] = name
 
         if page:
-            farms, _ = get_page(self._session, page, TfgridDirectoryFarm1, self._url, query)
+            farms, _ = get_page(self._session, page, Farm, self._url, query)
         else:
             farms = list(self.iter(threebot_id, name))
 
@@ -30,10 +30,10 @@ class Farms(BaseResource):
             query["owner"] = threebot_id
         if name:
             query["name"] = name
-        yield from get_all(self._session, TfgridDirectoryFarm1, self._url, query)
+        yield from get_all(self._session, Farm, self._url, query)
 
     def new(self):
-        return TfgridDirectoryFarm1()
+        return Farm()
 
     def register(self, farm):
         resp = self._session.post(self._url, json=farm.to_dict())
@@ -49,7 +49,7 @@ class Farms(BaseResource):
         elif not farm_id:
             raise Input("farms.get requires atleast farm_id or farm_name")
         resp = self._session.get(f"{self._url}/{farm_id}")
-        return TfgridDirectoryFarm1.from_dict(resp.json())
+        return Farm.from_dict(resp.json())
 
     def update(self, farm):
         me = identity.get_identity()

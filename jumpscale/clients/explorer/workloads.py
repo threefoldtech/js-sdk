@@ -1,19 +1,19 @@
 from jumpscale.loader import j
 from .pagination import get_page, get_all
 from .models import (
-    TfgridWorkloadsReservationVolume1,
-    TfgridWorkloadsReservationContainer1,
-    TfgridWorkloadsReservationZdb1,
-    TfgridWorkloadsReservationK8s1,
-    TfgridWorkloadsReservationGatewayProxy1,
-    TfgridWorkloadsReservationGatewayReverse_proxy1,
-    TfgridWorkloadsReservationGatewaySubdomain1,
-    TfgridWorkloadsReservationGatewayDelegate1,
-    TfgridWorkloadsReservationGateway4to61,
-    TfgridWorkloadsNetworkNet_resource1,
-    TfgridWorkloadsReservationInfo1,
+    Volume,
+    Container,
+    ZdbNamespace,
+    K8s,
+    GatewayProxy,
+    GatewayReverseProxy,
+    GatewaySubdomain,
+    GatewayDelegate,
+    Gateway4to6,
+    NetworkResource,
+    ReservationInfo,
     NextAction,
-    Type,
+    WorkloadType,
 )
 import binascii
 
@@ -27,19 +27,19 @@ class Decoder:
     def __init__(self, data):
         self.data = data
         self._models = {
-            Type.Volume: TfgridWorkloadsReservationVolume1,
-            Type.Container: TfgridWorkloadsReservationContainer1,
-            Type.Zdb: TfgridWorkloadsReservationZdb1,
-            Type.Kubernetes: TfgridWorkloadsReservationK8s1,
-            Type.Proxy: TfgridWorkloadsReservationGatewayProxy1,
-            Type.Reverse_proxy: TfgridWorkloadsReservationGatewayReverse_proxy1,
-            Type.Subdomain: TfgridWorkloadsReservationGatewaySubdomain1,
-            Type.Domain_delegate: TfgridWorkloadsReservationGatewayDelegate1,
-            Type.Gateway4to6: TfgridWorkloadsReservationGateway4to61,
-            Type.Network_resource: TfgridWorkloadsNetworkNet_resource1,
+            WorkloadType.Volume: Volume,
+            WorkloadType.Container: Container,
+            WorkloadType.Zdb: ZdbNamespace,
+            WorkloadType.Kubernetes: K8s,
+            WorkloadType.Proxy: GatewayProxy,
+            WorkloadType.Reverse_proxy: GatewayReverseProxy,
+            WorkloadType.Subdomain: GatewaySubdomain,
+            WorkloadType.Domain_delegate: GatewayDelegate,
+            WorkloadType.Gateway4to6: Gateway4to6,
+            WorkloadType.Network_resource: NetworkResource,
         }
 
-        self._info = TfgridWorkloadsReservationInfo1
+        self._info = ReservationInfo
 
     def workload(self):
         info = self._info.from_dict(self.data)
@@ -55,7 +55,7 @@ class Workoads:
     def __init__(self, client):
         self._session = client._session
         self._client = client
-        self._model_info = TfgridWorkloadsReservationInfo1
+        self._model_info = ReservationInfo
 
     @property
     def _base_url(self):

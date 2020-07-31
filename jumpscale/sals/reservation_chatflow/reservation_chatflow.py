@@ -5,7 +5,7 @@ from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
-from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, NextAction
+from jumpscale.clients.explorer.models import DeployedReservation, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 
 from nacl.public import Box
@@ -216,7 +216,7 @@ class ReservationChatflow:
         self.me = j.core.identity.me
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
-        self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
+        self.deployed_reservations = StoredFactory(DeployedReservation)
 
     @property
     def _explorer(self):

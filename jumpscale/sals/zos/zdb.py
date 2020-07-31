@@ -1,7 +1,7 @@
 from .crypto import encrypt_for_node
 from jumpscale.core.exceptions import Input
 from .id import _next_workload_id
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationZdb1, DiskType, Mode, Type
+from jumpscale.clients.explorer.models import ZdbNamespace, DiskType, ZDBMode, WorkloadType
 
 
 class ZDB:
@@ -28,10 +28,10 @@ class ZDB:
             [type]: newly created zdb workload
         """
 
-        zdb = TfgridWorkloadsReservationZdb1()
+        zdb = ZdbNamespace()
         zdb.info.node_id = node_id
         zdb.info.pool_id = pool_id
-        zdb.info.workload_type = Type.Zdb
+        zdb.info.workload_type = WorkloadType.Zdb
         zdb.size = size
         zdb.mode = mode
         if password:
