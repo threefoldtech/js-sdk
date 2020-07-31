@@ -82,9 +82,12 @@ class MarketPlaceDeployer:
     def __init__(self):
         """This class is responsible for deploying reservations on behalf of the logged-in user for marketplace package
         """
-        self._explorer = j.core.identity.me.explorer
         self.reservations = defaultdict(lambda: defaultdict(list))  # "tid" {"solution_type": []}
         self.wallet = j.clients.stellar.find(MARKET_WALLET_NAME)
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     def get_solution_metadata(self, solution_name, solution_type, tid, form_info=None, solution_uuid=None):
         """builds the metadata for the reservation
