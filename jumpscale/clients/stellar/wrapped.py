@@ -39,6 +39,9 @@ class Server(stellarServer):
                     raise TooLate()
                 if resultcodes["transaction"] == "tx_bad_auth":
                     raise UnAuthorized(e.extras["envelope_xdr"])
-                if resultcodes["transaction"] == "tx_failed" and "op_no_trust" in resultcodes["operations"]:
-                    raise NoTrustLine()
+                if resultcodes["transaction"] == "tx_failed":
+                    if "op_no_trust" in resultcodes["operations"]:
+                        raise NoTrustLine()
+                    if "op_bad_auth" in resultcodes["operations"]:
+                        raise UnAuthorized(e.extras["envelope_xdr"])
             raise e

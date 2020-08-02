@@ -441,24 +441,10 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
-        try:
-            response = horizon_server.submit_transaction(transaction)
-            tx_hash = response["hash"]
-            j.logger.info("Transaction hash: {}".format(tx_hash))
-            return tx_hash
-        except stellar_sdk.exceptions.BadRequestError as e:
-            result_codes = e.extras.get("result_codes")
-            operations = result_codes.get("operations")
-            if operations is not None:
-                for op in operations:
-                    if op == "op_underfunded":
-                        raise e
-                    # if op_bad_auth is returned then we assume the transaction needs more signatures
-                    # so we return the transaction as xdr
-                    elif op == "op_bad_auth":
-                        j.logger.info("Transaction might need additional signatures in order to send")
-                        return transaction.to_xdr()
-            raise e
+        response = horizon_server.submit_transaction(transaction)
+        tx_hash = response["hash"]
+        j.logger.info(f"Transaction hash: {tx_hash}")
+        return tx_hash
 
     def list_payments(self, address: str = None, asset: str = None, cursor: str = None):
         """Get the transactions for an adddress
