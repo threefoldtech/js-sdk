@@ -359,6 +359,7 @@ class Stellar(Client):
         memo_hash=None,
         fund_transaction=True,
         from_address=None,
+        sign:bool=True
     ):
         """Transfer assets to another address
 
@@ -372,7 +373,8 @@ class Stellar(Client):
             memo_hash (Union[str, bytes], optional): memo hash to add to the transaction, A 32 byte hash. Defaults to None.
             fund_transaction (bool, optional): use the threefoldfoundation transaction funding service. Defautls to True.
             from_address (str, optional): Use a different address to send the tokens from, useful in multisig use cases. Defaults to None.
-
+            sign (bool,optional) : Do not sign and submit the transaction
+        
         Raises:
             Exception: If asset not in correct format
             stellar_sdk.exceptions.BadRequestError: not enough funds for opertaion
@@ -382,7 +384,7 @@ class Stellar(Client):
             [type]: [description]
         """
         issuer = None
-        j.logger.info("Sending {} {} to {}".format(amount, asset, destination_address))
+        j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
@@ -436,6 +438,10 @@ class Stellar(Client):
             if fund_transaction:
                 transaction = self._fund_transaction(transaction=transaction)
                 transaction = transaction["transaction_xdr"]
+
+        
+        if not sign:
+            return transaction
 
         transaction = stellar_sdk.TransactionEnvelope.from_xdr(transaction, _NETWORK_PASSPHRASES[self.network.value])
 
