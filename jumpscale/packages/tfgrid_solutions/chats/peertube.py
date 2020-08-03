@@ -151,27 +151,27 @@ class PeerTubeDeploy(GedisChatBot):
 
     @chatflow_step(title="Reservation")
     def reservation(self):   
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
+        }
         # reserve subdomain
         _id = deployer.create_subdomain(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                subdomain=self.domain,
-                addresses=self.addresses,
-                solution_uuid=self.solution_id,
-                **metadata,
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            subdomain=self.domain,
+            addresses=self.addresses,
+            solution_uuid=self.solution_id,
+            **metadata,
         )
+
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {_id}"
             )
-
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
-        }
-
         self.threebot_url = f"https://{self.domain}"
+        entrypoint = f'/usr/local/bin/startup.sh "{self.domain}"'
         # reserve container
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
@@ -182,8 +182,9 @@ class PeerTubeDeploy(GedisChatBot):
             cpu=self.resources["cpu"],
             memory=self.resources["memory"],
             disk_size=self.resources["disk_size"],
+            entrypoint=entrypoint,
             env={"pub_key": self.public_key},
-            interactive=True,
+            interactive=False,
             log_config=self.log_config,
             **metadata,
             solution_uuid=self.solution_id,
@@ -194,18 +195,18 @@ class PeerTubeDeploy(GedisChatBot):
         
         # expose threebot container
         _id = deployer.expose_address(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                network_name=self.network_view.name,
-                local_ip=self.ip_address,
-                port=9000,
-                tls_port=443,
-                trc_secret=self.secret,
-                node_id=self.selected_node.node_id,
-                reserve_proxy=True,
-                domain_name=self.domain,
-                solution_uuid=self.solution_id,
-                **metadata,
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            local_ip=self.ip_address,
+            port=9000,
+            tls_port=443,
+            trc_secret=self.secret,
+            node_id=self.selected_node.node_id,
+            reserve_proxy=True,
+            domain_name=self.domain,
+            solution_uuid=self.solution_id,
+            **metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:
