@@ -199,15 +199,18 @@ class Package:
     def __init__(self, path, default_domain, default_email, giturl=""):
         self.path = path
         self.giturl = giturl
-        self.config = self.load_config()
-        self.name = self.config["name"]
+        self._config = None
+        self.name = j.sals.fs.path_parts(f"{path}")[-1]
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
 
     def load_config(self):
-        return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
+        path = j.sals.fs.join_paths(self.path, "package.toml")
+        if j.sals.fs.exists(path):
+            return toml.load(path)
+        return None
 
     @property
     def module(self):
@@ -224,6 +227,14 @@ class Package:
     @property
     def base_url(self):
         return j.sals.fs.join_paths("/", self.name)
+
+    @property
+    def config(self):
+        if not self._config:
+            self._config = self.load_config()
+            if self._config:
+                self.name = self._config["name"]
+        return  self._config
 
     @property
     def actors_dir(self):
@@ -416,14 +427,15 @@ class PackageManager(Base):
     def delete(self, package_name):
         if package_name in DEFAULT_PACKAGES:
             raise j.exceptions.Value("cannot delete default packages")
-
         package = self.get(package_name)
         if not package:
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in package.bottle_servers:
-            self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
+        for bottle_server in self.threebot.rack._servers:
+            if package_name in bottle_server:
+                self.threebot.rack.remove(f"{bottle_server}")
+                break
 
         if self.threebot.started:
             # unregister gedis actors
