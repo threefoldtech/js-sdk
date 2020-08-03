@@ -199,8 +199,8 @@ class Package:
     def __init__(self, path, default_domain, default_email, giturl=""):
         self.path = path
         self.giturl = giturl
-        self.config = self.load_config()
-        self.name = self.config["name"]
+        self._config = None
+        self.name = j.sals.fs.basename(path.rstrip('/'))
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
@@ -224,6 +224,12 @@ class Package:
     @property
     def base_url(self):
         return j.sals.fs.join_paths("/", self.name)
+
+    @property
+    def config(self):
+        if not self._config:
+            self._config = self.load_config()
+        return  self._config
 
     @property
     def actors_dir(self):
@@ -416,20 +422,21 @@ class PackageManager(Base):
     def delete(self, package_name):
         if package_name in DEFAULT_PACKAGES:
             raise j.exceptions.Value("cannot delete default packages")
-
         package = self.get(package_name)
         if not package:
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in package.bottle_servers:
-            self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
+        for bottle_server in self.threebot.rack._servers:
+            if bottle_server.startswith(f"{package_name}_"):
+                self.threebot.rack.remove(bottle_server)
+
 
         if self.threebot.started:
             # unregister gedis actors
-            if package.actors_dir:
-                for actor in package.actors:
-                    self.threebot.gedis._system_actor.unregister_actor(actor["name"])
+            for actor in self.threebot.gedis._loaded_actors.keys():
+                if actor.startswith(f"{package_name}_"):
+                    self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
             if package.chats_dir:
