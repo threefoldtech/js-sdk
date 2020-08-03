@@ -1,18 +1,10 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.packages.tfgrid_solutions.chats.network_deploy import NetworkDeploy as BaseNetworkDeploy
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
-    steps = [
-        "welcome",
-        "start",
-        "ip_config",
-        "network_reservation",
-        "network_info",
-    ]
-
     @chatflow_step(title="Welcome")
     def welcome(self):
         self._validate_user()
@@ -29,7 +21,17 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
     @chatflow_step(title="Network Name")
     def start(self):
         if self.action == "Create":
-            self.solution_name = deployer.ask_name(self)
+            valid = False
+            while not valid:
+                self.solution_name = deployer.ask_name(self)
+                network_solutions = solutions.list_network_solutions(self.user_info()["username"], sync=False)
+                valid = True
+                for sol in network_solutions:
+                    if sol["Name"] == self.solution_name:
+                        valid = False
+                        self.md_show("The specified solution name already exists. please choose another.")
+                        break
+                    valid = True
             self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
         elif self.action == "Add Access":
             self.network_view = deployer.select_network(self.user_info()["username"], self)
