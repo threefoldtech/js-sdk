@@ -171,6 +171,27 @@ class PeerTubeDeploy(GedisChatBot):
             "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
         }
 
+        self.threebot_url = f"https://{self.domain}"
+        # reserve container
+        self.resv_id = deployer.deploy_container(
+            pool_id=self.pool_id,
+            node_id=self.selected_node.node_id,
+            network_name=self.network_view.name,
+            ip_address=self.ip_address,
+            flist=self.FLIST_URL,
+            cpu=self.resources["cpu"],
+            memory=self.resources["memory"],
+            disk_size=self.resources["disk_size"],
+            env={"pub_key": self.public_key},
+            interactive=True,
+            log_config=self.log_config,
+            **metadata,
+            solution_uuid=self.solution_id,
+        )
+        success = deployer.wait_workload(self.resv_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+        
         # expose threebot container
         _id = deployer.expose_address(
                 pool_id=self.pool_id,
@@ -192,26 +213,6 @@ class PeerTubeDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create trc container on node {self.selected_node.node_id} {_id}"
             )
-        self.threebot_url = f"https://{self.domain}"
-        # reserve container
-        self.resv_id = deployer.deploy_container(
-            pool_id=self.pool_id,
-            node_id=self.selected_node.node_id,
-            network_name=self.network_view.name,
-            ip_address=self.ip_address,
-            flist=self.FLIST_URL,
-            cpu=self.resources["cpu"],
-            memory=self.resources["memory"],
-            disk_size=self.resources["disk_size"],
-            env={"pub_key": self.public_key},
-            interactive=True,
-            log_config=self.log_config,
-            **metadata,
-            solution_uuid=self.solution_id,
-        )
-        success = deployer.wait_workload(self.resv_id, self)
-        if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
     def peertube_access(self):
