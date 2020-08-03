@@ -164,12 +164,15 @@ class NetworkView:
             if bot:
                 bot.md_show_update(f"testing deployment on node {resource.info.node_id}")
             result.append(j.sals.zos.workloads.deploy(resource))
+        for idx, wid in enumerate(result):
             try:
-                deployer.wait_workload(result[-1], None, 2)
+                deployer.wait_workload(wid, bot, 2)
             except StopChatFlow:
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
-                raise StopChatFlow(f"Network nodes dry run failed on node {resource.info.node_id}")
+                raise StopChatFlow(
+                    f"Network nodes dry run failed on node {network.network_resources[idx].info.node_id}"
+                )
         for wid in result:
             j.sals.zos.workloads.decomission(wid)
 
