@@ -91,5 +91,45 @@ class MarketplaceSolutions(ChatflowSolutions):
                     result.append(solution_dict)
         return result
 
+    def list_kubernetes_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes].values():
+            for workload in kube_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata.get("owner") != username:
+                    continue
+                name = metadata["form_info"].get("Solution name", metadata.get("name"))
+                if name:
+                    if f"{name}" in result:
+                        if len(workload.master_ips) != 0:
+                            result[f"{name}"]["wids"].append(workload.id)
+                            result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
+                        continue
+                    result[f"{name}"] = {
+                        "wids": [workload.id],
+                        "Name": name,
+                        "Network": workload.network_id,
+                        "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
+                        "Slave IPs": [],
+                        "Slave Pools": [],
+                        "Master Pool": workload.info.pool_id,
+                    }
+                    result[name].update(self.get_workload_capacity(workload))
+                    if len(workload.master_ips) != 0:
+                        result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+        return list(result.values())
+
 
 solutions = MarketplaceSolutions()

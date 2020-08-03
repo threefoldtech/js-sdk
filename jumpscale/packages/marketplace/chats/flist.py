@@ -9,6 +9,7 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 class FlistDeploy(BaseFlistDeploy, MarketPlaceChatflow):
     @chatflow_step()
     def flist_start(self):
+        self._validate_user()
         super().flist_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
