@@ -286,7 +286,7 @@ class MinioDeploy(GedisChatBot):
 # Minio cluster has been deployed successfully.
 Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000). It may take a few minutes.
                 """
-        if self.mode == "Master/Slave Setup":
+        if self.mode == "Master/Slave":
             res += f"""\
 You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
                 """
