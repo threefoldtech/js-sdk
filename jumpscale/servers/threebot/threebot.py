@@ -429,7 +429,7 @@ class PackageManager(Base):
         # remove bottle servers
         for bottle_server in self.threebot.rack._servers:
             if bottle_server.startswith(f"{package_name}_"):
-                self.threebot.rack.remove(f"{bottle_server}")
+                self.threebot.rack.remove(bottle_server)
 
 
         if self.threebot.started:
