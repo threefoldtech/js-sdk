@@ -200,17 +200,14 @@ class Package:
         self.path = path
         self.giturl = giturl
         self._config = None
-        self.name = j.sals.fs.path_parts(path)[-1]
+        self.name = j.sals.fs.basename(path.rstrip('/'))
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
 
     def load_config(self):
-        path = j.sals.fs.join_paths(self.path, "package.toml")
-        if j.sals.fs.exists(path):
-            return toml.load(path)
-        return None
+        return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
 
     @property
     def module(self):
@@ -232,8 +229,6 @@ class Package:
     def config(self):
         if not self._config:
             self._config = self.load_config()
-            if self._config:
-                self.name = self._config["name"]
         return  self._config
 
     @property
