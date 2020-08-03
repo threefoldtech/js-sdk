@@ -434,9 +434,8 @@ class PackageManager(Base):
 
         if self.threebot.started:
             # unregister gedis actors
-            if package.actors_dir:
-                for actor in package.actors:
-                    self.threebot.gedis._system_actor.unregister_actor(actor["name"])
+            for actor in self.threebot.gedis._loaded_actors.keys():
+                self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
             if package.chats_dir:
