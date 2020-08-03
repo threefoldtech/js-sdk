@@ -1,8 +1,5 @@
-import math
 import uuid
-from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
@@ -38,7 +35,17 @@ class GiteaDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def gitea_name(self):
-        self.solution_name = deployer.ask_name(self)
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            monitoring_solutions = solutions.list_gitea_solutions(sync=False)
+            valid = True
+            for sol in monitoring_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
     @chatflow_step(title="Pool")
     def select_pool(self):
