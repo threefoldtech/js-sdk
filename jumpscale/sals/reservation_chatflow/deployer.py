@@ -877,7 +877,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             raise StopChatFlow(f"no available gateways")
         all_pools = j.sals.zos.pools.list()
         available_node_ids = {}  # node_id: pool
-        if pool_ids:
+        if pool_ids is not None:
             for pool in all_pools:
                 if pool.pool_id in pool_ids:
                     available_node_ids.update({node_id: pool for node_id in pool.node_ids})

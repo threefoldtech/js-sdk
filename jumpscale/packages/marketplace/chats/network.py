@@ -1,23 +1,65 @@
-import time
-
 from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+from jumpscale.packages.tfgrid_solutions.chats.network_deploy import NetworkDeploy as BaseNetworkDeploy
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
 
+class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
+    steps = [
+        "welcome",
+        "start",
+        "ip_config",
+        "network_reservation",
+        "network_info",
+    ]
 
-class NetworkDeploy(MarketPlaceChatflow):
-    SOLUTION_TYPE = SolutionType.Network
+    @chatflow_step(title="Welcome")
+    def welcome(self):
+        self._validate_user()
+        if deployer.list_networks(self.user_info()["username"]):
+            self.action = self.single_choice(
+                "Do you want to create a new network or add access to an existing one?",
+                options=["Create", "Add Access"],
+            )
+        else:
+            self.action = "Create"
+        self.solution_metadata = {}
+        self.solution_metadata["owner"] = self.user_info()["username"]
 
-    steps = ["welcome", "solution_name", "expiration_time", "choose_currency", "network_info"]
-    title = "Network"
+    @chatflow_step(title="Network Name")
+    def start(self):
+        if self.action == "Create":
+            self.solution_name = deployer.ask_name(self)
+            self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
+        elif self.action == "Add Access":
+            self.network_view = deployer.select_network(self.user_info()["username"], self)
 
-    @chatflow_step(title="Network Information")
-    def network_info(self):
-        deployer.deploy_network(
-            self.user_info()["username"], self.name, self.expiration, self.currency, self, self.user_form_data
+    @chatflow_step(title="IP Configuration")
+    def ip_config(self):
+        ips = ["IPv6", "IPv4"]
+        self.ipversion = self.single_choice(
+            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
         )
+
+        pools = deployer.list_user_pools(self.user_info()["username"])
+        farms = {deployer.get_pool_farm_id(p.pool_id): p.pool_id for p in pools}
+        self.access_node = None
+        for farm_id in farms:
+            farm_name = deployer._explorer.farms.get(farm_id).name
+            try:
+                access_nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+                    1, farm_names=[farm_name], ip_version=self.ipversion
+                )
+            except StopChatFlow:
+                continue
+            if access_nodes:
+                self.access_node = access_nodes[0]
+                self.pool = farms[farm_id]
+                break
+        if not self.access_node:
+            raise StopChatFlow("There are no available access nodes in your existing pools")
+        if self.action == "Create":
+            self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
 
 
 chat = NetworkDeploy
