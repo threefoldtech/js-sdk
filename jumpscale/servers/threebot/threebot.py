@@ -200,7 +200,7 @@ class Package:
         self.path = path
         self.giturl = giturl
         self._config = None
-        self.name = j.sals.fs.path_parts(f"{path}")[-1]
+        self.name = j.sals.fs.path_parts(path)[-1]
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
@@ -433,9 +433,9 @@ class PackageManager(Base):
 
         # remove bottle servers
         for bottle_server in self.threebot.rack._servers:
-            if package_name in bottle_server:
+            if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(f"{bottle_server}")
-                break
+
 
         if self.threebot.started:
             # unregister gedis actors
