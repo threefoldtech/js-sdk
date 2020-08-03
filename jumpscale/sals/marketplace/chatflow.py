@@ -318,3 +318,5 @@ class MarketPlaceChatflow(GedisChatBot):
             self.interactive = True
             self.user_form_data["Port"] = "7681"
             self.user_form_data["Entry point"] = ""
+
+        self.entry_point = self.user_form_data["Entry point"]
