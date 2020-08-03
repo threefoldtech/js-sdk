@@ -1,29 +1,31 @@
-from jumpscale.loader import j
 import math
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.packages.tfgrid_solutions.chats.ubuntu_deploy import UbuntuDeploy as BaseUbuntuDeploy
+
+from jumpscale.loader import j
+from jumpscale.packages.tfgrid_solutions.chats.flist_deploy import FlistDeploy as BaseFlistDeploy
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
-class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
+class FlistDeploy(BaseFlistDeploy, MarketPlaceChatflow):
     @chatflow_step()
-    def ubuntu_start(self):
-        super().ubuntu_start()
+    def flist_start(self):
+        super().flist_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
-    def ubuntu_name(self):
+    def flist_name(self):
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
-            ubuntu_solutions = solutions.list_ubuntu_solutions(self.solution_metadata["owner"], sync=False)
+            flist_solutions = solutions.list_flist_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
-            for sol in ubuntu_solutions:
+            for sol in flist_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
+
         self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
 
     @chatflow_step(title="Pool")
@@ -33,12 +35,14 @@ class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
+        if self.container_volume_attach:
+            query["sru"] += math.ceil(self.vol_size / 1024)
         cu, su = deployer.calculate_capacity_units(**query)
         self.pool_id = deployer.select_pool(self.solution_metadata["owner"], self, cu=cu, su=su, **query)
 
     @chatflow_step(title="Network")
-    def ubuntu_network(self):
+    def flist_network(self):
         self.network_view = deployer.select_network(self.solution_metadata["owner"], self)
 
 
-chat = UbuntuDeploy
+chat = FlistDeploy
