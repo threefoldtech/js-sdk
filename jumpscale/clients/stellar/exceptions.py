@@ -4,7 +4,7 @@ from jumpscale.loader import j
 class TemporaryProblem(j.exceptions.JSException):
     def __init__(self, message):
         self.message = message
-        super().__init__(self, message)
+        super().__init__(message)
 
     def __str__(self):
         return self.message
@@ -12,7 +12,7 @@ class TemporaryProblem(j.exceptions.JSException):
 
 class NoTrustLine(j.exceptions.JSException):
     def __init__(self):
-        super().__init__(self, "Receiver has no trustline")
+        super().__init__("Receiver has no trustline")
 
     def __str__(self):
         return "Receiver has no trustline"
@@ -21,7 +21,7 @@ class NoTrustLine(j.exceptions.JSException):
 class UnAuthorized(j.exceptions.JSException):
     def __init__(self, transaction_xdr):
         self.transaction_xdr = transaction_xdr
-        super().__init__(self, "Unauthorized or not enough signatures")
+        super().__init__("Unauthorized or not enough signatures")
 
     def __str__(self):
         return f"Unauthorized or not enough signatures for transaction envelope {self.transaction_xdr}"
@@ -29,4 +29,4 @@ class UnAuthorized(j.exceptions.JSException):
 
 class TooLate(TemporaryProblem):
     def __init__(self):
-        super().__init__(self, "The transaction failed to be submitted to the network in time")
+        super().__init__( "The transaction failed to be submitted to the network in time")
