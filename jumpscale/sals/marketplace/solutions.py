@@ -275,5 +275,32 @@ class MarketplaceSolutions(ChatflowSolutions):
                     result[-1].update(self.get_workload_capacity(workload))
         return result
 
+    def list_4to6gw_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6].values():
+            for g in gateways:
+                if not g.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(g.info.metadata)
+                except:
+                    continue
+                if metadata.get("owner") != username:
+                    continue
+                result.append(
+                    {
+                        "wids": [g.id],
+                        "Name": g.public_key,
+                        "Public Key": g.public_key,
+                        "Gateway": g.info.node_id,
+                        "Pool": g.info.pool_id,
+                    }
+                )
+        return result
+
 
 solutions = MarketplaceSolutions()

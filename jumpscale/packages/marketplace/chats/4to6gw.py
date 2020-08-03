@@ -1,9 +1,10 @@
+from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
 import uuid
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 
 
-class FourToSixGateway(GedisChatBot):
+class FourToSixGateway(MarketPlaceChatflow):
     """
     """
 
@@ -18,12 +19,13 @@ class FourToSixGateway(GedisChatBot):
 
     @chatflow_step(title="Pool")
     def select_pool(self):
+        self._validate_user()
         self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
+        self.solution_metadata = {"owner": self.user_info()["username"]}
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):
-        self.gateway, pool = deployer.select_gateway(bot=self)
+        self.gateway, pool = deployer.select_gateway(self.solution_metadata["owner"], bot=self)
         self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
 

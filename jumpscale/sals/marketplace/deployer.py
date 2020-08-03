@@ -99,8 +99,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return super().list_all_gateways(pool_ids=pool_ids)
 
     def select_gateway(self, username, bot):
-        pool_ids = self.list_user_pool_ids(username)
-        return super().select_gateway(bot, pool_ids=pool_ids)
+        """
+        Args:
+            pool_ids: if specified it will only list gateways inside these pools
+
+        Returns:
+            gateway, pool_objects
+        """
+        gateways = self.list_all_gateways(username)
+        selected = bot.single_choice("Please select a gateway", list(gateways.keys()))
+        return gateways[selected]["gateway"], gateways[selected]["pool"]
 
     def ask_multi_pool_placement(
         self, username, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
