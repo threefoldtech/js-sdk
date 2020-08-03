@@ -6,7 +6,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer
 
 
-class FourToSixGateway(GedisChatBot):
+class PoolReservation(GedisChatBot):
     steps = ["pool_start", "reserve_pool", "pool_success"]
     title = "Pool"
 
@@ -31,4 +31,4 @@ class FourToSixGateway(GedisChatBot):
         self.md_show(f"Transaction successful. it may take a few minutes to reflect")
 
 
-chat = FourToSixGateway
+chat = PoolReservation
