@@ -1,17 +1,18 @@
 from .network import Network
+from jumpscale.clients.explorer.models import Type
 
 _order = [
-    "NETWORK_RESOURCE",
-    "NETWORK",
-    "ZDB",
-    "VOLUME",
-    "CONTAINER",
-    "KUBERNETES",
-    "DOMAIN-DELEGATE",
-    "SUBDOMAIN",
-    "PROXY",
-    "REVERSE-PROXY",
-    "GATEWAY4TO6",
+    Type.Network_resource,
+    Type.Network,
+    Type.Zdb,
+    Type.Volume,
+    Type.Container,
+    Type.Kubernetes,
+    Type.Domain_delegate,
+    Type.Subdomain,
+    Type.Proxy,
+    Type.Reverse_proxy,
+    Type.Gateway4to6,
 ]
 
 
