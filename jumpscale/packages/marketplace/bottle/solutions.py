@@ -4,6 +4,7 @@ from bottle import Bottle, abort, request, HTTPResponse
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
 from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.reservation_chatflow import solutions
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -27,11 +28,12 @@ def count_solutions():
     return j.data.serializers.json.dumps({"data": res})
 
 
-@app.route("/api/solutions/<solution_type>/<reservation_id>", method="DELETE")
+@app.route("/api/solutions/cancel", method="POST")
 @login_required
-def cancel_solution(solution_type, reservation_id):
-    user_info = j.data.serializers.json.loads(get_user_info())
-    j.sals.marketplace.solutions.cancel_reservation(user_info["username"], reservation_id)
+def cancel_solution():
+    data = j.data.serializers.json.loads(request.body.read())
+    solutions.cancel_solution(data["wids"])
+    return j.data.serializers.json.dumps({"result": True})
 
 
 @app.route("/api/allowed", method="GET")
