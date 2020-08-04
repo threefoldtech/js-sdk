@@ -180,7 +180,7 @@ class SolutionExpose(GedisChatBot):
                 pool_id=self.domain_pool.pool_id,
                 gateway_id=self.domain_gateway.node_id,
                 subdomain=self.domain,
-                **metadata,
+                **self.solution_metadata,
                 solution_uuid=self.solution_id,
             )
             success = deployer.wait_workload(self.dom_id)
@@ -210,7 +210,7 @@ class SolutionExpose(GedisChatBot):
             tls_port=self.tls_port,
             trc_secret=self.secret,
             bot=self,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.tcprouter_id)

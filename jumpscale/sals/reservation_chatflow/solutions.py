@@ -336,13 +336,6 @@ class ChatflowSolutions:
         name_to_proxy = {}
         for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
             for proxy in proxies:
-                result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
-                    "wids": [proxy.id],
-                    "Name": proxy.domain,
-                    "Gateway": proxy.info.node_id,
-                    "Pool": proxy.info.pool_id,
-                    "Domain": proxy.domain,
-                }
                 if proxy.info.metadata:
                     metadata = j.data.serializers.json.loads(proxy.info.metadata)
                     if not metadata:
@@ -350,10 +343,15 @@ class ChatflowSolutions:
                     chatflow = metadata.get("form_info", {}).get("chatflow")
                     if chatflow and chatflow != "exposed":
                         continue
+                    result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                        "wids": [proxy.id],
+                        "Name": proxy.domain,
+                        "Gateway": proxy.info.node_id,
+                        "Pool": proxy.info.pool_id,
+                        "Domain": proxy.domain,
+                    }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
-                    if name and proxy.domain in result:
-                        result[f"{proxy.domain}"]["Solution name"] = name
-                        name_to_proxy[f"{name}"] = proxy.domain
+                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
         # link subdomains to proxy_reservations
@@ -372,7 +370,7 @@ class ChatflowSolutions:
                     continue
                 domain = workload.domain
                 if name_to_proxy.get(f"{solution_name}"):
-                    result[f"{domain}"]["wids"].append(workload.id)
+                    result[name_to_proxy[solution_name]]["wids"].append(workload.id)
 
         # link tcp router containers to proxy reservations
         for pool_id in pools:

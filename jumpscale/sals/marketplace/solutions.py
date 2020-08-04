@@ -302,5 +302,102 @@ class MarketplaceSolutions(ChatflowSolutions):
                 )
         return result
 
+    def list_delegated_domain_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for domains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate].values():
+            for dom in domains:
+                try:
+                    metadata = j.data.serializers.json.loads(dom.info.metadata)
+                except:
+                    continue
+                if metadata.get("owner") != username:
+                    continue
+                result.append(
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
+                )
+        return result
+
+    def list_exposed_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        pools = set()
+        name_to_proxy = {}
+        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+            for proxy in proxies:
+                if proxy.info.metadata:
+                    metadata = j.data.serializers.json.loads(proxy.info.metadata)
+                    if not metadata:
+                        continue
+                    if metadata.get("owner") != username:
+                        continue
+                    chatflow = metadata.get("form_info", {}).get("chatflow")
+                    if chatflow and chatflow != "exposed":
+                        continue
+                    result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                        "wids": [proxy.id],
+                        "Name": proxy.domain,
+                        "Gateway": proxy.info.node_id,
+                        "Pool": proxy.info.pool_id,
+                        "Domain": proxy.domain,
+                    }
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
+                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
+                pools.add(proxy.info.pool_id)
+
+        # link subdomains to proxy_reservations
+        for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+            for workload in subdomains:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if metadata.get("owner") != username:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
+                )
+                if not solution_name:
+                    continue
+                domain = workload.domain
+                if name_to_proxy.get(f"{solution_name}"):
+                    result[name_to_proxy[solution_name]]["wids"].append(workload.id)
+
+        # link tcp router containers to proxy reservations
+        for pool_id in pools:
+            for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container][
+                pool_id
+            ]:
+                if (
+                    container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
+                    or not container_workload.info.metadata
+                ):
+                    continue
+                metadata = j.data.serializers.json.loads(container_workload.info.metadata)
+                if not metadata:
+                    continue
+                if metadata.get("owner") != username:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
+                )
+                if not solution_name:
+                    continue
+                if name_to_proxy.get(f"{solution_name}"):
+                    domain = name_to_proxy.get(f"{solution_name}")
+                    result[f"{domain}"]["wids"].append(container_workload.id)
+        return list(result.values())
+
 
 solutions = MarketplaceSolutions()
