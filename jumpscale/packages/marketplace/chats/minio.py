@@ -29,15 +29,11 @@ class MinioDeploy(BaseMinioDeploy, MarketPlaceChatflow):
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
 
-    @chatflow_step(title="ZDB Nodes")
     def zdb_nodes_selection(self):
-        if self.zdb_disk_type == DiskType.SSD:
-            queries = [{"sru": 10}] * self.zdb_number
-        else:
-            queries = [{"hru": 10}] * self.zdb_number
-        workload_names = [f"ZDB {i + 1}" for i in range(self.zdb_number)]
-        self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_placement(
-            self.solution_metadata["owner"], self, len(queries), queries, workload_names=workload_names
+        query = {"sru": 10}
+        workload_name = "ZDB workloads"
+        self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
+            self.solution_metadata["owner"], self, self.zdb_number, query, workload_name=workload_name
         )
 
     @chatflow_step(title="Minio Nodes")
