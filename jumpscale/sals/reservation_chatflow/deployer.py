@@ -233,18 +233,25 @@ class ChatflowDeployer:
         currencies = [currencies.value]
         all_farms = self._explorer.farms.list()
         available_farms = {}
+        farms_by_name = {}
         for farm in all_farms:
             res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
             if available:
                 available_farms[farm.name] = resources
+                farms_by_name[farm.name] = farm
         farm_messages = {}
         for farm in available_farms:
+            farm_assets = [w.asset for w in farms_by_name[farm].wallet_addresses]
+            if currencies[0] not in farm_assets:
+                continue
             resources = available_farms[farm]
             farm_messages[
                 f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
             ] = farm
+        if not farm_messages:
+            raise StopChatFlow("There are no farms avaialble that the selected currency")
         selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()))
         farm = farm_messages[selected_farm]
         try:
