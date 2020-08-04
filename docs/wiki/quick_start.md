@@ -3,21 +3,24 @@
 ## System requirements for installation on the host
 
 - Ubuntu 18.04 or higher, MacOS 10.9 or higher
-- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment.
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is needed to trust the self signed certificates when used in local development environment.
+
+### Mac OSX
+For Mac OSX 
+
+Install packages (git, nginx, redis-server, tmux, python3) on MacOS
+  ```
+  brew install nginx redis tmux git python3
+  ```
 
 
 ### Ubuntu
 
+For GNU/Linux Ubuntu systems
   ```
   apt-get update
   apt-get install -y git python3-venv python3-pip redis-server tmux nginx;
   pip3 install poetry
-  ```
-
-### Mac OSX
-Install packages (git, nginx, redis-server, tmux, python3) on MacOS
-  ```
-  brew install nginx redis tmux git python3
   ```
 
 
