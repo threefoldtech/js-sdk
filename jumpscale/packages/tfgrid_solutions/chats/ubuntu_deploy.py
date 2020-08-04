@@ -101,7 +101,7 @@ class UbuntuDeploy(GedisChatBot):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": self.resources["disk_size"],
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
         if not self.selected_node:
@@ -111,7 +111,7 @@ class UbuntuDeploy(GedisChatBot):
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, bot=self
         )
         if result:
             self.md_show_update("Deploying Network on Nodes....")

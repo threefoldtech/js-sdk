@@ -1,18 +1,15 @@
-import requests
-
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 
 
-class PoolReservation(GedisChatBot):
+class PoolReservation(MarketPlaceChatflow):
     steps = ["pool_start", "reserve_pool", "pool_success"]
     title = "Pool"
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
-        self.pools = j.sals.zos.pools.list()
+        self._validate_user()
+        self.pools = deployer.list_user_pools(self.user_info()["username"])
         if not self.pools:
             self.action = "create"
         else:
@@ -21,9 +18,9 @@ class PoolReservation(GedisChatBot):
     @chatflow_step(title="Pool Capacity")
     def reserve_pool(self):
         if self.action == "create":
-            self.pool_data = deployer.create_pool(self)
+            self.pool_data = deployer.create_pool(self.user_info()["username"], self)
         else:
-            pool_id = deployer.select_pool(self)
+            pool_id = deployer.select_pool(self.user_info()["username"], self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
     @chatflow_step(title="Pool Info")

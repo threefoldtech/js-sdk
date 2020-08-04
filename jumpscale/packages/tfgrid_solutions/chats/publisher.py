@@ -1,12 +1,7 @@
 import math
 from textwrap import dedent
-import toml
-import requests
-
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 import uuid
 
@@ -104,14 +99,15 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
         domains = dict()
-        for gateway in self.gateways.values():
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
-                domains[domain] = gateway
+                domains[domain] = gw_dict
 
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
@@ -120,11 +116,15 @@ class Publisher(GedisChatBot):
             self.sub_domain = self.string_ask(
                 f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
             )
+            if "." in self.sub_domain:
+                self.md_show("you can't nest domains. please try again")
+                continue
             if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
                 break
             else:
                 self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
-        self.gateway = domains[self.domain]
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.sub_domain}.{self.domain}"
 
         self.envars["DOMAIN"] = self.domain
@@ -153,21 +153,22 @@ class Publisher(GedisChatBot):
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
-        self.network_view_copy = self.network_view.copy()
+        self.network_view = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view, bot=self
         )
         if result:
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+        self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
         # 2- reserve subdomain
         self.workload_ids.append(
             deployer.create_subdomain(
-                pool_id=self.pool_id,
+                pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
                 subdomain=self.domain,
                 addresses=self.addresses,
@@ -184,7 +185,7 @@ class Publisher(GedisChatBot):
         # 3- reserve tcp proxy
         self.workload_ids.append(
             deployer.create_proxy(
-                pool_id=self.pool_id,
+                pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
                 domain_name=self.domain,
                 trc_secret=self.secret,
@@ -230,10 +231,13 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""
-        You can access your container using:
-        Domain: {self.domain}
-        IP address: {self.ip_address}
+        message = f"""## Deployment success
+\n<br>\n
+You can access your container using:
+
+- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+- IP address: `{self.ip_address}`
         """
         self.md_show(dedent(message), md=True)
 

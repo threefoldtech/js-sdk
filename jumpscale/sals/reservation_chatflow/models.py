@@ -5,6 +5,7 @@ from enum import Enum
 
 
 class SolutionType(Enum):
+    Pools = "pools"
     FourToSixGw = "4to6gw"
     DelegatedDomain = "delegated_domain"
     Exposed = "exposed"

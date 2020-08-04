@@ -2,10 +2,49 @@
   <div>
     <base-dialog :title="title" v-model="dialog" :loading="loading">
       <template #default>
-        <code-area mode="python" :content="json"></code-area>
+        <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
+          <v-tab :key="title">{{ title }}</v-tab>
+          <v-tab :key="'moredetails'">More details</v-tab>
+
+          <v-tab-item :key="title">
+            <v-simple-table>
+              <template v-slot:default>
+                <tbody>
+                  <tr v-for="(item, key)  in json" :key="key">
+                    <th>{{ key }}</th>
+                    <td
+                      v-if="KeysWithTypeList.includes(key)"
+                      class="pt-2"
+                    >
+                      <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
+                    </td>
+                    <td v-else-if="key === 'nodes'">
+                      <v-chip
+                        class="ma-1"
+                        v-for="(ip, node) in item"
+                        :key="node"
+                      >{{ ip }} / ({{ node }})</v-chip>
+                    </td>
+                    <td v-else>{{ item }}</td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-simple-table>
+          </v-tab-item>
+          <v-tab-item :key="'moredetails'">
+            <v-card flat>
+              <json-tree :raw="JSON.stringify(json)"></json-tree>
+            </v-card>
+          </v-tab-item>
+        </v-tabs>
       </template>
       <template #actions>
-        <v-btn v-if="data.Name !== undefined" text color="error" @click.stop="cancel()">Delete Reservation</v-btn>
+        <v-btn
+          v-if="data.Name !== undefined"
+          text
+          color="error"
+          @click.stop="cancel()"
+        >Delete Reservation</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
@@ -25,16 +64,24 @@ module.exports = {
       dialogs: {
         cancelSolution: false,
       },
+      tab: 0,
     };
   },
   computed: {
     json() {
-      return JSON.stringify(this.data, null, 2);
+      if (this.data["Last updated"] !== undefined)
+        this.data["Last updated"] = new Date(this.data["Last updated"] * 1000);
+      if (this.data["Empty at"] !== undefined)
+        this.data["Empty at"] = new Date(this.data["Empty at"] * 1000);
+      return this.data;
     },
     title() {
       return this.data.Name === undefined
         ? "Workload details"
         : "Solution details";
+    },
+    KeysWithTypeList() {
+      return ["Node ids", "wids", "Active workload ids"]
     },
   },
   methods: {

@@ -42,7 +42,7 @@ class MonitoringDeploy(GedisChatBot):
         self.query = {"Prometheus": self.prometheus_query, "Grafana": self.grafana_query, "Redis": self.redis_query}
         self.ip_addresses = {"Prometheus": "", "Grafana": "", "Redis": ""}
         self.md_show(
-            "# This wizard will help you deploy a monitoring system that includes Prometheus, Grafana, and redis",
+            "## This wizard will help you deploy a monitoring system that includes Prometheus, Grafana, and redis",
             md=True,
         )
         self.solution_metadata = {}
@@ -61,7 +61,7 @@ class MonitoringDeploy(GedisChatBot):
                     break
                 valid = True
 
-    @chatflow_step()
+    @chatflow_step(title="SSH Key")
     def public_key_get(self):
         self.env_var_dict["SSH_KEY"] = self.upload_file(
             """Please add your public ssh key, this will allow you to access the deployed containers using ssh.
@@ -119,7 +119,7 @@ class MonitoringDeploy(GedisChatBot):
         for i in range(len(self.selected_nodes)):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
-            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view)
+            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view, bot=self)
             if not result:
                 continue
             for wid in result["ids"]:
@@ -232,15 +232,21 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = f"""\
-# Your containers have been deployed successfully. Your reservation ids are: {self.reservation_ids[0]}, {self.reservation_ids[1]}, {self.reservation_ids[2]}
-## Prometheus
-#### Access container by ```ssh root@{self.ip_addresses[1]}``` where you can manually customize the solutions you want to monitor
-#### Access Prometheus UI through ```{self.ip_addresses[1]}:9090/graph``` which is accessed through your browser
-## Grafana
-#### Access Grafana UI through ```{self.ip_addresses[2]}:3000``` which is accessed through your browser where you can manually configure to use prometheus
-## Redis
-```redis-cli -h {self.ip_addresses[0]}```
-## It may take a few minutes.
+## Your containers have been deployed successfully. Your reservation ids are:
+\n<br/>\n
+- `{self.reservation_ids[0]}`, `{self.reservation_ids[1]}`, `{self.reservation_ids[2]}`
+\n<br/>\n
+### Prometheus
+- Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
+- Access Prometheus UI through <a href="https://{self.ip_addresses[1]}:9090/graph" target="_blank">https://{self.ip_addresses[1]}:9090/graph</a> which is accessed through your browser
+\n<br />\n
+### Grafana
+- Access Grafana UI through `{self.ip_addresses[2]}:3000` which is accessed through your browser where you can manually configure to use prometheus
+\n<br />\n
+### Redis
+- Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
+\n<br />\n
+#### It may take a few minutes.
             """
         self.md_show(res, md=True)
 

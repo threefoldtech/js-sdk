@@ -92,6 +92,7 @@ class NetworkDeploy(GedisChatBot):
                 self.access_node.node_id,
                 self.pool,
                 self.ipversion == "IPv4",
+                bot=self,
                 **self.solution_metadata,
             )
         for wid in self.config["ids"]:

@@ -1,11 +1,9 @@
-from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 import uuid
 
 
-class kubernetesDeploy(GedisChatBot):
+class KubernetesDeploy(GedisChatBot):
     steps = [
         "deployment_start",
         "kubernetes_name",
@@ -87,7 +85,7 @@ class kubernetesDeploy(GedisChatBot):
         for i in range(len(self.selected_nodes)):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
-            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view)
+            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view, bot=self)
             if not result:
                 continue
             for wid in result["ids"]:
@@ -169,4 +167,4 @@ To connect ssh rancher@{resv["ip_address"]}
         self.md_show(res)
 
 
-chat = kubernetesDeploy
+chat = KubernetesDeploy

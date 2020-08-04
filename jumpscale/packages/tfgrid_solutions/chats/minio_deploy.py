@@ -92,13 +92,10 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="ZDB Nodes")
     def zdb_nodes_selection(self):
-        if self.zdb_disk_type == DiskType.SSD:
-            queries = [{"sru": 10}] * self.zdb_number
-        else:
-            queries = [{"hru": 10}] * self.zdb_number
-        workload_names = [f"ZDB {i + 1}" for i in range(self.zdb_number)]
-        self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_placement(
-            self, len(queries), queries, workload_names=workload_names
+        query = {"sru": 10}
+        workload_name = "ZDB workloads"
+        self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
+            self, self.zdb_number, query, workload_name=workload_name
         )
 
     @chatflow_step(title="Minio Nodes")
@@ -171,7 +168,7 @@ class MinioDeploy(GedisChatBot):
         for i in range(len(self.minio_nodes)):
             node = self.minio_nodes[i]
             pool_id = self.minio_pool_ids[i]
-            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view)
+            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view, bot=self)
             if not result:
                 continue
             for wid in result["ids"]:
@@ -240,12 +237,7 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {
-                "chatflow": "minio",
-                "Solution name": self.solution_name,
-                "Master IP": self.ip_addresses[0],
-                "ZDB URLS": zdb_configs,
-            },
+            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0],},
         }
         self.solution_metadata.update(metadata)
 
@@ -286,7 +278,7 @@ class MinioDeploy(GedisChatBot):
 # Minio cluster has been deployed successfully.
 Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000). It may take a few minutes.
                 """
-        if self.mode == "Master/Slave Setup":
+        if self.mode == "Master/Slave":
             res += f"""\
 You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
                 """

@@ -1,10 +1,8 @@
 import math
 from textwrap import dedent
 import uuid
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
@@ -103,20 +101,22 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
         domains = dict()
-        for gateway in self.gateways.values():
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
-                domains[domain] = gateway
+                domains[domain] = gw_dict
 
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
 
-        self.gateway = domains[self.domain]
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
 
         self.addresses = []
@@ -149,21 +149,21 @@ class ThreebotDeploy(GedisChatBot):
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
-        self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view, bot=self
         )
         if result:
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+        self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
         # 2- reserve subdomain
         self.workload_ids.append(
             deployer.create_subdomain(
-                pool_id=self.pool_id,
+                pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
                 subdomain=self.domain,
                 addresses=self.addresses,
@@ -226,6 +226,7 @@ class ThreebotDeploy(GedisChatBot):
                 node_id=self.selected_node.node_id,
                 reserve_proxy=True,
                 domain_name=self.domain,
+                proxy_pool_id=self.gateway_pool.pool_id,
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )
@@ -246,11 +247,14 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""
-        Your Threebot has been deployed successfully.
-        Reservation ID  : {self.workload_ids[-1]}<br>
-        Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
-        IP Address      : {self.ip_address}<br>
+        message = f"""# Your Threebot has been deployed successfully.
+\n<br>\n
+
+- Reservation ID  : `{self.workload_ids[-1]}`
+
+- Domain          : <a href="{self.threebot_url}" target="_blank">{self.threebot_url}</a>
+
+- IP Address      : `{self.ip_address}`
         """
         self.md_show(dedent(message), md=True)
 

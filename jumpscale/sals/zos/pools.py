@@ -10,14 +10,14 @@ class Pools:
         self._nodes = explorer.nodes
         self._gateways = explorer.gateway
 
-    def _reserve(self, pool, identity=None):
-        me = identity if identity else j.core.identity.me
+    def _reserve(self, pool):
+        me = j.core.identity.me
         pool.customer_tid = me.tid
         pool.json = j.data.serializers.json.dumps(pool.data_reservation.to_dict())
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu, su, farm, currencies=None, identity=None):
+    def create(self, cu, su, farm, currencies=None):
         if not currencies:
             currencies = ["TFT"]
 
@@ -38,7 +38,7 @@ class Pools:
         pool.data_reservation.sus = su
         pool.data_reservation.node_ids = node_ids
         pool.data_reservation.currencies = currencies
-        return self._reserve(pool, identity=identity)
+        return self._reserve(pool)
 
     def extend(self, pool_id, cu, su, currencies=None):
         p = self.get(pool_id)

@@ -1,14 +1,13 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode
+from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode, State
 from nacl.public import Box
 import netaddr
-import time
+import uuid
 from collections import defaultdict
 from decimal import Decimal
 import gevent
-from jumpscale.sals.zos.network import wg_routing_ip
 
 
 class NetworkView:
@@ -29,6 +28,8 @@ class NetworkView:
     def _init_network_workloads(self, workloads):
         for workload in workloads:
             if workload.info.next_action != NextAction.DEPLOY:
+                continue
+            if workload.info.result.state != State.Ok:
                 continue
             if workload.info.workload_type == Type.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
@@ -137,6 +138,44 @@ class NetworkView:
                 return ip
         return None
 
+    def dry_run(self, node_ids=None, pool_ids=None, bot=None):
+        if bot:
+            bot.md_show_update("Starting dry run to check nodes status")
+        ip_range = netaddr.IPNetwork("10.10.0.0/16")
+        name = uuid.uuid4().hex
+        if not (node_ids and pool_ids):
+            raise StopChatFlow("you must specify both pool ids and node ids together")
+        node_pool_dict = {}
+        if node_ids:
+            for idx, node_id in enumerate(node_ids):
+                node_pool_dict[node_id] = pool_ids[idx]
+        else:
+            for workload in self.network_workloads:
+                node_pool_dict[workload.info.node_id] = workload.info.pool_id
+
+        node_ids = list(set(node_ids))
+        network = j.sals.zos.network.create(str(ip_range), name)
+        for idx, subnet in enumerate(ip_range.subnet(24)):
+            if idx == len(node_ids):
+                break
+            j.sals.zos.network.add_node(network, node_ids[idx], str(subnet), node_pool_dict[node_ids[idx]])
+        result = []
+        for resource in network.network_resources:
+            if bot:
+                bot.md_show_update(f"testing deployment on node {resource.info.node_id}")
+            result.append(j.sals.zos.workloads.deploy(resource))
+        for idx, wid in enumerate(result):
+            try:
+                deployer.wait_workload(wid, bot, 2)
+            except StopChatFlow:
+                for wid in result:
+                    j.sals.zos.workloads.decomission(wid)
+                raise StopChatFlow(
+                    f"Network nodes dry run failed on node {network.network_resources[idx].info.node_id}"
+                )
+        for wid in result:
+            j.sals.zos.workloads.decomission(wid)
+
 
 class ChatflowDeployer:
     def __init__(self):
@@ -194,18 +233,25 @@ class ChatflowDeployer:
         currencies = [currencies.value]
         all_farms = self._explorer.farms.list()
         available_farms = {}
+        farms_by_name = {}
         for farm in all_farms:
             res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
             if available:
                 available_farms[farm.name] = resources
+                farms_by_name[farm.name] = farm
         farm_messages = {}
         for farm in available_farms:
+            farm_assets = [w.asset for w in farms_by_name[farm].wallet_addresses]
+            if currencies[0] not in farm_assets:
+                continue
             resources = available_farms[farm]
             farm_messages[
                 f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
             ] = farm
+        if not farm_messages:
+            raise StopChatFlow("There are no farms avaialble that the selected currency")
         selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()))
         farm = farm_messages[selected_farm]
         try:
@@ -283,9 +329,12 @@ class ChatflowDeployer:
 
     def extend_pool(self, bot, pool_id):
         form = bot.new_form()
+        farm_id = self.get_pool_farm_id(pool_id)
+        farm = self._explorer.farms.get(farm_id)
+        assets = [w.asset for w in farm.wallet_addresses]
         cu = form.int_ask("Please specify the required CU")
         su = form.int_ask("Please specify the required SU")
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"])
+        currencies = form.single_choice("Please choose the currency", assets)
         form.ask()
         cu = cu.value
         su = su.value
@@ -408,7 +457,9 @@ class ChatflowDeployer:
         network_config["rid"] = ids[0]
         return network_config
 
-    def add_access(self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, **metadata):
+    def add_access(
+        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata
+    ):
         network_view = network_view or NetworkView(network_name)
         network, wg = network_view.add_access(node_id, use_ipv4, pool_id)
         result = {"ids": [], "wg": wg}
@@ -416,6 +467,7 @@ class ChatflowDeployer:
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
+        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
@@ -428,7 +480,7 @@ class ChatflowDeployer:
         result["rid"] = result["ids"][0]
         return result
 
-    def delete_access(self, network_name, iprange, network_view=None, node_id=None, **metadata):
+    def delete_access(self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata):
         network_view = network_view or NetworkView(network_name)
         network = network_view.delete_access(iprange, node_id)
 
@@ -436,6 +488,7 @@ class ChatflowDeployer:
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
+        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
         parent_id = network_view.network_workloads[-1].id
         result = []
         for resource in node_workloads.values():
@@ -447,8 +500,9 @@ class ChatflowDeployer:
             parent_id = result[-1]
         return result
 
-    def wait_workload(self, workload_id, bot=None):
-        expiration_provisioning = j.data.time.now().timestamp + 15 * 60
+    def wait_workload(self, workload_id, bot=None, expiry=10):
+        expiry = expiry or 10
+        expiration_provisioning = j.data.time.now().timestamp + expiry * 60
         while True:
             workload = j.sals.zos.workloads.get(workload_id)
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
@@ -469,7 +523,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
 
-    def add_network_node(self, name, node, pool_id, network_view=None, **metadata):
+    def add_network_node(self, name, node, pool_id, network_view=None, bot=None, **metadata):
         if not network_view:
             network_view = NetworkView(name)
         network = network_view.add_node(node, pool_id)
@@ -481,6 +535,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
+
+        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
         for workload in node_workloads.values():
             workload.info.reference = ""
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
@@ -834,7 +890,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             raise StopChatFlow(f"no available gateways")
         all_pools = j.sals.zos.pools.list()
         available_node_ids = {}  # node_id: pool
-        if pool_ids:
+        if pool_ids is not None:
             for pool in all_pools:
                 if pool.pool_id in pool_ids:
                     available_node_ids.update({node_id: pool for node_id in pool.node_ids})
@@ -913,17 +969,23 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         trc_secret,
         node_id=None,
         reserve_proxy=False,
+        proxy_pool_id=None,
         domain_name=None,
         bot=None,
         **metadata,
     ):
+        proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 
         if reserve_proxy:
             if not domain_name:
                 raise StopChatFlow("you must pass domain_name when you ise reserv_proxy")
             resv_id = self.create_proxy(
-                pool_id=pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata,
+                pool_id=proxy_pool_id,
+                gateway_id=gateway_id,
+                domain_name=domain_name,
+                trc_secret=trc_secret,
+                **metadata,
             )
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
@@ -935,7 +997,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         else:
             node = self._explorer.nodes.get(node_id)
 
-        res = self.add_network_node(network_name, node, pool_id)
+        res = self.add_network_node(network_name, node, pool_id, bot=bot)
         if res:
             for wid in res["ids"]:
                 success = self.wait_workload(wid, bot)
@@ -1121,6 +1183,52 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         port = result_json["Port"]
         url = f"{namespace}:{password}@[{ip}]:{port}"
         return url
+
+    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
+        """
+        Choose multiple pools and to distribute workload automatically
+
+        Args:
+            bot: chatflow object
+            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1}.
+            pool_ids: if specfied it will limit the pools shown in the chatflow to only these pools
+            workload_name: name shown in the message
+        Returns:
+            ([], []): first list contains the selected node objects. second list contains selected pool ids
+        """
+        resource_query = resource_query or {}
+        pools = self.list_pools()
+        if pool_ids:
+            filtered_pools = {}
+            for pool_id in pools:
+                if pool_id in pool_ids:
+                    filtered_pools[pool_id] = pools[pool_id]
+            pools = filtered_pools
+
+        workload_name = workload_name or "workloads"
+        pool_choices = bot.multi_list_choice(
+            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(pools.keys())
+        )
+        farm_to_pool = {}
+        farm_names = []
+        pool_ids = {}
+        for p in pool_choices:
+            pool = pool_ids.get(p, j.sals.zos.pools.get(p))
+            pool_ids[p] = pool
+            farm_id = self._explorer.nodes.get(pool.node_ids[0]).farm_id
+            farm_name = self._explorer.farms.get(farm_id).name
+            farm_to_pool[farm_id] = pool
+            farm_names.append(farm_name)
+        nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+            number_of_nodes, farm_names=farm_names, **resource_query
+        )
+        selected_nodes = []
+        selected_pool_ids = []
+        for node in nodes:
+            selected_nodes.append(node)
+            pool = farm_to_pool[node.farm_id]
+            selected_pool_ids.append(pool.pool_id)
+        return selected_nodes, selected_pool_ids
 
 
 deployer = ChatflowDeployer()
