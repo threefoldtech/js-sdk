@@ -329,9 +329,12 @@ class ChatflowDeployer:
 
     def extend_pool(self, bot, pool_id):
         form = bot.new_form()
+        farm_id = self.get_pool_farm_id(pool_id)
+        farm = self._explorer.farms.get(farm_id)
+        assets = [w.asset for w in farm.wallet_addresses]
         cu = form.int_ask("Please specify the required CU")
         su = form.int_ask("Please specify the required SU")
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"])
+        currencies = form.single_choice("Please choose the currency", assets)
         form.ask()
         cu = cu.value
         su = su.value
