@@ -361,6 +361,7 @@ class Stellar(Client):
         fund_transaction=True,
         from_address=None,
         timeout=30,
+        sequence_number: int = None,
         sign: bool = True,
     ):
         """Transfer assets to another address
@@ -376,6 +377,7 @@ class Stellar(Client):
             fund_transaction (bool, optional): use the threefoldfoundation transaction funding service. Defautls to True.
             from_address (str, optional): Use a different address to send the tokens from, useful in multisig use cases. Defaults to None.
             timeout (int,optional: Seconds from now on until when the transaction to be submitted to the stellar network
+            sequence_number (int,optional): specify a specific sequence number ( will still be increased by one) instead of loading it from the account
             sign (bool,optional) : Do not sign and submit the transaction
         
         Raises:
@@ -415,6 +417,9 @@ class Stellar(Client):
             source_account = horizon_server.load_account(from_address)
         else:
             source_account = self.load_account()
+
+        if sequence_number:
+            source_account.sequence = sequence_number
 
         transaction_builder = stellar_sdk.TransactionBuilder(
             source_account=source_account,
