@@ -1206,15 +1206,16 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             pools = filtered_pools
 
         workload_name = workload_name or "workloads"
+        messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
         pool_choices = bot.multi_list_choice(
-            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(pools.keys())
+            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(messages.keys())
         )
         farm_to_pool = {}
         farm_names = []
         pool_ids = {}
         for p in pool_choices:
-            pool = pool_ids.get(p, j.sals.zos.pools.get(p))
-            pool_ids[p] = pool
+            pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
+            pool_ids[messages[p]] = pool
             farm_id = self._explorer.nodes.get(pool.node_ids[0]).farm_id
             farm_name = self._explorer.farms.get(farm_id).name
             farm_to_pool[farm_id] = pool
