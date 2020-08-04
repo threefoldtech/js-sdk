@@ -3,18 +3,15 @@ import uuid
 from jumpscale.clients.explorer.models import Category
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 kinds = {
-    "minio": j.sals.reservation_chatflow.solutions.list_minio_solutions,
-    "kubernetes": j.sals.reservation_chatflow.solutions.list_kubernetes_solutions,
-    "ubuntu": j.sals.reservation_chatflow.solutions.list_ubuntu_solutions,
-    "flist": j.sals.reservation_chatflow.solutions.list_flist_solutions,
-    "gitea": j.sals.reservation_chatflow.solutions.list_gitea_solutions,
+    "minio": solutions.list_minio_solutions,
+    "kubernetes": solutions.list_kubernetes_solutions,
+    "ubuntu": solutions.list_ubuntu_solutions,
+    "flist": solutions.list_flist_solutions,
+    "gitea": solutions.list_gitea_solutions,
 }
-
-domain_types = {"delegate": Category.Domain_delegate, "sub": Category.Subdomain}
 
 ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
@@ -54,7 +51,12 @@ class SolutionExpose(GedisChatBot):
             "Please choose the solution to expose", list(self.sols.keys()), required=True
         )
         self.solution = self.sols[self.solution_name]
-        self.pool_id = self.solution["Pool"]
+        if self.kind == "kubernetes":
+            self.pool_id = self.solution["Master Pool"]
+        elif self.kind == "minio":
+            self.pool_id = self.solution["Primary Pool"]
+        else:
+            self.pool_id = self.solution["Pool"]
 
     @chatflow_step(title="Ports")
     def exposed_ports(self):
