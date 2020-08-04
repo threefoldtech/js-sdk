@@ -26,18 +26,15 @@
               min-width="100"
               v-for="(s, i) in deployedSolutions[topic]"
               :key="i"
-              close
               @click="showInfo(s)"
-              @click:close="showRemove(s)"
               outlined
-            >{{ s.name }}</v-chip>
+            >{{ s["Pool id"] === undefined ? s.Name : s["Pool id"] }}</v-chip>
           </v-card-text>
         </v-card>
       </template>
     </base-component>
 
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
-    <solution-delete v-if="selected" v-model="dialogs.remove" :data="selected"></solution-delete>
   </div>
 </template>
 
@@ -46,7 +43,6 @@ module.exports = {
   props: { topic: String },
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
-    "solution-delete": httpVueLoader("./Delete.vue"),
   },
   watch: {
     topic: function () {
@@ -59,7 +55,6 @@ module.exports = {
       selected: null,
       dialogs: {
         info: false,
-        remove: false,
       },
       solutions: [
         {
@@ -163,13 +158,31 @@ module.exports = {
       this.selected = data;
       this.dialogs.info = true;
     },
-    showRemove(data) {
-      this.selected = data;
-      this.dialogs.remove = true;
-    },
     getDeployedSolutions(solution_type) {
       this.$api.solutions.getDeployed(solution_type).then((response) => {
-        this.$set(this.deployedSolutions, solution_type, response.data.data);
+        const data = response.data.data;
+        let parsedData = data;
+        if (solution_type === "pools") {
+          parsedData = [];
+          for (i in data) {
+            let obj = {
+              "Pool id": data[i].pool_id,
+              "Customer id": data[i].customer_tid,
+              "Available cloud units": data[i].cus,
+              "Available storge units": data[i].sus,
+              "Active cloud units": data[i].active_cu,
+              "Active storge units": data[i].active_su,
+              "Last updated": new Date(data[i].last_updated * 1000),
+              "Empty at": isNaN(new Date(data[i].empty_at * 1000))
+                ? "-"
+                : new Date(data[i].empty_at * 1000),
+              "Node ids": data[i].node_ids,
+              "Active workload ids": data[i].active_workload_ids,
+            };
+            parsedData.push(obj);
+          }
+        }
+        this.$set(this.deployedSolutions, solution_type, parsedData);
       });
     },
     getSolutionData(topic) {
