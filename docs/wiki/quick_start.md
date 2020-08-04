@@ -26,13 +26,14 @@ For GNU/Linux Ubuntu systems
 
 ## Installing js-sdk
 
-After preparing the dependencies on your system
+After having the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed on your system 
 ### Installation using pip (don't use yet until we have an official release)
 
 Just doing `python3 -m pip install js-sdk` is enough
 
 ### Installation for experts or developers
 
+- Make sure to have the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed 
 This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
 
 - To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
