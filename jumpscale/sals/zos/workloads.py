@@ -23,8 +23,10 @@ class Workloads:
         workload.info.workload_id = 1
         workload.info.epoch = j.data.time.now().timestamp
         workload.info.next_action = NextAction.DEPLOY
-        workload.info.signing_request_delete.signers = [me.tid]
-        workload.info.signing_request_delete.quorum_min = 1
+        if me.tid not in workload.info.signing_request_delete.signers:
+            workload.info.signing_request_delete.signers.append(me.tid)
+        if not workload.info.signing_request_delete.quorum_min:
+            workload.info.signing_request_delete.quorum_min = 1
         signature = sign_workload(workload, me.nacl.signing_key)
         workload.info.customer_signature = binascii.hexlify(signature).decode()
         return self._workloads.create(workload)
