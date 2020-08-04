@@ -422,6 +422,10 @@ class ChatflowDeployer:
     def ask_name(self, bot):
         name = bot.string_ask("Please enter a name for you workload", required=True, field="name")
         return name
+    
+    def ask_email(self, bot):
+        email = bot.string_ask("Please enter the email to which the signature will be attached", required=True, field="email")
+        return email
 
     def ask_ipv6(self, bot, workload_name=None):
         workload_name = workload_name or "your workload"
