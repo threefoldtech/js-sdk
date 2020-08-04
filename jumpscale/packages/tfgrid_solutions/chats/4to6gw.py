@@ -1,12 +1,11 @@
 import uuid
+
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import deployer
 
 
 class FourToSixGateway(GedisChatBot):
-    """
-    """
-
     steps = [
         "select_pool",
         "gateway_start",
@@ -33,7 +32,7 @@ class FourToSixGateway(GedisChatBot):
             "Please enter wireguard public key or leave empty if you want us to generate one for you."
         )
         self.privatekey = "enter private key here"
-        res = "# Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
+        res = "### Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
         self.md_show(res, md=True)
 
     @chatflow_step(title="Create your Wireguard ", disable_previous=True)
@@ -54,8 +53,9 @@ class FourToSixGateway(GedisChatBot):
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
         res = """
-# Use the following template to configure your wireguard connection. This will give you access to your network.
-## Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
+## Use the following template to configure your wireguard connection. This will give you access to your network.
+\n<br/>\n
+Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
 Click next
 to download your configuration
         """
@@ -85,10 +85,11 @@ Endpoint = {{peer.endpoint}}
         filename = "wg-{}.conf".format(self.resv_id)
         self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=filename, html=True)
         res = f"""
-    # In order to connect to the 4 to 6 gateway execute this command:
-    ## ```wg-quick up ./{filename}```
+# In order to connect to the 4 to 6 gateway execute this command:
+\n<br/>\n
+## ```wg-quick up ./{filename}```
                     """
-        self.md_show(res)
+        self.md_show(res, md=True)
 
 
 chat = FourToSixGateway

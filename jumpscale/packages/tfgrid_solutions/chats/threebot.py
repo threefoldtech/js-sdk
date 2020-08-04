@@ -247,11 +247,14 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""
-        Your Threebot has been deployed successfully.
-        Reservation ID  : {self.workload_ids[-1]}<br>
-        Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
-        IP Address      : {self.ip_address}<br>
+        message = f"""# Your Threebot has been deployed successfully.
+\n<br>\n
+
+- Reservation ID  : `{self.workload_ids[-1]}`
+
+- Domain          : <a href="{self.threebot_url}" target="_blank">{self.threebot_url}</a>
+
+- IP Address      : `{self.ip_address}`
         """
         self.md_show(dedent(message), md=True)
 
