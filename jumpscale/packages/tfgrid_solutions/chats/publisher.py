@@ -1,12 +1,7 @@
 import math
 from textwrap import dedent
-import toml
-import requests
-
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 import uuid
 
