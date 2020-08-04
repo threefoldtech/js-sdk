@@ -17,8 +17,8 @@ class Workloads:
     def get(self, workload_id):
         return self._workloads.get(workload_id)
 
-    def deploy(self, workload, identity=None):
-        me = identity if identity else j.core.identity.me
+    def deploy(self, workload):
+        me = j.core.identity.me
         workload.info.customer_tid = me.tid
         workload.info.workload_id = 1
         workload.info.epoch = j.data.time.now().timestamp
@@ -29,8 +29,8 @@ class Workloads:
         workload.info.customer_signature = binascii.hexlify(signature).decode()
         return self._workloads.create(workload)
 
-    def decomission(self, workload_id, identity=None):
-        me = identity if identity else j.core.identity.me
+    def decomission(self, workload_id):
+        me = j.core.identity.me
         workload = self.get(workload_id)
         signature = sign_delete_request(workload, me.tid, me.nacl.signing_key)
         return self._workloads.sign_delete(workload_id, me.tid, signature)
