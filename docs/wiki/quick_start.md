@@ -24,7 +24,7 @@ Install packages (git, nginx, redis-server, tmux, python3) on MacOS
 ## Installing js-sdk
 
 After preparing the dependencies on your system
-### Installation using pip
+### Installation using pip (don't use yet until we have an official release)
 
 Just doing `python3 -m pip install js-sdk` is enough
 
