@@ -240,12 +240,7 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {
-                "chatflow": "minio",
-                "Solution name": self.solution_name,
-                "Master IP": self.ip_addresses[0],
-                "ZDB URLS": zdb_configs,
-            },
+            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0],},
         }
         self.solution_metadata.update(metadata)
 
