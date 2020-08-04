@@ -18,7 +18,7 @@ const SOLUTIONS = {
     name: "Pools",
     icon: "mdi-cloud",
     url: "/solutions/pools_reservation",
-    description: "Deploy a network on the grid and to connect your solutions together."
+    description: "Reserve capacity on the grid to deploy the solutions on"
   },
   ubuntu: {
     topic: "ubuntu_deploy",
@@ -87,7 +87,7 @@ const SOLUTIONS = {
   monitoring: {
     topic: "monitoring_deploy",
     type: "monitoring",
-    name:"Monitoring",
+    name: "Monitoring",
     icon: "mdi-monitor-dashboard",
     url: "/solutions/monitoring_deploy",
     description: ""
@@ -119,7 +119,7 @@ const SOLUTIONS = {
   all: {
     topic: "all",
     type: "all_reservations",
-    name:"All Workloads",
+    name: "All Workloads",
     icon: "mdi-clipboard-list-outline",
     url: "/solutions/all",
     description: ""
@@ -127,12 +127,12 @@ const SOLUTIONS = {
 }
 
 const LEVELS = {
-  50: { value: 50, text: "CRITICAL", color: "#A93226"},
-  40: { value: 40, text: "ERROR", color: "#CB4335"},
-  30: { value: 30, text: "WARNING", color: "#F39C12"},
-  20: { value: 20, text: "INFO", color: "#148F77"},
-  15: { value: 15, text: "STDOUT", color: "#5499C7"},
-  10: { value: 10, text: "DEBUG", color: "#839192"}
+  50: { value: 50, text: "CRITICAL", color: "#A93226" },
+  40: { value: 40, text: "ERROR", color: "#CB4335" },
+  30: { value: 30, text: "WARNING", color: "#F39C12" },
+  20: { value: 20, text: "INFO", color: "#148F77" },
+  15: { value: 15, text: "STDOUT", color: "#5499C7" },
+  10: { value: 10, text: "DEBUG", color: "#839192" }
 };
 
 const STATES = [

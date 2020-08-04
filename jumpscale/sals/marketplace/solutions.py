@@ -547,5 +547,37 @@ class MarketplaceSolutions(ChatflowSolutions):
                         result[name]["wids"].append(workload.id)
         return list(result.values())
 
+    def count_solutions(self, username, next_action=NextAction.DEPLOY):
+        count_dict = {
+            "network": 0,
+            "ubuntu": 0,
+            "kubernetes": 0,
+            "minio": 0,
+            "monitoring": 0,
+            "flist": 0,
+            "gitea": 0,
+            "4to6gw": 0,
+            "delegated_domain": 0,
+            "exposed": 0,
+            "publisher": 0,
+            "threebot": 0,
+            "pools": 0,
+        }
+        j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        for key in count_dict.keys():
+            method = getattr(self, f"list_{key}_solutions")
+            count_dict[key] = len(method(username, next_action=next_action, sync=False))
+        return count_dict
+
+    def list_pools_solutions(self, username, next_action=NextAction.DEPLOY, sync=False):
+        pools = j.sals.marketplace.deployer.list_user_pools(username)
+        result = [pool.to_dict() for pool in pools]
+        return result
+
+    def list_solutions(self, username, solution_type):
+        j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=NextAction.DEPLOY)
+        method = getattr(self, f"list_{solution_type}_solutions")
+        return method(username, next_action=NextAction.DEPLOY, sync=True)
+
 
 solutions = MarketplaceSolutions()

@@ -46,12 +46,12 @@ module.exports = {
   props: { topic: String },
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
-    "solution-delete": httpVueLoader("./Delete.vue")
+    "solution-delete": httpVueLoader("./Delete.vue"),
   },
   watch: {
-    topic: function() {
+    topic: function () {
       this.getDeployedSolutions(this.topic);
-    }
+    },
   },
   data() {
     return {
@@ -59,86 +59,93 @@ module.exports = {
       selected: null,
       dialogs: {
         info: false,
-        remove: false
+        remove: false,
       },
       solutions: [
+        {
+          type: "pools",
+          name: "Pools",
+          icon: "mdi-cloud",
+          description:
+            "Reserve capacity on the grid to deploy the solutions on",
+        },
         {
           type: "ubuntu",
           name: "Ubuntu",
           image: "./assets/ubuntu.png",
           description:
-            "A free and open-source Linux distribution based on Debian. Ubuntu is officially released in three editions: Desktop, Server, and Core(for internet of things devices and robots). This package is used to deploy an ubuntu container from an official flist on the grid using a chatflow."
+            "A free and open-source Linux distribution based on Debian. Ubuntu is officially released in three editions: Desktop, Server, and Core(for internet of things devices and robots). This package is used to deploy an ubuntu container from an official flist on the grid using a chatflow.",
         },
         {
           type: "kubernetes",
           name: "Kubernetes",
           image: "./assets/kubernetes.png",
           description:
-            "Deploy a Kubernetes cluster with zdb using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
+            "Deploy a Kubernetes cluster with zdb using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster.",
         },
         {
           type: "minio",
           name: "Minio",
           image: "./assets/minio.png",
           description:
-            "MinIO is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
+            "MinIO is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage.",
         },
         {
           type: "gitea",
           name: "Gitea",
           image: "./assets/gitea.png",
           description:
-            "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
+            "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab.",
         },
         {
           type: "network",
           name: "Network",
           icon: "mdi-network-outline",
           description:
-            "Deploy a network on the grid and to connect your solutions together."
+            "Deploy a network on the grid and to connect your solutions together.",
         },
         {
           type: "exposed",
           name: "Solution Expose",
-          icon: "mdi-publish"
+          icon: "mdi-publish",
         },
         {
           type: "flist",
           name: "Generic Container",
           icon: "mdi-folder-multiple",
           description:
-            "Spawn a container using specific flist provided by the user in the chatflow."
+            "Spawn a container using specific flist provided by the user in the chatflow.",
         },
         {
           type: "monitoring",
           name: "Monitoring",
-          icon: "mdi-monitor-dashboard"
+          icon: "mdi-monitor-dashboard",
         },
         {
           type: "delegated_domain",
           name: "Domain Delegation",
-          icon: "mdi-web"
+          icon: "mdi-web",
         },
         {
           type: "4to6gw",
           name: "4 to 6 Gateway",
-          icon: "mdi-router"
+          icon: "mdi-router",
         },
         {
           type: "publisher",
           name: "Publisher",
           icon: "mdi-web-box",
           description:
-            "Deploy a wiki, blog, website and access it via an IP and a public domain"
+            "Deploy a wiki, blog, website and access it via an IP and a public domain",
         },
         {
           type: "threebot",
           name: "Threebot",
           image: "./assets/3bot.png",
-          description: "Deploy your Threebot on container."
-        }
+          description: "Deploy your Threebot on container.",
+        },
       ],
-      deployedSolutions: {}
+      deployedSolutions: {},
     };
   },
   methods: {
@@ -161,20 +168,20 @@ module.exports = {
       this.dialogs.remove = true;
     },
     getDeployedSolutions(solution_type) {
-      this.$api.solutions.getDeployed(solution_type).then(response => {
+      this.$api.solutions.getDeployed(solution_type).then((response) => {
         this.$set(this.deployedSolutions, solution_type, response.data.data);
       });
     },
     getSolutionData(topic) {
-      return this.solutions.find(obj => {
+      return this.solutions.find((obj) => {
         return obj.type === topic;
       });
-    }
+    },
   },
   mounted() {
     this.getDeployedSolutions(this.topic);
   },
-  updated() {}
+  updated() {},
 };
 </script>
 
