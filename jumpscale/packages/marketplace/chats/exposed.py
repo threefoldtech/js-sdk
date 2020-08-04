@@ -1,10 +1,9 @@
 import uuid
 
-from jumpscale.clients.explorer.models import Category
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import deployer, solutions, MarketPlaceChatflow
 from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 kinds = {
     "minio": solutions.list_minio_solutions,

@@ -1,5 +1,5 @@
-from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, Type
+from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow.solutions import ChatflowSolutions
 
 

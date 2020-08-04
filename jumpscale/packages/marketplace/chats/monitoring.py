@@ -1,11 +1,9 @@
 import math
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 from jumpscale.packages.tfgrid_solutions.chats.monitoring_deploy import MonitoringDeploy as BaseMonitoringDeploy
-import uuid
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class MonitoringDeploy(BaseMonitoringDeploy, MarketPlaceChatflow):

@@ -1,7 +1,7 @@
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow
-from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.marketplace.bottle.models import UserEntry
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow
 
 
 class MarketPlaceChatflow(GedisChatBot):

@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 
 
 class PoolReservation(MarketPlaceChatflow):

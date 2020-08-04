@@ -1,6 +1,6 @@
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.packages.tfgrid_solutions.chats.network_deploy import NetworkDeploy as BaseNetworkDeploy
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 

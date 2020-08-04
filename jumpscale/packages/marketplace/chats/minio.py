@@ -1,9 +1,9 @@
 import math
 
-from jumpscale.clients.explorer.models import Category, DiskType, Mode
+from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.chats.minio_deploy import MinioDeploy as BaseMinioDeploy
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 

@@ -1,7 +1,8 @@
-from jumpscale.sals.marketplace import deployer, solutions, MarketPlaceChatflow
+import math
+
 from jumpscale.packages.tfgrid_solutions.chats.threebot import ThreebotDeploy as BaseThreebotDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-import math
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class ThreebotDeploy(BaseThreebotDeploy, MarketPlaceChatflow):

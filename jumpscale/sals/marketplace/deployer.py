@@ -1,9 +1,10 @@
-from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from jumpscale.clients.explorer.models import NextAction, Type
-from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
-from .models import UserPool
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
+
+from .models import UserPool
 
 
 class MarketPlaceDeployer(ChatflowDeployer):

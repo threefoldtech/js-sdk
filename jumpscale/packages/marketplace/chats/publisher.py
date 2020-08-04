@@ -1,7 +1,8 @@
-from jumpscale.packages.tfgrid_solutions.chats.publisher import Publisher as BasePublisher
-from jumpscale.sals.marketplace import deployer, solutions, MarketPlaceChatflow
-from jumpscale.sals.chatflows.chatflows import chatflow_step
 import math
+
+from jumpscale.packages.tfgrid_solutions.chats.publisher import Publisher as BasePublisher
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class Publisher(BasePublisher, MarketPlaceChatflow):

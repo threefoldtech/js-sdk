@@ -1,7 +1,6 @@
 from jumpscale.loader import j
-import math
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.packages.tfgrid_solutions.chats.kubernetes_deploy import KubernetesDeploy as BaseKubernetesDeploy
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 

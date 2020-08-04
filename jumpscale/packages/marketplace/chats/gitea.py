@@ -1,7 +1,6 @@
-import uuid
-from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import deployer, solutions, MarketPlaceChatflow
 from jumpscale.packages.tfgrid_solutions.chats.gitea_deploy import GiteaDeploy as BaseGiteaDeploy
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class GiteaDeploy(BaseGiteaDeploy, MarketPlaceChatflow):
