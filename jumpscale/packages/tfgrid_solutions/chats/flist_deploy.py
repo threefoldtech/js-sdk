@@ -129,8 +129,7 @@ class FlistDeploy(GedisChatBot):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": self.resources["disk_size"],
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
         if not self.selected_node:
