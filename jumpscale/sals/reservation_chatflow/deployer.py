@@ -1184,5 +1184,51 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         url = f"{namespace}:{password}@[{ip}]:{port}"
         return url
 
+    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
+        """
+        Choose multiple pools and to distribute workload automatically
+
+        Args:
+            bot: chatflow object
+            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1}.
+            pool_ids: if specfied it will limit the pools shown in the chatflow to only these pools
+            workload_name: name shown in the message
+        Returns:
+            ([], []): first list contains the selected node objects. second list contains selected pool ids
+        """
+        resource_query = resource_query or {}
+        pools = self.list_pools()
+        if pool_ids:
+            filtered_pools = {}
+            for pool_id in pools:
+                if pool_id in pool_ids:
+                    filtered_pools[pool_id] = pools[pool_id]
+            pools = filtered_pools
+
+        workload_name = workload_name or "workloads"
+        pool_choices = bot.multi_list_choice(
+            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(pools.keys())
+        )
+        farm_to_pool = {}
+        farm_names = []
+        pool_ids = {}
+        for p in pool_choices:
+            pool = pool_ids.get(p, j.sals.zos.pools.get(p))
+            pool_ids[p] = pool
+            farm_id = self._explorer.nodes.get(pool.node_ids[0]).farm_id
+            farm_name = self._explorer.farms.get(farm_id).name
+            farm_to_pool[farm_id] = pool
+            farm_names.append(farm_name)
+        nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+            number_of_nodes, farm_names=farm_names, **resource_query
+        )
+        selected_nodes = []
+        selected_pool_ids = []
+        for node in nodes:
+            selected_nodes.append(node)
+            pool = farm_to_pool[node.farm_id]
+            selected_pool_ids.append(pool.pool_id)
+        return selected_nodes, selected_pool_ids
+
 
 deployer = ChatflowDeployer()
