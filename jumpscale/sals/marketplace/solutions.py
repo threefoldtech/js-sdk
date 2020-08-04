@@ -579,5 +579,17 @@ class MarketplaceSolutions(ChatflowSolutions):
         method = getattr(self, f"list_{solution_type}_solutions")
         return method(username, next_action=NextAction.DEPLOY, sync=True)
 
+    def cancel_solution(self, username, solution_wids):
+        valid = True
+        for wid in solution_wids:
+            workload = j.sals.zos.workloads.get(wid)
+            metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+            metadata = j.data.serializers.json.loads(metadata_json)
+            if metadata.get("owner") != username:
+                valid = False
+                break
+        if valid:
+            super().cancel_solution(solution_wids)
+
 
 solutions = MarketplaceSolutions()

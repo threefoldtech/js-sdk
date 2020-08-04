@@ -1,10 +1,8 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, request, HTTPResponse
+from bottle import Bottle, request, HTTPResponse
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import solutions
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -31,8 +29,9 @@ def count_solutions():
 @app.route("/api/solutions/cancel", method="POST")
 @login_required
 def cancel_solution():
+    user_info = j.data.serializers.json.loads(get_user_info())
     data = j.data.serializers.json.loads(request.body.read())
-    solutions.cancel_solution(data["wids"])
+    j.sals.marketplace.solutions.cancel_solution(user_info["username"], data["wids"])
     return j.data.serializers.json.dumps({"result": True})
 
 
@@ -40,7 +39,6 @@ def cancel_solution():
 @login_required
 def allowed():
     user_factory = StoredFactory(UserEntry)
-
     user_info = j.data.serializers.json.loads(get_user_info())
     tname = user_info["username"]
     explorer_url = j.core.identity.me.explorer.url
