@@ -221,7 +221,7 @@ class GiteaDeploy(GedisChatBot):
         res = f"""\
 # gitea has been deployed successfully: your reservation id is: {self.resv_id}
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
-open gitea from browser at ```{self.ip_address}:3000```
+open gitea from browser at ```https://{self.ip_address}```
             """
         self.md_show(res, md=True)
 
