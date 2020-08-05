@@ -57,7 +57,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
         domain_ask_list = list(messages.keys())
         # add custom_domain
         domain_ask_list.append("Custom Domain")
-        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
+        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list, required=True,)
         if chosen_domain != "Custom Domain":
             self.domain_gateway = messages[chosen_domain]["gateway"]
             self.domain_pool = messages[chosen_domain]["pool"]
@@ -69,6 +69,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
                 domain = self.string_ask(
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
+                    required=True,
                 )
                 if "." in domain:
                     retry = True
@@ -81,7 +82,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
             self.domain = domain + "." + self.domain
         else:
-            self.domain = self.string_ask("Please specify the domain name you wish to bind to:")
+            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True,)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self.solution_metadata["owner"], self)
             self.domain_type = "Custom Domain"
             res = """\

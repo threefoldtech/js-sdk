@@ -22,6 +22,8 @@ class NetworkDeploy(GedisChatBot):
             self.action = self.single_choice(
                 "Do you want to create a new network or add access to an existing one?",
                 options=["Create", "Add Access"],
+                required=True,
+                default="Create",
             )
         else:
             self.action = "Create"

@@ -82,6 +82,7 @@ class UbuntuDeploy(GedisChatBot):
             "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
             ["YES", "NO"],
             default="NO",
+            required=True,
         )
         if self.container_logs_option == "YES":
             self.log_config = deployer.ask_container_logs(self, self.solution_name)
@@ -122,7 +123,7 @@ class UbuntuDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
         )
 
     @chatflow_step(title="Global IPv6 Address")

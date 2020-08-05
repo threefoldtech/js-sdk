@@ -26,6 +26,7 @@ class MonitoringDeploy(BaseMonitoringDeploy, MarketPlaceChatflow):
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
+        self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
 
     @chatflow_step(title="Container's node ids")
     def container_node_ids(self):

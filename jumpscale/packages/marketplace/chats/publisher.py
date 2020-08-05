@@ -25,7 +25,7 @@ class Publisher(BasePublisher, MarketPlaceChatflow):
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
-            self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
+        self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
 
     @chatflow_step(title="Pool")
     def select_pool(self):

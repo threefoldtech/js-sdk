@@ -12,6 +12,8 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
             self.action = self.single_choice(
                 "Do you want to create a new network or add access to an existing one?",
                 options=["Create", "Add Access"],
+                required=True,
+                default="Create",
             )
         else:
             self.action = "Create"
@@ -40,7 +42,10 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
     def ip_config(self):
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
-            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
+            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4",
+            ips,
+            required=True,
+            default="IPv4",
         )
 
         pools = deployer.list_user_pools(self.user_info()["username"])

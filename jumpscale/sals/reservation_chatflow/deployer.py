@@ -224,9 +224,9 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU")
-        su = form.int_ask("Please specify the required SU")
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"])
+        cu = form.int_ask("Please specify the required CU", required=True)
+        su = form.int_ask("Please specify the required SU", required=True)
+        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         cu = cu.value
         su = su.value
@@ -252,7 +252,7 @@ class ChatflowDeployer:
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
-        selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()))
+        selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()), required=True)
         farm = farm_messages[selected_farm]
         try:
             pool_info = j.sals.zos.pools.create(cu, su, farm, currencies)
@@ -332,9 +332,9 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
-        cu = form.int_ask("Please specify the required CU")
-        su = form.int_ask("Please specify the required SU")
-        currencies = form.single_choice("Please choose the currency", assets)
+        cu = form.int_ask("Please specify the required CU", required=True)
+        su = form.int_ask("Please specify the required SU", required=True)
+        currencies = form.single_choice("Please choose the currency", assets, required=True)
         form.ask()
         cu = cu.value
         su = su.value
@@ -388,7 +388,7 @@ class ChatflowDeployer:
         msg = "Please select a pool"
         if workload_name:
             msg += f" for {workload_name}"
-        pool = bot.single_choice(msg, list(pool_messages.keys()))
+        pool = bot.single_choice(msg, list(pool_messages.keys()), required=True)
         return pool_messages[pool]
 
     def get_pool_farm_id(self, pool_id):
@@ -419,7 +419,10 @@ class ChatflowDeployer:
     def ask_ipv6(self, bot, workload_name=None):
         workload_name = workload_name or "your workload"
         ipv6 = bot.single_choice(
-            f"Do you want to assign a global IPv6 address to {workload_name}?", options=["YES", "NO"], default="NO"
+            f"Do you want to assign a global IPv6 address to {workload_name}?",
+            options=["YES", "NO"],
+            default="NO",
+            required=True,
         )
         return ipv6 == "YES"
 
@@ -550,7 +553,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         network_views = self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", list(network_views.keys()))
+        network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
         return network_views[network_name]
 
     def deploy_volume(self, pool_id, node_id, size, volume_type=DiskType.SSD, **metadata):
@@ -627,14 +630,18 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu)
+            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu, required=True, min=1)
         if memory:
-            memory_answer = form.int_ask("Please specify how much memory", default=default_memory)
+            memory_answer = form.int_ask(
+                "Please specify how much memory", default=default_memory, required=True, min=1024
+            )
         if disk_size:
-            disk_size_answer = form.int_ask("Please specify the size of root filesystem", default=default_disk_size)
+            disk_size_answer = form.int_ask(
+                "Please specify the size of root filesystem", default=default_disk_size, required=True
+            )
         if disk_type:
             disk_type_answer = form.single_choice(
-                "Please choose the root filesystem disktype", ["SSD", "HDD"], default=default_disk_type
+                "Please choose the root filesystem disktype", ["SSD", "HDD"], default=default_disk_type, required=True
             )
         form.ask()
         resources = {}
@@ -687,9 +694,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            f"Do you want to automatically select a node for deployment or manually for {workload_name}?",
+            f"Do you want to automatically select a node for deployment for {workload_name}?",
             ["YES", "NO"],
             default="YES",
+            required=True,
         )
         if automatic_choice == "YES":
             return None
@@ -701,7 +709,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             raise StopChatFlow("Failed to find resources for this reservation")
         node_messages = {node.node_id: node for node in nodes}
         node_id = bot.drop_down_choice(
-            f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys())
+            f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys()), required=True
         )
         return node_messages[node_id]
 
@@ -919,7 +927,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         """
         gateways = self.list_all_gateways(pool_ids)
 
-        selected = bot.single_choice("Please select a gateway", list(gateways.keys()))
+        selected = bot.single_choice("Please select a gateway", list(gateways.keys()), required=True)
         return gateways[selected]["gateway"], gateways[selected]["pool"]
 
     def create_ipv6_gateway(self, gateway_id, pool_id, public_key, **metadata):
@@ -1207,9 +1215,16 @@ Deployment will be cancelled if it is not successful in {remaning_time}
 
         workload_name = workload_name or "workloads"
         messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
-        pool_choices = bot.multi_list_choice(
-            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(messages.keys())
-        )
+        while True:
+            pool_choices = bot.multi_list_choice(
+                f"Please seclect the pools you wish to distribute you {workload_name} on",
+                options=list(messages.keys()),
+                required=True,
+            )
+            if not pool_choices:
+                bot.md_show("You must select at least one pool. please click next to try again.")
+            else:
+                break
         farm_to_pool = {}
         farm_names = []
         pool_ids = {}

@@ -76,7 +76,7 @@ class KubernetesDeploy(GedisChatBot):
             required=True,
         ).split("\n")
 
-        self.cluster_secret = self.string_ask("Please add the cluster secret", default="secret")
+        self.cluster_secret = self.string_ask("Please add the cluster secret", default="secret", required=True)
 
     @chatflow_step(title="IP selection")
     def ip_selection(self):

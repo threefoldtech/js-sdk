@@ -117,7 +117,7 @@ class GiteaDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
 
     @chatflow_step(title="Confirmation")
@@ -161,6 +161,7 @@ class GiteaDeploy(GedisChatBot):
             entrypoint="/start_gitea.sh",
             log_config=self.log_config,
             public_ipv6=True,
+            disk_size=6 * 1024,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
             **self.solution_metadata,
             solution_uuid=self.solution_id,

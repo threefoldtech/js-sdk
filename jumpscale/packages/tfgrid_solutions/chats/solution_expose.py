@@ -62,8 +62,8 @@ class SolutionExpose(GedisChatBot):
     def exposed_ports(self):
         port = ports.get(self.kind)
         form = self.new_form()
-        tlsport = form.int_ask("Which tls port you want to expose", default=port or 443)
-        port = form.int_ask("Which port you want to expose", default=port or 80)
+        tlsport = form.int_ask("Which tls port you want to expose", default=port or 443, required=True, min=1)
+        port = form.int_ask("Which port you want to expose", default=port or 80, required=True, min=1)
         form.ask()
         self.port = port.value
         self.tls_port = tlsport.value
@@ -101,7 +101,7 @@ class SolutionExpose(GedisChatBot):
         domain_ask_list = list(messages.keys())
         # add custom_domain
         domain_ask_list.append("Custom Domain")
-        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
+        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list, required=True)
         if chosen_domain != "Custom Domain":
             self.domain_gateway = messages[chosen_domain]["gateway"]
             self.domain_pool = messages[chosen_domain]["pool"]
@@ -113,6 +113,7 @@ class SolutionExpose(GedisChatBot):
                 domain = self.string_ask(
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
+                    required=True,
                 )
                 if "." in domain:
                     retry = True
@@ -125,7 +126,7 @@ class SolutionExpose(GedisChatBot):
 
             self.domain = domain + "." + self.domain
         else:
-            self.domain = self.string_ask("Please specify the domain name you wish to bind to:")
+            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = "Custom Domain"
             res = """\

@@ -79,8 +79,10 @@ class MinioDeploy(GedisChatBot):
         data_number = form.int_ask(
             "Please add the number of locations you need. Take care of the ratio between the locations and locations allowed to fail that you will specify next",
             default=2,
+            required=True,
+            min=1,
         )
-        parity = form.int_ask("Please add the number of locations allowed to fail", default=1)
+        parity = form.int_ask("Please add the number of locations allowed to fail", default=1, required=True, min=1)
         form.ask()
         self.data = data_number.value
         self.parity = parity.value
@@ -128,11 +130,13 @@ class MinioDeploy(GedisChatBot):
             "Please add the key to be used for minio when logging in. Make sure not to lose it",
             default=accesskey_string,
             min_length=3,
+            required=True,
         )
         secret = form.string_ask(
             "Please add the secret to be used for minio when logging in to match the previous key. Make sure not to lose it",
             default=secret_string,
             min_length=8,
+            required=True,
         )
         form.ask()
 
@@ -145,6 +149,7 @@ class MinioDeploy(GedisChatBot):
             "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
             ["YES", "NO"],
             default="NO",
+            required=True,
         )
         if self.container_logs_option == "YES":
             self.log_config = deployer.ask_container_logs(self, self.solution_name)
@@ -156,9 +161,9 @@ class MinioDeploy(GedisChatBot):
         public_key_file = self.upload_file(
             """Please add your public ssh key, this will allow you to access the deployed minio container using ssh.
                 Just upload the file with the key. (Optional)"""
-        ).split("\n")
+        )
         if public_key_file:
-            self.public_ssh_key = public_key_file[0]
+            self.public_ssh_key = public_key_file.split("\n")[0]
         else:
             self.public_ssh_key = ""
 

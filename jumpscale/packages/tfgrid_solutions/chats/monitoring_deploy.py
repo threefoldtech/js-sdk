@@ -78,9 +78,10 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Prometheus volume details")
     def prometheus_volume_details(self):
         form = self.new_form()
-        vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
+        vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10, min=1)
         form.ask()
         self.vol_size = vol_disk_size.value
+        self.query["Prometheus"]["disk_size"] += self.vol_size
         self.vol_mount_point = "/data"
 
     @chatflow_step(title="Grafana container resources")
@@ -172,7 +173,11 @@ class MonitoringDeploy(GedisChatBot):
         self.md_show_update("Deploying Volume....")
 
         vol_id = deployer.deploy_volume(
-            self.selected_pool_ids[1], self.selected_nodes[1].node_id, self.vol_size, solution_uuid=self.solution_id
+            self.selected_pool_ids[1],
+            self.selected_nodes[1].node_id,
+            self.vol_size,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
@@ -238,10 +243,10 @@ class MonitoringDeploy(GedisChatBot):
 \n<br/>\n
 ### Prometheus
 - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
-- Access Prometheus UI through <a href="https://{self.ip_addresses[1]}:9090/graph" target="_blank">https://{self.ip_addresses[1]}:9090/graph</a> which is accessed through your browser
+- Access Prometheus UI through <a href="http://{self.ip_addresses[1]}:9090/graph" target="_blank">http://{self.ip_addresses[1]}:9090/graph</a> which is accessed through your browser
 \n<br />\n
 ### Grafana
-- Access Grafana UI through `{self.ip_addresses[2]}:3000` which is accessed through your browser where you can manually configure to use prometheus
+- Access Grafana UI through <a href="http://{self.ip_addresses[2]}:3000" target="_blank">http://{self.ip_addresses[2]}:3000</a> which is accessed through your browser where you can manually configure to use prometheus
 \n<br />\n
 ### Redis
 - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`

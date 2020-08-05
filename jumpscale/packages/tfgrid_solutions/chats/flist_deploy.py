@@ -68,7 +68,7 @@ class FlistDeploy(GedisChatBot):
     def container_volume_details(self):
         if self.container_volume_attach:
             form = self.new_form()
-            vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10)
+            vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10, min=1)
             vol_mount_point = form.string_ask("Please enter the mount point", required=True, default="/data")
             form.ask()
             self.vol_size = vol_disk_size.value
@@ -112,7 +112,10 @@ class FlistDeploy(GedisChatBot):
     @chatflow_step(title="Container ineractive & EntryPoint")
     def container_interactive(self):
         self.interactive = self.single_choice(
-            "Would you like access to your container through the web browser (coreX)?", ["YES", "NO"], required=True
+            "Would you like access to your container through the web browser (coreX)?",
+            ["YES", "NO"],
+            required=True,
+            default="YES",
         )
         if self.interactive == "NO":
             self.entrypoint = self.string_ask("Please add your entrypoint for your flist") or ""
@@ -141,6 +144,7 @@ class FlistDeploy(GedisChatBot):
             "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
             ["YES", "NO"],
             default="NO",
+            required=True,
         )
         if self.container_logs_option == "YES":
             self.log_config = deployer.ask_container_logs(self, self.solution_name)
@@ -161,7 +165,7 @@ class FlistDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0]
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
 
     @chatflow_step(title="Global IPv6 Address")
@@ -188,21 +192,25 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Reservation")
     def reservation(self):
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": "flist", "Solution name": self.solution_name, "env": self.env},
+        }
+        self.solution_metadata.update(metadata)
         volume_config = {}
         if self.container_volume_attach:
             vol_id = deployer.deploy_volume(
-                self.pool_id, self.selected_node.node_id, self.vol_size, solution_uuid=self.solution_id
+                self.pool_id,
+                self.selected_node.node_id,
+                self.vol_size,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
             )
             success = deployer.wait_workload(vol_id, self)
             if not success:
                 raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
             volume_config[self.vol_mount_point] = vol_id
 
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"chatflow": "flist", "Solution name": self.solution_name, "env": self.env},
-        }
-        self.solution_metadata.update(metadata)
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,

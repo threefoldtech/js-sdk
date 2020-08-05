@@ -112,7 +112,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_names = [n[len(username) + 1 :] for n in network_views.keys()]
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", network_names)
+        network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
     def list_all_gateways(self, username):
@@ -128,7 +128,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             gateway, pool_objects
         """
         gateways = self.list_all_gateways(username)
-        selected = bot.single_choice("Please select a gateway", list(gateways.keys()))
+        selected = bot.single_choice("Please select a gateway", list(gateways.keys()), required=True)
         return gateways[selected]["gateway"], gateways[selected]["pool"]
 
     def ask_multi_pool_placement(
@@ -211,9 +211,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         workload_name = workload_name or "workloads"
         messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
-        pool_choices = bot.multi_list_choice(
-            f"Please seclect the pools you wish to distribute you {workload_name} on", options=list(messages.keys())
-        )
+        while True:
+            pool_choices = bot.multi_list_choice(
+                f"Please seclect the pools you wish to distribute you {workload_name} on",
+                options=list(messages.keys()),
+                required=True,
+            )
+            if not pool_choices:
+                bot.md_show("You must select at least one pool. please click next to try again.")
+            else:
+                break
         farm_to_pool = {}
         farm_names = []
         pool_ids = {}

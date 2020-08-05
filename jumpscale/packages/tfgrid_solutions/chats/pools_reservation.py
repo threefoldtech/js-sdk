@@ -16,7 +16,9 @@ class PoolReservation(GedisChatBot):
         if not self.pools:
             self.action = "create"
         else:
-            self.action = self.single_choice("Do you want to create a new pool or extend one?", ["create", "extend"])
+            self.action = self.single_choice(
+                "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
+            )
 
     @chatflow_step(title="Pool Capacity")
     def reserve_pool(self):
