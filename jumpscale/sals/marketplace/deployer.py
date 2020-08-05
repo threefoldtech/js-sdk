@@ -3,7 +3,7 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
-
+from decimal import Decimal
 from .models import UserPool
 
 
@@ -49,6 +49,26 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
         return pool_info
+
+    def show_payment(self, pool, bot):
+        escrow_info = pool.escrow_information
+        resv_id = pool.reservation_id
+        escrow_address = escrow_info.address
+        escrow_asset = escrow_info.asset
+        total_amount = escrow_info.amount
+        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+        total_amount = "{0:f}".format(total_amount_dec)
+        qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        msg_text = f"""
+        <h3> Please make your payment </h3>
+        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
+
+        <h4> Wallet address: </h4>  {escrow_address} \n
+        <h4> Currency: </h4>  {escrow_asset} \n
+        <h4> Reservation id: </h4>  p-{resv_id} \n
+        <h4> Total Amount: </h4> {total_amount} \n
+        """
+        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
