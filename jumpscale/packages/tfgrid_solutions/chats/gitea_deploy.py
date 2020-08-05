@@ -142,10 +142,12 @@ class GiteaDeploy(GedisChatBot):
             "pub_key": self.public_key,
             "POSTGRES_DB": self.database_name,
             "DB_TYPE": "postgres",
-            "DB_HOST": f"{self.ip_address}:5432",
+            "DB_HOST": "localhost:5432",
             "POSTGRES_USER": self.database_user,
             "APP_NAME": self.repository_name,
-            "ROOT_URL": f"http://{self.ip_address}:3000",
+            "ROOT_URL": f"https://{self.ip_address}",
+            "HTTP_PORT": 3000,
+            "DOMAIN": f"{self.ip_address}"
         }
         metadata = {
             "name": self.solution_name,
