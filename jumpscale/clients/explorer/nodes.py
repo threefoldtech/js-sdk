@@ -21,7 +21,7 @@ def _build_query(
     if proofs:
         query["proofs"] = "true"
     args = {
-        "farm": farm_id,
+        "farm_id": farm_id,
         "city": city,
         "cru": cru,
         "sru": sru,
