@@ -173,7 +173,9 @@ class MinioDeploy(GedisChatBot):
         for i in range(len(self.minio_nodes)):
             node = self.minio_nodes[i]
             pool_id = self.minio_pool_ids[i]
-            result = deployer.add_network_node(self.network_view.name, node, pool_id, self.network_view, bot=self)
+            result = deployer.add_network_node(
+                self.network_view.name, node, pool_id, self.network_view, bot=self, **self.solution_metadata
+            )
             if not result:
                 continue
             for wid in result["ids"]:

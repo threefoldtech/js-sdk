@@ -168,6 +168,8 @@ class NetworkView:
             try:
                 result.append(j.sals.zos.workloads.deploy(resource))
             except Exception as e:
+                for wid in result:
+                    j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(f"failed to deploy workload on node {resource.info.node_id} due to error {str(e)}")
         for idx, wid in enumerate(result):
             try:
@@ -526,7 +528,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             if workload.info.result.workload_id:
                 return workload.info.result.state.value == 1
             if expiration_provisioning < j.data.time.get().timestamp:
-                if workload.info.workload_type != TTypeype.Network_resource:
+                if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)

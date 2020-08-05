@@ -162,7 +162,9 @@ class SolutionExpose(GedisChatBot):
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
         self.network_name = self.solution["Network"]
 
-        result = deployer.add_network_node(self.network_name, self.selected_node, self.pool_id, bot=self)
+        result = deployer.add_network_node(
+            self.network_name, self.selected_node, self.pool_id, bot=self, **self.solution_metadata
+        )
         if result:
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self)

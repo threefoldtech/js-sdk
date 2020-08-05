@@ -47,7 +47,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
             required=True,
             default="IPv4",
         )
-
+        self.md_show_update("searching for access node...")
         pools = deployer.list_user_pools(self.user_info()["username"])
         farms = {deployer.get_pool_farm_id(p.pool_id): p.pool_id for p in pools}
         self.access_node = None

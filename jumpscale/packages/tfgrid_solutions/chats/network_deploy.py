@@ -52,7 +52,7 @@ class NetworkDeploy(GedisChatBot):
         self.ipversion = self.single_choice(
             "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
         )
-
+        self.md_show_update("searching for access node...")
         pools = j.sals.zos.pools.list()
         farms = {deployer.get_pool_farm_id(p.pool_id): p.pool_id for p in pools}
         self.access_node = None

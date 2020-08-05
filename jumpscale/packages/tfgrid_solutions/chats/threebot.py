@@ -150,7 +150,12 @@ class ThreebotDeploy(GedisChatBot):
         self.solution_metadata.update(metadata)
         self.workload_ids = []
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view, bot=self
+            self.network_view.name,
+            self.selected_node,
+            self.pool_id,
+            self.network_view,
+            bot=self,
+            **self.solution_metadata,
         )
         if result:
             for wid in result["ids"]:
