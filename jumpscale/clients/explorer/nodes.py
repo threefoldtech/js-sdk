@@ -10,7 +10,6 @@ from .pagination import get_all, get_page
 def _build_query(
     self,
     farm_id: int = None,
-    country: str = None,
     city: str = None,
     cru: int = None,
     sru: int = None,
