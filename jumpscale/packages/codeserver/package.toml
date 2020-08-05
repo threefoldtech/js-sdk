@@ -1,6 +1,7 @@
 name = "codeserver"
 is_auth = true
 is_admin = true
+frontend = "/codeserver"
 
 [[servers]]
 name = "default"

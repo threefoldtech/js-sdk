@@ -650,7 +650,7 @@ watchdog = "^0.9.0"
 zipp = "^3.1.0"
 
 [package.source]
-reference = "dfb9cdbeb3e90291ef6f8ffd2d32322868718f60"
+reference = "4ed9788faf2b1070bd5cb0a0f1c49527005f1517"
 type = "git"
 url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]

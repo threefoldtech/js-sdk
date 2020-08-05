@@ -19,10 +19,9 @@
           <v-icon left>mdi-tune</v-icon> Settings
         </v-btn>
       </template>
- 
+
 
       <template #default>
-
         <v-row>
           <v-col cols="8">
             <v-row>
@@ -35,7 +34,16 @@
             </v-row>
             <v-row>
               <v-col cols="6">
-                <wikis></wikis>
+                <v-row>
+                  <v-col>
+                    <wikis></wikis>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <pools></pools>
+                  </v-col>
+                </v-row>
               </v-col>
               <v-col cols="6">
                 <solutions></solutions>
@@ -67,6 +75,7 @@
       'disk-usage': httpVueLoader("./DiskUsage.vue"),
       'processes': httpVueLoader("./Processes.vue"),
       'solutions': httpVueLoader("./Solutions.vue"),
+      'pools': httpVueLoader("./Pools.vue"),
       'wikis': httpVueLoader("./Wikis.vue"),
       'system': httpVueLoader("./System.vue")
     },
