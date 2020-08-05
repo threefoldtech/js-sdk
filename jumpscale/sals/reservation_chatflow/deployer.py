@@ -231,8 +231,8 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True)
-        su = form.int_ask("Please specify the required SU", required=True)
+        cu = form.int_ask("Please specify the required CU", required=True, min=1)
+        su = form.int_ask("Please specify the required SU", required=True, min=1)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         cu = cu.value
@@ -339,8 +339,8 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
-        cu = form.int_ask("Please specify the required CU", required=True)
-        su = form.int_ask("Please specify the required SU", required=True)
+        cu = form.int_ask("Please specify the required CU", required=True, min=1)
+        su = form.int_ask("Please specify the required SU", required=True, min=1)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
         form.ask()
         cu = cu.value
