@@ -1,18 +1,18 @@
 from .network import Network
-from jumpscale.clients.explorer.models import Type
+from jumpscale.clients.explorer.models import WorkloadType
 
 _order = [
-    Type.Network_resource,
-    Type.Network,
-    Type.Zdb,
-    Type.Volume,
-    Type.Container,
-    Type.Kubernetes,
-    Type.Domain_delegate,
-    Type.Subdomain,
-    Type.Proxy,
-    Type.Reverse_proxy,
-    Type.Gateway4to6,
+    WorkloadType.Network_resource,
+    WorkloadType.Network,
+    WorkloadType.Zdb,
+    WorkloadType.Volume,
+    WorkloadType.Container,
+    WorkloadType.Kubernetes,
+    WorkloadType.Domain_delegate,
+    WorkloadType.Subdomain,
+    WorkloadType.Proxy,
+    WorkloadType.Reverse_proxy,
+    WorkloadType.Gateway4to6,
 ]
 
 

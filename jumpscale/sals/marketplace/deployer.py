@@ -1,4 +1,4 @@
-from jumpscale.clients.explorer.models import NextAction, Type
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
@@ -26,9 +26,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
-        for pool_id in self.workloads[next_action][Type.Network_resource]:
+        for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
             if pool_id in user_pool_ids:
-                for workload in self.workloads[next_action][Type.Network_resource][pool_id]:
+                for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
                     networks[workload.name] = workload
         all_workloads = []
         for pools_workloads in self.workloads[next_action].values():
