@@ -594,6 +594,7 @@ class ChatflowSolutions:
             "exposed": 0,
             "publisher": 0,
             "threebot": 0,
+            "peertube": 0
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

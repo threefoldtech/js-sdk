@@ -150,6 +150,7 @@ class PeerTubeDeploy(GedisChatBot):
             "Memory": self.resources["memory"],
             "Disk Size": self.resources["disk_size"],
             "IP Address": self.ip_address,
+            "Domain Name": self.domain
         }
         self.metadata.update(self.log_config)
         self.md_show_confirm(self.metadata)
