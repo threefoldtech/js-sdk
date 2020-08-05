@@ -12,7 +12,7 @@ from jumpscale.clients.explorer.models import (
 from .crypto import encrypt_for_node
 
 
-class Gateway:
+class GatewayGenerator:
     def __init__(self, explorer):
         self._gateways = explorer.gateway
 

@@ -2,12 +2,9 @@ import random
 import netaddr
 from nacl import public
 from nacl.encoding import Base64Encoder
-from jumpscale.data.idgenerator import chars
 from jumpscale.core.exceptions import Input
 from jumpscale.tools.wireguard import generate_zos_keys
-from .id import _next_workload_id
 from jumpscale.clients.explorer.models import (
-    Network,
     NetworkResource,
     WireguardPeer,
     WorkloadType,

@@ -143,7 +143,7 @@ class NetworkView:
             bot.md_show_update("Starting dry run to check nodes status")
         ip_range = netaddr.IPNetwork("10.10.0.0/16")
         name = uuid.uuid4().hex
-        if not (node_ids and pool_ids):
+        if any([node_ids, pool_ids]) and not all([node_ids, pool_ids]):
             raise StopChatFlow("you must specify both pool ids and node ids together")
         node_pool_dict = {}
         if node_ids:
@@ -152,6 +152,8 @@ class NetworkView:
         else:
             for workload in self.network_workloads:
                 node_pool_dict[workload.info.node_id] = workload.info.pool_id
+            node_ids = list(node_pool_dict.keys())
+            pool_ids = list(node_pool_dict.values())
 
         node_ids = list(set(node_ids))
         network = j.sals.zos.network.create(str(ip_range), name)
@@ -163,7 +165,10 @@ class NetworkView:
         for resource in network.network_resources:
             if bot:
                 bot.md_show_update(f"testing deployment on node {resource.info.node_id}")
-            result.append(j.sals.zos.workloads.deploy(resource))
+            try:
+                result.append(j.sals.zos.workloads.deploy(resource))
+            except Exception as e:
+                raise StopChatFlow(f"failed to deploy workload on node {resource.info.node_id} due to error {str(e)}")
         for idx, wid in enumerate(result):
             try:
                 deployer.wait_workload(wid, bot, 2)

@@ -4,7 +4,7 @@ from .id import _next_workload_id
 from jumpscale.clients.explorer.models import K8s, WorkloadType
 
 
-class Kubernetes:
+class KubernetesGenerator:
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 

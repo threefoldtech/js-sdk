@@ -8,7 +8,7 @@ from jumpscale.clients.explorer.models import (
 )
 
 
-class Volumes:
+class VolumesGenerator:
     def create(self, node_id, pool_id, size=5, type=DiskType.HDD):
         """add a volume to the reservation
 

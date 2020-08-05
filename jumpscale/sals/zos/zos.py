@@ -7,18 +7,18 @@ from jumpscale.core import identity
 from jumpscale.loader import j
 
 from .billing import Billing
-from .container import Container
-from .gateway import Gateway
+from .container import ContainerGenerator
+from .gateway import GatewayGenerator
 from .gateway_finder import GatewayFinder
-from .kubernetes import Kubernetes
+from .kubernetes import KubernetesGenerator
 from .network import NetworkGenerator
 from .node_finder import NodeFinder
 from .pools import Pools
 from .reservation import Reservation
 from .signature import sign_workload
-from .volumes import Volumes
+from .volumes import VolumesGenerator
 from .workloads import Workloads
-from .zdb import ZDB
+from .zdb import ZDBGenerator
 
 
 class Zosv2:
@@ -32,19 +32,19 @@ class Zosv2:
 
     @property
     def container(self):
-        return Container()
+        return ContainerGenerator()
 
     @property
     def volume(self):
-        return Volumes()
+        return VolumesGenerator()
 
     @property
     def zdb(self):
-        return ZDB(self._explorer)
+        return ZDBGenerator(self._explorer)
 
     @property
     def kubernetes(self):
-        return Kubernetes(self._explorer)
+        return KubernetesGenerator(self._explorer)
 
     @property
     def nodes_finder(self):
@@ -68,7 +68,7 @@ class Zosv2:
 
     @property
     def gateway(self):
-        return Gateway(self._explorer)
+        return GatewayGenerator(self._explorer)
 
     def conversion(self):
         me = j.core.identity.me

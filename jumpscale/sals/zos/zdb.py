@@ -1,10 +1,8 @@
 from .crypto import encrypt_for_node
-from jumpscale.core.exceptions import Input
-from .id import _next_workload_id
-from jumpscale.clients.explorer.models import ZdbNamespace, DiskType, ZDBMode, WorkloadType
+from jumpscale.clients.explorer.models import ZdbNamespace, DiskType, WorkloadType
 
 
-class ZDB:
+class ZDBGenerator:
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 

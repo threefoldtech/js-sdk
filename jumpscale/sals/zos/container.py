@@ -14,7 +14,7 @@ from jumpscale.clients.explorer.models import (
 )
 
 
-class Container:
+class ContainerGenerator:
     def create(
         self,
         node_id,
