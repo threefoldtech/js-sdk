@@ -46,9 +46,6 @@ class Decoder:
         info = ReservationInfo.from_dict(self.data)
         model = self._models.get(info.workload_type)
         if not model:
-            import ipdb
-
-            ipdb.set_trace()
             raise j.core.exceptions.Input("unsupported workload type %s" % info.workload_type)
         workload = model.from_dict(self.data)
         workload.info = info

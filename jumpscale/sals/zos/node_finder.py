@@ -50,7 +50,6 @@ class NodeFinder:
         hru=None,
         currency=None,
     ):
-
         not_supported_farms = []
         nodes = self.nodes_search(farm_id=farm_id, farm_name=farm_name, country=country, city=city)
         for node in nodes:

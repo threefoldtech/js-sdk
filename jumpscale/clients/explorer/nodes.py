@@ -8,7 +8,6 @@ from .pagination import get_all, get_page
 
 
 def _build_query(
-    self,
     farm_id: int = None,
     city: str = None,
     cru: int = None,
@@ -21,7 +20,7 @@ def _build_query(
     if proofs:
         query["proofs"] = "true"
     args = {
-        "farm_id": farm_id,
+        "farm": farm_id,
         "city": city,
         "cru": cru,
         "sru": sru,
@@ -62,7 +61,7 @@ class Nodes(BaseResource):
         :return: list of nodes
         :rtype: List[Node]
         """
-        query = _build_query(farm_id, country, city, cru, sru, mru, hru, proofs)
+        query = _build_query(farm_id, city, cru, sru, mru, hru, proofs)
         if page:
             nodes, _ = get_page(self._session, page, Node, self._url, query)
         else:
@@ -94,7 +93,7 @@ class Nodes(BaseResource):
         :yield: Farm
         :rtype: Iterator[Farm]
         """
-        query = _build_query(farm_id, country, city, cru, sru, mru, hru, proofs)
+        query = _build_query(farm_id, city, cru, sru, mru, hru, proofs)
         yield from get_all(self._session, Node, self._url, query)
 
     def get(self, node_id: str, proofs=False) -> Node:
