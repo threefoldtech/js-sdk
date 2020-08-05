@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.clients.explorer.models import TfgridDirectoryFarm1
+from jumpscale.clients.explorer.models import Farm
 from jumpscale.loader import j
 
 
@@ -10,7 +10,7 @@ class FarmManagemenet(BaseActor):
 
     @actor_method
     def update_farm(self, farm_id, farm):
-        farm = TfgridDirectoryFarm1()
+        farm = Farm()
         farm["id"] = farm_id
         self._explorer.farms.update(farm)
 

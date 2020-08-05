@@ -1,7 +1,7 @@
 import math
 import uuid
 
-from jumpscale.clients.explorer.models import Category, DiskType, Mode
+from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import solutions, deployer

@@ -1,21 +1,24 @@
-from jumpscale.loader import j
-from .pagination import get_page, get_all
-from .models import (
-    TfgridWorkloadsReservationVolume1,
-    TfgridWorkloadsReservationContainer1,
-    TfgridWorkloadsReservationZdb1,
-    TfgridWorkloadsReservationK8s1,
-    TfgridWorkloadsReservationGatewayProxy1,
-    TfgridWorkloadsReservationGatewayReverse_proxy1,
-    TfgridWorkloadsReservationGatewaySubdomain1,
-    TfgridWorkloadsReservationGatewayDelegate1,
-    TfgridWorkloadsReservationGateway4to61,
-    TfgridWorkloadsNetworkNet_resource1,
-    TfgridWorkloadsReservationInfo1,
-    NextAction,
-    Type,
-)
 import binascii
+from typing import Iterator, List, Union
+
+from jumpscale.loader import j
+
+from .models import (
+    Container,
+    Gateway4to6,
+    GatewayDelegate,
+    GatewayProxy,
+    GatewayReverseProxy,
+    GatewaySubdomain,
+    K8s,
+    NetworkResource,
+    NextAction,
+    ReservationInfo,
+    Volume,
+    WorkloadType,
+    ZdbNamespace,
+)
+from .pagination import get_all, get_page
 
 
 class Decoder:
@@ -27,44 +30,64 @@ class Decoder:
     def __init__(self, data):
         self.data = data
         self._models = {
-            Type.Volume: TfgridWorkloadsReservationVolume1,
-            Type.Container: TfgridWorkloadsReservationContainer1,
-            Type.Zdb: TfgridWorkloadsReservationZdb1,
-            Type.Kubernetes: TfgridWorkloadsReservationK8s1,
-            Type.Proxy: TfgridWorkloadsReservationGatewayProxy1,
-            Type.Reverse_proxy: TfgridWorkloadsReservationGatewayReverse_proxy1,
-            Type.Subdomain: TfgridWorkloadsReservationGatewaySubdomain1,
-            Type.Domain_delegate: TfgridWorkloadsReservationGatewayDelegate1,
-            Type.Gateway4to6: TfgridWorkloadsReservationGateway4to61,
-            Type.Network_resource: TfgridWorkloadsNetworkNet_resource1,
+            WorkloadType.Volume: Volume,
+            WorkloadType.Container: Container,
+            WorkloadType.Zdb: ZdbNamespace,
+            WorkloadType.Kubernetes: K8s,
+            WorkloadType.Proxy: GatewayProxy,
+            WorkloadType.Reverse_proxy: GatewayReverseProxy,
+            WorkloadType.Subdomain: GatewaySubdomain,
+            WorkloadType.Domain_delegate: GatewayDelegate,
+            WorkloadType.Gateway4to6: Gateway4to6,
+            WorkloadType.Network_resource: NetworkResource,
         }
 
-        self._info = TfgridWorkloadsReservationInfo1
-
     def workload(self):
-        info = self._info.from_dict(self.data)
+        info = ReservationInfo.from_dict(self.data)
         model = self._models.get(info.workload_type)
         if not model:
+            import ipdb
+
+            ipdb.set_trace()
             raise j.core.exceptions.Input("unsupported workload type %s" % info.workload_type)
         workload = model.from_dict(self.data)
         workload.info = info
         return workload
 
 
+def _build_query(customer_tid: int = None, next_action: str = None) -> dict:
+    query = {}
+    if customer_tid:
+        query["customer_tid"] = customer_tid
+    if next_action:
+        query["next_action"] = _next_action(next_action).value
+    return query
+
+
+def _next_action(next_action) -> NextAction:
+    if isinstance(next_action, str):
+        next_action = NextAction[next_action.upper()]
+    return next_action
+
+
 class Workoads:
     def __init__(self, client):
         self._session = client._session
         self._client = client
-        self._model_info = TfgridWorkloadsReservationInfo1
 
     @property
     def _base_url(self):
         return self._client.url + "/reservations/workloads"
 
-    def new(self):
-        return self._model_info()
+    def create(self, workload) -> int:
+        """
+        Provision a workload on the grid
 
-    def create(self, workload):
+        :param workload: workload to provision
+        :type workload: Workload
+        :return: the workload ID
+        :rtype: int
+        """
         url = self._base_url
         data = workload.to_dict()
         del data["info"]["result"]
@@ -73,27 +96,68 @@ class Workoads:
         resp = self._session.post(url, json=data)
         return resp.json().get("reservation_id")
 
-    def list(self, customer_tid=None, next_action=None, page=None):
+    def list(
+        self, customer_tid: int = None, next_action: str = None, page=None
+    ) -> List[
+        Union[
+            Container,
+            Gateway4to6,
+            GatewayDelegate,
+            GatewayProxy,
+            GatewayReverseProxy,
+            GatewaySubdomain,
+            K8s,
+            NetworkResource,
+            Volume,
+            ZdbNamespace,
+        ]
+    ]:
+        """
+        List workloads
+
+        :param customer_tid: filter by customer ID, defaults to None
+        :type customer_tid: int, optional
+        :param next_action: filter by workload next action value, defaults to None
+        :type next_action: str, optional
+        :return: [description]
+        :rtype: [type]
+        """
         url = self._base_url
         if page:
-            query = {}
-            if customer_tid:
-                query["customer_tid"] = customer_tid
-            if next_action:
-                query["next_action"] = self._next_action(next_action).value
+            query = _build_query(customer_tid=customer_tid, next_action=next_action)
             workloads, _ = get_page(self._session, page, Decoder, url, query)
         else:
             workloads = list(self.iter(customer_tid, next_action))
         return workloads
 
-    def _next_action(self, next_action):
-        if isinstance(next_action, str):
-            next_action = NextAction[next_action.upper()]
-        return next_action
+    def iter(
+        self, customer_tid: int = None, next_action: str = None
+    ) -> Iterator[
+        Union[
+            Container,
+            Gateway4to6,
+            GatewayDelegate,
+            GatewayProxy,
+            GatewayReverseProxy,
+            GatewaySubdomain,
+            K8s,
+            NetworkResource,
+            Volume,
+            ZdbNamespace,
+        ]
+    ]:
+        """
+        return an iterator that yield workloads
 
-    def iter(self, customer_tid=None, next_action=None):
+        :param customer_tid: filter by customer ID, defaults to None
+        :type customer_tid: int, optional
+        :param next_action: filter by workload next action value, defaults to None
+        :type next_action: str, optional
+        :yield: Workload
+        :rtype: Iterator[Workload]
+        """
         if next_action:
-            next_action = self._next_action(next_action)
+            next_action = _next_action(next_action)
 
         def filter_next_action(reservation):
             if next_action is None:
@@ -102,25 +166,70 @@ class Workoads:
 
         url = self._base_url
 
-        query = {}
-        if customer_tid:
-            query["customer_tid"] = customer_tid
-        if next_action:
-            query["next_action"] = next_action.value
+        query = _build_query(customer_tid=customer_tid, next_action=next_action)
         yield from filter(filter_next_action, get_all(self._session, Decoder, url, query))
 
-    def get(self, workload_id):
+    def get(
+        self, workload_id
+    ) -> Union[
+        Container,
+        Gateway4to6,
+        GatewayDelegate,
+        GatewayProxy,
+        GatewayReverseProxy,
+        GatewaySubdomain,
+        K8s,
+        NetworkResource,
+        Volume,
+        ZdbNamespace,
+    ]:
+        """
+        get a specific workload
+
+        :param workload_id: workload ID
+        :type workload_id: int
+        :return: Workload
+        :rtype: Workload
+        """
         url = self._base_url + f"/{workload_id}"
         resp = self._session.get(url)
         return Decoder.from_dict(datadict=resp.json())
 
-    def sign_provision(self, workload_id, tid, signature):
+    def sign_provision(self, workload_id: int, tid: int, signature: bytes) -> bool:
+        """
+        add a provision signature to a workload
+
+        this is required when the workload requires some extra signature to be provisioned
+
+        :param workload_id: workload id
+        :type workload_id: int
+        :param tid: the ID of the user sending the signature
+        :type tid: int
+        :param signature: the signature
+        :type signature: bytes
+        :return: true if the signature was properly registered
+        :rtype: bool
+        """
         url = self._base_url + f"/{workload_id}/sign/provision"
         data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.now().timestamp})
         self._session.post(url, data=data)
         return True
 
-    def sign_delete(self, workload_id, tid, signature):
+    def sign_delete(self, workload_id: int, tid: int, signature: bytes) -> bool:
+        """
+        add a deletion signature to a workload
+
+        this is required when the workload requires some extra signature to be deleted
+
+        :param workload_id: workload id
+        :type workload_id: int
+        :param tid: the ID of the user sending the signature
+        :type tid: int
+        :param signature: the signature
+        :type signature: bytes
+        :return: true if the signature was properly registered
+        :rtype: bool
+        """
         url = self._base_url + f"/{workload_id}/sign/delete"
 
         if isinstance(signature, bytes):

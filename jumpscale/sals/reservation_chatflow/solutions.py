@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.clients.explorer.models import NextAction, Type
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
 K8S_SIZES = {
     1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"},
@@ -29,10 +29,12 @@ class ChatflowSolutions:
     def list_ubuntu_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -60,10 +62,12 @@ class ChatflowSolutions:
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -91,10 +95,12 @@ class ChatflowSolutions:
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
-        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Kubernetes].values():
+        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Kubernetes
+        ].values():
             for workload in kube_workloads:
                 if not workload.info.metadata:
                     continue
@@ -130,10 +136,12 @@ class ChatflowSolutions:
         # TODO: add related ZDB wids to solution dict
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -181,10 +189,12 @@ class ChatflowSolutions:
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -235,10 +245,12 @@ class ChatflowSolutions:
     def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -267,10 +279,12 @@ class ChatflowSolutions:
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -297,10 +311,10 @@ class ChatflowSolutions:
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Gateway4to6].values():
+        for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6].values():
             for g in gateways:
                 result.append(
                     {
@@ -316,10 +330,12 @@ class ChatflowSolutions:
     def list_delegated_domain_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Domain_delegate]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for domains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Domain_delegate].values():
+        for domains in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Domain_delegate
+        ].values():
             for dom in domains:
                 result.append(
                     {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
@@ -329,12 +345,12 @@ class ChatflowSolutions:
     def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
         pools = set()
         name_to_proxy = {}
-        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy].values():
             for proxy in proxies:
                 if proxy.info.metadata:
                     metadata = j.data.serializers.json.loads(proxy.info.metadata)
@@ -355,7 +371,7 @@ class ChatflowSolutions:
                 pools.add(proxy.info.pool_id)
 
         # link subdomains to proxy_reservations
-        for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+        for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Subdomain].values():
             for workload in subdomains:
                 metadata = j.data.serializers.json.loads(workload.info.metadata)
                 if not metadata:
@@ -374,9 +390,9 @@ class ChatflowSolutions:
 
         # link tcp router containers to proxy reservations
         for pool_id in pools:
-            for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container][
-                pool_id
-            ]:
+            for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][
+                WorkloadType.Container
+            ][pool_id]:
                 if (
                     container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
                     or not container_workload.info.metadata
@@ -401,10 +417,12 @@ class ChatflowSolutions:
     def list_publisher_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if not workload.info.metadata:
                     continue
@@ -425,7 +443,9 @@ class ChatflowSolutions:
                         "Pool": workload.info.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Reverse_proxy
+        ].values():
             for workload in proxy_workloads:
                 if not workload.info.metadata:
                     continue
@@ -440,7 +460,9 @@ class ChatflowSolutions:
                         result[name]["wids"].append(workload.id)
                         result[name]["Domain"] = workload.domain
 
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Subdomain
+        ].values():
             for workload in subdomain_workloads:
                 if not workload.info.metadata:
                     continue
@@ -458,11 +480,13 @@ class ChatflowSolutions:
     def list_threebot_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = {}
 
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if workload.flist == "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
                     continue
@@ -486,7 +510,9 @@ class ChatflowSolutions:
                     }
                     result[name].update(self.get_workload_capacity(workload))
 
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Reverse_proxy].values():
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Reverse_proxy
+        ].values():
             for workload in proxy_workloads:
                 if not workload.info.metadata:
                     continue
@@ -501,7 +527,9 @@ class ChatflowSolutions:
                         result[name]["wids"].append(workload.id)
                         result[name]["Domain"] = workload.domain
 
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Subdomain].values():
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Subdomain
+        ].values():
             for workload in subdomain_workloads:
                 if not workload.info.metadata:
                     continue
@@ -515,7 +543,9 @@ class ChatflowSolutions:
                     if name in result:
                         result[name]["wids"].append(workload.id)
 
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][Type.Container].values():
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
             for workload in container_workloads:
                 if workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
                     continue
@@ -592,14 +622,14 @@ class ChatflowSolutions:
 
     def get_workload_capacity(self, workload):
         result = {}
-        if workload.info.workload_type == Type.Container:
+        if workload.info.workload_type == WorkloadType.Container:
             result["CPU"] = workload.capacity.cpu
             result["Memory"] = workload.capacity.memory
             result["RootFS Type"] = workload.capacity.disk_type.name
             result["RootFS Size"] = workload.capacity.disk_size
-        elif workload.info.workload_type == Type.Kubernetes:
+        elif workload.info.workload_type == WorkloadType.Kubernetes:
             result.update(K8S_SIZES.get(workload.size, {}))
-        elif workload.info.workload_type == Type.Volume:
+        elif workload.info.workload_type == WorkloadType.Volume:
             result["Size"] = workload.size * 1024
             result["Type"] = workload.type.name
         return result

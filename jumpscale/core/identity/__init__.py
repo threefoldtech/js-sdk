@@ -25,7 +25,9 @@ class Identity(Base):
     explorer_url = fields.String(on_update=_explorer_url_update)
     admins = fields.List(fields.String())
 
-    def __init__(self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs):
+    def __init__(
+        self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs,
+    ):
         """
         Get Identity
 
@@ -43,10 +45,10 @@ class Identity(Base):
         """
         self._explorer = None
         super().__init__(
-            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs
+            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
         )
         self._nacl = None
-        self.verify_configuration()
+        # self.verify_configuration() #Fix me: is this needed to be in the constructore ? or can we move call it only when required ?
 
     @property
     def nacl(self):
@@ -145,9 +147,11 @@ def get_identity():
 class IdentityFactory(StoredFactory):
     _me = None
 
-    def new(self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None):
+    def new(
+        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,
+    ):
         instance = super().new(
-            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins
+            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
         )
         instance.save()
         return instance

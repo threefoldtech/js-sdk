@@ -1,10 +1,10 @@
 from jumpscale.loader import j
-from jumpscale.clients.explorer.models import TfgridWorkloadsPoolCreated1
+from jumpscale.clients.explorer.models import PoolCreated
 
 
 class Pools:
     def __init__(self, explorer):
-        self._model_create = TfgridWorkloadsPoolCreated1
+        self._model_create = PoolCreated
         self._pools = explorer.pools
         self._farms = explorer.farms
         self._nodes = explorer.nodes

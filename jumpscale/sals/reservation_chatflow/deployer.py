@@ -1,7 +1,7 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.explorer.models import NextAction, Type, DiskType, Mode, State
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
 from nacl.public import Box
 import netaddr
 import uuid
@@ -31,16 +31,16 @@ class NetworkView:
                 continue
             if workload.info.result.state != State.Ok:
                 continue
-            if workload.info.workload_type == Type.Network_resource and workload.name == self.name:
+            if workload.info.workload_type == WorkloadType.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
 
     def _fill_used_ips(self, workloads):
         for workload in workloads:
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
-            if workload.info.workload_type == Type.Kubernetes:
+            if workload.info.workload_type == WorkloadType.Kubernetes:
                 self.used_ips.append(workload.ipaddress)
-            elif workload.info.workload_type == Type.Container:
+            elif workload.info.workload_type == WorkloadType.Container:
                 for conn in workload.network_connection:
                     if conn.network_id == self.name:
                         self.used_ips.append(conn.ipaddress)
@@ -210,8 +210,8 @@ class ChatflowDeployer:
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
-        for pool_id in self.workloads[next_action][Type.Network_resource]:
-            for workload in self.workloads[next_action][Type.Network_resource][pool_id]:
+        for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
+            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
                 networks[workload.name] = workload
         all_workloads = []
         for pools_workloads in self.workloads[next_action].values():
@@ -521,7 +521,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             if workload.info.result.workload_id:
                 return workload.info.result.state.value == 1
             if expiration_provisioning < j.data.time.get().timestamp:
-                if workload.info.workload_type != Type.Network_resource:
+                if workload.info.workload_type != TTypeype.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
@@ -1086,7 +1086,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 pool_id=pool_id,
                 node_id=node_id,
                 size=disk_size,
-                mode=Mode.Seq,
+                mode=ZDBMode.Seq,
                 password=password,
                 disk_type=disk_type,
                 **metadata,

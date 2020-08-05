@@ -7,17 +7,17 @@ from jumpscale.core.exceptions import Input
 from jumpscale.tools.wireguard import generate_zos_keys
 from .id import _next_workload_id
 from jumpscale.clients.explorer.models import (
-    TfgridWorkloadsReservationNetwork1,
-    TfgridWorkloadsNetworkNet_resource1,
-    TfgridWorkloadsWireguardPeer1,
-    Type,
+    Network,
+    NetworkResource,
+    WireguardPeer,
+    WorkloadType,
 )
 
 
 class Network:
     class Info:
         def __init__(self):
-            self.workload_type = Type.Network_resource
+            self.workload_type = WorkloadType.Network_resource
 
     def __init__(self, name, iprange):
         self.info = self.Info()
@@ -90,9 +90,9 @@ class NetworkGenerator:
 
         _, wg_private_encrypted, wg_public = generate_zos_keys(node.public_key_hex)
 
-        nr = TfgridWorkloadsNetworkNet_resource1()
+        nr = NetworkResource()
         nr.info.pool_id = pool_id
-        nr.info.workload_type = Type.Network_resource
+        nr.info.workload_type = WorkloadType.Network_resource
         network.network_resources.append(nr)
 
         nr.network_iprange = network.iprange
@@ -345,7 +345,7 @@ def generate_peers(network):
                     new_allowed_ips.add(wg_routing_ip(subnet))
             allowed_ips = new_allowed_ips
 
-            peer = TfgridWorkloadsWireguardPeer1()
+            peer = WireguardPeer()
             peer.iprange = str(onr.iprange)
             peer.endpoint = endpoint
             peer.allowed_iprange = [str(x) for x in allowed_ips]
@@ -355,7 +355,7 @@ def generate_peers(network):
         for ea in access_points.get(nr.info.node_id, []):
             allowed_ips = [str(ea.subnet), wg_routing_ip(ea.subnet)]
 
-            peer = TfgridWorkloadsWireguardPeer1()
+            peer = WireguardPeer()
             peer.iprange = ea.subnet
             peer.endpoint = ""
             peer.allowed_iprange = [str(x) for x in allowed_ips]

@@ -1,10 +1,10 @@
 from .id import _next_workload_id
 from jumpscale.core.exceptions import Input
 from jumpscale.clients.explorer.models import (
-    TfgridWorkloadsReservationVolume1,
+    Volume,
     DiskType,
-    TfgridWorkloadsReservationContainerMount1,
-    Type,
+    ContainerMount,
+    WorkloadType,
 )
 
 
@@ -25,12 +25,12 @@ class Volumes:
             [type]: the newly created volume object
         """
 
-        volume = TfgridWorkloadsReservationVolume1()
+        volume = Volume()
         volume.size = size
         volume.type = type
         volume.info.node_id = node_id
         volume.info.pool_id = pool_id
-        volume.info.workload_type = Type.Volume
+        volume.info.workload_type = WorkloadType.Volume
         return volume
 
     def attach_existing(self, container, volume_id, mount_point):
@@ -42,7 +42,7 @@ class Volumes:
             volume_id ([type]): the complete volume ID, format should be '{reservation.id}-{volume.workload_id}'
             mount_point (str): path where to mount the volume in the container
         """
-        vol = TfgridWorkloadsReservationContainerMount1()
+        vol = ContainerMount()
         vol.volume_id = volume_id
         vol.mountpoint = mount_point
         container.volumes.append(vol)

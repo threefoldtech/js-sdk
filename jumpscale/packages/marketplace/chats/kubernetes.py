@@ -1,7 +1,11 @@
+import math
+
+from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.chats.kubernetes_deploy import KubernetesDeploy as BaseKubernetesDeploy
-from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class KubernetesDeploy(BaseKubernetesDeploy, MarketPlaceChatflow):
