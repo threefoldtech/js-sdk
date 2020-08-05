@@ -9,7 +9,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class PeerTubeDeploy(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/ashraffouda-peertube-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ashraf.3bot/threefoldtech-peertube-latest.flist"
 
     steps = [
         "peertube_start",
