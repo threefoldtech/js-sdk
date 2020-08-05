@@ -133,6 +133,12 @@ module.exports = {
           description:
             "Deploy a wiki, blog, website and access it via an IP and a public domain",
         },
+        peertube: {
+          type: "peertube",
+          name: "Peertube",
+          image: "./assets/peertube.png",
+          description: "Deploy a peertube instance on the grid."
+        },
         {
           type: "threebot",
           name: "Threebot",

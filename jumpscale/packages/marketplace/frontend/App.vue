@@ -174,6 +174,12 @@ module.exports = {
           meta: { icon: "mdi-web-box" },
         },
         {
+          name: "Peertube",
+          type: "peertube",
+          path: "/peerube",
+          meta: { image: "./assets/peertube.png" }
+        },
+        {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
