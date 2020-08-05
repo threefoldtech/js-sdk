@@ -16,14 +16,14 @@ class Pools:
     def _base_url(self):
         return self._client.url + "/reservations/pools"
 
-    def new(self) -> Pool:
+    def new(self) -> PoolCreate:
         """
         create a new empty Pool object
 
-        :return: Pool
-        :rtype: Pool
+        :return: PoolCreate
+        :rtype: PoolCreate
         """
-        return Pool()
+        return PoolCreate()
 
     def create(self, pool: Pool) -> PoolCreated:
         """
