@@ -63,12 +63,6 @@ class Stellar(Client):
     def _get_horizon_server(self):
         server_url = _HORIZON_NETWORKS[self.network.value]
         server = Server(horizon_url=server_url)
-        parsed_url = urlparse(server.horizon_url)
-        port = 443
-        if parsed_url.scheme == "http":
-            port = 80
-        if not j.sals.nettools.wait_connection_test(parsed_url.netloc, port, 5):
-            raise j.exceptions.Timeout(f"Can not connect to server {server_url}, connection timeout")
         return server
 
     def _get_free_balances(self, address=None):
@@ -379,7 +373,7 @@ class Stellar(Client):
             timeout (int,optional: Seconds from now on until when the transaction to be submitted to the stellar network
             sequence_number (int,optional): specify a specific sequence number ( will still be increased by one) instead of loading it from the account
             sign (bool,optional) : Do not sign and submit the transaction
-        
+
         Raises:
             Exception: If asset not in correct format
             stellar_sdk.exceptions.BadRequestError: not enough funds for opertaion
@@ -737,7 +731,7 @@ class Stellar(Client):
 
     def sign_multisig_transaction(self, tx_xdr):
         """sign_multisig_transaction signs a transaction xdr and tries to submit it to the network
-           
+
            Deprecated, use sign instead
 
         Args:
@@ -938,9 +932,9 @@ class Stellar(Client):
 
     def set_data_entry(self, name: str, value: str, address: str = None):
         """Sets, modifies or deletes a data entry (name/value pair) for an account
-        
+
         To delete a data entry, set the value to an empty string.
-        
+
         """
 
         address = address or self.address
