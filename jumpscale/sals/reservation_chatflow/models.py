@@ -18,6 +18,7 @@ class SolutionType(Enum):
     Monitoring = "monitoring"
     Publisher = "publisher"
     Threebot = "threebot"
+    Gollum = "gollum"
     Unknown = "unknown"
 
 
