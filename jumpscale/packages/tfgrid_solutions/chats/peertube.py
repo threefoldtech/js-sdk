@@ -37,15 +37,16 @@ class Peertube(GedisChatBot):
         self.query = dict()
         self.user_form_data["chatflow"] = "peertube"
         self.md_show("# This wizard will help you deploy peertube", md=True)
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(
+            self.user_info()["username"], ".3bot"
+        )
         self.solution_metadata = {}
-
 
     @chatflow_step(title="Solution name")
     def peertube_name(self):
         valid = False
         self.solution_name = deployer.ask_name(self)
-    
+
     @chatflow_step(title="Email")
     def peertube_email(self):
         self.email = deployer.ask_email(self)
@@ -71,7 +72,8 @@ class Peertube(GedisChatBot):
     @chatflow_step(title="Container logs")
     def container_logs(self):
         self.container_logs_option = self.single_choice(
-            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
+            "Do you want to push the container logs (stdout and stderr) onto an"
+            " external redis channel",
             ["YES", "NO"],
             default="NO",
         )
@@ -95,7 +97,9 @@ class Peertube(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
+        self.selected_node = deployer.ask_container_placement(
+            self, self.pool_id, **query
+        )
         if not self.selected_node:
             self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
@@ -103,24 +107,33 @@ class Peertube(GedisChatBot):
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
-            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, bot=self
+            self.network_view.name,
+            self.selected_node,
+            self.pool_id,
+            self.network_view_copy,
+            bot=self,
         )
         if result:
             self.md_show_update("Deploying Network on Nodes....")
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlow(
+                        f"Failed to add node {self.selected_node.node_id} to network"
+                        f" {wid}"
+                    )
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0]
         )
-    
+
     @chatflow_step(title="Domain")
     def select_domain(self):
         self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
+            g.node_id: g
+            for g in j.sals.zos._explorer.gateway.list()
+            if j.sals.zos.nodes_finder.filter_is_up(g)
         }
 
         domains = dict()
@@ -129,7 +142,9 @@ class Peertube(GedisChatBot):
                 domains[domain] = gateway
 
         self.domain = self.single_choice(
-            "Please choose the domain you wish to use", list(domains.keys()), required=True
+            "Please choose the domain you wish to use",
+            list(domains.keys()),
+            required=True,
         )
 
         self.gateway = domains[self.domain]
@@ -152,13 +167,13 @@ class Peertube(GedisChatBot):
             "Memory": self.resources["memory"],
             "Disk Size": self.resources["disk_size"],
             "IP Address": self.ip_address,
-            "Domain Name": self.domain
+            "Domain Name": self.domain,
         }
         self.metadata.update(self.log_config)
         self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
-    def reservation(self):   
+    def reservation(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
@@ -176,10 +191,11 @@ class Peertube(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {_id}"
+                f"Failed to create subdomain {self.domain} on gateway"
+                f" {self.gateway.node_id} {_id}"
             )
         self.threebot_url = f"https://{self.domain}"
-        
+
         # expose threebot container
         _id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -199,9 +215,10 @@ class Peertube(GedisChatBot):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {_id}"
+                f"Failed to create trc container on node {self.selected_node.node_id}"
+                f" {_id}"
             )
-        
+
         entrypoint = f'/usr/local/bin/startup.sh "{self.domain}" "{self.email}"'
         self.entrypoint = entrypoint
         # reserve container
@@ -224,8 +241,6 @@ class Peertube(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-        
-
 
     @chatflow_step(title="Success", disable_previous=True)
     def peertube_access(self):
