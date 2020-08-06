@@ -88,7 +88,7 @@ class Identity(Base):
 
             ex_factory = export_module_as()
             if self.explorer_url:
-                self._explorer = ex_factory.get_by_url(self.explorer_url)
+                self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
             else:
                 self._explorer = ex_factory.get_default()
                 self.explorer_url = self._explorer.url
