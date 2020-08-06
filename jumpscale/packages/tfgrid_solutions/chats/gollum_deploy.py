@@ -80,6 +80,7 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title="Email")
     def gollum_email(self):
         form = self.new_form()
+        # TODO: replace by email_ask to verify email
         self.email = form.string_ask("Please enter an email to get ssl certificate updates of your container",)
         form.ask()
 
@@ -87,6 +88,7 @@ class GollumDeploy(GedisChatBot):
     def github_repo_setup(self):
         form = self.new_form()
         self.github_user = form.string_ask("Please enter your github username",)
+        # TODO: replace by email_ask to verify email
         self.github_email = form.string_ask("Please enter your github email",)
         self.github_repo = form.string_ask(
             "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists",
