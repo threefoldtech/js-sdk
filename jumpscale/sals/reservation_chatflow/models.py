@@ -17,6 +17,7 @@ class SolutionType(Enum):
     Ubuntu = "ubuntu"
     Monitoring = "monitoring"
     Publisher = "publisher"
+    Peertube = "peertube"
     Threebot = "threebot"
     Unknown = "unknown"
 

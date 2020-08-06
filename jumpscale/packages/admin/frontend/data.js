@@ -116,6 +116,14 @@ const SOLUTIONS = {
     url: "/solutions/publisher",
     description: ""
   },
+  peertube: {
+    topic: "peertube",
+    type: "peertube",
+    name: "Peertube",
+    image: "./assets/peertube.png",
+    url: "/solutions/peertube",
+    description: "Deploy a peertube instance on the grid."
+  },
   all: {
     topic: "all",
     type: "all_reservations",
