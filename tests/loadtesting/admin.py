@@ -1,3 +1,5 @@
+import sys
+import os
 from locust import HttpUser, task, between
 
 
@@ -16,4 +18,4 @@ class QuickstartUser(HttpUser):
 
     @task
     def list_alerts_gedis(self):
-        self.client.post("http://localhost:8000/admin/alerts/list_alerts", verify=False)
+        self.client.post(f"http://localhost:{os.environ['PORTNO']}/admin/alerts/list_alerts", verify=False)
