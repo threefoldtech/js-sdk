@@ -160,7 +160,7 @@ class GiteaDeploy(GedisChatBot):
             "POSTGRES_USER": self.user_form_data["Database User"],
             "APP_NAME": self.user_form_data["Repository"],
             "ROOT_URL": f"https://{self.ip_address}",
-            "HTTP_PORT": 3000,
+            "HTTP_PORT": "3000",
             "DOMAIN": f"{self.ip_address}"
         }
         database_password_encrypted = j.sals.zos.container.encrypt_secret(
