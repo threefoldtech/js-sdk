@@ -23,7 +23,7 @@ class MarketPlaceChatflow(GedisChatBot):
         return self._tid
 
     def _validate_user(self):
-        tname = self.user_info()["username"]
+        tname = self.user_info()["username"].lower()
         user_factory = StoredFactory(UserEntry)
         explorer_url = j.core.identity.me.explorer.url
 
