@@ -370,10 +370,11 @@ class PackageManager(Base):
 
         for package_name in self.packages:
             package = self.get(package_name)
-            if path and path == package.path:
-                raise j.exceptions.Value("Package with the same path already exists")
-            if giturl and giturl == package.giturl:
-                raise j.exceptions.Value("Package with the same giturl already exists")
+            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
+            # if path and path == package.path:
+            #     raise j.exceptions.Value("Package with the same path already exists")
+            # if giturl and giturl == package.giturl:
+            #     raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
             url = urlparse(giturl)
@@ -397,8 +398,9 @@ class PackageManager(Base):
             path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
         )
 
-        if package.name in self.packages:
-            raise j.exceptions.Value(f"Package with name {package.name} already exists")
+        # TODO: adding under the same name if same path and same giturl should be fine, no?
+        # if package.name in self.packages:
+        #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
         self.packages[package.name] = {
             "name": package.name,
