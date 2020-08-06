@@ -38,6 +38,8 @@ class Peertube(GedisChatBot):
         self.user_form_data["chatflow"] = "peertube"
         self.md_show("# This wizard will help you deploy peertube", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.solution_metadata = {}
+
 
     @chatflow_step(title="Solution name")
     def peertube_name(self):

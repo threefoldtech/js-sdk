@@ -7,9 +7,9 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 class Peertube(BasePeertube, MarketPlaceChatflow):
     @chatflow_step()
-    def start(self):
+    def peertube_start(self):
         self._validate_user()
-        super().start()
+        super().peertube_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
