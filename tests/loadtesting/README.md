@@ -4,7 +4,7 @@
 we have applied `Load test` to test the performance of our admin endpoints served through [threebot server](https://github.com/threefoldtech/js-sdk), we have used `Locust` to  assess the performance.
 
 #### Technology Used
-- `Threebot server` which is Jumpscale is a cloud automation product and a webplatform to develop web application.
+- [Threebot server](https://github.com/threefoldtech/js-sdk)
 
 
 - we have used `Locust`.
@@ -32,14 +32,7 @@ $ locust --help
 for more information about the installation [check](https://docs.locust.io/en/stable/installation.html)
 
 #### Run load test
-1. Run `3bot`
-
-- open `jsng` shell then
-``` python
-j.servers.threebot.start_default() 
-```
-for more information about `3bot` starting [check](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#runnning-3bot)
-
+1. Start `threebot server`
 2. Run `run_locust.sh` bash file
 
 #### Arguments
