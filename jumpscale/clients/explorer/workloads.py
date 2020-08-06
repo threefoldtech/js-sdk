@@ -67,7 +67,7 @@ def _next_action(next_action) -> NextAction:
     return next_action
 
 
-class Workoads:
+class Workloads:
     def __init__(self, client):
         self._session = client._session
         self._client = client
