@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 import gevent
-
+import re
 
 class NetworkView:
     def __init__(self, name, workloads=None):
@@ -422,9 +422,16 @@ class ChatflowDeployer:
     def ask_name(self, bot):
         name = bot.string_ask("Please enter a name for you workload", required=True, field="name")
         return name
-    
+
     def ask_email(self, bot):
-        email = bot.string_ask("Please enter the email to which the signature will be attached", required=True, field="email")
+        valid = False
+        email = None
+        regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        while not valid:
+            email = bot.string_ask("Please enter your email address", required=True, field="email")
+            valid = re.search(regex, email) is not None
+            if not valid:
+                bot.md_show("Please enter a valid email address")
         return email
 
     def ask_ipv6(self, bot, workload_name=None):
