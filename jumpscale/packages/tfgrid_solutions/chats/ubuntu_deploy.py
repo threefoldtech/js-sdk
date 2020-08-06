@@ -117,7 +117,7 @@ class UbuntuDeploy(GedisChatBot):
             self.pool_id,
             self.network_view_copy,
             bot=self,
-            **self.solution_metadata,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             self.md_show_update("Deploying Network on Nodes....")

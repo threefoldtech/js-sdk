@@ -1228,7 +1228,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the threebot, the network must be configured", ip_range_choose
+            "To have access to the threebot, the network must be configured",
+            ip_range_choose,
+            required=True,
+            default=ip_range_choose[1],
         )
         if iprange_user_choice == "Configure IP range myself":
             ip_range = bot.string_ask("Please add private IP Range of the network")

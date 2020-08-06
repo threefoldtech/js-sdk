@@ -160,7 +160,7 @@ class FlistDeploy(GedisChatBot):
             self.pool_id,
             self.network_view_copy,
             bot=self,
-            **self.solution_metadata,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:

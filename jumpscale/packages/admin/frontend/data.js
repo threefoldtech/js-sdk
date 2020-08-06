@@ -124,6 +124,14 @@ const SOLUTIONS = {
     url: "/solutions/gollum_deploy",
     description: "A simple, Git-powered wiki with a sweet API and local frontend."
   },
+  peertube: {
+    topic: "peertube",
+    type: "peertube",
+    name: "Peertube",
+    image: "./assets/peertube.png",
+    url: "/solutions/peertube",
+    description: "Deploy a peertube instance on the grid."
+  },
   all: {
     topic: "all",
     type: "all_reservations",
