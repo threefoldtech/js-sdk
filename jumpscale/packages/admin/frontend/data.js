@@ -116,6 +116,14 @@ const SOLUTIONS = {
     url: "/solutions/publisher",
     description: ""
   },
+  gollum: {
+    topic: "gollum_deploy",
+    type: "gollum",
+    name: "Gollum wiki",
+    icon: "mdi-book-open-variant",
+    url: "/solutions/gollum_deploy",
+    description: "A simple, Git-powered wiki with a sweet API and local frontend."
+  },
   all: {
     topic: "all",
     type: "all_reservations",
