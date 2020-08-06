@@ -19,6 +19,7 @@ class SolutionType(Enum):
     Publisher = "publisher"
     Peertube = "peertube"
     Threebot = "threebot"
+    Gollum = "gollum"
     Unknown = "unknown"
 
 
