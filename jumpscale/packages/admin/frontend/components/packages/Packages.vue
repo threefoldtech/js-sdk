@@ -9,29 +9,28 @@
     </template>
 
     <template #default>
-      <v-row align="start" justify="start">
-        <v-card class="ma-4 mt-2" width="300" v-for="pkg in packages" :key="pkg.name">
-          <v-card-title class="primary--text">{{pkg.name}}</v-card-title>
 
-          <v-card-subtitle v-if="pkg.system_package">
-            System Package
-          </v-card-subtitle>
+      <span v-if="allPackages.system.length" class="subtitle-1">System Packages</span>
+      <v-row class="mt-2" align="start" justify="start">
+        <package-info v-for="pkg in allPackages.system" :key="pkg.name" :pkg="pkg" @update="listPackages" @delete="deletePackage"></package-info>
+      </v-row><br>
 
-          <v-card-text>{{pkg.path}}</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn v-if="!pkg.system_package" icon @click.stop="selected = pkg.name; deleteDialog = true">
-              <v-icon color="primary" left>mdi-delete</v-icon>  
-            </v-btn>
-          </v-card-actions>
-        </v-card>
+      <span v-if="allPackages.installed.length" class="subtitle-1">Installed Packages</span>
+      <v-row class="mt-2" align="start" justify="start">
+        <package-info v-for="pkg in allPackages.installed" :key="pkg.name" :pkg="pkg" @update="listPackages" @delete="deletePackage"></package-info>
+      </v-row><br>
+
+      <span v-if="allPackages.available.length" class="subtitle-1">Available Packages</span>
+      <v-row class="mt-2" align="start" justify="start">
+        <package-info v-for="pkg in allPackages.available" :key="pkg.name" :pkg="pkg" @update="listPackages" @delete="deletePackage"></package-info>
       </v-row>
+
     </template>
   </base-component>
 
   <add-package v-model="addDialog" @done="listPackages"></add-package>
   <delete-package v-model="deleteDialog" :name="selected" @done="listPackages"></delete-package>
-  
+
   </div>
 </template>
 
@@ -39,6 +38,7 @@
 
   module.exports = {
     components: {
+      'package-info': httpVueLoader("./Package.vue"),
       'add-package': httpVueLoader("./Add.vue"),
       'delete-package': httpVueLoader("./Delete.vue"),
     },
@@ -51,6 +51,17 @@
         deleteDialog: false
       }
     },
+    computed: {
+      allPackages () {
+        let packages = {system: [], installed: [], available: []}
+        this.packages.forEach((package) => {
+          if (package.system_package) packages.system.push(package)
+          else if (package.installed) packages.installed.push(package)
+          else packages.available.push(package)
+        })
+        return packages
+      }
+    },
     methods: {
       listPackages () {
         this.loading = true
@@ -59,6 +70,10 @@
         }).finally (() => {
           this.loading = false
         })
+      },
+      deletePackage (pkg) {
+        this.selected = pkg
+        this.deleteDialog = true
       }
     },
     mounted () {

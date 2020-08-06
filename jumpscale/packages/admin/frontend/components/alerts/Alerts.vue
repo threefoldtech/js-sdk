@@ -8,11 +8,7 @@
       </template>
 
       <template #default>
-        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data">
-
-          <template v-slot:item.id="{ item }">
-            <a @click.stop="open(item)">{{ item.id }}</a>
-          </template>
+        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open">
 
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}

@@ -335,6 +335,7 @@ class PackageManager(Base):
                     "giturl": package.giturl,
                     "system_package": pkg in DEFAULT_PACKAGES.keys(),
                     "installed": True,
+                    "frontend": package.config.get("frontend", False),
                 }
             )
 
