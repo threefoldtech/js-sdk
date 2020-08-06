@@ -176,8 +176,8 @@ module.exports = {
         {
           name: "Peertube",
           type: "peertube",
-          path: "/peerube",
-          meta: { image: "./assets/peertube.png" }
+          path: "/peertube",
+          meta: { img: "./assets/peertube.png" }
         },
         {
           type: "threebot",

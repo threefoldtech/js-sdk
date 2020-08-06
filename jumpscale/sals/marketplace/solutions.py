@@ -660,6 +660,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "delegated_domain": 0,
             "exposed": 0,
             "publisher": 0,
+            "peertube": 0,
             "threebot": 0,
             "pools": 0,
         }

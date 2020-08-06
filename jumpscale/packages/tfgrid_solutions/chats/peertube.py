@@ -8,7 +8,7 @@ import uuid
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
-class PeerTubeDeploy(GedisChatBot):
+class Peertube(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/ashraf.3bot/threefoldtech-peertube-latest.flist"
 
     steps = [
@@ -234,4 +234,4 @@ To connect ```ssh root@{self.ip_address}```  ``` {self.threebot_url}```.It may t
         self.md_show(res, md=True)
 
 
-chat = PeerTubeDeploy
+chat = Peertube

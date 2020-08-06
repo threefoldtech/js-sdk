@@ -1,6 +1,6 @@
 import math
 
-from jumpscale.packages.tfgrid_solutions.chats.peertube import PeerTubeDeploy as BasePeertube
+from jumpscale.packages.tfgrid_solutions.chats.peertube import Peertube as BasePeertube
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
