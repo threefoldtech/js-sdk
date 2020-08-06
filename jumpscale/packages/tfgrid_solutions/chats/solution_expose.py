@@ -163,7 +163,7 @@ class SolutionExpose(GedisChatBot):
         self.network_name = self.solution["Network"]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, **self.solution_metadata
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:

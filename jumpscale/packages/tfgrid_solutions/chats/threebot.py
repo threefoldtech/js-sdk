@@ -155,7 +155,7 @@ class ThreebotDeploy(GedisChatBot):
             self.pool_id,
             self.network_view,
             bot=self,
-            **self.solution_metadata,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:
