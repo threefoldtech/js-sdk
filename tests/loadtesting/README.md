@@ -48,6 +48,8 @@ for more information about `3bot` starting [check](https://github.com/threefoldt
 - `r` The rate per second in which users are spawned (obligatory)
 - `h` Host to load test (obligatory)
 - `p` Path for python script which uses locust in load testing (obligatory)
+- `n` Number of port used in the request, default is 8000 (optional)
+ 
 
 ##### Examples
 - Help
@@ -61,8 +63,13 @@ Usage: tests/loadtesting/run_locust.sh -u user_number -r hatch_rate -h host -p p
 	-r The rate per second in which users are spawned
 	-h Host to load test
 	-p Path for python script which uses locust in load testing
+	-n Number of port used in the request
 ```
 - Execution
+``` bash
+bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h https://localhost/admin/\#/ -p tests/loadtesting/admin.py -n 8000
+```
+or
 ``` bash
 bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h https://localhost/admin/\#/ -p tests/loadtesting/admin.py
 ```
