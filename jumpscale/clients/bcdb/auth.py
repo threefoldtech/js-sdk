@@ -1,7 +1,6 @@
 import base64
 import time
 import json
-import grpc
 
 from typing import NamedTuple
 
@@ -42,32 +41,38 @@ class Identity:
         return base64.standard_b64encode(self.sign(message)).decode()
 
 
-# from https://github.com/grpc/grpc/tree/master/examples/python/auth
-class AuthGateway(grpc.AuthMetadataPlugin):
-    def __init__(self, identity, expires):
-        self.identity = identity
-        self.expires = expires
+try:
+    import grpc
+except:
+    print("can't import grpc.")
+else:
 
-    def get_auth_header(self):
-        created = int(time.time())
-        expires = created + self.expires
+    # from https://github.com/grpc/grpc/tree/master/examples/python/auth
+    class AuthGateway(grpc.AuthMetadataPlugin):
+        def __init__(self, identity, expires):
+            self.identity = identity
+            self.expires = expires
 
-        headers = f"(created): {created}\n"
-        headers += f"(expires): {expires}\n"
-        headers += f"(key-id): {self.identity.id()}"
+        def get_auth_header(self):
+            created = int(time.time())
+            expires = created + self.expires
 
-        signature = self.identity.sign_base64(headers.encode())
+            headers = f"(created): {created}\n"
+            headers += f"(expires): {expires}\n"
+            headers += f"(key-id): {self.identity.id()}"
 
-        auth_header = f'Signature keyId="{self.identity.id()}",algorithm="hs2019",created="{created}",expires="{expires}",headers="(created) (expires) (key-id)",signature="{signature}"'
-        return "authorization", auth_header
+            signature = self.identity.sign_base64(headers.encode())
 
-    def __call__(self, context, callback):
-        """Implements authentication by passing metadata to a callback.
-        Implementations of this method must not block.
-        Args:
-        context: An AuthMetadataContext providing information on the RPC that
-            the plugin is being called to authenticate.
-        callback: An AuthMetadataPluginCallback to be invoked either
-            synchronously or asynchronously.
-        """
-        callback((self.get_auth_header(),), None)
+            auth_header = f'Signature keyId="{self.identity.id()}",algorithm="hs2019",created="{created}",expires="{expires}",headers="(created) (expires) (key-id)",signature="{signature}"'
+            return "authorization", auth_header
+
+        def __call__(self, context, callback):
+            """Implements authentication by passing metadata to a callback.
+            Implementations of this method must not block.
+            Args:
+            context: An AuthMetadataContext providing information on the RPC that
+                the plugin is being called to authenticate.
+            callback: An AuthMetadataPluginCallback to be invoked either
+                synchronously or asynchronously.
+            """
+            callback((self.get_auth_header(),), None)
