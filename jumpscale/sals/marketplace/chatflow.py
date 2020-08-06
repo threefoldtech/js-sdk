@@ -73,9 +73,9 @@ class MarketPlaceChatflow(GedisChatBot):
             default=j.data.time.get().timestamp + 3900,
         )
         # DONT REMOVE THIS until capacity pool migration is done on mainnet
-        while self.expiration > 1596672000:
+        while self.expiration > 1597924800:
             self.md_show(
-                "the maximum expiration in marketplace is currently 08/06/2020 @ 12:00am (UTC). please click next to try again"
+                "the maximum expiration in marketplace is currently 08/20/2020 @ 12:00pm (UTC). please click next to try again"
             )
             self.expiration = self.datetime_picker(
                 "Please enter solution expiration time.",
