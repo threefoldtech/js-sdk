@@ -121,7 +121,12 @@ class MonitoringDeploy(GedisChatBot):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
             result = deployer.add_network_node(
-                self.network_view.name, node, pool_id, self.network_view, bot=self, **self.solution_metadata
+                self.network_view.name,
+                node,
+                pool_id,
+                self.network_view,
+                bot=self,
+                owner=self.solution_metadata.get("owner"),
             )
             if not result:
                 continue
