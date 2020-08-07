@@ -1,5 +1,7 @@
 from jumpscale.loader import j
-from jumpscale.clients.explorer.models import PoolCreated
+from jumpscale.clients.explorer.models import PoolCreated, Pool
+
+from typing import List, Iterator
 
 
 class Pools:
@@ -17,7 +19,21 @@ class Pools:
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu, su, farm, currencies=None):
+    def create(self, cu: int, su: int, farm: str, currencies: List[str] = None) -> PoolCreated:
+        """
+        create a new capacity pool
+
+        :param cu: amount of compute unit to reserve
+        :type cu: int
+        :param su: amount of storage unit to reserve
+        :type su: int
+        :param farm: name of the farm where to reserve capacity
+        :type farm: str
+        :param currencies: list of currency you are willing to pay with, defaults to None
+        :type currencies: List[str], optional
+        :return: the payment detail required to pay fo the reserved capacity
+        :rtype: PoolCreated
+        """
         if not currencies:
             currencies = ["TFT"]
 
@@ -40,7 +56,21 @@ class Pools:
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
 
-    def extend(self, pool_id, cu, su, currencies=None):
+    def extend(self, pool_id: int, cu: int, su: int, currencies: List[str] = None) -> PoolCreated:
+        """
+        extend an existing capacity pool
+
+        :param pool_id: the ID of the pool to extend
+        :type pool_id: int
+        :param cu: amount of compute units to reserve
+        :type cu: int
+        :param su: amount of storage units to reserve
+        :type su: int
+        :param currencies: list of currency you are willing to pay with, defaults to None
+        :type currencies: List[str], optional
+        :return: the payment detail required to pay fo the reserved capacity
+        :rtype: PoolCreated
+        """
         p = self.get(pool_id)
         if not currencies:
             currencies = ["TFT"]
@@ -53,11 +83,31 @@ class Pools:
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
 
-    def get(self, pool_id):
+    def get(self, pool_id: int) -> Pool:
+        """
+        get the detail about an specific pool
+
+        :param pool_id: ID of the pool to retrieve
+        :type pool_id: int
+        :return: Pool
+        :rtype: Pool
+        """
         return self._pools.get(pool_id)
 
-    def iter(self):
+    def iter(self) -> Iterator[Pool]:
+        """
+        Iterate over all the pools
+
+        :yield: Pool
+        :rtype: Iterator[Pool]
+        """
         return self._pools.iter()
 
-    def list(self, page=None):
+    def list(self, page=None) -> List[Pool]:
+        """
+        List all the pool
+
+        :return: list of pools
+        :rtype: pool
+        """
         return self._pools.list()

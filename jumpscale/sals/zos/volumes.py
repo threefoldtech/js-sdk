@@ -1,4 +1,3 @@
-from .id import _next_workload_id
 from jumpscale.core.exceptions import Input
 from jumpscale.clients.explorer.models import (
     Volume,

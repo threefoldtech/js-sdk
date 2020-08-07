@@ -1,7 +1,10 @@
 import netaddr
 import requests
-from jumpscale.data.time import now
+
+from jumpscale.clients.explorer.models import Node, Farm
 from jumpscale.core.exceptions import Input, NotFound
+from jumpscale.data.time import now
+
 from .network import is_private
 
 
@@ -10,26 +13,41 @@ class NodeFinder:
         self._nodes = explorer.nodes
         self._farms = explorer.farms
 
-    def filter_is_up(self, node):
+    def filter_is_up(self, node: Node):
         """
-        filter out nodes that have not received update for more then 10 minutes
+        filter function that filters out nodes that have not received update for more then 10 minutes
         """
         ago = now().timestamp - (60 * 10)
         return node.updated.timestamp() > ago
 
-    def filter_is_free_to_use(self, node):
+    def filter_is_free_to_use(self, node: Node):
+        """
+        filter function that filters out nodes that are marked as free to use
+        """
         return node.free_to_use
 
     def filter_is_not_free_to_use(self, node):
+        """
+        filter function that filters out nodes that are not marked as free to use
+        """
         return not node.free_to_use
 
     def filter_public_ip4(self, node):
+        """
+        filter function that filters out nodes that have a public IPv4 address
+        """
         return filter_public_ip(node, 4)
 
     def filter_public_ip6(self, node):
+        """
+        filter function that filters out nodes that have a public IPv6 address
+        """
         return filter_public_ip(node, 6)
 
-    def filter_farm_currency(self, farm, currency):
+    def filter_farm_currency(self, farm: Farm, currency: str):
+        """
+        filter function that filters farms by the type of currency supported for capacity reservation
+        """
         if currency and currency != "FreeTFT":
             # check if farm support this currency
             for wallet in farm.wallet_addresses:
@@ -40,16 +58,19 @@ class NodeFinder:
 
     def nodes_by_capacity(
         self,
-        farm_id=None,
-        farm_name=None,
-        country=None,
-        city=None,
-        cru=None,
-        sru=None,
-        mru=None,
-        hru=None,
-        currency=None,
+        farm_id: int = None,
+        farm_name: str = None,
+        country: str = None,
+        city: str = None,
+        cru: int = None,
+        sru: int = None,
+        mru: int = None,
+        hru: int = None,
+        currency: str = None,
     ):
+        """
+        search node with the ability to filter on different criteria
+        """
         not_supported_farms = []
         nodes = self.nodes_search(farm_id=farm_id, farm_name=farm_name, country=country, city=city)
         for node in nodes:
