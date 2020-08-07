@@ -43,17 +43,19 @@ class NetworkGenerator:
             delattr(network, "access_points")
 
     def create(self, ip_range: str, network_name: str = None) -> Network:
-        """
-        create a new network
+        """create a new network
 
-        :param ip_range: IP range (cidr) of the full network. The network mask must be /16
-        :type ip_range: str
-        :param network_name: name of the network. If None, a random name will be generated, defaults to None
-        :type network_name: str, optional
-        :raises Input:  if ip_range not a private range (RFC 1918)
-        :raises Input:  if network mask of ip_range is not /16
-        :return: Network
-        :rtype: Network
+        Args:
+          ip_range(str): IP range (cidr) of the full network. The network mask must be /16
+          network_name(str, optional): name of the network. If None, a random name will be generated, defaults to None
+
+        Returns:
+          Network: Network
+
+        Raises:
+          Input: if ip_range not a private range (RFC 1918)
+          Input: if network mask of ip_range is not /16
+
         """
         network = netaddr.IPNetwork(ip_range)
         if not is_private(network):
@@ -64,23 +66,23 @@ class NetworkGenerator:
         return network
 
     def add_node(self, network: Network, node_id: str, ip_range: str, pool_id: int, wg_port: int = None):
-        """
-        add a node into the network
+        """add a node into the network
 
-        :param network: network object
-        :type network: Network
-        :param node_id: ID of the node to add to the network
-        :type node_id: str
-        :param ip_range: IP range (cidr) to assign to the node inside the network. The network mask must be a /24
-        :type ip_range: str
-        :param pool_id: the capacity pool ID
-        :type pool_id: int
-        :param wg_port: wireguar port of the wireguard endpoint. If None it will be picked automatically, defaults to None
-        :type wg_port: int, optional
-        :raise Input: if mask of ip_range is not /24
-        :raise Input: If specified access node not part of the network
-        :raise Input: If access node point doesn't have a public endpoint
-        :raise Input: If access node point doesn't have pubic endpoint of requested type
+        Args:
+          network(Network): network object
+          node_id(str): ID of the node to add to the network
+          ip_range(str): IP range (cidr) to assign to the node inside the network. The network mask must be a /24
+          pool_id(int): the capacity pool ID
+          wg_port(int, optional
+
+        Raises:
+          Input: if mask of ip_range is not /24
+          Input: If specified access node not part of the network
+          Input: If access node point doesn't have a public endpoint
+          Input: If access node point doesn't have pubic endpoint of requested type): wireguar port of the wireguard endpoint. If None it will be picked automatically, defaults to None
+
+        Returns:
+
         """
         node = self._nodes.get(node_id)
 
@@ -112,22 +114,19 @@ class NetworkGenerator:
     def add_access(
         self, network: Network, node_id: str, ip_range: str, wg_public_key: str = None, ipv4: bool = False
     ) -> str:
-        """
-        add an external access to the network. use this function if you want to allow
+        """add an external access to the network. use this function if you want to allow
         a peer to your network that is not a 0-OS node like User laptop, external server,...
 
-        :param network: network object
-        :type network: Network
-        :param node_id: ID of the node to use as entrypoint to the network
-        :type node_id: str
-        :param ip_range: IP range to allocate for this peer
-        :type ip_range: str
-        :param wg_public_key: wireguard public key of the peer. If not specify a new key will be generated, defaults to None
-        :type wg_public_key: str, optional
-        :param ipv4: If True, use an IPv4 address as endpoint to connect to the network otherwise use IPv6, defaults to False
-        :type ipv4: bool, optional
-        :return: the wireguard configuration to be used by the peer to connect to the network
-        :rtype: str
+        Args:
+          network(Network): network object
+          node_id(str): ID of the node to use as entrypoint to the network
+          ip_range(str): IP range to allocate for this peer
+          wg_public_key(str, optional): wireguard public key of the peer. If not specify a new key will be generated, defaults to None
+          ipv4(bool, optional): If True, use an IPv4 address as endpoint to connect to the network otherwise use IPv6, defaults to False
+
+        Returns:
+          str: the wireguard configuration to be used by the peer to connect to the network
+
         """
         if netaddr.IPNetwork(ip_range).prefixlen != 24:
             raise Input("ip_range should have a netmask of /24, not /%d", ip_range.prefixlen)
@@ -181,18 +180,17 @@ class NetworkGenerator:
         )
 
     def delete_access(self, network: Network, node_id: str, iprange: str) -> Network:
-        """
-        remove a peer that was added using add_access method
+        """remove a peer that was added using add_access method
         use this is you want to revoke the access to the network from someone
 
-        :param network: network object
-        :type network: Network
-        :param node_id: ID of the node to use as entrypoint to the network
-        :type node_id: str
-        :param ip_range: IP range to allocate for this peer
-        :type ip_range: str
-        :return: Network
-        :rtype: Network
+        Args:
+          network(Network): network object
+          node_id(str): ID of the node to use as entrypoint to the network
+          ip_range(str): IP range to allocate for this peer
+
+        Returns:
+          Network: Network
+
         """
         node_workloads = {}
         node_ranges = set()
@@ -224,18 +222,20 @@ class NetworkGenerator:
         return network
 
     def load_network(self, network_name: str) -> Network:
-        """
-        load network fetch all network resource belonging to the same network
+        """load network fetch all network resource belonging to the same network
         and re-create the full network object
 
         if make sure to only take the latest version of each network resource
 
         use this function if you need to modify and existing network
 
-        :param network_name: the name of the network to load
-        :type network_name: str
-        :return: Network object
-        :rtype: Network
+        Args:
+          network_name(str): the name of the network to load
+          network_name: str:
+
+        Returns:
+          Network: Network object
+
         """
         tid = j.core.identity.me.tid
         nrs = {}
@@ -264,9 +264,6 @@ class NetworkGenerator:
 
 def generate_peers(network):
     """Generate  peers in the network
-
-    Args:
-        network ([type]): network object
     """
     public_nr = None
     if has_hidden_nodes(network):
@@ -415,6 +412,14 @@ def generate_peers(network):
 
 
 def has_hidden_nodes(network):
+    """
+
+    Args:
+      network:
+
+    Returns:
+
+    """
     for nr in network.network_resources:
         if len(nr.public_endpoints) <= 0:
             return True
@@ -422,6 +427,14 @@ def has_hidden_nodes(network):
 
 
 def find_public_node(network_resources):
+    """
+
+    Args:
+      network_resources:
+
+    Returns:
+
+    """
     for nr in network_resources:
         if has_ipv4(nr):
             return nr
@@ -429,6 +442,14 @@ def find_public_node(network_resources):
 
 
 def has_ipv4(network_resource):
+    """
+
+    Args:
+      network_resource:
+
+    Returns:
+
+    """
     for pep in network_resource.public_endpoints:
         if pep.version == 4:
             return True
@@ -436,6 +457,14 @@ def has_ipv4(network_resource):
 
 
 def wg_routing_ip(ip_range):
+    """
+
+    Args:
+      ip_range:
+
+    Returns:
+
+    """
     if not isinstance(ip_range, netaddr.IPNetwork):
         ip_range = netaddr.IPNetwork(ip_range)
     words = ip_range.ip.words
@@ -443,6 +472,14 @@ def wg_routing_ip(ip_range):
 
 
 def _find_free_wg_port(node):
+    """
+
+    Args:
+      node:
+
+    Returns:
+
+    """
     ports = set(list(range(1000, 9000)))
     used = set(node.wg_ports)
     free = ports - used
@@ -453,6 +490,14 @@ def _find_free_wg_port(node):
 # some interface has received a SLAAC addr
 # which has been registered in BCDB
 def get_endpoints(node):
+    """
+
+    Args:
+      node:
+
+    Returns:
+
+    """
     ips = []
     if node.public_config and node.public_config.master:
         ips.append(netaddr.IPNetwork(node.public_config.ipv4))
@@ -482,6 +527,14 @@ _private_networks = [
 
 
 def is_private(ip):
+    """
+
+    Args:
+      ip:
+
+    Returns:
+
+    """
     if not isinstance(ip, netaddr.IPNetwork):
         ip = netaddr.IPNetwork(ip)
     for network in _private_networks:
@@ -491,6 +544,14 @@ def is_private(ip):
 
 
 def extract_access_points(network):
+    """
+
+    Args:
+      network:
+
+    Returns:
+
+    """
     # gather all actual nodes, using their wg pubkey as key in the map (NodeID
     # can't be seen in the actual peer struct)
     actual_nodes = {}
@@ -521,6 +582,18 @@ class AccessPoint:
 
 
 def generate_wg_quick(wg_private_key, subnet, peer_wg_pub_key, allowed_ip, endpoint):
+    """
+
+    Args:
+      wg_private_key:
+      subnet:
+      peer_wg_pub_key:
+      allowed_ip:
+      endpoint:
+
+    Returns:
+
+    """
     address = wg_routing_ip(subnet)
     allowed_ips = [allowed_ip, wg_routing_ip(allowed_ip)]
     aip = ", ".join(allowed_ips)

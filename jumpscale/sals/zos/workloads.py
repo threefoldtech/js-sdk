@@ -8,6 +8,8 @@ from .signature import sign_delete_request, sign_workload
 
 
 class Workloads:
+    """ """
+
     def __init__(self, explorer):
         self._workloads = explorer.workloads
 
@@ -27,15 +29,15 @@ class Workloads:
             ZdbNamespace,
         ]
     ]:
-        """
-        list workloads and optionally filter them by owner or next_action state
+        """list workloads and optionally filter them by owner or next_action state
 
-        :param customer_tid: filter by user ID
-        :type customer_tid: int
-        :param next_action: filter by next_action state, defaults to None
-        :type next_action: Union[NextAction, str], optional
-        :return: [description]
-        :rtype: List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]
+        Args:
+          customer_tid(int): filter by user ID
+          next_action(Union[NextAction, str], optional): filter by next_action state, defaults to None
+
+        Returns:
+          List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]: description]
+
         """
         if isinstance(next_action, NextAction):
             next_action = next_action.name
@@ -58,14 +60,17 @@ class Workloads:
         ]
     ]:
         """
-        iterate over the workloads and optionally filter them by owner or next_action state
+        Iterate of the workloads
 
-        :param customer_tid: filter by user ID
-        :type customer_tid: int
-        :param next_action: filter by next_action state, defaults to None
-        :type next_action: Union[NextAction, str], optional
-        :yield: workloads
-        :rtype: Iterator[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]
+        Args:
+            customer_tid (int): filter by user tid
+            next_action (Union[NextAction, str], optional): filter by next action. Defaults to None.
+
+        Returns:
+            Iterator:
+
+        Yields:
+            Iterator[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]
         """
         return self._workloads.iter(customer_tid, next_action)
 
@@ -83,13 +88,15 @@ class Workloads:
         Volume,
         ZdbNamespace,
     ]:
-        """
-        get a specific workload
+        """get a specific workload
 
-        :param workload_id:workload id
-        :type workload_id: int
-        :return: workload
-        :rtype: Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]
+        Args:
+          workload_id(int): workload id
+          workload_id: int:
+
+        Returns:
+          Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]: workload
+
         """
         return self._workloads.get(workload_id)
 
@@ -108,13 +115,14 @@ class Workloads:
             ZdbNamespace,
         ],
     ) -> int:
-        """
-        deploy a workload on a node
+        """deploy a workload on a node
 
-        :param workload: the workload to provision
-        :type workload: Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]
-        :return: the workload ID
-        :rtype: int
+        Args:
+          workload(Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]): the workload to provision
+
+        Returns:
+          int: the workload ID
+
         """
         me = j.core.identity.me
         workload.info.customer_tid = me.tid
@@ -130,11 +138,14 @@ class Workloads:
         return self._workloads.create(workload)
 
     def decomission(self, workload_id: int):
-        """
-        decomission a workload
+        """decomission a workload
 
-        :param workload_id: workload ID
-        :type workload_id: int
+        Args:
+          workload_id(int): workload ID
+          workload_id: int:
+
+        Returns:
+
         """
         me = j.core.identity.me
         workload = self.get(workload_id)

@@ -4,6 +4,8 @@ from typing import List
 
 
 class GatewayFinder:
+    """ """
+
     def __init__(self, explorer):
         self._gateway = explorer.gateway
 
@@ -15,14 +17,16 @@ class GatewayFinder:
         return gw.updated > ago
 
     def gateways_search(self, country: str = None, city: str = None) -> List[Gateway]:
-        """
-        search gateways by country and or city
+        """search gateways by country and or city
 
-        :param country: filter by country, defaults to None
-        :type country: str, optional
-        :param city: filter by city, defaults to None
-        :type city: str, optional
-        :return: List of Gateway
-        :rtype: List[Gateway]
+        Args:
+          country(str, optional): filter by country, defaults to None
+          city(str, optional): filter by city, defaults to None
+          country: str:  (Default value = None)
+          city: str:  (Default value = None)
+
+        Returns:
+          List[Gateway]: List of Gateway
+
         """
         return self._gateway.list(country=country, city=city)

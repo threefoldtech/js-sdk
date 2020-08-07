@@ -16,6 +16,8 @@ from jumpscale.core.exceptions import Input
 
 
 class ContainerGenerator:
+    """ """
+
     def create(
         self,
         node_id: str,
@@ -33,41 +35,27 @@ class ContainerGenerator:
         public_ipv6: bool = False,
         storage_url: str = "zdb://hub.grid.tf:9900",
     ) -> Container:
-        """
-        Create a container workload object
+        """Create a container workload object
 
-        :param node_id:  id of the node where to deploy the container
-        :type node_id: str
-        :param network_name: name of the network to use in the container
-        :type network_name: str
-        :param ip_address: container IP address in the network
-        :type ip_address: str
-        :param flist: url to start the container with
-        :type flist: str
-        :param capacity_pool_id: id of the capacity pool to use
-        :type capacity_pool_id: str
-        :param env: Environment variables to set, defaults to {}
-        :type env: dict, optional
-        :param cpu: virtual CPU to allocate to the container, defaults to 1
-        :type cpu: int, optional
-        :param memory: Amount of memory to allocate to the container in bytes, defaults to 1024
-        :type memory: int, optional
-        :param disk_size: Size of the root filesystem of the container in MiB, defaults to 256
-        :type disk_size: int, optional
-        :param entrypoint: Command to start in the container, defaults to ""
-        :type entrypoint: str, optional
-        :param interactive: Enable CoreX, web based process manager in the container. If enabled, entrypoint is not automatically started in the container, default to False
-        :type interactive: bool, optional
-        :param secret_env: Same as env argument, but here the value are encrypted with the public key of the node. Use this to send sensitive information to the container, defaults to {}
-        :type secret_env: dict, optional
-        :param public_ipv6: requres a public IPv6 address in the container, defaults to False
-        :type public_ipv6: bool, optional
-        :param storage_url: Address of the server where the data of the flist are stored, defaults to "zdb://hub.grid.tf:9900"
-        :type storage_url: str, optional
-        :return: Container
-        :rtype: Container
-        """
+        Args:
+          node_id(str): id of the node where to deploy the container
+          network_name(str): name of the network to use in the container
+          ip_address(str): container IP address in the network
+          flist(str): url to start the container with
+          capacity_pool_id(str): id of the capacity pool to use
+          env(dict, optional): Environment variables to set, defaults to {}
+          cpu(int, optional): virtual CPU to allocate to the container, defaults to 1
+          memory(int, optional): Amount of memory to allocate to the container in bytes, defaults to 1024
+          disk_size(int, optional): Size of the root filesystem of the container in MiB, defaults to 256
+          entrypoint(str, optional): Command to start in the container, defaults to ""
+          interactive(bool, optional): Enable CoreX, web based process manager in the container. If enabled, entrypoint is not automatically started in the container, default to False
+          secret_env(dict, optional): Same as env argument, but here the value are encrypted with the public key of the node. Use this to send sensitive information to the container, defaults to {}
+          public_ipv6(bool, optional): requres a public IPv6 address in the container, defaults to False
+          storage_url(str, optional): Address of the server where the data of the flist are stored, defaults to "zdb://hub.grid.tf:9900"
 
+        Returns:
+          Container: Container
+        """
         cont = Container()
         cont.info.node_id = node_id
         cont.info.pool_id = capacity_pool_id
@@ -94,16 +82,18 @@ class ContainerGenerator:
         return cont
 
     def encrypt_secret(self, node_id: str, value: str) -> str:
-        """
-        encrypt value with the public key of the node identity by node_id
+        """encrypt value with the public key of the node identity by node_id
         use this method to generate the content of 'secret_env' argument of the create method
 
-        :param node_id: target node ID
-        :type node_id: str
-        :param value: value to encrypt
-        :type value: str
-        :return: encrypted string
-        :rtype: str
+        Args:
+          node_id(str): target node ID
+          value(str): value to encrypt
+          node_id: str:
+          value: str:
+
+        Returns:
+          str: encrypted string
+
         """
         key = base58.b58decode(node_id)
         pk = signing.VerifyKey(key)
@@ -117,21 +107,17 @@ class ContainerGenerator:
     def add_logs(
         self, container: Container, channel_type: str, channel_host: str, channel_port: str, channel_name: str
     ) -> ContainerLogs:
-        """
-        Enable log forwarding for the container
+        """Enable log forwarding for the container
 
-        :param cont: container instance
-        :type cont: tfgrid.workloads.reservation.container.1
-        :param channel_type: type of channel the logs will be streamed to
-        :type channel_type: str
-        :param channel_host: IP of host that the logs will be streamed to
-        :type channel_host: str
-        :param channel_port: port of host that the logs will be streamed to
-        :type channel_port: int
-        :param channel_name: name of channel that will be published to
-        :type channel_name: str
-        :return: logs object added to the container
-        :rtype: tfgrid.workloads.reservation.container.logs.1
+        Args:
+          cont(tfgrid.workloads.reservation.container.1): container instance
+          channel_type(str): type of channel the logs will be streamed to
+          channel_host(str): IP of host that the logs will be streamed to
+          channel_port(int): port of host that the logs will be streamed to
+          channel_name(str): name of channel that will be published to
+
+        Returns:
+          tfgrid.workloads.reservation.container.logs.1: logs object added to the container
 
         """
         cont_logs = ContainerLogs()

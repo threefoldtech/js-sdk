@@ -7,6 +7,8 @@ from .crypto import encrypt_for_node
 
 
 class KubernetesGenerator:
+    """ """
+
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 
@@ -20,26 +22,23 @@ class KubernetesGenerator:
         ssh_keys: List[str],
         pool_id: int,
     ) -> K8s:
-        """
-        create a kubernetes marster workload object
+        """create a kubernetes marster workload object
 
-        :param node_id: node ID on which to deploy the k8s master
-        :type node_id: str
-        :param network_name: name of the network to use
-        :type network_name: str
-        :param cluster_secret: secret of the cluster. all the member of a same cluster must share the same secret
-        :type cluster_secret: str
-        :param ip_address: ip address of the k8s master
-        :type ip_address: str
-        :param size: size of the VM.
-        :type size: int
-        :param ssh_keys: list of public SSH key to authorize in the VM
-        :type ssh_keys: List[str]
-        :param pool_id: capacity pool ID
-        :type pool_id: int
-        :raises Input: if size is not supported
-        :return: K8s
-        :rtype: K8s
+        Args:
+          node_id(str): node ID on which to deploy the k8s master
+          network_name(str): name of the network to use
+          cluster_secret(str): secret of the cluster. all the member of a same cluster must share the same secret
+          ip_address(str): ip address of the k8s master
+          size(int): size of the VM.
+          ssh_keys(List[str]): list of public SSH key to authorize in the VM
+          pool_id(int): capacity pool ID
+
+        Returns:
+          K8s: K8s
+
+        Raises:
+          Input: if size is not supported
+
         """
         if size not in [1, 2]:
             raise Input("size can only be 1 or 2")
@@ -71,28 +70,24 @@ class KubernetesGenerator:
         ssh_keys: List[str],
         pool_id: int,
     ) -> K8s:
-        """
-        create a kubernetes worker workload object
+        """create a kubernetes worker workload object
 
-        :param node_id: node ID on which to deploy the k8s master
-        :type node_id: str
-        :param network_name: name of the network to use
-        :type network_name: str
-        :param cluster_secret: secret of the cluster. all the member of a same cluster must share the same secret
-        :type cluster_secret: str
-        :param ip_address: ip address of the k8s master
-        :type ip_address: str
-        :param size: size of the VM.
-        :type size: int
-        :param ssh_keys: list of public SSH key to authorize in the VM
-        :type ssh_keys: List[str]
-        :param master_ip: IP address of the master node of this cluster
-        :type master_ip: str
-        :param pool_id: capacity pool ID
-        :type pool_id: int
-        :raises Input: if size is not supported
-        :return: K8s
-        :rtype: K8s
+        Args:
+          node_id(str): node ID on which to deploy the k8s master
+          network_name(str): name of the network to use
+          cluster_secret(str): secret of the cluster. all the member of a same cluster must share the same secret
+          ip_address(str): ip address of the k8s master
+          size(int): size of the VM.
+          ssh_keys(List[str]): list of public SSH key to authorize in the VM
+          master_ip(str): IP address of the master node of this cluster
+          pool_id(int): capacity pool ID
+
+        Returns:
+          K8s: K8s
+
+        Raises:
+          Input: if size is not supported
+
         """
         worker = self.add_master(
             node_id=node_id,

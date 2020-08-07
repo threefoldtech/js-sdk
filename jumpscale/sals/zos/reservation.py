@@ -22,9 +22,7 @@ class Reservation:
 
     @property
     def sorted(self):
-        """
-        return the list of workload sorted in the other they should be deployed on the node
-        """
+
         workloads = sorted(self.workloads, key=lambda w: _order.index(w.info.workload_type))
         out = []
         for w in workloads:

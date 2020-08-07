@@ -5,6 +5,8 @@ from typing import List, Iterator
 
 
 class Pools:
+    """ """
+
     def __init__(self, explorer):
         self._model_create = PoolCreated
         self._pools = explorer.pools
@@ -20,19 +22,17 @@ class Pools:
         return self._pools.create(pool)
 
     def create(self, cu: int, su: int, farm: str, currencies: List[str] = None) -> PoolCreated:
-        """
-        create a new capacity pool
+        """create a new capacity pool
 
-        :param cu: amount of compute unit to reserve
-        :type cu: int
-        :param su: amount of storage unit to reserve
-        :type su: int
-        :param farm: name of the farm where to reserve capacity
-        :type farm: str
-        :param currencies: list of currency you are willing to pay with, defaults to None
-        :type currencies: List[str], optional
-        :return: the payment detail required to pay fo the reserved capacity
-        :rtype: PoolCreated
+        Args:
+          cu(int): amount of compute unit to reserve
+          su(int): amount of storage unit to reserve
+          farm(str): name of the farm where to reserve capacity
+          currencies(List[str], optional): list of currency you are willing to pay with, defaults to None
+
+        Returns:
+          PoolCreated: the payment detail required to pay fo the reserved capacity
+
         """
         if not currencies:
             currencies = ["TFT"]
@@ -57,19 +57,17 @@ class Pools:
         return self._reserve(pool)
 
     def extend(self, pool_id: int, cu: int, su: int, currencies: List[str] = None) -> PoolCreated:
-        """
-        extend an existing capacity pool
+        """extend an existing capacity pool
 
-        :param pool_id: the ID of the pool to extend
-        :type pool_id: int
-        :param cu: amount of compute units to reserve
-        :type cu: int
-        :param su: amount of storage units to reserve
-        :type su: int
-        :param currencies: list of currency you are willing to pay with, defaults to None
-        :type currencies: List[str], optional
-        :return: the payment detail required to pay fo the reserved capacity
-        :rtype: PoolCreated
+        Args:
+          pool_id(int): the ID of the pool to extend
+          cu(int): amount of compute units to reserve
+          su(int): amount of storage units to reserve
+          currencies(List[str], optional): list of currency you are willing to pay with, defaults to None
+
+        Returns:
+          PoolCreated: the payment detail required to pay fo the reserved capacity
+
         """
         p = self.get(pool_id)
         if not currencies:
@@ -84,30 +82,38 @@ class Pools:
         return self._reserve(pool)
 
     def get(self, pool_id: int) -> Pool:
-        """
-        get the detail about an specific pool
+        """get the detail about an specific pool
 
-        :param pool_id: ID of the pool to retrieve
-        :type pool_id: int
-        :return: Pool
-        :rtype: Pool
+        Args:
+          pool_id(int): ID of the pool to retrieve
+          pool_id: int:
+
+        Returns:
+          Pool: Pool
+
         """
         return self._pools.get(pool_id)
 
     def iter(self) -> Iterator[Pool]:
-        """
-        Iterate over all the pools
+        """Iterate over all the pools
 
         :yield: Pool
-        :rtype: Iterator[Pool]
+
+        Args:
+
+        Returns:
+
         """
         return self._pools.iter()
 
     def list(self, page=None) -> List[Pool]:
-        """
-        List all the pool
+        """List all the pool
 
-        :return: list of pools
-        :rtype: pool
+        Args:
+          page:  (Default value = None)
+
+        Returns:
+          pool: list of pools
+
         """
         return self._pools.list()
