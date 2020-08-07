@@ -23,68 +23,56 @@ from .zdb import ZDBGenerator
 
 class Zosv2:
     """ """
+
     @property
     def _explorer(self):
-        """ """
         return j.core.identity.me.explorer
 
     @property
     def network(self):
-        """ """
         return NetworkGenerator(self._explorer)
 
     @property
     def container(self):
-        """ """
         return ContainerGenerator()
 
     @property
     def volume(self):
-        """ """
         return VolumesGenerator()
 
     @property
     def zdb(self):
-        """ """
         return ZDBGenerator(self._explorer)
 
     @property
     def kubernetes(self):
-        """ """
         return KubernetesGenerator(self._explorer)
 
     @property
     def nodes_finder(self):
-        """ """
         return NodeFinder(self._explorer)
 
     @property
     def gateways_finder(self):
-        """ """
         return GatewayFinder(self._explorer)
 
     @property
     def billing(self):
-        """ """
         return Billing()
 
     @property
     def pools(self):
-        """ """
         return Pools(self._explorer)
 
     @property
     def workloads(self):
-        """ """
         return Workloads(self._explorer)
 
     @property
     def gateway(self):
-        """ """
         return GatewayGenerator(self._explorer)
 
     def conversion(self):
-        """ """
         me = j.core.identity.me
 
         try:
@@ -162,7 +150,7 @@ class Zosv2:
           escrow_address(str): escrow address
           total_amount(float): total amount of the escrow
           message(str, optional): message encoded in the qr code. Defaults to "Grid resources fees".
-          escrow_asset: 
+          escrow_asset:
 
         Returns:
           str: qrcode string representation

@@ -6,7 +6,6 @@ from .crypto import encrypt_for_node
 
 
 class ZDBGenerator:
-    """ """
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 
@@ -30,16 +29,6 @@ class ZDBGenerator:
           pool_id(int): the capacity pool ID
           disk_type(DiskType, optional): type of disk,can be SSD or HDD, defaults to DiskType.SSD
           public(bool, optional
-:raise Input: if disk_type is not supported
-:raise Input: if mode is not supported): if public is True, anyone can write to the namespace without being authenticated, defaults to False
-          node_id: str: 
-          size: int: 
-          mode: Union[str: 
-          ZDBMode]: 
-          password: str: 
-          pool_id: int: 
-          disk_type: DiskType:  (Default value = DiskType.SSD)
-          public: bool:  (Default value = False)
 
         Returns:
           ZdbNamespace: ZdbNamespace
