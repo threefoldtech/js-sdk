@@ -77,7 +77,7 @@ class ContainerGenerator:
         cont.capacity.cpu = cpu
         cont.capacity.memory = memory
         cont.capacity.disk_size = disk_size
-        cont.capacity.disk_type = disk_type
+        cont.capacity.disk_type = DiskType.SSD
 
         return cont
 
