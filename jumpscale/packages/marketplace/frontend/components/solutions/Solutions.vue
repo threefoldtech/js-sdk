@@ -127,11 +127,25 @@ module.exports = {
           icon: "mdi-router",
         },
         {
-          type: "publisher",
-          name: "Publisher",
+          type: "blog",
+          name: "Deploy Blog",
           icon: "mdi-web-box",
           description:
-            "Deploy a wiki, blog, website and access it via an IP and a public domain",
+            "Deploy a blog and access it via an IP and a public domain",
+        },
+        {
+          type: "website",
+          name: "Website",
+          icon: "mdi-web-box",
+          description:
+            "Deploy a website and access it via an IP and a public domain",
+        },
+        {
+          type: "wiki",
+          name: "Wiki",
+          icon: "mdi-web-box",
+          description:
+            "Deploy a wiki and access it via an IP and a public domain",
         },
         {
           type: "peertube",

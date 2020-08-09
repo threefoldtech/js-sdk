@@ -108,12 +108,28 @@ const SOLUTIONS = {
     url: "/solutions/4to6gw",
     description: ""
   },
-  publisher: {
-    topic: "publisher",
-    type: "publisher",
-    name: "Publisher",
+  wiki: {
+    topic: "wiki_deploy",
+    type: "wiki",
+    name: "Deploy Wiki",
     icon: "mdi-web-box",
-    url: "/solutions/publisher",
+    url: "/solutions/deploy_wiki",
+    description: ""
+  },
+  website: {
+    topic: "website_deploy",
+    type: "website",
+    name: "Deploy Website",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_website",
+    description: ""
+  },
+  blog: {
+    topic: "blog_deploy",
+    type: "blog",
+    name: "Deploy Blog",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_blog",
     description: ""
   },
   gollum: {

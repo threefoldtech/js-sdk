@@ -168,9 +168,21 @@ module.exports = {
           meta: { icon: "mdi-router" },
         },
         {
-          name: "Publisher",
-          type: "publisher",
-          path: "/publisher",
+          name: "Deploy Blog",
+          type: "blog",
+          path: "/blog",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Deploy Website",
+          type: "website",
+          path: "/website",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Deploy Wiki",
+          type: "wiki",
+          path: "/wiki",
           meta: { icon: "mdi-web-box" },
         },
         {
