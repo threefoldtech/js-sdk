@@ -1,3 +1,5 @@
+import sys
+import os
 from locust import HttpUser, task, between
 
 
@@ -7,9 +9,5 @@ class QuickstartUser(HttpUser):
     wait_time = between(5, 9)
 
     @task
-    def index_page(self):
-        self.client.get("/admin/#/", verify=False)
-
-    @task
-    def list_alerts(self):
-        self.client.post("/admin/actors/alerts/list_alerts", verify=False)
+    def list_alerts_gedis(self):
+        self.client.post(f"/admin/alerts/list_alerts", verify=False)

@@ -41,7 +41,6 @@ for more information about the installation [check](https://docs.locust.io/en/st
 - `r` The rate per second in which users are spawned (obligatory)
 - `h` Host to load test (obligatory)
 - `p` Path for python script which uses locust in load testing (obligatory)
-- `n` Number of port used in the request, default is 8000 (optional)
  
 
 ##### Examples
@@ -56,13 +55,12 @@ Usage: tests/loadtesting/run_locust.sh -u user_number -r hatch_rate -h host -p p
 	-r The rate per second in which users are spawned
 	-h Host to load test
 	-p Path for python script which uses locust in load testing
-	-n Number of port used in the request
 ```
 - Execution
 ``` bash
-bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h https://localhost/admin/\#/ -p tests/loadtesting/admin.py -n 8000
+bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h https://localhost -p tests/loadtesting/admin.py
 ```
-or
-``` bash
-bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h https://localhost/admin/\#/ -p tests/loadtesting/admin.py
-```
+ for Gedis endpoint
+ ``` bash
+ bash tests/loadtesting/run_locust.sh -u 200 -r 10 -h http://localhost:8000 -p tests/loadtesting/admin_gedis.py
+ ```
