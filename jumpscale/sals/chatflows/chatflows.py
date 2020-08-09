@@ -148,10 +148,17 @@ class GedisChatBot:
             except Exception as e:
                 internal_error = True
                 j.logger.exception("error", exception=e)
-                j.tools.alerthandler.alert_raise(
+                alert = j.tools.alerthandler.alert_raise(
                     appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
-                self.send_error("Something wrong happened, please contact support")
+                if self.user_info()["username"] in j.core.identity.me.admins:
+                    self.send_error(
+                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>""",
+                        md=True,
+                        html=True,
+                    )
+                else:
+                    self.send_error(f"Something wrong happened, please contact support with alert ID: {alert.id}")
 
             if not internal_error:
                 if self.is_last_step:

@@ -70,6 +70,7 @@ module.exports = {
         this.$api.identities.setIdentity(this.name).then((response) => {
           this.$parent.$parent.$parent.$parent.getIdentity()
           this.done("Identity Updated", "success")
+          window.location.reload()
         }).catch((error) => {
           console.log(error)
           this.alert("Failed to update identity", "error")
