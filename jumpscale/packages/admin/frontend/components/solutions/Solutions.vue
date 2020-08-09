@@ -40,7 +40,7 @@
                   v-if="solution.topic !== 'all'"
                   color="primary"
                   @click.stop="restart(solution.topic)"
-                >New</v-btn>
+                > {{solution.topic === "pools_reservation" ? "Create/Extend": "New"}}</v-btn>
                 <v-btn
                   color="primary"
                   v-if="started(solution.topic)"
