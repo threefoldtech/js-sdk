@@ -1,9 +1,10 @@
 import uuid
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 from nacl.encoding import Base64Encoder
 from nacl.public import PrivateKey
+
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class TaigaDeploy(GedisChatBot):
