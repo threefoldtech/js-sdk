@@ -180,6 +180,12 @@ module.exports = {
           meta: { img: "./assets/peertube.png" }
         },
         {
+          name: "Gollum Wiki",
+          type: "gollum",
+          path: "/gollum",
+          meta: { icon: "mdi-book-open-variant" }
+        },
+        {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
