@@ -17,7 +17,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
-            gollum_solutions = solutions.gollum_solutions(self.solution_metadata["owner"], sync=False)
+            gollum_solutions = solutions.list_gollum_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in gollum_solutions:
                 if sol["Name"] == self.solution_name:
