@@ -57,7 +57,7 @@
                   :key="i"
                   @click="showInfo(s)"
                   outlined
-                >{{ solution.topic === 'all' ? s.id : solution.topic === "pools_reservation" ? s["Pool id"] : s.Name }}</v-chip>
+                >{{ solution.topic === 'all' ? s.id : solution.topic === "pools_reservation" ? `${s["Pool id"]} ${s["Farm"]}` : s.Name }}</v-chip>
               </v-card-text>
             </v-card>
           </v-tab-item>
@@ -137,6 +137,7 @@ module.exports = {
           for (i in data){
             let obj = {
               "Pool id":data[i].pool_id,
+              "Farm": data[i].farm,
               "Customer id":data[i].customer_tid,
               "Available cloud units":data[i].cus,
               "Available storge units":data[i].sus,
