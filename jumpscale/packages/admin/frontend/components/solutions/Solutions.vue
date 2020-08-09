@@ -57,7 +57,7 @@
                   :key="i"
                   @click="showInfo(s)"
                   outlined
-                >{{ solution.topic === 'all' ? `${s.workload_type} ${s.id}` : solution.topic === "pools_reservation" ? `${s["Pool id"]} ${s["Farm"]}` : s.Name }}</v-chip>
+                >{{ solution.topic === 'all' ? `${s.workload_type}: ${s.id} - Pool: ${s.pool_id}` : solution.topic === "pools_reservation" ? `${s["Pool id"]} ${s["Farm"]}` : s.Name }}</v-chip>
               </v-card-text>
             </v-card>
           </v-tab-item>

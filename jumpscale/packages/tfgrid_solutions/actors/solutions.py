@@ -14,6 +14,7 @@ class Solutions(BaseActor):
         for workload in j.sals.zos.workloads.list(j.core.identity.me.tid):
             w_dict = workload.to_dict()
             w_dict["workload_type"] = workload.info.workload_type.name
+            w_dict["pool_id"] = workload.info.pool_id
             res.append(w_dict)
         return j.data.serializers.json.dumps({"data": res})
 
