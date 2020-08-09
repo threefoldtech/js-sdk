@@ -41,6 +41,14 @@ def sign_delete_request(workload, tid, signing_key):
 
 
 def _hash(challenge):
+    """
+
+    Args:
+      challenge:
+
+    Returns:
+
+    """
     if isinstance(challenge, str):
         challenge = challenge.encode("utf-8")
 

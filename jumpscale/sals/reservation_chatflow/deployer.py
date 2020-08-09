@@ -641,7 +641,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             cpu,
             memory,
             disk_size,
-            disk_type,
             entrypoint,
             interactive,
             encrypted_secret_env,
