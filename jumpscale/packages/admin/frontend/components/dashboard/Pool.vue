@@ -36,7 +36,7 @@
               <td>Nodes</td>
               <td class="pt-2">
                 <v-chip class="ma-1" v-for="(node_id, index) in pool.node_ids" :key="index">
-                  {{ node_id }}
+                    {{ node_id }}
                 </v-chip>
               </td>
             </tr>

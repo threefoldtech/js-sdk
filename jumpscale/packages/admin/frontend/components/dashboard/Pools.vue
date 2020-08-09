@@ -28,13 +28,7 @@
         headers: [
           {text: "ID", value: "pool_id"},
           {text: "Farm", value: "farm"},
-          {text: "Expiration", value: "empty_at"},
-          {text: "CUs", value: "cus"},
-          {text: "SUs", value: "sus"},
-          {text: "Active CUs", value: "active_cu"},
-          {text: "Active SUs", value: "active_su"},
-          {text: "Active Workloads", value: "active_workload_ids"},
-          {text: "Nodes", value: "node_ids"},
+          {text: "Expiration", value: "empty_at"}
         ]
       }
     },

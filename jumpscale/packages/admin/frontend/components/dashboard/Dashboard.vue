@@ -27,11 +27,6 @@
 
       <template #default>
         <v-row>
-          <v-col cols="12">
-            <pools></pools>
-          </v-col>
-        </v-row>
-        <v-row>
           <v-col cols="8">
             <v-row>
               <v-col cols="6">
@@ -43,9 +38,14 @@
             </v-row>
             <v-row>
               <v-col cols="6">
-                <v-row rows="8">
+                <v-row>
                   <v-col>
                     <wikis></wikis>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <pools></pools>
                   </v-col>
                 </v-row>
               </v-col>
