@@ -25,6 +25,13 @@ def get_stats():
     tokencode = query_params.get("tokencode", "TFT")
     detailed = j.data.serializers.json.loads(query_params.get("detailed", "false"))
     res = {}
+
+    # cache the request in local redis
+    redis = j.clients.redis.get("redis_instance")
+    cached_data = redis.get(f"{network}-{tokencode}-{detailed}")
+    if cached_data:
+        return cached_data
+
     collector = StatisticsCollector(network)
     stats = collector.getstatistics(tokencode, detailed)
     res["total_tokens"] = f"{stats['total']:,.7f}"
@@ -36,8 +43,9 @@ def get_stats():
             res["locked_tokens_info"].append(
                 f"{locked_amount['amount']:,.7f} locked until {datetime.datetime.fromtimestamp(locked_amount['until'])}"
             )
-
     results = j.data.serializers.json.dumps(res)
+    redis.set(f"{network}-{tokencode}-{detailed}", results, ex=600)
+
     return results
 
 
