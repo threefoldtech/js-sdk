@@ -111,7 +111,7 @@ const SOLUTIONS = {
   wiki: {
     topic: "wiki_deploy",
     type: "wiki",
-    name: "Deploy Wiki",
+    name: "Wiki",
     icon: "mdi-web-box",
     url: "/solutions/deploy_wiki",
     description: ""
@@ -119,7 +119,7 @@ const SOLUTIONS = {
   website: {
     topic: "website_deploy",
     type: "website",
-    name: "Deploy Website",
+    name: "Website",
     icon: "mdi-web-box",
     url: "/solutions/deploy_website",
     description: ""
@@ -127,7 +127,7 @@ const SOLUTIONS = {
   blog: {
     topic: "blog_deploy",
     type: "blog",
-    name: "Deploy Blog",
+    name: "Blog",
     icon: "mdi-web-box",
     url: "/solutions/deploy_blog",
     description: ""

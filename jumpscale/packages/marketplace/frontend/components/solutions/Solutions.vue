@@ -128,7 +128,7 @@ module.exports = {
         },
         {
           type: "blog",
-          name: "Deploy Blog",
+          name: "Blog",
           icon: "mdi-web-box",
           description:
             "Deploy a blog and access it via an IP and a public domain",
@@ -151,13 +151,14 @@ module.exports = {
           type: "peertube",
           name: "Peertube",
           image: "./assets/peertube.png",
-          description: "Deploy a peertube instance on the grid."
+          description: "Deploy a peertube instance on the grid.",
         },
         {
           type: "gollum",
           name: "Gollum Wiki",
           icon: "mdi-book-open-variant",
-          description: "A simple, Git-powered wiki with a sweet API and local frontend."
+          description:
+            "A simple, Git-powered wiki with a sweet API and local frontend.",
         },
         {
           type: "threebot",
