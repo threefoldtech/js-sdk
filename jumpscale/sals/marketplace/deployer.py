@@ -201,7 +201,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        pools = self.list_pools(username)
+        cu, su = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(username, cu, su)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:

@@ -3,14 +3,19 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.loader import j
 from jumpscale.core.exceptions import JSException
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import solutions
+from jumpscale.sals.reservation_chatflow import solutions, deployer
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 
 
 class Solutions(BaseActor):
     @actor_method
     def list_all_solutions(self) -> str:
-        res = [workload.to_dict() for workload in j.sals.zos.workloads.list(j.core.identity.me.tid)]
+        res = []
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid):
+            w_dict = workload.to_dict()
+            w_dict["workload_type"] = workload.info.workload_type.name
+            w_dict["pool_id"] = workload.info.pool_id
+            res.append(w_dict)
         return j.data.serializers.json.dumps({"data": res})
 
     @actor_method
@@ -49,8 +54,16 @@ class Solutions(BaseActor):
     @actor_method
     def list_pools(self) -> str:
         res = []
+        farm_names = {}
         for pool in j.sals.zos.pools.list():
-            res.append(pool.to_dict())
+            pool_dict = pool.to_dict()
+            farm_id = deployer.get_pool_farm_id(pool.pool_id)
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            pool_dict["farm"] = farm.name
+            res.append(pool_dict)
         return j.data.serializers.json.dumps({"data": res})
 
 
