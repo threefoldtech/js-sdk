@@ -12,14 +12,6 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
-  pools: {
-    topic: "pools_reservation",
-    type: "pools",
-    name: "Pools",
-    icon: "mdi-cloud",
-    url: "/solutions/pools_reservation",
-    description: "Reserve capacity on the grid to deploy the solutions on"
-  },
   ubuntu: {
     topic: "ubuntu_deploy",
     name: "Ubuntu",
