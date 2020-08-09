@@ -251,6 +251,9 @@ class ChatflowDeployer:
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            farm_assets = [w.asset for w in farm.wallet_addresses]
+            if currencies[0] not in farm_assets:
+                continue
             res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
