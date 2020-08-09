@@ -240,8 +240,8 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True, min=1)
-        su = form.int_ask("Please specify the required SU", required=True, min=1)
+        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
+        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         cu = cu.value
@@ -251,6 +251,9 @@ class ChatflowDeployer:
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            farm_assets = [w.asset for w in farm.wallet_addresses]
+            if currencies[0] not in farm_assets:
+                continue
             res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
@@ -320,6 +323,8 @@ class ChatflowDeployer:
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
+        <h4> Total Amount: </h4> {total_amount} \n
+        <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
         <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
         """
         result = bot.single_choice(message, wallet_names, html=True)
@@ -348,8 +353,8 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
-        cu = form.int_ask("Please specify the required CU", required=True, min=1)
-        su = form.int_ask("Please specify the required SU", required=True, min=1)
+        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
+        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
         form.ask()
         cu = cu.value
@@ -1259,7 +1264,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        pools = self.list_pools()
+        cu, su = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(cu, su)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:
