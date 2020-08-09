@@ -24,6 +24,7 @@ class TaigaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
+        # "intializing",
         "container_acess",
     ]
     title = "Taiga"
@@ -160,15 +161,15 @@ class TaigaDeploy(GedisChatBot):
             ip_address=self.ip_address,
             flist=self.HUB_URL,
             cpu=2,
-            memory=1024,
+            memory=2 * 1024,
             env=var_dict,
             interactive=False,
-            entrypoint="/.start_taiga.sh",
+            entrypoint="/start_taiga.sh",
             log_config=self.log_config,
             public_ipv6=True,
-            disk_size=2 * 1024,
+            disk_size=4 * 1024,
             secret_env={
-                "EMAIL_HOST_PASSWORD": "codescalers_2010",
+                "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                 "PRIVATE_KEY": private_key,
                 "SECRET_KEY": self.SECRET_KEY,
             },
@@ -180,6 +181,12 @@ class TaigaDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Threebot ...")
+        if not j.sals.nettools.wait_http_test(f"https://{self.ip_address}", timeout=600):
+            self.stop("Failed to initialize threebot, please contact support")
+
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
         res = f"""\
@@ -189,7 +196,9 @@ your reservation id is: {self.resv_id}
 \n<br />\n
 To connect ```ssh {self.ip_address}``` .It may take a few minutes.
 \n<br />\n
-open Taiga from browser at ```https://{self.ip_address}```
+open Taiga from browser at <a href="https://{self.ip_address}" target="_blank">https://{self.ip_address}</a>
+\n<br />\n
+- It may take few minutes to load.
                 """
         self.md_show(res, md=True)
 
