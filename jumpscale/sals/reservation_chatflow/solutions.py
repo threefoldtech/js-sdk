@@ -1,10 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
-K8S_SIZES = {
-    1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"},
-    2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"},
-}
+K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
 
 
 class ChatflowSolutions:
@@ -431,7 +428,7 @@ class ChatflowSolutions:
         ].values():
             for dom in domains:
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
                 )
         return result
 
@@ -459,7 +456,7 @@ class ChatflowSolutions:
                         "Pool": proxy.info.pool_id,
                         "Domain": proxy.domain,
                     }
-                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
@@ -473,7 +470,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -498,7 +495,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -730,6 +727,39 @@ class ChatflowSolutions:
                     result[-1].update(self.get_workload_capacity(workload))
         return result
 
+    def list_mastodon_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "mastodon":
+                    result.append(
+                        {
+                            "wids": [workload.id],
+                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
+                            "IPv4 Address": workload.network_connection[0].ipaddress,
+                            "IPv6 Address": self.get_ipv6_address(workload),
+                            "Network": workload.network_connection[0].network_id,
+                            "Node": workload.info.node_id,
+                            "Pool": workload.info.pool_id,
+                        }
+                    )
+                    result[-1].update(self.get_workload_capacity(workload))
+        return result
+
     def cancel_solution(self, solution_wids):
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
@@ -769,6 +799,7 @@ class ChatflowSolutions:
             "wiki": 0,
             "blog": 0,
             "website": 0,
+            "mastodon": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

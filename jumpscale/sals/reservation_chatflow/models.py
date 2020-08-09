@@ -22,6 +22,7 @@ class SolutionType(Enum):
     Gollum = "gollum"
     Mattermost = "mattermost"
     Cryptpad = "cryptpad"
+    Mastodon = "mastodon"
     Unknown = "unknown"
 
 

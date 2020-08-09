@@ -148,6 +148,14 @@ const SOLUTIONS = {
     url: "/solutions/cryptpad_deploy",
     description: "CryptPad is the Zero Knowledge realtime collaborative editor."
   },
+  mastodon: {
+    topic: "mastodon_deploy",
+    type: "mastodon",
+    name: "mastodon",
+    image: "./assets/mastodon.png",
+    url: "/solutions/mastodon_deploy",
+    description: "Deploy a mastodon instance on the grid."
+  },
   all: {
     topic: "all",
     type: "all_reservations",
