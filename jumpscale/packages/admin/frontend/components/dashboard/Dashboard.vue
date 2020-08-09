@@ -3,6 +3,10 @@
     <base-component title="Dashboard" icon="mdi-view-dashboard" :loading="loading">
 
       <template #actions>
+        <v-btn color="primary" text to="/solutions/pools_reservation">
+          <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
+        </v-btn>
+
         <v-btn color="primary" text @click.stop="dialogs.addAdmin = true">
           <v-icon left>mdi-account-plus-outline</v-icon> Add Admin
         </v-btn>
@@ -23,6 +27,11 @@
 
       <template #default>
         <v-row>
+          <v-col cols="12">
+            <pools></pools>
+          </v-col>
+        </v-row>
+        <v-row>
           <v-col cols="8">
             <v-row>
               <v-col cols="6">
@@ -34,14 +43,9 @@
             </v-row>
             <v-row>
               <v-col cols="6">
-                <v-row>
+                <v-row rows="8">
                   <v-col>
                     <wikis></wikis>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col>
-                    <pools></pools>
                   </v-col>
                 </v-row>
               </v-col>

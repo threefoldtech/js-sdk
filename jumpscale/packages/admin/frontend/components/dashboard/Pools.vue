@@ -1,7 +1,7 @@
 <template>
   <div>
     <base-section title="Pools" icon="mdi-cloud" :loading="loading">
-      <v-data-table :items-per-page="5" :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}">
+      <v-data-table :items-per-page="5" :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}" @click:row="open" class="row-pointer">
           <template v-slot:item.node_ids="{ item }">
             {{ item.node_ids.length }}
           </template>
@@ -10,11 +10,15 @@
           </template>
       </v-data-table>
     </base-section>
+    <pool-info v-model="dialog" :pool="selected"></pool-info>
   </div>
 </template>
 
 <script>
   module.exports = {
+    components: {
+      'pool-info': httpVueLoader("./Pool.vue")
+    },
     data () {
       return {
         loading: false,
@@ -23,12 +27,14 @@
         pools: [],
         headers: [
           {text: "ID", value: "pool_id"},
-          {text: "CU", value: "cus"},
-          {text: "SU", value: "sus"},
-          {text: "ACU", value: "active_cu"},
-          {text: "ASU", value: "active_su"},
+          {text: "Farm", value: "farm"},
+          {text: "Expiration", value: "empty_at"},
+          {text: "CUs", value: "cus"},
+          {text: "SUs", value: "sus"},
+          {text: "Active CUs", value: "active_cu"},
+          {text: "Active SUs", value: "active_su"},
+          {text: "Active Workloads", value: "active_workload_ids"},
           {text: "Nodes", value: "node_ids"},
-          {text: "Workloads", value: "active_workload_ids"},
         ]
       }
     },
@@ -37,10 +43,23 @@
         this.loading = true
         this.$api.solutions.getPools().then((response) => {
           this.pools = JSON.parse(response.data).data
+          for (let i = 0; i < this.pools.length; i++) {
+            pool = this.pools[i];
+            if (pool.empty_at < 9223372036854775807) {
+              d = Date(pool.empty_at * 1000);
+              pool.empty_at = d.toString();
+            } else {
+              pool.empty_at = "-";
+            }
+          }
         }).finally (() => {
           this.loading = false
         })
-      }
+      },
+      open (pool) {
+        this.selected = pool
+        this.dialog = true
+      },
     },
     mounted () {
       this.getPools()
