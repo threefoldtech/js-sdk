@@ -132,6 +132,14 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
+  cryptpad: {
+    topic: "cryptpad_deploy",
+    type: "cryptpad",
+    name: "Cryptpad",
+    image: "./assets/cryptpad.png",
+    url: "/solutions/cryptpad_deploy",
+    description: "CryptPad is the Zero Knowledge realtime collaborative editor."
+  },
   all: {
     topic: "all",
     type: "all_reservations",

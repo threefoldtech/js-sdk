@@ -186,6 +186,12 @@ module.exports = {
           meta: { icon: "mdi-book-open-variant" }
         },
         {
+          name: "Cryptpad",
+          type: "cryptpad",
+          path: "/cryptpad",
+          meta: { img: "./assets/cryptpad.png" }
+        },
+        {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
