@@ -35,7 +35,7 @@
             <tr>
               <td>Nodes</td>
               <td class="pt-2">
-                <v-chip class="ma-1" v-for="(node_id, index) in pool.node_ids" :key="index">
+                <v-chip class="ma-1" v-for="(node_id, index) in pool.node_ids" :key="index" :to="`${pool.explorer_url}/nodes/${node_id}`">
                     {{ node_id }}
                 </v-chip>
               </td>
@@ -43,7 +43,7 @@
             <tr>
               <td>Active Workloads</td>
               <td class="pt-2">
-                <v-chip class="ma-1" v-for="(wid, index) in pool.active_workload_ids" :key="index">
+                <v-chip class="ma-1" v-for="(wid, index) in pool.active_workload_ids" :key="index" :to="`${pool.explorer_url}/reservations/workloads/${wid}`">
                   {{ wid }}
                 </v-chip>
               </td>

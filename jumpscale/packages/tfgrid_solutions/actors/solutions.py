@@ -57,6 +57,7 @@ class Solutions(BaseActor):
         farm_names = {}
         for pool in j.sals.zos.pools.list():
             pool_dict = pool.to_dict()
+            pool_dict["explorer_url"] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
             farm = farm_names.get(farm_id)
             if not farm:
