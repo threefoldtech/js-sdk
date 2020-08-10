@@ -1,8 +1,15 @@
 <template>
   <div>
-    <base-section title="Pools" icon="mdi-cloud" :loading="loading">
-      <v-data-table :items-per-page="5" :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}" @click:row="open" class="row-pointer">
-          <template v-slot:item.node_ids="{ item }">
+    <base-component title="Pools" icon="mdi-cloud" :loading="loading">
+      <template #actions>
+        <v-btn color="primary" text to="/solutions/pools_reservation">
+          <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
+        </v-btn>
+      </template>
+
+      <template #default>
+        <v-data-table :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}" @click:row="open">
+            <template v-slot:item.node_ids="{ item }">
             {{ item.node_ids.length }}
           </template>
           <template v-slot:item.active_workload_ids="{ item }">
@@ -11,16 +18,19 @@
           <template v-slot:item.empty_at="{ item }">
             <div :class="`${item.class}`">{{ item.empty_at }}</div>
           </template>
-      </v-data-table>
-    </base-section>
+        </v-data-table>
+      </template>
+    </base-component>
+
     <pool-info v-model="dialog" :pool="selected"></pool-info>
   </div>
 </template>
 
+
 <script>
   module.exports = {
     components: {
-      'pool-info': httpVueLoader("../pools/Pool.vue")
+      'pool-info': httpVueLoader("./Pool.vue")
     },
     data () {
       return {
@@ -31,7 +41,13 @@
         headers: [
           {text: "ID", value: "pool_id"},
           {text: "Farm", value: "farm"},
-          {text: "Expiration", value: "empty_at"}
+          {text: "Expiration", value: "empty_at"},
+          {text: "Compute Units", value: "cus"},
+          {text: "Storage Units", value: "sus"},
+          {text: "Active Compute Units", value: "active_cu"},
+          {text: "Active Storage Units", value: "active_su"},
+          {text: "Number of Nodes", value: "node_ids"},
+          {text: "Number of Active Workloads", value: "active_workload_ids"},
         ]
       }
     },
@@ -51,7 +67,7 @@
               if (pool_expiration < today){
                 pool.class = "red--text";
                 pool.empty_at = "EXPIRED"
-              } else if (pool_expiration < alert_time && pool_expiration > today) {
+              } else if (pool_expiration < alert_time) {
                 pool.class = "red--text";
               } else {
                 pool.class = "";
@@ -74,3 +90,13 @@
     }
   }
 </script>
+
+
+<style scoped>
+input {
+  width: 50px;
+}
+.v-text-field {
+  padding: 10px 0px !important;
+}
+</style>

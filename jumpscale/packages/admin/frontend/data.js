@@ -12,14 +12,6 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
-  pools: {
-    topic: "pools_reservation",
-    type: "pools",
-    name: "Pools",
-    icon: "mdi-cloud",
-    url: "/solutions/pools_reservation",
-    description: "Reserve capacity on the grid to deploy the solutions on"
-  },
   ubuntu: {
     topic: "ubuntu_deploy",
     name: "Ubuntu",
@@ -132,14 +124,6 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
-  all: {
-    topic: "all",
-    type: "all_reservations",
-    name: "All Workloads",
-    icon: "mdi-clipboard-list-outline",
-    url: "/solutions/all",
-    description: ""
-  }
 }
 
 const LEVELS = {
