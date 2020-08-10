@@ -17,7 +17,7 @@
 <script>
   module.exports = {
     components: {
-      'pool-info': httpVueLoader("./Pool.vue")
+      'pool-info': httpVueLoader("../pools/Pool.vue")
     },
     data () {
       return {

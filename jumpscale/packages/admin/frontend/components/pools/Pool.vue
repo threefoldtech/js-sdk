@@ -35,8 +35,8 @@
             <tr>
               <td>Nodes</td>
               <td class="pt-2">
-                <v-chip class="ma-1" v-for="(node_id, index) in pool.node_ids" :key="index" :to="`${pool.explorer_url}/nodes/${node_id}`">
-                    {{ node_id }}
+                <v-chip class="ma-1" v-for="(node_id, index) in pool.node_ids" :key="index">
+                    <a :href="`${pool.explorer_url}/nodes/${node_id}`">{{ node_id }}</a>
                 </v-chip>
               </td>
             </tr>
