@@ -5,6 +5,7 @@ from jumpscale.core.exceptions import JSException
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import solutions, deployer
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
+from jumpscale.clients.explorer.models import NextAction
 
 
 class Solutions(BaseActor):
@@ -55,6 +56,7 @@ class Solutions(BaseActor):
     def list_pools(self) -> str:
         res = []
         farm_names = {}
+        workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
         for pool in j.sals.zos.pools.list():
             pool_dict = pool.to_dict()
             pool_dict["explorer_url"] = j.core.identity.me.explorer_url
@@ -64,6 +66,9 @@ class Solutions(BaseActor):
                 farm = deployer._explorer.farms.get(farm_id)
                 farm_names[farm_id] = farm
             pool_dict["farm"] = farm.name
+            for i in range(0, len(pool_dict["active_workload_ids"])):
+                wid = pool_dict["active_workload_ids"][i]
+                pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
             res.append(pool_dict)
         return j.data.serializers.json.dumps({"data": res})
 

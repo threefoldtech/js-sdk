@@ -43,7 +43,7 @@
             <tr>
               <td>Active Workloads</td>
               <td class="pt-2">
-                <v-chip class="ma-1" v-for="(wid, index) in pool.active_workload_ids" :key="index" :to="`${pool.explorer_url}/reservations/workloads/${wid}`">
+                <v-chip class="ma-1" v-for="(wid, index) in pool.active_workload_ids" :key="index">
                   {{ wid }}
                 </v-chip>
               </td>
