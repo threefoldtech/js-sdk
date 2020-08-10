@@ -14,9 +14,10 @@
       </template>
       <template #actions>
       <v-btn text @click="close">Close</v-btn>
-      <v-btn text @click="cancel(data.id)">Cancel Workload</v-btn>
+      <v-btn text color="error" @click="cancel()">Cancel Workload</v-btn>
     </template>
     </base-dialog>
+    <cancel-workload v-model="dialogs.cancelWorkload" v-if="data" :wid="data.id"></cancel-workload>
   </div>
 </template>
 
@@ -25,11 +26,20 @@
 module.exports = {
   props: {data: Object},
   mixins: [dialog],
+  components: {
+    "cancel-workload": httpVueLoader("./CancelWorkload.vue"),
+  },
+  data() {
+    return {
+      dialogs: {
+        cancelWorkload: false,
+      },
+      wid:null,
+    };
+  },
   methods: {
-    cancel (wid) {
-        this.$api.solutions.cancelWorkload(wid).then((response) => {
-          window.location.reload();
-        })
+    cancel () {
+        this.dialogs.cancelWorkload = true;
       },
   }
 }
