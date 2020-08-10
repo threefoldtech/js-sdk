@@ -70,7 +70,11 @@ class Solutions(BaseActor):
             pool_dict["farm"] = farm.name
             for i in range(0, len(pool_dict["active_workload_ids"])):
                 wid = pool_dict["active_workload_ids"][i]
-                pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
+                if workloads_dict.get(wid):
+                    pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
+                else:
+                    # due to differnet next action. we'll just show the id
+                    pool_dict["active_workload_ids"][i] = wid
             res.append(pool_dict)
         return j.data.serializers.json.dumps({"data": res})
 
