@@ -179,8 +179,8 @@ class CryptpadDeploy(GedisChatBot):
                 gateway_id=self.gateway.node_id,
                 network_name=self.network_view.name,
                 local_ip=self.ip_address,
-                port=80,
-                tls_port=443,
+                port=3000,
+                tls_port=3000,
                 trc_secret=self.secret,
                 node_id=self.selected_node.node_id,
                 reserve_proxy=True,
@@ -196,7 +196,7 @@ class CryptpadDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
-        self.container_url = f"https://{self.domain}"
+        self.container_url = f"http://{self.domain}"
 
         # deploy container
         var_dict = {
@@ -214,7 +214,7 @@ class CryptpadDeploy(GedisChatBot):
                 disk_size=self.resources["disk_size"],
                 env=var_dict,
                 interactive=False,
-                entrypoint="/bin/bash /start.sh",
+                entrypoint="/start.sh",
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )
