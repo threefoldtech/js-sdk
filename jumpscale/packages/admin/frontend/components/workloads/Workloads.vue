@@ -3,6 +3,9 @@
     <base-component title="Workloads" icon="mdi-clipboard-list-outline" :loading="loading">
       <template #default>
         <v-data-table :headers="headers" :items="workloads" :footer-props="{'disable-items-per-page': true}" @click:row="open">
+            <template v-slot:item.epoch="{ item }">
+            {{ Date( 1000 * item.epoch) }}
+          </template>
         </v-data-table>
       </template>
     </base-component>
