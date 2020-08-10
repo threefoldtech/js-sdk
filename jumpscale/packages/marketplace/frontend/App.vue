@@ -168,22 +168,34 @@ module.exports = {
           meta: { icon: "mdi-router" },
         },
         {
-          name: "Publisher",
-          type: "publisher",
-          path: "/publisher",
+          name: "Blog",
+          type: "blog",
+          path: "/blog",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Website",
+          type: "website",
+          path: "/website",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Wiki",
+          type: "wiki",
+          path: "/wiki",
           meta: { icon: "mdi-web-box" },
         },
         {
           name: "Peertube",
           type: "peertube",
           path: "/peertube",
-          meta: { img: "./assets/peertube.png" }
+          meta: { img: "./assets/peertube.png" },
         },
         {
           name: "Gollum Wiki",
           type: "gollum",
           path: "/gollum",
-          meta: { icon: "mdi-book-open-variant" }
+          meta: { icon: "mdi-book-open-variant" },
         },
         {
           type: "threebot",
