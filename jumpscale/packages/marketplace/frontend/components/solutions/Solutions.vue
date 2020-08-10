@@ -151,6 +151,12 @@ module.exports = {
           image: "./assets/3bot.png",
           description: "Deploy your Threebot on container.",
         },
+        {
+          type: "cryptpad",
+          name: "Cryptpad",
+          image: "./assets/cryptpad.png",
+          description: "CryptPad is the Zero Knowledge realtime collaborative editor.",
+        },
       ],
       deployedSolutions: {},
     };

@@ -224,7 +224,7 @@ class CryptpadDeploy(GedisChatBot):
         # deploy container
         var_dict = {
             "pub_key": self.public_key,
-            "size": str(self.vol_size),
+            "size": str(self.vol_size * 1024),  # in MBs
         }
         self.workload_ids.append(
             deployer.deploy_container(
