@@ -40,8 +40,7 @@
           for (let i = 0; i < this.pools.length; i++) {
             pool = this.pools[i];
             if (pool.empty_at < 9223372036854775807) {
-              d = Date(pool.empty_at * 1000);
-              pool.empty_at = d.toString();
+              pool.empty_at = new Date(pool.empty_at * 1000).toLocaleString();
             } else {
               pool.empty_at = "-";
             }
