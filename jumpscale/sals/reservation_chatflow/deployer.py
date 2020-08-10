@@ -370,7 +370,7 @@ class ChatflowDeployer:
         return pool_info
 
     def list_pools(self, cu=None, su=None):
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         pool_factory = StoredFactory(PoolConfig)
         available_pools = {}
         for pool in all_pools:
@@ -434,6 +434,8 @@ class ChatflowDeployer:
 
     def get_pool_farm_id(self, pool_id):
         pool = j.sals.zos.pools.get(pool_id)
+        if not pool.node_ids:
+            raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
         node_id = pool.node_ids[0]
         node = self._explorer.nodes.get(node_id)
         farm_id = node.farm_id
@@ -967,7 +969,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         all_gateways = filter(j.sals.zos.nodes_finder.filter_is_up, self._explorer.gateway.list())
         if not all_gateways:
             raise StopChatFlow(f"no available gateways")
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         available_node_ids = {}  # node_id: pool
         if pool_ids is not None:
             for pool in all_pools:

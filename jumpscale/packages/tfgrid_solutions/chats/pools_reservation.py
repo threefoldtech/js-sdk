@@ -13,7 +13,7 @@ class PoolReservation(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
-        self.pools = j.sals.zos.pools.list()
+        self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         if not self.pools:
             self.action = "create"
         else:

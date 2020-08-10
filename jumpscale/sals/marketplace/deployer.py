@@ -16,7 +16,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def list_user_pools(self, username):
         pool_factory = StoredFactory(UserPool)
         _, _, user_pools = pool_factory.find_many(owner=username)
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
         result = [p for p in all_pools if p.pool_id in user_pool_ids]
         return result

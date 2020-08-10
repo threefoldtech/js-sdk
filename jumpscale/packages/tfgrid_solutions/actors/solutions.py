@@ -61,6 +61,8 @@ class Solutions(BaseActor):
         pool_factory = StoredFactory(PoolConfig)
         workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
         for pool in j.sals.zos.pools.list():
+            if not pool.node_ids:
+                continue
             hidden = False
             name = ""
             if f"pool_{pool.pool_id}" in pool_factory.list_all():
