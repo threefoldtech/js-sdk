@@ -9,6 +9,10 @@
               <td>{{ pool.pool_id }}</td>
             </tr>
             <tr>
+              <td>Name</td>
+              <td>{{ pool.name }}</td>
+            </tr>
+            <tr>
               <td>Farm</td>
               <td>{{ pool.farm }}</td>
             </tr>
@@ -54,6 +58,7 @@
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
+      <v-btn text @click="hide(pool.pool_id)">Hide</v-btn>
     </template>
   </base-dialog>
 </template>
@@ -62,6 +67,16 @@
 
 module.exports = {
   props: {pool: Object},
-  mixins: [dialog]
+  mixins: [dialog],
+  methods: {
+    rename (pool_id, name) {
+      this.$api.solutions.renamePool(pool_id, name)
+      window.location.reload()
+    },
+    hide (pool_id) {
+      this.$api.solutions.hidePool(pool_id)
+      window.location.reload()
+    },
+  }
 }
 </script>

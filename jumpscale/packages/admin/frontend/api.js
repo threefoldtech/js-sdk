@@ -244,6 +244,22 @@ const apiClient = {
         url: `/tfgrid_solutions/actors/solutions/migrate`,
       })
     },
+    hidePool: (pool_id) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/hide_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id }
+      })
+    },
+    renamePool: (pool_id, name) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/rename_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id, name: name }
+      })
+    },
   },
   health: {
     getMemoryUsage() {
