@@ -15,12 +15,14 @@ class MastodonDeploy(GedisChatBot):
         "mastodon_start",
         "mastodon_name",
         "container_resources",
+        "upload_public_key",
         "container_configurations",
         "select_pool",
         "mastodon_network",
         # "container_logs",
         "container_node_id",
         "container_ip",
+        # "domain_select",
         "ipv6_config",
         "overview",
         "reservation",
@@ -53,6 +55,13 @@ class MastodonDeploy(GedisChatBot):
     def container_resources(self):
         self.resources = deployer.ask_container_resources(self)
 
+    @chatflow_step(title="Access key")
+    def upload_public_key(self):
+        self.public_key = self.upload_file(
+            "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+            required=True,
+        ).strip()
+
     @chatflow_step(title="Mastodon configurations")
     def container_configurations(self):
         # self.domain = self.string_ask("Please add domain/url", default="64.227.1.81", required=True)
@@ -75,6 +84,7 @@ class MastodonDeploy(GedisChatBot):
             "SMTP_LOGIN": smtp_login,
             "SMTP_PASSWORD": smtp_password,
             "SMTP_FROM_ADDRESS": smtp_from_address,
+            "pub_key": self.public_key,
         }
 
     @chatflow_step(title="Pool")
@@ -137,6 +147,32 @@ class MastodonDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
+
+    # @chatflow_step(title="Domain")
+    # def domain_select(self):
+    #     gateways = deployer.list_all_gateways()
+    #     if not gateways:
+    #         raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+
+    #     domains = dict()
+    #     for gw_dict in gateways.values():
+    #         gateway = gw_dict["gateway"]
+    #         for domain in gateway.managed_domains:
+    #             domains[domain] = gw_dict
+
+    #     self.domain = self.single_choice(
+    #         "Please choose the domain you wish to use", list(domains.keys()), required=True
+    #     )
+
+    #     self.gateway = domains[self.domain]["gateway"]
+    #     self.gateway_pool = domains[self.domain]["pool"]
+    #     self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+
+    #     self.addresses = []
+    #     for ns in self.gateway.dns_nameserver:
+    #         self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+    #     self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
