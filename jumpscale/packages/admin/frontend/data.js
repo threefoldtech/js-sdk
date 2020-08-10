@@ -124,6 +124,14 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
+  discourse: {
+    topic: "discourse",
+    type: "discourse",
+    name: "Discourse",
+    icon: "mdi-clipboard-list-outline",
+    url: "/solutions/discourse",
+    description: "Deploy a discourse instance on the grid."
+  },
   all: {
     topic: "all",
     type: "all_reservations",

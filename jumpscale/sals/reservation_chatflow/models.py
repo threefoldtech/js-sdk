@@ -18,6 +18,7 @@ class SolutionType(Enum):
     Monitoring = "monitoring"
     Publisher = "publisher"
     Peertube = "peertube"
+    Discourse = "discourse"
     Threebot = "threebot"
     Unknown = "unknown"
 
