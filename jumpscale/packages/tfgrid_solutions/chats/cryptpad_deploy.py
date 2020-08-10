@@ -256,7 +256,7 @@ class CryptpadDeploy(GedisChatBot):
 # Cryptpad has been deployed successfully:\n<br>
 Reservation id: {self.workload_ids[-1]}\n
 To ssh into your container: ```ssh root@{self.ip_address}```\n
-You can access your container from browser at {self.container_url}:3000\n
+You can access your container from browser at {self.container_url}\n
 # It may take a few minutes.
         """
         self.md_show(res, md=True)
