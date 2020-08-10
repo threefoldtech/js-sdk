@@ -124,14 +124,6 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
-  all: {
-    topic: "all",
-    type: "all_reservations",
-    name: "All Workloads",
-    icon: "mdi-clipboard-list-outline",
-    url: "/solutions/all",
-    description: ""
-  }
 }
 
 const LEVELS = {

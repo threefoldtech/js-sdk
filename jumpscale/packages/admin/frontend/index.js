@@ -42,6 +42,7 @@ const codeserver = httpVueLoader('./components/external/CodeServer.vue')
 const notebooks = httpVueLoader('./components/external/Notebooks.vue')
 const settings = httpVueLoader('./components/settings/Settings.vue')
 const pools = httpVueLoader('./components/pools/Pools.vue')
+const workloads = httpVueLoader('./components/workloads/Workloads.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
 const backup = httpVueLoader('./components/backup/Backup.vue')
 
@@ -76,6 +77,7 @@ const router = new VueRouter({
     { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
     { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
     { name: "Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
+    { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
     { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
     { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
     { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },

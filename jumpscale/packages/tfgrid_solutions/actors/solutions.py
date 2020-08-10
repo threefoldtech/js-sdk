@@ -16,6 +16,8 @@ class Solutions(BaseActor):
             w_dict = workload.to_dict()
             w_dict["workload_type"] = workload.info.workload_type.name
             w_dict["pool_id"] = workload.info.pool_id
+            w_dict["epoch"] = workload.info.epoch.timestamp()
+            w_dict["next_action"] = workload.info.next_action.name
             res.append(w_dict)
         return j.data.serializers.json.dumps({"data": res})
 
@@ -71,6 +73,11 @@ class Solutions(BaseActor):
                 pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
             res.append(pool_dict)
         return j.data.serializers.json.dumps({"data": res})
+
+    @actor_method
+    def cancel_workload(self, wid) -> bool:
+        j.sals.zos.workloads.decomission(wid)
+        return True
 
 
 Actor = Solutions
