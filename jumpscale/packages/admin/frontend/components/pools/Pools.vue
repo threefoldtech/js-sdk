@@ -67,7 +67,7 @@
               if (pool_expiration < today){
                 pool.class = "red--text";
                 pool.empty_at = "EXPIRED"
-              } else if (pool_expiration < alert_time && pool_expiration > today) {
+              } else if (pool_expiration < alert_time) {
                 pool.class = "red--text";
               } else {
                 pool.class = "";
