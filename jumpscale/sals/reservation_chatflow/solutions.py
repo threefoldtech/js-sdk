@@ -339,6 +339,36 @@ class ChatflowSolutions:
                     result[-1].update(self.get_workload_capacity(workload))
         return result
 
+    def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "mattermost":
+                    result.append(
+                        {
+                            "wids": [workload.id],
+                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
+                            "IP Address": workload.network_connection[0].ipaddress,
+                            "Network": workload.network_connection[0].network_id,
+                            "Node": workload.info.node_id,
+                            "Pool": workload.info.pool_id,
+                        }
+                    )
+        return result
+
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)

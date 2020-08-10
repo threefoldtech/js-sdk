@@ -20,6 +20,7 @@ class SolutionType(Enum):
     Peertube = "peertube"
     Threebot = "threebot"
     Gollum = "gollum"
+    Mattermost = "mattermost"
     Unknown = "unknown"
 
 
