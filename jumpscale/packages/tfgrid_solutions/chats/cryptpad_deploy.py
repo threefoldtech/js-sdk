@@ -238,8 +238,8 @@ class CryptpadDeploy(GedisChatBot):
                 disk_size=self.resources["disk_size"],
                 volumes=volume_config,
                 env=var_dict,
-                interactive=True,
-                entrypoint="/bin/bash /start.sh",
+                interactive=False,
+                entrypoint="/start.sh",
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )
