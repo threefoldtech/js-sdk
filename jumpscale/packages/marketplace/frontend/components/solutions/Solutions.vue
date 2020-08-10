@@ -140,6 +140,12 @@ module.exports = {
           description: "Deploy a peertube instance on the grid."
         },
         {
+          type: "discourse",
+          name: "Discourse",
+          image: "./assets/discourse.png",
+          description: "Deploy a discourse instance on the grid."
+        },
+        {
           type: "threebot",
           name: "Threebot",
           image: "./assets/3bot.png",

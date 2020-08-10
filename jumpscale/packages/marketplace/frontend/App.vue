@@ -180,6 +180,12 @@ module.exports = {
           meta: { img: "./assets/peertube.png" }
         },
         {
+          name: "Discourse",
+          type: "discourse",
+          path: "/discourse",
+          meta: { icon: "mdi-web-box" }
+        },
+        {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
