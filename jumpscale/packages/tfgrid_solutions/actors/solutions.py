@@ -1,8 +1,6 @@
 import json
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.loader import j
-from jumpscale.core.exceptions import JSException
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import solutions, deployer
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 from jumpscale.clients.explorer.models import NextAction
