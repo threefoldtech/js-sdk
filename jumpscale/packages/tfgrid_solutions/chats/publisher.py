@@ -23,6 +23,8 @@ class Publisher(GedisChatBot):
     ]
 
     title = "Publisher"
+    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
+    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
 
     @chatflow_step()
     def start(self):
@@ -31,7 +33,7 @@ class Publisher(GedisChatBot):
         self.solution_currency = "TFT"
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-        self.md_show("This wizard will help you publish a Wiki, a Website or Blog", md=True)
+        self.md_show(self.welcome_message, md=True)
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -149,7 +151,7 @@ class Publisher(GedisChatBot):
         # 1- deploy network on selected node
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "publisher"},
+            "form_info": {"Solution name": self.solution_name, "chatflow": self.publishing_chatflow},
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []

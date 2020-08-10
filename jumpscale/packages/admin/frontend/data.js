@@ -12,14 +12,6 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
-  pools: {
-    topic: "pools_reservation",
-    type: "pools",
-    name: "Pools",
-    icon: "mdi-cloud",
-    url: "/solutions/pools_reservation",
-    description: "Reserve capacity on the grid to deploy the solutions on"
-  },
   ubuntu: {
     topic: "ubuntu_deploy",
     name: "Ubuntu",
@@ -108,12 +100,28 @@ const SOLUTIONS = {
     url: "/solutions/4to6gw",
     description: ""
   },
-  publisher: {
-    topic: "publisher",
-    type: "publisher",
-    name: "Publisher",
+  wiki: {
+    topic: "wiki_deploy",
+    type: "wiki",
+    name: "Wiki",
     icon: "mdi-web-box",
-    url: "/solutions/publisher",
+    url: "/solutions/deploy_wiki",
+    description: ""
+  },
+  website: {
+    topic: "website_deploy",
+    type: "website",
+    name: "Website",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_website",
+    description: ""
+  },
+  blog: {
+    topic: "blog_deploy",
+    type: "blog",
+    name: "Blog",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_blog",
     description: ""
   },
   gollum: {
