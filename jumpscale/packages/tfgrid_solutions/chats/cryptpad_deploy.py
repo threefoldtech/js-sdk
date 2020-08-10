@@ -13,6 +13,7 @@ class CryptpadDeploy(GedisChatBot):
         "cryptpad_start",
         "cryptpad_name",
         "container_resources",
+        "volume_details",
         "select_pool",
         "cryptpad_network",
         "public_key_get",
@@ -53,12 +54,20 @@ class CryptpadDeploy(GedisChatBot):
     def container_resources(self):
         self.resources = deployer.ask_container_resources(self)
 
+    @chatflow_step(title="Volume details")
+    def volume_details(self):
+        form = self.new_form()
+        vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10, min=1)
+        form.ask()
+        self.vol_size = vol_disk_size.value
+        self.vol_mount_point = "/data"
+
     @chatflow_step(title="Pool")
     def select_pool(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024) + self.vol_size,
         }
         cu, su = deployer.calculate_capacity_units(**query)
         self.pool_id = deployer.select_pool(self, cu=cu, su=su)
@@ -198,10 +207,24 @@ class CryptpadDeploy(GedisChatBot):
             )
         self.container_url = f"http://{self.domain}"
 
+        # deploy volume
+        self.md_show_update("Deploying Volume....")
+        vol_id = deployer.deploy_volume(
+            self.pool_id,
+            self.selected_node.node_id,
+            self.vol_size,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
+        )
+        success = deployer.wait_workload(vol_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
+        volume_config = {self.vol_mount_point: vol_id}
+
         # deploy container
         var_dict = {
             "pub_key": self.public_key,
-            "size": str(self.resources["disk_size"]),
+            "size": str(self.vol_size),
         }
         self.workload_ids.append(
             deployer.deploy_container(
@@ -213,9 +236,10 @@ class CryptpadDeploy(GedisChatBot):
                 cpu=self.resources["cpu"],
                 memory=self.resources["memory"],
                 disk_size=self.resources["disk_size"],
+                volumes=volume_config,
                 env=var_dict,
-                interactive=False,
-                entrypoint="/start.sh",
+                interactive=True,
+                entrypoint="/bin/bash /start.sh",
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )
