@@ -11,7 +11,7 @@ import nacl.signing
 
 
 class Discourse(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-discourse_all_in_one-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse_all_in_one-latest.flist"
 
     steps = [
         "discourse_start",
@@ -184,7 +184,7 @@ class Discourse(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
         }
-        threebot_private_key = str(nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder))
+        threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode('utf-8')
 
         env = {
             "pub_key": self.public_key,
