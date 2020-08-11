@@ -188,7 +188,6 @@ class Discourse(GedisChatBot):
 
         env = {
             "pub_key": self.public_key,
-            "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
             "DISCOURSE_VERSION": "staging",
             "RAILS_ENV": "production",
             "DISCOURSE_HOSTNAME": self.domain,
@@ -196,12 +195,15 @@ class Discourse(GedisChatBot):
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
             "DISCOURSE_DEVELOPER_EMAILS": self.email,
             "DISCOURSE_SMTP_PORT": "587",
-            "THREEBOT_PRIVATE_KEY": threebot_private_key,
-            "FLASK_SECRET_KEY": str(uuid.uuid4()),
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
 
+        secret_env = {
+            "THREEBOT_PRIVATE_KEY": threebot_private_key,
+            "FLASK_SECRET_KEY": str(uuid.uuid4()),
+            "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
+        }
         # reserve subdomain
         _id = deployer.create_subdomain(
             pool_id=self.pool_id,
@@ -251,6 +253,7 @@ class Discourse(GedisChatBot):
             disk_size=self.resources["disk_size"],
             # entrypoint=entrypoint,
             env=env,
+            secret_env=secret_env,
             interactive=True,
             log_config=self.log_config,
             **metadata,
