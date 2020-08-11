@@ -1,8 +1,8 @@
 import json
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.loader import j
-from jumpscale.core.exceptions import JSException
-from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.core.base import StoredFactory
 from jumpscale.sals.reservation_chatflow import solutions, deployer
 from jumpscale.clients.explorer.conversion import AlreadyConvertedError
 from jumpscale.clients.explorer.models import NextAction
@@ -58,9 +58,21 @@ class Solutions(BaseActor):
     def list_pools(self) -> str:
         res = []
         farm_names = {}
+        pool_factory = StoredFactory(PoolConfig)
         workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
         for pool in j.sals.zos.pools.list():
+            if not pool.node_ids:
+                continue
+            hidden = False
+            name = ""
+            if f"pool_{pool.pool_id}" in pool_factory.list_all():
+                local_config = pool_factory.get(f"pool_{pool.pool_id}")
+                hidden = local_config.hidden
+                name = local_config.name
+            if hidden:
+                continue
             pool_dict = pool.to_dict()
+            pool_dict["name"] = name
             pool_dict["explorer_url"] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
             farm = farm_names.get(farm_id)
@@ -81,6 +93,36 @@ class Solutions(BaseActor):
     @actor_method
     def cancel_workload(self, wid) -> bool:
         j.sals.zos.workloads.decomission(wid)
+        return True
+
+    @actor_method
+    def patch_cancel_workloads(self, wids) -> bool:
+        for wid in wids:
+            j.sals.zos.workloads.decomission(wid)
+        return True
+
+    @actor_method
+    def rename_pool(self, pool_id, name) -> str:
+        pool_factory = StoredFactory(PoolConfig)
+        if f"pool_{pool_id}" in pool_factory.list_all():
+            local_config = pool_factory.get(f"pool_{pool_id}")
+        else:
+            local_config = pool_factory.new(f"pool_{pool_id}")
+            local_config.pool_id = pool_id
+        local_config.name = name
+        local_config.save()
+        return j.data.serializers.json.dumps(local_config.to_dict())
+
+    @actor_method
+    def hide_pool(self, pool_id) -> bool:
+        pool_factory = StoredFactory(PoolConfig)
+        if f"pool_{pool_id}" in pool_factory.list_all():
+            local_config = pool_factory.get(f"pool_{pool_id}")
+        else:
+            local_config = pool_factory.new(f"pool_{pool_id}")
+            local_config.pool_id = pool_id
+        local_config.hidden = True
+        local_config.save()
         return True
 
 
