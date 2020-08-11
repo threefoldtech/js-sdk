@@ -1,3 +1,6 @@
+import math
+from jumpscale.sals.reservation_chatflow import deployer
+
 from jumpscale.packages.marketplace.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 
@@ -24,6 +27,13 @@ class BlogDeploy(Publisher):
             "BRANCH": branch.value,
             "EMAIL": self.user_info()["email"],
         }
+
+        query = {
+            "cru": self.resources["cpu"],
+            "mru": math.ceil(self.resources["memory"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
+        }
+        self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
 
 chat = BlogDeploy
