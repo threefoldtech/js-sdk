@@ -33,7 +33,8 @@
       </template>
     </base-component>
 
-    <workload-info v-model="dialog" :data="selected"></workload-info>
+    <workload-info v-model="dialogs.dialog" :data="selected"></workload-info>
+    <patch-cancel v-model="dialogs.patchCancelWorkloads" :wids="wids"></patch-cancel>
   </div>
 </template>
 
@@ -49,7 +50,6 @@
         loading: false,
         selected: null,
         selected_rows: [],
-        dialog: false,
         workloads: [],
         types: [],
         pools: [],
@@ -68,6 +68,7 @@
           {text: "Creation Time", value: "epoch"},
         ],
         dialogs: {
+          dialog: false,
           patchCancelWorkloads: false,
         },
       }
@@ -87,6 +88,12 @@
           return true
         }
         return false
+      },
+      wids () {
+          let res = []
+          for (i = 0; i < this.selected_rows.length; i++) {
+              res.push(this.selected_rows[i].id)
+          }
       }
     },
     methods: {
@@ -115,11 +122,10 @@
       },
       open (workload) {
         this.selected = workload
-        this.dialog = true
+        this.dialogs.dialog = true
       },
       cancelSelected() {
-        console.log(this.selected_rows)
-        // TODO: patch show external component for confirmation
+        this.dialogs.patchCancelWorkloads = true
       },
     },
     mounted () {

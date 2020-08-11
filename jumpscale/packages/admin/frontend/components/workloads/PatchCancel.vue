@@ -14,14 +14,7 @@
 
 module.exports = {
   mixins: [dialog],
-  computed: {
-      wids () {
-          let res = []
-          for (i = 0; i < this.selectedRows.length; i++) {
-              res.push(this.selectedRows[i].id)
-          }
-      }
-  },
+  props: ["wids"],
   methods: {
     submit () {
       this.loading = true
