@@ -112,7 +112,7 @@ class GiteaDeploy(GedisChatBot):
             self.pool_id,
             self.network_view_copy,
             bot=self,
-            **self.solution_metadata,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:
@@ -147,7 +147,7 @@ class GiteaDeploy(GedisChatBot):
             "APP_NAME": self.repository_name,
             "ROOT_URL": f"https://{self.ip_address}",
             "HTTP_PORT": 3000,
-            "DOMAIN": f"{self.ip_address}"
+            "DOMAIN": f"{self.ip_address}",
         }
         metadata = {
             "name": self.solution_name,

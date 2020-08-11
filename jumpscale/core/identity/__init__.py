@@ -1,12 +1,11 @@
-from jumpscale.core.base import StoredFactory
-from jumpscale.data.nacl import NACL
+import requests
+
+from jumpscale.clients.explorer.models import User
+from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
-from jumpscale.core.exceptions import NotFound, Value, Input
-from jumpscale.core.base import fields
-from jumpscale.core.base import Base
+from jumpscale.core.exceptions import Input, NotFound, Value
 from jumpscale.data.encryption import mnemonic
-
-
+from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
 
@@ -48,7 +47,7 @@ class Identity(Base):
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
         )
         self._nacl = None
-        # self.verify_configuration() #Fix me: is this needed to be in the constructore ? or can we move call it only when required ?
+        self.verify_configuration()
 
     @property
     def nacl(self):
@@ -67,7 +66,9 @@ class Identity(Base):
         if not self.words:
             raise Input("Words are mandotory for an indentity")
         if self._tid != -1:
-            user = self.explorer.users.get(tid=self._tid)
+            resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
+            resp.raise_for_status()
+            user = User.from_dict(resp.json())
             if self.tname and self.tname != user.name:
                 raise Input("Name of user does not match name in explorer")
             self.tname = user.name
@@ -87,7 +88,7 @@ class Identity(Base):
 
             ex_factory = export_module_as()
             if self.explorer_url:
-                self._explorer = ex_factory.get_by_url(self.explorer_url)
+                self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
             else:
                 self._explorer = ex_factory.get_default()
                 self.explorer_url = self._explorer.url
@@ -101,10 +102,19 @@ class Identity(Base):
 
     def register(self, host=None):
         self.verify_configuration()
-        try:
-            user = self.explorer.users.get(name=self.tname)
-        except NotFound:
+
+        # check if we are not already registered with the configured identity
+        resp = requests.get(f"{self.explorer_url}/users?name={self.tname}")
+        if resp.status_code == 404:
             user = None
+        elif resp.status_code != 200:
+            resp.raise_for_status()
+
+        users = resp.json()
+        if not users:
+            user = None
+        else:
+            user = User.from_dict(users[0])
 
         tid = None
         if not user:
@@ -113,20 +123,20 @@ class Identity(Base):
                     _, host = get_default_ip_config()
                 except Exception:
                     host = "localhost"
-            user = self.explorer.users.new()
+            user = User()
             user.name = self.tname
             user.host = host
             user.email = self.email
             user.description = ""
             user.pubkey = self.nacl.get_verify_key_hex()
-            try:
-                tid = self.explorer.users.register(user)
-            except Exception as e:
-                msg = str(e)
-                if msg.find("user with same name or email exists") != -1:
-                    raise Input("A user with same name or email exists om TFGrid phonebook.")
-                raise e
-            tid = tid
+
+            resp = requests.post(f"{self.explorer_url}/users", json=user.to_dict())
+            if resp.status_code == 409:  # conflict
+                raise Input("A user with same name or email exists om TFGrid phonebook.")
+            if resp.status_code != 201:
+                resp.raise_for_status()
+
+            tid = resp.json()["id"]
         else:
             if self.nacl.get_verify_key_hex() != user.pubkey:
                 raise Input(

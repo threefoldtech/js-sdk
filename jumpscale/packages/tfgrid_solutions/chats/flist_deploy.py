@@ -21,10 +21,10 @@ class FlistDeploy(GedisChatBot):
         "flist_network",
         "flist_url",
         "container_interactive",
-        "container_env",
         "container_node_id",
         "container_logs",
         "container_ip",
+        "container_env",
         "ipv6_config",
         "overview",
         "reservation",
@@ -160,7 +160,7 @@ class FlistDeploy(GedisChatBot):
             self.pool_id,
             self.network_view_copy,
             bot=self,
-            **self.solution_metadata,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:

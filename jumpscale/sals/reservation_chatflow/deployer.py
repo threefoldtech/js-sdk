@@ -1,7 +1,15 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.core.base import StoredFactory
+from jumpscale.clients.explorer.models import (
+    NextAction,
+    WorkloadType,
+    DiskType,
+    ZDBMode,
+    State,
+)
 from nacl.public import Box
 import netaddr
 import uuid
@@ -171,7 +179,9 @@ class NetworkView:
             except Exception as e:
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
-                raise StopChatFlow(f"failed to deploy workload on node {resource.info.node_id} due to error {str(e)}")
+                raise StopChatFlow(
+                    f"failed to deploy workload on node {resource.info.node_id} due to" f" error {str(e)}"
+                )
         for idx, wid in enumerate(result):
             try:
                 deployer.wait_workload(wid, bot, 2)
@@ -179,7 +189,7 @@ class NetworkView:
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(
-                    f"Network nodes dry run failed on node {network.network_resources[idx].info.node_id}"
+                    "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
                 )
         for wid in result:
             j.sals.zos.workloads.decomission(wid)
@@ -232,8 +242,8 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True, min=1)
-        su = form.int_ask("Please specify the required SU", required=True, min=1)
+        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
+        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         cu = cu.value
@@ -243,6 +253,9 @@ class ChatflowDeployer:
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            farm_assets = [w.asset for w in farm.wallet_addresses]
+            if currencies[0] not in farm_assets:
+                continue
             res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
             available = res[0]
             resources = res[1:]
@@ -256,7 +269,7 @@ class ChatflowDeployer:
                 continue
             resources = available_farms[farm]
             farm_messages[
-                f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
+                f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]}" f" mru {resources[3]}"
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
@@ -312,6 +325,8 @@ class ChatflowDeployer:
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
+        <h4> Total Amount: </h4> {total_amount} \n
+        <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
         <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
         """
         result = bot.single_choice(message, wallet_names, html=True)
@@ -340,8 +355,8 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
-        cu = form.int_ask("Please specify the required CU", required=True, min=1)
-        su = form.int_ask("Please specify the required SU", required=True, min=1)
+        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
+        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
         form.ask()
         cu = cu.value
@@ -355,13 +370,24 @@ class ChatflowDeployer:
         return pool_info
 
     def list_pools(self, cu=None, su=None):
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pool_factory = StoredFactory(PoolConfig)
         available_pools = {}
         for pool in all_pools:
+            hidden = False
+            name = ""
+            if f"pool_{pool.pool_id}" in pool_factory.list_all():
+                local_config = pool_factory.get(f"pool_{pool.pool_id}")
+                hidden = local_config.hidden
+                name = local_config.name
+            if hidden:
+                continue
             res = self.check_pool_capacity(pool, cu, su)
             available = res[0]
             if available:
                 resources = res[1:]
+                if name:
+                    resources += (name,)
                 available_pools[pool.pool_id] = resources
         return available_pools
 
@@ -377,7 +403,7 @@ class ChatflowDeployer:
         return True, available_cu, available_su
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
+        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
     ):
         available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
@@ -390,7 +416,14 @@ class ChatflowDeployer:
             )
             if not nodes:
                 continue
-            pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su: {available_pools[pool][1]}"] = pool
+
+            if len(available_pools[pool]) > 2:
+                pool_messages[
+                    f"Name: {available_pools[pool][2]} Pool: {pool} cu: {available_pools[pool][0]} su:"
+                    f" {available_pools[pool][1]}"
+                ] = pool
+            else:
+                pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
         msg = "Please select a pool"
@@ -401,6 +434,8 @@ class ChatflowDeployer:
 
     def get_pool_farm_id(self, pool_id):
         pool = j.sals.zos.pools.get(pool_id)
+        if not pool.node_ids:
+            raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
         node_id = pool.node_ids[0]
         node = self._explorer.nodes.get(node_id)
         farm_id = node.farm_id
@@ -480,7 +515,7 @@ class ChatflowDeployer:
         return network_config
 
     def add_access(
-        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata
+        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata,
     ):
         network_view = network_view or NetworkView(network_name)
         network, wg = network_view.add_access(node_id, use_ipv4, pool_id)
@@ -489,7 +524,9 @@ class ChatflowDeployer:
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
+        network_view.dry_run(
+            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+        )
 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
@@ -502,7 +539,9 @@ class ChatflowDeployer:
         result["rid"] = result["ids"][0]
         return result
 
-    def delete_access(self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata):
+    def delete_access(
+        self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata,
+    ):
         network_view = network_view or NetworkView(network_name)
         network = network_view.delete_access(iprange, node_id)
 
@@ -510,7 +549,9 @@ class ChatflowDeployer:
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
+        network_view.dry_run(
+            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+        )
         parent_id = network_view.network_workloads[-1].id
         result = []
         for resource in node_workloads.values():
@@ -558,7 +599,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
 
-        network_view.dry_run(list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot)
+        network_view.dry_run(
+            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+        )
         for workload in node_workloads.values():
             workload.info.reference = ""
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
@@ -620,7 +663,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             cpu,
             memory,
             disk_size,
-            disk_type,
             entrypoint,
             interactive,
             encrypted_secret_env,
@@ -649,18 +691,18 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu, required=True, min=1)
+            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu, required=True, min=1,)
         if memory:
             memory_answer = form.int_ask(
-                "Please specify how much memory", default=default_memory, required=True, min=1024
+                "Please specify how much memory", default=default_memory, required=True, min=1024,
             )
         if disk_size:
             disk_size_answer = form.int_ask(
-                "Please specify the size of root filesystem", default=default_disk_size, required=True
+                "Please specify the size of root filesystem", default=default_disk_size, required=True,
             )
         if disk_type:
             disk_type_answer = form.single_choice(
-                "Please choose the root filesystem disktype", ["SSD", "HDD"], default=default_disk_type, required=True
+                "Please choose the root filesystem disktype", ["SSD", "HDD"], default=default_disk_type, required=True,
             )
         form.ask()
         resources = {}
@@ -679,9 +721,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         form = bot.new_form()
         channel_type = form.string_ask("Please add the channel type", default="redis", required=True)
         channel_host = form.string_ask("Please add the IP address where the logs will be output to", required=True)
-        channel_port = form.int_ask("Please add the port available where the logs will be output to", required=True)
+        channel_port = form.int_ask("Please add the port available where the logs will be output to", required=True,)
         channel_name = form.string_ask(
-            "Please add the channel name to be used. The channels will be in the form NAME-stdout and NAME-stderr",
+            "Please add the channel name to be used. The channels will be in the form" " NAME-stdout and NAME-stderr",
             default=solution_name,
             required=True,
         )
@@ -695,7 +737,13 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
         farm_id = self.get_pool_farm_id(pool_id)
         farm_name = self._explorer.farms.get(farm_id).name
-        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version}
+        query = {
+            "cru": cru,
+            "sru": sru,
+            "mru": mru,
+            "hru": hru,
+            "ip_version": ip_version,
+        }
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, farm_names=[farm_name], **query)[0]
 
     def ask_container_placement(
@@ -713,7 +761,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            f"Do you want to automatically select a node for deployment for {workload_name}?",
+            "Do you want to automatically select a node for deployment for" f" {workload_name}?",
             ["YES", "NO"],
             default="YES",
             required=True,
@@ -728,7 +776,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             raise StopChatFlow("Failed to find resources for this reservation")
         node_messages = {node.node_id: node for node in nodes}
         node_id = bot.drop_down_choice(
-            f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys()), required=True
+            f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys()), required=True,
         )
         return node_messages[node_id]
 
@@ -750,7 +798,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         return j.sals.zos.workloads.deploy(domain_delegate)
 
     def deploy_kubernetes_master(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata,
     ):
         master = j.sals.zos.kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
@@ -761,10 +809,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         return j.sals.zos.workloads.deploy(master)
 
     def deploy_kubernetes_worker(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata,
     ):
         worker = j.sals.zos.kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id,
         )
         worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
         if metadata:
@@ -817,27 +865,31 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 network_view = NetworkView(network_name)
                 address = network_view.get_free_ip(node)
                 if not address:
-                    raise StopChatFlow(f"No free IPs for network {network_name} on the specifed node {node_id}")
+                    raise StopChatFlow(f"No free IPs for network {network_name} on the specifed node" f" {node_id}")
                 ip_addresses.append(address)
 
         # deploy_master
         master_ip = ip_addresses[0]
         master_resv_id = self.deploy_kubernetes_master(
-            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
+            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata,
         )
-        result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
+        result.append(
+            {"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id,}
+        )
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
             ip_address = ip_addresses[i]
             resv_id = self.deploy_kubernetes_worker(
-                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
+                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata,
             )
-            result.append({"node_id": node_id, "ip_address": ip_address, "reservation_id": resv_id})
+            result.append(
+                {"node_id": node_id, "ip_address": ip_address, "reservation_id": resv_id,}
+            )
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None,
     ):
         """
         Ask and schedule workloads accross multiple pools
@@ -881,7 +933,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
-            pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
+            pool_id = self.select_pool(
+                bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su,
+            )
             node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
             if not node:
                 node = self.schedule_container(pool_id, **resource_query_list[i])
@@ -901,7 +955,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         for g in gateways:
             if not g.dns_nameserver:
                 continue
-            result[f"{g.dns_nameserver[0]} {g.location.continent} {g.location.country} {g.node_id}"] = g
+            result[f"{g.dns_nameserver[0]} {g.location.continent} {g.location.country}" f" {g.node_id}"] = g
         return result
 
     def list_all_gateways(self, pool_ids=None):
@@ -915,7 +969,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         all_gateways = filter(j.sals.zos.nodes_finder.filter_is_up, self._explorer.gateway.list())
         if not all_gateways:
             raise StopChatFlow(f"no available gateways")
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         available_node_ids = {}  # node_id: pool
         if pool_ids is not None:
             for pool in all_pools:
@@ -925,12 +979,32 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             for pool in all_pools:
                 available_node_ids.update({node_id: pool for node_id in pool.node_ids})
         result = {}
+        pool_factory = StoredFactory(PoolConfig)
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
                 if len(gateway.dns_nameserver) < 1:
                     continue
                 pool = available_node_ids[gateway.node_id]
-                message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]} {gateway.location.continent} {gateway.location.country} {gateway.node_id}"
+                hidden = False
+                name = ""
+                if f"pool_{pool.pool_id}" in pool_factory.list_all():
+                    local_config = pool_factory.get(f"pool_{pool.pool_id}")
+                    hidden = local_config.hidden
+                    name = local_config.name
+                if hidden:
+                    continue
+                if name:
+                    message = (
+                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
+                else:
+                    message = (
+                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")
@@ -957,7 +1031,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
-    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, **metadata):
+    def deploy_zdb(
+        self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, **metadata,
+    ):
         workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
@@ -984,6 +1060,91 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
+    def expose_and_create_certificate(
+        self,
+        pool_id,
+        gateway_id,
+        network_name,
+        trc_secret,
+        domain,
+        email,
+        solution_ip,
+        solution_port,
+        enforce_https=False,
+        node_id=None,
+        proxy_pool_id=None,
+        bot=None,
+        public_key="",
+        **metadata,
+    ):
+        """
+        exposes the solution and enable ssl for it's domain
+        Args:
+            pool_id: the pool used to create your solution
+            gateway_id: Gateway id
+            network_name: Name of the network selected while creating the solution
+            trc_secret: Secret for tcp router
+            domain: the domain we will issue certificate for 
+            email: used to issue certificate
+            solution_ip: where your server is hosted (the actual server)
+            solution_port: the port your application is listening on
+            enforce_https: whether you want to only use https or not
+            node_id: your node id
+            solution_uuid: solution id
+            public_key: your public key in case you want to have ssh access on the nginx container
+
+        """
+        proxy_pool_id = proxy_pool_id or pool_id
+        gateway = self._explorer.gateway.get(gateway_id)
+
+        self.create_proxy(
+            pool_id=proxy_pool_id,
+            gateway_id=gateway_id,
+            domain_name=domain,
+            trc_secret=trc_secret,
+            **metadata,
+        )
+
+        tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
+        secret_env = {
+            "TRC_SECRET": trc_secret,
+            "TFGATEWAY": tf_gateway,
+            "EMAIL": email,
+            "SOLUTION_IP": solution_ip,
+            "SOLUTION_PORT": str(solution_port),
+            "DOMAIN": domain,
+            "ENFORCE_HTTPS": "true" if enforce_https else "false",
+            "PUBKEY":public_key
+            }
+        if not node_id:
+            node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+            node_id = node.node_id
+        else:
+            node = self._explorer.nodes.get(node_id)
+
+        res = self.add_network_node(network_name, node, pool_id, bot=bot)
+        if res:
+            for wid in res["ids"]:
+                success = self.wait_workload(wid, bot)
+                if not success:
+                    j.sals.reservation_chatflows.solutions.cancel_solution([wid])
+        network_view = NetworkView(network_name)
+        network_view = network_view.copy()
+        ip_address = network_view.get_free_ip(node)
+        resv_id = self.deploy_container(
+            pool_id=pool_id,
+            node_id=node_id,
+            network_name=network_name,
+            ip_address=ip_address,
+            flist="https://hub.grid.tf/ashraf.3bot/ashraffouda-certbot-nginx-latest.flist",
+            disk_type=DiskType.HDD,
+            entrypoint="bash /usr/local/bin/startup.sh",
+            secret_env=secret_env,
+            public_ipv6=False,
+            **metadata,
+        )
+        return resv_id
+
 
     def expose_address(
         self,
@@ -1017,7 +1178,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {"TRC_SECRET": trc_secret}
-        entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port} -remote {remote}"
+        entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port}" f" -remote {remote}"
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
@@ -1155,7 +1316,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         success = self.wait_workload(master_volume_id, bot)
         if not success:
             raise StopChatFlow(
-                f"Failed to create volume {master_volume_id} for minio container on node {minio_nodes[0]}"
+                f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}"
             )
         master_cont_id = self.deploy_container(
             pool_id=pool_id,
@@ -1179,7 +1340,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             success = self.wait_workload(slave_volume_id, bot)
             if not success:
                 raise StopChatFlow(
-                    f"Failed to create volume {slave_volume_id} for minio container on node {minio_nodes[1]}"
+                    f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}"
                 )
             slave_cont_id = self.deploy_container(
                 pool_id=secondary_pool_id,
@@ -1211,7 +1372,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         url = f"{namespace}:{password}@[{ip}]:{port}"
         return url
 
-    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
+    def ask_multi_pool_distribution(
+        self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None,
+    ):
         """
         Choose multiple pools and to distribute workload automatically
 
@@ -1224,7 +1387,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        pools = self.list_pools()
+        cu, su = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(cu, su)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:
@@ -1233,10 +1397,25 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             pools = filtered_pools
 
         workload_name = workload_name or "workloads"
-        messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
+        messages = {}
+        pool_factory = StoredFactory(PoolConfig)
+        for p in pools:
+            hidden = False
+            name = ""
+            if f"pool_{p}" in pool_factory.list_all():
+                pool_config = pool_factory.get(f"pool_{p}")
+                hidden = pool_config.hidden
+                name = pool_config.name
+            if hidden:
+                continue
+            if name:
+                messages[f"Name: {name} Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+            else:
+                messages[f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+
         while True:
             pool_choices = bot.multi_list_choice(
-                f"Please seclect the pools you wish to distribute you {workload_name} on",
+                "Please seclect the pools you wish to distribute you" f" {workload_name} on",
                 options=list(messages.keys()),
                 required=True,
             )

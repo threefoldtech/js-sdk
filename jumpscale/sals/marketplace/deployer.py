@@ -16,7 +16,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def list_user_pools(self, username):
         pool_factory = StoredFactory(UserPool)
         _, _, user_pools = pool_factory.find_many(owner=username)
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
         result = [p for p in all_pools if p.pool_id in user_pool_ids]
         return result
@@ -44,7 +44,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_pool(self, username, bot):
         pool_info = super().create_pool(bot)
         pool_factory = StoredFactory(UserPool)
-        user_pool = pool_factory.new(f"{username.replace('.3bot', '')}_{pool_info.reservation_id}")
+        user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
@@ -201,7 +201,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        pools = self.list_pools(username)
+        cu, su = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(username, cu, su)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:

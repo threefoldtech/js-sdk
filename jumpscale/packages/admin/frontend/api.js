@@ -218,6 +218,22 @@ const apiClient = {
         url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
       })
     },
+    cancelWorkload: (wid) => {
+      return axios({
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        url: `/tfgrid_solutions/actors/solutions/cancel_workload`,
+        data: { wid: wid }
+      })
+    },
+    patchCancelWorkload: (wids) => {
+      return axios({
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        url: `/tfgrid_solutions/actors/solutions/patch_cancel_workloads`,
+        data: { wids: wids }
+      })
+    },
     cancelReservation: (wids) => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
@@ -234,6 +250,22 @@ const apiClient = {
     migrate: () => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/migrate`,
+      })
+    },
+    hidePool: (pool_id) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/hide_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id }
+      })
+    },
+    renamePool: (pool_id, name) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/rename_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id, name: name }
       })
     },
   },

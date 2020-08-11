@@ -22,6 +22,8 @@ from .zdb import ZDBGenerator
 
 
 class Zosv2:
+    """ """
+
     @property
     def _explorer(self):
         return j.core.identity.me.explorer
@@ -88,22 +90,25 @@ class Zosv2:
             self._explorer.conversion.finalize(raw)
 
     def reservation_create(self):
-        """
-        creates a new empty reservation schema
+        """creates a new empty reservation schema
 
-        :return: reservation (tfgrid.workloads.reservation.1)
-        :rtype: BCDBModel
+        Args:
+
+        Returns:
+          BCDBModel: reservation (tfgrid.workloads.reservation.1)
+
         """
         return Reservation()
 
     def reservation_register(self, reservation):
-        """
-        provision all the workloads contained in the reservation
+        """provision all the workloads contained in the reservation
 
-        :param reservation: reservation object
-        :type reservation:  tfgrid.workloads.reservation.1
-        :return: list of workload ID provisionned
-        :rtype: list[int]
+        Args:
+          reservation(tfgrid.workloads.reservation.1): reservation object
+
+        Returns:
+          list[int]: list of workload ID provisionned
+
         """
         reservation.customer_tid = j.core.identity.me.tid
 
@@ -116,10 +121,11 @@ class Zosv2:
         """fetch a specific reservation
 
         Args:
-            reservation_id (int): reservation ID
+          reservation_id(int): reservation ID
 
         Returns:
-            jumpscale.clients.explorer.models.TfgridWorkloadsReservation1: reservation object
+          jumpscale.clients.explorer.models.TfgridWorkloadsReservation1: reservation object
+
         """
         return self._explorer.reservations.get(reservation_id)
 
@@ -127,11 +133,12 @@ class Zosv2:
         """List reservation of a threebot
 
         Args:
-            tid (int, optional): Threebot id. Defaults to None.
-            next_action (str, optional): next action. Defaults to None.
+          tid(int, optional): Threebot id. Defaults to None.
+          next_action(str, optional): next action. Defaults to None.
 
         Returns:
-            list: list of reservations
+          list: list of reservations
+
         """
         tid = tid or identity.get_identity().tid
         return self._explorer.reservations.list(customer_tid=tid, next_action=next_action)
@@ -140,12 +147,14 @@ class Zosv2:
         """Converts escrow info to qrcode
 
         Args:
-            escrow_address (str): escrow address
-            total_amount (float): total amount of the escrow
-            message (str, optional): message encoded in the qr code. Defaults to "Grid resources fees".
+          escrow_address(str): escrow address
+          total_amount(float): total amount of the escrow
+          message(str, optional): message encoded in the qr code. Defaults to "Grid resources fees".
+          escrow_asset:
 
         Returns:
-            str: qrcode string representation
+          str: qrcode string representation
+
         """
         qrcode = f"{escrow_asset}:{escrow_address}?amount={total_amount}&message={message}&sender=me"
         return qrcode
@@ -163,10 +172,11 @@ class Zosv2:
         ]
 
         Args:
-            reservation_create_resp ([type]): reservation create object, returned from reservation_register
+          reservation_create_resp([type]): reservation create object, returned from reservation_register
 
         Returns:
-            str: escrow encoded for QR code usage
+          str: escrow encoded for QR code usage
+
         """
         farmer_payments = []
         escrow_address = reservation_create_resp.escrow_information.address

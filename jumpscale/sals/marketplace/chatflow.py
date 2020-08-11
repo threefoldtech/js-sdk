@@ -6,7 +6,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow
 
 class MarketPlaceChatflow(GedisChatBot):
     def _validate_user(self):
-        tname = self.user_info()["username"]
+        tname = self.user_info()["username"].lower()
         user_factory = StoredFactory(UserEntry)
         explorer_url = j.core.identity.me.explorer.url
 

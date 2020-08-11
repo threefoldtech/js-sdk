@@ -53,7 +53,7 @@ class NetworkDeploy(GedisChatBot):
             "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
         )
         self.md_show_update("searching for access node...")
-        pools = j.sals.zos.pools.list()
+        pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         farms = {deployer.get_pool_farm_id(p.pool_id): p.pool_id for p in pools}
         self.access_node = None
         for farm_id in farms:
@@ -95,7 +95,7 @@ class NetworkDeploy(GedisChatBot):
                 self.pool,
                 self.ipversion == "IPv4",
                 bot=self,
-                **self.solution_metadata,
+                owner=self.solution_metadata.get("owner"),
             )
         for wid in self.config["ids"]:
             try:

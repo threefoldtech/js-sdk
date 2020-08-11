@@ -168,9 +168,9 @@ module.exports = {
           meta: { icon: "mdi-router" },
         },
         {
-          name: "Publisher",
-          type: "publisher",
-          path: "/publisher",
+          name: "Blog",
+          type: "blog",
+          path: "/blog",
           meta: { icon: "mdi-web-box" },
         },
         {
@@ -184,6 +184,35 @@ module.exports = {
           type: "discourse",
           path: "/discourse",
           meta: { icon: "mdi-web-box" }
+
+          name: "Website",
+          type: "website",
+          path: "/website",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Wiki",
+          type: "wiki",
+          path: "/wiki",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Peertube",
+          type: "peertube",
+          path: "/peertube",
+          meta: { img: "./assets/peertube.png" },
+        },
+        {
+          name: "Gollum Wiki",
+          type: "gollum",
+          path: "/gollum",
+          meta: { icon: "mdi-book-open-variant" },
+        },
+        {
+          name: "Cryptpad",
+          type: "cryptpad",
+          path: "/cryptpad",
+          meta: { img: "./assets/cryptpad.png" }
         },
         {
           type: "threebot",

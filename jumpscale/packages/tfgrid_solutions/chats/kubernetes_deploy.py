@@ -57,10 +57,10 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Containers' node id")
     def nodes_selection(self):
-        queries = [self.master_query] * (self.workernodes.value + 1)
-        workload_names = ["Master node"] + [f"Slave node {i+1}" for i in range(self.workernodes.value)]
-        self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_placement(
-            self, len(queries), queries, workload_names=workload_names
+        no_nodes = self.workernodes.value + 1
+        workload_name = "Kubernetes nodes"
+        self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_distribution(
+            self, no_nodes, self.master_query, workload_name=workload_name
         )
 
     @chatflow_step(title="Network")
@@ -86,7 +86,12 @@ class KubernetesDeploy(GedisChatBot):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
             result = deployer.add_network_node(
-                self.network_view.name, node, pool_id, self.network_view, bot=self, **self.solution_metadata
+                self.network_view.name,
+                node,
+                pool_id,
+                self.network_view,
+                bot=self,
+                owner=self.solution_metadata.get("owner"),
             )
             if not result:
                 continue

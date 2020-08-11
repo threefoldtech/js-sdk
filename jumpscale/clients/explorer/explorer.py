@@ -16,25 +16,29 @@ from .nodes import Nodes
 from .pools import Pools
 from .reservations import Reservations
 from .users import Users
-from .workloads import Workoads
+from .workloads import Workloads
 
 
 class Explorer(Client):
     url = fields.String()
+    identity_name = fields.String()
 
-    def __init__(self, url=None, **kwargs):
-        super().__init__(url=url, **kwargs)
-
-        me = identity.get_identity()
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=["(created)", "date", "threebot-id"],)
-        headers = {"threebot-id": str(me.tid)}
-
+    def __init__(self, url=None, identity_name=None, **kwargs):
+        super().__init__(url=url, identity_name=identity_name, **kwargs)
+        if identity_name:
+            self._loaded_identity = identity.export_module_as().get(identity_name)
+        else:
+            self._loaded_identity = identity.get_identity()
         self._session = requests.Session()
+        self._session.hooks = dict(response=raise_for_status)
+
+        secret = self._loaded_identity.nacl.signing_key.encode(Base64Encoder)
+        auth = HTTPSignatureAuth(
+            key_id=str(self._loaded_identity.tid), secret=secret, headers=["(created)", "date", "threebot-id"],
+        )
+        headers = {"threebot-id": str(self._loaded_identity.tid)}
         self._session.auth = auth
         self._session.headers.update(headers)
-        self._session.hooks = dict(response=raise_for_status)
 
         self.nodes = Nodes(self)
         self.users = Users(self)
@@ -42,5 +46,5 @@ class Explorer(Client):
         self.reservations = Reservations(self)
         self.gateway = Gateways(self)
         self.pools = Pools(self)
-        self.workloads = Workoads(self)
+        self.workloads = Workloads(self)
         self.conversion = Conversion(self)

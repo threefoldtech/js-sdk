@@ -20,6 +20,8 @@ class SolutionType(Enum):
     Peertube = "peertube"
     Discourse = "discourse"
     Threebot = "threebot"
+    Gollum = "gollum"
+    Cryptpad = "cryptpad"
     Unknown = "unknown"
 
 

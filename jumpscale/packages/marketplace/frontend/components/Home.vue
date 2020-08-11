@@ -4,11 +4,7 @@
       <p class="display-1 text--primary">The ThreeFold Grid: A High Level Introduction</p>
       <div class="text--primary">
         <p>
-          <img
-            width="95%"
-            src="https://github.com/threefoldfoundation/info_foundation/raw/master/src/grid/img/tf_principle_banner.png"
-            alt="TF Banner"
-          />
+          <img width="95%" src="./assets/tf_principle_banner.png" alt="TF Banner" />
         </p>
         <p>
           Originally the internet was intended to be fully peer2peer, today thats not the case. Few datacenters in centralized locations deliver all the capacity for the current internet. This capacity is mainly storage &amp; compute capacity.

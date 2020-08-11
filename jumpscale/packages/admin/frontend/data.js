@@ -12,14 +12,6 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
-  pools: {
-    topic: "pools_reservation",
-    type: "pools",
-    name: "Pools",
-    icon: "mdi-cloud",
-    url: "/solutions/pools_reservation",
-    description: "Reserve capacity on the grid to deploy the solutions on"
-  },
   ubuntu: {
     topic: "ubuntu_deploy",
     name: "Ubuntu",
@@ -108,13 +100,37 @@ const SOLUTIONS = {
     url: "/solutions/4to6gw",
     description: ""
   },
-  publisher: {
-    topic: "publisher",
-    type: "publisher",
-    name: "Publisher",
+  wiki: {
+    topic: "wiki_deploy",
+    type: "wiki",
+    name: "Wiki",
     icon: "mdi-web-box",
-    url: "/solutions/publisher",
+    url: "/solutions/deploy_wiki",
     description: ""
+  },
+  website: {
+    topic: "website_deploy",
+    type: "website",
+    name: "Website",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_website",
+    description: ""
+  },
+  blog: {
+    topic: "blog_deploy",
+    type: "blog",
+    name: "Blog",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_blog",
+    description: ""
+  },
+  gollum: {
+    topic: "gollum_deploy",
+    type: "gollum",
+    name: "Gollum wiki",
+    icon: "mdi-book-open-variant",
+    url: "/solutions/gollum_deploy",
+    description: "A simple, Git-powered wiki with a sweet API and local frontend."
   },
   peertube: {
     topic: "peertube",
@@ -131,6 +147,14 @@ const SOLUTIONS = {
     icon: "mdi-clipboard-list-outline",
     url: "/solutions/discourse",
     description: "Deploy a discourse instance on the grid."
+  },
+  cryptpad: {
+    topic: "cryptpad_deploy",
+    type: "cryptpad",
+    name: "Cryptpad",
+    image: "./assets/cryptpad.png",
+    url: "/solutions/cryptpad_deploy",
+    description: "CryptPad is the Zero Knowledge realtime collaborative editor."
   },
   all: {
     topic: "all",

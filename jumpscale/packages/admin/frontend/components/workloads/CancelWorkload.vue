@@ -1,0 +1,32 @@
+<template>
+  <base-dialog title="Cancel Workload" v-model="dialog" :error="error" :loading="loading">
+    <template #default>
+      Are you sure you want to cancel workload {{ wid }}?
+    </template>
+    <template #actions>
+      <v-btn text @click="close">Close</v-btn>
+      <v-btn text color="error" @click="submit">Confirm</v-btn>
+    </template>
+  </base-dialog>
+</template>
+
+<script>
+
+module.exports = {
+  mixins: [dialog],
+  props: ["wid"],
+  methods: {
+    submit () {
+      this.loading = true
+      this.error = null
+      this.$api.solutions.cancelWorkload(this.wid).then(response => {
+        window.location.reload();
+      }).catch(err => {
+        console.log("failed")
+        this.loading = false
+        this.error = err
+      });
+    }
+  }
+}
+</script>

@@ -20,7 +20,12 @@ class ExplorerFactory(StoredFactory):
         return Explorer(j.core.config.get("explorer")["default_url"])
 
     def get_by_url(self, url):
+        # gets an explorer client with the "default identity"
         return Explorer(url)
+
+    def get_by_url_and_identity(self, url, identity_name):
+        # gets an explorer client with the "identity"
+        return Explorer(url, identity_name=identity_name)
 
     def default_addr_set(self, url):
         j.core.config.set("explorer", {"default_url": url})

@@ -81,7 +81,7 @@ class MonitoringDeploy(GedisChatBot):
         vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10, min=1)
         form.ask()
         self.vol_size = vol_disk_size.value
-        self.query["Prometheus"]["disk_size"] += self.vol_size
+        self.query["Prometheus"]["disk_size"] += self.vol_size * 1024
         self.vol_mount_point = "/data"
 
     @chatflow_step(title="Grafana container resources")
@@ -121,7 +121,12 @@ class MonitoringDeploy(GedisChatBot):
             node = self.selected_nodes[i]
             pool_id = self.selected_pool_ids[i]
             result = deployer.add_network_node(
-                self.network_view.name, node, pool_id, self.network_view, bot=self, **self.solution_metadata
+                self.network_view.name,
+                node,
+                pool_id,
+                self.network_view,
+                bot=self,
+                owner=self.solution_metadata.get("owner"),
             )
             if not result:
                 continue
@@ -183,7 +188,7 @@ class MonitoringDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to add node {self.nodes_selected['Prometheus'].node_id} to network {vol_id}")
+            raise StopChatFlow(f"Failed to add node {self.selected_nodes['Prometheus'].node_id} to network {vol_id}")
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
