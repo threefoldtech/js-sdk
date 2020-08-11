@@ -96,7 +96,7 @@ class Solutions(BaseActor):
         return True
 
     @actor_method
-    def patch_cancel_worklooads(self, wids) -> bool:
+    def patch_cancel_workloads(self, wids) -> bool:
         for wid in wids:
             j.sals.zos.workloads.decomission(wid)
         return True

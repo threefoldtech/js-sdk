@@ -94,6 +94,7 @@
           for (i = 0; i < this.selected_rows.length; i++) {
               res.push(this.selected_rows[i].id)
           }
+          return res
       }
     },
     methods: {
