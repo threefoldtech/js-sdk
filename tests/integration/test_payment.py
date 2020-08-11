@@ -21,7 +21,7 @@ def get_funded_wallet():
         wallet = j.clients.stellar.get(WALLET_NAME, network="TEST", secret=WALLET_SECRET)
         return wallet
     else:
-        raise ValueError("Please provide add Values to the global variables WALLET_NAME and WALLET_SECRET")
+        raise ValueError("Please provide add Values to the environment variables WALLET_NAME and WALLET_SECRET")
 
 
 def create_new_wallet():
