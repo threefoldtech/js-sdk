@@ -413,7 +413,16 @@ class MarketplaceSolutions(ChatflowSolutions):
                     result[f"{domain}"]["wids"].append(container_workload.id)
         return list(result.values())
 
-    def list_publisher_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+    def list_wiki_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self.list_publisher_solutions(username, next_action=next_action, sync=sync, publish_type="wiki")
+
+    def list_blog_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self.list_publisher_solutions(username, next_action=next_action, sync=sync, publish_type="blog")
+
+    def list_website_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self.list_publisher_solutions(username, next_action=next_action, sync=sync, publish_type="website")
+
+    def list_publisher_solutions(self, username, next_action=NextAction.DEPLOY, sync=True, publish_type="publisher"):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
@@ -432,7 +441,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 if metadata.get("owner") != username:
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == publish_type:
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     result[name] = {
                         "wids": [workload.id],
@@ -457,7 +466,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 if metadata.get("owner") != username:
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == publish_type:
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)
@@ -476,7 +485,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 if metadata.get("owner") != username:
                     continue
-                if metadata["form_info"].get("chatflow") == "publisher":
+                if metadata["form_info"].get("chatflow") == publish_type:
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)
@@ -802,6 +811,9 @@ class MarketplaceSolutions(ChatflowSolutions):
             "threebot": 0,
             "cryptpad": 0,
             "pools": 0,
+            "wiki": 0,
+            "blog": 0,
+            "website": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

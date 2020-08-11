@@ -1,13 +1,20 @@
 <template>
   <div>
     <base-component title="Workloads" icon="mdi-clipboard-list-outline" :loading="loading">
+      <template #actions>
+        <v-btn color="primary" :disabled="!delete_enabled" @click="cancelSelected">
+          <v-icon left>mdi-delete</v-icon> Delete Selected
+        </v-btn>
+      </template>
       <template #default>
-        <v-data-table :headers="headers" :items="data" :footer-props="{'disable-items-per-page': true}" @click:row="open">
+        <v-data-table v-model="selected_rows" show-select :headers="headers" :items="data" :footer-props="{'disable-items-per-page': true}" @click:row="open">
             <template v-slot:item.epoch="{ item }">
             {{ new Date(item.epoch * 1000).toLocaleString() }}
           </template>
           <template v-slot:body.prepend="{ headers }">
           <tr>
+              <td>
+              </td>
               <td>
                 <v-text-field v-model="filters.id" clearable filled hide-details dense></v-text-field>
               </td>
@@ -26,7 +33,8 @@
       </template>
     </base-component>
 
-    <workload-info v-model="dialog" :data="selected"></workload-info>
+    <workload-info v-model="dialogs.dialog" :data="selected"></workload-info>
+    <patch-cancel v-model="dialogs.patchCancelWorkloads" :wids="wids"></patch-cancel>
   </div>
 </template>
 
@@ -34,13 +42,14 @@
 <script>
   module.exports = {
     components: {
-      'workload-info': httpVueLoader("./Workload.vue")
+      'workload-info': httpVueLoader("./Workload.vue"),
+      'patch-cancel': httpVueLoader("./PatchCancel.vue")
     },
     data () {
       return {
         loading: false,
         selected: null,
-        dialog: false,
+        selected_rows: [],
         workloads: [],
         types: [],
         pools: [],
@@ -57,7 +66,11 @@
           {text: "Pool", value: "pool_id"},
           {text: "Next Action", value: "next_action"},
           {text: "Creation Time", value: "epoch"},
-        ]
+        ],
+        dialogs: {
+          dialog: false,
+          patchCancelWorkloads: false,
+        },
       }
     },
     computed: {
@@ -69,6 +82,19 @@
           })
           return result.every(Boolean)
         })
+      },
+      delete_enabled() {
+        if (this.selected_rows.length > 0) {
+          return true
+        }
+        return false
+      },
+      wids () {
+          let res = []
+          for (i = 0; i < this.selected_rows.length; i++) {
+              res.push(this.selected_rows[i].id)
+          }
+          return res
       }
     },
     methods: {
@@ -97,7 +123,10 @@
       },
       open (workload) {
         this.selected = workload
-        this.dialog = true
+        this.dialogs.dialog = true
+      },
+      cancelSelected() {
+        this.dialogs.patchCancelWorkloads = true
       },
     },
     mounted () {

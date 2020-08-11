@@ -1,6 +1,8 @@
 import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.core.base import StoredFactory
 from jumpscale.clients.explorer.models import (
     NextAction,
     WorkloadType,
@@ -368,13 +370,24 @@ class ChatflowDeployer:
         return pool_info
 
     def list_pools(self, cu=None, su=None):
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pool_factory = StoredFactory(PoolConfig)
         available_pools = {}
         for pool in all_pools:
+            hidden = False
+            name = ""
+            if f"pool_{pool.pool_id}" in pool_factory.list_all():
+                local_config = pool_factory.get(f"pool_{pool.pool_id}")
+                hidden = local_config.hidden
+                name = local_config.name
+            if hidden:
+                continue
             res = self.check_pool_capacity(pool, cu, su)
             available = res[0]
             if available:
                 resources = res[1:]
+                if name:
+                    resources += (name,)
                 available_pools[pool.pool_id] = resources
         return available_pools
 
@@ -403,7 +416,14 @@ class ChatflowDeployer:
             )
             if not nodes:
                 continue
-            pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"] = pool
+
+            if len(available_pools[pool]) > 2:
+                pool_messages[
+                    f"Name: {available_pools[pool][2]} Pool: {pool} cu: {available_pools[pool][0]} su:"
+                    f" {available_pools[pool][1]}"
+                ] = pool
+            else:
+                pool_messages[f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
         msg = "Please select a pool"
@@ -414,6 +434,8 @@ class ChatflowDeployer:
 
     def get_pool_farm_id(self, pool_id):
         pool = j.sals.zos.pools.get(pool_id)
+        if not pool.node_ids:
+            raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
         node_id = pool.node_ids[0]
         node = self._explorer.nodes.get(node_id)
         farm_id = node.farm_id
@@ -947,7 +969,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         all_gateways = filter(j.sals.zos.nodes_finder.filter_is_up, self._explorer.gateway.list())
         if not all_gateways:
             raise StopChatFlow(f"no available gateways")
-        all_pools = j.sals.zos.pools.list()
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         available_node_ids = {}  # node_id: pool
         if pool_ids is not None:
             for pool in all_pools:
@@ -957,16 +979,32 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             for pool in all_pools:
                 available_node_ids.update({node_id: pool for node_id in pool.node_ids})
         result = {}
+        pool_factory = StoredFactory(PoolConfig)
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
                 if len(gateway.dns_nameserver) < 1:
                     continue
                 pool = available_node_ids[gateway.node_id]
-                message = (
-                    f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
-                    f" {gateway.location.continent} {gateway.location.country}"
-                    f" {gateway.node_id}"
-                )
+                hidden = False
+                name = ""
+                if f"pool_{pool.pool_id}" in pool_factory.list_all():
+                    local_config = pool_factory.get(f"pool_{pool.pool_id}")
+                    hidden = local_config.hidden
+                    name = local_config.name
+                if hidden:
+                    continue
+                if name:
+                    message = (
+                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
+                else:
+                    message = (
+                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")
@@ -1022,6 +1060,91 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
+    def expose_and_create_certificate(
+        self,
+        pool_id,
+        gateway_id,
+        network_name,
+        trc_secret,
+        domain,
+        email,
+        solution_ip,
+        solution_port,
+        enforce_https=False,
+        node_id=None,
+        proxy_pool_id=None,
+        bot=None,
+        public_key="",
+        **metadata,
+    ):
+        """
+        exposes the solution and enable ssl for it's domain
+        Args:
+            pool_id: the pool used to create your solution
+            gateway_id: Gateway id
+            network_name: Name of the network selected while creating the solution
+            trc_secret: Secret for tcp router
+            domain: the domain we will issue certificate for 
+            email: used to issue certificate
+            solution_ip: where your server is hosted (the actual server)
+            solution_port: the port your application is listening on
+            enforce_https: whether you want to only use https or not
+            node_id: your node id
+            solution_uuid: solution id
+            public_key: your public key in case you want to have ssh access on the nginx container
+
+        """
+        proxy_pool_id = proxy_pool_id or pool_id
+        gateway = self._explorer.gateway.get(gateway_id)
+
+        self.create_proxy(
+            pool_id=proxy_pool_id,
+            gateway_id=gateway_id,
+            domain_name=domain,
+            trc_secret=trc_secret,
+            **metadata,
+        )
+
+        tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
+        secret_env = {
+            "TRC_SECRET": trc_secret,
+            "TFGATEWAY": tf_gateway,
+            "EMAIL": email,
+            "SOLUTION_IP": solution_ip,
+            "SOLUTION_PORT": str(solution_port),
+            "DOMAIN": domain,
+            "ENFORCE_HTTPS": "true" if enforce_https else "false",
+            "PUBKEY":public_key
+            }
+        if not node_id:
+            node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+            node_id = node.node_id
+        else:
+            node = self._explorer.nodes.get(node_id)
+
+        res = self.add_network_node(network_name, node, pool_id, bot=bot)
+        if res:
+            for wid in res["ids"]:
+                success = self.wait_workload(wid, bot)
+                if not success:
+                    j.sals.reservation_chatflows.solutions.cancel_solution([wid])
+        network_view = NetworkView(network_name)
+        network_view = network_view.copy()
+        ip_address = network_view.get_free_ip(node)
+        resv_id = self.deploy_container(
+            pool_id=pool_id,
+            node_id=node_id,
+            network_name=network_name,
+            ip_address=ip_address,
+            flist="https://hub.grid.tf/ashraf.3bot/ashraffouda-certbot-nginx-latest.flist",
+            disk_type=DiskType.HDD,
+            entrypoint="bash /usr/local/bin/startup.sh",
+            secret_env=secret_env,
+            public_ipv6=False,
+            **metadata,
+        )
+        return resv_id
+
 
     def expose_address(
         self,
@@ -1274,7 +1397,22 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             pools = filtered_pools
 
         workload_name = workload_name or "workloads"
-        messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
+        messages = {}
+        pool_factory = StoredFactory(PoolConfig)
+        for p in pools:
+            hidden = False
+            name = ""
+            if f"pool_{p}" in pool_factory.list_all():
+                pool_config = pool_factory.get(f"pool_{p}")
+                hidden = pool_config.hidden
+                name = pool_config.name
+            if hidden:
+                continue
+            if name:
+                messages[f"Name: {name} Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+            else:
+                messages[f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+
         while True:
             pool_choices = bot.multi_list_choice(
                 "Please seclect the pools you wish to distribute you" f" {workload_name} on",

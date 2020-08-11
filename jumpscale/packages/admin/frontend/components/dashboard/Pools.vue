@@ -30,6 +30,7 @@
         pools: [],
         headers: [
           {text: "ID", value: "pool_id"},
+          {text: "Name", value: "name"},
           {text: "Farm", value: "farm"},
           {text: "Expiration", value: "empty_at"}
         ]

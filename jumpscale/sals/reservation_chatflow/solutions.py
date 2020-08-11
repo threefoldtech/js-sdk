@@ -711,7 +711,6 @@ class ChatflowSolutions:
         for key in count_dict.keys():
             method = getattr(self, f"list_{key}_solutions")
             count_dict[key] = len(method(next_action=next_action, sync=False))
-        count_dict["pools"] = len(j.sals.zos.pools.list())
         return count_dict
 
     def get_solution_uuid(self, workload):
