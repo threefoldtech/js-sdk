@@ -85,10 +85,12 @@ class Publisher(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
+        self.md_show_update("Preparing a node to deploy on ...")
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Domain")
     def domain_select(self):
+        self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
@@ -114,10 +116,9 @@ class Publisher(GedisChatBot):
                 self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
+
         self.domain = f"{self.sub_domain}.{self.domain}"
-
         self.envars["DOMAIN"] = self.domain
-
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
