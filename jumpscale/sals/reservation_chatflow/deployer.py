@@ -1060,6 +1060,91 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
+    def expose_and_create_certificate(
+        self,
+        pool_id,
+        gateway_id,
+        network_name,
+        trc_secret,
+        domain,
+        email,
+        solution_ip,
+        solution_port,
+        enforce_https=False,
+        node_id=None,
+        proxy_pool_id=None,
+        bot=None,
+        public_key="",
+        **metadata,
+    ):
+        """
+        exposes the solution and enable ssl for it's domain
+        Args:
+            pool_id: the pool used to create your solution
+            gateway_id: Gateway id
+            network_name: Name of the network selected while creating the solution
+            trc_secret: Secret for tcp router
+            domain: the domain we will issue certificate for 
+            email: used to issue certificate
+            solution_ip: where your server is hosted (the actual server)
+            solution_port: the port your application is listening on
+            enforce_https: whether you want to only use https or not
+            node_id: your node id
+            solution_uuid: solution id
+            public_key: your public key in case you want to have ssh access on the nginx container
+
+        """
+        proxy_pool_id = proxy_pool_id or pool_id
+        gateway = self._explorer.gateway.get(gateway_id)
+
+        self.create_proxy(
+            pool_id=proxy_pool_id,
+            gateway_id=gateway_id,
+            domain_name=domain,
+            trc_secret=trc_secret,
+            **metadata,
+        )
+
+        tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
+        secret_env = {
+            "TRC_SECRET": trc_secret,
+            "TFGATEWAY": tf_gateway,
+            "EMAIL": email,
+            "SOLUTION_IP": solution_ip,
+            "SOLUTION_PORT": str(solution_port),
+            "DOMAIN": domain,
+            "ENFORCE_HTTPS": "true" if enforce_https else "false",
+            "PUBKEY":public_key
+            }
+        if not node_id:
+            node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
+            node_id = node.node_id
+        else:
+            node = self._explorer.nodes.get(node_id)
+
+        res = self.add_network_node(network_name, node, pool_id, bot=bot)
+        if res:
+            for wid in res["ids"]:
+                success = self.wait_workload(wid, bot)
+                if not success:
+                    j.sals.reservation_chatflows.solutions.cancel_solution([wid])
+        network_view = NetworkView(network_name)
+        network_view = network_view.copy()
+        ip_address = network_view.get_free_ip(node)
+        resv_id = self.deploy_container(
+            pool_id=pool_id,
+            node_id=node_id,
+            network_name=network_name,
+            ip_address=ip_address,
+            flist="https://hub.grid.tf/ashraf.3bot/ashraffouda-certbot-nginx-latest.flist",
+            disk_type=DiskType.HDD,
+            entrypoint="bash /usr/local/bin/startup.sh",
+            secret_env=secret_env,
+            public_ipv6=False,
+            **metadata,
+        )
+        return resv_id
+
 
     def expose_address(
         self,
