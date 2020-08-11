@@ -205,7 +205,7 @@ class CryptpadDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
-        self.container_url = f"http://{self.domain}"
+        self.container_url = f"https://{self.domain}"
 
         # deploy volume
         self.md_show_update("Deploying Volume....")
@@ -248,6 +248,30 @@ class CryptpadDeploy(GedisChatBot):
         if not success:
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            )
+
+        # expose threebot container
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=3000,
+            enforce_https=False,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            public_key=self.public_key,
+            **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            # solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(
+                f"Failed to create trc container on node {self.selected_node.node_id}"
+                f" {_id}"
             )
 
     @chatflow_step(title="Success", disable_previous=True)
