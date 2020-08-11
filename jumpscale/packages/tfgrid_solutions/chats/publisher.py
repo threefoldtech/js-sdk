@@ -209,6 +209,7 @@ class Publisher(GedisChatBot):
                 secret_env=secret_env,
                 interactive=False,
                 solution_uuid=self.solution_id,
+                public_ipv6=True,
                 **self.solution_metadata,
             )
         )
