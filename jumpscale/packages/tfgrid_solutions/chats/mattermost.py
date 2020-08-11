@@ -20,7 +20,7 @@ class MattermostDeploy(GedisChatBot):
         "container_logs",
         "container_node_id",
         "container_ip",
-        # "domain_select",
+        "domain_select",
         "overview",
         "reservation",
         "intializing",
@@ -35,6 +35,7 @@ class MattermostDeploy(GedisChatBot):
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
         self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
 
     @chatflow_step(title="Solution name")
     def mattermost_name(self):
@@ -90,43 +91,41 @@ class MattermostDeploy(GedisChatBot):
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
 
-    # @chatflow_step(title="Domain")
-    # def domain_select(self):
-    #     gateways = deployer.list_all_gateways()
-    #     if not gateways:
-    #         raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+    @chatflow_step(title="Domain")
+    def domain_select(self):
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
-    #     domains = dict()
-    #     for gw_dict in gateways.values():
-    #         gateway = gw_dict["gateway"]
-    #         for domain in gateway.managed_domains:
-    #             domains[domain] = gw_dict
+        domains = dict()
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
+            for domain in gateway.managed_domains:
+                domains[domain] = gw_dict
 
-    #     self.domain = self.single_choice(
-    #         "Please choose the domain you wish to use", list(domains.keys()), required=True
-    #     )
-    #     while True:
-    #         self.sub_domain = self.string_ask(
-    #             f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
-    #         )
-    #         if "." in self.sub_domain:
-    #             self.md_show("you can't nest domains. please try again")
-    #             continue
-    #         if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
-    #             break
-    #         else:
-    #             self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
-    #     self.gateway = domains[self.domain]["gateway"]
-    #     self.gateway_pool = domains[self.domain]["pool"]
-    #     self.domain = f"{self.sub_domain}.{self.domain}"
+        self.domain = self.single_choice(
+            "Please choose the domain you wish to use", list(domains.keys()), required=True
+        )
+        while True:
+            self.sub_domain = self.string_ask(
+                f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
+            )
+            if "." in self.sub_domain:
+                self.md_show("you can't nest domains. please try again")
+                continue
+            if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
+                break
+            else:
+                self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
+        self.domain = f"{self.sub_domain}.{self.domain}"
 
-    #     self.envars["DOMAIN"] = self.domain
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
-    #     self.addresses = []
-    #     for ns in self.gateway.dns_nameserver:
-    #         self.addresses.append(j.sals.nettools.get_host_by_name(ns))
-
-    #     self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -136,6 +135,7 @@ class MattermostDeploy(GedisChatBot):
             "Node ID": self.selected_node.node_id,
             "Pool": self.pool_id,
             "IP Address": self.ip_address,
+            "Domain": self.domain,
         }
         self.md_show_confirm(self.metadata)
 
@@ -153,6 +153,25 @@ class MattermostDeploy(GedisChatBot):
             "form_info": {"Solution name": self.solution_name, "chatflow": "mattermost",},
         }
 
+        import pdb
+
+        pdb.set_trace()
+        # reserve subdomain
+        _id = deployer.create_subdomain(
+            pool_id=self.gateway_pool.pool_id,
+            gateway_id=self.gateway.node_id,
+            subdomain=self.domain,
+            addresses=self.addresses,
+            solution_uuid=self.solution_id,
+            **metadata,
+        )
+
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
+        self.solution_url = f"https://{self.domain}"
+
+        # create volume
         vol_size = 20
         vol_mount_point = "/var/lib/mysql/"
         volume_config = {}
@@ -164,6 +183,7 @@ class MattermostDeploy(GedisChatBot):
             raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
         volume_config[vol_mount_point] = vol_id
 
+        # Create container
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -174,7 +194,7 @@ class MattermostDeploy(GedisChatBot):
             memory=1024,
             env=var_dict,
             interactive=False,
-            entrypoint="/mm/docker-entry.sh",
+            entrypoint="/mm/start_mattermost.sh",
             volumes=volume_config,
             log_config=self.log_config,
             public_ipv6=True,
@@ -185,6 +205,27 @@ class MattermostDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+
+        # expose threebot container
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=8065,
+            enforce_https=False,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            public_key=self.public_key,
+            **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            # solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
