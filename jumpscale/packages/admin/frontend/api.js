@@ -268,6 +268,19 @@ const apiClient = {
         data: { pool_id: pool_id, name: name }
       })
     },
+    getHiddenPools: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/list_hidden_pools`,
+      })
+    },
+    unhidePool: (pool_id) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/unhide_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id }
+      })
+    },
   },
   health: {
     getMemoryUsage() {
