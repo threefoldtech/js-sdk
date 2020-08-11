@@ -146,7 +146,7 @@ class MattermostDeploy(GedisChatBot):
             "MYSQL_ROOT_PASSWORD": "mostest",
             "MYSQL_USER": "mmuser",
             "MYSQL_PASSWORD": "mostest",
-            "MYSQL_DATABASE": "mattermost_test",
+            "MYSQL_DATABASE": "mattermost_db",
         }
         metadata = {
             "name": self.solution_name,
