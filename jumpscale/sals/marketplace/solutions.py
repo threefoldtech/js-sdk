@@ -811,6 +811,9 @@ class MarketplaceSolutions(ChatflowSolutions):
             "threebot": 0,
             "cryptpad": 0,
             "pools": 0,
+            "wiki": 0,
+            "blog": 0,
+            "website": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():
