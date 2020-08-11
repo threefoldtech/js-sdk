@@ -1,5 +1,5 @@
 import math
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.marketplace import deployer
 
 from jumpscale.packages.marketplace.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
