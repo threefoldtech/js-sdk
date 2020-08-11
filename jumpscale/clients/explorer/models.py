@@ -39,6 +39,8 @@ class Location(Base):
     latitude = fields.Float()
     longitude = fields.Float()
 
+    def __str__(self):
+        return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
 class Farm(Base):
     id = fields.Integer()
@@ -50,6 +52,10 @@ class Farm(Base):
     email = fields.Email()
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
+
+    def __str__(self):
+        return " - ".join([x for x in [self.name, str(self.location)] if x])
+        
 
 
 class WorkloadsAmount(Base):
