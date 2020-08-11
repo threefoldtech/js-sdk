@@ -80,9 +80,8 @@ class Solutions(BaseActor):
                 farm = deployer._explorer.farms.get(farm_id)
                 farm_names[farm_id] = farm
             pool_dict["farm"] = farm.name
-            for i in range(0, len(pool_dict["active_workload_ids"])):
-                wid = pool_dict["active_workload_ids"][i]
-                if workloads_dict.get(wid):
+            for i, wid in enumerate(pool_dict["active_workload_ids"]):
+                if wid in workloads_dict:
                     pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
                 else:
                     # due to differnet next action. we'll just show the id
