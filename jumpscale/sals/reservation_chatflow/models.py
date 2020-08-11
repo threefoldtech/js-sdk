@@ -21,6 +21,7 @@ class SolutionType(Enum):
     Threebot = "threebot"
     Gollum = "gollum"
     Mattermost = "mattermost"
+    Cryptpad = "cryptpad"
     Unknown = "unknown"
 
 
