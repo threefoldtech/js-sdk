@@ -203,7 +203,7 @@ class MastodonDeploy(GedisChatBot):
             env=self.env,
             secret_env=self.secret_env,
             entrypoint="/start_mastodon.sh",
-            # public_ipv6=self.public_ipv6,
+            public_ipv6=True,
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
