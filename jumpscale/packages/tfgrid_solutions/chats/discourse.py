@@ -11,7 +11,7 @@ import nacl.signing
 
 
 class Discourse(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse_all_in_one-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-discourse_all_in_one-latest.flist"
 
     steps = [
         "discourse_start",
@@ -204,40 +204,40 @@ class Discourse(GedisChatBot):
             "FLASK_SECRET_KEY": str(uuid.uuid4()),
             "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
         }
-        # reserve subdomain
-        _id = deployer.create_subdomain(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            subdomain=self.domain,
-            addresses=self.addresses,
-            solution_uuid=self.solution_id,
-            **metadata,
-        )
+        # # reserve subdomain
+        # _id = deployer.create_subdomain(
+        #     pool_id=self.pool_id,
+        #     gateway_id=self.gateway.node_id,
+        #     subdomain=self.domain,
+        #     addresses=self.addresses,
+        #     solution_uuid=self.solution_id,
+        #     **metadata,
+        # )
 
-        success = deployer.wait_workload(_id, self)
-        if not success:
-            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {_id}")
-        self.discourse_url = f"https://{self.domain}"
+        # success = deployer.wait_workload(_id, self)
+        # if not success:
+        #     raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {_id}")
+        # self.discourse_url = f"https://{self.domain}"
 
-        # expose threebot container
-        _id = deployer.expose_address(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=80,
-            tls_port=443,
-            trc_secret=self.secret,
-            node_id=self.selected_node.node_id,
-            reserve_proxy=True,
-            domain_name=self.domain,
-            solution_uuid=self.solution_id,
-            **metadata,
-        )
-        success = deployer.wait_workload(_id, self)
-        if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+        # # expose threebot container
+        # _id = deployer.expose_address(
+        #     pool_id=self.pool_id,
+        #     gateway_id=self.gateway.node_id,
+        #     network_name=self.network_view.name,
+        #     local_ip=self.ip_address,
+        #     port=80,
+        #     tls_port=443,
+        #     trc_secret=self.secret,
+        #     node_id=self.selected_node.node_id,
+        #     reserve_proxy=True,
+        #     domain_name=self.domain,
+        #     solution_uuid=self.solution_id,
+        #     **metadata,
+        # )
+        # success = deployer.wait_workload(_id, self)
+        # if not success:
+        #     # solutions.cancel_solution(self.workload_ids)
+        #     raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
         entrypoint = f"/.start_discourse.sh"
         self.entrypoint = entrypoint
@@ -267,7 +267,7 @@ class Discourse(GedisChatBot):
     def discourse_access(self):
         res = f"""\
 # Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-To connect ```ssh root@{self.ip_address}```. Probably accessible using ip {self.discourse_url}.
+To connect ```ssh root@{self.ip_address}```. 
  It may take a few minutes.
                 """
         self.md_show(res, md=True)
