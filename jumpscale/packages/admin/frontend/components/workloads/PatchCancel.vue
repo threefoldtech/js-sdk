@@ -20,7 +20,7 @@ module.exports = {
       this.loading = true
       this.error = null
       this.$api.solutions.patchCancelWorkload(this.wids).then(response => {
-        window.location.reload();
+        this.$router.go(0);
       }).catch(err => {
         console.log("failed")
         this.loading = false
