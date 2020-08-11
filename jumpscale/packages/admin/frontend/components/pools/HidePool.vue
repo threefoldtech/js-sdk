@@ -14,7 +14,7 @@
 
 module.exports = {
   mixins: [dialog],
-  props: ["id"],
+  props: ["pool_id"],
   methods: {
     submit () {
       this.loading = true
