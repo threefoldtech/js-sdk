@@ -132,6 +132,14 @@ const SOLUTIONS = {
     url: "/solutions/gollum_deploy",
     description: "A simple, Git-powered wiki with a sweet API and local frontend."
   },
+  mattermost: {
+    topic: "mattermost",
+    type: "mattermost",
+    name: "Mattermost",
+    icon: "mdi-chat-processing-outline",
+    url: "/solutions/mattermost",
+    description: ""
+  },
   peertube: {
     topic: "peertube",
     type: "peertube",

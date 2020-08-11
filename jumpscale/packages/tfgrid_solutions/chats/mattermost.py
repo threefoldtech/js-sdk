@@ -23,7 +23,6 @@ class MattermostDeploy(GedisChatBot):
         "domain_select",
         "overview",
         "reservation",
-        "intializing",
         "container_acess",
     ]
     title = "Mattermost"
@@ -153,9 +152,6 @@ class MattermostDeploy(GedisChatBot):
             "form_info": {"Solution name": self.solution_name, "chatflow": "mattermost",},
         }
 
-        import pdb
-
-        pdb.set_trace()
         # reserve subdomain
         _id = deployer.create_subdomain(
             pool_id=self.gateway_pool.pool_id,
@@ -194,7 +190,7 @@ class MattermostDeploy(GedisChatBot):
             memory=1024,
             env=var_dict,
             interactive=False,
-            entrypoint="/mm/start_mattermost.sh",
+            entrypoint="/start_mattermost.sh",
             volumes=volume_config,
             log_config=self.log_config,
             public_ipv6=True,
@@ -226,12 +222,6 @@ class MattermostDeploy(GedisChatBot):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-
-    @chatflow_step(title="Initializing", disable_previous=True)
-    def intializing(self):
-        self.md_show_update("Initializing your Threebot ...")
-        if not j.sals.nettools.wait_http_test(self.ip_address, timeout=600):
-            self.stop("Failed to initialize threebot, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
