@@ -96,6 +96,12 @@ class Solutions(BaseActor):
         return True
 
     @actor_method
+    def patch_cancel_worklooads(self, wids) -> bool:
+        for wid in wids:
+            j.sals.zos.workloads.decomission(wid)
+        return True
+
+    @actor_method
     def rename_pool(self, pool_id, name) -> str:
         pool_factory = StoredFactory(PoolConfig)
         if f"pool_{pool_id}" in pool_factory.list_all():

@@ -1,7 +1,7 @@
 <template>
-  <base-dialog title="Hide pool" v-model="dialog" :error="error" :loading="loading">
+  <base-dialog title="Cancel Workload" v-model="dialog" :error="error" :loading="loading">
     <template #default>
-      Are you sure you want to cancel this workload?
+      Are you sure you want to cancel workload {{ wid }}?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>

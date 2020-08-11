@@ -226,6 +226,14 @@ const apiClient = {
         data: { wid: wid }
       })
     },
+    patchCancelWorkload: (wids) => {
+      return axios({
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        url: `/tfgrid_solutions/actors/solutions/patch_cancel_workloads`,
+        data: { wids: wids }
+      })
+    },
     cancelReservation: (wids) => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
