@@ -84,9 +84,7 @@ class MastodonDeploy(GedisChatBot):
     @chatflow_step(title="Container node id")
     def container_node_id(self):
         query = {"cru": 1, "mru": 1, "sru": 10}
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Confirmation")
     def overview(self):
