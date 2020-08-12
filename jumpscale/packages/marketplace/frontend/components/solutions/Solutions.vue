@@ -161,6 +161,13 @@ module.exports = {
             "A simple, Git-powered wiki with a sweet API and local frontend.",
         },
         {
+          type: "mattermost",
+          name: "Mattermost",
+          icon: "mdi-chat-processing-outline",
+          description:
+            "Mattermost is a flexible, open source messaging platform that enables secure team collaboration",
+        },
+        {
           type: "threebot",
           name: "Threebot",
           image: "./assets/3bot.png",
