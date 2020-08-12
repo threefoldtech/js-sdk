@@ -124,5 +124,5 @@ class ContainerGenerator:
         cont_logs.type = channel_type
         cont_logs.data.stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
         cont_logs.data.stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
-        cont.logs.append(cont_logs)
+        container.logs.append(cont_logs)
         return cont_logs
