@@ -192,13 +192,14 @@ def get_user_info():
             return False
         if explorer_url != j.core.identity.me.explorer_url:
             return False
+        return True
 
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
     tid = session.get("tid")
     explorer_url = session.get("explorer")
-    # update tid in session when the explorer url changes
+    # update tid in session when the identity changes
     if not _valid(tname, temail, explorer_url):
         session["tid"] = None
         session["explorer"] = j.core.identity.me.explorer_url
