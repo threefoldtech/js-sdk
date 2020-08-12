@@ -1,5 +1,3 @@
-import math
-
 from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy as BaseMattermostDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
