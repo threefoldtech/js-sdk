@@ -139,7 +139,7 @@ class MastodonDeploy(GedisChatBot):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
         self.subdomain = self.string_ask(
-            "Please specify a subdomain that you will use to access mastodon from the browser. It will be in the form `<YOUR_SUBDOMAIN>.{self.domain}`",
+            f"Please specify a subdomain that you will use to access mastodon from the browser. It will be in the form `<YOUR_SUBDOMAIN>.{self.domain}`",
             required=True,
         )
         self.domain = f"{self.subdomain}.{self.domain}"
@@ -219,7 +219,6 @@ class MastodonDeploy(GedisChatBot):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            public_key=self.public_key,
             **metadata,
         )
         success = deployer.wait_workload(_id, self)
