@@ -194,9 +194,6 @@ class MastodonDeploy(GedisChatBot):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=container_flist,
-            cpu=1,
-            memory=1024,
-            disk_size=10000,
             interactive=True,  # TODO change to False
             env=self.env,
             secret_env=self.secret_env,
