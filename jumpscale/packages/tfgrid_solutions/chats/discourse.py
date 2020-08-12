@@ -1,11 +1,9 @@
 import math
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 import uuid
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer
 import nacl
 import nacl.signing
 import random
@@ -42,7 +40,6 @@ class Discourse(GedisChatBot):
 
     @chatflow_step(title="Solution name")
     def discourse_name(self):
-        valid = False
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="SMTP server")
