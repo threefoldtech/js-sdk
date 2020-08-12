@@ -3,7 +3,7 @@
 ## System requirements for installation on the host
 
 - Ubuntu 18.04 or higher, MacOS 10.9 or higher
-- Windows 10, version 2004 can run using [wsl2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) using ubuntu 18.04 or later
+- Windows 10, version 2004 can run using [wsl2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) using ubuntu 20.04 or later
 - The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is needed to trust the self signed certificates when used in local development environment.
 - Browser (we recommend using Google chrome)
 
