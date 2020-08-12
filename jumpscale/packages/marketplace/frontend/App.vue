@@ -210,6 +210,12 @@ module.exports = {
           meta: { icon: "mdi-book-open-variant" },
         },
         {
+          name: "Mattermost",
+          type: "mattermost",
+          path: "/mattermost",
+          meta: { icon: "mdi-chat-processing-outline" },
+        },
+        {
           name: "Cryptpad",
           type: "cryptpad",
           path: "/cryptpad",

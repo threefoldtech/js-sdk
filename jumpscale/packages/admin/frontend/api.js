@@ -208,9 +208,13 @@ const apiClient = {
         data: { solution_type: solution_type }
       })
     },
-    getPools: () => {
+    getPools: (include_hidden) => {
       return axios({
+        method:"post",
         url: `/tfgrid_solutions/actors/solutions/list_pools`,
+        data: {
+          include_hidden: include_hidden || false,
+        }
       })
     },
     getAll: () => {
@@ -266,11 +270,6 @@ const apiClient = {
         method: "post",
         headers: { 'Content-Type': 'application/json' },
         data: { pool_id: pool_id, name: name }
-      })
-    },
-    getHiddenPools: () => {
-      return axios({
-        url: `/tfgrid_solutions/actors/solutions/list_hidden_pools`,
       })
     },
     unhidePool: (pool_id) => {
