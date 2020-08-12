@@ -239,14 +239,15 @@ class CryptpadDeploy(GedisChatBot):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-        self.container_url = f"https://{self.domain}"
+        self.container_url_https = f"https://{self.domain}"
+        self.container_url_http = f"http://{self.domain}"
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_access(self):
         res = f"""\
 # Cryptpad has been deployed successfully:\n<br>
 Reservation id: {self.workload_ids[-1]}\n
-You can access your container from browser at {self.container_url}\n
+You can access your container from browser at {self.container_url_https} \n or \n {self.container_url_http}\n
 # It may take a few minutes.
         """
         self.md_show(res, md=True)
