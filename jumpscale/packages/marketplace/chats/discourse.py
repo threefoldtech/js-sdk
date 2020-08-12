@@ -29,13 +29,8 @@ class Discourse(BaseDiscourse, MarketPlaceChatflow):
 
     @chatflow_step(title="Pool")
     def select_pool(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self.solution_metadata["owner"], self, cu=cu, su=su, **query)
+        cu, su = deployer.calculate_capacity_units(**self.query)
+        self.pool_id = deployer.select_pool(self.solution_metadata["owner"], self, cu=cu, su=su, **self.query)
 
     @chatflow_step(title="Network")
     def discourse_network(self):
