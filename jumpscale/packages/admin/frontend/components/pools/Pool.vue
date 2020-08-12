@@ -85,7 +85,8 @@
         </v-simple-table>
       </template>
       <template #actions>
-        <v-btn text color="error" @click="cancel()">Hide</v-btn>
+        <v-btn text color="error" v-if="hidden" @click="unhide(pool.pool_id)">Unhide</v-btn>
+        <v-btn text color="error" v-else @click="cancel()">Hide</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
@@ -108,7 +109,7 @@ module.exports = {
       pool_id:null,
     };
   },
-  props: { pool: Object },
+  props: { pool: Object , hidden: Boolean},
   mixins: [dialog],
   methods: {
     startEdit() {
@@ -120,11 +121,15 @@ module.exports = {
     },
     rename(poolId, name) {
       this.$api.solutions.renamePool(poolId, name);
-      window.location.reload();
+      this.$router.go(0);
     },
     cancel() {
       this.dialogs.hidePool = true;
     },
+    unhide(pool_id) {
+      this.$api.solutions.unhidePool(pool_id);
+      this.$router.go(0);
+    }
   },
 };
 </script>

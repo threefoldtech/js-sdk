@@ -5,10 +5,13 @@
         <v-btn color="primary" text to="/solutions/pools_reservation">
           <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
         </v-btn>
+        <v-btn color="primary" text @click="showHiddenPools">
+          <v-icon left>mdi-eye-off</v-icon> Hidden Pools
+        </v-btn>
       </template>
 
       <template #default>
-        <v-data-table :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}" @click:row="open">
+        <v-data-table :headers="headers" :items="pools" @click:row="open">
             <template v-slot:item.node_ids="{ item }">
             {{ item.node_ids.length }}
           </template>
@@ -23,6 +26,7 @@
     </base-component>
 
     <pool-info v-model="dialog" :pool="selected"></pool-info>
+    <hidden-pools v-model="hidden_dialog" :hidden_pools="hidden_pools"></hidden-pools>
   </div>
 </template>
 
@@ -30,13 +34,16 @@
 <script>
   module.exports = {
     components: {
-      'pool-info': httpVueLoader("./Pool.vue")
+      'pool-info': httpVueLoader("./Pool.vue"),
+      'hidden-pools': httpVueLoader("./HiddenPools.vue")
     },
     data () {
       return {
         loading: false,
         selected: null,
         dialog: false,
+        hidden_dialog: false,
+        hidden_pools: [],
         pools: [],
         headers: [
           {text: "ID", value: "pool_id"},
@@ -81,13 +88,43 @@
           this.loading = false
         })
       },
+      getHiddenPools () {
+        let today = new Date();
+        let alert_time = new Date()
+        alert_time.setDate(today.getDate() + 2)
+        this.$api.solutions.getHiddenPools().then((response) => {
+          this.hidden_pools = JSON.parse(response.data)
+          for (let i = 0; i < this.hidden_pools.length; i++) {
+            pool = this.hidden_pools[i];
+            if (pool.empty_at < 9223372036854775807) {
+              let pool_expiration = new Date(pool.empty_at * 1000);
+              pool.empty_at = pool_expiration.toLocaleString();
+              if (pool_expiration < today){
+                pool.class = "red--text";
+                pool.empty_at = "EXPIRED"
+              } else if (pool_expiration < alert_time) {
+                pool.class = "blue--text";
+              } else {
+                pool.class = "";
+              }
+            } else {
+              pool.empty_at = "-";
+            }
+          }
+        })
+      },
       open (pool) {
         this.selected = pool
         this.dialog = true
       },
+      showHiddenPools() {
+        console.log(this.hidden_pools)
+         this.hidden_dialog = true
+      },
     },
     mounted () {
       this.getPools()
+      this.getHiddenPools()
     }
   }
 </script>

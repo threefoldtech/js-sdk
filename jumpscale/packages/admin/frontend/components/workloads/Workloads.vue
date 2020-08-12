@@ -7,7 +7,7 @@
         </v-btn>
       </template>
       <template #default>
-        <v-data-table v-model="selected_rows" show-select :headers="headers" :items="data" :footer-props="{'disable-items-per-page': true}" @click:row="open">
+        <v-data-table v-model="selected_rows" show-select :headers="headers" :items="data" @click:row="open">
             <template v-slot:item.epoch="{ item }">
             {{ new Date(item.epoch * 1000).toLocaleString() }}
           </template>
