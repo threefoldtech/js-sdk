@@ -154,8 +154,8 @@ class MastodonDeploy(GedisChatBot):
             {
                 "IP Address": self.ip_address,
                 "CPU": 1,
-                "Memory": 1,
-                "Disk Size": 10,
+                "Memory": 1024,
+                "Disk Size": 10000,
                 "Database User": self.env["DB_USER"],
                 "Database name": self.env["DB_NAME"],
             }
@@ -195,8 +195,8 @@ class MastodonDeploy(GedisChatBot):
             ip_address=self.ip_address,
             flist=container_flist,
             cpu=1,
-            memory=1,
-            disk_size=10,
+            memory=1024,
+            disk_size=10000,
             interactive=True,  # TODO change to False
             env=self.env,
             secret_env=self.secret_env,
