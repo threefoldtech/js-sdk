@@ -357,16 +357,18 @@ class ChatflowSolutions:
                 if not metadata.get("form_info"):
                     continue
                 if metadata["form_info"].get("chatflow") == "mattermost":
-                    result.append(
-                        {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IP Address": workload.network_connection[0].ipaddress,
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-                    )
+                    if workload.flist == "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist":
+                        result.append(
+                            {
+                                "wids": [workload.id],
+                                "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
+                                "Domain name": metadata["form_info"].get("Domain name"),
+                                "IP Address": workload.network_connection[0].ipaddress,
+                                "Network": workload.network_connection[0].network_id,
+                                "Node": workload.info.node_id,
+                                "Pool": workload.info.pool_id,
+                            }
+                        )
         return result
 
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -731,6 +733,7 @@ class ChatflowSolutions:
             "publisher": 0,
             "threebot": 0,
             "gollum": 0,
+            "mattermost": 0,
             "peertube": 0,
             "cryptpad": 0,
             "wiki": 0,
