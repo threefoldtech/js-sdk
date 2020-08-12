@@ -10,12 +10,12 @@ class FarmManagemenet(BaseActor):
 
     @actor_method
     def update_farm(self, farm_id, farm):
-        farm = Farm()
-        farm["id"] = farm_id
+        farm = Farm.from_dict(farm)
+        farm.id = farm_id
         self._explorer.farms.update(farm)
 
     @actor_method
-    def mark_node_free(self, node_id, free):
+    def mark_node_free(self, node_id, free) -> bool:
         return self._explorer.nodes.configure_free_to_use(node_id=node_id, free=free)
 
 

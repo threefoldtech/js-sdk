@@ -19,10 +19,8 @@ export default {
   },
   updateFarm(farm_id, farm) {
     return axios.post('/farmmanagement/actors/farm_management/update_farm', {
-      args: {
         farm_id: farm_id,
         farm: farm,
-      }
     })
   },
   getNodes(tfgridUrl, farm_id = undefined) {
@@ -35,10 +33,8 @@ export default {
   setNodeFree(node_id, free) {
     console.log(node_id, free)
     return axios.post('/farmmanagement/actors/farm_management/mark_node_free', {
-      args: {
-        node_id: node_id,
-        free: free,
-      }
+      node_id: node_id,
+      free: free,
     })
   }
 };

@@ -333,6 +333,8 @@ module.exports = new Promise(async (resolve, reject) => {
                             message: "farm created",
                             type: "success",
                         }
+                        // update in memory farms
+                        this.getFarms();
                     } else {
                         this.newFarmAlert = {
                             message: response.data['error'],
@@ -370,6 +372,7 @@ module.exports = new Promise(async (resolve, reject) => {
                                 message: "farm configuration updated",
                                 type: "success",
                             }
+                            this.getFarms();
                         } else {
                             this.editFarmAlert = {
                                 message: response.data['error'],
