@@ -1,4 +1,5 @@
 import math
+import random
 import uuid
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
@@ -16,8 +17,6 @@ class MattermostDeploy(GedisChatBot):
         "mattermost_name",
         "select_pool",
         "mattermost_network",
-        "public_key_get",
-        "container_logs",
         "container_node_id",
         "container_ip",
         "domain_select",
@@ -49,31 +48,10 @@ class MattermostDeploy(GedisChatBot):
     def mattermost_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Access keys")
-    def public_key_get(self):
-        self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
-            required=True,
-        ).split("\n")[0]
-
-    @chatflow_step(title="Container logs")
-    def container_logs(self):
-        self.container_logs_option = self.single_choice(
-            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
-            ["YES", "NO"],
-            default="NO",
-        )
-        if self.container_logs_option == "YES":
-            self.log_config = deployer.ask_container_logs(self, self.solution_name)
-        else:
-            self.log_config = {}
-
     @chatflow_step(title="Container node id")
     def container_node_id(self):
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **self.query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
+        self.md_show_update("Preparing a node to deploy on ...")
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
@@ -88,7 +66,7 @@ class MattermostDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
+        self.ip_address = random.choice(free_ips)
 
     @chatflow_step(title="Domain")
     def domain_select(self):
@@ -105,20 +83,17 @@ class MattermostDeploy(GedisChatBot):
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
-        while True:
-            self.sub_domain = self.string_ask(
-                f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
-            )
-            if "." in self.sub_domain:
-                self.md_show("you can't nest domains. please try again")
-                continue
-            if j.tools.dnstool.is_free(self.sub_domain + "." + self.domain):
-                break
-            else:
-                self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
-        self.domain = f"{self.sub_domain}.{self.domain}"
+
+        full_domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+        while True:
+            if j.tools.dnstool.is_free(full_domain):
+                self.domain = full_domain
+                break
+            else:
+                random_number = random.randint(1000, 100000)
+                full_domain = f"{self.threebot_name}-{self.solution_name}-{random_number}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -133,15 +108,14 @@ class MattermostDeploy(GedisChatBot):
             "Network": self.network_view.name,
             "Node ID": self.selected_node.node_id,
             "Pool": self.pool_id,
-            "IP Address": self.ip_address,
             "Domain": self.domain,
+            "IP Address": self.ip_address,
         }
         self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):
         var_dict = {
-            "pub_key": self.public_key,
             "MYSQL_ROOT_PASSWORD": "mostest",
             "MYSQL_USER": "mmuser",
             "MYSQL_PASSWORD": "mostest",
@@ -149,7 +123,7 @@ class MattermostDeploy(GedisChatBot):
         }
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "mattermost",},
+            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost",},
         }
 
         # reserve subdomain
@@ -192,7 +166,6 @@ class MattermostDeploy(GedisChatBot):
             interactive=False,
             entrypoint="/start_mattermost.sh",
             volumes=volume_config,
-            log_config=self.log_config,
             public_ipv6=True,
             **metadata,
             solution_uuid=self.solution_id,
@@ -215,7 +188,6 @@ class MattermostDeploy(GedisChatBot):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            public_key=self.public_key,
             **metadata,
         )
         success = deployer.wait_workload(_id, self)
@@ -227,8 +199,8 @@ class MattermostDeploy(GedisChatBot):
     def container_acess(self):
         res = f"""\
 # mattermost has been deployed successfully: your reservation id is: {self.resv_id}
-To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
-open mattermost from browser at ```{self.ip_address}:8065```
+It may take a few minutes.
+open mattermost from browser at ```{self.domain}```
                 """
         self.md_show(res, md=True)
 
