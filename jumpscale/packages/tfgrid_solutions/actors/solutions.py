@@ -124,5 +124,36 @@ class Solutions(BaseActor):
         local_config.save()
         return True
 
+    @actor_method
+    def list_hidden_pools(self) -> str:
+        pool_factory = StoredFactory(PoolConfig)
+        _, _, pools = pool_factory.find_many(hidden=True)
+        farm_names = {}
+        res = []
+        pools_dict = {p.pool_id: p for p in j.sals.zos.pools.list() if p.node_ids}
+        for pool in pools:
+            farm_id = deployer.get_pool_farm_id(pool.pool_id)
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            p_dict = pool.to_dict()
+            p_dict["farm"] = farm.name
+            update_pool = pools_dict.get(pool.pool_id)
+            if not update_pool:
+                continue
+            p_dict.update(update_pool.to_dict())
+            res.append(p_dict)
+        return j.data.serializers.json.dumps(res)
+
+    @actor_method
+    def unhide_pool(self, pool_id) -> bool:
+        pool_factory = StoredFactory(PoolConfig)
+        if f"pool_{pool_id}" in pool_factory.list_all():
+            local_config = pool_factory.get(f"pool_{pool_id}")
+            local_config.hidden = False
+            local_config.save()
+        return True
+
 
 Actor = Solutions

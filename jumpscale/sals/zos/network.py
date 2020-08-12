@@ -523,6 +523,7 @@ _private_networks = [
     netaddr.IPNetwork("::1/128"),  # IPv6 loopback
     netaddr.IPNetwork("fe80::/10"),  # IPv6 link-local
     netaddr.IPNetwork("fc00::/7"),  # IPv6 unique local addr
+    netaddr.IPNetwork("200::/7"),  # IPv6 yggdrasil range
 ]
 
 
