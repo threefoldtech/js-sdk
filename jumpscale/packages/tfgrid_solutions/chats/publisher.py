@@ -1,3 +1,4 @@
+import random
 import math
 from textwrap import dedent
 from jumpscale.loader import j
@@ -13,10 +14,7 @@ class Publisher(GedisChatBot):
         "select_pool",
         "publisher_network",
         "configuration",
-        "upload_public_key",
-        "container_node_id",
         "domain_select",
-        "ipv6_config",
         "overview",
         "deploy",
         "success",
@@ -64,7 +62,7 @@ class Publisher(GedisChatBot):
     def publisher_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Settings")
     def configuration(self):
         form = self.new_form()
         ttype = form.single_choice("Choose the type", options=["wiki", "www", "blog"], default="wiki", required=True)
@@ -82,25 +80,17 @@ class Publisher(GedisChatBot):
             "EMAIL": self.user_info()["email"],
         }
 
-    @chatflow_step(title="Access key")
-    def upload_public_key(self):
-        self.public_key = self.upload_file(
-            "Please upload your public ssh key, this will allow you to access your container using ssh", required=True
-        ).strip()
-
-    @chatflow_step(title="Container node id")
-    def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.md_show_update("Preparing a node to deploy on ...")
+        self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Domain")
     def domain_select(self):
+        self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
@@ -111,9 +101,8 @@ class Publisher(GedisChatBot):
             for domain in gateway.managed_domains:
                 domains[domain] = gw_dict
 
-        self.domain = self.single_choice(
-            "Please choose the domain you wish to use", list(domains.keys()), required=True
-        )
+        self.domain = random.choice(list(domains.keys()))
+
         while True:
             self.sub_domain = self.string_ask(
                 f"Please choose the sub domain you wish to use, eg <subdomain>.{self.domain}", required=True
@@ -127,19 +116,14 @@ class Publisher(GedisChatBot):
                 self.md_show(f"the specified domain {self.sub_domain + '.' + self.domain} is already registered")
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
+
         self.domain = f"{self.sub_domain}.{self.domain}"
-
         self.envars["DOMAIN"] = self.domain
-
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
-    @chatflow_step(title="Global IPv6 Address")
-    def ipv6_config(self):
-        self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -208,7 +192,6 @@ class Publisher(GedisChatBot):
             )
 
         # 4- deploy container
-        self.envars["SSHKEY"] = self.public_key
         self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
@@ -226,7 +209,7 @@ class Publisher(GedisChatBot):
                 secret_env=secret_env,
                 interactive=False,
                 solution_uuid=self.solution_id,
-                public_ipv6=self.public_ipv6,
+                public_ipv6=True,
                 **self.solution_metadata,
             )
         )

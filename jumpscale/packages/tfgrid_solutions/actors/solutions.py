@@ -80,9 +80,8 @@ class Solutions(BaseActor):
                 farm = deployer._explorer.farms.get(farm_id)
                 farm_names[farm_id] = farm
             pool_dict["farm"] = farm.name
-            for i in range(0, len(pool_dict["active_workload_ids"])):
-                wid = pool_dict["active_workload_ids"][i]
-                if workloads_dict.get(wid):
+            for i, wid in enumerate(pool_dict["active_workload_ids"]):
+                if wid in workloads_dict:
                     pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
                 else:
                     # due to differnet next action. we'll just show the id
@@ -123,6 +122,37 @@ class Solutions(BaseActor):
             local_config.pool_id = pool_id
         local_config.hidden = True
         local_config.save()
+        return True
+
+    @actor_method
+    def list_hidden_pools(self) -> str:
+        pool_factory = StoredFactory(PoolConfig)
+        _, _, pools = pool_factory.find_many(hidden=True)
+        farm_names = {}
+        res = []
+        pools_dict = {p.pool_id: p for p in j.sals.zos.pools.list() if p.node_ids}
+        for pool in pools:
+            farm_id = deployer.get_pool_farm_id(pool.pool_id)
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            p_dict = pool.to_dict()
+            p_dict["farm"] = farm.name
+            update_pool = pools_dict.get(pool.pool_id)
+            if not update_pool:
+                continue
+            p_dict.update(update_pool.to_dict())
+            res.append(p_dict)
+        return j.data.serializers.json.dumps(res)
+
+    @actor_method
+    def unhide_pool(self, pool_id) -> bool:
+        pool_factory = StoredFactory(PoolConfig)
+        if f"pool_{pool_id}" in pool_factory.list_all():
+            local_config = pool_factory.get(f"pool_{pool_id}")
+            local_config.hidden = False
+            local_config.save()
         return True
 
 
