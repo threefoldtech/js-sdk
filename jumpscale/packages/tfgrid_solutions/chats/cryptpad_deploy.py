@@ -88,7 +88,7 @@ class CryptpadDeploy(GedisChatBot):
         self.md_show_update("Preparing a node to deploy on ...")
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
-        # get ip for node
+        self.md_show_update("Configuring node ip ...")
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
             self.network_view.name,
@@ -107,7 +107,6 @@ class CryptpadDeploy(GedisChatBot):
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
 
-        # select domain
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
