@@ -1195,6 +1195,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
         network_view = NetworkView(network_name)
         network_view = network_view.copy()
+        network_view.used_ips.append(local_ip)
         ip_address = network_view.get_free_ip(node)
 
         resv_id = self.deploy_container(
