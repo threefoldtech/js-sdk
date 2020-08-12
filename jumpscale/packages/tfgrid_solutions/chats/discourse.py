@@ -10,6 +10,7 @@ import nacl
 import nacl.signing
 import random
 
+
 class Discourse(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse_all_in_one-latest.flist"
 
@@ -46,21 +47,15 @@ class Discourse(GedisChatBot):
 
     @chatflow_step(title="SMTP server")
     def discourse_smtp_server(self):
-        self.smtp_server = self.string_ask(
-            "Please, enter the smtp server address", required=True
-        )
+        self.smtp_server = self.string_ask("Please, enter the smtp server address", required=True)
 
     @chatflow_step(title="SMTP username")
     def discourse_smtp_username(self):
-        self.smtp_username = self.string_ask(
-            "Please, enter the smtp server username", required=True
-        )
+        self.smtp_username = self.string_ask("Please, enter the smtp server username", required=True)
 
     @chatflow_step(title="SMTP password")
     def discourse_smtp_password(self):
-        self.smtp_password = self.string_ask(
-            "Please, enter the smtp server password", required=True
-        )
+        self.smtp_password = self.string_ask("Please, enter the smtp server password", required=True)
 
     @chatflow_step(title="Email")
     def discourse_email(self):
@@ -159,7 +154,7 @@ class Discourse(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
         }
-        threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode('utf-8')
+        threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode("utf-8")
 
         env = {
             "pub_key": "",
@@ -192,10 +187,7 @@ class Discourse(GedisChatBot):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway"
-                f" {self.gateway.node_id} {_id}"
-            )
+            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
 
         # expose threebot container
         _id = deployer.expose_address(
@@ -215,11 +207,8 @@ class Discourse(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id}"
-                f" {_id}"
-            )
-            
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+
         entrypoint = f"/.start_discourse.sh"
         self.entrypoint = entrypoint
         # reserve container
@@ -248,7 +237,7 @@ class Discourse(GedisChatBot):
     def discourse_access(self):
         res = f"""\
 # Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-The site is deployed on {self.domain}. 
+The site is deployed on {self.domain}.
  It takes approximately 10 minutes to deploy.
                 """
         self.md_show(res, md=True)
