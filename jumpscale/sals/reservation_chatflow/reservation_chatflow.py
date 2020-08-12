@@ -943,10 +943,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             addresses = farms[farm_id].wallet_addresses
             for address in addresses:
                 if address.asset not in currencies:
+                    if address.asset == "FreeTFT" and not g.free_to_use:
+                        continue
                     currencies.append(address.asset)
-            if g.free_to_use:
-                if "FreeTFT" not in currencies:
-                    currencies.append("FreeTFT")
 
             reservation_currency = ", ".join(currencies)
 
