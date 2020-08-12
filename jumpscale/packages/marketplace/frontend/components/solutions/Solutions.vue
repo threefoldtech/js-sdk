@@ -154,19 +154,6 @@ module.exports = {
           description: "Deploy a peertube instance on the grid.",
         },
         {
-          type: "gollum",
-          name: "Gollum Wiki",
-          icon: "mdi-book-open-variant",
-          description:
-            "A simple, Git-powered wiki with a sweet API and local frontend.",
-        },
-        {
-          type: "peertube",
-          name: "Peertube",
-          image: "./assets/peertube.png",
-          description: "Deploy a peertube instance on the grid."
-        },
-        {
           type: "discourse",
           name: "Discourse",
           image: "./assets/discourse.png",

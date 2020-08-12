@@ -204,12 +204,6 @@ module.exports = {
           meta: { img: "./assets/peertube.png" },
         },
         {
-          name: "Gollum Wiki",
-          type: "gollum",
-          path: "/gollum",
-          meta: { icon: "mdi-book-open-variant" },
-        },
-        {
           name: "Mattermost",
           type: "mattermost",
           path: "/mattermost",

@@ -211,6 +211,12 @@ class ChatflowDeployer:
         for workload in all_workloads:
             if workload.info.metadata:
                 workload.info.metadata = self.decrypt_metadata(workload.info.metadata)
+                try:
+                    j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    workload.info.metadata = "{}"
+            else:
+                workload.info.metadata = "{}"
             self.workloads[workload.info.next_action][workload.info.workload_type][workload.info.pool_id].append(
                 workload
             )

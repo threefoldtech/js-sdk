@@ -124,14 +124,6 @@ const SOLUTIONS = {
     url: "/solutions/deploy_blog",
     description: ""
   },
-  gollum: {
-    topic: "gollum_deploy",
-    type: "gollum",
-    name: "Gollum wiki",
-    icon: "mdi-book-open-variant",
-    url: "/solutions/gollum_deploy",
-    description: "A simple, Git-powered wiki with a sweet API and local frontend."
-  },
   mattermost: {
     topic: "mattermost",
     type: "mattermost",
