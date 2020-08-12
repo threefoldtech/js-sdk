@@ -116,10 +116,12 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        self.gateways = {}
 
+        for g in filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos._explorer.gateway.list()):
+            if self.network.currency == "FreeTFT" and not g.free_to_use:
+                continue
+            self.gateways[g.node_id] = g
         domains = dict()
         for gateway in self.gateways.values():
             for domain in gateway.managed_domains:
