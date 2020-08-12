@@ -50,7 +50,7 @@ class CryptpadDeploy(GedisChatBot):
                     break
                 valid = True
 
-    @chatflow_step(title="Container resources")
+    @chatflow_step(title="")
     def container_resources(self):
         # set default vals
         self.resources = dict()
@@ -83,7 +83,7 @@ class CryptpadDeploy(GedisChatBot):
     def cryptpad_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Container node id")
+    @chatflow_step(title="")
     def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],
@@ -93,7 +93,7 @@ class CryptpadDeploy(GedisChatBot):
         self.md_show_update("Preparing a node to deploy on ...")
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
-    @chatflow_step(title="Container IP")
+    @chatflow_step(title="")
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -113,7 +113,7 @@ class CryptpadDeploy(GedisChatBot):
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
 
-    @chatflow_step(title="Domain")
+    @chatflow_step(title="")
     def select_domain(self):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
@@ -130,6 +130,7 @@ class CryptpadDeploy(GedisChatBot):
 
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
+        self.solution_name = self.solution_name.replace(".", "").replace("_","-")
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
 
         self.addresses = []
