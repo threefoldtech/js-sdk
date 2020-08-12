@@ -29,11 +29,11 @@ class MattermostDeploy(GedisChatBot):
     @chatflow_step()
     def mattermost_start(self):
         self.solution_id = uuid.uuid4().hex
-        self.user_form_data = dict()
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
         self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def mattermost_name(self):
@@ -86,14 +86,15 @@ class MattermostDeploy(GedisChatBot):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
 
-        full_domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+        solution_name = self.solution_name.replace(".", "")
+        full_domain = f"{self.threebot_name}-{solution_name}.{self.domain}"
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
                 break
             else:
                 random_number = random.randint(1000, 100000)
-                full_domain = f"{self.threebot_name}-{self.solution_name}-{random_number}.{self.domain}"
+                full_domain = f"{self.threebot_name}-{solution_name}-{random_number}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -125,6 +126,7 @@ class MattermostDeploy(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost",},
         }
+        self.solution_metadata.update(metadata)
 
         # reserve subdomain
         _id = deployer.create_subdomain(
@@ -133,7 +135,7 @@ class MattermostDeploy(GedisChatBot):
             subdomain=self.domain,
             addresses=self.addresses,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         success = deployer.wait_workload(_id, self)
@@ -167,8 +169,8 @@ class MattermostDeploy(GedisChatBot):
             entrypoint="/start_mattermost.sh",
             volumes=volume_config,
             public_ipv6=True,
-            **metadata,
             solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
@@ -188,7 +190,7 @@ class MattermostDeploy(GedisChatBot):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

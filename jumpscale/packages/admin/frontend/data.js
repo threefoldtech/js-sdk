@@ -138,7 +138,7 @@ const SOLUTIONS = {
     name: "Mattermost",
     icon: "mdi-chat-processing-outline",
     url: "/solutions/mattermost",
-    description: ""
+    description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration"
   },
   peertube: {
     topic: "peertube",
