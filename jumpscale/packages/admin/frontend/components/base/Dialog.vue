@@ -3,10 +3,9 @@
     <v-card :loading="loading" :disabled="loading">
       <v-card-title class="headline">{{title}}</v-card-title>
       <v-card-text class="pa-5">
+        <v-alert v-if="error" dense outlined type="error" class="mb-5">{{error}}</v-alert>
 
-        <v-alert v-if="error" dense outlined type="error" class="mb-5">
-          {{error}}
-        </v-alert>
+        <v-alert v-if="info" dense outlined type="info" class="mb-5">{{info}}</v-alert>
 
         <slot name="default"></slot>
       </v-card-text>
@@ -20,22 +19,23 @@
 </template>
 
 <script>
-  module.exports = {
-    props: { 
-      value: Boolean, 
-      title: String,
-      error: String,
-      loading: Boolean
-    },
-    computed: {
-      dialog: {
-        get () {
-          return this.value
-        },
-        set (value) {
-          this.$emit('input', value)
-        }
+module.exports = {
+  props: {
+    value: Boolean,
+    title: String,
+    error: String,
+    info: String,
+    loading: Boolean,
+  },
+  computed: {
+    dialog: {
+      get() {
+        return this.value;
       },
-    }
-  }
+      set(value) {
+        this.$emit("input", value);
+      },
+    },
+  },
+};
 </script>
