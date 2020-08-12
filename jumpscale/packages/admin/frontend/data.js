@@ -148,6 +148,14 @@ const SOLUTIONS = {
     url: "/solutions/cryptpad_deploy",
     description: "CryptPad is the Zero Knowledge realtime collaborative editor."
   },
+  taiga: {
+    topic: "taiga_deploy",
+    type: "taiga",
+    name: "Taiga",
+    image: "./assets/taiga.png",
+    url: "/solutions/taiga_deploy",
+    description: "Build your all in one taiga solution"
+  },
   all: {
     topic: "all",
     type: "all_reservations",

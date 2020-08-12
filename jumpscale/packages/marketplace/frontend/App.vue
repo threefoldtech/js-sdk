@@ -150,6 +150,12 @@ module.exports = {
           meta: { img: "./assets/gitea.png" },
         },
         {
+          name: "Taiga",
+          type: "taiga",
+          path: "/taiga",
+          meta: { img: "./assets/taiga.png" },
+        },
+        {
           name: "Solution Expose",
           type: "exposed",
           path: "/exposed",
@@ -201,7 +207,7 @@ module.exports = {
           name: "Cryptpad",
           type: "cryptpad",
           path: "/cryptpad",
-          meta: { img: "./assets/cryptpad.png" }
+          meta: { img: "./assets/cryptpad.png" },
         },
         {
           type: "threebot",
