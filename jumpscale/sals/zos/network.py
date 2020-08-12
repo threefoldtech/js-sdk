@@ -289,7 +289,7 @@ def generate_peers(network):
 
                 # as a fallback assign IPv4
                 if endpoint == "":
-                    for pep in onr.public_endpoint:
+                    for pep in onr.public_endpoints:
                         if pep.version == 4:
                             endpoint = f"{pep.ip}:{onr.wireguard_listen_port}"
                             break
