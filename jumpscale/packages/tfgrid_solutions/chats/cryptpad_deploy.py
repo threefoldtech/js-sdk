@@ -62,7 +62,7 @@ class CryptpadDeploy(GedisChatBot):
     def volume_details(self):
         form = self.new_form()
         vol_disk_size = form.single_choice(
-            "Please specify the volume size in GiB", ["5", "10", "15"], default="10", required=True,
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
         )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
