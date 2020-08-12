@@ -339,6 +339,68 @@ class ChatflowSolutions:
                     result[-1].update(self.get_workload_capacity(workload))
         return result
 
+    def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "mattermost":
+                    if workload.flist == "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist":
+                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                        result[name] = {
+                            "wids": [workload.id],
+                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
+                            "Domain name": metadata["form_info"].get("Domain name"),
+                            "IP Address": workload.network_connection[0].ipaddress,
+                            "Network": workload.network_connection[0].network_id,
+                            "Node": workload.info.node_id,
+                            "Pool": workload.info.pool_id,
+                        }
+            for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+                WorkloadType.Reverse_proxy
+            ].values():
+                for workload in proxy_workloads:
+                    if not workload.info.metadata:
+                        continue
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    if not metadata:
+                        continue
+                    if not metadata.get("form_info"):
+                        continue
+                    if metadata["form_info"].get("chatflow") == "mattermost":
+                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                        if name in result:
+                            result[name]["wids"].append(workload.id)
+
+            for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+                WorkloadType.Subdomain
+            ].values():
+                for workload in subdomain_workloads:
+                    if not workload.info.metadata:
+                        continue
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    if not metadata:
+                        continue
+                    if not metadata.get("form_info"):
+                        continue
+                    if metadata["form_info"].get("chatflow") == "mattermost":
+                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                        if name in result:
+                            result[name]["wids"].append(workload.id)
+            return list(result.values())
+
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
@@ -701,6 +763,7 @@ class ChatflowSolutions:
             "publisher": 0,
             "threebot": 0,
             "gollum": 0,
+            "mattermost": 0,
             "peertube": 0,
             "cryptpad": 0,
             "wiki": 0,
