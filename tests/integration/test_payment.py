@@ -45,15 +45,6 @@ def amount_paid_to_farmer(pool):
     return total_amount_dec
 
 
-def create_extend_pool():
-    pools = zos.pools.list()
-    if pools:
-        pool_id = pools[0].pool_id
-        return zos.pools.extend(pool_id=pool_id, cu=1, su=1, currencies=["TFT"])
-    else:
-        return zos.pools.create(cu=1, su=1, farm="freefarm", currencies=["TFT"])
-
-
 @pytest.mark.integration
 def test01_create_pool_with_funded_wallet():
     """Test for creating a pool with funded wallet.
