@@ -85,20 +85,16 @@
         </v-simple-table>
       </template>
       <template #actions>
-        <v-btn text color="error" v-if="hidden" @click="unhide(pool.pool_id)">Unhide</v-btn>
-        <v-btn text color="error" v-else @click="cancel()">Hide</v-btn>
+        <v-btn text color="error" v-if="pool.hidden" @click="unhide()">Unhide</v-btn>
+        <v-btn text color="error" v-else @click="hide()">Hide</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
-    <hide-pool v-model="dialogs.hidePool" v-if="pool" :pool_id="pool.pool_id"></hide-pool>
   </div>
 </template>
 
 <script>
 module.exports = {
-  components: {
-    "hide-pool": httpVueLoader("./HidePool.vue"),
-  },
   data() {
     return {
       dialogs: {
@@ -106,10 +102,9 @@ module.exports = {
       },
       edting: false,
       name: "",
-      pool_id:null,
     };
   },
-  props: { pool: Object , hidden: Boolean},
+  props: { pool: Object},
   mixins: [dialog],
   methods: {
     startEdit() {
@@ -121,14 +116,24 @@ module.exports = {
     },
     rename(poolId, name) {
       this.$api.solutions.renamePool(poolId, name);
-      this.$router.go(0);
+      this.pool.name = name;
     },
     cancel() {
       this.dialogs.hidePool = true;
     },
-    unhide(pool_id) {
-      this.$api.solutions.unhidePool(pool_id);
-      this.$router.go(0);
+    hide(pool_id){
+      this.$api.solutions.hidePool(this.pool.pool_id).then(response => {
+        this.pool.hidden = true
+      }).catch(err => {
+        console.log(err)
+      });
+    },
+    unhide() {
+      this.$api.solutions.unhidePool(this.pool.pool_id).then(response => {
+        this.pool.hidden = false
+      }).catch(err => {
+        console.log(err)
+      });
     }
   },
 };
