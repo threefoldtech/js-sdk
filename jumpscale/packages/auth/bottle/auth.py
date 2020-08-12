@@ -138,7 +138,7 @@ def callback():
     session["authorized"] = True
     session["signedAttempt"] = signedData
     try:
-        tid = j.sals.reservation_chatflow.validate_user({"username": username, "email": email}).id
+        tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({"username": username, "email": email}).id
         session["tid"] = tid
     except Exception as e:
         j.logger.warning(
