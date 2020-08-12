@@ -52,18 +52,18 @@ class MastodonDeploy(GedisChatBot):
     def smtp_credentials(self):
         # self.domain = self.string_ask("Please add domain/url", default="64.227.1.81", required=True)
         form = self.new_form()
-        smtp_server = form.string_ask("Please add the SMTP server", default="smtp.sendgrid.net", required=True)
+        smtp_server = "smtp.gmail.com"
         smtp_port = form.string_ask("Please add the port the SMTP server exposes", default="587", required=True)
-        smtp_login = form.string_ask("Please add the SMTP login name", default="apikey", required=True)
+        smtp_login = form.string_ask("Please add the SMTP login GMAIL", required=True)
         smtp_password = form.string_ask("Please add the SMTP login password", required=True)
-        smtp_from_address = form.string_ask("Please add the email address mastodon will be sending from", required=True)
+        smtp_from_address = form.string_ask("Please add the GMAIL address mastodon will be sending from", required=True)
         form.ask()
 
         self.env = {
             # "DOMAIN": "64.227.1.81",  # TODO create subdomain
-            "DB_USER": self.user_info_dict["username"],
-            "DB_NAME": "mastodon_" + self.user_info_dict["username"],
-            "SMTP_SERVER": smtp_server.value,
+            "DB_USER": "mastodon",
+            "DB_NAME": "mastodon_production",
+            "SMTP_SERVER": smtp_server,
             "SMTP_PORT": smtp_port.value,
             "SMTP_LOGIN": smtp_login.value,
             "SMTP_FROM_ADDRESS": smtp_from_address.value,
@@ -73,7 +73,7 @@ class MastodonDeploy(GedisChatBot):
 
     @chatflow_step(title="Pool")
     def select_pool(self):
-        query = {"cru": 1, "mru": 1, "sru": 10}
+        query = {"cru": 1, "mru": 2, "sru": 20}
         cu, su = deployer.calculate_capacity_units(**query)
         self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
 
@@ -83,7 +83,7 @@ class MastodonDeploy(GedisChatBot):
 
     @chatflow_step(title="Container node id")
     def container_node_id(self):
-        query = {"cru": 1, "mru": 1, "sru": 10}
+        query = {"cru": 1, "mru": 2, "sru": 20}
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Confirmation")
@@ -154,8 +154,8 @@ class MastodonDeploy(GedisChatBot):
             {
                 "IP Address": self.ip_address,
                 "CPU": 1,
-                "Memory": 1024,
-                "Disk Size": 10000,
+                "Memory": 2 * 1024,
+                "Disk Size": 20 * 1024,
                 "Database User": self.env["DB_USER"],
                 "Database name": self.env["DB_NAME"],
             }
@@ -199,6 +199,9 @@ class MastodonDeploy(GedisChatBot):
             secret_env=self.secret_env,
             entrypoint="/start_mastodon.sh",
             public_ipv6=True,
+            cpu=1,
+            memory=2 * 1024,
+            disk_size=10 * 1024,
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
@@ -219,6 +222,7 @@ class MastodonDeploy(GedisChatBot):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
             **metadata,
         )
         success = deployer.wait_workload(_id, self)
