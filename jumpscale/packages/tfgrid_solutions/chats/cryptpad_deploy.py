@@ -47,7 +47,7 @@ class CryptpadDeploy(GedisChatBot):
                     break
                 valid = True
 
-    @chatflow_step(title="Solution Specs")
+    @chatflow_step(title="Cryptpad storage size")
     def solution_specs(self):
         # set default resources
         self.resources = dict()
@@ -78,7 +78,7 @@ class CryptpadDeploy(GedisChatBot):
     def cryptpad_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Configuring node")
+    @chatflow_step(title="Configuring your cryptpad")
     def configuring_node(self):
         query = {
             "cru": self.resources["cpu"],
