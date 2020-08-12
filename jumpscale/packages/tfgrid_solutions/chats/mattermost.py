@@ -15,8 +15,6 @@ class MattermostDeploy(GedisChatBot):
         "mattermost_name",
         "select_pool",
         "mattermost_network",
-        "container_node_id",
-        "container_ip",
         "domain_select",
         "overview",
         "reservation",
@@ -46,13 +44,14 @@ class MattermostDeploy(GedisChatBot):
     def mattermost_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Container node id")
-    def container_node_id(self):
+    @chatflow_step(title="Domain")
+    def domain_select(self):
+        # select node
         self.md_show_update("Preparing a node to deploy on ...")
         self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
-    @chatflow_step(title="Container IP")
-    def container_ip(self):
+        # select ip address
+        self.md_show_update("Configuring node ip address ...")
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
             self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy
@@ -66,8 +65,7 @@ class MattermostDeploy(GedisChatBot):
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
 
-    @chatflow_step(title="Domain")
-    def domain_select(self):
+        self.md_show_update("Configuring node domain ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
