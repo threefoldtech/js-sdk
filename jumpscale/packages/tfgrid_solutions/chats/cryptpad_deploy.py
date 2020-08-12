@@ -17,6 +17,7 @@ class CryptpadDeploy(GedisChatBot):
         "volume_details",
         "select_pool",
         "cryptpad_network",
+        "container_node_id",
         "container_ip",
         "select_domain",
         "overview",
@@ -81,6 +82,9 @@ class CryptpadDeploy(GedisChatBot):
     @chatflow_step(title="Network")
     def cryptpad_network(self):
         self.network_view = deployer.select_network(self)
+
+    @chatflow_step(title="Container node id")
+    def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
