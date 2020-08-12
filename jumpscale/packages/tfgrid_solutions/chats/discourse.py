@@ -15,9 +15,7 @@ class Discourse(GedisChatBot):
     steps = [
         "discourse_start",
         "discourse_name",
-        "discourse_smtp_server",
-        "discourse_smtp_username",
-        "discourse_smtp_password",
+        "discourse_smtp_info",
         "discourse_email",
         "select_pool",
         "discourse_network",
@@ -31,9 +29,7 @@ class Discourse(GedisChatBot):
     @chatflow_step()
     def discourse_start(self):
         self.solution_id = uuid.uuid4().hex
-        self.user_form_data = dict()
         self.query = dict()
-        self.user_form_data["chatflow"] = "discourse"
         self.md_show("# This wizard will help you deploy discourse", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
@@ -42,17 +38,16 @@ class Discourse(GedisChatBot):
     def discourse_name(self):
         self.solution_name = deployer.ask_name(self)
 
-    @chatflow_step(title="SMTP server")
-    def discourse_smtp_server(self):
-        self.smtp_server = self.string_ask("Please, enter the smtp server address", required=True)
-
-    @chatflow_step(title="SMTP username")
-    def discourse_smtp_username(self):
-        self.smtp_username = self.string_ask("Please, enter the smtp server username", required=True)
-
-    @chatflow_step(title="SMTP password")
-    def discourse_smtp_password(self):
-        self.smtp_password = self.string_ask("Please, enter the smtp server password", required=True)
+    @chatflow_step(title="SMTP information")
+    def discourse_smtp_info(self):
+        form = self.new_form()
+        self.smtp_server = form.string_ask("SMTP server address", required=True)
+        self.smtp_username = form.string_ask("SMTP server username", required=True)
+        self.smtp_password = form.string_ask("SMTP server password", required=True)
+        form.ask()
+        self.smtp_server = self.smtp_server.value
+        self.smtp_username = self.smtp_username.value
+        self.smtp_password = self.smtp_password.value
 
     @chatflow_step(title="Email")
     def discourse_email(self):
@@ -65,35 +60,26 @@ class Discourse(GedisChatBot):
         self.resources["memory"] = 2048
         self.resources["disk_size"] = 4096
         self.resources["default_disk_type"] = "SSD"
-
-    @chatflow_step(title="Pool")
-    def select_pool(self):
-        query = {
+        self.query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        cu, su = deployer.calculate_capacity_units(**query)
+
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        cu, su = deployer.calculate_capacity_units(**self.query)
         self.pool_id = deployer.select_pool(self, cu=cu, su=su)
 
     @chatflow_step(title="Network")
     def discourse_network(self):
         self.network_view = deployer.select_network(self)
-        self.container_logs()
         self.container_node_id()
         self.container_ip()
         self.select_domain()
 
-    def container_logs(self):
-        self.log_config = {}
-
     def container_node_id(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
@@ -110,18 +96,20 @@ class Discourse(GedisChatBot):
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
     def select_domain(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
         domains = dict()
-        for gateway in self.gateways.values():
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
-                domains[domain] = gateway
+                domains[domain] = gw_dict
 
         self.domain = random.choice(list(domains.keys()))
 
-        self.gateway = domains[self.domain]
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
 
         self.addresses = []
@@ -142,7 +130,6 @@ class Discourse(GedisChatBot):
             "Disk Size": self.resources["disk_size"],
             "IP Address": self.ip_address,
         }
-        self.metadata.update(self.log_config)
         self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
@@ -174,7 +161,7 @@ class Discourse(GedisChatBot):
 
         # reserve subdomain
         _id = deployer.create_subdomain(
-            pool_id=self.pool_id,
+            pool_id=self.gateway_pool.pool_id,
             gateway_id=self.gateway.node_id,
             subdomain=self.domain,
             addresses=self.addresses,
@@ -198,6 +185,7 @@ class Discourse(GedisChatBot):
             node_id=self.selected_node.node_id,
             reserve_proxy=True,
             domain_name=self.domain,
+            proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
             **metadata,
         )
@@ -222,7 +210,6 @@ class Discourse(GedisChatBot):
             env=env,
             secret_env=secret_env,
             interactive=False,
-            log_config=self.log_config,
             **metadata,
             solution_uuid=self.solution_id,
         )
