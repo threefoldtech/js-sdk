@@ -1,8 +1,12 @@
 <template>
-  <base-dialog title="Patch Cancel Workloads" v-model="dialog" :error="error" :loading="loading">
-    <template #default>
-      Are you sure you want to cancel all {{ wids.length }} selected workloads?
-    </template>
+  <base-dialog
+    title="Patch Cancel Workloads"
+    v-model="dialog"
+    :error="error"
+    :info="info"
+    :loading="loading"
+  >
+    <template #default>Are you sure you want to cancel all {{ selected.length }} selected workloads?</template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text color="error" @click="submit">Confirm</v-btn>
@@ -11,25 +15,46 @@
 </template>
 
 <script>
-
 module.exports = {
   mixins: [dialog],
-  props: ["wids"],
+  props: ["selected"],
   methods: {
-    submit () {
-      this.loading = true
-      this.error = null
-      this.$api.solutions.patchCancelWorkload(this.wids).then(response => {
-        this.$router.go(0);
-      }).catch(err => {
-        console.log("failed")
-        this.loading = false
-        this.error = err
-      });
+    submit() {
+      this.loading = true;
+      this.error = null;
+      this.info = null;
+
+      let wids = [];
+      for (i = 0; i < this.selected.length; i++) {
+        if (
+          this.selected[i].next_action == "DELETE" ||
+          this.selected[i].next_action == "DELETED"
+        ) {
+          continue;
+        }
+        wids.push(this.selected[i].id);
+      }
+
+      this.$api.solutions
+        .patchCancelWorkload(wids)
+        .then((response) => {
+          for (let i = 0; i < this.selected.length; i++) {
+            this.selected[i].next_action = "DELETE";
+          }
+
+          this.loading = false;
+          this.info = "workloads successfully deleted";
+          setTimeout(() => this.close(), 2000);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.loading = false;
+          this.error = err.response.data["error"];
+        });
     },
-    cancel () {
-        this.dialogs.patchCancelWorkloads = false;
-      },
-  }
-}
+    cancel() {
+      this.close();
+    },
+  },
+};
 </script>

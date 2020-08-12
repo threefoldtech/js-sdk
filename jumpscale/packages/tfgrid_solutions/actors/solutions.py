@@ -55,7 +55,7 @@ class Solutions(BaseActor):
         return j.data.serializers.json.dumps({"result": True})
 
     @actor_method
-    def list_pools(self) -> str:
+    def list_pools(self, include_hidden) -> str:
         res = []
         farm_names = {}
         pool_factory = StoredFactory(PoolConfig)
@@ -69,10 +69,13 @@ class Solutions(BaseActor):
                 local_config = pool_factory.get(f"pool_{pool.pool_id}")
                 hidden = local_config.hidden
                 name = local_config.name
-            if hidden:
+
+            if not include_hidden and hidden:
                 continue
+
             pool_dict = pool.to_dict()
             pool_dict["name"] = name
+            pool_dict["hidden"] = hidden
             pool_dict["explorer_url"] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
             farm = farm_names.get(farm_id)
@@ -123,28 +126,6 @@ class Solutions(BaseActor):
         local_config.hidden = True
         local_config.save()
         return True
-
-    @actor_method
-    def list_hidden_pools(self) -> str:
-        pool_factory = StoredFactory(PoolConfig)
-        _, _, pools = pool_factory.find_many(hidden=True)
-        farm_names = {}
-        res = []
-        pools_dict = {p.pool_id: p for p in j.sals.zos.pools.list() if p.node_ids}
-        for pool in pools:
-            farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            farm = farm_names.get(farm_id)
-            if not farm:
-                farm = deployer._explorer.farms.get(farm_id)
-                farm_names[farm_id] = farm
-            p_dict = pool.to_dict()
-            p_dict["farm"] = farm.name
-            update_pool = pools_dict.get(pool.pool_id)
-            if not update_pool:
-                continue
-            p_dict.update(update_pool.to_dict())
-            res.append(p_dict)
-        return j.data.serializers.json.dumps(res)
 
     @actor_method
     def unhide_pool(self, pool_id) -> bool:
