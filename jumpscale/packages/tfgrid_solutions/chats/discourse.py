@@ -43,7 +43,7 @@ class Discourse(GedisChatBot):
         form = self.new_form()
         self.smtp_server = form.string_ask("SMTP server address", required=True)
         self.smtp_username = form.string_ask("SMTP server username", required=True)
-        self.smtp_password = form.string_ask("SMTP server password", required=True)
+        self.smtp_password = form.secret_ask("SMTP server password", required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
