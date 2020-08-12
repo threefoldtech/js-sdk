@@ -1,6 +1,7 @@
 import time
 import uuid
 import math
+import random
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -16,8 +17,6 @@ class CryptpadDeploy(GedisChatBot):
         "volume_details",
         "select_pool",
         "cryptpad_network",
-        "public_key_get",
-        "container_node_id",
         "container_ip",
         "select_domain",
         "overview",
@@ -52,15 +51,22 @@ class CryptpadDeploy(GedisChatBot):
 
     @chatflow_step(title="Container resources")
     def container_resources(self):
-        self.resources = deployer.ask_container_resources(self)
+        # set default vals
+        self.resources = dict()
+        self.resources["cpu"] = 1
+        self.resources["memory"] = 1024
+        self.resources["disk_size"] = 256
+        self.resources["default_disk_type"] = "SSD"
 
     @chatflow_step(title="Volume details")
     def volume_details(self):
         form = self.new_form()
-        vol_disk_size = form.int_ask("Please specify the volume size in GiB", required=True, default=10, min=1)
+        vol_disk_size = form.single_choice(
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+        )
         form.ask()
-        self.vol_size = vol_disk_size.value
-        self.vol_mount_point = "/data"
+        self.vol_size = int(vol_disk_size.value)
+        self.vol_mount_point = "/persistent-data"
 
     @chatflow_step(title="Pool")
     def select_pool(self):
@@ -75,25 +81,13 @@ class CryptpadDeploy(GedisChatBot):
     @chatflow_step(title="Network")
     def cryptpad_network(self):
         self.network_view = deployer.select_network(self)
-
-    @chatflow_step(title="Access keys")
-    def public_key_get(self):
-        self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
-            required=True,
-        ).split("\n")[0]
-
-    @chatflow_step(title="Container node id")
-    def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": self.resources["disk_size"],
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.md_show_update("Preparing a node to deploy on ...")
+        self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
@@ -113,10 +107,11 @@ class CryptpadDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
+        self.ip_address = random.choice(free_ips)
 
     @chatflow_step(title="Domain")
     def select_domain(self):
+        self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
@@ -127,9 +122,7 @@ class CryptpadDeploy(GedisChatBot):
             for domain in gateway.managed_domains:
                 domains[domain] = gw_dict
 
-        self.domain = self.single_choice(
-            "Please choose the domain you wish to use", list(domains.keys()), required=True
-        )
+        self.domain = random.choice(list(domains.keys()))
 
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
@@ -181,34 +174,7 @@ class CryptpadDeploy(GedisChatBot):
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
 
-        # expose container domain
-        self.workload_ids.append(
-            deployer.expose_address(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                network_name=self.network_view.name,
-                local_ip=self.ip_address,
-                port=3000,
-                tls_port=3000,
-                trc_secret=self.secret,
-                node_id=self.selected_node.node_id,
-                reserve_proxy=True,
-                domain_name=self.domain,
-                proxy_pool_id=self.gateway_pool.pool_id,
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
-            )
-        )
-        success = deployer.wait_workload(self.workload_ids[1], self)
-        if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
-            )
-        self.container_url = f"http://{self.domain}"
-
         # deploy volume
-        self.md_show_update("Deploying Volume....")
         vol_id = deployer.deploy_volume(
             self.pool_id,
             self.selected_node.node_id,
@@ -223,7 +189,6 @@ class CryptpadDeploy(GedisChatBot):
 
         # deploy container
         var_dict = {
-            "pub_key": self.public_key,
             "size": str(self.vol_size * 1024),  # in MBs
         }
         self.workload_ids.append(
@@ -244,18 +209,38 @@ class CryptpadDeploy(GedisChatBot):
                 **self.solution_metadata,
             )
         )
-        success = deployer.wait_workload(self.workload_ids[2], self)
+        success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
+
+        # expose solution on nginx container
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=3000,
+            enforce_https=False,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            # solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+        self.container_url = f"https://{self.domain}"
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_access(self):
         res = f"""\
 # Cryptpad has been deployed successfully:\n<br>
 Reservation id: {self.workload_ids[-1]}\n
-To ssh into your container: ```ssh root@{self.ip_address}```\n
 You can access your container from browser at {self.container_url}\n
 # It may take a few minutes.
         """
