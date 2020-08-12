@@ -1,8 +1,10 @@
+import random
 import uuid
 
 from nacl.encoding import Base64Encoder
 from nacl.public import PrivateKey
 
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
@@ -17,14 +19,11 @@ class TaigaDeploy(GedisChatBot):
         "taiga_name",
         "select_pool",
         "taiga_network",
-        "public_key_get",
         "taiga_credentials",
-        "container_logs",
-        "container_node_id",
         "container_ip",
         "overview",
         "reservation",
-        # "intializing",
+        # "intializing", # TODO: Restore when letsencrypt is back
         "container_acess",
     ]
     title = "Taiga"
@@ -33,9 +32,10 @@ class TaigaDeploy(GedisChatBot):
     def taiga_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
-        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-taiga_all_in_one-latest.flist"
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.HUB_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
         self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
-        self.query = {"mru": 1, "cru": 2, "sru": 6}
+        self.query = {"mru": 1, "cru": 2, "sru": 2}
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -61,14 +61,6 @@ class TaigaDeploy(GedisChatBot):
     def taiga_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Access keys")
-    def public_key_get(self):
-        self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
-            required=True,
-        ).split("\n")[0]
-
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
         form = self.new_form()
@@ -85,26 +77,9 @@ class TaigaDeploy(GedisChatBot):
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
 
-    @chatflow_step(title="Container logs")
-    def container_logs(self):
-        self.container_logs_option = self.single_choice(
-            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
-            ["YES", "NO"],
-            default="NO",
-        )
-        if self.container_logs_option == "YES":
-            self.log_config = deployer.ask_container_logs(self, self.solution_name)
-        else:
-            self.log_config = {}
-
-    @chatflow_step(title="Container node id")
-    def container_node_id(self):
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **self.query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
-
-    @chatflow_step(title="Container IP")
+    @chatflow_step(title="Domain Settings")
     def container_ip(self):
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
             self.network_view.name,
@@ -121,9 +96,36 @@ class TaigaDeploy(GedisChatBot):
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
+        self.ip_address = random.choice(free_ips)
+
+        self.md_show_update("Preparing gateways ...")
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+
+        domains = dict()
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
+            for domain in gateway.managed_domains:
+                domains[domain] = gw_dict
+
+        self.domain = random.choice(list(domains.keys()))
+
+        self.subdomain = self.string_ask(
+            f"Please select your subdomain to access your solution. It will be subdomain like:\n<br/>\n `{self.threebot_name}-<sub-domain>.{self.domain}`",
+            required=True,
+            md=True,
         )
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
+        self.solution_name = self.solution_name.replace(".", "").replace("_", "-")
+        self.domain = f"{self.threebot_name}-{self.subdomain}.{self.domain}"
+
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -133,16 +135,18 @@ class TaigaDeploy(GedisChatBot):
             "Node ID": self.selected_node.node_id,
             "Pool": self.pool_id,
             "IP Address": self.ip_address,
+            "Domain": self.domain,
         }
         self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):
+        self.workload_ids = []
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
         var_dict = {
             "EMAIL_HOST_USER": self.EMAIL_HOST_USER,
             "EMAIL_HOST": self.EMAIL_HOST,
-            "TAIGA_HOSTNAME": self.ip_address,
+            "TAIGA_HOSTNAME": self.ip_address,  # TODO: Restore when letsencrypt is back
             "HTTP_PORT": "80",
             "FLASK_SECRET_KEY": "flask",
             "THREEBOT_URL": "https://login.threefold.me",
@@ -154,37 +158,80 @@ class TaigaDeploy(GedisChatBot):
         }
         self.solution_metadata.update(metadata)
 
-        self.resv_id = deployer.deploy_container(
-            pool_id=self.pool_id,
-            node_id=self.selected_node.node_id,
-            network_name=self.network_view.name,
-            ip_address=self.ip_address,
-            flist=self.HUB_URL,
-            cpu=2,
-            memory=2 * 1024,
-            env=var_dict,
-            interactive=False,
-            entrypoint="/start_taiga.sh",
-            log_config=self.log_config,
-            public_ipv6=True,
-            disk_size=4 * 1024,
-            secret_env={
-                "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
-                "PRIVATE_KEY": private_key,
-                "SECRET_KEY": self.SECRET_KEY,
-            },
-            **self.solution_metadata,
-            solution_uuid=self.solution_id,
+        # reserve subdomain
+        subdomain_wid = self.workload_ids.append(
+            deployer.create_subdomain(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
+            )
         )
-        success = deployer.wait_workload(self.resv_id, self)
-        if not success:
-            solutions.cancel_solution([self.resv_id])
+        subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
+
+        if not subdomain_wid:
+            raise StopChatFlow(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            )
+
+        self.workload_ids.append(
+            deployer.deploy_container(
+                pool_id=self.pool_id,
+                node_id=self.selected_node.node_id,
+                network_name=self.network_view.name,
+                ip_address=self.ip_address,
+                flist=self.HUB_URL,
+                cpu=2,
+                memory=2 * 1024,
+                env=var_dict,
+                interactive=False,
+                entrypoint="/start_taiga.sh",
+                public_ipv6=True,
+                disk_size=4 * 1024,
+                secret_env={
+                    "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
+                    "PRIVATE_KEY": private_key,
+                    "SECRET_KEY": self.SECRET_KEY,
+                },
+                **self.solution_metadata,
+                solution_uuid=self.solution_id,
+            )
+        )
+        self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
+        if not self.resv_id:
+            solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+
+        # TODO: Restore when letsencrypt is back
+        # # expose threebot container
+        # self.workload_ids.append(
+        #     deployer.expose_and_create_certificate(
+        #         pool_id=self.pool_id,
+        #         gateway_id=self.gateway.node_id,
+        #         network_name=self.network_view.name,
+        #         trc_secret=self.secret,
+        #         domain=self.domain,
+        #         email=self.user_info()["email"],
+        #         solution_ip=self.ip_address,
+        #         solution_port=443,
+        #         enforce_https=True,
+        #         node_id=self.selected_node.node_id,
+        #         solution_uuid=self.solution_id,
+        #         proxy_pool_id=self.gateway_pool.pool_id,
+        #         **metadata,
+        #     )
+        # )
+        # nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
+        # if not nginx_wid:
+        #     solutions.cancel_solution(self.workload_ids)
+        #     raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
-        self.md_show_update("Initializing your Threebot ...")
-        if not j.sals.nettools.wait_http_test(f"https://{self.ip_address}", timeout=600):
+        self.md_show_update("Initializing your taiga solution ...")
+        if not j.sals.nettools.wait_http_test(f"https://{self.domain}", timeout=600):
             self.stop("Failed to initialize threebot, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
@@ -192,11 +239,11 @@ class TaigaDeploy(GedisChatBot):
         res = f"""\
 # Taiga has been deployed successfully:
 \n<br />\n
-your reservation id is: {self.resv_id}
+your reservation id is: `{self.resv_id}`
 \n<br />\n
-To connect ```ssh {self.ip_address}``` .It may take a few minutes.
+your container ip is: `{self.ip_address}`
 \n<br />\n
-open Taiga from browser at <a href="https://{self.ip_address}" target="_blank">https://{self.ip_address}</a>
+open Taiga from browser at <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
 - It may take few minutes to load.
                 """
