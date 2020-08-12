@@ -183,8 +183,9 @@ module.exports = {
           name: "Discourse",
           type: "discourse",
           path: "/discourse",
-          meta: { icon: "mdi-web-box" }
-
+          meta: { img: "./assets/discourse.png" }
+        },
+        {
           name: "Website",
           type: "website",
           path: "/website",

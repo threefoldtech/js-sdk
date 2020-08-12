@@ -144,7 +144,7 @@ const SOLUTIONS = {
     topic: "discourse",
     type: "discourse",
     name: "Discourse",
-    icon: "mdi-clipboard-list-outline",
+    image: "./assets/discourse.png",
     url: "/solutions/discourse",
     description: "Deploy a discourse instance on the grid."
   },
