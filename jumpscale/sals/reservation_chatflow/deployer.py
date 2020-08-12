@@ -256,7 +256,7 @@ class ChatflowDeployer:
             farm_assets = [w.asset for w in farm.wallet_addresses]
             if currencies[0] not in farm_assets:
                 continue
-            res = self.check_farm_capacity(farm.name, currencies, cru=1, sru=1, mru=1, hru=1)
+            res = self.check_farm_capacity(farm.name, currencies)
             available = res[0]
             resources = res[1:]
             if available:
@@ -288,15 +288,19 @@ class ChatflowDeployer:
         available_sru = 0
         available_mru = 0
         available_hru = 0
+        running_nodes = 0
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
             if not j.sals.zos.nodes_finder.filter_is_up(node):
                 continue
+            running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru
             available_sru += node.total_resources.sru - node.used_resources.sru
             available_mru += node.total_resources.mru - node.used_resources.mru
             available_hru += node.total_resources.hru - node.used_resources.hru
+        if not running_nodes:
+            return False, available_cru, available_sru, available_mru, available_hru
         if sru and available_sru < sru:
             return False, available_cru, available_sru, available_mru, available_hru
         if cru and available_cru < cru:
@@ -1060,6 +1064,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
+
     def expose_and_create_certificate(
         self,
         pool_id,
@@ -1084,7 +1089,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             gateway_id: Gateway id
             network_name: Name of the network selected while creating the solution
             trc_secret: Secret for tcp router
-            domain: the domain we will issue certificate for 
+            domain: the domain we will issue certificate for
             email: used to issue certificate
             solution_ip: where your server is hosted (the actual server)
             solution_port: the port your application is listening on
@@ -1098,11 +1103,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         gateway = self._explorer.gateway.get(gateway_id)
 
         self.create_proxy(
-            pool_id=proxy_pool_id,
-            gateway_id=gateway_id,
-            domain_name=domain,
-            trc_secret=trc_secret,
-            **metadata,
+            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata,
         )
 
         tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
@@ -1114,8 +1115,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "SOLUTION_PORT": str(solution_port),
             "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
-            "PUBKEY":public_key
-            }
+            "PUBKEY": public_key,
+        }
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
@@ -1144,7 +1145,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             **metadata,
         )
         return resv_id
-
 
     def expose_address(
         self,
