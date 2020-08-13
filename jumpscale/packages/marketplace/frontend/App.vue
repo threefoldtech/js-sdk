@@ -37,12 +37,12 @@
     <v-navigation-drawer
       v-if="sidebar"
       color="primary"
-      class="elevation-3"
+      class="elevation-3 "
       :mini-variant="mini"
       app
       permanent
       dark
-      :width="280"
+      :width="320"
     >
       <v-sheet color="#148F77">
         <v-list class="text-center">
@@ -54,16 +54,43 @@
       <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
-        <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
+        <v-list-group no-action value="false" color="white">
+          <template v-slot:activator>
+            <v-list-item-content dark>
+              <v-list-item-title  >Apps</v-list-item-title>
+              <v-list-item-subtitle>Easy to get your own application</v-list-item-subtitle>
+            </v-list-item-content>
+          </template>
+
+          <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
+            <v-list-item-icon>
+              <v-img height="25px" width="25px" v-if="app.meta.img" :src="app.meta.img"></v-img>
+              <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
+            </v-list-item-icon>
+
+            <v-list-item-content>
+              <v-list-item-title>
+                {{ app.name }}
+                <v-chip
+                  :loading="true"
+                  class="ml-2"
+                  small
+                  outlined
+                >{{solutionCount[app.type] || 0}}</v-chip>
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
+        <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
           <v-list-item-icon>
-            <v-img height="30px" width="30px" v-if="page.meta.img" :src="page.meta.img"></v-img>
-            <v-icon v-else color="white">{{page.meta.icon}}</v-icon>
+            <v-img height="30px" width="30px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
+            <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
             <v-list-item-title>
-              {{ page.name }}
-              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[page.type] || 0}}</v-chip>
+              {{ solution.name }}
+              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type] || 0}}</v-chip>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -94,13 +121,51 @@ module.exports = {
       mini: false,
       solutionCount: {},
       sidebar: true,
-    };
-  },
-  computed: {},
-  methods: {},
-  computed: {
-    pages() {
-      return [
+      apps: [
+        {
+          name: "Peertube",
+          type: "peertube",
+          path: "/peertube",
+          meta: { img: "./assets/peertube.png" },
+        },
+        {
+          name: "Discourse",
+          type: "discourse",
+          path: "/discourse",
+          meta: { img: "./assets/discourse.png" },
+        },
+        {
+          name: "Mattermost",
+          type: "mattermost",
+          path: "/mattermost",
+          meta: { icon: "mdi-chat-processing-outline" },
+        },
+        {
+          name: "Cryptpad",
+          type: "cryptpad",
+          path: "/cryptpad",
+          meta: { img: "./assets/cryptpad.png" },
+        },
+        {
+          name: "Blog",
+          type: "blog",
+          path: "/blog",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Website",
+          type: "website",
+          path: "/website",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Wiki",
+          type: "wiki",
+          path: "/wiki",
+          meta: { icon: "mdi-web-box" },
+        },
+      ],
+      solutions: [
         {
           name: "Pools",
           type: "pools",
@@ -168,56 +233,16 @@ module.exports = {
           meta: { icon: "mdi-router" },
         },
         {
-          name: "Blog",
-          type: "blog",
-          path: "/blog",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Peertube",
-          type: "peertube",
-          path: "/peertube",
-          meta: { img: "./assets/peertube.png" }
-        },
-        {
-          name: "Discourse",
-          type: "discourse",
-          path: "/discourse",
-          meta: { img: "./assets/discourse.png" }
-        },
-        {
-          name: "Website",
-          type: "website",
-          path: "/website",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Wiki",
-          type: "wiki",
-          path: "/wiki",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Mattermost",
-          type: "mattermost",
-          path: "/mattermost",
-          meta: { icon: "mdi-chat-processing-outline" },
-        },
-        {
-          name: "Cryptpad",
-          type: "cryptpad",
-          path: "/cryptpad",
-          meta: { img: "./assets/cryptpad.png" }
-        },
-        {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
           meta: { img: "./assets/3bot.png" },
         },
-      ];
-    },
+      ],
+    };
   },
+  computed: {},
+  methods: {},
   methods: {
     getCurrentUser() {
       this.$api.admins.getCurrentUser().then((response) => {
