@@ -54,6 +54,11 @@ class Peertube(GedisChatBot):
         self.resources["memory"] = 1024
         self.resources["disk_size"] = 1024
         self.resources["default_disk_type"] = "SSD"
+        self.query = {
+            "cru": self.resources["cpu"],
+            "mru": math.ceil(self.resources["memory"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024) + self.vol_size,
+        }
 
     @chatflow_step(title="Volume details")
     def volume_details(self):
@@ -67,12 +72,7 @@ class Peertube(GedisChatBot):
 
     @chatflow_step(title="Pool")
     def select_pool(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024) + self.vol_size,
-        }
-        cu, su = deployer.calculate_capacity_units(**query)
+        cu, su = deployer.calculate_capacity_units(**self.query)
         self.pool_id = deployer.select_pool(self, cu=cu, su=su)
 
     @chatflow_step(title="Network")
@@ -82,12 +82,7 @@ class Peertube(GedisChatBot):
         self.select_domain()
 
     def container_node_id(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
         self.ip_address = self.network_view.get_free_ip(self.selected_node)
 
     def select_domain(self):
