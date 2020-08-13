@@ -123,6 +123,70 @@ class ChatflowSolutions:
                         result[name]["wids"].append(workload.id)
         return list(result.values())
 
+    def list_discourse_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
+            for workload in container_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "discourse":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    result[name] = {
+                        "wids": [workload.id],
+                        "Name": name,
+                        "IPv4 Address": workload.network_connection[0].ipaddress,
+                        "IPv6 Address": self.get_ipv6_address(workload),
+                        "Network": workload.network_connection[0].network_id,
+                        "Node": workload.info.node_id,
+                        "Pool": workload.info.pool_id,
+                    }
+                    result[name].update(self.get_workload_capacity(workload))
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Reverse_proxy
+        ].values():
+            for workload in proxy_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "discourse":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+                        result[name]["Domain"] = workload.domain
+
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Subdomain
+        ].values():
+            for workload in subdomain_workloads:
+                if not workload.info.metadata:
+                    continue
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                if metadata["form_info"].get("chatflow") == "discourse":
+                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
+                    if name in result:
+                        result[name]["wids"].append(workload.id)
+        return list(result.values())
+
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
@@ -762,6 +826,8 @@ class ChatflowSolutions:
             "exposed": 0,
             "publisher": 0,
             "threebot": 0,
+            "peertube": 0,
+            "discourse": 0,
             "gollum": 0,
             "mattermost": 0,
             "peertube": 0,

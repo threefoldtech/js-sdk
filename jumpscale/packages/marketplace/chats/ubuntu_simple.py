@@ -46,7 +46,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
         form.ask()
         self.currency = self.currency.value
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
+        self.query = {"sru": 1}
 
     @chatflow_step()
     def ubuntu_expiration(self):

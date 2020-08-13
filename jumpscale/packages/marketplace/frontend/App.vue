@@ -174,6 +174,18 @@ module.exports = {
           meta: { icon: "mdi-web-box" },
         },
         {
+          name: "Peertube",
+          type: "peertube",
+          path: "/peertube",
+          meta: { img: "./assets/peertube.png" }
+        },
+        {
+          name: "Discourse",
+          type: "discourse",
+          path: "/discourse",
+          meta: { img: "./assets/discourse.png" }
+        },
+        {
           name: "Website",
           type: "website",
           path: "/website",
@@ -184,12 +196,6 @@ module.exports = {
           type: "wiki",
           path: "/wiki",
           meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Peertube",
-          type: "peertube",
-          path: "/peertube",
-          meta: { img: "./assets/peertube.png" },
         },
         {
           name: "Mattermost",
