@@ -269,7 +269,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
-        self.wait_pool_payment(bot, pool_info.reservation_id)
+        result = self.wait_pool_payment(bot, pool_info.reservation_id)
+        if not result:
+            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, farm_names=[farm_name], ip_version="IPv4"
         )[0]
