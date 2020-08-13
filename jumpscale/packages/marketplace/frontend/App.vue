@@ -54,46 +54,45 @@
       <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
-        <v-list-group no-action value="false" color="white">
+        <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
+          <v-list-item-icon>
+            <v-img height="30px" width="30px" v-if="app.meta.img" :src="app.meta.img"></v-img>
+            <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ app.name }}
+              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[app.type] || 0}}</v-chip>
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+        <v-list-group no-action value="true" color="white">
           <template v-slot:activator>
-            <v-list-item-content dark>
-              <v-list-item-title  >Apps</v-list-item-title>
-              <v-list-item-subtitle>Easy to get your own application</v-list-item-subtitle>
+            <v-list-item-content>
+              <v-list-item-title  >Advanced Solutions</v-list-item-title>
             </v-list-item-content>
           </template>
 
-          <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
+          <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
             <v-list-item-icon>
-              <v-img height="25px" width="25px" v-if="app.meta.img" :src="app.meta.img"></v-img>
-              <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
+              <v-img height="25px" width="25px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
+              <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
             </v-list-item-icon>
 
             <v-list-item-content>
               <v-list-item-title>
-                {{ app.name }}
+                {{ solution.name }}
                 <v-chip
                   :loading="true"
                   class="ml-2"
                   small
                   outlined
-                >{{solutionCount[app.type] || 0}}</v-chip>
+                >{{solutionCount[solution.type] || 0}}</v-chip>
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
         </v-list-group>
-        <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
-          <v-list-item-icon>
-            <v-img height="30px" width="30px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
-            <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ solution.name }}
-              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type] || 0}}</v-chip>
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
       </v-list>
 
       <template v-slot:append>
