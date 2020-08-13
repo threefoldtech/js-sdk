@@ -77,7 +77,9 @@ class TaigaDeploy(GedisChatBot):
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
 
-    @chatflow_step(title="Domain Settings")
+        self.md_show_update("Configuring network and domain settings...")
+        self.container_ip()
+
     def container_ip(self):
         self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
         self.network_view_copy = self.network_view.copy()
@@ -111,15 +113,17 @@ class TaigaDeploy(GedisChatBot):
 
         self.domain = random.choice(list(domains.keys()))
 
-        self.subdomain = self.string_ask(
-            f"Please select your subdomain to access your solution. It will be subdomain like:\n<br/>\n `{self.threebot_name}-<sub-domain>.{self.domain}`",
-            required=True,
-            md=True,
-        )
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
         self.solution_name = self.solution_name.replace(".", "").replace("_", "-")
-        self.domain = f"{self.threebot_name}-{self.subdomain}.{self.domain}"
+        full_domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+        while True:
+            if j.tools.dnstool.is_free(full_domain):
+                self.domain = full_domain
+                break
+            else:
+                random_number = random.randint(1000, 100000)
+                full_domain = f"{self.threebot_name}-{self.solution_name}-{random_number}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -239,7 +243,7 @@ class TaigaDeploy(GedisChatBot):
         res = f"""\
 # Taiga has been deployed successfully:
 \n<br />\n
-your reservation id is: `{self.resv_id}`
+your reservation id is: `{self.workload_ids[1]}`
 \n<br />\n
 your container ip is: `{self.ip_address}`
 \n<br />\n
