@@ -99,7 +99,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             )
 
         if not self.pool_info:
-            raise StopChatFlow("Bye bye")
+            raise StopChatFlow("Failed to reserve resources for your app")
 
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")

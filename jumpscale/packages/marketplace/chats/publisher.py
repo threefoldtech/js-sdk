@@ -36,8 +36,6 @@ class Publisher(MarketPlaceChatflow):
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
         self.query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         self.md_show(self.welcome_message, md=True)
@@ -112,6 +110,9 @@ class Publisher(MarketPlaceChatflow):
                 currency=self.solution_currency,
                 **self.query,
             )
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f"Failed to reserve pool {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -168,14 +169,14 @@ class Publisher(MarketPlaceChatflow):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
 
-        full_domain = f"{self.threebot_name}-{self.solution_name_original}.{self.domain}"
+        full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}.{self.domain}"
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
                 break
             else:
                 random_number = random.randint(1000, 100000)
-                full_domain = f"{self.threebot_name}-{self.solution_name_original}-{random_number}.{self.domain}"
+                full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}-{random_number}.{self.domain}"
 
         self.envars["DOMAIN"] = self.domain
         self.addresses = []
@@ -280,7 +281,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        if self.wgconf:
+        if hasattr(self, "wgconf"):
             self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         message = f"""## Deployment success
 \n<br>\n
