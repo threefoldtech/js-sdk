@@ -110,6 +110,9 @@ class Publisher(MarketPlaceChatflow):
                 currency=self.solution_currency,
                 **self.query,
             )
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f"Failed to reserve pool {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
