@@ -796,6 +796,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         """
         cu = min(cru * 4, (mru - 1) / 4)
         su = hru / 1000 / 1.2 + sru / 100 / 1.2
+        if cu < 0:
+            cu = 0
+        if su < 0:
+            su = 0
         return cu, su
 
     def get_network_view(self, network_name, workloads=None):
