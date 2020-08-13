@@ -1,11 +1,11 @@
-import math
-
 from jumpscale.packages.tfgrid_solutions.chats.cryptpad_deploy import CryptpadDeploy as BaseCryptpadDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 import uuid
 import random
+
 FARM_NAMES = ["freefarm"]
+
 
 class CryptpadDeploy(MarketPlaceChatflow):
     steps = [
@@ -16,12 +16,12 @@ class CryptpadDeploy(MarketPlaceChatflow):
         "cryptpad_deployment",
         "reservation",
         "ubuntu_access",
-
     ]
+
     @chatflow_step()
     def cryptpad_start(self):
         self._validate_user()
-        self.md_show("Yala bena")
+        self.md_show("This wizard will help you deploy ubuntu container")
         self.solution_metadata = dict()
         self.solution_id = uuid.uuid4().hex
         self.flist_url = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
@@ -33,20 +33,12 @@ class CryptpadDeploy(MarketPlaceChatflow):
         self.solution_name = form.string_ask("Please enter a name for your crypt", required=True)
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
-        self.currency = form.single_choice("please select the currency you wish ", ["FreeTFT","TFT","TFTA"], required=True)
+        self.currency = form.single_choice(
+            "please select the currency you wish ", ["FreeTFT", "TFT", "TFTA"], required=True
+        )
         form.ask()
-        self.query = {
-            "cru": 1,
-            "mru": 1,
-            "sru": int(self.vol_size.value) + 1
-        }
-        available_farms = []
-        for farm_name in FARM_NAMES:
-            available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency.value], **self.query)
-            if available:
-                available_farms.append(farm_name)
-
-        self.farm_name = random.choice(available_farms)
+        self.currency = self.currency.value
+        self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
 
     @chatflow_step()
     def cryptpad_expiration(self):
@@ -63,28 +55,38 @@ class CryptpadDeploy(MarketPlaceChatflow):
 
     @chatflow_step()
     def cryptpad_deployment(self):
+        # this step provisions the pool for the solution and network if he is new user.
+        # depends on:
         # create solution pool
+        available_farms = []
+        for farm_name in FARM_NAMES:
+            available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
+            if available:
+                available_farms.append(farm_name)
+
+        self.farm_name = random.choice(available_farms)
+
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
-        if self.solution_metadata["owner"] in networks_names:
+        if "apps" in networks_names:
             # old user
             self.pool_info = deployer.create_solution_pool(
                 bot=self,
                 username=self.solution_metadata["owner"],
-                farm_name= self.farm_name,
-                expiration= self.expiration,
+                farm_name=self.farm_name,
+                expiration=self.expiration,
                 currency=self.currency.value,
-                **self.query
+                **self.query,
             )
         else:
             # new user
-            self.pool_info, wgconf = deployer.init_new_user(
+            self.pool_info, self.wgconf = deployer.init_new_user(
                 bot=self,
                 username=self.solution_metadata["owner"],
-                farm_name= self.farm_name,
-                expiration= self.expiration,
+                farm_name=self.farm_name,
+                expiration=self.expiration,
                 currency=self.currency.value,
-                **self.query
+                **self.query,
             )
 
         if not self.pool_info:
@@ -140,13 +142,13 @@ class CryptpadDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True)
     def ubuntu_access(self):
+        self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         res = f"""\
     # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
     \n<br />\n
     To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
                     """
         self.md_show(res, md=True)
-
 
 
 chat = CryptpadDeploy
