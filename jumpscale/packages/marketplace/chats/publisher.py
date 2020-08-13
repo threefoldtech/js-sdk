@@ -168,14 +168,14 @@ class Publisher(MarketPlaceChatflow):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
 
-        full_domain = f"{self.threebot_name}-{self.solution_name_original}.{self.domain}"
+        full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}.{self.domain}"
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
                 break
             else:
                 random_number = random.randint(1000, 100000)
-                full_domain = f"{self.threebot_name}-{self.solution_name_original}-{random_number}.{self.domain}"
+                full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}-{random_number}.{self.domain}"
 
         self.envars["DOMAIN"] = self.domain
         self.addresses = []
@@ -280,7 +280,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        if self.wgconf:
+        if hasattr(self, "wgconf"):
             self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         message = f"""## Deployment success
 \n<br>\n
