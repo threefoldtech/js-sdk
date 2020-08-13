@@ -5,6 +5,7 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from decimal import Decimal
 from .models import UserPool
+import gevent
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -245,7 +246,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.pools.create(int(cu*expiration), int(su*expiration), farm_name, [currency])
+        pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
         self.show_payment(pool_info, bot)
         pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
@@ -258,10 +259,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
         expiration = j.data.time.now().timestamp + exp * 60
 
         while j.data.time.get().timestamp < expiration:
-            bot.md_show_update("A7na hena bnwait ll pool")
+            bot.md_show_update("Preparing app resources")
             pool = j.sals.zos.pools.get(pool_id)
-            if pool.cus > 0 or pool.sus > 0 :
+            if pool.cus > 0 or pool.sus > 0:
                 return True
+            gevent.sleep(1)
 
         return False
 
@@ -278,7 +280,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             ip_range="10.100.0.0/16",
             ip_version="IPv4",
             pool_id=pool_info.reservation_id,
-            owner=username
+            owner=username,
         )
         for wid in result["ids"]:
             success = self.wait_workload(wid, bot=bot)
@@ -296,7 +298,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=j.data.time.get().timestamp + 3900,
         )
-        return  self.expiration - j.data.time.get().timestamp
+        return self.expiration - j.data.time.get().timestamp
 
 
 deployer = MarketPlaceDeployer()
