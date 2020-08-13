@@ -49,7 +49,7 @@ This version of the SDK tries to be isolated as possible in case of developers o
   poetry shell
   ```
 
-## Runnning 3bot
+## Running the Threebot
 
 
 ### using mkcert
