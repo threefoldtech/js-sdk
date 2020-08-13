@@ -7,43 +7,50 @@ import random
 FARM_NAMES = ["freefarm"]
 
 
-class CryptpadDeploy(MarketPlaceChatflow):
+class UbuntuDeploy(MarketPlaceChatflow):
     steps = [
-        "cryptpad_start",
-        "cryptpad_info",
-        "cryptpad_expiration",
+        "ubuntu_start",
+        "ubuntu_name",
+        "ubuntu_info",
+        "ubuntu_expiration",
         "public_key_get",
-        "cryptpad_deployment",
+        "pool_preparation",
         "reservation",
         "ubuntu_access",
     ]
 
     @chatflow_step()
-    def cryptpad_start(self):
+    def ubuntu_start(self):
         self._validate_user()
         self.md_show("This wizard will help you deploy ubuntu container")
         self.solution_metadata = dict()
         self.solution_id = uuid.uuid4().hex
-        self.flist_url = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step()
-    def cryptpad_info(self):
-        form = self.new_form()
-        self.solution_name = form.string_ask("Please enter a name for your crypt", required=True)
-        disk_sizes = [2, 5, 10]
-        self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
-        self.currency = form.single_choice(
-            "please select the currency you wish ", ["FreeTFT", "TFT", "TFTA"], required=True
-        )
-        form.ask()
-        self.currency = self.currency.value
-        self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
+    def ubuntu_name(self):
+        self.md_show_update("Fetching Infromation...")
+        used_names = [s["Name"] for s in solutions.list_ubuntu_solutions(self.solution_metadata["owner"])]
+        valid = False
+        while not valid:
+            self.solution_name = self.string_ask("Please enter a name for your ubuntu container", required=True)
+            if self.solution_name in used_names:
+                self.md_show("name already used. please click next to continue")
+            else:
+                valid = True
+        self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
 
     @chatflow_step()
-    def cryptpad_expiration(self):
+    def ubuntu_info(self):
+        form = self.new_form()
+        self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
+        form.ask()
+        self.currency = self.currency.value
+        self.query = {"cru": 1, "mru": 1, "sru": 1}
+
+    @chatflow_step()
+    def ubuntu_expiration(self):
         self.expiration = deployer.ask_expiration(self)
-        print(self.expiration)
 
     @chatflow_step(title="Access keys")
     def public_key_get(self):
@@ -54,10 +61,8 @@ class CryptpadDeploy(MarketPlaceChatflow):
         ).split("\n")[0]
 
     @chatflow_step()
-    def cryptpad_deployment(self):
+    def pool_preparation(self):
         # this step provisions the pool for the solution and network if he is new user.
-        # depends on:
-        # create solution pool
         available_farms = []
         for farm_name in FARM_NAMES:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
@@ -75,9 +80,13 @@ class CryptpadDeploy(MarketPlaceChatflow):
                 username=self.solution_metadata["owner"],
                 farm_name=self.farm_name,
                 expiration=self.expiration,
-                currency=self.currency.value,
+                currency=self.currency,
                 **self.query,
             )
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            self.wgconf = None
+            if not result:
+                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -85,12 +94,12 @@ class CryptpadDeploy(MarketPlaceChatflow):
                 username=self.solution_metadata["owner"],
                 farm_name=self.farm_name,
                 expiration=self.expiration,
-                currency=self.currency.value,
+                currency=self.currency,
                 **self.query,
             )
 
         if not self.pool_info:
-            raise StopChatFlow("Bye bye")
+            raise StopChatFlow("Failed to reserve resources for your app")
 
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
@@ -118,8 +127,8 @@ class CryptpadDeploy(MarketPlaceChatflow):
     def reservation(self):
         container_flist = f"https://hub.grid.tf/tf-bootable/3bot-ubuntu-18.04.flist"
         metadata = {
-            "name": self.solution_name.value,
-            "form_info": {"chatflow": "ubuntu", "Solution name": self.solution_name.value},
+            "name": self.solution_name,
+            "form_info": {"chatflow": "ubuntu", "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
         self.resv_id = deployer.deploy_container(
@@ -131,7 +140,7 @@ class CryptpadDeploy(MarketPlaceChatflow):
             cpu=1,
             memory=1024,
             env={"pub_key": self.public_key},
-            interactive=True,
+            interactive=False,
             entrypoint="/bin/bash /start.sh",
             **self.solution_metadata,
             solution_uuid=self.solution_id,
@@ -142,7 +151,8 @@ class CryptpadDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True)
     def ubuntu_access(self):
-        self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+        if self.wgconf:
+            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         res = f"""\
     # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
     \n<br />\n
@@ -151,4 +161,4 @@ class CryptpadDeploy(MarketPlaceChatflow):
         self.md_show(res, md=True)
 
 
-chat = CryptpadDeploy
+chat = UbuntuDeploy
