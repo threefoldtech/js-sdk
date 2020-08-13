@@ -54,7 +54,7 @@ class Peertube(MarketPlaceChatflow):
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
-        self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
+        # self.solution_name = f"{self.threebot_name}-{self.solution_name}"
 
     @chatflow_step(title="Currency")
     def peertube_currency(self):
@@ -99,8 +99,6 @@ class Peertube(MarketPlaceChatflow):
     @chatflow_step()
     def peertube_deploy(self):
         # this step provisions the pool for the solution and network if he is new user.
-        # depends on:
-        # create solution pool
         available_farms = []
         for farm_name in FARM_NAMES:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
@@ -121,6 +119,11 @@ class Peertube(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            # import pdb; pdb.set_trace()
+            self.wgconf = None
+            if not result:
+                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -131,6 +134,7 @@ class Peertube(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+
         if not self.pool_info:
             raise StopChatFlow("Bye bye")
 
@@ -140,7 +144,7 @@ class Peertube(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
+            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
