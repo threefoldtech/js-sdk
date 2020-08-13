@@ -41,7 +41,6 @@ class Peertube(GedisChatBot):
     @chatflow_step(title="Email")
     def peertube_email(self):
         self.email = deployer.ask_email(self)
-        self.container_resources()
 
     def container_resources(self):
         self.resources = dict()
@@ -64,6 +63,7 @@ class Peertube(GedisChatBot):
         form.ask()
         self.vol_size = int(vol_disk_size.value)
         self.vol_mount_point = "/var/www/peertube/storage/"
+        self.container_resources()
 
     @chatflow_step(title="Pool")
     def select_pool(self):
