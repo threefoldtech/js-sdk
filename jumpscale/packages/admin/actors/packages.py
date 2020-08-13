@@ -54,7 +54,7 @@ class Packages(BaseActor):
         try:
             package_module = getattr(j.packages, name)
         except AttributeError:
-            raise j.exceptions.NotFound('package with name "{name}" cannot be found')
+            raise j.exceptions.NotFound(f'package with name "{name}" cannot be found')
 
         path = package_module.__path__[0]
         return self.add_package(path=path, extras=extras)
