@@ -25,18 +25,15 @@ class MattermostDeploy(MarketPlaceChatflow):
         self.solution_metadata = dict()
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
-        self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
 
     @chatflow_step(title="Solution name")
     def mattermost_info(self):
-        form = self.new_form()
-        #
         valid = False
         while not valid:
-            self.solution_name = form.string_ask("Please enter a name for your mattermost", required=True)
+            self.solution_name = self.string_ask("Please enter a name for your mattermost", required=True)
             mattermost_solutions = solutions.list_mattermost_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in mattermost_solutions:
@@ -47,12 +44,13 @@ class MattermostDeploy(MarketPlaceChatflow):
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
 
+        form = self.new_form()
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
         form.ask()
         self.currency = self.currency.value
-        self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
+        self.query = {"sru": int(self.vol_size.value) + 1}
 
     @chatflow_step()
     def mattermost_expiration(self):
@@ -83,6 +81,10 @@ class MattermostDeploy(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f"Failed to reserve pool {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -183,11 +185,14 @@ class MattermostDeploy(MarketPlaceChatflow):
         self.solution_url = f"https://{self.domain}"
 
         # create volume
-        vol_size = 20
         vol_mount_point = "/var/lib/mysql/"
         volume_config = {}
         vol_id = deployer.deploy_volume(
-            self.pool_id, self.selected_node.node_id, vol_size, solution_uuid=self.solution_id, **self.metadata,
+            self.pool_id,
+            self.selected_node.node_id,
+            int(self.vol_size.value),
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
@@ -201,7 +206,7 @@ class MattermostDeploy(MarketPlaceChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.HUB_URL,
-            cpu=2,
+            cpu=1,
             memory=1024,
             env=var_dict,
             interactive=False,
@@ -237,7 +242,7 @@ class MattermostDeploy(MarketPlaceChatflow):
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
-    def container_acess(self):
+    def mattermost_acess(self):
         res = f"""\
 # mattermost has been deployed successfully:
 \n<br />\n
