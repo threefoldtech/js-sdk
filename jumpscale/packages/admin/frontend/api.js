@@ -100,6 +100,14 @@ const apiClient = {
         data: { path: path, giturl: giturl, extras: extras }
       })
     },
+    addInternal: (name, extras) => {
+      return axios({
+        url: `${baseURL}/packages/add_internal_package`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name, extras: extras }
+      })
+    },
     delete: (name) => {
       return axios({
         url: `${baseURL}/packages/delete_package`,

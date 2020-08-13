@@ -9,7 +9,6 @@
       return {
         package: true,
         name: "chatflows",
-        path: "/sandbox/code/github/js-next/js-sdk/jumpscale/packages/chatflows"
       }
     },
     computed: {
