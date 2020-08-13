@@ -243,5 +243,60 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
+    def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
+        cu, su = self.calculate_capacity_units(**resources)
+        pool_info = j.sals.zos.pools.create(int(cu*expiration), int(su*expiration), farm_name, [currency])
+        self.show_payment(pool_info, bot)
+        pool_factory = StoredFactory(UserPool)
+        user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
+        user_pool.owner = username
+        user_pool.pool_id = pool_info.reservation_id
+        user_pool.save()
+        return pool_info
+
+    def wait_pool_payment(self, bot, pool_id, exp=5):
+        expiration = j.data.time.now().timestamp + exp * 60
+
+        while j.data.time.get().timestamp < expiration:
+            bot.md_show_update("A7na hena bnwait ll pool")
+            pool = j.sals.zos.pools.get(pool_id)
+            if pool.cus > 0 or pool.sus > 0 :
+                return True
+
+        return False
+
+    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
+        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+        self.wait_pool_payment(bot, pool_info.reservation_id)
+        access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+            1, farm_names=[farm_name], ip_version="IPv4"
+        )[0]
+
+        result = self.deploy_network(
+            name=f"{username}_apps",
+            access_node=access_node,
+            ip_range="10.100.0.0/16",
+            ip_version="IPv4",
+            pool_id=pool_info.reservation_id,
+            owner=username
+        )
+        for wid in result["ids"]:
+            success = self.wait_workload(wid, bot=bot)
+            if not success:
+                for wid in result["ids"]:
+                    j.sals.zos.workloads.decomession(wid)
+                return None, None
+        wgcfg = result["wg"]
+        return pool_info, wgcfg
+
+    def ask_expiration(self, bot):
+        self.expiration = bot.datetime_picker(
+            "Please enter solution expiration time.",
+            required=True,
+            min_time=[3600, "Date/time should be at least 1 hour from now"],
+            default=j.data.time.get().timestamp + 3900,
+        )
+        return  self.expiration - j.data.time.get().timestamp
+
 
 deployer = MarketPlaceDeployer()
