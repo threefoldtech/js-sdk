@@ -140,6 +140,14 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
+  discourse: {
+    topic: "discourse",
+    type: "discourse",
+    name: "Discourse",
+    image: "./assets/discourse.png",
+    url: "/solutions/discourse",
+    description: "Deploy a discourse instance on the grid."
+  },
   cryptpad: {
     topic: "cryptpad_deploy",
     type: "cryptpad",

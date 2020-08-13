@@ -4,66 +4,67 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 import uuid
 from jumpscale.sals.reservation_chatflow import deployer
+import nacl
+import nacl.signing
 import random
 
 
-class Peertube(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
+class Discourse(GedisChatBot):
+    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse_all_in_one-latest.flist"
 
     steps = [
-        "peertube_start",
-        "peertube_name",
-        "peertube_email",
-        "volume_details",
+        "discourse_start",
+        "discourse_name",
+        "discourse_smtp_info",
+        "discourse_email",
         "select_pool",
-        "peertube_network",
+        "discourse_network",
         "overview",
         "reservation",
-        "peertube_access",
+        "discourse_access",
     ]
 
-    title = "Peertube"
+    title = "Discourse"
 
     @chatflow_step()
-    def peertube_start(self):
+    def discourse_start(self):
         self.solution_id = uuid.uuid4().hex
-        self.user_form_data = dict()
         self.query = dict()
-        self.user_form_data["chatflow"] = "peertube"
-        self.md_show("# This wizard will help you deploy peertube", md=True)
+        self.md_show("# This wizard will help you deploy discourse", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
-    def peertube_name(self):
+    def discourse_name(self):
         self.solution_name = deployer.ask_name(self)
 
+    @chatflow_step(title="SMTP information")
+    def discourse_smtp_info(self):
+        form = self.new_form()
+        self.smtp_server = form.string_ask("SMTP server address", required=True)
+        self.smtp_username = form.string_ask("SMTP server username", required=True)
+        self.smtp_password = form.secret_ask("SMTP server password", required=True)
+        form.ask()
+        self.smtp_server = self.smtp_server.value
+        self.smtp_username = self.smtp_username.value
+        self.smtp_password = self.smtp_password.value
+
     @chatflow_step(title="Email")
-    def peertube_email(self):
+    def discourse_email(self):
         self.email = deployer.ask_email(self)
         self.container_resources()
 
     def container_resources(self):
         self.resources = dict()
         self.resources["cpu"] = 1
-        self.resources["memory"] = 1024
-        self.resources["disk_size"] = 1024
+        self.resources["memory"] = 2048
+        self.resources["disk_size"] = 4096
         self.resources["default_disk_type"] = "SSD"
         self.query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024) + self.vol_size,
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-
-    @chatflow_step(title="Volume details")
-    def volume_details(self):
-        form = self.new_form()
-        vol_disk_size = form.single_choice(
-            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True,
-        )
-        form.ask()
-        self.vol_size = int(vol_disk_size.value)
-        self.vol_mount_point = "/var/www/peertube/storage/"
 
     @chatflow_step(title="Pool")
     def select_pool(self):
@@ -71,14 +72,28 @@ class Peertube(GedisChatBot):
         self.pool_id = deployer.select_pool(self, cu=cu, su=su)
 
     @chatflow_step(title="Network")
-    def peertube_network(self):
+    def discourse_network(self):
         self.network_view = deployer.select_network(self)
         self.container_node_id()
+        self.container_ip()
         self.select_domain()
 
     def container_node_id(self):
         self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
-        self.ip_address = self.network_view.get_free_ip(self.selected_node)
+
+    def container_ip(self):
+        self.network_view_copy = self.network_view.copy()
+        result = deployer.add_network_node(
+            self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, bot=self
+        )
+        if result:
+            self.md_show_update("Deploying Network on Nodes....")
+            for wid in result["ids"]:
+                success = deployer.wait_workload(wid)
+                if not success:
+                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+            self.network_view_copy = self.network_view_copy.copy()
+        self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
     def select_domain(self):
         gateways = deployer.list_all_gateways()
@@ -114,7 +129,6 @@ class Peertube(GedisChatBot):
             "Memory": self.resources["memory"],
             "Disk Size": self.resources["disk_size"],
             "IP Address": self.ip_address,
-            "Domain Name": self.domain,
         }
         self.md_show_confirm(self.metadata)
 
@@ -122,21 +136,32 @@ class Peertube(GedisChatBot):
     def reservation(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
+            "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
+        }
+        threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode("utf-8")
+
+        env = {
+            "pub_key": "",
+            "DISCOURSE_VERSION": "staging",
+            "RAILS_ENV": "production",
+            "DISCOURSE_HOSTNAME": self.domain,
+            "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
+            "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
+            "DISCOURSE_DEVELOPER_EMAILS": self.email,
+            "DISCOURSE_SMTP_PORT": "587",
+            "THREEBOT_URL": "https://login.threefold.me",
+            "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
 
-        # deploy volume
-        vol_id = deployer.deploy_volume(
-            self.pool_id, self.selected_node.node_id, self.vol_size, solution_uuid=self.solution_id, **metadata,
-        )
-        success = deployer.wait_workload(vol_id, self)
-        if not success:
-            raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
-        volume_config = {self.vol_mount_point: vol_id}
+        secret_env = {
+            "THREEBOT_PRIVATE_KEY": threebot_private_key,
+            "FLASK_SECRET_KEY": str(uuid.uuid4()),
+            "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
+        }
 
         # reserve subdomain
         _id = deployer.create_subdomain(
-            pool_id=self.pool_id,
+            pool_id=self.gateway_pool.pool_id,
             gateway_id=self.gateway.node_id,
             subdomain=self.domain,
             addresses=self.addresses,
@@ -147,7 +172,6 @@ class Peertube(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
-        self.threebot_url = f"https://{self.domain}"
 
         # expose threebot container
         _id = deployer.expose_address(
@@ -161,6 +185,7 @@ class Peertube(GedisChatBot):
             node_id=self.selected_node.node_id,
             reserve_proxy=True,
             domain_name=self.domain,
+            proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
             **metadata,
         )
@@ -169,7 +194,7 @@ class Peertube(GedisChatBot):
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
-        entrypoint = f'/usr/local/bin/startup.sh "{self.domain}" "{self.email}"'
+        entrypoint = f"/.start_discourse.sh"
         self.entrypoint = entrypoint
         # reserve container
         self.resv_id = deployer.deploy_container(
@@ -182,8 +207,8 @@ class Peertube(GedisChatBot):
             memory=self.resources["memory"],
             disk_size=self.resources["disk_size"],
             entrypoint=entrypoint,
-            env={"pub_key": ""},
-            volumes=volume_config,
+            env=env,
+            secret_env=secret_env,
             interactive=False,
             **metadata,
             solution_uuid=self.solution_id,
@@ -193,12 +218,13 @@ class Peertube(GedisChatBot):
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
-    def peertube_access(self):
+    def discourse_access(self):
         res = f"""\
-# Peertube has been deployed successfully: your reservation id is: {self.resv_id}
-  ``` {self.threebot_url}```.It may take a few minutes.
+# Discourse has been deployed successfully: your reservation id is: {self.resv_id}
+The site is deployed on {self.domain}.
+ It takes approximately 10 minutes to deploy.
                 """
         self.md_show(res, md=True)
 
 
-chat = Peertube
+chat = Discourse

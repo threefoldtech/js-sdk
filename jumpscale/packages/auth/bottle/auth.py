@@ -140,6 +140,7 @@ def callback():
     try:
         tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({"username": username, "email": email}).id
         session["tid"] = tid
+        session["explorer"] = j.core.identity.me.explorer_url
     except Exception as e:
         j.logger.warning(
             f"Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}"
@@ -183,11 +184,33 @@ def get_user_info():
     Returns:
         [JSON string]: [user information session]
     """
+
+    def _valid(tname, temail, explorer_url):
+        if tname != j.core.identity.me.tname:
+            return False
+        if temail != j.core.identity.me.email:
+            return False
+        if explorer_url != j.core.identity.me.explorer_url:
+            return False
+        return True
+
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
     tid = session.get("tid")
-
+    explorer_url = session.get("explorer")
+    # update tid in session when the identity changes
+    if not _valid(tname, temail, explorer_url):
+        session["tid"] = None
+        session["explorer"] = j.core.identity.me.explorer_url
+        try:
+            session["tid"] = j.sals.reservation_chatflow.reservation_chatflow.validate_user(
+                {"username": tname, "email": temail}
+            ).id
+        except Exception as e:
+            j.logger.warning(
+                f"Error in validating user: {tname} with email: {temail} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}"
+            )
     session.get("signedAttempt", "")
     response.content_type = "application/json"
     return j.data.serializers.json.dumps(
