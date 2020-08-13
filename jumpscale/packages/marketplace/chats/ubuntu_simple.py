@@ -84,6 +84,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
                 **self.query,
             )
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            self.wgconf = None
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
         else:
@@ -150,7 +151,8 @@ class UbuntuDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True)
     def ubuntu_access(self):
-        self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+        if self.wgconf:
+            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         res = f"""\
     # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
     \n<br />\n
