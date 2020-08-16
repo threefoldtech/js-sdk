@@ -1082,6 +1082,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         solution_ip,
         solution_port,
         enforce_https=False,
+        test_cert=False,
         node_id=None,
         proxy_pool_id=None,
         bot=None,
@@ -1122,6 +1123,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
             "PUBKEY": public_key,
+            "TEST_CERT": "true" if test_cert else "false",
         }
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
@@ -1145,6 +1147,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             ip_address=ip_address,
             flist="https://hub.grid.tf/asamir.3bot/14443-nginx-certbot-latest.flist",
             disk_type=DiskType.HDD,
+            disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
             secret_env=secret_env,
             public_ipv6=False,
