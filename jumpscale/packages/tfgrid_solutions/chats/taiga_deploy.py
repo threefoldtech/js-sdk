@@ -23,7 +23,6 @@ class TaigaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
-        # "intializing",
         "container_acess",
     ]
     title = "Taiga"
@@ -190,7 +189,7 @@ class TaigaDeploy(GedisChatBot):
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
                 flist=self.HUB_URL,
-                cpu=2,
+                cpu=1,
                 memory=2 * 1024,
                 env=var_dict,
                 interactive=False,

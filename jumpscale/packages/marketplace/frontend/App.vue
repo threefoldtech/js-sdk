@@ -163,6 +163,12 @@ module.exports = {
           path: "/wiki",
           meta: { icon: "mdi-web-box" },
         },
+        {
+          name: "Taiga",
+          type: "taiga",
+          path: "/taiga",
+          meta: { img: "./assets/taiga.png" },
+        },
       ],
       solutions: [
         {
@@ -212,12 +218,6 @@ module.exports = {
           type: "gitea",
           path: "/gitea",
           meta: { img: "./assets/gitea.png" },
-        },
-        {
-          name: "Taiga",
-          type: "taiga",
-          path: "/taiga",
-          meta: { img: "./assets/taiga.png" },
         },
         {
           name: "Solution Expose",
