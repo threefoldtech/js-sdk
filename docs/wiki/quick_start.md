@@ -73,7 +73,7 @@ threebot server can run using `threebot start --local` starts a server on `8443,
 
   ![configure](images/identity_new.png)
 
-- After success you can visit the admin dashboard at http://localhost:8080 or http://localhost:8443  and start creating reservations
+- After success you can visit the admin dashboard at http://localhost:8080 or https://localhost:8443  and start creating reservations
 
   ![configure](images/success.png)
 
