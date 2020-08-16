@@ -3,7 +3,7 @@
 ### Unittests only
 
 ```bash
-pytest . -sv -m "not integration"
+pytest . -sv -m "unittests"
 ```
 
 ### Integration tests only

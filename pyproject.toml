@@ -34,4 +34,5 @@ requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
-markers = ["integration: marks tests as integration (deselect with '-m \"not integration\"')"]
+markers = ["integration: marks tests as integration (deselect with '-m \"not integration\"')",
+           "unittests"]
