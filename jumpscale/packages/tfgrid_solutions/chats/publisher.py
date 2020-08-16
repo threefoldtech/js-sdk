@@ -8,59 +8,77 @@ import uuid
 
 
 class Publisher(GedisChatBot):
-    steps = [
-        "start",
-        "publisher_name",
-        "select_pool",
-        "publisher_network",
-        "configuration",
-        "domain_select",
-        "overview",
-        "deploy",
-        "success",
-    ]
+    # steps = [
+    #     "start",
+    #     "publisher_name",
+    #     "select_pool",
+    #     "publisher_network",
+    #     "configuration",
+    #     "domain_select",
+    #     "overview",
+    #     "deploy",
+    #     "success",
+    # ]
 
-    title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
-    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
+    # title = "Publisher"
+    # welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
+    # publishing_chatflow = "publisher"  # chatflow used to deploy the solution
+
+    # @chatflow_step()
+    # def start(self):
+    #     self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
+    #     self.solution_id = uuid.uuid4().hex
+    #     self.solution_currency = "TFT"
+    #     self.storage_url = "zdb://hub.grid.tf:9900"
+    #     self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
+    #     self.md_show(self.welcome_message, md=True)
+    #     self.solution_metadata = {}
+
+    # @chatflow_step(title="Solution name")
+    # def publisher_name(self):
+    #     valid = False
+    #     while not valid:
+    #         self.solution_name = deployer.ask_name(self)
+    #         publisher_solutions = solutions.list_publisher_solutions(sync=False)
+    #         valid = True
+    #         for sol in publisher_solutions:
+    #             if sol["Name"] == self.solution_name:
+    #                 valid = False
+    #                 self.md_show("The specified solution name already exists. please choose another.")
+    #                 break
+    #             valid = True
+
+    # @chatflow_step(title="Pool")
+    # def select_pool(self):
+    #     query = {
+    #         "cru": self.resources["cpu"],
+    #         "mru": math.ceil(self.resources["memory"] / 1024),
+    #         "sru": math.ceil(self.resources["disk_size"] / 1024),
+    #     }
+    #     cu, su = deployer.calculate_capacity_units(**query)
+    #     self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+
+    # @chatflow_step(title="Network")
+    # def publisher_network(self):
+    #     self.network_view = deployer.select_network(self)
 
     @chatflow_step()
-    def start(self):
-        self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
-        self.solution_id = uuid.uuid4().hex
-        self.solution_currency = "TFT"
-        self.storage_url = "zdb://hub.grid.tf:9900"
-        self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-        self.md_show(self.welcome_message, md=True)
-        self.solution_metadata = {}
+    def publisher_info(self):
+        form = self.new_form()
+        self.solution_name = form.string_ask("Please enter a name for your solution", required=True)
+        disk_sizes = [2, 5, 10]
+        self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
+        self.currency = form.single_choice(
+            "please select the currency you wish ", ["FreeTFT", "TFT", "TFTA"], required=True
+        )
+        form.ask()
+        self.currency = self.currency.value
+        self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
 
-    @chatflow_step(title="Solution name")
-    def publisher_name(self):
-        valid = False
-        while not valid:
-            self.solution_name = deployer.ask_name(self)
-            publisher_solutions = solutions.list_publisher_solutions(sync=False)
-            valid = True
-            for sol in publisher_solutions:
-                if sol["Name"] == self.solution_name:
-                    valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
-                    break
-                valid = True
-
-    @chatflow_step(title="Pool")
-    def select_pool(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
-
-    @chatflow_step(title="Network")
-    def publisher_network(self):
-        self.network_view = deployer.select_network(self)
+    @chatflow_step()
+    def publisher_expiration(self):
+        self.expiration = deployer.ask_expiration(self)
+        print(self.expiration)
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):
@@ -80,13 +98,13 @@ class Publisher(GedisChatBot):
             "EMAIL": self.user_info()["email"],
         }
 
-        query = {
+        self.query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         self.md_show_update("Preparing a node to deploy on ...")
-        self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="Domain")
     def domain_select(self):
