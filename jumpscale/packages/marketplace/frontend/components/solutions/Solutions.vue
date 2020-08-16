@@ -93,6 +93,12 @@ module.exports = {
             "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab.",
         },
         {
+          type: "taiga",
+          name: "Taiga",
+          image: "./assets/taiga.png",
+          description: "Build your 'All in one' Taiga solution.",
+        },
+        {
           type: "network",
           name: "Network",
           icon: "mdi-network-outline",
@@ -157,7 +163,7 @@ module.exports = {
           type: "discourse",
           name: "Discourse",
           image: "./assets/discourse.png",
-          description: "Deploy a discourse instance on the grid."
+          description: "Deploy a discourse instance on the grid.",
         },
         {
           type: "mattermost",
@@ -176,7 +182,8 @@ module.exports = {
           type: "cryptpad",
           name: "Cryptpad",
           image: "./assets/cryptpad.png",
-          description: "CryptPad is the Zero Knowledge realtime collaborative editor.",
+          description:
+            "CryptPad is the Zero Knowledge realtime collaborative editor.",
         },
       ],
       deployedSolutions: {},
