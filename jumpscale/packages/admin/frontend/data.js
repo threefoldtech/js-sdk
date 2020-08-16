@@ -162,7 +162,7 @@ const SOLUTIONS = {
     name: "Taiga",
     image: "./assets/taiga.png",
     url: "/solutions/taiga_deploy",
-    description: "Build your all in one taiga solution"
+    description: "Build your 'All in one' Taiga solution"
   },
   all: {
     topic: "all",

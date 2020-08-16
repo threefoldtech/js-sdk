@@ -155,25 +155,6 @@ class TaigaDeploy(MarketPlaceChatflow):
         self.container_ip()
 
     def container_ip(self):
-        self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
-        self.network_view_copy = self.network_view.copy()
-        result = deployer.add_network_node(
-            self.network_view.name,
-            self.selected_node,
-            self.pool_info.reservation_id,
-            self.network_view_copy,
-            bot=self,
-            owner=self.solution_metadata.get("owner"),
-        )
-        if result:
-            for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
-                if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
-            self.network_view_copy = self.network_view_copy.copy()
-        free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
-        self.ip_address = random.choice(free_ips)
-
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways(self.user_info()["username"])
         if not gateways:

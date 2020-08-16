@@ -96,7 +96,7 @@ module.exports = {
           type: "taiga",
           name: "Taiga",
           image: "./assets/taiga.png",
-          description: "Build your all in one taiga solution.",
+          description: "Build your 'All in one' Taiga solution.",
         },
         {
           type: "network",
@@ -163,7 +163,7 @@ module.exports = {
           type: "discourse",
           name: "Discourse",
           image: "./assets/discourse.png",
-          description: "Deploy a discourse instance on the grid."
+          description: "Deploy a discourse instance on the grid.",
         },
         {
           type: "mattermost",
