@@ -298,7 +298,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             WorkloadType.Container
         ].values():
             for workload in container_workloads:
-                if workload.flist == "https://hub.grid.tf/asamir.3bot/14443-nginx-certbot-latest.flist":
+                if workload.flist == "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-nginx-certbot-latest.flist":
                     continue
                 if not workload.info.metadata:
                     continue
@@ -363,7 +363,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             WorkloadType.Container
         ].values():
             for workload in container_workloads:
-                if workload.flist != "https://hub.grid.tf/asamir.3bot/14443-nginx-certbot-latest.flist":
+                if workload.flist != "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-nginx-certbot-latest.flist":
                     continue
                 if not workload.info.metadata:
                     continue
