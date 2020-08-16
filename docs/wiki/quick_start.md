@@ -115,7 +115,7 @@ Before we get to deploying the actual Ubuntu container, we need to create a capa
 First step is to choose whether you want to create a new pool or extend an existing one.
 ![](images/pool1.png)
 
-How much cu(cpu)/su(memory) your pool needs and the type of something you will pay for.
+How much cu(cpu)/su(memory) your pool needs and the type of token you will pay with.
 ![](images/pool2.png)
 
 Choose the farm for your pool
