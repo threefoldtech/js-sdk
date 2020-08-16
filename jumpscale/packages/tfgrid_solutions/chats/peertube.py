@@ -124,10 +124,15 @@ class Peertube(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
         }
+        self.solution_metadata.update(metadata)
 
         # deploy volume
         vol_id = deployer.deploy_volume(
-            self.pool_id, self.selected_node.node_id, self.vol_size, solution_uuid=self.solution_id, **metadata,
+            self.pool_id,
+            self.selected_node.node_id,
+            self.vol_size,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
@@ -141,7 +146,7 @@ class Peertube(GedisChatBot):
             subdomain=self.domain,
             addresses=self.addresses,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         success = deployer.wait_workload(_id, self)
@@ -162,7 +167,7 @@ class Peertube(GedisChatBot):
             reserve_proxy=True,
             domain_name=self.domain,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:
@@ -185,7 +190,7 @@ class Peertube(GedisChatBot):
             env={"pub_key": ""},
             volumes=volume_config,
             interactive=False,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)
