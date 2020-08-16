@@ -107,15 +107,15 @@ There are two options to be create a wallet, first is using the jsng shell where
 Now that the wallet is setup, you are ready for your first deployment.
 
 ## Adding tokens to a stellar wallet
-[Press here](https://github.com/threefoldfoundation/info_gridmanual/blob/development_capacitypool/src/2_gettingstarted/getting_started_get_tft.md)
+To know how to obtain tokens [see here](https://github.com/threefoldfoundation/info_gridmanual/blob/development_capacitypool/src/2_gettingstarted/getting_started_get_tft.md)
 
 ## Create your Capacity pool
-Before we get to deploy the actual Ubuntu container, we first need to create your capacity pool for any solutions use it.
+Before we get to deploying the actual Ubuntu container, we need to create a capacity pool which will be used by any solutions deployed.
 
-First step is to choose you want to create new pool or extend existing one
+First step is to choose whether you want to create a new pool or extend an existing one.
 ![](images/pool1.png)
 
-Choose how much your pool need (CU/SU) and the type of you will pay.
+How much cu(cpu)/su(memory) your pool needs and the type of something you will pay for.
 ![](images/pool2.png)
 
 Choose the farm for your pool
@@ -138,7 +138,7 @@ To start the wizard click the left menu on Solutions then Network then Create ne
 
 ![solutions menu](images/solutions_list.png)
 
-First step is to choose you want to create new network or add access to specific node in your network.
+First step is to choose whether you want to create a new network or add access to a specific node.
 
 ![choose network name](images/network1.png)
 
