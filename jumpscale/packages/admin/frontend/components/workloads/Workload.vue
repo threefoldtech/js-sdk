@@ -15,7 +15,7 @@
                     <td v-if="KeysWithTypeList.includes(key)" class="pt-2">
                       <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
                     </td>
-                    <td v-if="KeysWithTypeDict.includes(key)" class="pt-2">
+                    <td v-else-if="KeysWithTypeDict.includes(key)" class="pt-2">
                       <v-chip
                         class="ma-1"
                         v-for="(subItem, subkey) in item"
