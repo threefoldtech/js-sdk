@@ -37,7 +37,7 @@
     <v-navigation-drawer
       v-if="sidebar"
       color="primary"
-      class="elevation-3 "
+      class="elevation-3"
       :mini-variant="mini"
       app
       permanent
@@ -70,7 +70,7 @@
         <v-list-group no-action value="true" color="white">
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title  >Advanced Solutions</v-list-item-title>
+              <v-list-item-title>Advanced Solutions</v-list-item-title>
             </v-list-item-content>
           </template>
 
@@ -162,6 +162,12 @@ module.exports = {
           type: "wiki",
           path: "/wiki",
           meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Taiga",
+          type: "taiga",
+          path: "/taiga",
+          meta: { img: "./assets/taiga.png" },
         },
       ],
       solutions: [
