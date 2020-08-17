@@ -38,14 +38,6 @@ class MarketPlaceChatflow(GedisChatBot):
                 f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
             )
 
-    def _init_solution(self):
-        self._validate_user()
-        self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.query = dict()
-
     def _get_pool(self):
         available_farms = []
         for farm_name in FARM_NAMES:
@@ -145,6 +137,15 @@ class MarketPlaceChatflow(GedisChatBot):
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
+
+    @chatflow_step
+    def start(self):
+        self._validate_user()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
+        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.query = dict()
 
     @chatflow_step(title="Solution Name")
     def solution_name(self):

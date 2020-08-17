@@ -23,7 +23,7 @@ class CryptpadDeploy(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        self._init_solution()
+        super().start()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
         self.md_show("# This wizard will help you deploy a cryptpad solution", md=True)
 
@@ -57,7 +57,7 @@ class CryptpadDeploy(MarketPlaceChatflow):
         self.workload_ids = []
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "cryptpad", "Solution name": self.solution_name},
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
 

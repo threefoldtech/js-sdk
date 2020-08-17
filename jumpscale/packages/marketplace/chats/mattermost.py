@@ -24,7 +24,7 @@ class MattermostDeploy(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        self._init_solution()
+        super().start()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
         self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
 
@@ -61,7 +61,11 @@ class MattermostDeploy(MarketPlaceChatflow):
         }
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost",},
+            "form_info": {
+                "Solution name": self.solution_name,
+                "Domain name": self.domain,
+                "chatflow": self.SOLUTION_TYPE,
+            },
         }
         self.solution_metadata.update(metadata)
 

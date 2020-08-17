@@ -9,7 +9,7 @@ class BlogDeploy(Publisher):
 
     title = "Deploy Blog"
     welcome_message = "This wizard will help you publish your blog."
-    publishing_chatflow = "blog"  # chatflow used to deploy the solution
+    SOLUTION_TYPE = "blog"  # chatflow used to deploy the solution
 
     @chatflow_step(title="blog Setup")
     def configuration(self):

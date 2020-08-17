@@ -7,9 +7,8 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 class Publisher(MarketPlaceChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
-    SOLUTION_TYPE = "publisher"
+    SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
-    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
     welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
@@ -25,7 +24,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        self._init_solution()
+        super().start()
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.query = {"cru": 1, "mru": 1, "sru": 2}
         self.md_show(self.welcome_message, md=True)
@@ -57,7 +56,7 @@ class Publisher(MarketPlaceChatflow):
     def deploy(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": self.publishing_chatflow},
+            "form_info": {"Solution name": self.solution_name, "chatflow": self.SOLUTION_TYPE},
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []

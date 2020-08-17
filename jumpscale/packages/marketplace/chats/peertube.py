@@ -24,7 +24,7 @@ class Peertube(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        self._init_solution()
+        super().start()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
         self.md_show("# This wizard will help you deploy peertube", md=True)
 
@@ -58,7 +58,7 @@ class Peertube(MarketPlaceChatflow):
     def reservation(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "peertube", "Solution name": self.solution_name},
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
 
