@@ -70,6 +70,7 @@ module.exports = {
         "logs",
         "secret",
         "password",
+        "volumes",
       ],
     };
   },
