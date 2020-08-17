@@ -89,5 +89,8 @@ module.exports = {
       this.dialogs.cancelSolution = true;
     },
   },
+  updated() {
+    this.tab = 0;
+  },
 };
 </script>
