@@ -1,7 +1,8 @@
 import uuid
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-
+from jumpscale.loader import j
+import random
 
 class GiteaDeploy(GedisChatBot):
     """
@@ -28,7 +29,8 @@ class GiteaDeploy(GedisChatBot):
     def gitea_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
-        self.HUB_URL = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-http_gitea_all_in_one-latest.flist"
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
@@ -124,6 +126,29 @@ class GiteaDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
+        self.md_show_update("Preparing gateways ...")
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+
+        domains = dict()
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
+            for domain in gateway.managed_domains:
+                domains[domain] = gw_dict
+
+        self.domain = random.choice(list(domains.keys()))
+
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
+        self.solution_name = self.solution_name.replace(".", "").replace("_", "-")
+        self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -146,7 +171,7 @@ class GiteaDeploy(GedisChatBot):
             "POSTGRES_USER": self.database_user,
             "APP_NAME": self.repository_name,
             "ROOT_URL": f"https://{self.ip_address}",
-            "HTTP_PORT": 3000,
+            "HTTP_PORT": "3000",
             "DOMAIN": f"{self.ip_address}",
         }
         metadata = {
@@ -154,7 +179,21 @@ class GiteaDeploy(GedisChatBot):
             "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
         }
         self.solution_metadata.update(metadata)
+        # reserve subdomain
+        subdomain_wid = deployer.create_subdomain(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
+        )
+        subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
+        if not subdomain_wid:
+            raise StopChatFlow(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}"
+            )
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -178,6 +217,28 @@ class GiteaDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
+            # expose solution on nginx container
+        _id = deployer.expose_and_create_certificate(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                network_name=self.network_view.name,
+                trc_secret=self.secret,
+                domain=self.domain,
+                email=self.user_info()["email"],
+                solution_ip=self.ip_address,
+                test_cert= True,
+                solution_port=3000,
+                enforce_https=False,
+                node_id=self.selected_node.node_id,
+                solution_uuid=self.solution_id,
+                **metadata,
+            )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+                # solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+        self.container_url_https = f"https://{self.domain}"
+        self.container_url_http = f"http://{self.domain}"
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
         res = f"""\
@@ -185,7 +246,7 @@ class GiteaDeploy(GedisChatBot):
 \n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
 \n<br />\n
-open gitea from browser at ```{self.ip_address}:3000```
+open gitea from browser at {self.container_url_http} or \n {self.container_url_https} 
                 """
         self.md_show(res, md=True)
 
