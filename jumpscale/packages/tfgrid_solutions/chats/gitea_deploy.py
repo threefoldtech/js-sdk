@@ -170,9 +170,9 @@ class GiteaDeploy(GedisChatBot):
             "DB_HOST": "localhost:5432",
             "POSTGRES_USER": self.database_user,
             "APP_NAME": self.repository_name,
-            "ROOT_URL": f"https://{self.ip_address}",
+            "ROOT_URL": f"https://{self.domain}",
             "HTTP_PORT": "3000",
-            "DOMAIN": f"{self.ip_address}",
+            "DOMAIN": f"{self.domain}",
         }
         metadata = {
             "name": self.solution_name,
