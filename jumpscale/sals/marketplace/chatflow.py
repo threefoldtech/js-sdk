@@ -84,6 +84,7 @@ class MarketPlaceChatflow(GedisChatBot):
         if not self.pool_info:
             raise StopChatFlow(f"Failed to deploy solution {self.pool_info}")
         self.pool_id = self.pool_info.reservation_id
+        return self.pool_id
 
     def _deploy_network(self):
         # get ip address
@@ -107,6 +108,7 @@ class MarketPlaceChatflow(GedisChatBot):
                         raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
+        return self.ip_address
 
     def _get_domain(self):
         # get domain for the ip address
@@ -142,6 +144,7 @@ class MarketPlaceChatflow(GedisChatBot):
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
+        return self.domain
 
     @chatflow_step(title="Solution Name")
     def solution_name(self):
