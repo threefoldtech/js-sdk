@@ -10,6 +10,7 @@ class Publisher(MarketPlaceChatflow):
     SOLUTION_TYPE = "publisher"
     title = "Publisher"
     publishing_chatflow = "publisher"  # chatflow used to deploy the solution
+    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
         "solution_name",
@@ -27,7 +28,7 @@ class Publisher(MarketPlaceChatflow):
         self._init_solution()
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.query = {"cru": 1, "mru": 1, "sru": 2}
-        self.md_show("This wizard will help you publish a Wiki, a Website or Blog", md=True)
+        self.md_show(self.welcome_message, md=True)
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):
@@ -124,7 +125,7 @@ class Publisher(MarketPlaceChatflow):
                 flist=self.FLIST_URL,
                 env=self.envars,
                 cpu=self.query["cru"],
-                memory=self.query["mru"],
+                memory=self.query["mru"] * 1024,
                 disk_size=self.query["sru"] * 1024,
                 entrypoint="/bin/bash /start.sh",
                 secret_env=secret_env,
