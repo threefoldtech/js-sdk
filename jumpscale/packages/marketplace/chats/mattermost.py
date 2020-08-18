@@ -16,6 +16,7 @@ class MattermostDeploy(MarketPlaceChatflow):
         "mattermost_info",
         "solution_expiration",
         "payment_currency",
+        "pay_service_fees",
         "infrastructure_setup",
         "overview",
         "reservation",
