@@ -365,6 +365,11 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
+        if "FreeTFT" in assets:
+            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool_id)
+            for node in pool_nodes:
+                if not node.free_to_use:
+                    assets.remove("FreeTFT")
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
