@@ -4,11 +4,11 @@ from nacl.encoding import Base64Encoder
 from nacl.public import PrivateKey
 
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
 
 
-class TaigaDeploy(MarketPlaceChatflow):
+class TaigaDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
     SOLUTION_TYPE = "taiga"
     title = "Taiga"

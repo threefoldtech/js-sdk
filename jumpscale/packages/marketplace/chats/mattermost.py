@@ -2,11 +2,11 @@ from textwrap import dedent
 
 from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy as BaseMattermostDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
 
 
-class MattermostDeploy(MarketPlaceChatflow):
+class MattermostDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
     SOLUTION_TYPE = "mattermost"
     title = "Mattermost"
