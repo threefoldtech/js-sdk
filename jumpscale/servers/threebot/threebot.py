@@ -429,7 +429,7 @@ class PackageManager(Base):
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in self.threebot.rack._servers:
+        for bottle_server in list(self.threebot.rack._servers):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
