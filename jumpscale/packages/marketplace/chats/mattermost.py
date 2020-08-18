@@ -24,7 +24,7 @@ class MattermostDeploy(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        super().start()
+        self._init_solution()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
         self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
 
@@ -51,7 +51,7 @@ class MattermostDeploy(MarketPlaceChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(title="Reservation")
+    @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         var_dict = {
             "MYSQL_ROOT_PASSWORD": "mostest",
@@ -144,7 +144,7 @@ class MattermostDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        super().success()
+        self._wgconf_show_check()
         message = f"""\
 # mattermost has been deployed successfully:
 \n<br />\n

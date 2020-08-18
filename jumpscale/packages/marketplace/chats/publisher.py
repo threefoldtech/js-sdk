@@ -24,7 +24,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step()
     def start(self):
-        super().start()
+        self._init_solution()
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.query = {"cru": 1, "mru": 1, "sru": 2}
         self.md_show(self.welcome_message, md=True)
@@ -142,7 +142,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        super().success()
+        self._wgconf_show_check()
         message = f"""## Deployment success
 \n<br>\n
 You can access your container using:
