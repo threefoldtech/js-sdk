@@ -35,22 +35,24 @@
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
     - We defined some required steps in chatflow baseclass, you have to put them in your steps `["start", "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
-    - In the `start` and `success` steps, you have to override them and call the base class method.
-        - In start step, you have to override the value of the `self.query` that your app needs.
 
-        - `start` step example
+    - In the `start` step, you have to:
+        1. Call `self._init_solution()` in the first line to initialize some props.
+
+        2. Override the value of the `self.query` that your app needs.
             ```python
             @chatflow_step()
             def start(self):
-                super().start()
+                self._init_solution()
                 self.query = {"cru": 1, "mru": 1, "sru": 1}
                 self.md_show("# This wizard will help you deploy an App", md=True)
             ```
-        - `success` step example
+    - In the `success` step, you have to:
+        1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.
             ```python
             @chatflow_step(title="Success", disable_previous=True, final_step=True)
             def success(self):
-                super().success()
+                self._wgconf_show_check()
                 message = "success message"
                 self.md_show(message, md=True)
             ```

@@ -120,7 +120,6 @@ class CryptpadDeploy(MarketPlaceChatflow):
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
-
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
