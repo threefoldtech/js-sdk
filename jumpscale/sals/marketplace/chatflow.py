@@ -58,6 +58,10 @@ class MarketPlaceChatflow(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.query = dict()
 
+    def _wgconf_show_check(self):
+        if hasattr(self, "wgconf"):
+            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+
     def _get_pool(self):
         available_farms = []
         for farm_name in FARM_NAMES:
@@ -258,8 +262,3 @@ Please make the transaction and press Next
         self._get_pool()
         self._deploy_network()
         self._get_domain()
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        if hasattr(self, "wgconf"):
-            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)

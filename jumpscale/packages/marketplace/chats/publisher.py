@@ -7,9 +7,8 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 class Publisher(MarketPlaceChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
-    SOLUTION_TYPE = "publisher"
+    SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
-    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
     welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
@@ -58,7 +57,7 @@ class Publisher(MarketPlaceChatflow):
     def deploy(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": self.publishing_chatflow},
+            "form_info": {"Solution name": self.solution_name, "chatflow": self.SOLUTION_TYPE},
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
@@ -144,7 +143,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        super().success()
+        self._wgconf_show_check()
         message = f"""## Deployment success
 \n<br>\n
 You can access your container using:

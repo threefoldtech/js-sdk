@@ -52,12 +52,14 @@ class CryptpadDeploy(MarketPlaceChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(title="Reservation")
+    @chatflow_step(
+        title="Reservation", disable_previous=True,
+    )
     def reservation(self):
         self.workload_ids = []
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "cryptpad", "Solution name": self.solution_name},
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
 
@@ -118,7 +120,6 @@ class CryptpadDeploy(MarketPlaceChatflow):
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
-
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -143,7 +144,7 @@ class CryptpadDeploy(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        super().success()
+        self._wgconf_show_check()
         message = f"""\
 # Cryptpad has been deployed successfully:\n<br>
 Reservation id: {self.workload_ids[-1]}\n
