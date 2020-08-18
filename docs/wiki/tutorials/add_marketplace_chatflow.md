@@ -21,20 +21,20 @@
     ```
 3. Define your chatflow steps:
     ```python
-    steps = [
-        "start", # required
-        "solution_name", # required
-        "app_info_steps",
-        "solution_expiration", # required
-        "payment_currency", # required
-        "infrastructure_setup", # required
-        "overview",
-        "reservation",
-        "success", # required
-    ]
+        steps = [
+            "start", # required
+            "solution_name", # required
+            "app_info_steps",
+            "solution_expiration", # required
+            "payment_currency", # required
+            "infrastructure_setup", # required
+            "overview",
+            "reservation",
+            "success", # required
+        ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps.
+    - We defined some required steps in chatflow baseclass, you have to put them in your steps `["start", "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
     - In the `start` and `success` steps, you have to override them and call the base class method.
         - In start step, you have to override the value of the `self.query` that your app needs.
 
@@ -80,7 +80,7 @@
     ```
 
 ## Define your list app method
-- Add your `list_{SOLUTION_TYPE}_method` in `sals/marketplace/solutions` module to list all yous instances and shown in the frontend or use from shell.
+- Add your `list_{SOLUTION_TYPE}_method` in `sals/marketplace/solutions` module to list all your instances and use in the frontend or shell.
     - `SOLUTION_TYPE` that you defined in the previous step.
 - And for returning your solution count should append your `{SOLUTION_TYPE}` in the `count_dict` in `count_solutions` method in the same module
 
