@@ -2,12 +2,17 @@
 
 Describe the changes introduced by this PR and what does it affect
 
+### Changes
+
+List of changes this PR includes
+
 ### Related Issues
 
-List of relarted issues
+List of related issues
 
 ### Checklist
 
-- [] Tests included
-- [] Build pass
-- [] Code format and docstrings
+- [ ] Tests included
+- [ ] Build pass
+- [ ] Documentation
+- [ ] Code format and docstrings
