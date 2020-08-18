@@ -370,6 +370,7 @@ class ChatflowDeployer:
             for node in pool_nodes:
                 if not node.free_to_use:
                     assets.remove("FreeTFT")
+                    break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
