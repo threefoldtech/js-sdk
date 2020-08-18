@@ -14,7 +14,7 @@
           :items="data"
           @click:row="open"
         >
-          <template v-slot:item.epoch="{ item }">{{ new Date(item.epoch * 1000).toLocaleString() }}</template>
+          <template v-slot:item.epoch="{ item }">{{ item.epoch }}</template>
           <template v-slot:body.prepend="{ headers }">
             <tr>
               <td></td>
@@ -141,6 +141,14 @@ module.exports = {
             }
             if (!this.types.includes(workload.workload_type)) {
               this.types.push(workload.workload_type);
+            }
+            workload.epoch = new Date(workload.epoch * 1000).toLocaleString();
+            if (workload.workload_type === "Volume")
+              workload.type = VOLUMES_TYPE[workload.type];
+            if (workload.workload_type === "Container") {
+              workload.capacity.disk_type =
+                VOLUMES_TYPE[workload.capacity.disk_type];
+              workload.network_connection = workload.network_connection[0];
             }
           }
         })
