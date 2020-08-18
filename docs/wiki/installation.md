@@ -41,7 +41,7 @@ This version of the SDK tries to be isolated as possible in case of developers o
   poetry shell
   ```
 
-## Runnning 3bot
+## Runnning threebot
 
 After the installation steps you should have an executable `threebot`
 
@@ -63,7 +63,7 @@ to be able to run as a normal user, you don't need it if you are root.
   threebot start
   ```
 
-- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+- This will take you to configure your identity, It will ask you about your the network you want to use, threebot name, email, and words.
 
 - Then it will start threebot server you will see some thing like that
 
@@ -73,5 +73,5 @@ to be able to run as a normal user, you don't need it if you are root.
 
   ![configure](images/success.png)
 
-## Stopping 3bot
+## Stopping threebot
 You can stop threebot using `threebot stop`

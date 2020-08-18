@@ -600,7 +600,7 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of threebot app is shown
         where a QR code is viewed for the user to scan and continue with their payment
 
         Args:
@@ -626,7 +626,7 @@ class ReservationChatflow:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("Threebot app")
 
         payment_details = self.get_payment_details(escrow_info, currency)
 
@@ -635,7 +635,7 @@ class ReservationChatflow:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through threebot app </h4>
         """
         retry = False
         while True:
@@ -645,7 +645,7 @@ class ReservationChatflow:
             if result not in wallet_names:
                 retry = True
                 continue
-            if result == "3bot app":
+            if result == "Threebot app":
                 reservation = self._explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
@@ -654,7 +654,7 @@ class ReservationChatflow:
                     escrow_address=escrow_address,
                     escrow_asset=escrow_asset,
                     total_amount=total_amount,
-                    payment_source=result,
+                    payment_source="3bot app",
                     farmer_payments=escrow_info["farmer_payments"],
                 )
                 return payment, payment_obj
@@ -683,7 +683,7 @@ class ReservationChatflow:
                 <h4> Wallet address: </h4>  {escrow_address} \n
                 <h4> Currency: </h4>  {escrow_asset} \n
                 <h4> Payment details: </h4> {payment_details} \n
-                <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+                <h4> Choose a wallet name to use for payment or proceed with payment through Threebot app </h4>
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):

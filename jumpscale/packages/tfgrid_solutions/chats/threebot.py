@@ -81,7 +81,7 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Password")
     def set_backup_password(self):
-        messege = "Please enter the password (using this password, you can recover any 3bot you deploy online)"
+        messege = "Please enter the password (using this password, you can recover any threebot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):

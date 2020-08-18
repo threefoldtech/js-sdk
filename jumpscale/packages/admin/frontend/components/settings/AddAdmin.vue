@@ -2,14 +2,14 @@
   <base-dialog title="Add admin" v-model="dialog" :error="error" :loading="loading">
     <template #default>
       <v-form>
-        <v-text-field v-model="form.name" label="3bot name" dense></v-text-field>
+        <v-text-field v-model="form.name" label="Threebot name" dense></v-text-field>
       </v-form>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text @click="submit">Add</v-btn>
     </template>
-  </base-dialog>  
+  </base-dialog>
 </template>
 
 <script>

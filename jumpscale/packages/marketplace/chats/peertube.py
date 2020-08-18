@@ -59,7 +59,7 @@ class Peertube(MarketPlaceChatflow):
     @chatflow_step(title="Currency")
     def peertube_currency(self):
         self.currency = self.single_choice(
-            "please select the currency you wish ", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
 
     @chatflow_step(title="Email")

@@ -43,7 +43,9 @@ class UbuntuDeploy(MarketPlaceChatflow):
     @chatflow_step()
     def ubuntu_info(self):
         form = self.new_form()
-        self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
+        self.currency = form.single_choice(
+            "Please select the currency you want to pay with.", ["TFT", "TFTA"], required=True
+        )
         form.ask()
         self.currency = self.currency.value
         self.query = {"sru": 1}

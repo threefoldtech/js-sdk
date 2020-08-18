@@ -250,7 +250,9 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
+        currencies = form.single_choice(
+            "Please select the currency you want to pay with.", ["TFT", "FreeTFT", "TFTA"], required=True
+        )
         form.ask()
         cu = cu.value
         su = su.value
@@ -330,17 +332,17 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("Threebot app")
         message = f"""
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Total Amount: </h4> {total_amount} \n
         <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through Threebot app </h4>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3bot app":
+        if result == "Threebot app":
             qr_code = (
                 f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
             )
@@ -367,7 +369,7 @@ class ChatflowDeployer:
         assets = [w.asset for w in farm.wallet_addresses]
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
-        currencies = form.single_choice("Please choose the currency", assets, required=True)
+        currencies = form.single_choice("Please select the currency you want to pay with.", assets, required=True)
         form.ask()
         cu = cu.value
         su = su.value

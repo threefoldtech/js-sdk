@@ -47,7 +47,9 @@ class MattermostDeploy(MarketPlaceChatflow):
         form = self.new_form()
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
-        self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
+        self.currency = form.single_choice(
+            "Please select the currency you want to pay with.", ["TFT", "TFTA"], required=True
+        )
         form.ask()
         self.currency = self.currency.value
         self.query = {"sru": int(self.vol_size.value) + 1}

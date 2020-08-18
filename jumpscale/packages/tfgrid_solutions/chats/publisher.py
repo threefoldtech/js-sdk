@@ -69,7 +69,7 @@ class Publisher(GedisChatBot):
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice(
-            "please select the currency you wish ", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
         form.ask()
         self.currency = self.currency.value

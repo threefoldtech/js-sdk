@@ -9,11 +9,11 @@
               <td>{{ name }}</td>
             </tr>
             <tr>
-              <td>3bot ID</td>
+              <td>Threebot ID</td>
               <td>{{ identity.tid }}</td>
             </tr>
             <tr>
-              <td>3bot Name</td>
+              <td>Threebot Name</td>
               <td>{{ identity.name }}</td>
             </tr>
             <tr>

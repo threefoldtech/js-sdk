@@ -63,7 +63,9 @@ class CryptpadDeploy(MarketPlaceChatflow):
         vol_disk_size = form.single_choice(
             "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
         )
-        self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
+        self.currency = form.single_choice(
+            "Please select the currency you want to pay with.", ["TFT", "TFTA"], required=True
+        )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
         self.vol_mount_point = "/persistent-data"

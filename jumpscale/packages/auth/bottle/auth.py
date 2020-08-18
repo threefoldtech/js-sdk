@@ -116,7 +116,7 @@ def callback():
     try:
         result = j.data.serializers.json.loads(decrypted)
     except JSONDecodeError:
-        return abort(400, "3bot login returned faulty data")
+        return abort(400, "Threebot login returned faulty data")
 
     if "email" not in result:
         return abort(400, "Email is not present in data")

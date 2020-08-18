@@ -1,4 +1,4 @@
-## Runnning 3bot
+## Runnning threebot
 
 After the [installation](installation.md) steps you should have an executable `threebot`
 
@@ -20,7 +20,7 @@ to be able to run as a normal user, you don't need it if you are root.
   threebot start
   ```
 
-- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+- This will take you to configure your identity, It will ask you about your the network you want to use, threebot name, email, and words.
 
 - Then it will start threebot server you will see some thing like that
 
@@ -39,7 +39,7 @@ to be able to run as a normal user, you don't need it if you are root.
 threebot start <--identity user.3bot> <--background> <--local>
 ```
 
-if you specified `--indentity user.3bot`, then the passed identity will be the default identity in the running 3bot
+if you specified `--indentity user.3bot`, then the passed identity will be the default identity in the running threebot
 
 if you specified `--background` then the server will run in background mode
 

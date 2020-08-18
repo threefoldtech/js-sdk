@@ -14,9 +14,9 @@ class New(Poll):
 
     def welcome(self):
         statement_1 = """
-        Dear ThreeFold Token Holder, 
+        Dear ThreeFold Token Holder,
 
-        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
+        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
         This poll is only for TFT v1 holders (TFTA).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -37,10 +37,10 @@ class New(Poll):
 
         - ask for more than 1 TFTA (there can be more than 1 wallet linked to the vote)
         - keep on asking is this your email address and the amount of TFT you want to vote with
-        - result needs to be that user agreed that this is his email address, 3bot name and the TFT linked to the poll are ok
+        - result needs to be that user agreed that this is his email address, threebot name and the TFT linked to the poll are ok
         - every time the user comes back to this poll we have to show this again and ask if correct, if not allow correction
         """
-        
+
         self.md_show(statement_1, md=True)
 
         statement_2 = """
@@ -49,9 +49,6 @@ class New(Poll):
         """
         x = self.multi_choice("aaaaaaaaaa", ["a", "b", "c"])
         self.md_show(str(x), md=True)
-
-
-
 
     # def custom_votes(self):
     #     """allow to have custom slides

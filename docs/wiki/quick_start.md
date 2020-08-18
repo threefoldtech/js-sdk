@@ -43,7 +43,7 @@ This version of the SDK tries to be isolated as possible in case of developers o
   poetry shell
   ```
 
-## Runnning 3bot
+## Runnning threebot
 
 
 ### using mkcert
@@ -60,7 +60,7 @@ threebot server can run using `threebot start --local` starts a server on `8443,
   threebot start --local
   ```
 
-- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+- This will take you to configure your identity, It will ask you about your the network you want to use, threebot name, email, and words.
 
 - Then it will start threebot server you will see some thing like that
 
@@ -80,7 +80,7 @@ See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a39
 
 ## Access admin panel
 
-Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
+Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to threebot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
 Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://172.17.0.2:8443/admin/`
 
 ## Create a new wallet
@@ -121,7 +121,7 @@ Choose how much your pool need (CU/SU) and the type of you will pay.
 Choose the farm for your pool
 ![](images/pool3.png)
 
-Pay using your 3bot app 
+Pay using your threebot app
 ![](images/pool4.png)
 ![](images/pool5.png)
 ![](images/pool6.png)
@@ -191,10 +191,10 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 
 4. Then select your pool you want for your container
     ![pool](images/ubuntu4.png)
-    
+
 5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
     ![network](images/ubuntu5.png)
-    
+
 5. The next step includes the possibility to stream the container's logs to a redis channel. In our simple deployment we will not need it so you can simply choose No
     ![container_logs](images/ubuntu6.png)
 

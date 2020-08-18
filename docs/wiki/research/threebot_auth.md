@@ -5,13 +5,13 @@
 In order to access the gedis server, the user needs to send the following:
 
 - Sign his data with his private key
-- Sends his 3bot name
+- Sends his threebot name
 - This all should be encrypted by the public key of the server that he tries to connect to
 
 The server upon recieving a request will do the following:
 
 - Will decrypt the data using its private key, if that fails will abort
-- Gets the public key of the 3bot name specified from the explorer
+- Gets the public key of the threebot name specified from the explorer
 - Verifies the signed data with the public key if that fails will refuse the request
 
 This follows the implementation  and flow described by [JSX_core_597](https://github.com/threefoldtech/jumpscaleX_core/pull/597) and [JSX_core_694](https://github.com/threefoldtech/jumpscaleX_core/pull/694/files)

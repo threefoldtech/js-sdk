@@ -20,7 +20,7 @@ To get yourself FreeTFTs and TFTs on testnet network you can follow the followin
         
 ## From the admin dashboard
   
-From your 3bot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using friendbot
+From your threebot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using friendbot
 ![admin walletmanager](../images/walletmanager.jpg)
 
 and after creating a new wallet it will be funded with 10000 XLM
