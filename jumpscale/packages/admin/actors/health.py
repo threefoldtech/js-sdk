@@ -34,5 +34,17 @@ class Health(BaseActor):
     def get_running_processes(self) -> str:
         return j.data.serializers.json.dumps({"data": j.sals.process.get_processes_info()})
 
+    @actor_method
+    def get_health_checks(self) -> str:
+        checks = {"stellar": True}
+        try:
+            j.tools.http.get("https://horizon-testnet.stellar.org")
+            j.tools.http.get(
+                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
+            )
+        except:
+            checks["stellar"] = False
+        return j.data.serializers.json.dumps({"data": checks})
+
 
 Actor = Health
