@@ -10,9 +10,11 @@ from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 
 
+EXPLORER_URL = j.core.identity.me.explorer_url
 FARM_NAMES = ["freefarm"]
 SERVICE_FEES = 0.1
-WALLET_NAME = "appstore_wallet"
+NETWORK = "TEST" if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL else "STD"
+WALLET_NAME = f"appstore_wallet_{NETWORK.lower()}"
 
 
 class MarketPlaceChatflow(GedisChatBot):
@@ -21,9 +23,17 @@ class MarketPlaceChatflow(GedisChatBot):
         if WALLET_NAME in j.clients.stellar.list_all():
             return j.clients.stellar.appstore_wallet
         else:
-            raise j.exceptions.NotFound(
-                f"There is no appstore wallet with name {WALLET_NAME} created. Please create it first."
-            )
+            wallet = j.clients.stellar.get(WALLET_NAME)
+            wallet.network = NETWORK
+            if NETWORK == "TEST":
+                wallet.activate_through_friendbot()
+            else:
+                wallet.activate_through_threefold_service()
+            wallet.add_known_trustline("TFT")
+            wallet.add_known_trustline("FreeTFT")
+            wallet.add_known_trustline("TFTA")
+            wallet.save()
+            return wallet
 
     def _validate_user(self):
         tname = self.user_info()["username"].lower()
