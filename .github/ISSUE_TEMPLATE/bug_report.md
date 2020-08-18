@@ -6,33 +6,28 @@ labels: ''
 assignees: ''
 
 ---
+### Search first
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+Search for similar issues first, if not complete the following template
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+### Description
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+A clear description of the bug
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### Version information
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+* OS: e.g. Ubuntu 19.04, Windows 10
+* project commit/version: e.g. js-ng 11.0.0a1
+* Browser: e.g. chrome 79
+*
+### Installation method
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+Better to specify the installation method
 
-**Additional context**
-Add any other context about the problem here.
+### Steps to reproduce
+
+List of steps to reproduce the problem if it's a bug
+
+### Traceback/Logs/Alerts
+
+Traceback/Logs/Alerts if available
