@@ -38,6 +38,18 @@ class MarketPlaceChatflow(GedisChatBot):
                 f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
             )
 
+    def _init_solution(self):
+        self._validate_user()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
+        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.query = dict()
+
+    def _wgconf_show_check(self):
+        if hasattr(self, "wgconf"):
+            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+
     def _get_pool(self):
         available_farms = []
         for farm_name in FARM_NAMES:
@@ -138,15 +150,6 @@ class MarketPlaceChatflow(GedisChatBot):
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
 
-    @chatflow_step
-    def start(self):
-        self._validate_user()
-        self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.query = dict()
-
     @chatflow_step(title="Solution Name")
     def solution_name(self):
         valid = False
@@ -178,8 +181,3 @@ class MarketPlaceChatflow(GedisChatBot):
         self._get_pool()
         self._deploy_network()
         self._get_domain()
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        if hasattr(self, "wgconf"):
-            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
