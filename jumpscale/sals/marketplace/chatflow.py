@@ -12,7 +12,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 
 EXPLORER_URL = j.core.identity.me.explorer_url
 FARM_NAMES = ["freefarm"]
-SERVICE_FEES = 0.1
+SERVICE_FEES = 5
 NETWORK = "TEST" if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL else "STD"
 WALLET_NAME = f"appstore_wallet_{NETWORK.lower()}"
 
@@ -21,7 +21,7 @@ class MarketPlaceChatflow(GedisChatBot):
     @property
     def appstore_wallet(self):
         if WALLET_NAME in j.clients.stellar.list_all():
-            return j.clients.stellar.appstore_wallet
+            return j.clients.stellar.get(WALLET_NAME)
         else:
             wallet = j.clients.stellar.get(WALLET_NAME)
             wallet.network = NETWORK
@@ -204,8 +204,12 @@ class MarketPlaceChatflow(GedisChatBot):
 
         refund_address = self.appstore_wallet.get_sender_wallet_address(transaction.hash)
         asset = self.appstore_wallet.get_asset(currency)
+
+        amount = effects.amount
+        if currency == "TFT":
+            amount = effects.amount - 0.1  # Transaction fees
         self.appstore_wallet.transfer(
-            refund_address, effects.amount, asset=f"{asset.code}:{asset.issuer}", fund_transaction=False
+            refund_address, amount, asset=f"{asset.code}:{asset.issuer}", fund_transaction=False
         )
         return True
 
