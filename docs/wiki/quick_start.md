@@ -67,7 +67,7 @@ threebot server can run using `threebot start --local` starts a server on `8443,
   threebot start --local
   ```
 
-- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+- This will take you to configure your identity, It will ask you about your the network you want to use, 3Bot name, email, and words.
 
 - Then it will start threebot server you will see some thing like that
 

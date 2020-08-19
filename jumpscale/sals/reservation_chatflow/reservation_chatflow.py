@@ -600,7 +600,7 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3Bot app is shown
         where a QR code is viewed for the user to scan and continue with their payment
 
         Args:
@@ -683,7 +683,7 @@ class ReservationChatflow:
                 <h4> Wallet address: </h4>  {escrow_address} \n
                 <h4> Currency: </h4>  {escrow_asset} \n
                 <h4> Payment details: </h4> {payment_details} \n
-                <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+                <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
