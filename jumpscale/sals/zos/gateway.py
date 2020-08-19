@@ -1,6 +1,8 @@
 from typing import List
 
 import netaddr
+import re
+import string
 
 from jumpscale.clients.explorer.models import (
     Gateway4to6,
@@ -20,6 +22,21 @@ class GatewayGenerator:
 
     def __init__(self, explorer):
         self._gateways = explorer.gateway
+        
+    def correct_domain(self, domain):
+      """
+      removes any invalid chars from a domain and return a valid one
+      only for _ it replaces it with - and for other chars it is removed 
+      """
+      domain = domain.replace("_", "-")
+      domain_regex = r"^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,11}?$"
+      if not re.match(domain_regex, domain):
+        domain_copy = domain
+        chars = string.ascii_letters+string.digits + "-."
+        for c in domain_copy:
+          if c not in chars:
+            domain = domain.replace(c, "")
+      return domain
 
     def sub_domain(self, gateway_id: str, domain: str, ips: List[str], pool_id: int) -> GatewaySubdomain:
         """create a sub-domain workload object
@@ -37,7 +54,7 @@ class GatewayGenerator:
         for ip in ips:
             if not _is_valid_ip(ip):
                 raise Input(f"{ip} is not valid IP address")
-
+        domain = self.correct_domain(domain)
         sb = GatewaySubdomain()
         sb.info.node_id = gateway_id
         sb.domain = domain
