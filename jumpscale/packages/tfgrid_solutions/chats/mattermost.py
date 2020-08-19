@@ -84,6 +84,7 @@ class MattermostDeploy(GedisChatBot):
 
         solution_name = self.solution_name.replace(".", "")
         full_domain = f"{self.threebot_name}-{solution_name}.{self.domain}"
+        full_domain = j.sals.zos.gateway.correct_domain(full_domain)
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
@@ -91,6 +92,7 @@ class MattermostDeploy(GedisChatBot):
             else:
                 random_number = random.randint(1000, 100000)
                 full_domain = f"{self.threebot_name}-{solution_name}-{random_number}.{self.domain}"
+                full_domain = j.sals.zos.gateway.correct_domain(full_domain)
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:

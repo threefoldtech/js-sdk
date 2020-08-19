@@ -1530,6 +1530,7 @@ test = ["zope.security", "zope.testrunner"]
 
 [metadata]
 content-hash = "a974b358ce6e0b702736dce3a9da842aea34c9a660658dde60088a3b13e7bf81"
+lock-version = "1.0"
 python-versions = "^3.6"
 
 [metadata.files]

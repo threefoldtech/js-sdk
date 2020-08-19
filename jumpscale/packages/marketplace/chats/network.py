@@ -49,19 +49,17 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
         )
         self.md_show_update("searching for access node...")
         pools = deployer.list_user_pools(self.user_info()["username"])
-        farms = {deployer.get_pool_farm_id(p.pool_id): p.pool_id for p in pools}
         self.access_node = None
-        for farm_id in farms:
-            farm_name = deployer._explorer.farms.get(farm_id).name
+        for pool in pools:
             try:
                 access_nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-                    1, farm_names=[farm_name], ip_version=self.ipversion
+                    1, ip_version=self.ipversion, pool_ids=[pool.pool_id]
                 )
             except StopChatFlow:
                 continue
             if access_nodes:
                 self.access_node = access_nodes[0]
-                self.pool = farms[farm_id]
+                self.pool = pool.pool_id
                 break
         if not self.access_node:
             raise StopChatFlow("There are no available access nodes in your existing pools")

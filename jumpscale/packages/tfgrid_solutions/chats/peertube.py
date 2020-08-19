@@ -96,6 +96,7 @@ class Peertube(GedisChatBot):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+        self.domain = j.sals.zos.gateway.correct_domain(self.domain)
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:

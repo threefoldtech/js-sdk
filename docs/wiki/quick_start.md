@@ -2,34 +2,41 @@
 
 ## System requirements for installation on the host
 
-- Ubuntu 18.04 or higher, MacOS 10.9 or higher
-- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment.
+- Ubuntu 18.04 or higher, macOS 10.15 catalina or higher
+- Windows 10, version 2004 can run using [wsl2](https://docs.microsoft.com/en-us/windows/wsl/wsl2-index) using ubuntu 20.04 or later
+- The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is needed to trust the self signed certificates when used in local development environment.
+- Browser (we recommend using Google chrome)
 
+### macOS
 
-### Ubuntu
+- Install packages (git, nginx, redis-server, tmux, python3) on MacOS
 
-  ```
-  apt-get update
-  apt-get install -y git python3-venv python3-pip redis-server tmux nginx;
-  pip3 install poetry
-  ```
-
-### Mac OSX
-Install packages (git, nginx, redis-server, tmux, python3) on MacOS
-  ```
+  ```bash
   brew install nginx redis tmux git python3
   ```
 
 
+### Ubuntu
+
+- For GNU/Linux Ubuntu systems
+
+  ```bash
+  apt-get update
+  apt-get install -y git python3-venv python3-pip redis-server tmux nginx
+  pip3 install poetry
+  ```
+
 ## Installing js-sdk
 
-After preparing the dependencies on your system
-### Installation using pip
+After having the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed on your system
+
+### Installation using pip (don't use yet until we have an official release)
 
 Just doing `python3 -m pip install js-sdk` is enough
 
 ### Installation for experts or developers
 
+- Make sure to have the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed
 This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
 
 - To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
@@ -43,10 +50,10 @@ This version of the SDK tries to be isolated as possible in case of developers o
   poetry shell
   ```
 
-## Runnning 3bot
-
+## Running the Threebot
 
 ### using mkcert
+
 [mkcert](https://github.com/FiloSottile/mkcert) is optionally needed to trust the self signed certificates when used in local development environment. All you need to do is install it in your system under the name `mkcert` and do `mkcert -install`
 
 After the installation steps you should have an executable `threebot`
@@ -66,13 +73,9 @@ threebot server can run using `threebot start --local` starts a server on `8443,
 
   ![configure](images/identity_new.png)
 
-- After success you can visit the admin dashboard at http://localhost and start creating reservations
-
-
-- After success you can visit the admin dashboard at http://localhost and start creating reservations
+- After success you can visit the admin dashboard at http://localhost:8080 or https://localhost:8443  and start creating reservations
 
   ![configure](images/success.png)
-
 
 ## Create a reservation via jsng Shell (without admin panel)
 
@@ -81,7 +84,7 @@ See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a39
 ## Access admin panel
 
 Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
-Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://172.17.0.2:8443/admin/`
+Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://localhost:8443/admin/`
 
 ## Create a new wallet
 
@@ -107,27 +110,33 @@ There are two options to be create a wallet, first is using the jsng shell where
 Now that the wallet is setup, you are ready for your first deployment.
 
 ## Adding tokens to a stellar wallet
-[Press here](https://github.com/threefoldfoundation/info_gridmanual/blob/development_capacitypool/src/2_gettingstarted/getting_started_get_tft.md)
+
+To know how to obtain tokens [see here](https://github.com/threefoldfoundation/info_gridmanual/blob/development_capacitypool/src/2_gettingstarted/getting_started_get_tft.md)
 
 ## Create your Capacity pool
-Before we get to deploy the actual Ubuntu container, we first need to create your capacity pool for any solutions use it.
 
-First step is to choose you want to create new pool or extend existing one
+Before we get to deploying the actual Ubuntu container, we need to create a capacity pool which will be used by any solutions deployed.
+
+First step is to choose whether you want to create a new pool or extend an existing one.
+
 ![](images/pool1.png)
 
-Choose how much your pool need (CU/SU) and the type of you will pay.
+How much cu units(cpu/memory) and su units(storage) your pool needs and the type of token you will pay with.
+
 ![](images/pool2.png)
 
 Choose the farm for your pool
+
 ![](images/pool3.png)
 
-Pay using your 3bot app 
+Pay using your stellar wallet or scan the QR code using 3bot staging application
+
 ![](images/pool4.png)
 ![](images/pool5.png)
 ![](images/pool6.png)
 
-
 ## Deploy your private overlay network
+
 Before we get to deploy the actual Ubuntu container, we first need to create a private overlay network.
 
 The technology used to implement the network overlay is [Wireguard](https://www.Wireguard.com/). Make sure you have installed Wireguard on your device to able to continue: [Wireguard installation](https://www.wireguard.com/install/)
@@ -138,7 +147,7 @@ To start the wizard click the left menu on Solutions then Network then Create ne
 
 ![solutions menu](images/solutions_list.png)
 
-First step is to choose you want to create new network or add access to specific node in your network.
+First step is to choose whether you want to create a new network or add access to a specific node.
 
 ![choose network name](images/network1.png)
 
@@ -146,9 +155,9 @@ Choose the name of your network. This name is only used to identify the network 
 
 ![choose network name](images/network2.png)
 
-The nodes running on the TFGrid all communicate over IPv6. While this is very convenient for the nodes, not everyone has access to IPv6 already. For this reason we allow people to configure `entrypoint` using IPv4 address.
+The nodes running on the TFGrid all communicate over IPv6. While this is very convenient for the nodes, not everyone has access to IPv6 already. For this reason we allow people to configure `endpoint` using IPv4 address.
 
-This step lets you choose between IPv6 or IPv4 for your `entrypoint`. If you are not sure what to choose, pick IPv4.
+This step lets you choose between IPv6 or IPv4 for your `endpoint`. If you are not sure what to choose, pick IPv4.
 
 ![](images/network3.png)
 
@@ -165,9 +174,11 @@ Depending on your platform the configuration of Wireguard can look a bit differe
 
 On Linux system, you can just use the `wg-quick` command directly with the file sent from the chatflow, like so:
 
-```
+```bash
 wg-quick up my_first_network.conf
 ```
+![Step6](images/network7.png)
+
 ![Step6](images/network7.png)
 
 ## Deploy an Ubuntu container and connect to it
@@ -188,6 +199,12 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 
 3. Then choose how much CPU and Memory resources you want allocated for the container
     ![Container resources](images/ubuntu3.png)
+
+4. Then select your pool you want for your container
+    ![pool](images/ubuntu4.png)
+
+5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
+    ![network](images/ubuntu5.png)
 
 4. Then select your pool you want for your container
     ![pool](images/ubuntu4.png)

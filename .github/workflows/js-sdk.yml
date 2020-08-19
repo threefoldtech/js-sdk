@@ -26,4 +26,4 @@ jobs:
           sudo poetry install
       - name: Run tests
         run: |
-          sudo poetry run pytest tests -s 
+          sudo poetry run pytest tests -s -m "unittests"

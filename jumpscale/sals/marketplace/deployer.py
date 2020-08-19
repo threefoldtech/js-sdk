@@ -170,10 +170,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
                     continue
-                farm_id = self.get_pool_farm_id(p)
-                nodes = j.sals.reservation_chatflow.reservation_chatflow.check_farm_resources(
-                    farm_id, **resource_query_list[i]
-                )
+                nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
@@ -223,24 +220,23 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 bot.md_show("You must select at least one pool. please click next to try again.")
             else:
                 break
-        farm_to_pool = {}
-        farm_names = []
+
         pool_ids = {}
+        node_to_pool = {}
         for p in pool_choices:
             pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
             pool_ids[messages[p]] = pool
-            farm_id = self._explorer.nodes.get(pool.node_ids[0]).farm_id
-            farm_name = self._explorer.farms.get(farm_id).name
-            farm_to_pool[farm_id] = pool
-            farm_names.append(farm_name)
+            for node_id in pool.node_ids:
+                node_to_pool[node_id] = pool
+
         nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            number_of_nodes, farm_names=farm_names, **resource_query
+            number_of_nodes, pool_ids=list(pool_ids.values()), **resource_query
         )
         selected_nodes = []
         selected_pool_ids = []
         for node in nodes:
             selected_nodes.append(node)
-            pool = farm_to_pool[node.farm_id]
+            pool = node_to_pool[node.node_id]
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 

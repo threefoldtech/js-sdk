@@ -205,7 +205,9 @@ class Website(Base):
 
     def configure(self, generate_certificates=True):
         j.sals.fs.mkdir(self.cfg_dir)
-
+        needed_dirs = ("body", "client-body", "fastcgi", "proxy", "scgi", "uwsgi")
+        for d in needed_dirs:
+            j.sals.fs.mkdir(j.sals.fs.join_paths(self.cfg_dir, d))
         for location in self.get_locations():
             location.configure()
 
@@ -258,6 +260,7 @@ class NginxConfig(Base):
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"),
             logs_dir=self.logs_dir,
+            cfg_dir=self.cfg_dir,
             user=user,
             group=group,
         )
