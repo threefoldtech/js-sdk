@@ -114,6 +114,7 @@ class Publisher(MarketPlaceAppsChatflow):
 
         # 4- deploy container
         self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+        self.envars["DOMAIN"] = self.domain
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
             deployer.deploy_container(
