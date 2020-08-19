@@ -445,7 +445,7 @@ class PackageManager(Base):
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except:
-                j.core.logging.warning(
+                j.logger.warning(
                     f"Error during unloading the chats related to {package_name} package, maybe the package.toml file is not found."
                 )
 
