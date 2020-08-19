@@ -84,7 +84,7 @@ class ChatflowSolutions:
             }
             for key, val in primary_dict["capacity"].items():
                 solution_dict[f"Primary {key}"] = val
-            if len(container_workloads) == 2:
+            if len(container_workloads[name]) == 2:
                 secondary_dict = container_workloads[name][1]
                 solution_dict["wids"].append(secondary_dict["wid"])
                 solution_dict["wids"] += secondary_dict["vol_ids"]
@@ -154,7 +154,7 @@ class ChatflowSolutions:
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 solution_dict["wids"] += c_dict["vol_ids"]
-                if "garafana" in c_dict["flist"]:
+                if "grafana" in c_dict["flist"]:
                     cont_type = "Grafana"
                 elif "prometheus" in c_dict["flist"]:
                     cont_type = "Prometheus"
@@ -235,7 +235,6 @@ class ChatflowSolutions:
             "4to6gw": 0,
             "delegated_domain": 0,
             "exposed": 0,
-            "publisher": 0,
             "threebot": 0,
             "peertube": 0,
             "discourse": 0,
