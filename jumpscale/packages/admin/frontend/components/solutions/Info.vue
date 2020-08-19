@@ -2,12 +2,12 @@
   <div>
     <base-dialog :title="title" v-model="dialog" :loading="loading">
       <template #default>
-        <render-json
+        <json-renderer
           :title="title"
           :jsonobj="json"
           :typelist="KeysWithTypeList"
           :typedict="KeysWithTypeDict"
-        ></render-json>
+        ></json-renderer>
       </template>
       <template #actions>
         <v-btn

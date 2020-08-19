@@ -2,13 +2,13 @@
   <div>
     <base-dialog title="Workload Details" v-model="dialog" :loading="loading">
       <template #default>
-        <render-json
+        <json-renderer
           title="Workload"
           :jsonobj="workload"
           :ignored="KeysIgnored"
           :typelist="KeysWithTypeList"
           :typedict="KeysWithTypeDict"
-        ></render-json>
+        ></json-renderer>
       </template>
       <template #actions>
         <v-btn text @click="close">Close</v-btn>
