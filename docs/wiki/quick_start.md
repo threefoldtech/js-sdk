@@ -8,7 +8,7 @@
 - Browser (we recommend using Google chrome)
 
 ### macOS
- 
+
 - Install packages (git, nginx, redis-server, tmux, python3) on MacOS
 
   ```bash
@@ -28,7 +28,7 @@
 
 ## Installing js-sdk
 
-After having the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed on your system 
+After having the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed on your system
 
 ### Installation using pip (don't use yet until we have an official release)
 
@@ -36,7 +36,7 @@ Just doing `python3 -m pip install js-sdk` is enough
 
 ### Installation for experts or developers
 
-- Make sure to have the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed 
+- Make sure to have the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed
 This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
 
 - To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
@@ -201,10 +201,10 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 
 4. Then select your pool you want for your container
     ![pool](images/ubuntu4.png)
-    
+
 5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
     ![network](images/ubuntu5.png)
-    
+
 5. The next step includes the possibility to stream the container's logs to a redis channel. In our simple deployment we will not need it so you can simply choose No
     ![container_logs](images/ubuntu6.png)
 

@@ -95,6 +95,10 @@ class Publisher(GedisChatBot):
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
+        for g in filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos._explorer.gateway.list()):
+            if self.network.currency == "FreeTFT" and not g.free_to_use:
+                continue
+            self.gateways[g.node_id] = g
         domains = dict()
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]

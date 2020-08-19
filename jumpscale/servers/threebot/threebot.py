@@ -199,8 +199,8 @@ class Package:
     def __init__(self, path, default_domain, default_email, giturl=""):
         self.path = path
         self.giturl = giturl
-        self.config = self.load_config()
-        self.name = self.config["name"]
+        self._config = None
+        self.name = j.sals.fs.basename(path.rstrip("/"))
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
@@ -224,6 +224,12 @@ class Package:
     @property
     def base_url(self):
         return j.sals.fs.join_paths("/", self.name)
+
+    @property
+    def config(self):
+        if not self._config:
+            self._config = self.load_config()
+        return self._config
 
     @property
     def actors_dir(self):
@@ -365,10 +371,11 @@ class PackageManager(Base):
 
         for package_name in self.packages:
             package = self.get(package_name)
-            if path and path == package.path:
-                raise j.exceptions.Value("Package with the same path already exists")
-            if giturl and giturl == package.giturl:
-                raise j.exceptions.Value("Package with the same giturl already exists")
+            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
+            # if path and path == package.path:
+            #     raise j.exceptions.Value("Package with the same path already exists")
+            # if giturl and giturl == package.giturl:
+            #     raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
             url = urlparse(giturl)
@@ -392,8 +399,9 @@ class PackageManager(Base):
             path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
         )
 
-        if package.name in self.packages:
-            raise j.exceptions.Value(f"Package with name {package.name} already exists")
+        # TODO: adding under the same name if same path and same giturl should be fine, no?
+        # if package.name in self.packages:
+        #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
         self.packages[package.name] = {
             "name": package.name,
@@ -417,20 +425,20 @@ class PackageManager(Base):
     def delete(self, package_name):
         if package_name in DEFAULT_PACKAGES:
             raise j.exceptions.Value("cannot delete default packages")
-
         package = self.get(package_name)
         if not package:
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in package.bottle_servers:
-            self.threebot.rack.remove(f"{package.name}_{bottle_server['name']}")
+        for bottle_server in list(self.threebot.rack._servers):
+            if bottle_server.startswith(f"{package_name}_"):
+                self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            if package.actors_dir:
-                for actor in package.actors:
-                    self.threebot.gedis._system_actor.unregister_actor(actor["name"])
+            for actor in self.threebot.gedis._loaded_actors.keys():
+                if actor.startswith(f"{package_name}_"):
+                    self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
             if package.chats_dir:

@@ -91,10 +91,16 @@ Some components will be defined by default based on the parent package classes i
 #### Mandatory components
 - **package.toml** is where the package information is defined such as its name, ports, and type of content for example static website.<br />
     Example
+    ```toml
+    name = "mypackage"                             # unique name of the package and should be the same as its directory name
+    is_auth = true                                 # make the package available only to authorized users
+    is_admin = true                                # make the package available only admins
+    frontend = "/mypackage/<package home path>"    # Set this field if your package has frontend
     ```
-    name = "chatflows"
-    ports = [ 80,443]
 
+    We can define static locations as follow:
+
+    ```toml
     [[static_dirs]]
     name = "frontend"
     path_url = "/static"
@@ -103,7 +109,7 @@ Some components will be defined by default based on the parent package classes i
 
     We can also define bottle server to start in the toml file like in the following example
 
-    ```
+    ```toml
     [[bottle_servers]]
     name = "main"
     file_path = "bottle/bottle.py"
@@ -114,7 +120,7 @@ Some components will be defined by default based on the parent package classes i
     ```
 
     Other servers locations can also be defined, for example using codeserver
-    ```
+    ```toml
     [[servers.locations]]
     type = "proxy"
     host = "127.0.0.1"
