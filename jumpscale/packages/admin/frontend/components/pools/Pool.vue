@@ -86,7 +86,7 @@
       </template>
       <template #actions>
         <v-btn text color="error" v-if="pool.hidden" @click="unhide()">Unhide</v-btn>
-        <v-btn text color="error" v-else @click="hide()">Hide</v-btn>
+        <v-btn text color="error" v-else @click="hide()">Hide Pool</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
@@ -115,8 +115,11 @@ module.exports = {
       this.edting = false;
     },
     rename(poolId, name) {
-      this.$api.solutions.renamePool(poolId, name);
-      this.pool.name = name;
+      this.$api.solutions.renamePool(poolId, name).then(() => {
+        this.pool.name = name;
+        this.name = "";
+        this.edting = false;
+      });
     },
     cancel() {
       this.dialogs.hidePool = true;
