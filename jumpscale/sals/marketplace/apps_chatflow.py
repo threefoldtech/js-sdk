@@ -110,14 +110,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         solution_name = self.solution_name.replace(".", "").replace("_", "-")
         # check if domain name is free or append random number
-        full_domain = f"{self.threebot_name}-{solution_name}.{self.domain}"
+        full_domain = f"{solution_name}.{self.domain}"
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
                 break
             else:
                 random_number = random.randint(1000, 100000)
-                full_domain = f"{self.threebot_name}-{solution_name}-{random_number}.{self.domain}"
+                full_domain = f"{solution_name}-{random_number}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
