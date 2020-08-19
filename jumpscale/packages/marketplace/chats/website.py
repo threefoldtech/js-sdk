@@ -9,7 +9,7 @@ class WebsiteDeploy(Publisher):
 
     title = "Deploy Website"
     welcome_message = "This wizard will help you publish your website."
-    publishing_chatflow = "website"  # chatflow used to deploy the solution
+    SOLUTION_TYPE = "website"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Website Setup")
     def configuration(self):

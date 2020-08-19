@@ -1,61 +1,33 @@
-import math
-import random
-import uuid
 from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
-
-FARM_NAMES = ["freefarm"]
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 
 
-class Publisher(MarketPlaceChatflow):
+class Publisher(MarketPlaceAppsChatflow):
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
+    SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
+    title = "Publisher"
+    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
-        "publisher_name",
+        "solution_name",
         "configuration",
-        "publisher_expiration",
-        "publisher_payment",
+        "solution_expiration",
+        "payment_currency",
         "infrastructure_setup",
-        "domain_select",
         "overview",
         "deploy",
         "success",
     ]
-    title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
-    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
 
     @chatflow_step()
     def start(self):
-        self._validate_user()
-        self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.solution_id = uuid.uuid4().hex
+        self._init_solution()
         self.storage_url = "zdb://hub.grid.tf:9900"
-        self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-        self.query = {
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
+        self.query = {"cru": 1, "mru": 1, "sru": 2}
         self.md_show(self.welcome_message, md=True)
-        self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
-
-    @chatflow_step(title="Solution name")
-    def publisher_name(self):
-        valid = False
-        while not valid:
-            self.solution_name_original = deployer.ask_name(self)
-            publisher_solutions = solutions.list_publisher_solutions(self.solution_metadata["owner"], sync=False)
-            valid = True
-            for sol in publisher_solutions:
-                if sol["Name"] == self.solution_name:
-                    valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
-                    break
-                valid = True
-        self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name_original}"
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):
@@ -75,116 +47,6 @@ class Publisher(MarketPlaceChatflow):
             "EMAIL": self.user_info()["email"],
         }
 
-    @chatflow_step(title="Expiration Time")
-    def publisher_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
-        print(self.expiration)
-
-    @chatflow_step(title="Payment currency")
-    def publisher_payment(self):
-        self.solution_currency = self.single_choice(
-            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
-        )
-
-    @chatflow_step(title="Setup")
-    def infrastructure_setup(self):
-        available_farms = []
-        for farm_name in FARM_NAMES:
-            available, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.solution_currency], **self.query
-            )
-            if available:
-                available_farms.append(farm_name)
-
-        self.farm_name = random.choice(available_farms)
-
-        user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
-        networks_names = [n["Name"] for n in user_networks]
-        if "apps" in networks_names:
-            # old user
-            self.pool_info = deployer.create_solution_pool(
-                bot=self,
-                username=self.solution_metadata["owner"],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
-                currency=self.solution_currency,
-                **self.query,
-            )
-            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
-            if not result:
-                raise StopChatFlow(f"Failed to reserve pool {self.pool_info.reservation_id}")
-        else:
-            # new user
-            self.pool_info, self.wgconf = deployer.init_new_user(
-                bot=self,
-                username=self.solution_metadata["owner"],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
-                currency=self.solution_currency,
-                **self.query,
-            )
-
-        if not self.pool_info:
-            raise StopChatFlow(f"Failed to deploy solution {self.pool_info}")
-
-        # get ip address
-        self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
-        self.ip_address = None
-        while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
-            result = deployer.add_network_node(
-                self.network_view.name,
-                self.selected_node,
-                self.pool_info.reservation_id,
-                self.network_view,
-                bot=self,
-                owner=self.solution_metadata.get("owner"),
-            )
-            if result:
-                self.md_show_update("Deploying Network on Nodes....")
-                for wid in result["ids"]:
-                    success = deployer.wait_workload(wid)
-                    if not success:
-                        raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
-                self.network_view = self.network_view.copy()
-            self.ip_address = self.network_view.get_free_ip(self.selected_node)
-
-    @chatflow_step(title="Domain")
-    def domain_select(self):
-        self.md_show_update("Preparing a node to deploy on ...")
-        self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
-        self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.user_info()["username"])
-        if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
-
-        domains = dict()
-        for gw_dict in gateways.values():
-            gateway = gw_dict["gateway"]
-            for domain in gateway.managed_domains:
-                domains[domain] = gw_dict
-
-        self.domain = random.choice(list(domains.keys()))
-
-        self.gateway = domains[self.domain]["gateway"]
-        self.gateway_pool = domains[self.domain]["pool"]
-
-        full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}.{self.domain}"
-        while True:
-            if j.tools.dnstool.is_free(full_domain):
-                self.domain = full_domain
-                break
-            else:
-                random_number = random.randint(1000, 100000)
-                full_domain = f"{self.threebot_name}-{self.publishing_chatflow}-{self.solution_name_original}-{random_number}.{self.domain}"
-
-        self.envars["DOMAIN"] = self.domain
-        self.addresses = []
-        for ns in self.gateway.dns_nameserver:
-            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
-
-        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
     @chatflow_step(title="Confirmation")
     def overview(self):
         info = {"Solution name": self.solution_name, "domain": self.domain}
@@ -192,10 +54,9 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
-        # 1- deploy network on selected node
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": self.publishing_chatflow},
+            "form_info": {"Solution name": self.solution_name, "chatflow": self.SOLUTION_TYPE},
         }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
@@ -203,7 +64,7 @@ class Publisher(MarketPlaceChatflow):
         result = deployer.add_network_node(
             self.network_view.name,
             self.selected_node,
-            self.pool_info.reservation_id,
+            self.pool_id,
             self.network_view,
             bot=self,
             owner=self.solution_metadata.get("owner"),
@@ -256,15 +117,15 @@ class Publisher(MarketPlaceChatflow):
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
             deployer.deploy_container(
-                pool_id=self.pool_info.reservation_id,
+                pool_id=self.pool_id,
                 node_id=self.selected_node.node_id,
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
-                flist=self.flist,
+                flist=self.FLIST_URL,
                 env=self.envars,
-                cpu=self.resources["cpu"],
-                memory=self.resources["memory"],
-                disk_size=self.resources["disk_size"],
+                cpu=self.query["cru"],
+                memory=self.query["mru"] * 1024,
+                disk_size=self.query["sru"] * 1024,
                 entrypoint="/bin/bash /start.sh",
                 secret_env=secret_env,
                 interactive=False,
@@ -281,8 +142,7 @@ class Publisher(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        if hasattr(self, "wgconf"):
-            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+        self._wgconf_show_check()
         message = f"""## Deployment success
 \n<br>\n
 You can access your container using:
