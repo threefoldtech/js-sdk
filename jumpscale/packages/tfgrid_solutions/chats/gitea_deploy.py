@@ -30,7 +30,7 @@ class GiteaDeploy(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-http_gitea_all_in_one-latest.flist"
+        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-gitea_all_in_one-latest.flist"
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
