@@ -16,7 +16,6 @@ class Publisher(MarketPlaceAppsChatflow):
         "configuration",
         "solution_expiration",
         "payment_currency",
-        "pay_service_fees",
         "infrastructure_setup",
         "overview",
         "deploy",

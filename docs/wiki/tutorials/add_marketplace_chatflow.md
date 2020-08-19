@@ -27,7 +27,6 @@
             "app_info_steps",
             "solution_expiration", # required
             "payment_currency", # required
-            "pay_service_fees", # required
             "infrastructure_setup", # required
             "overview",
             "reservation",
