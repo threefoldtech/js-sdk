@@ -441,8 +441,13 @@ class PackageManager(Base):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
-            if package.chats_dir:
-                self.threebot.chatbot.unload(package.chats_dir)
+            try:
+                if package.chats_dir:
+                    self.threebot.chatbot.unload(package.chats_dir)
+            except:
+                j.core.logging.error(
+                    f"Error during unloading the chats related to {package_name} package, maybe the package.toml file is not found."
+                )
 
             # reload nginx
             self.threebot.nginx.reload()
