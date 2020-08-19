@@ -27,7 +27,7 @@ class ChatflowSolutions:
         return result
 
     def list_ubuntu_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solutions("ubuntu", next_action, sync)
+        return self._list_single_conatiner_solution("ubuntu", next_action, sync)
 
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("peertube", next_action, sync, "nginx")
@@ -36,10 +36,10 @@ class ChatflowSolutions:
         return self._list_proxied_solution("peertube", next_action, sync, "nginx")
 
     def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solutions("flist", next_action, sync)
+        return self._list_single_conatiner_solution("flist", next_action, sync)
 
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solutions("gitea", next_action, sync)
+        return self._list_single_conatiner_solution("gitea", next_action, sync)
 
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
@@ -60,10 +60,45 @@ class ChatflowSolutions:
         return self._list_proxied_solution("threebot", next_action, sync)
 
     def list_gollum_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solutions("gollum", next_action, sync)
+        return self._list_single_conatiner_solution("gollum", next_action, sync)
 
     def list_cryptpad_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solutions("cryptpad", next_action, sync)
+        return self._list_single_conatiner_solution("cryptpad", next_action, sync)
+
+    def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        container_workloads = self._list_container_workloads("minio", next_action)
+        for name in container_workloads:
+            primary_dict = container_workloads[name][0]
+            solution_dict = {
+                "wids": [primary_dict["wid"]] + primary_dict["vol_ids"],
+                "Name": name,
+                "Network": primary_dict["network"],
+                "Primary IPv4": primary_dict["ipv4"],
+                "Primary IPv6": primary_dict["ipv6"],
+                "Primary Pool": primary_dict["pool"],
+            }
+            for key, val in primary_dict["capacity"].items():
+                solution_dict[f"Primary {key}"] = val
+            if len(container_workloads) == 2:
+                secondary_dict = container_workloads[name][1]
+                solution_dict["wids"].append(secondary_dict["wid"])
+                solution_dict["wids"] += secondary_dict["vol_ids"]
+                solution_dict.update(
+                    {
+                        "Secondary IPv4": secondary_dict["ipv4"],
+                        "Secondary IPv6": secondary_dict["ipv6"],
+                        "Secondary Pool": secondary_dict["pool"],
+                    }
+                )
+                for key, val in secondary_dict["capacity"].items():
+                    solution_dict[f"Secondary {key}"] = val
+            result.append(solution_dict)
+        return result
 
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -105,115 +140,36 @@ class ChatflowSolutions:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
-    def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        # TODO: add related ZDB wids to solution dict
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    metadata = j.data.serializers.json.loads(
-                        j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
-                    )
-                    if not metadata:
-                        continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "minio":
-                    name = metadata["form_info"].get("Solution name", metadata.get("name"))
-                    if name:
-                        if name in result:
-                            result[name]["wids"].append(workload.id)
-                            result[name]["Secondary IPv4"] = workload.network_connection[0].ipaddress
-                            result[name]["Secondary IPv6"] = self.get_ipv6_address(workload)
-                            result[name]["Secondary Node"] = workload.network_connection[0].ipaddress
-                            result[name]["Secondary Pool"] = workload.info.pool_id
-                            for key, value in self.get_workload_capacity(workload).items():
-                                result[name][f"Secondary {key}"] = value
-                            if workload.volumes:
-                                for vol in workload.volumes:
-                                    result[name]["wids"].append(vol.volume_id.split("-")[0])
-                            continue
-                        result[name] = {
-                            "wids": [workload.id],
-                            "Name": name,
-                            "Network": workload.network_connection[0].network_id,
-                            "Primary IPv4": workload.network_connection[0].ipaddress,
-                            "Primary IPv6": self.get_ipv6_address(workload),
-                            "Primary Node": workload.info.node_id,
-                            "Primary Pool": workload.info.pool_id,
-                        }
-                        for key, value in self.get_workload_capacity(workload).items():
-                            result[name][f"Primary {key}"] = value
-                        if workload.volumes:
-                            for vol in workload.volumes:
-                                result[f"{name}"]["wids"].append(vol.volume_id.split("-")[0])
-        return list(result.values())
-
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
+        result = []
+        container_workloads = self._list_container_workloads("monitoring", next_action)
+        for name in container_workloads:
+            if len(container_workloads[name]) != 3:
+                continue
+            solution_dict = {"wids": [], "Name": name}
+            for c_dict in container_workloads[name]:
+                solution_dict["wids"].append(c_dict["wid"])
+                solution_dict["wids"] += c_dict["vol_ids"]
+                if "garafana" in c_dict["flist"]:
+                    cont_type = "Grafana"
+                elif "prometheus" in c_dict["flist"]:
+                    cont_type = "Prometheus"
+                elif "redis_zinit" in c_dict["flist"]:
+                    cont_type = "Redis"
+                else:
                     continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "monitoring":
-                    pool_id = workload.info.pool_id
-                    solution_name = metadata["form_info"].get("Solution name")
-                    if not solution_name:
-                        continue
-                    name = f"{solution_name}"
-                    if "grafana" in workload.flist:
-                        container_type = "Grafana"
-                    elif "redis_zinit" in workload.flist:
-                        container_type = "Redis"
-                    elif "prometheus" in workload.flist:
-                        container_type = "Prometheus"
-                    else:
-                        continue
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-                        if workload.volumes:
-                            for vol in workload.volumes:
-                                result[name]["wids"].append(vol.volume_id.split("-")[0])
-                        result[name][f"{container_type} IP"] = workload.network_connection[0].ipaddress
-                        result[name][f"{container_type} Pool"] = pool_id
-                        for key, value in self.get_workload_capacity(workload).items():
-                            result[name][f"{container_type} {key}"] = value
-                        continue
-                    result[name] = {
-                        "wids": [workload.id],
-                        "Name": solution_name,
-                        f"{container_type} Pool": pool_id,
-                        "Network": workload.network_connection[0].network_id,
-                        f"{container_type} IPv4": workload.network_connection[0].ipaddress,
-                        f"{container_type} IPv6": self.get_ipv6_address(workload),
-                    }
-                    for key, value in self.get_workload_capacity(workload).items():
-                        result[name][f"{container_type} {key}"] = value
-                    if workload.volumes:
-                        for vol in workload.volumes:
-                            result[name]["wids"].append(vol.volume_id.split("-")[0])
-        return list(result.values())
+                solution_dict[f"{cont_type} IPv4"] = c_dict["ipv4"]
+                solution_dict[f"{cont_type} IPv6"] = c_dict["ipv6"]
+                solution_dict[f"{cont_type} Node"] = c_dict["node"]
+                solution_dict[f"{cont_type} Pool"] = c_dict["pool"]
+                for key, val in c_dict["capacity"].items():
+                    solution_dict[f"{cont_type} {key}"] = val
+            result.append(solution_dict)
+        return result
 
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -378,10 +334,11 @@ class ChatflowSolutions:
                     "node": workload.info.node_id,
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
+                    "capacity": self.get_workload_capacity(workload),
                 }
                 if workload.volumes:
                     for vol in workload.volumes:
-                        container_dict["vol_ids"].append(vol.volume_id.split("-")[0])
+                        container_dict["vol_ids"].append(int(vol.volume_id.split("-")[0]))
                 if name not in result:
                     result[name] = [container_dict]
                 else:
@@ -491,10 +448,11 @@ class ChatflowSolutions:
                             "Network": c_dict["network"],
                         }
                     )
+                    solution_dict.update(c_dict["capacity"])
             result.append(solution_dict)
         return result
 
-    def _list_single_conatiner_solutions(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
+    def _list_single_conatiner_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
@@ -514,6 +472,7 @@ class ChatflowSolutions:
                     "Network": c_dict["network"],
                 }
             )
+            result[-1].update(c_dict["capacity"])
         return result
 
 
