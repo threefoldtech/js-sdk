@@ -27,7 +27,7 @@ class ChatflowSolutions:
         return result
 
     def list_ubuntu_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solution("ubuntu", next_action, sync)
+        return self._list_single_container_solution("ubuntu", next_action, sync)
 
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("peertube", next_action, sync)
@@ -36,16 +36,13 @@ class ChatflowSolutions:
         return self._list_proxied_solution("peertube", next_action, sync)
 
     def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solution("flist", next_action, sync)
+        return self._list_single_container_solution("flist", next_action, sync)
 
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solution("gitea", next_action, sync)
+        return self._list_single_container_solution("gitea", next_action, sync)
 
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
-
-    def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("exposed", next_action, sync)
 
     def list_wiki_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("wiki", next_action, sync, None)
@@ -60,10 +57,10 @@ class ChatflowSolutions:
         return self._list_proxied_solution("threebot", next_action, sync)
 
     def list_gollum_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solution("gollum", next_action, sync)
+        return self._list_single_container_solution("gollum", next_action, sync)
 
     def list_cryptpad_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_conatiner_solution("cryptpad", next_action, sync)
+        return self._list_single_container_solution("cryptpad", next_action, sync)
 
     def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -204,6 +201,78 @@ class ChatflowSolutions:
                     {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
                 )
         return result
+
+    def list_exposed_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = {}
+        pools = set()
+        name_to_proxy = {}
+        for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy].values():
+            for proxy in proxies:
+                if proxy.info.metadata:
+                    metadata = j.data.serializers.json.loads(proxy.info.metadata)
+                    if not metadata:
+                        continue
+                    chatflow = metadata.get("form_info", {}).get("chatflow")
+                    if chatflow and chatflow != "exposed":
+                        continue
+                    result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                        "wids": [proxy.id],
+                        "Name": proxy.domain,
+                        "Gateway": proxy.info.node_id,
+                        "Pool": proxy.info.pool_id,
+                        "Domain": proxy.domain,
+                    }
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
+                    name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
+                pools.add(proxy.info.pool_id)
+
+        # link subdomains to proxy_reservations
+        for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Subdomain].values():
+            for workload in subdomains:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                )
+                if not solution_name:
+                    continue
+                domain = workload.domain
+                if name_to_proxy.get(solution_name):
+                    result[name_to_proxy[solution_name]]["wids"].append(workload.id)
+
+        # link tcp router containers to proxy reservations
+        for pool_id in pools:
+            for container_workload in j.sals.reservation_chatflow.deployer.workloads[next_action][
+                WorkloadType.Container
+            ][pool_id]:
+                if (
+                    container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
+                    or not container_workload.info.metadata
+                ):
+                    continue
+                metadata = j.data.serializers.json.loads(container_workload.info.metadata)
+                if not metadata:
+                    continue
+                chatflow = metadata.get("form_info", {}).get("chatflow")
+                if chatflow and chatflow != "exposed":
+                    continue
+                solution_name = metadata.get(
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                )
+                if not solution_name:
+                    continue
+                if name_to_proxy.get(solution_name):
+                    domain = name_to_proxy.get(solution_name)
+                    result[domain]["wids"].append(container_workload.id)
+        return list(result.values())
 
     def cancel_solution(self, solution_wids):
         """
@@ -451,7 +520,7 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
-    def _list_single_conatiner_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
+    def _list_single_container_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
