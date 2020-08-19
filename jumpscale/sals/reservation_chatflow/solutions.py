@@ -30,10 +30,10 @@ class ChatflowSolutions:
         return self._list_single_conatiner_solution("ubuntu", next_action, sync)
 
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("peertube", next_action, sync, "nginx")
+        return self._list_proxied_solution("peertube", next_action, sync)
 
     def list_discourse_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("peertube", next_action, sync, "nginx")
+        return self._list_proxied_solution("peertube", next_action, sync)
 
     def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_single_conatiner_solution("flist", next_action, sync)
