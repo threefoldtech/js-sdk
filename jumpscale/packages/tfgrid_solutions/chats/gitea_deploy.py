@@ -126,6 +126,29 @@ class GiteaDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
+        self.md_show_update("Preparing gateways ...")
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+
+        domains = dict()
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
+            for domain in gateway.managed_domains:
+                domains[domain] = gw_dict
+
+        self.domain = random.choice(list(domains.keys()))
+
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
+        self.solution_name = self.solution_name.replace(".", "").replace("_", "-")
+        self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+
+        self.addresses = []
+        for ns in self.gateway.dns_nameserver:
+            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -147,9 +170,9 @@ class GiteaDeploy(GedisChatBot):
             "DB_HOST": "localhost:5432",
             "POSTGRES_USER": self.database_user,
             "APP_NAME": self.repository_name,
-            "ROOT_URL": f"https://{self.ip_address}",
+            "ROOT_URL": f"https://{self.domain}",
             "HTTP_PORT": "3000",
-            "DOMAIN": f"{self.ip_address}",
+            "DOMAIN": f"{self.domain}",
         }
         metadata = {
             "name": self.solution_name,
@@ -157,7 +180,20 @@ class GiteaDeploy(GedisChatBot):
         }
         self.solution_metadata.update(metadata)
         # reserve subdomain
+        subdomain_wid = deployer.create_subdomain(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
+        )
+        subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
+        if not subdomain_wid:
+            raise StopChatFlow(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}"
+            )
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
@@ -181,6 +217,36 @@ class GiteaDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
+        self.proxy_id = deployer.create_proxy(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            domain_name=self.domain,
+            trc_secret=self.secret,
+            **self.solution_metadata,
+            solution_uuid=self.solution_id,
+        )
+        success = deployer.wait_workload(self.proxy_id, self)
+        if not success:
+            solutions.cancel_solution([self.proxy_id])
+            raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
+
+        self.tcprouter_id = deployer.expose_address(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            local_ip=self.ip_address,
+            port=3000,
+            tls_port=3000,
+            trc_secret=self.secret,
+            bot=self,
+            **self.solution_metadata,
+            solution_uuid=self.solution_id,
+        )
+        success = deployer.wait_workload(self.tcprouter_id)
+        if not success:
+            solutions.cancel_solution([self.tcprouter_id])
+            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+        self.container_url_https = f"https://{self.domain}"
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
         res = f"""\
@@ -188,7 +254,7 @@ class GiteaDeploy(GedisChatBot):
 \n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
 \n<br />\n
-open gitea from browser at https://{self.ip_address}:3000
+open gitea from browser at {self.container_url_https} 
                 """
         self.md_show(res, md=True)
 
