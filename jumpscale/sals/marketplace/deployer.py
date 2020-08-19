@@ -269,7 +269,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, farm_names=[farm_name], ip_version="IPv4"
+            1, pool_ids=[pool_info.reservation_id], ip_version="IPv4"
         )[0]
 
         result = self.deploy_network(
