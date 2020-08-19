@@ -8,10 +8,10 @@
 
 ## The structure of the chatflow file
 1. Create file with name `{your_app_name}.py` in `packages/marketplace/chats` directory.
-2. You have to inherit from `MarketPlaceChatflow` baseclass.
+2. You have to inherit from `MarketPlaceAppsChatflow` baseclass.
 
     ```python
-    class AppDeploy(MarketPlaceChatflow):
+    class AppDeploy(MarketPlaceAppsChatflow):
     ```
 3. Define your `solution type` name and chatflow `title` that will be shown in frontend
 

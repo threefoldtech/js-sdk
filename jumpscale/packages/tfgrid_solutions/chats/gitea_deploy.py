@@ -1,7 +1,8 @@
 import uuid
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-
+from jumpscale.loader import j
+import random
 
 class GiteaDeploy(GedisChatBot):
     """
@@ -28,7 +29,8 @@ class GiteaDeploy(GedisChatBot):
     def gitea_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
-        self.HUB_URL = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-http_gitea_all_in_one-latest.flist"
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
@@ -146,7 +148,7 @@ class GiteaDeploy(GedisChatBot):
             "POSTGRES_USER": self.database_user,
             "APP_NAME": self.repository_name,
             "ROOT_URL": f"https://{self.ip_address}",
-            "HTTP_PORT": 3000,
+            "HTTP_PORT": "3000",
             "DOMAIN": f"{self.ip_address}",
         }
         metadata = {
@@ -154,6 +156,7 @@ class GiteaDeploy(GedisChatBot):
             "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
         }
         self.solution_metadata.update(metadata)
+        # reserve subdomain
 
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
@@ -185,7 +188,7 @@ class GiteaDeploy(GedisChatBot):
 \n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
 \n<br />\n
-open gitea from browser at ```{self.ip_address}:3000```
+open gitea from browser at https://{self.ip_address}:3000
                 """
         self.md_show(res, md=True)
 

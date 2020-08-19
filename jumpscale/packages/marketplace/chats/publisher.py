@@ -2,10 +2,10 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 
 
-class Publisher(MarketPlaceChatflow):
+class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"

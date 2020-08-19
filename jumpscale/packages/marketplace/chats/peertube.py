@@ -1,11 +1,11 @@
 from textwrap import dedent
 
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
 
 
-class Peertube(MarketPlaceChatflow):
+class Peertube(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
     SOLUTION_TYPE = "peertube"
     steps = [

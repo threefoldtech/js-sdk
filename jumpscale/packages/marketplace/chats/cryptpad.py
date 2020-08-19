@@ -2,10 +2,10 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 
 
-class CryptpadDeploy(MarketPlaceChatflow):
+class CryptpadDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
