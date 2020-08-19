@@ -44,6 +44,9 @@ class ChatflowSolutions:
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
 
+    def list_publisher_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("publisher", next_action, sync, None)
+
     def list_wiki_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("wiki", next_action, sync, None)
 
@@ -311,6 +314,7 @@ class ChatflowSolutions:
             "mattermost": 0,
             "peertube": 0,
             "cryptpad": 0,
+            "publisher": 0,
             "wiki": 0,
             "blog": 0,
             "website": 0,

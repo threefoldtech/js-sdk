@@ -8,59 +8,59 @@ import uuid
 
 
 class Publisher(GedisChatBot):
-    # steps = [
-    #     "start",
-    #     "publisher_name",
-    #     "select_pool",
-    #     "publisher_network",
-    #     "configuration",
-    #     "domain_select",
-    #     "overview",
-    #     "deploy",
-    #     "success",
-    # ]
+    steps = [
+        "start",
+        "publisher_name",
+        "select_pool",
+        "publisher_network",
+        "configuration",
+        "domain_select",
+        "overview",
+        "deploy",
+        "success",
+    ]
 
-    # title = "Publisher"
-    # welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
-    # publishing_chatflow = "publisher"  # chatflow used to deploy the solution
+    title = "Publisher"
+    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
+    publishing_chatflow = "publisher"  # chatflow used to deploy the solution
 
-    # @chatflow_step()
-    # def start(self):
-    #     self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
-    #     self.solution_id = uuid.uuid4().hex
-    #     self.solution_currency = "TFT"
-    #     self.storage_url = "zdb://hub.grid.tf:9900"
-    #     self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-    #     self.md_show(self.welcome_message, md=True)
-    #     self.solution_metadata = {}
+    @chatflow_step()
+    def start(self):
+        self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
+        self.solution_id = uuid.uuid4().hex
+        self.solution_currency = "TFT"
+        self.storage_url = "zdb://hub.grid.tf:9900"
+        self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
+        self.md_show(self.welcome_message, md=True)
+        self.solution_metadata = {}
 
-    # @chatflow_step(title="Solution name")
-    # def publisher_name(self):
-    #     valid = False
-    #     while not valid:
-    #         self.solution_name = deployer.ask_name(self)
-    #         publisher_solutions = solutions.list_publisher_solutions(sync=False)
-    #         valid = True
-    #         for sol in publisher_solutions:
-    #             if sol["Name"] == self.solution_name:
-    #                 valid = False
-    #                 self.md_show("The specified solution name already exists. please choose another.")
-    #                 break
-    #             valid = True
+    @chatflow_step(title="Solution name")
+    def publisher_name(self):
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            publisher_solutions = solutions.list_publisher_solutions(sync=False)
+            valid = True
+            for sol in publisher_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
-    # @chatflow_step(title="Pool")
-    # def select_pool(self):
-    #     query = {
-    #         "cru": self.resources["cpu"],
-    #         "mru": math.ceil(self.resources["memory"] / 1024),
-    #         "sru": math.ceil(self.resources["disk_size"] / 1024),
-    #     }
-    #     cu, su = deployer.calculate_capacity_units(**query)
-    #     self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        query = {
+            "cru": self.resources["cpu"],
+            "mru": math.ceil(self.resources["memory"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
+        }
+        cu, su = deployer.calculate_capacity_units(**query)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
 
-    # @chatflow_step(title="Network")
-    # def publisher_network(self):
-    #     self.network_view = deployer.select_network(self)
+    @chatflow_step(title="Network")
+    def publisher_network(self):
+        self.network_view = deployer.select_network(self)
 
     @chatflow_step()
     def publisher_info(self):
@@ -74,11 +74,6 @@ class Publisher(GedisChatBot):
         form.ask()
         self.currency = self.currency.value
         self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
-
-    @chatflow_step()
-    def publisher_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
-        print(self.expiration)
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):
@@ -113,10 +108,6 @@ class Publisher(GedisChatBot):
         if not gateways:
             raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
-        for g in filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos._explorer.gateway.list()):
-            if self.network.currency == "FreeTFT" and not g.free_to_use:
-                continue
-            self.gateways[g.node_id] = g
         domains = dict()
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
