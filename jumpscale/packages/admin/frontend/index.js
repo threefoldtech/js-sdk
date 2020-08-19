@@ -22,6 +22,7 @@ const vuetify = new Vuetify({
 
 const baseComponent = httpVueLoader('./components/base/Component.vue')
 const baseDialog = httpVueLoader('./components/base/Dialog.vue')
+const renderJSON = httpVueLoader('./components/base/RenderJSON.vue')
 const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
@@ -62,6 +63,7 @@ Vue.mixin({
 Vue.component("base-component", baseComponent)
 Vue.component("base-section", baseSection)
 Vue.component("base-dialog", baseDialog)
+Vue.component("render-json", renderJSON)
 Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
