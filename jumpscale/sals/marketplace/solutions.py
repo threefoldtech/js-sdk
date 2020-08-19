@@ -374,7 +374,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 if metadata.get("owner") != username:
                     continue
-                if metadata["form_info"].get("chatflow") == "threebot":
+                if metadata["form_info"].get("chatflow") == "taiga":
                     name = metadata.get("name", metadata["form_info"].get("Solution name"))
                     if name in result:
                         result[name]["wids"].append(workload.id)

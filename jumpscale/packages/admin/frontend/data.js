@@ -55,10 +55,10 @@ const SOLUTIONS = {
   threebot: {
     topic: "threebot",
     type: "threebot",
-    name: "Threebot",
+    name: "3Bot",
     image: "./assets/3bot.png",
     url: "/solutions/threebot",
-    description: "Deploy your Threebot on container."
+    description: "Deploy your 3Bot on container."
   },
   expose: {
     topic: "solution_expose",

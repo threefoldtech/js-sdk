@@ -24,14 +24,14 @@ class ThreebotDeploy(GedisChatBot):
         "intializing",
         "success",
     ]
-    title = "Threebot"
+    title = "3Bot"
 
     @chatflow_step()
     def start(self):
         self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         self.solution_id = uuid.uuid4().hex
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.md_show("This wizard will help you deploy a Threebot container", md=True)
+        self.md_show("This wizard will help you deploy a 3Bot container", md=True)
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
 
@@ -81,21 +81,21 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Password")
     def set_backup_password(self):
-        messege = "Please enter the password (using this password, you can recover any 3bot you deploy online)"
+        messege = "Please enter the password (using this password, you can recover any 3Bot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect password for threebot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title="Threebot version")
+    @chatflow_step(title="3Bot version")
     def threebot_branch(self):
         self.branch = self.string_ask("Please type branch name", required=True, default="development")
 
     @chatflow_step(title="Access key")
     def upload_public_key(self):
         self.public_key = self.upload_file(
-            "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+            "Please upload your public ssh key, this will allow you to access your 3Bot container using ssh",
             required=True,
         ).strip()
 
@@ -246,13 +246,13 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
-        self.md_show_update("Initializing your Threebot ...")
+        self.md_show_update("Initializing your 3Bot ...")
         if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
-            self.stop("Failed to initialize threebot, please contact support")
+            self.stop("Failed to initialize 3Bot, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""# Your Threebot has been deployed successfully.
+        message = f"""# Your 3Bot has been deployed successfully.
 \n<br>\n
 
 - Reservation ID  : `{self.workload_ids[-1]}`

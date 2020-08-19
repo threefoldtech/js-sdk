@@ -626,7 +626,7 @@ class ReservationChatflow:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("3Bot app")
 
         payment_details = self.get_payment_details(escrow_info, currency)
 
@@ -635,7 +635,7 @@ class ReservationChatflow:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
         """
         retry = False
         while True:
@@ -645,7 +645,7 @@ class ReservationChatflow:
             if result not in wallet_names:
                 retry = True
                 continue
-            if result == "3bot app":
+            if result == "3Bot app":
                 reservation = self._explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
@@ -654,7 +654,7 @@ class ReservationChatflow:
                     escrow_address=escrow_address,
                     escrow_asset=escrow_asset,
                     total_amount=total_amount,
-                    payment_source=result,
+                    payment_source="3bot app",
                     farmer_payments=escrow_info["farmer_payments"],
                 )
                 return payment, payment_obj
@@ -1228,7 +1228,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the threebot, the network must be configured",
+            "To have access to the 3Bot, the network must be configured",
             ip_range_choose,
             required=True,
             default=ip_range_choose[1],
@@ -1558,8 +1558,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
-            This chatflow is not supported when Threebot is in dev mode.
-            To enable Threebot connect : `j.core.config.set('threebot_connect', True)`
+            This chatflow is not supported when 3Bot is in dev mode.
+            To enable 3Bot connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:

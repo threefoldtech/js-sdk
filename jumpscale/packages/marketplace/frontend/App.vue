@@ -239,7 +239,7 @@ module.exports = {
         },
         {
           type: "threebot",
-          name: "Threebot",
+          name: "3Bot",
           path: "/threebot",
           meta: { img: "./assets/3bot.png" },
         },
