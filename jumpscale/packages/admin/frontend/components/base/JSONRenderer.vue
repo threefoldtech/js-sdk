@@ -38,7 +38,7 @@ module.exports = {
   data() {
     return {
       tab: 0,
-      id: null,
+      lastObj: null,
     };
   },
   props: {
@@ -52,11 +52,11 @@ module.exports = {
     typedict: { type: Array, default: () => ([]) },
   },
   updated() {
-    if (this.jsonobj !== this.id) this.tab = 0;
-    this.id = this.jsonobj;
+    if (this.jsonobj !== this.lastObj) this.tab = 0;
+    this.lastObj = this.jsonobj;
   },
   mounted(){
-    this.id = this.jsonobj;
+    this.lastObj = this.jsonobj;
   }
 };
 </script>
