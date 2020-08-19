@@ -174,9 +174,9 @@ module.exports = {
         },
         {
           type: "threebot",
-          name: "Threebot",
+          name: "3Bot",
           image: "./assets/3bot.png",
-          description: "Deploy your Threebot on container.",
+          description: "Deploy your 3Bot on container.",
         },
         {
           type: "cryptpad",
