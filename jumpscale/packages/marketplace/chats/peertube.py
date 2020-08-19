@@ -14,6 +14,7 @@ class Peertube(MarketPlaceAppsChatflow):
         "volume_details",
         "solution_expiration",
         "payment_currency",
+        "pay_service_fees",
         "infrastructure_setup",
         "overview",
         "reservation",
