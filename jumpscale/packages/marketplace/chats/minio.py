@@ -8,6 +8,8 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class MinioDeploy(BaseMinioDeploy, MarketPlaceChatflow):
+    title = "MinIO"
+
     @chatflow_step(title="Welcome")
     def deployment_start(self):
         self._validate_user()

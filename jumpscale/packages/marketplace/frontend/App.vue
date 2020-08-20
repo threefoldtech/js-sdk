@@ -54,41 +54,41 @@
       <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
-        <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
+        <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
           <v-list-item-icon>
-            <v-img height="30px" width="30px" v-if="app.meta.img" :src="app.meta.img"></v-img>
-            <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
+            <v-img height="30px" width="30px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
+            <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
           </v-list-item-icon>
 
           <v-list-item-content>
             <v-list-item-title>
-              {{ app.name }}
-              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[app.type] || 0}}</v-chip>
+              {{ solution.name }}
+              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[solution.type] || 0}}</v-chip>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
         <v-list-group no-action value="true" color="white">
           <template v-slot:activator>
             <v-list-item-content>
-              <v-list-item-title>Advanced Solutions</v-list-item-title>
+              <v-list-item-title>Demo Solutions</v-list-item-title>
             </v-list-item-content>
           </template>
 
-          <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
+          <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
             <v-list-item-icon>
-              <v-img height="25px" width="25px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
-              <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
+              <v-img height="25px" width="25px" v-if="app.meta.img" :src="app.meta.img"></v-img>
+              <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
             </v-list-item-icon>
 
             <v-list-item-content>
               <v-list-item-title>
-                {{ solution.name }}
+                {{ app.name }}
                 <v-chip
                   :loading="true"
                   class="ml-2"
                   small
                   outlined
-                >{{solutionCount[solution.type] || 0}}</v-chip>
+                >{{solutionCount[app.type] || 0}}</v-chip>
               </v-list-item-title>
             </v-list-item-content>
           </v-list-item>
@@ -172,7 +172,7 @@ module.exports = {
       ],
       solutions: [
         {
-          name: "Pools",
+          name: "Capacity Pools",
           type: "pools",
           path: "/pools",
           meta: { icon: "mdi-cloud" },
@@ -182,6 +182,12 @@ module.exports = {
           type: "network",
           path: "/network",
           meta: { icon: "mdi-network-outline" },
+        },
+        {
+          type: "threebot",
+          name: "3Bot",
+          path: "/threebot",
+          meta: { img: "./assets/3bot.png" },
         },
         {
           name: "Ubuntu",
@@ -202,22 +208,22 @@ module.exports = {
           meta: { img: "./assets/kubernetes.png" },
         },
         {
-          name: "Minio",
+          name: "MinIO",
           type: "minio",
           path: "/minio",
           meta: { img: "./assets/minio.png" },
-        },
-        {
-          name: "Monitoring",
-          type: "monitoring",
-          path: "/monitoring",
-          meta: { icon: "mdi-monitor-dashboard" },
         },
         {
           name: "Gitea",
           type: "gitea",
           path: "/gitea",
           meta: { img: "./assets/gitea.png" },
+        },
+        {
+          name: "Monitoring",
+          type: "monitoring",
+          path: "/monitoring",
+          meta: { icon: "mdi-monitor-dashboard" },
         },
         {
           name: "Solution Expose",
@@ -236,12 +242,6 @@ module.exports = {
           type: "4to6gw",
           path: "/4to6gw",
           meta: { icon: "mdi-router" },
-        },
-        {
-          type: "threebot",
-          name: "3Bot",
-          path: "/threebot",
-          meta: { img: "./assets/3bot.png" },
         },
       ],
     };

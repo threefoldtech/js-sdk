@@ -59,10 +59,10 @@ module.exports = {
       solutions: [
         {
           type: "pools",
-          name: "Pools",
+          name: "Capacity Pools",
           icon: "mdi-cloud",
           description:
-            "Reserve capacity on the grid to deploy the solutions on",
+            "Reserve capacity Pool on the grid to deploy the solutions on",
         },
         {
           type: "ubuntu",
@@ -80,7 +80,7 @@ module.exports = {
         },
         {
           type: "minio",
-          name: "Minio",
+          name: "MinIO",
           image: "./assets/minio.png",
           description:
             "MinIO is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage.",
