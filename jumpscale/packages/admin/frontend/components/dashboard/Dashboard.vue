@@ -56,7 +56,16 @@
           </v-col>
 
           <v-col cols="4">
-            <processes></processes>
+            <v-row>
+              <v-col>
+                <health-checks></health-checks>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <processes></processes>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
       </template>
@@ -77,6 +86,7 @@
       'create-wallet': httpVueLoader("../wallets/Create.vue"),
       'memory-usage': httpVueLoader("./MemoryUsage.vue"),
       'disk-usage': httpVueLoader("./DiskUsage.vue"),
+      'health-checks': httpVueLoader("./HealthChecks.vue"),
       'processes': httpVueLoader("./Processes.vue"),
       'solutions': httpVueLoader("./Solutions.vue"),
       'pools': httpVueLoader("./Pools.vue"),
