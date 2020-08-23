@@ -2,66 +2,80 @@
   <div>
     <base-component title="Solutions" icon="mdi-apps" :loading="loading">
       <template #default>
-        <v-tabs v-if="hasMigrated" class="text--left" background-color="transparent" vertical>
-          <v-tab
-            v-for="solution in solutions"
-            :key="solution.topic"
-            @click.stop="switchTo(solution.type)"
-          >
-            <v-avatar size="30px" class="mr-5">
-              <v-img v-if="solution.image" :src="solution.image"></v-img>
-              <v-icon v-else color="primary">{{solution.icon}}</v-icon>
-            </v-avatar>
-            {{solution.name}}
-            <v-chip
-              v-if="solutionCount[solution.type] !== undefined"
-              :loading="true"
-              class="ml-2"
-              small
-              outlined
-            >{{solutionCount[solution.type]}}</v-chip>
-          </v-tab>
-
-          <v-tab-item v-for="solution in solutions" :key="solution.topic + '-content'">
-            <v-card class="pa-3 ml-3">
-              <v-card-title class="headline">
-                <v-avatar size="50px" class="mr-5" tile>
-                  <v-img v-if="solution.image" :src="solution.image"></v-img>
-                  <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
-                </v-avatar>
-                <span>{{solution.name}}</span>
-              </v-card-title>
-
-              <v-card-text>
-                <span>{{solution.description}}</span>
-                <br />
-                <br />
-                <v-btn
-                  v-if="solution.topic !== 'all'"
-                  color="primary"
-                  @click.stop="restart(solution.topic)"
-                >New</v-btn>
-                <v-btn
-                  color="primary"
-                  v-if="started(solution.topic)"
-                  @click.stop="open(solution.topic)"
-                >Continue</v-btn>
-
-                <v-divider class="my-5"></v-divider>
-
+        <div v-if="hasMigrated">
+          <h2 class="font-weight-black mx-2">Apps</h2>
+          <v-row class="mt-2" align="start" justify="start">
+            <v-card
+              v-for="app in apps"
+              :key="app.topic"
+              class="ma-2"
+              width="290"
+              :loading="loading"
+              :disabled="loading"
+            >
+              <v-img v-if="app.image" class="mt-6" height="100px" :contain="true" :src="app.image"></v-img>
+              <v-icon v-else class="ma-4" x-large color="primary">{{app.icon}}</v-icon>
+              <v-card-title class="mx-2 font-weight-bold">
+                {{app.name}}
                 <v-chip
-                  class="ma-2"
-                  color="primary"
-                  min-width="100"
-                  v-for="(s, i) in deployedSolutions[solution.type]"
-                  :key="i"
-                  @click="showInfo(s)"
+                  v-if="solutionCount[app.type] !== undefined"
+                  :loading="true"
+                  class="ml-2"
+                  small
                   outlined
-                >{{ solution.topic === 'all' ? `${s.workload_type}: ${s.id} - Pool: ${s.pool_id}` : s.Name }}</v-chip>
+                >{{solutionCount[app.type]}}</v-chip>
+              </v-card-title>
+              <v-card-text style="height:100px" class="mx-2 text--primary">
+                {{app.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
+                app.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
+                app.description}}
               </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn text medium @click.stop="openChatflow(app.topic)"> New</v-btn>
+                <v-btn text medium @click.stop="viewWorkloads(app.type)"> My workloads</v-btn>
+              </v-card-actions>
             </v-card>
-          </v-tab-item>
-        </v-tabs>
+          </v-row>
+          <br />
+
+          <h2 class="font-weight-black mt-4 ml-2">Advanced Solutions</h2>
+          <v-row class="mt-2" align="start" justify="start">
+            <v-card
+              v-for="solution in solutions"
+              :key="solution.topic"
+              class="ma-2"
+              width="290"
+              :loading="loading"
+              :disabled="loading"
+            >
+              <v-img v-if="solution.image" class="mt-6" height="100px" :contain="true" :src="solution.image"></v-img>
+              <v-icon v-else class="ma-4" x-large color="primary">{{solution.icon}}</v-icon>
+              <v-card-title class="mx-2 font-weight-bold">
+                {{solution.name}}
+                <v-chip
+                  v-if="solutionCount[solution.type] !== undefined"
+                  :loading="true"
+                  class="ml-2"
+                  small
+                  outlined
+                >{{solutionCount[solution.type]}}</v-chip>
+              </v-card-title>
+              <v-card-text style="height:100px" class="mx-2 text--primary">
+                {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
+                solution.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
+                solution.description}}
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn text medium @click.stop="openChatflow(solution.topic)"> New</v-btn>
+                <v-btn text medium @click.stop="viewWorkloads(solution.type)"> My workloads</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-row>
+          <br />
+        </div>
+
         <v-card v-else class="mx-auto" max-width="344">
           <v-card-text>
             <div>Have to migrate first</div>
@@ -77,88 +91,45 @@
         </v-card>
       </template>
     </base-component>
-    <solution-info v-if="selected" v-model="dialog" :data="selected" :type="selected"></solution-info>
   </div>
 </template>
 <script>
 module.exports = {
-  components: {
-    "solution-info": httpVueLoader("./Info.vue"),
-  },
   data() {
     return {
+      SOLUTION_DESCRIPTION_MAXLENGTH: 130,
       loading: false,
-      selected: null,
-      dialog: false,
       hasMigrated: true,
+      apps: Object.values(APPS),
       solutions: Object.values(SOLUTIONS),
-      deployedSolutions: {},
-      solutionCount: {},
+      solutionCount: {}
     };
   },
   methods: {
-    open(solutionId) {
-      this.$router.push({ name: "Solution", params: { topic: solutionId } });
+    openChatflow(solutionTopic) {
+      this.$router.push({ name: "SolutionChatflow", params: { topic: solutionTopic } });
     },
-    restart(solutionId) {
-      localStorage.removeItem(solutionId);
-      this.open(solutionId);
-    },
-    started(solution_type) {
-      return localStorage.hasOwnProperty(solution_type);
-    },
-    showInfo(data) {
-      this.selected = data;
-      this.dialog = true;
-    },
-    switchTo(solution_type) {
-      if (this.deployedSolutions[solution_type] == undefined) {
-        this.getDeployedSolutions(solution_type);
-      }
+    viewWorkloads(solutionType) {
+      this.$router.push({ name: "Solution", params: { type: solutionType } });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
+      this.$api.solutions.getCount().then(response => {
         this.solutionCount = JSON.parse(response.data).data;
       });
     },
-    getDeployedSolutions(solution_type) {
-      if (solution_type === "all_reservations") {
-        this.$api.solutions.getAll().then((response) => {
-          this.$set(
-            this.deployedSolutions,
-            solution_type,
-            JSON.parse(response.data).data
-          );
-        });
-      } else
-        this.$api.solutions.getDeployed(solution_type).then((response) => {
-          this.$set(
-            this.deployedSolutions,
-            solution_type,
-            JSON.parse(response.data).data
-          );
-        });
-    },
     migrate() {
-      this.$api.solutions.migrate().then((response) => {
+      this.$api.solutions.migrate().then(response => {
         window.location.reload();
       });
-    },
+    }
   },
   mounted() {
     this.getSolutionCount();
   },
   created() {
-    this.$api.solutions.hasMigrated().then((response) => {
+    this.$api.solutions.hasMigrated().then(response => {
       this.hasMigrated = JSON.parse(response.data).result;
     });
-  },
+  }
 };
 </script>
-
-<style scoped>
-.v-tab {
-  justify-content: left;
-  text-align: left;
-}
-</style>

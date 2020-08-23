@@ -50,7 +50,7 @@ const SOLUTIONS = {
     name: "Network",
     icon: "mdi-network",
     url: "/solutions/network_deploy",
-    description: "Deploy a network on the grid and to connect your solutions together."
+    description: "Deploy a network on the grid to connect your solutions together."
   },
   threebot: {
     topic: "threebot",
@@ -64,7 +64,7 @@ const SOLUTIONS = {
     topic: "solution_expose",
     type: "exposed",
     name: "Solution Expose",
-    icon: "mdi-publish",
+    image: "./assets/expose.png",
     url: "/solutions/solution_expose",
     description: ""
   },
@@ -80,7 +80,7 @@ const SOLUTIONS = {
     topic: "monitoring_deploy",
     type: "monitoring",
     name: "Monitoring",
-    icon: "mdi-monitor-dashboard",
+    image: "./assets/monitoring.png",
     url: "/solutions/monitoring_deploy",
     description: ""
   },
@@ -96,17 +96,29 @@ const SOLUTIONS = {
     topic: "4to6gw",
     type: "4to6gw",
     name: "4 to 6 Gateway",
-    icon: "mdi-router",
+    image: "./assets/4to6.png",
     url: "/solutions/4to6gw",
     description: ""
   },
+  all: {
+    topic: "all",
+    type: "all_reservations",
+    name: "All Workloads",
+    icon: "mdi-clipboard-list-outline",
+    url: "/solutions/all",
+    description: "View all your current and old workloads"
+  }
+}
+
+
+const APPS = {
   wiki: {
     topic: "wiki_deploy",
     type: "wiki",
     name: "Wiki",
     icon: "mdi-web-box",
     url: "/solutions/deploy_wiki",
-    description: ""
+    description: "Publish a wiki like https://wiki.threefold.io/"
   },
   website: {
     topic: "website_deploy",
@@ -114,7 +126,7 @@ const SOLUTIONS = {
     name: "Website",
     icon: "mdi-web-box",
     url: "/solutions/deploy_website",
-    description: ""
+    description: "Publish a website like https://www.threefold.io/"
   },
   blog: {
     topic: "blog_deploy",
@@ -122,7 +134,7 @@ const SOLUTIONS = {
     name: "Blog",
     icon: "mdi-web-box",
     url: "/solutions/deploy_blog",
-    description: ""
+    description: "Publish a blog like https://blog.threefold.io/"
   },
   mattermost: {
     topic: "mattermost",
@@ -138,7 +150,7 @@ const SOLUTIONS = {
     name: "Peertube",
     image: "./assets/peertube.png",
     url: "/solutions/peertube",
-    description: "Deploy a peertube instance on the grid."
+    description: "Peertube is a free and open-source, decentralized video platform that uses P2P technology to reduce load on individual servers."
   },
   discourse: {
     topic: "discourse",
@@ -146,7 +158,7 @@ const SOLUTIONS = {
     name: "Discourse",
     image: "./assets/discourse.png",
     url: "/solutions/discourse",
-    description: "Deploy a discourse instance on the grid."
+    description: "Discourse is an open source Internet forum and mailing list management software application."
   },
   cryptpad: {
     topic: "cryptpad_deploy",
@@ -164,15 +176,8 @@ const SOLUTIONS = {
     url: "/solutions/taiga_deploy",
     description: "Build your 'All in one' Taiga solution"
   },
-  all: {
-    topic: "all",
-    type: "all_reservations",
-    name: "All Workloads",
-    icon: "mdi-clipboard-list-outline",
-    url: "/solutions/all",
-    description: ""
-  }
 }
+
 
 const LEVELS = {
   50: { value: 50, text: "CRITICAL", color: "#A93226" },
