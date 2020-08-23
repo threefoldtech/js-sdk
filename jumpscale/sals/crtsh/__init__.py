@@ -41,6 +41,7 @@ def has_reached_limit(domain):
     now = jstime.utcnow()
     start_date = now.shift(days=-7)
     for cert in all_certs:
+        # we will check using date only. entry_timestamp example "2020-08-23T12:15:27.833"
         t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
         if t >= start_date:
             count += 1
