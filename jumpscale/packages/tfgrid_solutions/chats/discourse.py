@@ -10,13 +10,12 @@ import random
 
 
 class Discourse(GedisChatBot):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse_all_in_one-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
 
     steps = [
         "discourse_start",
         "discourse_name",
         "discourse_smtp_info",
-        "discourse_email",
         "select_pool",
         "discourse_network",
         "overview",
@@ -49,16 +48,13 @@ class Discourse(GedisChatBot):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Email")
-    def discourse_email(self):
-        self.email = deployer.ask_email(self)
         self.container_resources()
 
     def container_resources(self):
         self.resources = dict()
         self.resources["cpu"] = 1
         self.resources["memory"] = 2048
-        self.resources["disk_size"] = 4096
+        self.resources["disk_size"] = 2048
         self.resources["default_disk_type"] = "SSD"
         self.query = {
             "cru": self.resources["cpu"],
@@ -147,10 +143,11 @@ class Discourse(GedisChatBot):
             "DISCOURSE_HOSTNAME": self.domain,
             "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
-            "DISCOURSE_DEVELOPER_EMAILS": self.email,
+            "DISCOURSE_DEVELOPER_EMAILS": self.user_info()["email"],
             "DISCOURSE_SMTP_PORT": "587",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
+            "UNICORN_BIND_ALL": "true",
         }
 
         secret_env = {
@@ -172,27 +169,6 @@ class Discourse(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
-
-        # expose threebot container
-        _id = deployer.expose_address(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=80,
-            tls_port=443,
-            trc_secret=self.secret,
-            node_id=self.selected_node.node_id,
-            reserve_proxy=True,
-            domain_name=self.domain,
-            proxy_pool_id=self.gateway_pool.pool_id,
-            solution_uuid=self.solution_id,
-            **metadata,
-        )
-        success = deployer.wait_workload(_id, self)
-        if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
         entrypoint = f"/.start_discourse.sh"
         self.entrypoint = entrypoint
@@ -216,6 +192,26 @@ class Discourse(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=80,
+            enforce_https=True,
+            test_cert=True,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
     def discourse_access(self):

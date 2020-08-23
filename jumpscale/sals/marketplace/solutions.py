@@ -1042,6 +1042,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "exposed": 0,
             "publisher": 0,
             "peertube": 0,
+            "discourse": 0,
             "mattermost": 0,
             "threebot": 0,
             "cryptpad": 0,

@@ -33,7 +33,10 @@ class ChatflowSolutions:
         return self._list_proxied_solution("peertube", next_action, sync)
 
     def list_discourse_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("peertube", next_action, sync)
+        return self._list_proxied_solution("discourse", next_action, sync)
+
+    def list_taiga_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("taiga", next_action, sync)
 
     def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_single_container_solution("flist", next_action, sync)
