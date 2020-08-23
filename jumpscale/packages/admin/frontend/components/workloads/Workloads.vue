@@ -142,9 +142,17 @@ module.exports = {
             if (!this.types.includes(workload.workload_type)) {
               this.types.push(workload.workload_type);
             }
+            // show node id
+            workload["node id"] = workload.info.node_id;
+            // show workload state
+            workload.state = Workload_STATE[workload.info.result.state];
+            workload.message = workload.info.result.message;
+            // convert date
             workload.epoch = new Date(workload.epoch * 1000).toLocaleString();
+            // convert vloume type
             if (workload.workload_type === "Volume")
               workload.type = VOLUMES_TYPE[workload.type];
+            // convert container disk type
             if (workload.workload_type === "Container") {
               workload.capacity.disk_type =
                 VOLUMES_TYPE[workload.capacity.disk_type];
