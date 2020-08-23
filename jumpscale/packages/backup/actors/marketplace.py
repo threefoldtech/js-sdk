@@ -74,6 +74,8 @@ class Backup(BaseActor):
             repo_snapshots = repo.list_snapshots(tags=tags)
             if repo_snapshots:
                 snapshots.append(repo_snapshots)
+            else:
+                snapshots.append([])
 
         processed = set()
         result = []

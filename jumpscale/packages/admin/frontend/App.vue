@@ -2,6 +2,9 @@
   <v-app>
     <v-app-bar app>
       <v-spacer></v-spacer>
+      <v-chip label flat color="transparent" class="pr-5">
+        <v-icon color="primary" left>mdi-clock-outline</v-icon> {{ timenow }}
+      </v-chip>
       <v-menu v-if="user.username" v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
@@ -49,9 +52,11 @@
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
               <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-
           <v-list-item v-else>
             <v-btn text block @click.stop="dialogs.identity = true">
               <v-icon left>mdi-account-cog</v-icon> Set identity
@@ -93,16 +98,18 @@
 
 <script>
 module.exports =  {
-  data () { 
+  data () {
     return {
       user: {},
       identity: null,
       menu: false,
       mini:false,
+      timenow: null,
+      clockInterval: null,
       dialogs: {
         identity: false
       }
-    } 
+    }
   },
   components: {
     identities: httpVueLoader("./Identity.vue")
@@ -127,10 +134,20 @@ module.exports =  {
         this.identity = JSON.parse(response.data)
       })
     },
+    setTimeLocal () {
+      this.timenow = new Date().toLocaleString()
+    }
   },
   mounted() {
     this.getIdentity();
     this.getCurrentUser();
+    this.setTimeLocal()
+    this.clockInterval = setInterval(() => {
+     this.setTimeLocal()
+    }, 1000);
+  },
+  destroyed () {
+    clearInterval(this.clockInterval)
   }
 };
 </script>

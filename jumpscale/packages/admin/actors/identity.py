@@ -1,9 +1,13 @@
+import os
+from urllib.parse import urlparse
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.packages.backup.actors.marketplace import Backup
-import os
+
 
 BACKUP_ACTOR = Backup()
+
+explorers = {"explorer.grid.tf": "main", "explorer.testnet.grid.tf": "testnet"}
 
 
 class Identity(BaseActor):
@@ -11,7 +15,13 @@ class Identity(BaseActor):
     def get_identity(self) -> str:
         data = None
         if j.core.identity.list_all():
-            data = {"id": j.core.identity.me.tid, "name": j.core.identity.me.tname, "email": j.core.identity.me.email}
+            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknow")
+            data = {
+                "id": j.core.identity.me.tid,
+                "name": j.core.identity.me.tname,
+                "email": j.core.identity.me.email,
+                "network": network.capitalize(),
+            }
         return j.data.serializers.json.dumps(data)
 
     @actor_method

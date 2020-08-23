@@ -5,7 +5,7 @@ from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
-from jumpscale.clients.explorer.models import TfgridDeployed_reservation1, NextAction
+from jumpscale.clients.explorer.models import DeployedReservation, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 
 from nacl.public import Box
@@ -216,9 +216,11 @@ class ReservationChatflow:
         self.me = j.core.identity.me
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
-        self.deployed_reservations = StoredFactory(TfgridDeployed_reservation1)
-        self._explorer = j.core.identity.me.explorer
-        self.update_local_reservations()
+        self.deployed_reservations = StoredFactory(DeployedReservation)
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     def decrypt_reservation_metadata(self, metadata_encrypted):
         """decrypt the reservation metadata using identity nacl
@@ -940,10 +942,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             addresses = farms[farm_id].wallet_addresses
             for address in addresses:
                 if address.asset not in currencies:
+                    if address.asset == "FreeTFT" and not g.free_to_use:
+                        continue
                     currencies.append(address.asset)
-            if g.free_to_use:
-                if "FreeTFT" not in currencies:
-                    currencies.append("FreeTFT")
 
             reservation_currency = ", ".join(currencies)
 
@@ -1226,7 +1227,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the threebot, the network must be configured", ip_range_choose
+            "To have access to the threebot, the network must be configured",
+            ip_range_choose,
+            required=True,
+            default=ip_range_choose[1],
         )
         if iprange_user_choice == "Configure IP range myself":
             ip_range = bot.string_ask("Please add private IP Range of the network")
@@ -1268,6 +1272,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         farm_nodes = self._explorer.nodes.list(farm_id=farm_id)
         nodes = []
         for node in farm_nodes:
+            if not j.sals.zos.nodes_finder.filter_is_up(node):
+                continue
             if currency == "FreeTFT" and not node.free_to_use:
                 continue
             if sru:
@@ -1350,16 +1356,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self,
-        number_of_nodes,
-        farm_id=None,
-        farm_names=None,
-        cru=None,
-        sru=None,
-        mru=None,
-        hru=None,
-        currency="TFT",
-        ip_version=None,
+        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency="TFT", ip_version=None, pool_ids=None,
     ):
         """get available nodes to deploy solutions on
 
@@ -1379,16 +1376,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         """
-        nodes_distribution = self._distribute_nodes(number_of_nodes, farm_names)
+        nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
         selected_ids = []
-        for farm_name in nodes_distribution:
-            nodes_number = nodes_distribution[farm_name]
-            if not farm_names:
-                farm_name = None
+        for pool_id in nodes_distribution:
+            nodes_number = nodes_distribution[pool_id]
+            if not pool_ids:
+                pool_id = None
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
-                farm_name=farm_name, cru=cru, sru=sru, mru=mru, hru=hru, currency=currency
+                cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
@@ -1434,26 +1431,26 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 raise StopChatFlow("Could not find available access node")
         return list(nodes)
 
-    def _distribute_nodes(self, number_of_nodes, farm_names):
+    def _distribute_nodes(self, number_of_nodes, pool_ids):
         nodes_distribution = {}
         nodes_left = number_of_nodes
-        names = list(farm_names) if farm_names else []
-        if not farm_names:
-            farms = self._explorer.farms.list()
-            names = []
-            for f in farms:
-                names.append(f.name)
-        random.shuffle(names)
-        names_pointer = 0
+        result_ids = list(pool_ids) if pool_ids else []
+        if not pool_ids:
+            pools = self._explorer.pools.list()
+            result_ids = []
+            for p in pools:
+                result_ids.append(p.pool_id)
+        random.shuffle(result_ids)
+        id_pointer = 0
         while nodes_left:
-            farm_name = names[names_pointer]
-            if farm_name not in nodes_distribution:
-                nodes_distribution[farm_name] = 0
-            nodes_distribution[farm_name] += 1
+            pool_id = result_ids[id_pointer]
+            if pool_id not in nodes_distribution:
+                nodes_distribution[pool_id] = 0
+            nodes_distribution[pool_id] += 1
             nodes_left -= 1
-            names_pointer += 1
-            if names_pointer == len(names):
-                names_pointer = 0
+            id_pointer += 1
+            if id_pointer == len(result_ids):
+                id_pointer = 0
         return nodes_distribution
 
     def get_farm_names(self, number_of_nodes, bot, cru=None, sru=None, mru=None, hru=None, currency="TFT", message=""):
@@ -1560,3 +1557,6 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
         return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
+
+
+reservation_chatflow = ReservationChatflow()

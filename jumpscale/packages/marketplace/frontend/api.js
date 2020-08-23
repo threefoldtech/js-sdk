@@ -29,10 +29,12 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    cancelReservation: (solutionType, reservationId) => {
+    cancelReservation: (wids) => {
       return axios({
-        url: `/marketplace/api/solutions/${solutionType}/${reservationId}/`,
-        method: "delete"
+        url: `/marketplace/api/solutions/cancel`,
+        headers: { 'Content-Type': 'application/json' },
+        data: { wids: wids },
+        method: "post"
       })
     }
   },

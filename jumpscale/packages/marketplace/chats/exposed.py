@@ -1,202 +1,100 @@
-from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose, kinds
-from jumpscale.sals.marketplace import deployer, Network
-from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.loader import j
 import uuid
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.packages.marketplace.bottle.models import UserEntry
-from jumpscale.core.base import StoredFactory
+
+from jumpscale.loader import j
+from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+
+kinds = {
+    "minio": solutions.list_minio_solutions,
+    "kubernetes": solutions.list_kubernetes_solutions,
+    "ubuntu": solutions.list_ubuntu_solutions,
+    "flist": solutions.list_flist_solutions,
+    "gitea": solutions.list_gitea_solutions,
+}
 
 
-class SolutionExpose(BaseSolutionExpose):
-    title = "Solution Expose"
-
-    def get_tid(self):
-        if not self._tid:
-            user = j.sals.reservation_chatflow.validate_user(self.user_info())
-            self._tid = user.id
-        return self._tid
-
-    @chatflow_step(title="Expiration time")
-    def expiration_time(self):
-        super().expiration_time()
-        # DONT REMOVE THIS until capacity pool migration is done on mainnet
-        while self.expiration > 1596672000:
-            self.md_show(
-                "the maximum expiration in marketplace is currently 08/06/2020 @ 12:00am (UTC). please click next to try again"
-            )
-            super().expiration_time()
-
-    def _validate_user(self):
-        tname = self.user_info()["username"]
-        user_factory = StoredFactory(UserEntry)
-        explorer_url = j.core.identity.me.explorer.url
-
-        if "testnet" in explorer_url:
-            explorer_name = "testnet"
-        elif "devnet" in explorer_url:
-            explorer_name = "devnet"
-        elif "explorer.grid.tf" in explorer_url:
-            explorer_name = "mainnet"
-        else:
-            raise StopChatFlow(f"Unsupported explorer {explorer_url}")
-        instance_name = f"{explorer_name}_{tname.replace('.3bot', '')}"
-        if instance_name in user_factory.list_all():
-            user_entry = user_factory.get(instance_name)
-            if not user_entry.has_agreed:
-                raise StopChatFlow(
-                    f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
-                )
-        else:
-            raise StopChatFlow(
-                f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
-            )
-
-    @chatflow_step(title="Welcome")
+class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
+    @chatflow_step(title="")
     def deployment_start(self):
         self._validate_user()
-        self._tid = None
-        self.user_form_data = dict()
-        self.metadata = dict()
-        self.query = dict()
-        self.env = dict()
-        self.secret_env = dict()
-        self.md_show(f"### Welcome to solution expose chatflow. click next to proceed to the deployment")
+        super().deployment_start()
+        self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
-        self.user_form_data["kind"] = self.kind
-        self.md_show_update("Finding Solutions....")
-
-        sol_type = kinds[self.kind]
-        solutions = deployer.list_solutions(self.user_info()["username"], sol_type, reload=True)
-
-        self.sols = {sol["name"]: sol for sol in solutions}
-
-    @chatflow_step(title="Solution to be exposed")
-    def exposed_solution(self):
-        solution_name = self.single_choice(
-            "Please choose the solution to expose", list(self.sols.keys()), required=True
-        )
-        solution = self.sols[solution_name]
-        self.user_form_data["Solution name"] = solution_name
-        self.reservation_data = solution["reservation_obj"].data_reservation.to_dict()
-        self.solution_currency = self.reservation_data["currencies"][0]
+        solutions = kinds[self.kind](self.solution_metadata["owner"])
+        self.sols = {}
+        for sol in solutions:
+            name = sol["Name"]
+            self.sols[name] = sol
 
     @chatflow_step(title="Domain")
-    def domain_1(self):
-        # List all available domains
-        self.md_show_update("Listing Available Domains....")
-        free_to_use = False
-        if "FreeTFT" == self.solution_currency:
-            self.gateways = {
-                g.node_id: g
-                for g in j.sals.zos._explorer.gateway.list()
-                if g.free_to_use and j.sals.zos.nodes_finder.filter_is_up(g)
-            }
-        else:
-            self.gateways = {
-                g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-            }
+    def domain(self):
+        # {"domain": {"gateway": gw, "pool": p}}
 
-        user_domains = deployer.list_solutions(self.user_info()["username"], SolutionType.Exposed)
-        self.user_domains = {}
-        for dom in user_domains:
-            if dom["reservation_obj"].data_reservation.currencies[0] == self.solution_currency:
-                self.user_domains[dom["name"]] = dom
-        domain_ask_list = []
-        for dom in self.user_domains:
-            if self.gateways.get(self.user_domains[dom]["reservation_obj"].node_id):
-                domain_ask_list.append(f"Delegated Domain: {dom}")
+        gateways = deployer.list_all_gateways(self.solution_metadata["owner"])
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
 
-        self.managed_domains = dict()
-        for g in self.gateways.values():
-            for dom in g.managed_domains:
-                self.managed_domains[dom] = g
-                domain_ask_list.append(f"Managed Domain: {dom}")
+        # add managed domains
+        gateway_id_dict = {}
+        pool_id_dict = {}
+        messages = {}
+        for gw_dict in gateways.values():
+            gateway_id_dict[gw_dict["gateway"].node_id] = gw_dict["gateway"]
+            pool_id_dict[gw_dict["pool"].pool_id] = gw_dict["pool"]
+            for dom in gw_dict["gateway"].managed_domains:
+                messages[f"Managed {dom}"] = gw_dict
+
+        # add delegate domains
+        delegated_domains = solutions.list_delegated_domain_solutions(self.solution_metadata["owner"])
+        for dom in delegated_domains:
+            gw_dict = {"gateway": gateway_id_dict[dom["Gateway"]], "pool": pool_id_dict[dom["Pool"]]}
+            messages[f"Delegated {dom['Name']}"] = gw_dict
+
+        domain_ask_list = list(messages.keys())
+        # add custom_domain
         domain_ask_list.append("Custom Domain")
+        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list, required=True,)
+        if chosen_domain != "Custom Domain":
+            self.domain_gateway = messages[chosen_domain]["gateway"]
+            self.domain_pool = messages[chosen_domain]["pool"]
+            splits = chosen_domain.split()
+            self.domain_type = splits[0]
+            self.domain = splits[1]
+            retry = False
+            while True:
+                domain = self.string_ask(
+                    f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
+                    retry=retry,
+                    required=True,
+                )
+                if "." in domain:
+                    retry = True
+                    self.md_show("You can't nest domains. please click next to try again")
+                else:
+                    if j.tools.dnstool.is_free(domain + "." + self.domain):
+                        break
+                    else:
+                        self.md_show(f"domain {domain + '.' + self.domain} is not available")
 
-        self.chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list)
-
-    @chatflow_step(title="Confirmation", disable_previous=True)
-    def confirmation(self):
-        query = {"mru": 1, "cru": 1, "currency": self.solution_currency, "sru": 1}
-        node_selected = j.sals.reservation_chatflow.get_nodes(1, **query)[0]
-        self.md_show_update("Preparing Network on Node.....")
-        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network_name)
-        # get MarketPlace Network object
-        network = Network(
-            network._network,
-            network._expiration,
-            self,
-            j.sals.zos.reservation_list(),
-            network.currency,
-            network.resv_id,
-        )
-        network.add_node(node_selected)
-        network.update(self.user_info()["username"], currency=self.solution_currency, bot=self)
-        self.md_show_update("Preparing TCPRouter Container.....")
-        ip_address = network.get_free_ip(node_selected)
-        if not ip_address:
-            raise j.exceptions.Value("No available free ips")
-
-        secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-        self.user_form_data["Secret"] = secret
-        secret_env = {}
-        secret_encrypted = j.sals.zos.container.encrypt_secret(node_selected.node_id, self.user_form_data["Secret"])
-        secret_env["TRC_SECRET"] = secret_encrypted
-        remote = f"{self.domain_gateway.dns_nameserver[0]}:{self.domain_gateway.tcp_router_port}"
-        local = f"{self.container_address}:{self.user_form_data['Port']}"
-        localtls = f"{self.container_address}:{self.user_form_data['tls-port']}"
-        entrypoint = f"/bin/trc -local {local} -local-tls {localtls} -remote {remote}"
-
-        j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=node_selected.node_id,
-            network_name=self.network_name,
-            ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
-            entrypoint=entrypoint,
-            secret_env=secret_env,
-        )
-
-        message = """
-<h4>Click next to proceed with the payment</h4>
-Tcp routers are used in the process of being able to expose your solutions. This payment is to deploy a container with a <a target="_blank" href="https://github.com/threefoldtech/tcprouter#reverse-tunneling">tcprouter client</a> on it.
-"""
-        self.md_show_confirm(self.user_form_data, message=message, html=True)
-
-    @chatflow_step(title="Reserve TCP router container", disable_previous=True)
-    def tcp_router_reservation(self):
-        # create proxy
-        self.md_show_update("Preparing TCP Reverse Proxy.....")
-        j.sals.zos._gateway.tcp_proxy_reverse(
-            self.reservation, self.domain_gateway.node_id, self.user_form_data["Domain"], self.user_form_data["Secret"]
-        )
-
-        metadata = deployer.get_solution_metadata(
-            self.user_form_data["Solution name"],
-            SolutionType.Exposed,
-            self.user_info()["username"],
-            {"Solution expiration": self.expiration},
-        )
-        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, metadata)
-
-        resv_id = deployer.register_and_pay_reservation(
-            self.reservation,
-            self.expiration,
-            customer_tid=j.core.identity.me.tid,
-            currency=self.solution_currency,
-            bot=self,
-        )
-
-    @chatflow_step(title="Success", disable_previous=True)
-    def success(self):
-        domain = self.user_form_data["Domain"]
-        res_md = f"Use this Gateway to connect to your exposed solutions `{domain}`"
-        self.md_show(res_md)
+            self.domain = domain + "." + self.domain
+        else:
+            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True,)
+            self.domain_gateway, self.domain_pool = deployer.select_gateway(self.solution_metadata["owner"], self)
+            self.domain_type = "Custom Domain"
+            res = """\
+            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            {% for dns in gateway.dns_nameserver -%}
+            - {{dns}}
+            {% endfor %}
+            """
+            res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
+            self.md_show(res)
+        self.name_server = self.domain_gateway.dns_nameserver[0]
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
 
 chat = SolutionExpose

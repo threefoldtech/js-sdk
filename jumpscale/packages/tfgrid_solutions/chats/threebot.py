@@ -1,54 +1,72 @@
 import math
 from textwrap import dedent
 import uuid
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.data.nacl.jsnacl import NACL
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class ThreebotDeploy(GedisChatBot):
     steps = [
         "start",
-        "set_solution_name",
-        "set_backup_password",
-        "select_network",
-        "threebot_branch",
+        "set_threebot_name",
         "container_resources",
+        "select_pool",
+        "threebot_network",
+        "set_backup_password",
+        "threebot_branch",
         "upload_public_key",
         "domain_select",
-        "select_expiration_time",
-        "select_farm",
+        "ipv6_config",
         "overview",
         "deploy",
         "intializing",
         "success",
     ]
-
     title = "Threebot"
 
     @chatflow_step()
     def start(self):
-        self.user_info = self.user_info()
-        self.threebot_name = j.data.text.removesuffix(self.user_info["username"], ".3bot")
+        self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
+        self.solution_id = uuid.uuid4().hex
+        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.md_show("This wizard will help you deploy a Threebot container", md=True)
-        j.sals.reservation_chatflow.validate_user(self.user_info)
         self.explorer = j.core.identity.me.explorer
-
-    @chatflow_step(title="Network")
-    def select_network(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
-        self.solution_currency = self.network.currency
+        self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
-    def set_solution_name(self):
-        message = "Please enter a name for your threebot (without spaces or special characters)"
-        self.solution_name = self.string_ask(message, required=True)
+    def set_threebot_name(self):
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            threebot_solutions = solutions.list_threebot_solutions(sync=False)
+            valid = True
+            for sol in threebot_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
 
-        while not self.solution_name.isidentifier():
-            error = message + "<br><br> <code>Invalid name</code>"
-            self.solution_name = self.string_ask(error, md=True, required=True)
+    @chatflow_step(title="Container resources")
+    def container_resources(self):
+        self.resources = deployer.ask_container_resources(self, default_disk_size=2048, default_memory=2048)
+
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        query = {
+            "cru": self.resources["cpu"],
+            "mru": math.ceil(self.resources["memory"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
+        }
+        cu, su = deployer.calculate_capacity_units(**query)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **query)
+
+    @chatflow_step(title="Network")
+    def threebot_network(self):
+        self.network_view = deployer.select_network(self)
 
     def _verify_password(self, password):
         try:
@@ -74,20 +92,6 @@ class ThreebotDeploy(GedisChatBot):
     def threebot_branch(self):
         self.branch = self.string_ask("Please type branch name", required=True, default="development")
 
-    @chatflow_step(title="Resources")
-    def container_resources(self):
-        form = self.new_form()
-        cpu = form.int_ask("Please add how many CPU cores are needed", default=2, required=True)
-        memory = form.int_ask("Please add the amount of memory in MB", default=2048, required=True)
-        rootfs_size = form.int_ask("Choose the amount of storage for your root filesystem in MiB", default=2048)
-
-        form.ask()
-
-        self.container_cpu = cpu.value
-        self.container_memory = memory.value
-        self.container_rootfs_size = rootfs_size.value
-        self.container_fs_type = DiskType.SSD.name
-
     @chatflow_step(title="Access key")
     def upload_public_key(self):
         self.public_key = self.upload_file(
@@ -95,44 +99,26 @@ class ThreebotDeploy(GedisChatBot):
             required=True,
         ).strip()
 
-    @chatflow_step(title="Select farm")
-    def select_farm(self):
-        self.query = dict(
-            currency=self.network.currency,
-            cru=self.container_cpu + 1,
-            mru=math.ceil(self.container_memory / 1024) + 1,
-            sru=math.ceil(self.container_rootfs_size / 1024),
-            hru=1,
-        )
-        farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
-        self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
-
-    @chatflow_step(title="Expiration time")
-    def select_expiration_time(self):
-        self.expiration = self.datetime_picker(
-            "Please enter solution expiration time.",
-            required=True,
-            min_time=[3600, "Date/time should be at least 1 hour from now"],
-            default=j.data.time.get().timestamp + 3900,
-        )
-
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.gateways = {
-            g.node_id: g for g in j.sals.zos._explorer.gateway.list() if j.sals.zos.nodes_finder.filter_is_up(g)
-        }
+        gateways = deployer.list_all_gateways()
+        if not gateways:
+            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
 
         domains = dict()
-        for gateway in self.gateways.values():
+        for gw_dict in gateways.values():
+            gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
-                domains[domain] = gateway
+                domains[domain] = gw_dict
 
         self.domain = self.single_choice(
             "Please choose the domain you wish to use", list(domains.keys()), required=True
         )
 
-        self.gateway = domains[self.domain]
+        self.gateway = domains[self.domain]["gateway"]
+        self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
+        self.domain = j.sals.zos.gateway.correct_domain(self.domain)
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -140,34 +126,64 @@ class ThreebotDeploy(GedisChatBot):
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+
     @chatflow_step(title="Confirmation")
     def overview(self):
         info = {
             "Solution name": self.solution_name,
             "Threebot version": self.branch,
-            "Number of cpu cores": self.container_cpu,
-            "Memory": self.container_memory,
-            "Root filesystem type": DiskType.SSD.name,
-            "Root filesystem size": self.container_rootfs_size,
-            "Expiration time": j.data.time.get(self.expiration).humanize(),
+            "Number of cpu cores": self.resources["cpu"],
+            "Memory": self.resources["memory"],
+            "Root filesystem type": "SSD",
+            "Root filesystem size": self.resources["disk_size"],
         }
         self.md_show_confirm(info)
 
-    @chatflow_step(title="Payment", disable_previous=True)
+    @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
-        self.network_copy = self.network.copy(j.core.identity.me.tid)
-        self.network_copy.add_node(self.node_selected)
-        self.ip_address = self.network_copy.get_free_ip(self.node_selected)
+        # 1- add node to network
+        metadata = {
+            "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"},
+        }
+        self.solution_metadata.update(metadata)
+        self.workload_ids = []
+        result = deployer.add_network_node(
+            self.network_view.name,
+            self.selected_node,
+            self.pool_id,
+            self.network_view,
+            bot=self,
+            owner=self.solution_metadata.get("owner"),
+        )
+        if result:
+            for wid in result["ids"]:
+                success = deployer.wait_workload(wid, self)
+                if not success:
+                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+        self.network_view_copy = self.network_view.copy()
+        self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
-        self.network = self.network_copy
-        self.network.update(j.core.identity.me.tid, currency=self.query["currency"], bot=self)
+        # 2- reserve subdomain
+        self.workload_ids.append(
+            deployer.create_subdomain(
+                pool_id=self.gateway_pool.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
+            )
+        )
+        success = deployer.wait_workload(self.workload_ids[0], self)
+        if not success:
+            raise StopChatFlow(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            )
 
-        self.reservation = j.sals.zos.reservation_create()
-        j.sals.zos._gateway.sub_domain(self.reservation, self.gateway.node_id, self.domain, self.addresses)
-        j.sals.zos._gateway.tcp_proxy_reverse(self.reservation, self.gateway.node_id, self.domain, self.secret)
-
-        flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
-        entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
+        # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
             "INSTANCE_NAME": self.solution_name,
@@ -175,63 +191,58 @@ class ThreebotDeploy(GedisChatBot):
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
         }
-        backup_pass_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.backup_password)
-
-        j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.node_selected.node_id,
-            network_name=self.network.name,
-            ip_address=self.ip_address,
-            flist=flist,
-            disk_type=DiskType.SSD.value,
-            env=environment_vars,
-            interactive=False,
-            entrypoint=entry_point,
-            cpu=self.container_cpu,
-            memory=self.container_memory,
-            disk_size=self.container_rootfs_size,
-            secret_env={"BACKUP_PASSWORD": backup_pass_encrypted},
+        self.network_view = self.network_view.copy()
+        entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
+        self.workload_ids.append(
+            deployer.deploy_container(
+                pool_id=self.pool_id,
+                node_id=self.selected_node.node_id,
+                network_name=self.network_view.name,
+                ip_address=self.ip_address,
+                flist=self.flist,
+                env=environment_vars,
+                cpu=self.resources["cpu"],
+                memory=self.resources["memory"],
+                disk_size=self.resources["disk_size"],
+                entrypoint=entry_point,
+                secret_env={"BACKUP_PASSWORD": self.backup_password},
+                interactive=False,
+                solution_uuid=self.solution_id,
+                public_ipv6=self.public_ipv6,
+                **self.solution_metadata,
+            )
         )
+        success = deployer.wait_workload(self.workload_ids[1], self)
+        if not success:
+            solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            )
 
-        network = j.sals.reservation_chatflow.get_network(self, j.core.identity.me.tid, self.network.name)
-        network.add_node(self.node_selected)
-        network.update(j.core.identity.me.tid, currency=self.solution_currency, bot=self)
-        network._used_ips.append(self.ip_address)
-        ip_address = network.get_free_ip(self.node_selected)
-        if not ip_address:
-            raise j.exceptions.Value("No available free ips")
-
-        secret_env = {}
-        secret_encrypted = j.sals.zos.container.encrypt_secret(self.node_selected.node_id, self.secret)
-        secret_env["TRC_SECRET"] = secret_encrypted
-        remote = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
-        local = f"{self.ip_address}:80"
-        localtls = f"{self.ip_address}:443"
-        entrypoint = f"/bin/trc -local {local} -local-tls {localtls} -remote {remote}"
-
-        j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.node_selected.node_id,
-            network_name=self.network.name,
-            ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
-            entrypoint=entrypoint,
-            secret_env=secret_env,
+        # 4- expose threebot container
+        self.workload_ids.append(
+            deployer.expose_address(
+                pool_id=self.pool_id,
+                gateway_id=self.gateway.node_id,
+                network_name=self.network_view.name,
+                local_ip=self.ip_address,
+                port=80,
+                tls_port=443,
+                trc_secret=self.secret,
+                node_id=self.selected_node.node_id,
+                reserve_proxy=True,
+                domain_name=self.domain,
+                proxy_pool_id=self.gateway_pool.pool_id,
+                solution_uuid=self.solution_id,
+                **self.solution_metadata,
+            )
         )
-
-        metadata = {"Solution name": self.solution_name, "Version": self.branch, "chatflow": "threebot"}
-
-        res = j.sals.reservation_chatflow.get_solution_metadata(self.solution_name, SolutionType.Threebot, metadata)
-        reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
-
-        self.reservation_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.query["currency"], bot=self
-        )
-
-        j.sals.reservation_chatflow.save_reservation(
-            self.reservation_id, self.solution_name, SolutionType.Threebot, metadata
-        )
-
+        success = deployer.wait_workload(self.workload_ids[2], self)
+        if not success:
+            solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlow(
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            )
         self.threebot_url = f"https://{self.domain}/admin"
 
     @chatflow_step(title="Initializing", disable_previous=True)
@@ -242,11 +253,14 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""
-        Your Threebot has been deployed successfully.
-        Reservation ID  : {self.reservation_id}<br>
-        Domain          : <a href="{self.threebot_url}" target="_parent">{self.threebot_url}</a><br>
-        IP Address      : {self.ip_address}<br>
+        message = f"""# Your Threebot has been deployed successfully.
+\n<br>\n
+
+- Reservation ID  : `{self.workload_ids[-1]}`
+
+- Domain          : <a href="{self.threebot_url}" target="_blank">{self.threebot_url}</a>
+
+- IP Address      : `{self.ip_address}`
         """
         self.md_show(dedent(message), md=True)
 

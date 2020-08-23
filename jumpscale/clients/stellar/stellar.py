@@ -13,9 +13,10 @@ from jumpscale.core.base import fields
 from jumpscale.loader import j
 from stellar_sdk import Asset, TransactionBuilder
 
-from .wrapped import Account
+from .wrapped import Account, Server
 from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
+from .exceptions import UnAuthorized
 
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
@@ -61,13 +62,7 @@ class Stellar(Client):
 
     def _get_horizon_server(self):
         server_url = _HORIZON_NETWORKS[self.network.value]
-        server = stellar_sdk.Server(horizon_url=server_url)
-        parsed_url = urlparse(server.horizon_url)
-        port = 443
-        if parsed_url.scheme == "http":
-            port = 80
-        if not j.sals.nettools.wait_connection_test(parsed_url.netloc, port, 5):
-            raise j.exceptions.Timeout(f"Can not connect to server {server_url}, connection timeout")
+        server = Server(horizon_url=server_url)
         return server
 
     def _get_free_balances(self, address=None):
@@ -241,7 +236,7 @@ class Stellar(Client):
 
         resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
         resp.raise_for_status()
-        j.logger.info("account with address: {} funded through friendbot".format(self.address))
+        j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
 
     def activate_through_threefold_service(self):
         """
@@ -359,6 +354,9 @@ class Stellar(Client):
         memo_hash=None,
         fund_transaction=True,
         from_address=None,
+        timeout=30,
+        sequence_number: int = None,
+        sign: bool = True,
     ):
         """Transfer assets to another address
 
@@ -372,6 +370,9 @@ class Stellar(Client):
             memo_hash (Union[str, bytes], optional): memo hash to add to the transaction, A 32 byte hash. Defaults to None.
             fund_transaction (bool, optional): use the threefoldfoundation transaction funding service. Defautls to True.
             from_address (str, optional): Use a different address to send the tokens from, useful in multisig use cases. Defaults to None.
+            timeout (int,optional: Seconds from now on until when the transaction to be submitted to the stellar network
+            sequence_number (int,optional): specify a specific sequence number ( will still be increased by one) instead of loading it from the account
+            sign (bool,optional) : Do not sign and submit the transaction
 
         Raises:
             Exception: If asset not in correct format
@@ -382,7 +383,7 @@ class Stellar(Client):
             [type]: [description]
         """
         issuer = None
-        j.logger.info("Sending {} {} to {}".format(amount, asset, destination_address))
+        j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
@@ -411,6 +412,9 @@ class Stellar(Client):
         else:
             source_account = self.load_account()
 
+        if sequence_number:
+            source_account.sequence = sequence_number
+
         transaction_builder = stellar_sdk.TransactionBuilder(
             source_account=source_account,
             network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
@@ -423,7 +427,7 @@ class Stellar(Client):
             asset_issuer=issuer,
             source=source_account.account_id,
         )
-        transaction_builder.set_timeout(30)
+        transaction_builder.set_timeout(timeout)
         if memo_text is not None:
             transaction_builder.add_text_memo(memo_text)
         if memo_hash is not None:
@@ -437,28 +441,17 @@ class Stellar(Client):
                 transaction = self._fund_transaction(transaction=transaction)
                 transaction = transaction["transaction_xdr"]
 
+        if not sign:
+            return transaction
+
         transaction = stellar_sdk.TransactionEnvelope.from_xdr(transaction, _NETWORK_PASSPHRASES[self.network.value])
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
-        try:
-            response = horizon_server.submit_transaction(transaction)
-            tx_hash = response["hash"]
-            j.logger.info("Transaction hash: {}".format(tx_hash))
-            return tx_hash
-        except stellar_sdk.exceptions.BadRequestError as e:
-            result_codes = e.extras.get("result_codes")
-            operations = result_codes.get("operations")
-            if operations is not None:
-                for op in operations:
-                    if op == "op_underfunded":
-                        raise e
-                    # if op_bad_auth is returned then we assume the transaction needs more signatures
-                    # so we return the transaction as xdr
-                    elif op == "op_bad_auth":
-                        j.logger.info("Transaction might need additional signatures in order to send")
-                        return transaction.to_xdr()
-            raise e
+        response = horizon_server.submit_transaction(transaction)
+        tx_hash = response["hash"]
+        j.logger.info(f"Transaction hash: {tx_hash}")
+        return tx_hash
 
     def list_payments(self, address: str = None, asset: str = None, cursor: str = None):
         """Get the transactions for an adddress
@@ -669,8 +662,16 @@ class Stellar(Client):
         j.logger.info(response)
         j.logger.info(f"Set the signers of {address} to {public_key_signer} and {preauth_tx_hash}")
 
+    def get_signing_requirements(self, address: str = None):
+        address = address or self.address
+        response = self._get_horizon_server().accounts().account_id(address).call()
+        signing_requirements = {}
+        signing_requirements["thresholds"] = response["thresholds"]
+        signing_requirements["signers"] = response["signers"]
+        return signing_requirements
+
     def modify_signing_requirements(
-        self, public_keys_signers, signature_count, low_treshold=1, high_treshold=2, master_weight=2
+        self, public_keys_signers, signature_count, low_treshold=0, high_treshold=2, master_weight=2
     ):
         """modify_signing_requirements sets to amount of signatures required for the creation of multisig account. It also adds
            the public keys of the signer to this account
@@ -711,24 +712,38 @@ class Stellar(Client):
             j.logger.info("Transaction need additional signatures in order to send")
             return tx.to_xdr()
 
+    def sign(self, tx_xdr: str, submit: bool = True):
+        """ sign signs a transaction xdr and optionally submits it to the network
+
+        Args:
+            tx_xdr (str): transaction to sign in xdr format
+            submit (bool,optional): submit the transaction tro the Stellar network
+        """
+
+        source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
+        tx = stellar_sdk.TransactionEnvelope.from_xdr(tx_xdr, _NETWORK_PASSPHRASES[self.network.value])
+        tx.sign(source_keypair)
+        if submit:
+            horizon_server = self._get_horizon_server()
+            horizon_server.submit_transaction(tx)
+        else:
+            return tx.to_xdr()
+
     def sign_multisig_transaction(self, tx_xdr):
         """sign_multisig_transaction signs a transaction xdr and tries to submit it to the network
+
+           Deprecated, use sign instead
 
         Args:
             tx_xdr (str): transaction to sign in xdr format
         """
-        server = self._get_horizon_server()
-        source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
-        tx = stellar_sdk.TransactionEnvelope.from_xdr(tx_xdr, _NETWORK_PASSPHRASES[self.network.value])
-        tx.sign(source_keypair)
 
         try:
-            response = server.submit_transaction(tx)
-            j.logger.info(response)
+            self.sign(tx_xdr)
             j.logger.info("Multisig tx signed and sent")
-        except stellar_sdk.exceptions.BadRequestError:
-            j.logger.info("Transaction need additional signatures in order to send")
-            return tx.to_xdr()
+        except UnAuthorized as e:
+            j.logger.info("Transaction needs additional signatures in order to send")
+            return e.transaction_xdr
 
     def remove_signer(self, public_key_signer):
         """remove_signer removes a public key as a signer from the source account
@@ -917,9 +932,9 @@ class Stellar(Client):
 
     def set_data_entry(self, name: str, value: str, address: str = None):
         """Sets, modifies or deletes a data entry (name/value pair) for an account
-        
+
         To delete a data entry, set the value to an empty string.
-        
+
         """
 
         address = address or self.address
@@ -951,11 +966,8 @@ class Stellar(Client):
     def get_data_entries(self, address: str = None):
         address = address or self.address
         horizon_server = self._get_horizon_server()
-        horizon_server.horizon_url
-        response = j.tools.http.get(f"{horizon_server.horizon_url}/accounts/{address}")
-        response.raise_for_status()
-        account = response.json()
+        response = horizon_server.accounts().account_id(address).call()
         data = {}
-        for data_name, data_value in account["data"].items():
+        for data_name, data_value in response["data"].items():
             data[data_name] = base64.b64decode(data_value).decode("utf-8")
         return data

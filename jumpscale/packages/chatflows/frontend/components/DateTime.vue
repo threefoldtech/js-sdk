@@ -25,7 +25,7 @@
           <v-date-picker v-if="tab === 0" v-model="date" color="primary" @click:date="tab = date ? 1 : 0;" no-title scrollable/>
         </v-tab-item>
         <v-tab-item>
-          <v-time-picker v-if="tab === 1" v-model="time" color="primary" @change="save" no-title scrollable/> 
+          <v-time-picker v-if="tab === 1" v-model="time" color="primary" @change="save" no-title scrollable/>
         </v-tab-item>
       </v-tabs-items>
     </v-menu>
@@ -58,12 +58,19 @@
       }
     },
     methods: {
+      setValue () {
+        let datetime = this.date && this.time ? new Date(`${this.date} ${this.time}`) : new Date()
+        this.dateTime = datetime.toLocaleString()
+        let offset = new Date().getTimezoneOffset() * 60
+        this.val = Math.floor((datetime.getTime() + offset) / 1000)
+      },
+      setDateTimeValue () {
+        let value = this.val // value here in seconds
+        let offset = new Date().getTimezoneOffset() * 60
+        this.dateTime = new Date((value + offset) * 1000).toLocaleString()
+      },
       update () {
-        if (this.date && this.time) {
-          let datetime = new Date(`${this.date} ${this.time}`)
-          this.dateTime = datetime.toLocaleString()
-          this.val = datetime.getTime() / 1000
-        }
+        if (this.date && this.time) this.setValue()
       },
       save () {
         this.tab = 0
@@ -73,11 +80,9 @@
     mounted () {
       this.$nextTick(() => {
         if (this.val){
-          this.dateTime = new Date(this.val * 1000).toLocaleString()
+          this.setDateTimeValue()
         } else {
-          let datetime = new Date()
-          this.dateTime = datetime.toLocaleString()
-          this.val = Math.floor(datetime.getTime() / 1000)
+          this.setValue()
         }
       })
     }

@@ -1,4 +1,3 @@
-def export_module_as():
-    from .reservation_chatflow import ReservationChatflow
-
-    return ReservationChatflow()
+from .reservation_chatflow import reservation_chatflow
+from .deployer import deployer
+from .solutions import solutions

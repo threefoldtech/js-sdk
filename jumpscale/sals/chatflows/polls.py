@@ -222,7 +222,7 @@ Please make the transaction and press Next
             form_answers[question] = all_answers_init
         return form_answers
 
-    @chatflow_step(title="Vote Results", final_step=True)
+    @chatflow_step(title="Poll Results %", final_step=True)
     def result(self):
         usersnames = all_users.list_all()
         total_votes = 0
@@ -249,7 +249,7 @@ Please make the transaction and press Next
         total_answers_with_percent = {k: self._calculate_percent(v) for k, v in total_answers.items()}
         total_answers_weighted_with_percent = {k: self._calculate_percent(v) for k, v in total_answers_weighted.items()}
 
-        result_msg = "## Non weighted results %\n\n<br />\n\n"
+        result_msg = ""
         for question, answers in total_answers_with_percent.items():
             question_current_title = question
             question_new_title = self.metadata["new_title_keys"][question_current_title]
@@ -259,16 +259,16 @@ Please make the transaction and press Next
                 result_msg += f"- {answer_name}: {answers[i]}%\n"
             result_msg += "\n\n"
 
-        result_msg += "\n<br />\n\n"
-        result_msg += "## Weighted results %\n\n<br />\n\n"
-        for question, answers in total_answers_weighted_with_percent.items():
-            question_current_title = question
-            question_new_title = self.metadata["new_title_keys"][question_current_title]
-            result_msg += f"### {question_new_title}\n"
-            for i in range(len(answers)):
-                answer_name = self.QUESTIONS[question][i]
-                result_msg += f"- {answer_name}: {answers[i]}%\n"
-            result_msg += "\n"
+        # result_msg += "\n<br />\n\n"
+        # result_msg += "## Weighted results %\n\n<br />\n\n"
+        # for question, answers in total_answers_weighted_with_percent.items():
+        #     question_current_title = question
+        #     question_new_title = self.metadata["new_title_keys"][question_current_title]
+        #     result_msg += f"### {question_new_title}\n"
+        #     for i in range(len(answers)):
+        #         answer_name = self.QUESTIONS[question][i]
+        #         result_msg += f"- {answer_name}: {answers[i]}%\n"
+        #     result_msg += "\n"
 
         result_msg += f"\n<br />\n\n#### Total number of votes: {total_votes}\n"
         self.md_show(result_msg, md=True)

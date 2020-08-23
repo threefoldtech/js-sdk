@@ -1,61 +1,49 @@
-from .id import _next_workload_id
 from jumpscale.core.exceptions import Input
-from jumpscale.clients.explorer.models import (
-    TfgridWorkloadsReservationVolume1,
-    DiskType,
-    TfgridWorkloadsReservationContainerMount1,
-)
+from jumpscale.clients.explorer.models import Volume, DiskType, ContainerMount, WorkloadType, Container
+from typing import Union
 
 
-class Volumes:
-    def create(self, reservation, node_id, size=5, type=DiskType.HDD):
+class VolumesGenerator:
+    """ """
+
+    def create(self, node_id: str, pool_id: int, size: int = 5, type: Union[str, DiskType] = DiskType.HDD) -> Volume:
         """add a volume to the reservation
 
         Args:
-            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation to add the volume to
-            node_id (str): id of the node where to reserve the volume
-            size (int, optional): size in GiB. Defaults to 5.
-            type (str, optional): type of disk to use. Can be SSD or HDD. Defaults to "HDD".
-
-        Raises:
-            jumpscale.core.exceptions.Input: If type is not supported
+          node_id(str): id of the node where to reserve the volume
+          pool_id(int) the capacity pool ID
+          size(int, optional): size in GiB. Defaults to 5.
+          type(Union[str,DiskType], optional): type of disk to use. Can be SSD or HDD. Defaults to "HDD".
 
         Returns:
-            [type]: the newly created volume object
+          Volume: the newly created volume object
         """
+        if isinstance(type, str):
+            type = getattr(DiskType, type)
 
-        volume = TfgridWorkloadsReservationVolume1()
-        volume.workload_id = _next_workload_id(reservation)
+        volume = Volume()
         volume.size = size
         volume.type = type
-        volume.node_id = node_id
-        reservation.data_reservation.volumes.append(volume)
+        volume.info.node_id = node_id
+        volume.info.pool_id = pool_id
+        volume.info.workload_type = WorkloadType.Volume
         return volume
 
-    def attach(self, container, volume, mount_point):
-        """attach a volume to a container.
-           The volume must be defined in the same reservation
-
-        Args:
-            container ([type]): container object from create_container function
-            volume ([type]): Volume object that is returned from add_volume function
-            mount_point (str): path where to mount the volume in the container
-        """
-        vol = TfgridWorkloadsReservationContainerMount1()
-        vol.volume_id = f"-{volume.workload_id}"
-        vol.mountpoint = mount_point
-        container.volumes.append(vol)
-
-    def attach_existing(self, container, volume_id, mount_point):
+    def attach_existing(self, container: Container, volume_id: Union[str, Volume], mount_point: str):
         """attach an existing volume to a container.
            The volume must already exist on the node
 
         Args:
-            container ([type]): container object returned from container.create_container function
-            volume_id ([type]): the complete volume ID, format should be '{reservation.id}-{volume.workload_id}'
-            mount_point (str): path where to mount the volume in the container
+          container(Volume): container object returned from container.create_container function
+          volume_id(Union[str,volume]): the volume to attached to the container or its full ID
+          mount_point(str): path where to mount the volume in the container
         """
-        vol = TfgridWorkloadsReservationContainerMount1()
+        if isinstance(volume_id, Volume):
+            if not volume_id.id:
+                raise j.exceptions.Input("volume needs to be deployed before it can be attached to a container")
+            volume_id = f"{volume_id.id}-1"
+
+        vol = ContainerMount()
         vol.volume_id = volume_id
         vol.mountpoint = mount_point
         container.volumes.append(vol)

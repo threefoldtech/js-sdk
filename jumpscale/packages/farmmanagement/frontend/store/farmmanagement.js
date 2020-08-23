@@ -25,7 +25,7 @@ export default {
       var response = await tfService.getExplorer();
       var url = JSON.parse(response.data).data.url
       if (!url.startsWith('http')) {
-        url = `https://${url}/explorer`;
+        url = `https://${url}/api/v1`;
       }
       context.commit("setTfgridUrl", url);
     },
@@ -41,7 +41,7 @@ export default {
         context.commit("setTotalSpecs", response.data);
       });
     },
-    setNodeFree(context, {node_id, free}) {
+    setNodeFree(context, { node_id, free }) {
       return tfService.setNodeFree(node_id, free)
     },
     getFarms: context => {

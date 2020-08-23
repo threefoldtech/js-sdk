@@ -22,6 +22,7 @@ const vuetify = new Vuetify({
 
 const baseComponent = httpVueLoader('./components/base/Component.vue')
 const baseDialog = httpVueLoader('./components/base/Dialog.vue')
+const JSONRender = httpVueLoader('./components/base/JSONRenderer.vue')
 const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
@@ -41,6 +42,8 @@ const farmmanagement = httpVueLoader('./components/external/FarmManagement.vue')
 const codeserver = httpVueLoader('./components/external/CodeServer.vue')
 const notebooks = httpVueLoader('./components/external/Notebooks.vue')
 const settings = httpVueLoader('./components/settings/Settings.vue')
+const pools = httpVueLoader('./components/pools/Pools.vue')
+const workloads = httpVueLoader('./components/workloads/Workloads.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
 const backup = httpVueLoader('./components/backup/Backup.vue')
 
@@ -60,6 +63,7 @@ Vue.mixin({
 Vue.component("base-component", baseComponent)
 Vue.component("base-section", baseSection)
 Vue.component("base-dialog", baseDialog)
+Vue.component("json-renderer", JSONRender)
 Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
@@ -74,6 +78,8 @@ const router = new VueRouter({
     { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
     { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
     { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
+    { name: "Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
+    { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
     { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
     { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
     { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },

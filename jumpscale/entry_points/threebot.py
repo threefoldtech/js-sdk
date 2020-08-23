@@ -65,7 +65,9 @@ http {
 @click.option("--email", default=None, help="threebot ssl email")
 @click.option("--development", default=False, is_flag=True, help="start in development mode (no identity is required)")
 @click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
-@click.option("--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443")
+@click.option(
+    "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
+)
 def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
     """start 3bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
@@ -102,7 +104,7 @@ def start(identity=None, background=False, local=False, development=False, domai
             tname=identity_info.identity,
             email=identity_info.email,
             words=identity_info.words,
-            explorer_url=f"https://{identity_info.explorer}/explorer",
+            explorer_url=f"https://{identity_info.explorer}/api/v1",
         )
         me.register()
         me.save()
@@ -132,7 +134,9 @@ def start(identity=None, background=False, local=False, development=False, domai
 
     if background:
         cmd = j.tools.startupcmd.get("threebot_default")
-        cmd.start_cmd = f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})'"
+        cmd.start_cmd = (
+            f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})'"
+        )
         cmd.process_strings_regex = [".*threebot_default.sh"]
         cmd.ports = [8000, 8999]
         cmd.start()
