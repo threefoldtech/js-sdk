@@ -31,6 +31,17 @@ class Discourse(MarketPlaceAppsChatflow):
         self.query = {"cru": 1, "mru": 2, "sru": 2}
         self.md_show("# This wizard will help you deploy discourse", md=True)
 
+    @chatflow_step(title="SMTP information")
+    def discourse_smtp_info(self):
+        form = self.new_form()
+        self.smtp_server = form.string_ask("SMTP server address", required=True)
+        self.smtp_username = form.string_ask("SMTP server username", required=True)
+        self.smtp_password = form.secret_ask("SMTP server password", required=True)
+        form.ask()
+        self.smtp_server = self.smtp_server.value
+        self.smtp_username = self.smtp_username.value
+        self.smtp_password = self.smtp_password.value
+
     @chatflow_step(title="Confirmation")
     def overview(self):
         self.metadata = {
@@ -45,17 +56,6 @@ class Discourse(MarketPlaceAppsChatflow):
             "Domain Name": self.domain,
         }
         self.md_show_confirm(self.metadata)
-
-    @chatflow_step(title="SMTP information")
-    def discourse_smtp_info(self):
-        form = self.new_form()
-        self.smtp_server = form.string_ask("SMTP server address", required=True)
-        self.smtp_username = form.string_ask("SMTP server username", required=True)
-        self.smtp_password = form.secret_ask("SMTP server password", required=True)
-        form.ask()
-        self.smtp_server = self.smtp_server.value
-        self.smtp_username = self.smtp_username.value
-        self.smtp_password = self.smtp_password.value
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
