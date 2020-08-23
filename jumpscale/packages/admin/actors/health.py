@@ -38,7 +38,6 @@ class Health(BaseActor):
     def get_health_checks(self) -> str:
         services = {
             "stellar": {"name": "Stellar", "status": True},
-            "token_services": {"name": "Token Services", "status": True},
         }
 
         # check stellar service
@@ -47,14 +46,6 @@ class Health(BaseActor):
         except:
             services["stellar"]["status"] = False
 
-        # check token services
-        # TODO: add more apis
-        try:
-            j.tools.http.get(
-                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
-            )
-        except:
-            services["token_services"]["status"] = False
         return j.data.serializers.json.dumps({"data": services})
 
 
