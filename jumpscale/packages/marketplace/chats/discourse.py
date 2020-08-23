@@ -3,8 +3,6 @@ from textwrap import dedent
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
-
-import uuid
 import nacl
 
 
@@ -82,7 +80,7 @@ class Discourse(MarketPlaceAppsChatflow):
 
         secret_env = {
             "THREEBOT_PRIVATE_KEY": threebot_private_key,
-            "FLASK_SECRET_KEY": str(uuid.uuid4()),
+            "FLASK_SECRET_KEY": j.data.idgenerator.guid(),
             "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
         }
 

@@ -152,7 +152,7 @@ class Discourse(GedisChatBot):
 
         secret_env = {
             "THREEBOT_PRIVATE_KEY": threebot_private_key,
-            "FLASK_SECRET_KEY": str(uuid.uuid4()),
+            "FLASK_SECRET_KEY": j.data.idgenerator.guid(),
             "DISCOURSE_SMTP_PASSWORD": self.smtp_password,
         }
 
