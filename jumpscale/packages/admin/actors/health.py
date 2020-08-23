@@ -38,14 +38,32 @@ class Health(BaseActor):
     def get_health_checks(self) -> str:
         services = {
             "stellar": {"name": "Stellar", "status": True},
+            "token_services": {"name": "Token Services", "status": True},
         }
 
         # check stellar service
+        if "testnet" in j.core.identity.me.explorer_url:
+            stellar_url = "https://horizon-testnet.stellar.org"
+        else:
+            stellar_url = "https://horizon.stellar.org"
         try:
-            j.tools.http.get("https://horizon-testnet.stellar.org")
+            j.tools.http.get(stellar_url)
         except:
             services["stellar"]["status"] = False
 
+        # check token services
+        if "testnet" in j.core.identity.me.explorer_url:
+            tokenservices_url = (
+                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
+            )
+        else:
+            tokenservices_url = (
+                "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
+            )
+        try:
+            j.tools.http.get(tokenservices_url)
+        except:
+            services["token_services"]["status"] = False
         return j.data.serializers.json.dumps({"data": services})
 
 
