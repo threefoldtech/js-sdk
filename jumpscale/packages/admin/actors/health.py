@@ -1,6 +1,13 @@
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
+_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+    "TEST": "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
+    "STD": "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
+}
+
+_HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
+
 
 class Health(BaseActor):
     @actor_method
@@ -43,15 +50,11 @@ class Health(BaseActor):
 
         # urls of services according to identity explorer
         if "testnet" in j.core.identity.me.explorer_url:
-            stellar_url = "https://horizon-testnet.stellar.org"
-            tokenservices_url = (
-                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
-            )
+            stellar_url = _HORIZON_NETWORKS["TEST"]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES["TEST"]
         else:
-            stellar_url = "https://horizon.stellar.org"
-            tokenservices_url = (
-                "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
-            )
+            stellar_url = _HORIZON_NETWORKS["STD"]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES["STD"]
 
         # check stellar service
         try:
