@@ -1147,7 +1147,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/waleedhammam.3bot/waleedhammam-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
