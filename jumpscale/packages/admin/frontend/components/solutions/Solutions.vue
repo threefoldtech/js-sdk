@@ -3,10 +3,21 @@
     <base-component title="Solutions" icon="mdi-apps" :loading="loading">
       <template #default>
         <div v-if="hasMigrated">
+          <v-autocomplete
+            v-model="searchText"
+            :items="[...apps, ...solutions]"
+            :loading="loading"
+            color="grey"
+            hide-no-data
+            hide-selected
+            item-text="name"
+            placeholder="Search for solutions"
+            append-icon="mdi-magnify"
+          ></v-autocomplete>
           <h2 class="font-weight-black mx-2">Apps</h2>
           <v-row class="mt-2" align="start" justify="start">
             <v-card
-              v-for="app in apps"
+              v-for="app in filteredApps"
               :key="app.topic"
               class="ma-2"
               width="290"
@@ -32,8 +43,8 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(app.topic)"> New</v-btn>
-                <v-btn text medium @click.stop="viewWorkloads(app.type)"> My workloads</v-btn>
+                <v-btn text medium @click.stop="openChatflow(app.topic)">New</v-btn>
+                <v-btn text medium @click.stop="viewWorkloads(app.type)">My workloads</v-btn>
               </v-card-actions>
             </v-card>
           </v-row>
@@ -42,14 +53,20 @@
           <h2 class="font-weight-black mt-4 ml-2">Advanced Solutions</h2>
           <v-row class="mt-2" align="start" justify="start">
             <v-card
-              v-for="solution in solutions"
+              v-for="solution in filteredSolutions"
               :key="solution.topic"
               class="ma-2"
               width="290"
               :loading="loading"
               :disabled="loading"
             >
-              <v-img v-if="solution.image" class="mt-6" height="100px" :contain="true" :src="solution.image"></v-img>
+              <v-img
+                v-if="solution.image"
+                class="mt-6"
+                height="100px"
+                :contain="true"
+                :src="solution.image"
+              ></v-img>
               <v-icon v-else class="ma-4" x-large color="primary">{{solution.icon}}</v-icon>
               <v-card-title class="mx-2 font-weight-bold">
                 {{solution.name}}
@@ -68,8 +85,8 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(solution.topic)"> New</v-btn>
-                <v-btn text medium @click.stop="viewWorkloads(solution.type)"> My workloads</v-btn>
+                <v-btn text medium @click.stop="openChatflow(solution.topic)">New</v-btn>
+                <v-btn text medium @click.stop="viewWorkloads(solution.type)">My workloads</v-btn>
               </v-card-actions>
             </v-card>
           </v-row>
@@ -102,12 +119,32 @@ module.exports = {
       hasMigrated: true,
       apps: Object.values(APPS),
       solutions: Object.values(SOLUTIONS),
-      solutionCount: {}
+      solutionCount: {},
+      searchText: ""
     };
+  },
+  computed: {
+    filteredSolutions() {
+      if (this.searchText) {
+        return this.solutions.filter(obj => {
+          return obj.name === this.searchText;
+        });
+      } else return this.solutions;
+    },
+    filteredApps() {
+      if (this.searchText) {
+        return this.apps.filter(obj => {
+          return obj.name === this.searchText;
+        });
+      } else return this.apps;
+    }
   },
   methods: {
     openChatflow(solutionTopic) {
-      this.$router.push({ name: "SolutionChatflow", params: { topic: solutionTopic } });
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: solutionTopic }
+      });
     },
     viewWorkloads(solutionType) {
       this.$router.push({ name: "Solution", params: { type: solutionType } });
