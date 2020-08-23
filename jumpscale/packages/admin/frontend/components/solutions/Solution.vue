@@ -15,11 +15,7 @@
             <span>{{solution.description}}</span>
             <br />
             <br />
-            <v-btn
-              v-if="solution.topic !== 'all'"
-              color="primary"
-              @click.stop="restart(solution.topic)"
-            >New</v-btn>
+            <v-btn color="primary" @click.stop="restart(solution.topic)">New</v-btn>
             <v-btn
               color="primary"
               v-if="started(solution.topic)"
@@ -36,7 +32,7 @@
               :key="i"
               @click="showInfo(s)"
               outlined
-            >{{ solution.topic === 'all' ? `${s.workload_type}: ${s.id} - Pool: ${s.pool_id}` : s.Name }}</v-chip>
+            >{{ s.Name }}</v-chip>
           </v-card-text>
         </v-card>
       </template>
@@ -57,19 +53,22 @@ module.exports = {
       selected: null,
       dialog: false,
       deployedSolutions: {},
-      solutions: Object.values(SOLUTIONS),
+      solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)]
     };
   },
   computed: {
     solution() {
       return this.solutions.find(obj => {
-        return obj.type === this.type
-      })
+        return obj.type === this.type;
+      });
     }
   },
   methods: {
     open(solutionId) {
-      this.$router.push({ name: "SolutionChatflow", params: { topic: solutionId } });
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: solutionId }
+      });
     },
     restart(solutionId) {
       localStorage.removeItem(solutionId);
@@ -83,18 +82,13 @@ module.exports = {
       this.dialog = true;
     },
     getDeployedSolutions(solution_type) {
-      if (solution_type === "all_reservations") {
-        this.$api.solutions.getAll().then(response => {
-          this.deployedSolutions = JSON.parse(response.data).data
-        });
-      } else
-        this.$api.solutions.getDeployed(solution_type).then(response => {
-          this.deployedSolutions = JSON.parse(response.data).data
-        });
-    },
+      this.$api.solutions.getDeployed(solution_type).then(response => {
+        this.deployedSolutions = JSON.parse(response.data).data;
+      });
+    }
   },
   mounted() {
     this.getDeployedSolutions(this.type);
-  },
+  }
 };
 </script>

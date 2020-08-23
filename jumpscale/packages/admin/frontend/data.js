@@ -48,7 +48,7 @@ const SOLUTIONS = {
     topic: "network_deploy",
     type: "network",
     name: "Network",
-    icon: "mdi-network",
+    image: "./assets/network.png",
     url: "/solutions/network_deploy",
     description: "Deploy a network on the grid to connect your solutions together."
   },
@@ -66,13 +66,13 @@ const SOLUTIONS = {
     name: "Solution Expose",
     image: "./assets/expose.png",
     url: "/solutions/solution_expose",
-    description: ""
+    description: "Access your web application running on the grid using a FQDN"
   },
   flist: {
     topic: "flist_deploy",
     type: "flist",
     name: "Generic Container",
-    icon: "mdi-folder-multiple",
+    image: "./assets/flist.png",
     url: "/solutions/flist_deploy",
     description: "Spawn a container using specific flist provided by the user in the chatflow."
   },
@@ -82,15 +82,15 @@ const SOLUTIONS = {
     name: "Monitoring",
     image: "./assets/monitoring.png",
     url: "/solutions/monitoring_deploy",
-    description: ""
+    description: "Deploy basic monitoring stack (Prometheus, Grafana, Redis)"
   },
   domain: {
     topic: "domain_delegation",
     type: "delegated_domain",
     name: "Domain Delegation",
-    icon: "mdi-web",
+    image: "./assets/web.png",
     url: "/solutions/domain_delegation",
-    description: ""
+    description: "Delegate your domains to our gateways"
   },
   fourtosixgw: {
     topic: "4to6gw",
@@ -98,16 +98,8 @@ const SOLUTIONS = {
     name: "4 to 6 Gateway",
     image: "./assets/4to6.png",
     url: "/solutions/4to6gw",
-    description: ""
+    description: "4to6 Gateway gives you access to IPv6 networks using a wireguard tunnel"
   },
-  all: {
-    topic: "all",
-    type: "all_reservations",
-    name: "All Workloads",
-    icon: "mdi-clipboard-list-outline",
-    url: "/solutions/all",
-    description: "View all your current and old workloads"
-  }
 }
 
 
@@ -116,7 +108,7 @@ const APPS = {
     topic: "wiki_deploy",
     type: "wiki",
     name: "Wiki",
-    icon: "mdi-web-box",
+    image: "./assets/doc-flat.svg",
     url: "/solutions/deploy_wiki",
     description: "Publish a wiki like https://wiki.threefold.io/"
   },
@@ -124,7 +116,7 @@ const APPS = {
     topic: "website_deploy",
     type: "website",
     name: "Website",
-    icon: "mdi-web-box",
+    image: "./assets/web.png",
     url: "/solutions/deploy_website",
     description: "Publish a website like https://www.threefold.io/"
   },
@@ -132,7 +124,7 @@ const APPS = {
     topic: "blog_deploy",
     type: "blog",
     name: "Blog",
-    icon: "mdi-web-box",
+    image: "./assets/blog.png",
     url: "/solutions/deploy_blog",
     description: "Publish a blog like https://blog.threefold.io/"
   },
@@ -140,7 +132,7 @@ const APPS = {
     topic: "mattermost",
     type: "mattermost",
     name: "Mattermost",
-    icon: "mdi-chat-processing-outline",
+    image: "./assets/mattermost.png",
     url: "/solutions/mattermost",
     description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration"
   },
