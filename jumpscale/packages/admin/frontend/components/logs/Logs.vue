@@ -142,4 +142,7 @@ input {
 .v-text-field {
   padding: 10px 0px !important;
 }
+.v-data-table tr {
+  cursor: pointer;
+}
 </style>

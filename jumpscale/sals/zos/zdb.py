@@ -16,7 +16,7 @@ class ZDBGenerator:
         mode: Union[str, ZDBMode],
         password: str,
         pool_id: int,
-        disk_type: DiskType = DiskType.SSD,
+        disk_type: Union[str, DiskType] = DiskType.SSD,
         public: bool = False,
     ) -> ZdbNamespace:
         """create 0-DB namespace workload
@@ -32,8 +32,10 @@ class ZDBGenerator:
 
         Returns:
           ZdbNamespace: ZdbNamespace
-
         """
+        if isinstance(disk_type, str):
+            disk_type = getattr(DiskType, disk_type)
+
         zdb = ZdbNamespace()
         zdb.info.node_id = node_id
         zdb.info.pool_id = pool_id

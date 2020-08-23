@@ -142,8 +142,10 @@ class GedisChatBot:
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
+                internal_error = True
                 if e.msg:
                     self.send_error(e.msg, **e.kwargs)
+                self.send_data({"category": "end"})
 
             except Exception as e:
                 internal_error = True
@@ -159,6 +161,7 @@ class GedisChatBot:
                     )
                 else:
                     self.send_error(f"Something wrong happened, please contact support with alert ID: {alert.id}")
+                self.send_data({"category": "end"})
 
             if not internal_error:
                 if self.is_last_step:

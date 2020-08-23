@@ -14,6 +14,7 @@ class NodeFinder:
     def __init__(self, explorer):
         self._nodes = explorer.nodes
         self._farms = explorer.farms
+        self._pools = explorer.pools
 
     def filter_is_up(self, node: Node):
         """filter function that filters out nodes that have not received update for more then 10 minutes
@@ -70,6 +71,7 @@ class NodeFinder:
         mru: int = None,
         hru: int = None,
         currency: str = None,
+        pool_id: int = None,
     ):
         """search node with the ability to filter on different criteria
 
@@ -88,6 +90,10 @@ class NodeFinder:
 
         """
         not_supported_farms = []
+        if pool_id:
+            pool = self._pools.get(pool_id)
+        else:
+            pool = None
         nodes = self.nodes_search(farm_id=farm_id, farm_name=farm_name, country=country, city=city)
         for node in nodes:
             total = node.total_resources
@@ -102,6 +108,9 @@ class NodeFinder:
                 continue
 
             if hru and total.hru - max(0, reserved.hru) < hru:
+                continue
+
+            if pool and node.node_id not in pool.node_ids:
                 continue
 
             if currency:

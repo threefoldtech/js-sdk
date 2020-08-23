@@ -189,3 +189,8 @@ const TYPES = [
   'event_monitor',
   'event_operator',
 ]
+
+const VOLUMES_TYPE = {
+  0: "HDD",
+  1: "SSD"
+}

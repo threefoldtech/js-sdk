@@ -29,4 +29,4 @@ class UnAuthorized(j.exceptions.JSException):
 
 class TooLate(TemporaryProblem):
     def __init__(self):
-        super().__init__( "The transaction failed to be submitted to the network in time")
+        super().__init__("The transaction failed to be submitted to the network in time")
