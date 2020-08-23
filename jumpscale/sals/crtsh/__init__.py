@@ -13,6 +13,9 @@ def fetch_domain_certs(domain):
 
     Returns:
         list: of dicts of the certs. keys (issuer_ca_id, issuer_name, name_value, id, entry_timestamp, not_before, not_after)
+
+    Raises:
+        requests.exceptions.HTTPError
     """
     url = BASE_URL.format(domain)
     result = requests.get(url)
@@ -29,6 +32,9 @@ def has_reached_limit(domain):
 
     Returns:
         bool: True if the limit has been reached
+
+    Raises:
+        requests.exceptions.HTTPError
     """
     all_certs = fetch_domain_certs(domain)
     count = 0
@@ -49,6 +55,9 @@ def has_certificate(domain):
 
     Returns:
         dict: cert dict if a cert was issued. else None
+
+    Raises:
+        requests.exceptions.HTTPError
     """
     all_certs = fetch_domain_certs(domain)
     for cert in all_certs:
