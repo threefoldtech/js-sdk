@@ -41,29 +41,30 @@ class Health(BaseActor):
             "token_services": {"name": "Token Services", "status": True},
         }
 
-        # check stellar service
+        # urls of services according to identity explorer
         if "testnet" in j.core.identity.me.explorer_url:
             stellar_url = "https://horizon-testnet.stellar.org"
+            tokenservices_url = (
+                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
+            )
         else:
             stellar_url = "https://horizon.stellar.org"
+            tokenservices_url = (
+                "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
+            )
+
+        # check stellar service
         try:
             j.tools.http.get(stellar_url)
         except:
             services["stellar"]["status"] = False
 
         # check token services
-        if "testnet" in j.core.identity.me.explorer_url:
-            tokenservices_url = (
-                "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
-            )
-        else:
-            tokenservices_url = (
-                "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction"
-            )
         try:
             j.tools.http.get(tokenservices_url)
         except:
             services["token_services"]["status"] = False
+
         return j.data.serializers.json.dumps({"data": services})
 
 
