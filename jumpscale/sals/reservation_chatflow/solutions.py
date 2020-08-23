@@ -68,7 +68,7 @@ class ChatflowSolutions:
     def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         container_workloads = self._list_container_workloads("minio", next_action)
@@ -143,7 +143,7 @@ class ChatflowSolutions:
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         container_workloads = self._list_container_workloads("monitoring", next_action)
