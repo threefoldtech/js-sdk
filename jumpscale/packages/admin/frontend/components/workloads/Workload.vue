@@ -2,16 +2,13 @@
   <div>
     <base-dialog title="Workload Details" v-model="dialog" :loading="loading">
       <template #default>
-        <v-simple-table>
-          <template v-slot:default>
-            <tbody>
-              <tr v-for="(item, key) in workload" :key="key">
-                <th>{{ key }}</th>
-                <td>{{ item }}</td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
+        <json-renderer
+          title="Workload"
+          :jsonobj="workload"
+          :ignored="KeysIgnored"
+          :typelist="KeysWithTypeList"
+          :typedict="KeysWithTypeDict"
+        ></json-renderer>
       </template>
       <template #actions>
         <v-btn text @click="close">Close</v-btn>
@@ -34,12 +31,30 @@ module.exports = {
       dialogs: {
         cancelWorkload: false,
       },
+      KeysWithTypeList: ["ips"],
+      KeysWithTypeDict: ["capacity", "network_connection"],
+      KeysIgnored: [
+        "wireguard_private_key_encrypted",
+        "peers",
+        "iprange",
+        "info",
+        "environment",
+        "secret_environment",
+        "stats_aggregator",
+        "logs",
+        "secret",
+        "password",
+        "volumes",
+      ],
     };
   },
   computed: {
-      cancel_button() {
-        return !(this.workload.next_action == "DELETE" || this.workload.next_action == "DELETED")
-      },
+    cancel_button() {
+      return !(
+        this.workload.next_action == "DELETE" ||
+        this.workload.next_action == "DELETED"
+      );
+    },
   },
   methods: {
     cancel() {

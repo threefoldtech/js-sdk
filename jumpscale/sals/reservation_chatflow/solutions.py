@@ -27,101 +27,81 @@ class ChatflowSolutions:
         return result
 
     def list_ubuntu_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "ubuntu":
-                    result.append(
-                        {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IPv4 Address": workload.network_connection[0].ipaddress,
-                            "IPv6 Address": self.get_ipv6_address(workload),
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-                    )
-                    result[-1].update(self.get_workload_capacity(workload))
-        return result
+        return self._list_single_container_solution("ubuntu", next_action, sync)
 
     def list_peertube_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("peertube", next_action, sync, "nginx")
+
+    def list_discourse_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("discourse", next_action, sync, "nginx")
+
+    def list_taiga_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("taiga", next_action, sync, "nginx")
+
+    def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_single_container_solution("flist", next_action, sync)
+
+    def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_single_container_solution("gitea", next_action, sync)
+
+    def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
+
+    def list_publisher_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("publisher", next_action, sync, None)
+
+    def list_wiki_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("wiki", next_action, sync, None)
+
+    def list_blog_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("blog", next_action, sync, None)
+
+    def list_website_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("website", next_action, sync, None)
+
+    def list_threebot_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("threebot", next_action, sync)
+
+    def list_gollum_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_single_container_solution("gollum", next_action, sync)
+
+    def list_cryptpad_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_single_container_solution("cryptpad", next_action, sync)
+
+    def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "peertube":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    result[name] = {
-                        "wids": [workload.id],
-                        "Name": name,
-                        "IPv4 Address": workload.network_connection[0].ipaddress,
-                        "IPv6 Address": self.get_ipv6_address(workload),
-                        "Network": workload.network_connection[0].network_id,
-                        "Node": workload.info.node_id,
-                        "Pool": workload.info.pool_id,
+        result = []
+        container_workloads = self._list_container_workloads("minio", next_action)
+        for name in container_workloads:
+            primary_dict = container_workloads[name][0]
+            solution_dict = {
+                "wids": [primary_dict["wid"]] + primary_dict["vol_ids"],
+                "Name": name,
+                "Network": primary_dict["network"],
+                "Primary IPv4": primary_dict["ipv4"],
+                "Primary IPv6": primary_dict["ipv6"],
+                "Primary Pool": primary_dict["pool"],
+            }
+            for key, val in primary_dict["capacity"].items():
+                solution_dict[f"Primary {key}"] = val
+            if len(container_workloads[name]) == 2:
+                secondary_dict = container_workloads[name][1]
+                solution_dict["wids"].append(secondary_dict["wid"])
+                solution_dict["wids"] += secondary_dict["vol_ids"]
+                solution_dict.update(
+                    {
+                        "Secondary IPv4": secondary_dict["ipv4"],
+                        "Secondary IPv6": secondary_dict["ipv6"],
+                        "Secondary Pool": secondary_dict["pool"],
                     }
-                    result[name].update(self.get_workload_capacity(workload))
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Reverse_proxy
-        ].values():
-            for workload in proxy_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "peertube":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-                        result[name]["Domain"] = workload.domain
-
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Subdomain
-        ].values():
-            for workload in subdomain_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "peertube":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-        return list(result.values())
+                )
+                for key, val in secondary_dict["capacity"].items():
+                    solution_dict[f"Secondary {key}"] = val
+            result.append(solution_dict)
+        return result
 
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -143,11 +123,11 @@ class ChatflowSolutions:
                     continue
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
-                    if f"{name}" in result:
+                    if name in result:
                         if len(workload.master_ips) != 0:
-                            result[f"{name}"]["wids"].append(workload.id)
-                            result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
-                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
+                            result[name]["wids"].append(workload.id)
+                            result[name]["Slave IPs"].append(workload.ipaddress)
+                            result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
                     result[f"{name}"] = {
                         "wids": [workload.id],
@@ -160,246 +140,39 @@ class ChatflowSolutions:
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
-                        result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
-        return list(result.values())
-
-    def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        # TODO: add related ZDB wids to solution dict
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    metadata = j.data.serializers.json.loads(
-                        j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
-                    )
-                    if not metadata:
-                        continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "minio":
-                    name = metadata["form_info"].get("Solution name", metadata.get("name"))
-                    if name:
-                        if f"{name}" in result:
-                            result[f"{name}"]["wids"].append(workload.id)
-                            result[f"{name}"]["Secondary IPv4"] = workload.network_connection[0].ipaddress
-                            result[f"{name}"]["Secondary IPv6"] = self.get_ipv6_address(workload)
-                            result[f"{name}"]["Secondary Node"] = workload.network_connection[0].ipaddress
-                            result[f"{name}"]["Secondary Pool"] = workload.info.pool_id
-                            for key, value in self.get_workload_capacity(workload).items():
-                                result[name][f"Secondary {key}"] = value
-                            if workload.volumes:
-                                for vol in workload.volumes:
-                                    result[f"{name}"]["wids"].append(vol.volume_id.split("-")[0])
-                            continue
-                        result[f"{name}"] = {
-                            "wids": [workload.id],
-                            "Name": name,
-                            "Network": workload.network_connection[0].network_id,
-                            "Primary IPv4": workload.network_connection[0].ipaddress,
-                            "Primary IPv6": self.get_ipv6_address(workload),
-                            "Primary Node": workload.info.node_id,
-                            "Primary Pool": workload.info.pool_id,
-                        }
-                        for key, value in self.get_workload_capacity(workload).items():
-                            result[name][f"Primary {key}"] = value
-                        if workload.volumes:
-                            for vol in workload.volumes:
-                                result[f"{name}"]["wids"].append(vol.volume_id.split("-")[0])
+                        result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "monitoring":
-                    pool_id = workload.info.pool_id
-                    solution_name = metadata["form_info"].get("Solution name")
-                    if not solution_name:
-                        continue
-                    name = f"{solution_name}"
-                    if "grafana" in workload.flist:
-                        container_type = "Grafana"
-                    elif "redis_zinit" in workload.flist:
-                        container_type = "Redis"
-                    elif "prometheus" in workload.flist:
-                        container_type = "Prometheus"
-                    else:
-                        continue
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-                        if workload.volumes:
-                            for vol in workload.volumes:
-                                result[name]["wids"].append(vol.volume_id.split("-")[0])
-                        result[name][f"{container_type} IP"] = workload.network_connection[0].ipaddress
-                        result[name][f"{container_type} Pool"] = pool_id
-                        for key, value in self.get_workload_capacity(workload).items():
-                            result[name][f"{container_type} {key}"] = value
-                        continue
-                    result[name] = {
-                        "wids": [workload.id],
-                        "Name": solution_name,
-                        f"{container_type} Pool": pool_id,
-                        "Network": workload.network_connection[0].network_id,
-                        f"{container_type} IPv4": workload.network_connection[0].ipaddress,
-                        f"{container_type} IPv6": self.get_ipv6_address(workload),
-                    }
-                    for key, value in self.get_workload_capacity(workload).items():
-                        result[name][f"{container_type} {key}"] = value
-                    if workload.volumes:
-                        for vol in workload.volumes:
-                            result[name]["wids"].append(vol.volume_id.split("-")[0])
-        return list(result.values())
-
-    def list_flist_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
+        container_workloads = self._list_container_workloads("monitoring", next_action)
+        for name in container_workloads:
+            if len(container_workloads[name]) != 3:
+                continue
+            solution_dict = {"wids": [], "Name": name}
+            for c_dict in container_workloads[name]:
+                solution_dict["wids"].append(c_dict["wid"])
+                solution_dict["wids"] += c_dict["vol_ids"]
+                if "grafana" in c_dict["flist"]:
+                    cont_type = "Grafana"
+                elif "prometheus" in c_dict["flist"]:
+                    cont_type = "Prometheus"
+                elif "redis_zinit" in c_dict["flist"]:
+                    cont_type = "Redis"
+                else:
                     continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "flist":
-                    solution_dict = {
-                        "wids": [workload.id],
-                        "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                        "IPv4 Address": workload.network_connection[0].ipaddress,
-                        "IPv6 Address": self.get_ipv6_address(workload),
-                        "Network": workload.network_connection[0].network_id,
-                        "Node": workload.info.node_id,
-                        "Pool": workload.info.pool_id,
-                    }
-                    solution_dict.update(self.get_workload_capacity(workload))
-                    if workload.volumes:
-                        for vol in workload.volumes:
-                            solution_dict["wids"].append(vol.volume_id.split("-")[0])
-                    result.append(solution_dict)
+                solution_dict[f"{cont_type} IPv4"] = c_dict["ipv4"]
+                solution_dict[f"{cont_type} IPv6"] = c_dict["ipv6"]
+                solution_dict[f"{cont_type} Node"] = c_dict["node"]
+                solution_dict[f"{cont_type} Pool"] = c_dict["pool"]
+                for key, val in c_dict["capacity"].items():
+                    solution_dict[f"{cont_type} {key}"] = val
+            result.append(solution_dict)
         return result
-
-    def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "gitea":
-                    result.append(
-                        {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IPv4 Address": workload.network_connection[0].ipaddress,
-                            "IPv6 Address": self.get_ipv6_address(workload),
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-                    )
-                    result[-1].update(self.get_workload_capacity(workload))
-        return result
-
-    def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "mattermost":
-                    if workload.flist == "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist":
-                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                        result[name] = {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "Domain name": metadata["form_info"].get("Domain name"),
-                            "IP Address": workload.network_connection[0].ipaddress,
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-            for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-                WorkloadType.Reverse_proxy
-            ].values():
-                for workload in proxy_workloads:
-                    if not workload.info.metadata:
-                        continue
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                    if not metadata:
-                        continue
-                    if not metadata.get("form_info"):
-                        continue
-                    if metadata["form_info"].get("chatflow") == "mattermost":
-                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                        if name in result:
-                            result[name]["wids"].append(workload.id)
-
-            for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-                WorkloadType.Subdomain
-            ].values():
-                for workload in subdomain_workloads:
-                    if not workload.info.metadata:
-                        continue
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                    if not metadata:
-                        continue
-                    if not metadata.get("form_info"):
-                        continue
-                    if metadata["form_info"].get("chatflow") == "mattermost":
-                        name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                        if name in result:
-                            result[name]["wids"].append(workload.id)
-            return list(result.values())
 
     def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -460,7 +233,7 @@ class ChatflowSolutions:
                         "Domain": proxy.domain,
                     }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
-                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
+                    name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
         # link subdomains to proxy_reservations
@@ -478,7 +251,7 @@ class ChatflowSolutions:
                 if not solution_name:
                     continue
                 domain = workload.domain
-                if name_to_proxy.get(f"{solution_name}"):
+                if name_to_proxy.get(solution_name):
                     result[name_to_proxy[solution_name]]["wids"].append(workload.id)
 
         # link tcp router containers to proxy reservations
@@ -502,233 +275,10 @@ class ChatflowSolutions:
                 )
                 if not solution_name:
                     continue
-                if name_to_proxy.get(f"{solution_name}"):
-                    domain = name_to_proxy.get(f"{solution_name}")
-                    result[f"{domain}"]["wids"].append(container_workload.id)
+                if name_to_proxy.get(solution_name):
+                    domain = name_to_proxy.get(solution_name)
+                    result[domain]["wids"].append(container_workload.id)
         return list(result.values())
-
-    def list_wiki_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self.list_publisher_solutions(next_action=next_action, sync=sync, publish_type="wiki")
-
-    def list_blog_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self.list_publisher_solutions(next_action=next_action, sync=sync, publish_type="blog")
-
-    def list_website_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self.list_publisher_solutions(next_action=next_action, sync=sync, publish_type="website")
-
-    def list_publisher_solutions(self, next_action=NextAction.DEPLOY, sync=True, publish_type="publisher"):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == publish_type:
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    result[name] = {
-                        "wids": [workload.id],
-                        "Name": name,
-                        "IPv4 Address": workload.network_connection[0].ipaddress,
-                        "IPv6 Address": self.get_ipv6_address(workload),
-                        "Network": workload.network_connection[0].network_id,
-                        "Node": workload.info.node_id,
-                        "Pool": workload.info.pool_id,
-                    }
-                    result[name].update(self.get_workload_capacity(workload))
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Reverse_proxy
-        ].values():
-            for workload in proxy_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == publish_type:
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-                        result[name]["Domain"] = workload.domain
-
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Subdomain
-        ].values():
-            for workload in subdomain_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == publish_type:
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-        return list(result.values())
-
-    def list_threebot_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = {}
-
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if workload.flist == "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
-                    continue
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "threebot":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    result[name] = {
-                        "wids": [workload.id],
-                        "Name": name,
-                        "IPv4 Address": workload.network_connection[0].ipaddress,
-                        "IPv6 Address": self.get_ipv6_address(workload),
-                        "Network": workload.network_connection[0].network_id,
-                        "Node": workload.info.node_id,
-                        "Pool": workload.info.pool_id,
-                    }
-                    result[name].update(self.get_workload_capacity(workload))
-
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Reverse_proxy
-        ].values():
-            for workload in proxy_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "threebot":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-                        result[name]["Domain"] = workload.domain
-
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Subdomain
-        ].values():
-            for workload in subdomain_workloads:
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "threebot":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist":
-                    continue
-                if not workload.info.metadata:
-                    continue
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if not metadata:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "threebot":
-                    name = metadata.get("name", metadata["form_info"].get("Solution name"))
-                    if name in result:
-                        result[name]["wids"].append(workload.id)
-        return list(result.values())
-
-    def list_gollum_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "gollum":
-                    result.append(
-                        {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IPv4 Address": workload.network_connection[0].ipaddress,
-                            "IPv6 Address": self.get_ipv6_address(workload),
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-                    )
-                    result[-1].update(self.get_workload_capacity(workload))
-        return result
-
-    def list_cryptpad_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
-            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        result = []
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
-            for workload in container_workloads:
-                if not workload.info.metadata:
-                    continue
-                try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                except:
-                    continue
-                if not metadata.get("form_info"):
-                    continue
-                if metadata["form_info"].get("chatflow") == "cryptpad":
-                    result.append(
-                        {
-                            "wids": [workload.id],
-                            "Name": metadata.get("name", metadata["form_info"].get("Solution name")),
-                            "IPv4 Address": workload.network_connection[0].ipaddress,
-                            "IPv6 Address": self.get_ipv6_address(workload),
-                            "Network": workload.network_connection[0].network_id,
-                            "Node": workload.info.node_id,
-                            "Pool": workload.info.pool_id,
-                        }
-                    )
-                    result[-1].update(self.get_workload_capacity(workload))
-        return result
 
     def cancel_solution(self, solution_wids):
         """
@@ -760,15 +310,18 @@ class ChatflowSolutions:
             "4to6gw": 0,
             "delegated_domain": 0,
             "exposed": 0,
-            "publisher": 0,
             "threebot": 0,
+            "peertube": 0,
+            "discourse": 0,
             "gollum": 0,
             "mattermost": 0,
             "peertube": 0,
             "cryptpad": 0,
+            "publisher": 0,
             "wiki": 0,
             "blog": 0,
             "website": 0,
+            "taiga": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():
@@ -806,6 +359,196 @@ class ChatflowSolutions:
         elif workload.info.workload_type == WorkloadType.Volume:
             result["Size"] = workload.size * 1024
             result["Type"] = workload.type.name
+        return result
+
+    def _validate_workload_metadata(self, chatflow, workload):
+        if not workload.info.metadata:
+            return
+        try:
+            metadata = j.data.serializers.json.loads(workload.info.metadata)
+        except:
+            return
+
+        if not metadata.get("form_info"):
+            return
+        if metadata["form_info"].get("chatflow") != chatflow:
+            return
+
+        return metadata
+
+    def _list_container_workloads(
+        self,
+        chatflow,
+        next_action=NextAction.DEPLOY,
+        name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+    ):
+        """
+        Args:
+            chatflow: chatflow value set in metadata
+            next_action: workload next action
+            name_identifier: function with one parameter metadata and returns the solution name
+
+        Returns:
+            {"name": [container_dict]}  # container_dict keys: flist, ipv4, ipv6, capacity, wid, vol_ids, node, pool
+        """
+        result = {}
+        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Container
+        ].values():
+            for workload in container_workloads:
+                metadata = self._validate_workload_metadata(chatflow, workload)
+                if not metadata:
+                    continue
+
+                name = name_identitfier(metadata)
+                container_dict = {
+                    "wid": workload.id,
+                    "flist": workload.flist,
+                    "ipv4": workload.network_connection[0].ipaddress,
+                    "ipv6": self.get_ipv6_address(workload),
+                    "network": workload.network_connection[0].network_id,
+                    "node": workload.info.node_id,
+                    "pool": workload.info.pool_id,
+                    "vol_ids": [],
+                    "capacity": self.get_workload_capacity(workload),
+                }
+                if workload.volumes:
+                    for vol in workload.volumes:
+                        container_dict["vol_ids"].append(int(vol.volume_id.split("-")[0]))
+                if name not in result:
+                    result[name] = [container_dict]
+                else:
+                    result[name].append(container_dict)
+        return result
+
+    def _list_subdomain_workloads(
+        self,
+        chatflow,
+        next_action=NextAction.DEPLOY,
+        name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+    ):
+        """
+        Args:
+            chatflow: chatflow value set in metadata
+            next_action: workload next action
+            name_identifier: function with one parameter metadata and returns the solution name
+
+        Returns:
+            {"name": [subdomain_dict]}  # subdomain_dict keys: wid, domain, ips
+        """
+        result = {}
+        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Subdomain
+        ].values():
+            for workload in subdomain_workloads:
+                metadata = self._validate_workload_metadata(chatflow, workload)
+                if not metadata:
+                    continue
+
+                name = name_identitfier(metadata)
+                subdomain_dict = {"wid": workload.id, "domain": workload.domain, "ips": workload.ips}
+                if name not in result:
+                    result[name] = [subdomain_dict]
+                else:
+                    result[name].append(subdomain_dict)
+        return result
+
+    def _list_proxy_workloads(
+        self,
+        chatflow,
+        next_action=NextAction.DEPLOY,
+        name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+    ):
+        """
+        Args:
+            chatflow: chatflow value set in metadata
+            next_action: workload next action
+            name_identifier: function with one parameter metadata and returns the solution name
+
+        Returns:
+            {"name": [proxy_dict]}  # subdomain_dict keys: wid, domain
+        """
+        result = {}
+        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Reverse_proxy
+        ].values():
+            for workload in proxy_workloads:
+                metadata = self._validate_workload_metadata(chatflow, workload)
+                if not metadata:
+                    continue
+
+                name = name_identitfier(metadata)
+                proxy_dict = {"wid": workload.id, "domain": workload.domain}
+                if name not in result:
+                    result[name] = [proxy_dict]
+                else:
+                    result[name].append(proxy_dict)
+        return result
+
+    def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc"):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        if not proxy_type:
+            containers_len = 1
+        else:
+            containers_len = 2
+        container_workloads = self._list_container_workloads(chatflow, next_action)
+        subdomain_workloads = self._list_subdomain_workloads(chatflow, next_action)
+        proxy_workloads = self._list_proxy_workloads(chatflow, next_action)
+        for name in container_workloads:
+            subdomain_dicts = subdomain_workloads.get(name)
+            proxy_dicts = proxy_workloads.get(name)
+            if not subdomain_dicts or not proxy_dicts:
+                continue
+            subdomain_dict = subdomain_dicts[0]
+            proxy_dict = proxy_dicts[0]
+            solution_dict = {
+                "wids": [subdomain_dict["wid"], proxy_dict["wid"]],
+                "Name": name,
+                "Domain": subdomain_dict["domain"],
+            }
+            if len(container_workloads[name]) != containers_len:
+                continue
+            for c_dict in container_workloads[name]:
+                solution_dict["wids"].append(c_dict["wid"])
+                if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
+                    solution_dict.update(
+                        {
+                            "IPv4 Address": c_dict["ipv4"],
+                            "IPv6 Address": c_dict["ipv6"],
+                            "Node": c_dict["node"],
+                            "Pool": c_dict["pool"],
+                            "Network": c_dict["network"],
+                        }
+                    )
+                    solution_dict.update(c_dict["capacity"])
+            result.append(solution_dict)
+        return result
+
+    def _list_single_container_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        container_workloads = self._list_container_workloads(chatflow, next_action)
+        for name in container_workloads:
+            c_dict = container_workloads[name][0]
+            result.append(
+                {
+                    "wids": [c_dict["wid"]],
+                    "Name": name,
+                    "IPv4 Address": c_dict["ipv4"],
+                    "IPv6 Address": c_dict["ipv6"],
+                    "Node": c_dict["node"],
+                    "Pool": c_dict["pool"],
+                    "Network": c_dict["network"],
+                }
+            )
+            result[-1].update(c_dict["capacity"])
         return result
 
 

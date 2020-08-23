@@ -9,7 +9,7 @@ class WikiDeploy(Publisher):
 
     title = "Deploy Wiki"
     welcome_message = "This wizard will help you publish your wiki."
-    publishing_chatflow = "wiki"  # chatflow used to deploy the solution
+    SOLUTION_TYPE = "wiki"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Wiki Setup")
     def configuration(self):

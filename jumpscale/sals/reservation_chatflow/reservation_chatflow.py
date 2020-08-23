@@ -600,7 +600,7 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3Bot app is shown
         where a QR code is viewed for the user to scan and continue with their payment
 
         Args:
@@ -626,7 +626,7 @@ class ReservationChatflow:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("3Bot app")
 
         payment_details = self.get_payment_details(escrow_info, currency)
 
@@ -635,7 +635,7 @@ class ReservationChatflow:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
         """
         retry = False
         while True:
@@ -645,7 +645,7 @@ class ReservationChatflow:
             if result not in wallet_names:
                 retry = True
                 continue
-            if result == "3bot app":
+            if result == "3Bot app":
                 reservation = self._explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
@@ -654,7 +654,7 @@ class ReservationChatflow:
                     escrow_address=escrow_address,
                     escrow_asset=escrow_asset,
                     total_amount=total_amount,
-                    payment_source=result,
+                    payment_source="3bot app",
                     farmer_payments=escrow_info["farmer_payments"],
                 )
                 return payment, payment_obj
@@ -683,7 +683,7 @@ class ReservationChatflow:
                 <h4> Wallet address: </h4>  {escrow_address} \n
                 <h4> Currency: </h4>  {escrow_asset} \n
                 <h4> Payment details: </h4> {payment_details} \n
-                <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+                <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
@@ -942,10 +942,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
             addresses = farms[farm_id].wallet_addresses
             for address in addresses:
                 if address.asset not in currencies:
+                    if address.asset == "FreeTFT" and not g.free_to_use:
+                        continue
                     currencies.append(address.asset)
-            if g.free_to_use:
-                if "FreeTFT" not in currencies:
-                    currencies.append("FreeTFT")
 
             reservation_currency = ", ".join(currencies)
 
@@ -1228,7 +1227,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the threebot, the network must be configured",
+            "To have access to the 3Bot, the network must be configured",
             ip_range_choose,
             required=True,
             default=ip_range_choose[1],
@@ -1357,16 +1356,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self,
-        number_of_nodes,
-        farm_id=None,
-        farm_names=None,
-        cru=None,
-        sru=None,
-        mru=None,
-        hru=None,
-        currency="TFT",
-        ip_version=None,
+        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency="TFT", ip_version=None, pool_ids=None,
     ):
         """get available nodes to deploy solutions on
 
@@ -1386,16 +1376,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         """
-        nodes_distribution = self._distribute_nodes(number_of_nodes, farm_names)
+        nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
         selected_ids = []
-        for farm_name in nodes_distribution:
-            nodes_number = nodes_distribution[farm_name]
-            if not farm_names:
-                farm_name = None
+        for pool_id in nodes_distribution:
+            nodes_number = nodes_distribution[pool_id]
+            if not pool_ids:
+                pool_id = None
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
-                farm_name=farm_name, cru=cru, sru=sru, mru=mru, hru=hru, currency=currency
+                cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
@@ -1441,26 +1431,26 @@ Deployment will be cancelled if it is not successful {remaning_time}
                 raise StopChatFlow("Could not find available access node")
         return list(nodes)
 
-    def _distribute_nodes(self, number_of_nodes, farm_names):
+    def _distribute_nodes(self, number_of_nodes, pool_ids):
         nodes_distribution = {}
         nodes_left = number_of_nodes
-        names = list(farm_names) if farm_names else []
-        if not farm_names:
-            farms = self._explorer.farms.list()
-            names = []
-            for f in farms:
-                names.append(f.name)
-        random.shuffle(names)
-        names_pointer = 0
+        result_ids = list(pool_ids) if pool_ids else []
+        if not pool_ids:
+            pools = self._explorer.pools.list()
+            result_ids = []
+            for p in pools:
+                result_ids.append(p.pool_id)
+        random.shuffle(result_ids)
+        id_pointer = 0
         while nodes_left:
-            farm_name = names[names_pointer]
-            if farm_name not in nodes_distribution:
-                nodes_distribution[farm_name] = 0
-            nodes_distribution[farm_name] += 1
+            pool_id = result_ids[id_pointer]
+            if pool_id not in nodes_distribution:
+                nodes_distribution[pool_id] = 0
+            nodes_distribution[pool_id] += 1
             nodes_left -= 1
-            names_pointer += 1
-            if names_pointer == len(names):
-                names_pointer = 0
+            id_pointer += 1
+            if id_pointer == len(result_ids):
+                id_pointer = 0
         return nodes_distribution
 
     def get_farm_names(self, number_of_nodes, bot, cru=None, sru=None, mru=None, hru=None, currency="TFT", message=""):
@@ -1558,8 +1548,8 @@ Deployment will be cancelled if it is not successful {remaning_time}
         """
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
-            This chatflow is not supported when Threebot is in dev mode.
-            To enable Threebot connect : `j.core.config.set('threebot_connect', True)`
+            This chatflow is not supported when 3Bot is in dev mode.
+            To enable 3Bot connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:

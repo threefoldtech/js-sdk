@@ -69,7 +69,7 @@ http {
     "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
 )
 def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
-    """start 3bot server after making sure identity is ok
+    """start 3Bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
 

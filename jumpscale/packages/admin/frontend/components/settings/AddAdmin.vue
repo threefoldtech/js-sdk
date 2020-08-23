@@ -2,7 +2,7 @@
   <base-dialog title="Add admin" v-model="dialog" :error="error" :loading="loading">
     <template #default>
       <v-form>
-        <v-text-field v-model="form.name" label="3bot name" dense></v-text-field>
+        <v-text-field v-model="form.name" label="3Bot name" dense></v-text-field>
       </v-form>
     </template>
     <template #actions>

@@ -55,10 +55,10 @@ const SOLUTIONS = {
   threebot: {
     topic: "threebot",
     type: "threebot",
-    name: "Threebot",
+    name: "3Bot",
     image: "./assets/3bot.png",
     url: "/solutions/threebot",
-    description: "Deploy your Threebot on container."
+    description: "Deploy your 3Bot on container."
   },
   expose: {
     topic: "solution_expose",
@@ -140,6 +140,14 @@ const SOLUTIONS = {
     url: "/solutions/peertube",
     description: "Deploy a peertube instance on the grid."
   },
+  discourse: {
+    topic: "discourse",
+    type: "discourse",
+    name: "Discourse",
+    image: "./assets/discourse.png",
+    url: "/solutions/discourse",
+    description: "Deploy a discourse instance on the grid."
+  },
   cryptpad: {
     topic: "cryptpad_deploy",
     type: "cryptpad",
@@ -147,6 +155,14 @@ const SOLUTIONS = {
     image: "./assets/cryptpad.png",
     url: "/solutions/cryptpad_deploy",
     description: "CryptPad is the Zero Knowledge realtime collaborative editor."
+  },
+  taiga: {
+    topic: "taiga_deploy",
+    type: "taiga",
+    name: "Taiga",
+    image: "./assets/taiga.png",
+    url: "/solutions/taiga_deploy",
+    description: "Build your 'All in one' Taiga solution"
   },
   all: {
     topic: "all",
@@ -181,3 +197,8 @@ const TYPES = [
   'event_monitor',
   'event_operator',
 ]
+
+const VOLUMES_TYPE = {
+  0: "HDD",
+  1: "SSD"
+}

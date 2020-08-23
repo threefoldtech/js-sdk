@@ -330,17 +330,17 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("3Bot app")
         message = f"""
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Total Amount: </h4> {total_amount} \n
         <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3bot app":
+        if result == "3Bot app":
             qr_code = (
                 f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
             )
@@ -365,6 +365,12 @@ class ChatflowDeployer:
         farm_id = self.get_pool_farm_id(pool_id)
         farm = self._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
+        if "FreeTFT" in assets:
+            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool_id)
+            for node in pool_nodes:
+                if not node.free_to_use:
+                    assets.remove("FreeTFT")
+                    break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         currencies = form.single_choice("Please choose the currency", assets, required=True)
@@ -420,10 +426,7 @@ class ChatflowDeployer:
             raise StopChatFlow("no available pools")
         pool_messages = {}
         for pool in available_pools:
-            farm_id = self.get_pool_farm_id(pool)
-            nodes = j.sals.reservation_chatflow.reservation_chatflow.check_farm_resources(
-                farm_id, sru=sru, cru=cru, hru=hru, mru=mru
-            )
+            nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool, sru=sru, mru=mru, hru=hru, cru=cru)
             if not nodes:
                 continue
 
@@ -745,8 +748,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         return logs_config
 
     def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        farm_id = self.get_pool_farm_id(pool_id)
-        farm_name = self._explorer.farms.get(farm_id).name
         query = {
             "cru": cru,
             "sru": sru,
@@ -754,7 +755,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "hru": hru,
             "ip_version": ip_version,
         }
-        return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, farm_names=[farm_name], **query)[0]
+        return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
         self,
@@ -796,6 +797,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         """
         cu = min(cru * 4, (mru - 1) / 4)
         su = hru / 1000 / 1.2 + sru / 100 / 1.2
+        if cu < 0:
+            cu = 0
+        if su < 0:
+            su = 0
         return cu, su
 
     def get_network_view(self, network_name, workloads=None):
@@ -936,10 +941,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
                     continue
-                farm_id = self.get_pool_farm_id(p)
-                nodes = j.sals.reservation_chatflow.reservation_chatflow.check_farm_resources(
-                    farm_id, **resource_query_list[i]
-                )
+                nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
@@ -1082,6 +1084,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         solution_ip,
         solution_port,
         enforce_https=False,
+        test_cert=False,
         node_id=None,
         proxy_pool_id=None,
         bot=None,
@@ -1122,6 +1125,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
             "PUBKEY": public_key,
+            "TEST_CERT": "true" if test_cert else "false",
         }
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
@@ -1143,8 +1147,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/asamir.3bot/14443-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
             disk_type=DiskType.HDD,
+            disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
             secret_env=secret_env,
             public_ipv6=False,
@@ -1201,6 +1206,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
         network_view = NetworkView(network_name)
         network_view = network_view.copy()
+        network_view.used_ips.append(local_ip)
         ip_address = network_view.get_free_ip(node)
 
         resv_id = self.deploy_container(
@@ -1429,24 +1435,23 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 bot.md_show("You must select at least one pool. please click next to try again.")
             else:
                 break
-        farm_to_pool = {}
-        farm_names = []
+
         pool_ids = {}
+        node_to_pool = {}
         for p in pool_choices:
             pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
-            pool_ids[messages[p]] = pool
-            farm_id = self._explorer.nodes.get(pool.node_ids[0]).farm_id
-            farm_name = self._explorer.farms.get(farm_id).name
-            farm_to_pool[farm_id] = pool
-            farm_names.append(farm_name)
+            pool_ids[messages[p]] = pool.pool_id
+            for node_id in pool.node_ids:
+                node_to_pool[node_id] = pool
+
         nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            number_of_nodes, farm_names=farm_names, **resource_query
+            number_of_nodes, pool_ids=list(pool_ids.values()), **resource_query
         )
         selected_nodes = []
         selected_pool_ids = []
         for node in nodes:
             selected_nodes.append(node)
-            pool = farm_to_pool[node.farm_id]
+            pool = node_to_pool[node.node_id]
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 

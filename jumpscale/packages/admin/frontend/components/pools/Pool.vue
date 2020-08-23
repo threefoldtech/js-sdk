@@ -17,17 +17,17 @@
                       <div style="margin-top: 15px;">{{ pool.name }}</div>
                       <v-spacer></v-spacer>
                       <v-text-field
-                        v-if="edting"
+                        v-if="editing"
                         v-model="name"
                         label="New name"
                         hint
                         persistent-hint
                       ></v-text-field>
-                      <v-btn v-if="!edting" small color="warning" @click="startEdit()" dark>Edit</v-btn>
+                      <v-btn v-if="!editing" small color="warning" @click="startEdit()" dark>Edit</v-btn>
                       <div style="margin-top: 20px; margin-left: 10px;">
-                        <v-btn v-if="edting" small color="error" @click="cancelEdit()" dark>close</v-btn>
+                        <v-btn v-if="editing" small color="error" @click="cancelEdit()" dark>close</v-btn>
                         <v-btn
-                          v-if="edting"
+                          v-if="editing"
                           small
                           color="success"
                           @click="rename(pool.pool_id, name)"
@@ -86,7 +86,7 @@
       </template>
       <template #actions>
         <v-btn text color="error" v-if="pool.hidden" @click="unhide()">Unhide</v-btn>
-        <v-btn text color="error" v-else @click="hide()">Hide</v-btn>
+        <v-btn text color="error" v-else @click="hide()">Hide Pool</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
@@ -100,7 +100,7 @@ module.exports = {
       dialogs: {
         hidePool: false,
       },
-      edting: false,
+      editing: false,
       name: "",
     };
   },
@@ -108,15 +108,18 @@ module.exports = {
   mixins: [dialog],
   methods: {
     startEdit() {
-      this.edting = true;
+      this.editing = true;
     },
     cancelEdit() {
       this.name = "";
-      this.edting = false;
+      this.editing = false;
     },
     rename(poolId, name) {
-      this.$api.solutions.renamePool(poolId, name);
-      this.pool.name = name;
+      this.$api.solutions.renamePool(poolId, name).then(() => {
+        this.pool.name = name;
+        this.name = "";
+        this.editing = false;
+      });
     },
     cancel() {
       this.dialogs.hidePool = true;

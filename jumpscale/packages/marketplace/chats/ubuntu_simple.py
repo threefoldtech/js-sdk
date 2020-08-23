@@ -43,10 +43,12 @@ class UbuntuDeploy(MarketPlaceChatflow):
     @chatflow_step()
     def ubuntu_info(self):
         form = self.new_form()
-        self.currency = form.single_choice("please select the currency you wish ", ["TFT", "TFTA"], required=True)
+        self.currency = form.single_choice(
+            "Please select the currency you want to pay with.", ["TFT", "TFTA"], required=True
+        )
         form.ask()
         self.currency = self.currency.value
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
+        self.query = {"sru": 1}
 
     @chatflow_step()
     def ubuntu_expiration(self):
@@ -99,7 +101,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             )
 
         if not self.pool_info:
-            raise StopChatFlow("Bye bye")
+            raise StopChatFlow("Failed to reserve resources for your app")
 
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
