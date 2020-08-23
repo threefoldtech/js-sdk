@@ -274,8 +274,13 @@ class ChatflowDeployer:
             if currencies[0] not in farm_assets:
                 continue
             resources = available_farms[farm]
+            farm_obj = farms_by_name[farm]
+            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
+            location = "-".join([info for info in location_list if info])
+            if location:
+                location = f" location: {location}"
             farm_messages[
-                f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]}" f" mru {resources[3]}"
+                f"{farm}{location} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
