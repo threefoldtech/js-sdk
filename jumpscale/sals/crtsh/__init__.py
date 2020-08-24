@@ -24,7 +24,24 @@ def fetch_domain_certs(domain):
     return result.json()
 
 
-def has_reached_limit(domain):
+def count_domain_certs_since(domain, days=7):
+    all_certs = fetch_domain_certs(domain)
+    count = 0
+    now = jstime.utcnow()
+    domains = set()
+    start_date = now.shift(days=-1 * days)
+    for cert in all_certs:
+        # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
+        # we will check using date only. entry_timestamp example "2020-08-23T12:15:27.833"
+        t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
+        subdomain = cert["name_value"].split(".")[0]
+        if t >= start_date:
+            domains.add(subdomain)
+    count = len(domains)
+    return count
+
+
+def has_reached_limit(domain, limit=RATE_LIMIT):
     """check if a domain has reached the rate limit for issues certs
 
     Args:
@@ -36,20 +53,7 @@ def has_reached_limit(domain):
     Raises:
         requests.exceptions.HTTPError
     """
-    all_certs = fetch_domain_certs(domain)
-    count = 0
-    now = jstime.utcnow()
-    domains = []
-    start_date = now.shift(days=-7)
-    for cert in all_certs:
-        # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
-        # we will check using date only. entry_timestamp example "2020-08-23T12:15:27.833"
-        t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
-        subdomain = cert["name_value"].split(".")[0]
-        if t >= start_date and subdomain not in domains:
-            domains.append(subdomain)
-            count += 1
-    print(count)
+    count = count_domain_certs_since(domain)
     return count >= RATE_LIMIT
 
 
