@@ -37,7 +37,7 @@ body {
    position: absolute; /*Can also be `fixed`*/
    left: 0;
    right: 0;
-   top: 0;
+   top: 250px;
    bottom: 0;
    margin: auto;
    /*Solves a problem in which the content is being cut when the div is smaller than its' wrapper:*/
@@ -54,17 +54,22 @@ body {
     font-size: 300%;
     text-align: center;
 }
+.medium-font{
+    font-size: 200%;
+    text-align: center;
+}
 }
 
 </style>
 </head>
 <body>
     <div class="h-center">
-        <p class="large-font">welcome to 3Bot go to your admin dashboard from here</p>
+        <p class="large-font">Welcome to 3Bot</p>
     </div>
-
+    <div class="h-center">
+        <p class="medium-font">Press the following button to access your admin dashboard</p>
+    </div>
     <div class="center">
-        <h1>Go to /admin</h1>
         <a href="/admin/#" class="button">Admin Dashboard</a>
     </div>
 </html>                  
