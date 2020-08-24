@@ -31,6 +31,9 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_discourse_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("peertube", next_action, sync, owner=username)
 
+    def list_taiga_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("taiga", next_action, sync, "nginx", owner=username)
+
     def list_flist_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_single_container_solution("flist", next_action, sync, owner=username)
 
@@ -317,6 +320,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "exposed": 0,
             "publisher": 0,
             "peertube": 0,
+            "discourse": 0,
             "mattermost": 0,
             "threebot": 0,
             "cryptpad": 0,
@@ -324,6 +328,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "wiki": 0,
             "blog": 0,
             "website": 0,
+            "taiga": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

@@ -9,7 +9,7 @@ class BlogDeploy(Publisher):
 
     title = "Deploy Blog"
     welcome_message = "This wizard will help you publish your blog."
-    publishing_chatflow = "blog"  # chatflow used to deploy the solution
+    SOLUTION_TYPE = "blog"  # chatflow used to deploy the solution
 
     @chatflow_step(title="blog Setup")
     def configuration(self):
@@ -27,13 +27,6 @@ class BlogDeploy(Publisher):
             "BRANCH": branch.value,
             "EMAIL": self.user_info()["email"],
         }
-
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
 
 chat = BlogDeploy

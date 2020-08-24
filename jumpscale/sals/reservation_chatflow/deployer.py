@@ -335,17 +335,17 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3bot app")
+        wallet_names.append("3Bot app")
         message = f"""
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
         <h4> Total Amount: </h4> {total_amount} \n
         <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3bot app":
+        if result == "3Bot app":
             qr_code = (
                 f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
             )
@@ -802,6 +802,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         """
         cu = min(cru * 4, (mru - 1) / 4)
         su = hru / 1000 / 1.2 + sru / 100 / 1.2
+        if cu < 0:
+            cu = 0
+        if su < 0:
+            su = 0
         return cu, su
 
     def get_network_view(self, network_name, workloads=None):
@@ -1148,7 +1152,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/asamir.3bot/14443-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",

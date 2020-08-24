@@ -48,31 +48,31 @@ const SOLUTIONS = {
     topic: "network_deploy",
     type: "network",
     name: "Network",
-    icon: "mdi-network",
+    image: "./assets/network.png",
     url: "/solutions/network_deploy",
-    description: "Deploy a network on the grid and to connect your solutions together."
+    description: "Deploy a network on the grid to connect your solutions together."
   },
   threebot: {
     topic: "threebot",
     type: "threebot",
-    name: "Threebot",
+    name: "3Bot",
     image: "./assets/3bot.png",
     url: "/solutions/threebot",
-    description: "Deploy your Threebot on container."
+    description: "Deploy your 3Bot on container."
   },
   expose: {
     topic: "solution_expose",
     type: "exposed",
     name: "Solution Expose",
-    icon: "mdi-publish",
+    image: "./assets/expose.png",
     url: "/solutions/solution_expose",
-    description: ""
+    description: "Access your web application running on the grid using a FQDN"
   },
   flist: {
     topic: "flist_deploy",
     type: "flist",
     name: "Generic Container",
-    icon: "mdi-folder-multiple",
+    image: "./assets/flist.png",
     url: "/solutions/flist_deploy",
     description: "Spawn a container using specific flist provided by the user in the chatflow."
   },
@@ -80,55 +80,59 @@ const SOLUTIONS = {
     topic: "monitoring_deploy",
     type: "monitoring",
     name: "Monitoring",
-    icon: "mdi-monitor-dashboard",
+    image: "./assets/monitoring.png",
     url: "/solutions/monitoring_deploy",
-    description: ""
+    description: "Deploy basic monitoring stack (Prometheus, Grafana, Redis)"
   },
   domain: {
     topic: "domain_delegation",
     type: "delegated_domain",
     name: "Domain Delegation",
-    icon: "mdi-web",
+    image: "./assets/web.png",
     url: "/solutions/domain_delegation",
-    description: ""
+    description: "Delegate your domains to our gateways"
   },
   fourtosixgw: {
     topic: "4to6gw",
     type: "4to6gw",
     name: "4 to 6 Gateway",
-    icon: "mdi-router",
+    image: "./assets/4to6.png",
     url: "/solutions/4to6gw",
-    description: ""
+    description: "4to6 Gateway gives you access to IPv6 networks using a wireguard tunnel"
   },
+}
+
+
+const APPS = {
   wiki: {
     topic: "wiki_deploy",
     type: "wiki",
     name: "Wiki",
-    icon: "mdi-web-box",
+    image: "./assets/doc-flat.svg",
     url: "/solutions/deploy_wiki",
-    description: ""
+    description: "Publish a wiki like https://wiki.threefold.io/"
   },
   website: {
     topic: "website_deploy",
     type: "website",
     name: "Website",
-    icon: "mdi-web-box",
+    image: "./assets/web.png",
     url: "/solutions/deploy_website",
-    description: ""
+    description: "Publish a website like https://www.threefold.io/"
   },
   blog: {
     topic: "blog_deploy",
     type: "blog",
     name: "Blog",
-    icon: "mdi-web-box",
+    image: "./assets/blog.png",
     url: "/solutions/deploy_blog",
-    description: ""
+    description: "Publish a blog like https://blog.threefold.io/"
   },
   mattermost: {
     topic: "mattermost",
     type: "mattermost",
     name: "Mattermost",
-    icon: "mdi-chat-processing-outline",
+    image: "./assets/mattermost.png",
     url: "/solutions/mattermost",
     description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration"
   },
@@ -138,7 +142,7 @@ const SOLUTIONS = {
     name: "Peertube",
     image: "./assets/peertube.png",
     url: "/solutions/peertube",
-    description: "Deploy a peertube instance on the grid."
+    description: "Peertube is a free and open-source, decentralized video platform that uses P2P technology to reduce load on individual servers."
   },
   discourse: {
     topic: "discourse",
@@ -146,7 +150,7 @@ const SOLUTIONS = {
     name: "Discourse",
     image: "./assets/discourse.png",
     url: "/solutions/discourse",
-    description: "Deploy a discourse instance on the grid."
+    description: "Discourse is an open source Internet forum and mailing list management software application."
   },
   cryptpad: {
     topic: "cryptpad_deploy",
@@ -156,15 +160,16 @@ const SOLUTIONS = {
     url: "/solutions/cryptpad_deploy",
     description: "CryptPad is the Zero Knowledge realtime collaborative editor."
   },
-  all: {
-    topic: "all",
-    type: "all_reservations",
-    name: "All Workloads",
-    icon: "mdi-clipboard-list-outline",
-    url: "/solutions/all",
-    description: ""
-  }
+  taiga: {
+    topic: "taiga_deploy",
+    type: "taiga",
+    name: "Taiga",
+    image: "./assets/taiga.png",
+    url: "/solutions/taiga_deploy",
+    description: "Build your 'All in one' Taiga solution"
+  },
 }
+
 
 const LEVELS = {
   50: { value: 50, text: "CRITICAL", color: "#A93226" },

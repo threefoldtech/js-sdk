@@ -67,7 +67,7 @@ threebot server can run using `threebot start --local` starts a server on `8443,
   threebot start --local
   ```
 
-- This will take you to configure your identity, It will ask you about your the network you want to use, 3bot name, email, and words.
+- This will take you to configure your identity, It will ask you about your the network you want to use, 3Bot name, email, and words.
 
 - Then it will start threebot server you will see some thing like that
 
@@ -177,6 +177,7 @@ On Linux system, you can just use the `wg-quick` command directly with the file 
 ```bash
 wg-quick up my_first_network.conf
 ```
+![Step6](images/network7.png)
 
 ![Step6](images/network7.png)
 
@@ -205,6 +206,12 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
     ![network](images/ubuntu5.png)
 
+4. Then select your pool you want for your container
+    ![pool](images/ubuntu4.png)
+    
+5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
+    ![network](images/ubuntu5.png)
+    
 5. The next step includes the possibility to stream the container's logs to a redis channel. In our simple deployment we will not need it so you can simply choose No
     ![container_logs](images/ubuntu6.png)
 

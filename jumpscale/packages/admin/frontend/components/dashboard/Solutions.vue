@@ -11,7 +11,7 @@
     data () {
       return {
         loading: false,
-        solutions: Object.values(SOLUTIONS)
+        solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)]
       }
     }
   }

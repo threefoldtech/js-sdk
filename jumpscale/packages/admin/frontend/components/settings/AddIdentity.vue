@@ -3,7 +3,7 @@
     <template #default>
       <v-form>
         <v-text-field v-model="form.instance_name" label="Identity instance name" dense></v-text-field>
-        <v-text-field v-model="form.tname" label="3bot name" dense></v-text-field>
+        <v-text-field v-model="form.tname" label="3Bot name" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
         <v-text-field v-model="form.words" label="Words" dense></v-text-field>
         <v-select v-model="form.explorer_type" label="Explorer type" :items="explorer_labels" dense></v-select>

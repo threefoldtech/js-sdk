@@ -34,7 +34,6 @@ const logs = httpVueLoader('./components/logs/Logs.vue')
 const alerts = httpVueLoader('./components/alerts/Alerts.vue')
 const wikis = httpVueLoader('./components/wikis/Wikis.vue')
 const wiki = httpVueLoader('./components/wikis/Wiki.vue')
-const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const packages = httpVueLoader('./components/packages/Packages.vue')
 const wallets = httpVueLoader('./components/wallets/Wallets.vue')
 const capacity = httpVueLoader('./components/external/Capacity.vue')
@@ -44,7 +43,9 @@ const notebooks = httpVueLoader('./components/external/Notebooks.vue')
 const settings = httpVueLoader('./components/settings/Settings.vue')
 const pools = httpVueLoader('./components/pools/Pools.vue')
 const workloads = httpVueLoader('./components/workloads/Workloads.vue')
+const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
+const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
 const backup = httpVueLoader('./components/backup/Backup.vue')
 
 
@@ -86,7 +87,8 @@ const router = new VueRouter({
     { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
     { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
     { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
-    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: { icon: "mdi-tune" } },
+    { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
+    { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
   ]
 })
 
