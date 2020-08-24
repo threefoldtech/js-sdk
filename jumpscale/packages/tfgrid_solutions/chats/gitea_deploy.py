@@ -4,6 +4,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.loader import j
 import random
 
+
 class GiteaDeploy(GedisChatBot):
     """
     gitea container deploy
@@ -69,17 +70,21 @@ class GiteaDeploy(GedisChatBot):
     @chatflow_step(title="Database credentials & Repository name")
     def gitea_credentials(self):
         form = self.new_form()
-        database_name = form.string_ask("Please add the database name of your gitea", default="postgres", required=True)
+        database_name = form.string_ask(
+            "Please add the database name of your gitea", default="postgres", required=True,
+        )
         database_user = form.string_ask(
             "Please add the username for your gitea database. Make sure not to lose it",
             default="postgres",
             required=True,
         )
         database_password = form.string_ask(
-            "Please add the secret for your gitea database. Make sure not to lose it", default="postgres", required=True
+            "Please add the secret for your gitea database. Make sure not to lose it",
+            default="postgres",
+            required=True,
         )
         repository_name = form.string_ask(
-            "Please add the name of repository in your gitea", default="myrepo", required=True
+            "Please add the name of repository in your gitea", default="myrepo", required=True,
         )
         form.ask()
         self.database_name = database_name.value
@@ -124,7 +129,7 @@ class GiteaDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
         )
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
@@ -181,12 +186,12 @@ class GiteaDeploy(GedisChatBot):
         self.solution_metadata.update(metadata)
         # reserve subdomain
         subdomain_wid = deployer.create_subdomain(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                subdomain=self.domain,
-                addresses=self.addresses,
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            subdomain=self.domain,
+            addresses=self.addresses,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
@@ -247,6 +252,7 @@ class GiteaDeploy(GedisChatBot):
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
         self.container_url_https = f"https://{self.domain}"
+
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
         res = f"""\
@@ -254,7 +260,7 @@ class GiteaDeploy(GedisChatBot):
 \n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
 \n<br />\n
-open gitea from browser at {self.container_url_https} 
+open gitea from browser at {self.container_url_https}
                 """
         self.md_show(res, md=True)
 

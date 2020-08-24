@@ -12,7 +12,6 @@ BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
 
 
-
 class Backup(BaseActor):
     def __init__(self):
         super().__init__()
