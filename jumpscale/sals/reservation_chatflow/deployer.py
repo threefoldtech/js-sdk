@@ -413,8 +413,8 @@ class ChatflowDeployer:
         return available_pools
 
     def check_pool_capacity(self, pool, cu=None, su=None):
-        available_su = pool.sus - pool.active_su
-        available_cu = pool.cus - pool.active_cu
+        available_su = pool.sus
+        available_cu = pool.cus
         if pool.empty_at < 0:
             return False, 0, 0
         if cu and available_cu < cu:
