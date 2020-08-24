@@ -275,7 +275,11 @@ class ChatflowDeployer:
                 continue
             resources = available_farms[farm]
             farm_obj = farms_by_name[farm]
-            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
+            location_list = [
+                farm_obj.location.continent,
+                farm_obj.location.country,
+                farm_obj.location.city,
+            ]
             location = "-".join([info for info in location_list if info])
             if location:
                 location = f" location: {location}"
