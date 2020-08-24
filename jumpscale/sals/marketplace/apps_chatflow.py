@@ -130,7 +130,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def solution_name(self):
         valid = False
         while not valid:
-            self.solution_name = self.string_ask("Please enter a name for your solution", required=True)
+            self.solution_name = self.string_ask("Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )", required=True)
             method = getattr(solutions, f"list_{self.SOLUTION_TYPE}_solutions")
             solutions_list = method(self.solution_metadata["owner"], sync=False)
             valid = True
