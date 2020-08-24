@@ -97,7 +97,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
+            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
         volume_config[vol_mount_point] = vol_id
 
         # Create container
