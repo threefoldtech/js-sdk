@@ -32,8 +32,11 @@ module.exports = new Promise(async (resolve, reject) => {
                     { text: "Uptime", value: "uptime" },
                     { text: "Version", value: "version" },
                     { text: "Status", value: "status", align: "center" },
-                    { text: "Network Health", value: "healthy", align: "center" }
-                ]
+                    { text: "Network Health", value: "healthy", align: "center" },
+                    { text: "Actions", value: "action", sortable: false }
+                ],
+                openDeleteModal: false,
+                deleteNodeFarmAlert: undefined,
             }
         },
         computed: {
@@ -60,32 +63,32 @@ module.exports = new Promise(async (resolve, reject) => {
                     if (node.ifaces) {
                         const ifaces = node.ifaces.filter(iface => allowedIfaces.includes(iface.name))
                         if (ifaces.length === 3) {
-                          ifaces.map(iface => {
-                            iface.addrs.map(addr => {
-                                switch (iface.name) {
-                                  case "npub6": {
-                                    const ip6 = new window.Address6(addr)
-                                    if (ip6.isValid()) {
-                                        if (ip6.getType() === Global) {
-                                            npub6Value = ip6.correctForm()
-                                            npub6Healthy = true
-                                        } else {
-                                            console.log(`node with ${node.node_id} has ndmz private ip6`)
-                                            const correctForm = ip6.correctForm()
-                                            npub6Configs.push(correctForm)
+                            ifaces.map(iface => {
+                                iface.addrs.map(addr => {
+                                    switch (iface.name) {
+                                        case "npub6": {
+                                            const ip6 = new window.Address6(addr)
+                                            if (ip6.isValid()) {
+                                                if (ip6.getType() === Global) {
+                                                    npub6Value = ip6.correctForm()
+                                                    npub6Healthy = true
+                                                } else {
+                                                    console.log(`node with ${node.node_id} has ndmz private ip6`)
+                                                    const correctForm = ip6.correctForm()
+                                                    npub6Configs.push(correctForm)
+                                                }
+                                            }
+                                        }
+                                        case "npub4": {
+                                            const ip4 = new window.Address4(addr)
+                                            if (ip4.isValid()) {
+                                                npub4Value = ip4.correctForm()
+                                                npub4Healthy = true
+                                            }
                                         }
                                     }
-                                  }
-                                  case "npub4": {
-                                    const ip4 = new window.Address4(addr)
-                                    if (ip4.isValid()) {
-                                        npub4Value = ip4.correctForm()
-                                        npub4Healthy = true
-                                    }
-                                  }
-                                }
+                                })
                             })
-                          })
                         }
                     }
 
@@ -141,6 +144,10 @@ module.exports = new Promise(async (resolve, reject) => {
             },
         },
         methods: {
+            ...vuex.mapActions("farmmanagement", [
+                "deleteNodeFarm",
+                "getNodes"
+            ]),
             getStatus(node) {
                 const { updated } = node;
                 const startTime = moment();
@@ -163,6 +170,39 @@ module.exports = new Promise(async (resolve, reject) => {
                 if (index > -1) this.expanded.splice(index, 1);
                 else this.expanded.push(node);
             },
+            deleteNode(node) {
+                console.log(node.id)
+                this.deleteNodeFarm(node)
+                    .then(response => {
+                        if (response.status == 200) {
+                            this.deleteNodeFarmAlert = {
+                                message: "node of farm deleted",
+                                type: "success",
+                            }
+                        } else {
+                            this.deleteNodeFarmAlert = {
+                                message: response.data['error'],
+                                type: "error",
+                            }
+                        }
+                        setTimeout(() => {
+                            this.deleteNodeFarmAlert = undefined
+                            this.openDeleteModal = false
+                            this.getNodes(node.farm.id)
+                        }, 2000)
+                    }).catch(err => {
+                        var msg = "server error"
+                        if (err.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                        }
+                        this.deleteNodeFarmAlert = {
+                            message: msg,
+                            type: "error",
+                        }
+                    })
+            }
         }
     });
 });
