@@ -474,7 +474,7 @@ class ChatflowDeployer:
         return True, available_cu, available_su
 
     def ask_name(self, bot):
-        name = bot.string_ask("Please enter a name for you workload", required=True, field="name")
+        name = bot.string_ask("Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )", required=True, field="name")
         return name
 
     def ask_email(self, bot):
