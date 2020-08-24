@@ -60,7 +60,7 @@
     - In `overview` step, you define your app metadata to be confirmed by the user
         - For example:
             ```python
-            @chatflow_step(title="Confirmation")
+            @chatflow_step(title="Deployment Information")
             def overview(self):
                 self.metadata = {
                     "Solution Name": self.solution_name,

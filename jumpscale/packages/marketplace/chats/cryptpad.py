@@ -38,7 +38,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information")
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,

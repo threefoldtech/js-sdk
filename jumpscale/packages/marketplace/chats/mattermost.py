@@ -37,7 +37,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         self.vol_size = int(volume_size.value)
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information")
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
