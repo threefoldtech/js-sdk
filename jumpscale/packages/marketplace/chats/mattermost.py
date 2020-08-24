@@ -46,8 +46,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             "Pool": self.pool_info.reservation_id,
             "CPU": self.query["cru"],
             "Memory": self.query["mru"],
-            "Disk Size": (self.query["sru"] - self.vol_size) * 1024,
+            "Disk Size": self.query["sru"],
             "IP Address": self.ip_address,
+            "Domain Name": self.domain,
         }
         self.md_show_confirm(self.metadata)
 
