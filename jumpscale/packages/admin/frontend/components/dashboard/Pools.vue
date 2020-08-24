@@ -55,7 +55,7 @@
               } else if (pool_expiration < alert_time && pool_expiration > today) {
                 pool.class = "red--text";
               } else {
-                pool.class = "";
+                //pool.class = "";
               }
             } else {
               pool.empty_at = "-";

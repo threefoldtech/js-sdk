@@ -38,7 +38,7 @@
     </v-app-bar>
 
     <v-navigation-drawer
-      color="primary"
+      color="navbar"
       class="elevation-3"
       :mini-variant="mini"
       app
@@ -136,9 +136,31 @@ module.exports =  {
     },
     setTimeLocal () {
       this.timenow = new Date().toLocaleString()
-    }
+    },
+    getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      },
+      checkDarkMode(){
+        let cookie = this.getCookie("darkTheme")
+        if (cookie == "")
+          this.$vuetify.theme.dark = false
+        else
+          this.$vuetify.theme.dark = cookie == "1" ? true : false;
+      }
   },
   mounted() {
+    this.checkDarkMode()
     this.getIdentity();
     this.getCurrentUser();
     this.setTimeLocal()

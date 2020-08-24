@@ -8,14 +8,26 @@ const vuetify = new Vuetify({
     iconfont: 'mdi'
   },
   theme: {
+    // dark: true,
     themes: {
-      light: {
+      dark: {
+        // primary: '#e00',
+        // secondary: '#0e0',
+        // accent: '#00e',
+        // error: '#e0e',
+        // info: '#ee0',
+        // success: '#0ee',
+        // warning: '#758a2b',
+        navbar: '#363636'
+      },
+      light:{
         primary: '#1B4F72',
+        navbar: '#1B4F72',
         secondary: '#CCCBCA',
         accent: '#59B88C',
         success: "#17A589",
         error: '#EC7063',
-      },
+      }
     },
   }
 })

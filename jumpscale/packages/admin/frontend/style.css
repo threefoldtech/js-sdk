@@ -1,9 +1,13 @@
-.v-main__wrap {
+.theme--light .v-main__wrap {
   background-color: #FBFCFC !important;
 }
 
 .theme--light.v-tabs-items {
   background-color: #FBFCFC !important;
+}
+
+.theme--dark tbody {
+  color: #fff ;
 }
 
 .CodeMirror {
