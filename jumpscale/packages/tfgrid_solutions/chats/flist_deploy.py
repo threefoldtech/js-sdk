@@ -244,7 +244,10 @@ class FlistDeploy(GedisChatBot):
         if self.interactive:
             res = f"""\
 # Container has been deployed successfully: your reservation id is: {self.resv_id}
-Open your browser at [http://{self.ip_address}:7681](http://{self.ip_address}:7681)
+Open your browser at [http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash](http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash)
+# Then open your browser at [http://{self.ip_address}:7681](http://{self.ip_address}:7681) and press on job id to go into shell bash .
+# This web using [COREX](https://github.com/threefoldtech/corex)
+# In shell inside container using [Bash](https://devdocs.io/bash/)
                     """
             self.md_show(res, md=True)
         else:
