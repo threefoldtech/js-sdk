@@ -15,7 +15,11 @@ class FarmManagemenet(BaseActor):
         self._explorer.farms.update(farm)
 
     @actor_method
-    def mark_node_free(self, node_id, free) -> bool:
+    def delete_node_farm(self, farm_id, node_id):
+        self._explorer.farms.delete(farm_id, node_id)
+
+    @actor_method
+    def mark_node_free(self, node_id, free):
         return self._explorer.nodes.configure_free_to_use(node_id=node_id, free=free)
 
 

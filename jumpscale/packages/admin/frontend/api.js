@@ -304,7 +304,12 @@ const apiClient = {
       return axios({
         url: `${baseURL}/health/get_running_processes`
       })
-    }
+    },
+    getHealthChecks() {
+      return axios({
+        url: `${baseURL}/health/get_health_checks`
+      })
+    },
   },
   mrktbackup: {
     inited() {

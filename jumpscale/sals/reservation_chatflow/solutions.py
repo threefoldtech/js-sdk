@@ -71,7 +71,7 @@ class ChatflowSolutions:
     def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         container_workloads = self._list_container_workloads("minio", next_action)
@@ -146,7 +146,7 @@ class ChatflowSolutions:
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
-        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
         container_workloads = self._list_container_workloads("monitoring", next_action)
@@ -381,16 +381,19 @@ class ChatflowSolutions:
         chatflow,
         next_action=NextAction.DEPLOY,
         name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+        metadata_filters=None,
     ):
         """
         Args:
             chatflow: chatflow value set in metadata
             next_action: workload next action
             name_identifier: function with one parameter metadata and returns the solution name
+            metadata_filters: list of methods with one parameter metadata and returns True/False. if return is False the workload will be filtered
 
         Returns:
             {"name": [container_dict]}  # container_dict keys: flist, ipv4, ipv6, capacity, wid, vol_ids, node, pool
         """
+        metadata_filters = metadata_filters or []
         result = {}
         for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
             WorkloadType.Container
@@ -399,6 +402,10 @@ class ChatflowSolutions:
                 metadata = self._validate_workload_metadata(chatflow, workload)
                 if not metadata:
                     continue
+
+                for meta_filter in metadata_filters:
+                    if not meta_filter(metadata):
+                        continue
 
                 name = name_identitfier(metadata)
                 container_dict = {
@@ -411,6 +418,7 @@ class ChatflowSolutions:
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
                     "capacity": self.get_workload_capacity(workload),
+                    "owner": metadata.get("owner"),
                 }
                 if workload.volumes:
                     for vol in workload.volumes:
@@ -426,16 +434,19 @@ class ChatflowSolutions:
         chatflow,
         next_action=NextAction.DEPLOY,
         name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+        metadata_filters=None,
     ):
         """
         Args:
             chatflow: chatflow value set in metadata
             next_action: workload next action
             name_identifier: function with one parameter metadata and returns the solution name
+            metadata_filters: list of methods with one parameter metadata and returns True/False. if return is False the workload will be filtered
 
         Returns:
             {"name": [subdomain_dict]}  # subdomain_dict keys: wid, domain, ips
         """
+        metadata_filters = metadata_filters or []
         result = {}
         for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
             WorkloadType.Subdomain
@@ -445,8 +456,17 @@ class ChatflowSolutions:
                 if not metadata:
                     continue
 
+                for meta_filter in metadata_filters:
+                    if not meta_filter(metadata):
+                        continue
+
                 name = name_identitfier(metadata)
-                subdomain_dict = {"wid": workload.id, "domain": workload.domain, "ips": workload.ips}
+                subdomain_dict = {
+                    "wid": workload.id,
+                    "domain": workload.domain,
+                    "ips": workload.ips,
+                    "owner": metadata.get("owner"),
+                }
                 if name not in result:
                     result[name] = [subdomain_dict]
                 else:
@@ -458,17 +478,20 @@ class ChatflowSolutions:
         chatflow,
         next_action=NextAction.DEPLOY,
         name_identitfier=lambda metadata: metadata.get("name", metadata["form_info"].get("Solution name")),
+        metadata_filters=None,
     ):
         """
         Args:
             chatflow: chatflow value set in metadata
             next_action: workload next action
             name_identifier: function with one parameter metadata and returns the solution name
+            metadata_filters: list of methods with one parameter metadata and returns True/False. if return is False the workload will be filtered
 
         Returns:
             {"name": [proxy_dict]}  # subdomain_dict keys: wid, domain
         """
         result = {}
+        metadata_filters = metadata_filters or []
         for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
             WorkloadType.Reverse_proxy
         ].values():
@@ -477,15 +500,23 @@ class ChatflowSolutions:
                 if not metadata:
                     continue
 
+                for meta_filter in metadata_filters:
+                    if not meta_filter(metadata):
+                        continue
+
                 name = name_identitfier(metadata)
-                proxy_dict = {"wid": workload.id, "domain": workload.domain}
+                proxy_dict = {
+                    "wid": workload.id,
+                    "domain": workload.domain,
+                    "owner": metadata.get("owner"),
+                }
                 if name not in result:
                     result[name] = [proxy_dict]
                 else:
                     result[name].append(proxy_dict)
         return result
 
-    def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc"):
+    def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc", owner=None):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
@@ -495,9 +526,15 @@ class ChatflowSolutions:
             containers_len = 1
         else:
             containers_len = 2
-        container_workloads = self._list_container_workloads(chatflow, next_action)
-        subdomain_workloads = self._list_subdomain_workloads(chatflow, next_action)
-        proxy_workloads = self._list_proxy_workloads(chatflow, next_action)
+        if owner:
+            meta_filter = lambda metadata: False if metadata.get("owner") != owner else True
+            container_workloads = self._list_container_workloads(chatflow, next_action, metadata_filters=[meta_filter])
+            subdomain_workloads = self._list_subdomain_workloads(chatflow, next_action, metadata_filters=[meta_filter])
+            proxy_workloads = self._list_proxy_workloads(chatflow, next_action, metadata_filters=[meta_filter])
+        else:
+            container_workloads = self._list_container_workloads(chatflow, next_action)
+            subdomain_workloads = self._list_subdomain_workloads(chatflow, next_action)
+            proxy_workloads = self._list_proxy_workloads(chatflow, next_action)
         for name in container_workloads:
             subdomain_dicts = subdomain_workloads.get(name)
             proxy_dicts = proxy_workloads.get(name)
@@ -528,13 +565,17 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
-    def _list_single_container_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True):
+    def _list_single_container_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, owner=None):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        container_workloads = self._list_container_workloads(chatflow, next_action)
+        if owner:
+            meta_filter = lambda metadata: False if metadata.get("owner") != owner else True
+            container_workloads = self._list_container_workloads(chatflow, next_action, metadata_filters=[meta_filter])
+        else:
+            container_workloads = self._list_container_workloads(chatflow, next_action)
         for name in container_workloads:
             c_dict = container_workloads[name][0]
             result.append(

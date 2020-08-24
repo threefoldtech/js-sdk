@@ -199,3 +199,9 @@ const VOLUMES_TYPE = {
   0: "HDD",
   1: "SSD"
 }
+
+const Workload_STATE = {
+  0: "Error",
+  1: "Ok",
+  2: "Deleted",
+}

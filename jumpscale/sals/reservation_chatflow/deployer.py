@@ -274,8 +274,13 @@ class ChatflowDeployer:
             if currencies[0] not in farm_assets:
                 continue
             resources = available_farms[farm]
+            farm_obj = farms_by_name[farm]
+            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
+            location = "-".join([info for info in location_list if info])
+            if location:
+                location = f" location: {location}"
             farm_messages[
-                f"{farm} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]}" f" mru {resources[3]}"
+                f"{farm}{location} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
@@ -334,7 +339,7 @@ class ChatflowDeployer:
         message = f"""
         Billing details:
         <h4> Wallet address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {escrow_asset} \n
+        <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
         <h4> Total Amount: </h4> {total_amount} \n
         <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
         <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
@@ -346,11 +351,11 @@ class ChatflowDeployer:
             )
             msg_text = f"""
             <h3> Please make your payment </h3>
-            Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
+            Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
-            <h4> Wallet address: </h4>  {escrow_address} \n
-            <h4> Currency: </h4>  {escrow_asset} \n
-            <h4> Reservation id: </h4>  p-{resv_id} \n
+            <h4> Wallet Address: </h4>  {escrow_address} \n
+            <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
+            <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
             <h4> Total Amount: </h4> {total_amount} \n
             """
             bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
