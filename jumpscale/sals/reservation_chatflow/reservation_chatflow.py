@@ -1376,6 +1376,9 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         """
+        if j.config.get("OVER_PROVISIONING"):
+            cru = 0
+            mru = 0
         nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
