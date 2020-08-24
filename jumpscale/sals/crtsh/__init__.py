@@ -25,6 +25,18 @@ def fetch_domain_certs(domain):
 
 
 def count_domain_certs_since(domain, days=7):
+    """check if a domain has reached the rate limit for issues certs
+
+    Args:
+        domain (str): parent domain
+        days (int): number of days to be checked since
+
+    Returns:
+        int: number of certs issued by letsencrypt
+
+    Raises:
+        requests.exceptions.HTTPError
+    """
     all_certs = fetch_domain_certs(domain)
     count = 0
     now = jstime.utcnow()
@@ -46,6 +58,7 @@ def has_reached_limit(domain, limit=RATE_LIMIT):
 
     Args:
         domain (str): parent domain
+        limit (int): limit to be checked against. defaults to 50
 
     Returns:
         bool: True if the limit has been reached
@@ -54,7 +67,7 @@ def has_reached_limit(domain, limit=RATE_LIMIT):
         requests.exceptions.HTTPError
     """
     count = count_domain_certs_since(domain)
-    return count >= RATE_LIMIT
+    return count >= limit
 
 
 def has_certificate(domain):
