@@ -395,9 +395,8 @@ class ChatflowSolutions:
         """
         metadata_filters = metadata_filters or []
         result = {}
-        for container_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Container
-        ].values():
+        values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container].values()
+        for container_workloads in values:
             for workload in container_workloads:
                 metadata = self._validate_workload_metadata(chatflow, workload)
                 if not metadata:
@@ -451,9 +450,8 @@ class ChatflowSolutions:
         """
         metadata_filters = metadata_filters or []
         result = {}
-        for subdomain_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Subdomain
-        ].values():
+        values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Subdomain].values()
+        for subdomain_workloads in values:
             for workload in subdomain_workloads:
                 metadata = self._validate_workload_metadata(chatflow, workload)
                 if not metadata:
@@ -499,9 +497,8 @@ class ChatflowSolutions:
         """
         result = {}
         metadata_filters = metadata_filters or []
-        for proxy_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
-            WorkloadType.Reverse_proxy
-        ].values():
+        values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy].values()
+        for proxy_workloads in values:
             for workload in proxy_workloads:
                 metadata = self._validate_workload_metadata(chatflow, workload)
                 if not metadata:
