@@ -402,10 +402,13 @@ class ChatflowSolutions:
                 metadata = self._validate_workload_metadata(chatflow, workload)
                 if not metadata:
                     continue
-
+                valid = True
                 for meta_filter in metadata_filters:
                     if not meta_filter(metadata):
-                        continue
+                        valid = False
+                        break
+                if not valid:
+                    continue
 
                 name = name_identitfier(metadata)
                 container_dict = {
@@ -456,9 +459,13 @@ class ChatflowSolutions:
                 if not metadata:
                     continue
 
+                valid = True
                 for meta_filter in metadata_filters:
                     if not meta_filter(metadata):
-                        continue
+                        valid = False
+                        break
+                if not valid:
+                    continue
 
                 name = name_identitfier(metadata)
                 subdomain_dict = {
@@ -500,9 +507,13 @@ class ChatflowSolutions:
                 if not metadata:
                     continue
 
+                valid = True
                 for meta_filter in metadata_filters:
                     if not meta_filter(metadata):
-                        continue
+                        valid = False
+                        break
+                if not valid:
+                    continue
 
                 name = name_identitfier(metadata)
                 proxy_dict = {
@@ -517,6 +528,11 @@ class ChatflowSolutions:
         return result
 
     def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc", owner=None):
+        def meta_filter(metadata):
+            if metadata.get("owner") != owner:
+                return False
+            return True
+
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
@@ -527,7 +543,6 @@ class ChatflowSolutions:
         else:
             containers_len = 2
         if owner:
-            meta_filter = lambda metadata: False if metadata.get("owner") != owner else True
             container_workloads = self._list_container_workloads(chatflow, next_action, metadata_filters=[meta_filter])
             subdomain_workloads = self._list_subdomain_workloads(chatflow, next_action, metadata_filters=[meta_filter])
             proxy_workloads = self._list_proxy_workloads(chatflow, next_action, metadata_filters=[meta_filter])
