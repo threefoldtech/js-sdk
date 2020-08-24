@@ -208,7 +208,6 @@ class Website(Base):
         needed_dirs = ("body", "client-body", "fastcgi", "proxy", "scgi", "uwsgi")
         for d in needed_dirs:
             j.sals.fs.mkdir(j.sals.fs.join_paths(self.cfg_dir, d))
-        
         for location in self.get_locations():
             location.configure()
 

@@ -1,8 +1,6 @@
-import math
-
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
+import uuid
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class GiteaDeploy(GedisChatBot):
@@ -12,58 +10,59 @@ class GiteaDeploy(GedisChatBot):
 
     steps = [
         "gitea_start",
+        "gitea_name",
+        "select_pool",
         "gitea_network",
-        "gitea_solution_name",
         "public_key_get",
-        "expiration_time",
         "gitea_credentials",
         "container_logs",
         "container_node_id",
-        "container_farm",
         "container_ip",
         "overview",
-        "container_pay",
+        "reservation",
         "container_acess",
     ]
     title = "Gitea"
 
     @chatflow_step()
     def gitea_start(self):
+        self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.HUB_URL = "https://hub.grid.tf/tf-official-apps/gitea-latest.flist"
-        user_info = self.user_info()
-        self.user_form_data["chatflow"] = "gitea"
-        j.sals.reservation_chatflow.validate_user(user_info)
         self.md_show("# This wizard wil help you deploy an gitea container", md=True)
+        self.query = {"mru": 1, "cru": 2, "sru": 6}
+        self.solution_metadata = {}
+
+    @chatflow_step(title="Solution name")
+    def gitea_name(self):
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            monitoring_solutions = solutions.list_gitea_solutions(sync=False)
+            valid = True
+            for sol in monitoring_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
+
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        cu, su = deployer.calculate_capacity_units(**self.query)
+        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **self.query)
 
     @chatflow_step(title="Network")
     def gitea_network(self):
-        self.network = j.sals.reservation_chatflow.select_network(self, j.core.identity.me.tid)
-        self.currency = self.network.currency
-
-    @chatflow_step(title="Solution name")
-    def gitea_solution_name(self):
-        self.user_form_data["Solution name"] = self.string_ask(
-            "Please enter a name for your gitea solution", required=True, field="name"
-        )
+        self.network_view = deployer.select_network(self)
 
     @chatflow_step(title="Access keys")
     def public_key_get(self):
-        self.user_form_data["Public key"] = self.upload_file(
+        self.public_key = self.upload_file(
             """Please add your public ssh key, this will allow you to access the deployed container using ssh.
                     Just upload the file with the key""",
             required=True,
         ).split("\n")[0]
-
-    @chatflow_step(title="Expiration time")
-    def expiration_time(self):
-        self.expiration = self.datetime_picker(
-            "Please enter solution expiration time.",
-            required=True,
-            min_time=[3600, "Date/time should be at least 1 hour from now"],
-            default=j.data.time.get().timestamp + 3900,
-        )
-        self.user_form_data["Solution expiration"] = j.data.time.get(self.expiration).humanize()
 
     @chatflow_step(title="Database credentials & Repository name")
     def gitea_credentials(self):
@@ -81,10 +80,10 @@ class GiteaDeploy(GedisChatBot):
             "Please add the name of repository in your gitea", default="myrepo", required=True
         )
         form.ask()
-        self.user_form_data["Database Name"] = database_name.value
-        self.user_form_data["Database User"] = database_user.value
-        self.user_form_data["Database Password"] = database_password.value
-        self.user_form_data["Repository"] = repository_name.value
+        self.database_name = database_name.value
+        self.database_user = database_user.value
+        self.database_password = database_password.value
+        self.repository_name = repository_name.value
 
     @chatflow_step(title="Container logs")
     def container_logs(self):
@@ -94,135 +93,100 @@ class GiteaDeploy(GedisChatBot):
             default="NO",
         )
         if self.container_logs_option == "YES":
-            form = self.new_form()
-            self.channel_type = form.string_ask("Please add the channel type", default="redis", required=True)
-            self.channel_host = form.string_ask(
-                "Please add the IP address where the logs will be output to", required=True
-            )
-            self.channel_port = form.int_ask(
-                "Please add the port available where the logs will be output to", required=True
-            )
-            self.channel_name = form.string_ask(
-                "Please add the channel name to be used. The channels will be in the form NAME-stdout and NAME-stderr",
-                default=self.user_form_data["Solution name"],
-                required=True,
-            )
-            form.ask()
-            self.user_form_data["Logs Channel type"] = self.channel_type.value
-            self.user_form_data["Logs Channel host"] = self.channel_host.value
-            self.user_form_data["Logs Channel port"] = self.channel_port.value
-            self.user_form_data["Logs Channel name"] = self.channel_name.value
+            self.log_config = deployer.ask_container_logs(self, self.solution_name)
+        else:
+            self.log_config = {}
 
     @chatflow_step(title="Container node id")
     def container_node_id(self):
-        self.query = {"mru": math.ceil(1024 / 1024), "cru": 2, "sru": 6}
-        # create new reservation
-        self.reservation = j.sals.zos.reservation_create()
-        self.nodeid = self.string_ask(
-            "Please enter the node id you would like to deploy on if left empty a node will be chosen for you"
-        )
-        while self.nodeid:
-            try:
-                self.node_selected = j.sals.reservation_chatflow.validate_node(self.nodeid, self.query, self.currency)
-                break
-            except (j.exceptions.Value, j.exceptions.NotFound) as e:
-                message = "<br> Please enter a different node id to deploy on or leave it empty"
-                self.nodeid = self.string_ask(str(e) + message, html=True, retry=True)
-        self.query["currency"] = self.currency
-
-    @chatflow_step(title="Container farm")
-    def container_farm(self):
-        if not self.nodeid:
-            farms = j.sals.reservation_chatflow.get_farm_names(1, self, **self.query)
-            self.node_selected = j.sals.reservation_chatflow.get_nodes(1, farm_names=farms, **self.query)[0]
+        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **self.query)
+        if not self.selected_node:
+            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="Container IP")
     def container_ip(self):
-        self.network_copy = self.network.copy(j.core.identity.me.tid)
-        self.network_copy.add_node(self.node_selected)
-        self.ip_address = self.network_copy.ask_ip_from_node(
-            self.node_selected, "Please choose IP Address for your solution"
+        self.network_view_copy = self.network_view.copy()
+        result = deployer.add_network_node(
+            self.network_view.name,
+            self.selected_node,
+            self.pool_id,
+            self.network_view_copy,
+            bot=self,
+            owner=self.solution_metadata.get("owner"),
         )
-        self.user_form_data["IP Address"] = self.ip_address
+        if result:
+            for wid in result["ids"]:
+                success = deployer.wait_workload(wid, self)
+                if not success:
+                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+            self.network_view_copy = self.network_view_copy.copy()
+        free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
+        self.ip_address = self.drop_down_choice(
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
+        )
 
     @chatflow_step(title="Confirmation")
     def overview(self):
-        self.md_show_confirm(self.user_form_data)
+        self.metadata = {
+            "Solution Name": self.solution_name,
+            "Network": self.network_view.name,
+            "Node ID": self.selected_node.node_id,
+            "Pool": self.pool_id,
+            "IP Address": self.ip_address,
+        }
+        self.md_show_confirm(self.metadata)
 
-    @chatflow_step(title="Payment", disable_previous=True)
-    def container_pay(self):
-        self.network = self.network_copy
+    @chatflow_step(title="Reservation")
+    def reservation(self):
         var_dict = {
-            "pub_key": self.user_form_data["Public key"],
-            "POSTGRES_DB": self.user_form_data["Database Name"],
+            "pub_key": self.public_key,
+            "POSTGRES_DB": self.database_name,
             "DB_TYPE": "postgres",
             "DB_HOST": "localhost:5432",
-            "POSTGRES_USER": self.user_form_data["Database User"],
-            "APP_NAME": self.user_form_data["Repository"],
+            "POSTGRES_USER": self.database_user,
+            "APP_NAME": self.repository_name,
             "ROOT_URL": f"https://{self.ip_address}",
-            "HTTP_PORT": "3000",
-            "DOMAIN": f"{self.ip_address}"
+            "HTTP_PORT": 3000,
+            "DOMAIN": f"{self.ip_address}",
         }
-        database_password_encrypted = j.sals.zos.container.encrypt_secret(
-            self.node_selected.node_id, self.user_form_data["Database Password"]
-        )
-        secret_env = {"POSTGRES_PASSWORD": database_password_encrypted}
-        self.network.update(j.core.identity.me.tid, currency=self.currency, bot=self)
-        storage_url = "zdb://hub.grid.tf:9900"
-        entry_point = "/start_gitea.sh"
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
+        }
+        self.solution_metadata.update(metadata)
 
-        # create container
-        cont = j.sals.zos.container.create(
-            reservation=self.reservation,
-            node_id=self.node_selected.node_id,
-            network_name=self.network.name,
+        self.resv_id = deployer.deploy_container(
+            pool_id=self.pool_id,
+            node_id=self.selected_node.node_id,
+            network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.HUB_URL,
-            storage_url=storage_url,
+            cpu=2,
+            memory=1024,
             env=var_dict,
             interactive=False,
-            entrypoint=entry_point,
-            cpu=2,
+            entrypoint="/start_gitea.sh",
+            log_config=self.log_config,
             public_ipv6=True,
-            memory=1024,
-            secret_env=secret_env,
+            disk_size=6 * 1024,
+            secret_env={"POSTGRES_PASSWORD": self.database_password},
+            **self.solution_metadata,
+            solution_uuid=self.solution_id,
         )
-        if self.container_logs_option == "YES":
-            j.sals.zos.container.add_logs(
-                cont,
-                channel_type=self.user_form_data["Logs Channel type"],
-                channel_host=self.user_form_data["Logs Channel host"],
-                channel_port=self.user_form_data["Logs Channel port"],
-                channel_name=self.user_form_data["Logs Channel name"],
-            )
-        metadata = dict()
-        metadata["chatflow"] = self.user_form_data["chatflow"]
-        metadata["Solution name"] = self.user_form_data["Solution name"]
-        metadata["Solution expiration"] = self.user_form_data["Solution expiration"]
-        metadata["Database name"] = self.user_form_data["Database Name"]
-        metadata["Database user"] = self.user_form_data["Database User"]
-        metadata["Database password"] = self.user_form_data["Database Password"]
-        metadata["Repository"] = self.user_form_data["Repository"]
+        success = deployer.wait_workload(self.resv_id, self)
+        if not success:
+            solutions.cancel_solution([self.resv_id])
+            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-        res = j.sals.reservation_chatflow.get_solution_metadata(
-            self.user_form_data["Solution name"], SolutionType.Gitea, metadata
-        )
-        self.reservation = j.sals.reservation_chatflow.add_reservation_metadata(self.reservation, res)
-        self.resv_id = j.sals.reservation_chatflow.register_and_pay_reservation(
-            self.reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=self.currency, bot=self
-        )
-
-        j.sals.reservation_chatflow.save_reservation(
-            self.resv_id, self.user_form_data["Solution name"], SolutionType.Gitea, self.user_form_data
-        )
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
         res = f"""\
 # gitea has been deployed successfully: your reservation id is: {self.resv_id}
+\n<br />\n
 To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
-open gitea from browser at ```https://{self.ip_address}```
-            """
+\n<br />\n
+open gitea from browser at ```{self.ip_address}:3000```
+                """
         self.md_show(res, md=True)
 
 

@@ -93,7 +93,7 @@ module.exports = {
       menu: false,
       mini: false,
       solutionCount: {},
-      sidebar: true
+      sidebar: true,
     };
   },
   computed: {},
@@ -102,99 +102,141 @@ module.exports = {
     pages() {
       return [
         {
+          name: "Pools",
+          type: "pools",
+          path: "/pools",
+          meta: { icon: "mdi-cloud" },
+        },
+        {
           name: "Network",
           type: "network",
           path: "/network",
-          meta: { icon: "mdi-network-outline" }
+          meta: { icon: "mdi-network-outline" },
         },
         {
           name: "Ubuntu",
           type: "ubuntu",
           path: "/ubuntu",
-          meta: { img: "./assets/ubuntu.png" }
+          meta: { img: "./assets/ubuntu.png" },
         },
         {
           name: "Generic Container",
           type: "flist",
           path: "/flist",
-          meta: { icon: "mdi-folder-multiple" }
+          meta: { icon: "mdi-folder-multiple" },
         },
         {
           name: "Kubernetes",
           type: "kubernetes",
           path: "/kubernetes",
-          meta: { img: "./assets/kubernetes.png" }
+          meta: { img: "./assets/kubernetes.png" },
         },
         {
           name: "Minio",
           type: "minio",
           path: "/minio",
-          meta: { img: "./assets/minio.png" }
+          meta: { img: "./assets/minio.png" },
         },
         {
           name: "Monitoring",
           type: "monitoring",
           path: "/monitoring",
-          meta: { icon: "mdi-monitor-dashboard" }
+          meta: { icon: "mdi-monitor-dashboard" },
         },
         {
           name: "Gitea",
           type: "gitea",
           path: "/gitea",
-          meta: { img: "./assets/gitea.png" }
+          meta: { img: "./assets/gitea.png" },
         },
         {
           name: "Solution Expose",
           type: "exposed",
           path: "/exposed",
-          meta: { icon: "mdi-publish" }
+          meta: { icon: "mdi-publish" },
         },
         {
           name: "Domain Delegation",
           type: "delegated_domain",
           path: "/delegated_domain",
-          meta: { icon: "mdi-web" }
+          meta: { icon: "mdi-web" },
         },
         {
           name: "4 to 6 Gateway",
           type: "4to6gw",
           path: "/4to6gw",
-          meta: { icon: "mdi-router" }
+          meta: { icon: "mdi-router" },
         },
         {
-          name: "Publisher",
-          type: "publisher",
-          path: "/publisher",
-          meta: { icon: "mdi-web-box" }
+          name: "Blog",
+          type: "blog",
+          path: "/blog",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Peertube",
+          type: "peertube",
+          path: "/peertube",
+          meta: { img: "./assets/peertube.png" }
+        },
+        {
+          name: "Discourse",
+          type: "discourse",
+          path: "/discourse",
+          meta: { img: "./assets/discourse.png" }
+        },
+        {
+          name: "Website",
+          type: "website",
+          path: "/website",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Wiki",
+          type: "wiki",
+          path: "/wiki",
+          meta: { icon: "mdi-web-box" },
+        },
+        {
+          name: "Mattermost",
+          type: "mattermost",
+          path: "/mattermost",
+          meta: { icon: "mdi-chat-processing-outline" },
+        },
+        {
+          name: "Cryptpad",
+          type: "cryptpad",
+          path: "/cryptpad",
+          meta: { img: "./assets/cryptpad.png" }
         },
         {
           type: "threebot",
           name: "Threebot",
           path: "/threebot",
-          meta: { img: "./assets/3bot.png" }
-        }
+          meta: { img: "./assets/3bot.png" },
+        },
       ];
-    }
+    },
   },
   methods: {
     getCurrentUser() {
-      this.$api.admins.getCurrentUser().then(response => {
+      this.$api.admins.getCurrentUser().then((response) => {
         this.user = response.data;
       });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then(response => {
+      this.$api.solutions.getCount().then((response) => {
         this.solutionCount = response.data.data;
       });
-    }
+    },
   },
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
 
-    this.$root.$on("sidebar", sidebar => {
+    this.$root.$on("sidebar", (sidebar) => {
       this.sidebar = sidebar;
     });
-  }
+  },
 };
 </script>

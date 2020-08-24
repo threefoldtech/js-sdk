@@ -8,7 +8,6 @@
       return {
         package: true,
         name: "codeserver",
-        giturl: "https://github.com/threefoldtech/js-sdk/blob/development/jumpscale/packages/codeserver",
         url: "/codeserver/"
       }
     }

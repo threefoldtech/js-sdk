@@ -1,6 +1,7 @@
 name = "kyc"
 is_auth = true
 is_admin = true
+frontend = "/kyc"
 
 [[servers]]
 name = "kyc"

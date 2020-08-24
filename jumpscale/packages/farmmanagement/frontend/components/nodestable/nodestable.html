@@ -47,6 +47,30 @@
               </p>
             </template>
 
+            <template v-slot:item.action="{ item }">
+              <v-dialog v-model="openDeleteModal" persistent max-width="800">
+                <template v-slot:activator="{ on }">
+                  <v-btn fab small text @click="openDeleteModal = true">
+                    <v-icon small>
+                      fa-trash
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card-title class="headline">Are you sure you want to delete this node?</v-card-title>
+                  <v-card-actions>
+                    <v-alert :type="deleteNodeFarmAlert.type" v-if=deleteNodeFarmAlert border="right" colored-border elevation="2">
+                      {{deleteNodeFarmAlert.message}}
+                    </v-alert>
+                    <v-spacer></v-spacer>
+                    <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
+                    <v-btn x-small color="red darken-1" text @click="deleteNode(item)">Delete</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
+            </template>
+
             <template v-slot:expanded-item="{ headers, item }">
               <td :colspan="headers.length">
                 <nodeInfo :key="item.id" :node="item" />
@@ -56,5 +80,8 @@
         </v-layout>
       </v-flex>
     </v-card-text>
+    <v-row>
+
+    </v-row>
   </v-card>
 </section>

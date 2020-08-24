@@ -79,7 +79,7 @@ const SOLUTIONS = {
   monitoring: {
     topic: "monitoring_deploy",
     type: "monitoring",
-    name:"Monitoring",
+    name: "Monitoring",
     icon: "mdi-monitor-dashboard",
     url: "/solutions/monitoring_deploy",
     description: ""
@@ -100,18 +100,66 @@ const SOLUTIONS = {
     url: "/solutions/4to6gw",
     description: ""
   },
-  publisher: {
-    topic: "publisher",
-    type: "publisher",
-    name: "Publisher",
+  wiki: {
+    topic: "wiki_deploy",
+    type: "wiki",
+    name: "Wiki",
     icon: "mdi-web-box",
-    url: "/solutions/publisher",
+    url: "/solutions/deploy_wiki",
     description: ""
+  },
+  website: {
+    topic: "website_deploy",
+    type: "website",
+    name: "Website",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_website",
+    description: ""
+  },
+  blog: {
+    topic: "blog_deploy",
+    type: "blog",
+    name: "Blog",
+    icon: "mdi-web-box",
+    url: "/solutions/deploy_blog",
+    description: ""
+  },
+  mattermost: {
+    topic: "mattermost",
+    type: "mattermost",
+    name: "Mattermost",
+    icon: "mdi-chat-processing-outline",
+    url: "/solutions/mattermost",
+    description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration"
+  },
+  peertube: {
+    topic: "peertube",
+    type: "peertube",
+    name: "Peertube",
+    image: "./assets/peertube.png",
+    url: "/solutions/peertube",
+    description: "Deploy a peertube instance on the grid."
+  },
+  discourse: {
+    topic: "discourse",
+    type: "discourse",
+    name: "Discourse",
+    image: "./assets/discourse.png",
+    url: "/solutions/discourse",
+    description: "Deploy a discourse instance on the grid."
+  },
+  cryptpad: {
+    topic: "cryptpad_deploy",
+    type: "cryptpad",
+    name: "Cryptpad",
+    image: "./assets/cryptpad.png",
+    url: "/solutions/cryptpad_deploy",
+    description: "CryptPad is the Zero Knowledge realtime collaborative editor."
   },
   all: {
     topic: "all",
     type: "all_reservations",
-    name:"All Reservations",
+    name: "All Workloads",
     icon: "mdi-clipboard-list-outline",
     url: "/solutions/all",
     description: ""
@@ -119,12 +167,12 @@ const SOLUTIONS = {
 }
 
 const LEVELS = {
-  50: { value: 50, text: "CRITICAL", color: "#A93226"},
-  40: { value: 40, text: "ERROR", color: "#CB4335"},
-  30: { value: 30, text: "WARNING", color: "#F39C12"},
-  20: { value: 20, text: "INFO", color: "#148F77"},
-  15: { value: 15, text: "STDOUT", color: "#5499C7"},
-  10: { value: 10, text: "DEBUG", color: "#839192"}
+  50: { value: 50, text: "CRITICAL", color: "#A93226" },
+  40: { value: 40, text: "ERROR", color: "#CB4335" },
+  30: { value: 30, text: "WARNING", color: "#F39C12" },
+  20: { value: 20, text: "INFO", color: "#148F77" },
+  15: { value: 15, text: "STDOUT", color: "#5499C7" },
+  10: { value: 10, text: "DEBUG", color: "#839192" }
 };
 
 const STATES = [
@@ -141,3 +189,14 @@ const TYPES = [
   'event_monitor',
   'event_operator',
 ]
+
+const VOLUMES_TYPE = {
+  0: "HDD",
+  1: "SSD"
+}
+
+const Workload_STATE = {
+  0: "Error",
+  1: "Ok",
+  2: "Deleted",
+}
