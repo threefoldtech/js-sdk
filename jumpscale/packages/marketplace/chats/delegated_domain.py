@@ -1,6 +1,6 @@
 import uuid
 
-from jumpscale.packages.tfgrid_solutions.chats.domain_delegation import DomainDelegation as BaseDomainDelegation
+from jumpscale.packages.tfgrid_solutions.chats.delegated_domain import DomainDelegation as BaseDomainDelegation
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 

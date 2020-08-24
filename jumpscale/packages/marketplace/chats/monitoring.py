@@ -4,7 +4,7 @@ import uuid
 
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.monitoring_deploy import MonitoringDeploy as BaseMonitoringDeploy
+from jumpscale.packages.tfgrid_solutions.chats.monitoring import MonitoringDeploy as BaseMonitoringDeploy
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow.models import SolutionType
