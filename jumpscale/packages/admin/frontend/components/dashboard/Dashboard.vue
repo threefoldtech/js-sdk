@@ -3,7 +3,7 @@
     <base-component title="Dashboard" icon="mdi-view-dashboard" :loading="loading">
 
       <template #actions>
-        <v-btn color="primary" text to="/solutions/pools_reservation">
+        <v-btn color="primary" text to="/solutions/pools">
           <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
         </v-btn>
 

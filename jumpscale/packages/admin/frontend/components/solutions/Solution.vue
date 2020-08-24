@@ -15,11 +15,11 @@
             <span>{{solution.description}}</span>
             <br />
             <br />
-            <v-btn color="primary" @click.stop="restart(solution.topic)">New</v-btn>
+            <v-btn color="primary" @click.stop="restart(solution.type)">New</v-btn>
             <v-btn
               color="primary"
-              v-if="started(solution.topic)"
-              @click.stop="open(solution.topic)"
+              v-if="started(solution.type)"
+              @click.stop="open(solution.type)"
             >Continue</v-btn>
 
             <v-divider class="my-5"></v-divider>
@@ -64,25 +64,25 @@ module.exports = {
     }
   },
   methods: {
-    open(solutionId) {
+    open(solutionType) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId }
+        params: { topic: solutionType }
       });
     },
-    restart(solutionId) {
-      localStorage.removeItem(solutionId);
-      this.open(solutionId);
+    restart(solutionType) {
+      localStorage.removeItem(solutionType);
+      this.open(solutionType);
     },
-    started(solution_type) {
-      return localStorage.hasOwnProperty(solution_type);
+    started(solutionType) {
+      return localStorage.hasOwnProperty(solutionType);
     },
     showInfo(data) {
       this.selected = data;
       this.dialog = true;
     },
-    getDeployedSolutions(solution_type) {
-      this.$api.solutions.getDeployed(solution_type).then(response => {
+    getDeployedSolutions(solutionType) {
+      this.$api.solutions.getDeployed(solutionType).then(response => {
         this.deployedSolutions = JSON.parse(response.data).data;
       });
     }
