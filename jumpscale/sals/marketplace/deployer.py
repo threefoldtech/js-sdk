@@ -255,9 +255,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         expiration = j.data.time.now().timestamp + exp * 60
 
         while j.data.time.get().timestamp < expiration:
-            bot.md_show_update("Preparing app resources")
+            bot.md_show_update("Waiting for payment")
             pool = j.sals.zos.pools.get(pool_id)
             if pool.cus > 0 or pool.sus > 0:
+                bot.md_show_update("Preparing app resources")
                 return True
             gevent.sleep(1)
 
