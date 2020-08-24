@@ -225,7 +225,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         node_to_pool = {}
         for p in pool_choices:
             pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
-            pool_ids[messages[p]] = pool
+            pool_ids[messages[p]] = pool.pool_id
             for node_id in pool.node_ids:
                 node_to_pool[node_id] = pool
 
