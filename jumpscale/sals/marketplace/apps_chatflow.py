@@ -1,6 +1,8 @@
 import uuid
 import random
 
+import requests
+
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from .solutions import solutions
@@ -108,7 +110,15 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                try:
+                    if j.sals.crtsh.has_reached_limit(domain):
+                        continue
+                except requests.exceptions.HTTPError:
+                    continue
                 domains[domain] = gw_dict
+
+        if not domains:
+            raise StopChatFlow("Letsencrypt limit has been reached on all gateways")
 
         self.domain = random.choice(list(domains.keys()))
 
