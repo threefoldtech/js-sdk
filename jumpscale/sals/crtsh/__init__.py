@@ -46,6 +46,7 @@ def has_reached_limit(domain):
         t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
         if t >= start_date:
             count += 1
+    print(count)
     return count >= RATE_LIMIT
 
 
