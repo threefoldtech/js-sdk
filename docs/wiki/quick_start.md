@@ -7,7 +7,8 @@
 - The SDK uses  [python3](python.org), python3-pip, [git](https://git-scm.com), poetry, [nginx](https://www.nginx.com), [redis](https://redis.io), [mkcert](https://github.com/FiloSottile/mkcert) is needed to trust the self signed certificates when used in local development environment.
 - Browser (we recommend using Google chrome)
 
-### macOS
+### Mac OSX
+For Mac OSX
 
 - Install packages (git, nginx, redis-server, tmux, python3) on MacOS
 
@@ -50,7 +51,7 @@ This version of the SDK tries to be isolated as possible in case of developers o
   poetry shell
   ```
 
-## Running the Threebot
+## Running the 3Bot
 
 ### using mkcert
 
