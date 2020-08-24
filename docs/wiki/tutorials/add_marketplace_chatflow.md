@@ -45,7 +45,6 @@
             def start(self):
                 self._init_solution()
                 self.query = {"cru": 1, "mru": 1, "sru": 1}
-                self.md_show("# This wizard will help you deploy an App", md=True)
             ```
     - In the `success` step, you have to:
         1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.

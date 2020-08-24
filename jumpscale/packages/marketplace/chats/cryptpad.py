@@ -25,7 +25,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     def start(self):
         self._init_solution()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard will help you deploy a cryptpad solution", md=True)
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):

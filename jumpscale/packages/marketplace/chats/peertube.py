@@ -26,7 +26,6 @@ class Peertube(MarketPlaceAppsChatflow):
     def start(self):
         self._init_solution()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard will help you deploy peertube", md=True)
 
     @chatflow_step(title="Volume details")
     def volume_details(self):

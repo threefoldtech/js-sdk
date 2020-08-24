@@ -26,7 +26,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     def start(self):
         self._init_solution()
         self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
 
     @chatflow_step(title="Mattermost Information")
     def mattermost_info(self):

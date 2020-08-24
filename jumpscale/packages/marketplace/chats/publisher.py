@@ -9,7 +9,6 @@ class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
         "solution_name",
@@ -27,7 +26,6 @@ class Publisher(MarketPlaceAppsChatflow):
         self._init_solution()
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.query = {"cru": 1, "mru": 1, "sru": 2}
-        self.md_show(self.welcome_message, md=True)
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):

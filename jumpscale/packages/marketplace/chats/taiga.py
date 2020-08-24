@@ -28,7 +28,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     def start(self):
         self._init_solution()
         self.query = {"cru": 1, "mru": 1, "sru": 4}
-        self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
