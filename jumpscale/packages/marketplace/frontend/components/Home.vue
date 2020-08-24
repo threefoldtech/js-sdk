@@ -38,9 +38,9 @@
         <br />
         <h4
           id="there-is-also-an-automation-layer-called-3bot"
-        >There is also an automation layer called 3bot</h4>
+        >There is also an automation layer called 3Bot</h4>
         <ul>
-          <li>3bot is your virtual system administrator and here you can see our brand new 2.2 version, deploy your own version on the marketplace (v2.2).</li>
+          <li>3Bot is your virtual system administrator and here you can see our brand new 2.2 version, deploy your own version on the marketplace (v2.2).</li>
           <li>Its a very powerful tool to allow you to automate &amp; manage thousands of virtual workload.</li>
           <li>Python language can be used to extend this tool and make it your own.</li>
           <li>This new admin panel is alpha quality, be reminded that the workload itself is running on Zero-OS and the smart contract for IT layer which is beta quality.</li>
@@ -48,7 +48,7 @@
         <br />
         <h4 id="terms-and-conditions">Terms and Conditions</h4>
         <p>
-          you cannot use this marketplace or the 3bot unless you agree with
+          you cannot use this marketplace or the 3Bot unless you agree with
           see
           <a
             target="_blank"

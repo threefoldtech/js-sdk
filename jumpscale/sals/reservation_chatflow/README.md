@@ -42,7 +42,7 @@ where:
 
 - *bot*:  the chatbot instance from the chatflow
 
-- *customer_tid*: the threebot id of the customer who created the networks that the same user will be selecting from.
+- *customer_tid*: the 3Bot id of the customer who created the networks that the same user will be selecting from.
 
 ### Get ip range
 
@@ -70,7 +70,7 @@ where :
 
 - *ip_range*: The ip range to create the network with in the form `{IP}/16`. example: `10.35.0.0/16`
 
-- *customer_tid*:  the 3bot id of the user that is doing the reservation from the chatflow(the logged in user in the chatflow)
+- *customer_tid*:  the 3Bot id of the user that is doing the reservation from the chatflow(the logged in user in the chatflow)
 
 - *ip_version*:  ip version (Ipv4 or Ipv6) of the machine that will access the network later on
 
@@ -88,7 +88,7 @@ where :
 
 - *expiration*:  expiration of the items in the reservation
 
-- *customer_tid*:  the 3bot id of the user that is doing the reservation from the chatflow(the logged in user in the chatflow)
+- *customer_tid*:  the 3Bot id of the user that is doing the reservation from the chatflow(the logged in user in the chatflow)
 
 - *expiration_provisioning*: expiration of the registered reservation if not processed to next state(provisioned)
 
@@ -121,13 +121,13 @@ where :
 
 ### List networks for user
 
-List all the networks currently in DEPLOY state created by the user having the threebot id (tid) given
+List all the networks currently in DEPLOY state created by the user having the 3Bot id (tid) given
 
 `list_network(tid, reservations)`
 
 where :
 
-- *tid*: threebot id to filter network reservations on
+- *tid*: 3Bot id to filter network reservations on
 
 - *reservations*: list of reservations to look for networks in. If not provided then `j.sals.zos.list_reservation(tid=tid,next_action="DEPLOY")` is used to get all reservations of that user and checking in them.
 

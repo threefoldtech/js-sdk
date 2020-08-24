@@ -62,6 +62,19 @@ class Publisher(GedisChatBot):
     def publisher_network(self):
         self.network_view = deployer.select_network(self)
 
+    @chatflow_step()
+    def publisher_info(self):
+        form = self.new_form()
+        self.solution_name = form.string_ask("Please enter a name for your solution", required=True)
+        disk_sizes = [2, 5, 10]
+        self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
+        self.currency = form.single_choice(
+            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
+        )
+        form.ask()
+        self.currency = self.currency.value
+        self.query = {"cru": 1, "mru": 1, "sru": int(self.vol_size.value) + 1}
+
     @chatflow_step(title="Solution Settings")
     def configuration(self):
         form = self.new_form()
@@ -80,13 +93,13 @@ class Publisher(GedisChatBot):
             "EMAIL": self.user_info()["email"],
         }
 
-        query = {
+        self.query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
         self.md_show_update("Preparing a node to deploy on ...")
-        self.selected_node = deployer.schedule_container(self.pool_id, **query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="Domain")
     def domain_select(self):

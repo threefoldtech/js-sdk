@@ -54,3 +54,8 @@
     }
   }
 </script>
+<style scoped>
+.v-data-table tr {
+  cursor: pointer;
+}
+</style>
