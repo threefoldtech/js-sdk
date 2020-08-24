@@ -29,9 +29,10 @@ const code = httpVueLoader('./components/base/Code.vue')
 
 const app = httpVueLoader('./App.vue')
 const home = httpVueLoader('./components/Home.vue')
-const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
+const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
 const license = httpVueLoader('./components/License.vue')
+const terms = httpVueLoader('./components/Terms.vue')
 
 
 Vue.component("base-component", baseComponent)
@@ -45,8 +46,9 @@ const router = new VueRouter({
   routes: [
     { name: "Home", path: '/', component: home, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
-    { name: "Solutions", path: '/:topic', component: solutions, props: true, meta: { icon: "mdi-apps" } },
-    { name: "Solution", path: '/solutions/:topic', component: solution, props: true, meta: { icon: "mdi-tune" } },
+    { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
+    { name: "Solution", path: '/:type', component: solution, props: true, meta: { icon: "mdi-apps" } },
+    { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
 
   ]
 })
