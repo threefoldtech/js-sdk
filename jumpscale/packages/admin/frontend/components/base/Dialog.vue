@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="1000" persistent>
+  <v-dialog v-model="dialog" width="1000">
     <v-card :loading="loading" :disabled="loading">
       <v-card-title class="headline">{{title}}</v-card-title>
       <v-card-text class="pa-5">
