@@ -39,12 +39,15 @@ def has_reached_limit(domain):
     all_certs = fetch_domain_certs(domain)
     count = 0
     now = jstime.utcnow()
+    domains = []
     start_date = now.shift(days=-7)
     for cert in all_certs:
         # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
         # we will check using date only. entry_timestamp example "2020-08-23T12:15:27.833"
         t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
-        if t >= start_date:
+        subdomain = cert["name_value"].split(".")[0]
+        if t >= start_date and subdomain not in domains:
+            domains.append(subdomain)
             count += 1
     print(count)
     return count >= RATE_LIMIT
