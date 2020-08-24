@@ -24,7 +24,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
-            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+            msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+<br>
+<pre style="text-align:center">{self.wgconf}</pre>
+<br>
+<h3>navigate to where the config is downloaded and start your connection using "wg-quick up ./apps.conf"</h3>
+"""
+            self.download_file(msg=msg, data=self.wgconf, filename="apps.conf", html=True)
 
     def _get_pool(self):
         available_farms = []
