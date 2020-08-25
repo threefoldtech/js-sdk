@@ -15,7 +15,6 @@ class TaigaDeploy(GedisChatBot):
     """
 
     steps = [
-        "taiga_start",
         "taiga_name",
         "select_pool",
         "taiga_network",
@@ -27,18 +26,17 @@ class TaigaDeploy(GedisChatBot):
     ]
     title = "Taiga"
 
-    @chatflow_step()
-    def taiga_start(self):
+    def _taiga_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.HUB_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
-        self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
         self.query = {"sru": 2}
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def taiga_name(self):
+        self._taiga_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

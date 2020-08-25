@@ -10,7 +10,6 @@ import uuid
 
 class MonitoringDeploy(GedisChatBot):
     steps = [
-        "deployment_start",
         "choose_name",
         "public_key_get",
         "prometheus_container_resources",
@@ -26,8 +25,7 @@ class MonitoringDeploy(GedisChatBot):
     ]
     title = "Monitoring"
 
-    @chatflow_step()
-    def deployment_start(self):
+    def _deployment_start(self):
         self.tools_names = ["Redis", "Prometheus", "Grafana"]
         self.flists = [
             "https://hub.grid.tf/tf-official-apps/redis_zinit.flist",
@@ -41,14 +39,11 @@ class MonitoringDeploy(GedisChatBot):
         self.redis_query = dict()
         self.query = {"Prometheus": self.prometheus_query, "Grafana": self.grafana_query, "Redis": self.redis_query}
         self.ip_addresses = {"Prometheus": "", "Grafana": "", "Redis": ""}
-        self.md_show(
-            "## This wizard will help you deploy a monitoring system that includes Prometheus, Grafana, and redis",
-            md=True,
-        )
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def choose_name(self):
+        self._deployment_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

@@ -11,7 +11,6 @@ class GiteaDeploy(GedisChatBot):
     """
 
     steps = [
-        "gitea_start",
         "gitea_name",
         "select_pool",
         "gitea_network",
@@ -26,18 +25,17 @@ class GiteaDeploy(GedisChatBot):
     ]
     title = "Gitea"
 
-    @chatflow_step()
-    def gitea_start(self):
+    def _gitea_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-gitea_all_in_one-latest.flist"
-        self.md_show("# This wizard wil help you deploy an gitea container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def gitea_name(self):
+        self._gitea_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

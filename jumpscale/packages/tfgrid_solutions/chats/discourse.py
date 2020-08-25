@@ -13,7 +13,6 @@ class Discourse(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
 
     steps = [
-        "discourse_start",
         "discourse_name",
         "discourse_smtp_info",
         "select_pool",
@@ -25,16 +24,15 @@ class Discourse(GedisChatBot):
 
     title = "Discourse"
 
-    @chatflow_step()
-    def discourse_start(self):
+    def _discourse_start(self):
         self.solution_id = uuid.uuid4().hex
         self.query = dict()
-        self.md_show("# This wizard will help you deploy discourse", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def discourse_name(self):
+        self._discourse_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="SMTP information")

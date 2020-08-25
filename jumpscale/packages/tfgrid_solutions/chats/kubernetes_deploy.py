@@ -5,7 +5,6 @@ import uuid
 
 class KubernetesDeploy(GedisChatBot):
     steps = [
-        "deployment_start",
         "kubernetes_name",
         "choose_flavor",
         "nodes_selection",
@@ -18,14 +17,13 @@ class KubernetesDeploy(GedisChatBot):
     ]
     title = "Kubernetes"
 
-    @chatflow_step()
-    def deployment_start(self):
+    def _deployment_start(self):
         self.solution_id = uuid.uuid4().hex
-        self.md_show("# This wizard will help you deploy a kubernetes cluster")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def kubernetes_name(self):
+        self._deployment_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

@@ -8,7 +8,6 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WebsiteDeploy(Publisher):
 
     title = "Deploy Website"
-    welcome_message = "This wizard will help you publish your website."
     publishing_chatflow = "website"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Website Setup")

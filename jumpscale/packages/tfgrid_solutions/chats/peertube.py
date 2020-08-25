@@ -11,7 +11,6 @@ class Peertube(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
 
     steps = [
-        "peertube_start",
         "peertube_name",
         "peertube_email",
         "volume_details",
@@ -24,18 +23,17 @@ class Peertube(GedisChatBot):
 
     title = "Peertube"
 
-    @chatflow_step()
-    def peertube_start(self):
+    def _peertube_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.query = dict()
         self.user_form_data["chatflow"] = "peertube"
-        self.md_show("# This wizard will help you deploy peertube", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def peertube_name(self):
+        self._peertube_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="Email")
