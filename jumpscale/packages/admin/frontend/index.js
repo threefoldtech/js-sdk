@@ -8,16 +8,8 @@ const vuetify = new Vuetify({
     iconfont: 'mdi'
   },
   theme: {
-    // dark: true,
     themes: {
       dark: {
-        // primary: '#e00',
-        // secondary: '#0e0',
-        // accent: '#00e',
-        // error: '#e0e',
-        // info: '#ee0',
-        // success: '#0ee',
-        // warning: '#758a2b',
         navbar: '#363636'
       },
       light:{
