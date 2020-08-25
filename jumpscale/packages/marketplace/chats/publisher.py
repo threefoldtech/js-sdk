@@ -12,7 +12,7 @@ class Publisher(MarketPlaceAppsChatflow):
     welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "configuration",
         "solution_expiration",
         "payment_currency",

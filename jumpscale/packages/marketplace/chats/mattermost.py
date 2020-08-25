@@ -12,7 +12,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     title = "Mattermost"
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "mattermost_info",
         "solution_expiration",
         "payment_currency",
