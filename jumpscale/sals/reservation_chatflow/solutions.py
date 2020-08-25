@@ -524,7 +524,9 @@ class ChatflowSolutions:
                     result[name].append(proxy_dict)
         return result
 
-    def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc", owner=None):
+    def _list_proxied_solution(
+        self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="tcprouter", owner=None
+    ):
         def meta_filter(metadata):
             if metadata.get("owner") != owner:
                 return False

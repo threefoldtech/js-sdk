@@ -5,7 +5,7 @@ import requests
 import nacl.encoding
 from nacl.public import Box
 
-MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://staging.marketplace.threefold.me/")
+MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://marketplace-testnet.grid.tf/")
 CREATE_USER_ENDPOINT = "marketplace/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "marketplace/actors/backup/public_key"
 REPO_NAMES = ["config_backup_1", "config_backup_2"]
