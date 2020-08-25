@@ -19,6 +19,7 @@ class CryptpadDeploy(GedisChatBot):
         "configuring_node",
         "overview",
         "reservation",
+        "intializing",
         "container_access",
     ]
     title = "Cryptpad"
@@ -58,7 +59,7 @@ class CryptpadDeploy(GedisChatBot):
 
         form = self.new_form()
         vol_disk_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True
         )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
@@ -185,9 +186,7 @@ class CryptpadDeploy(GedisChatBot):
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -233,6 +232,12 @@ class CryptpadDeploy(GedisChatBot):
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
         self.container_url_https = f"https://{self.domain}"
         self.container_url_http = f"http://{self.domain}"
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Cryptpad ...")
+        if not j.sals.nettools.wait_http_test(self.container_url_http, timeout=600):
+            self.stop("Failed to initialize Cryptpad, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_access(self):
