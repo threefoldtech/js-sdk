@@ -200,9 +200,6 @@ class Peertube(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
         self.md_show_update("Initializing your Peertube ...")
-        import pdb
-
-        pdb.set_trace()
         if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
             self.stop("Failed to initialize Peertube, please contact support")
 

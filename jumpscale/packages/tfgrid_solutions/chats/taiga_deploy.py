@@ -234,7 +234,7 @@ class TaigaDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
         self.md_show_update("Initializing your Taiga ...")
-        if not j.sals.nettools.wait_http_test("https://{self.domain}", timeout=600):
+        if not j.sals.nettools.wait_http_test(f"https://{self.domain}", timeout=600):
             self.stop("Failed to initialize Taiga, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)

@@ -17,6 +17,7 @@ class Publisher(GedisChatBot):
         "domain_select",
         "overview",
         "deploy",
+        "intializing",
         "success",
     ]
 
@@ -232,6 +233,14 @@ class Publisher(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
+
+     @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your container ...")
+        if not j.sals.nettools.wait_http_test(f"https://{self.domain}", timeout=600):
+            self.stop("Failed to initialize container, please contact support")
+        if not j.sals.nettools.wait_http_test(f"http://{self.domain}", timeout=600):
+            self.stop("Failed to initialize container, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
