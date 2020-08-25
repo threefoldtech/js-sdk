@@ -2,7 +2,11 @@
 
 ## Overview
 
-Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an idnetity registered in the explorer or even have a 3bot running. All the user needs is to have 3Bot Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
+Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an identity registered in the explorer or even have a 3bot running. All the user needs is to have 3Bot Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
+
+### Components
+
+Maketplace deployment requires three machines. One machine has `js-sdk` installed with `3Bot` server to run the marketplace package and two machines used for backup.
 
 ### Installation
 
@@ -43,7 +47,7 @@ j.servers.threebot.default.save()
     ```
 
     which means pools are not synced across different machines by default.
-    note: make sure to use different idnetities for the server if you deploy separate machines using the same explorer.
+    note: make sure to use different identities for the server if you deploy separate machines using the same explorer.
 
 - Over Provisioning:
 
@@ -62,15 +66,19 @@ j.servers.threebot.default.save()
     ```
 
 - Backup Servers:
-    Marketplace uses two separate servers for 3Bot backups.
+    Marketplace uses two separate servers for 3Bot backups which can be deployed as below
 
-    1- Configure both servers by running the below script
+    1- Create 2 ubuntu 18.04 machines then download and run the configuration script on both machines
 
     ```bash
-    bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/marketplace/scripts/backup.sh
+    # download the backup script from github (the branch may change)
+    wget https://raw.githubusercontent.com/threefoldtech/js-sdk/development_capacitypool/jumpscale/packages/marketplace/scripts/backup.sh
+    # or copy the script from your marketplace server from package path jumpscale/packages/marketplace/scripts/backup.sh to both backup servers
+    # then run the script
+    bash backup.sh
     ```
 
-    2- Add the ssh-key of the marketplace in two servers.
+    2- Add the ssh-key of the marketplace to authorized keys in both servers.
 
     3- Configure ssh clients on marketplace machine's `jsng` shell
 
@@ -85,4 +93,4 @@ j.servers.threebot.default.save()
     JS-NG> ssh_server2.save()
     ```
 
-now you can start your `3Bot` server and access marketplace dashboard on `/marketplace`
+Now you can start your `3Bot` server and access marketplace dashboard on `/marketplace`
