@@ -225,7 +225,7 @@ class TaigaDeploy(GedisChatBot):
                 node_id=self.selected_node.node_id,
                 solution_uuid=self.solution_id,
                 proxy_pool_id=self.gateway_pool.pool_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
