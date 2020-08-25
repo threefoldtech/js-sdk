@@ -75,7 +75,7 @@ def main():
                 j.logger.error(str(e))
 
         j.logger.info("Starting threebot ...")
-        j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
+        j.servers.threebot.start_default(wait=True, local=False)
 
 
 if __name__ == "__main__":
