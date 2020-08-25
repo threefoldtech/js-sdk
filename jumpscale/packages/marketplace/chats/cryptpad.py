@@ -38,7 +38,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -52,9 +52,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(
-        title="Reservation", disable_previous=True,
-    )
+    @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         self.workload_ids = []
         metadata = {
