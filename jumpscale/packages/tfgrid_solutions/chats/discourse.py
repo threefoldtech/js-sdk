@@ -132,6 +132,7 @@ class Discourse(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
         }
+        self.solution_metadata.update(metadata)
         threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode("utf-8")
 
         env = {
@@ -161,7 +162,7 @@ class Discourse(GedisChatBot):
             subdomain=self.domain,
             addresses=self.addresses,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         success = deployer.wait_workload(_id, self)
@@ -184,7 +185,7 @@ class Discourse(GedisChatBot):
             env=env,
             secret_env=secret_env,
             interactive=False,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)
@@ -204,7 +205,7 @@ class Discourse(GedisChatBot):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

@@ -41,7 +41,7 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_info()["email"],
         }
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         info = {"Solution name": self.solution_name, "domain": self.domain}
         self.md_show_confirm(info)

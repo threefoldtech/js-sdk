@@ -180,7 +180,7 @@ class ThreebotDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
-
+        test_cert = j.config.get("TEST_CERT")
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -188,6 +188,7 @@ class ThreebotDeploy(GedisChatBot):
             "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
+            "TEST_CERT": "true" if test_cert else "false",
         }
         self.network_view = self.network_view.copy()
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
