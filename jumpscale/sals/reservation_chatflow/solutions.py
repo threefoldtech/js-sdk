@@ -524,7 +524,9 @@ class ChatflowSolutions:
                     result[name].append(proxy_dict)
         return result
 
-    def _list_proxied_solution(self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="trc", owner=None):
+    def _list_proxied_solution(
+        self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="tcprouter", owner=None
+    ):
         def meta_filter(metadata):
             if metadata.get("owner") != owner:
                 return False
@@ -554,9 +556,13 @@ class ChatflowSolutions:
                 continue
             subdomain_dict = subdomain_dicts[0]
             proxy_dict = proxy_dicts[0]
+            sol_name = name
+            if owner:
+                if len(name) > len(owner) + 1:
+                    sol_name = name[len(owner) + 1 :]
             solution_dict = {
                 "wids": [subdomain_dict["wid"], proxy_dict["wid"]],
-                "Name": name,
+                "Name": sol_name,
                 "Domain": subdomain_dict["domain"],
             }
             if len(container_workloads[name]) != containers_len:
@@ -590,10 +596,14 @@ class ChatflowSolutions:
             container_workloads = self._list_container_workloads(chatflow, next_action)
         for name in container_workloads:
             c_dict = container_workloads[name][0]
+            sol_name = name
+            if owner:
+                if len(name) > len(owner) + 1:
+                    sol_name = name[len(owner) + 1 :]
             result.append(
                 {
                     "wids": [c_dict["wid"]],
-                    "Name": name,
+                    "Name": sol_name,
                     "IPv4 Address": c_dict["ipv4"],
                     "IPv6 Address": c_dict["ipv6"],
                     "Node": c_dict["node"],

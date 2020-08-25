@@ -153,27 +153,7 @@ class Peertube(GedisChatBot):
             raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
         self.threebot_url = f"https://{self.domain}"
 
-        # expose threebot container
-        _id = deployer.expose_address(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=80,
-            tls_port=443,
-            trc_secret=self.secret,
-            node_id=self.selected_node.node_id,
-            reserve_proxy=True,
-            domain_name=self.domain,
-            solution_uuid=self.solution_id,
-            **self.solution_metadata,
-        )
-        success = deployer.wait_workload(_id, self)
-        if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-
-        entrypoint = f'/usr/local/bin/startup.sh "{self.domain}" "{self.email}"'
+        entrypoint = f'/usr/local/bin/startup.sh "{self.domain}"'
         self.entrypoint = entrypoint
         # reserve container
         self.resv_id = deployer.deploy_container(
@@ -182,11 +162,10 @@ class Peertube(GedisChatBot):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.resources["cpu"],
-            memory=self.resources["memory"],
-            disk_size=self.resources["disk_size"],
+            cpu=self.query["cru"],
+            memory=self.query["mru"] * 1024,
+            disk_size=(self.query["sru"] - self.vol_size) * 1024,
             entrypoint=entrypoint,
-            env={"pub_key": ""},
             volumes=volume_config,
             interactive=False,
             **self.solution_metadata,
@@ -195,6 +174,25 @@ class Peertube(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=80,
+            enforce_https=True,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            **self.solution_metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
     def peertube_access(self):

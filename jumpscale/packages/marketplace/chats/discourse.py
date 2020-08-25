@@ -126,7 +126,6 @@ class Discourse(MarketPlaceAppsChatflow):
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
-            test_cert=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
