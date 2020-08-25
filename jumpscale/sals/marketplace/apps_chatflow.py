@@ -18,7 +18,7 @@ EXPLORER_URL = j.core.identity.me.explorer_url
 NETWORK = "TEST" if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL else "STD"
 WALLET_NAME = f"appstore_wallet_{NETWORK.lower()}"
 
-MARKETPLACE_URL = "https://marketplace-testnet2.grid.tf"
+MARKETPLACE_URL = "https://localhost"  # TODO: RESTORE THE ORIGINAL MARKETPLACE
 CREATE_USER_ENDPOINT = "marketplace/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "marketplace/actors/backup/public_key"
 
@@ -195,7 +195,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         return self.domain
 
     @chatflow_step(title="Solution Name")
-    def solution_name(self):
+    def get_solution_name(self):
         valid = False
         while not valid:
             self.solution_name = self.string_ask("Please enter a name for your solution", required=True)
@@ -227,14 +227,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._get_domain()
 
     def _setup_backup_conf(self, solution_name):
-        # TODO Make sure user cannot create two solutions with the same name
         password = j.data.idgenerator.chars(15)
         servers = self._init_backup_repos(solution_name, password)
-        self.backup_config["servers"] = servers
+        servers_str = " ".join(servers)
+        self.backup_config["servers"] = f"({servers_str})"
+        self.backup_config["RESTIC_PASSWORD"] = password
         tname = j.core.identity.me.tname.split(".")[0]
         self.backup_config["username"] = f"{tname}_{solution_name}"
+        # TODO: add the 2 backupservers or adjust in the script
+        self.backup_config[
+            "RESTIC_REPOSITORY"
+        ] = f"rest:http://{solution_name}:{password}@{servers[0]}:8000/{solution_name}/"
 
     def _init_backup_repos(self, solution_name, password):
+        # TODO: CLEAN
         import os
         import requests
         import nacl.encoding
@@ -244,7 +250,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         tname = j.core.identity.me.tname
         username = tname.split(".")[0]
         url = os.path.join(MARKETPLACE_URL, PUBLIC_KEY_ENDPOINT)
-        response = requests.post(url)
+        response = requests.post(url, verify=False)  # TODO: restore ssl
         if response.status_code != 200:
             raise Exception("Can not get market place publickey")
         mrkt_pub_key = nacl.public.PublicKey(response.json().encode(), nacl.encoding.Base64Encoder)
@@ -252,10 +258,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
 
-        self.backup_config["password"] = password_encrypted
-        data = {"threebot_name": username, "passwd": password_encrypted, "restic_username": solution_name}
+        data = {"threebot_name": tname, "passwd": password_encrypted, "restic_username": solution_name}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
-        response = requests.post(url, json=data, headers=headers)
+        response = requests.post(url, json=data, headers=headers, verify=False)  # TODO: RESTORE THE SSL
         if response.status_code != 200:
             raise j.exceptions.Value(f"can not create user with name:{username}, error={response.text}")
         return response.json()
@@ -271,7 +276,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def pay_service_fees(self):
         self._pay()
         if self.backup_enabled:
-            self._setup_backup_conf(self.solution_name)
+            solution_name = self.solution_name.replace(".", "")
+            self._setup_backup_conf(solution_name)
 
     def _pay(self, msg=""):
         total_amount = self.service_fees

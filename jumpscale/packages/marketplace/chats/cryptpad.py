@@ -12,7 +12,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
 
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",
@@ -105,6 +105,10 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         var_dict = {
             "size": str(self.vol_size * 1024),  # in MBs
         }
+
+        # TODO: your backup directorires, to determine if it will be in here or in the backup script
+        self.backup_config["BACKUP_PATHS"] = []
+
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -117,7 +121,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 disk_size=(self.query["sru"] - self.vol_size) * 1024,
                 volumes=volume_config,
                 env=var_dict,
-                interactive=True,
+                interactive=True,  # TODO: RESTORE WHEN DONE
                 secret_env=self.backup_config,
                 entrypoint="/start.sh",
                 solution_uuid=self.solution_id,
