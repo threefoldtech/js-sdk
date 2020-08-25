@@ -10,7 +10,6 @@ class Publisher(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
     steps = [
-        "start",
         "solution_name",
         "configuration",
         "solution_expiration",
@@ -21,11 +20,8 @@ class Publisher(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.storage_url = "zdb://hub.grid.tf:9900"
-        self.query = {"cru": 1, "mru": 1, "sru": 2}
+    storage_url = "zdb://hub.grid.tf:9900"
+    query = {"cru": 1, "mru": 1, "sru": 2}
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):

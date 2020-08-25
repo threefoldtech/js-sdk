@@ -9,7 +9,6 @@ class Peertube(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
     SOLUTION_TYPE = "peertube"
     steps = [
-        "start",
         "solution_name",
         "volume_details",
         "solution_expiration",
@@ -21,11 +20,7 @@ class Peertube(MarketPlaceAppsChatflow):
     ]
 
     title = "Peertube"
-
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Volume details")
     def volume_details(self):

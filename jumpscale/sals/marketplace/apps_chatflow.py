@@ -20,7 +20,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.query = dict()
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
@@ -135,6 +134,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Solution Name")
     def solution_name(self):
+        self._init_solution()
         valid = False
         while not valid:
             self.solution_name = self.string_ask("Please enter a name for your solution", required=True)

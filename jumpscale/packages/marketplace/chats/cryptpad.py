@@ -10,7 +10,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     steps = [
-        "start",
         "solution_name",
         "cryptpad_info",
         "solution_expiration",
@@ -21,10 +20,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
