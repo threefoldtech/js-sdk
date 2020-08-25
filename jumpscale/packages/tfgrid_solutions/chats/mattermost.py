@@ -18,6 +18,7 @@ class MattermostDeploy(GedisChatBot):
         "domain_select",
         "overview",
         "reservation",
+        "intializing",
         "container_acess",
     ]
     title = "Mattermost"
@@ -122,7 +123,7 @@ class MattermostDeploy(GedisChatBot):
         }
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost",},
+            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost"},
         }
         self.solution_metadata.update(metadata)
 
@@ -146,7 +147,7 @@ class MattermostDeploy(GedisChatBot):
         vol_mount_point = "/var/lib/mysql/"
         volume_config = {}
         vol_id = deployer.deploy_volume(
-            self.pool_id, self.selected_node.node_id, vol_size, solution_uuid=self.solution_id, **self.metadata,
+            self.pool_id, self.selected_node.node_id, vol_size, solution_uuid=self.solution_id, **self.metadata
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
@@ -194,6 +195,12 @@ class MattermostDeploy(GedisChatBot):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Mattermost ...")
+        if not j.sals.nettools.wait_http_test(self.solution_url, timeout=600):
+            self.stop("Failed to initialize Mattermost, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):

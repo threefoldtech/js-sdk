@@ -19,6 +19,7 @@ class Peertube(GedisChatBot):
         "peertube_network",
         "overview",
         "reservation",
+        "intializing",
         "peertube_access",
     ]
 
@@ -58,7 +59,7 @@ class Peertube(GedisChatBot):
     def volume_details(self):
         form = self.new_form()
         vol_disk_size = form.single_choice(
-            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True,
+            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True
         )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
@@ -197,6 +198,15 @@ class Peertube(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Peertube ...")
+        import pdb
+
+        pdb.set_trace()
+        if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
+            self.stop("Failed to initialize Peertube, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def peertube_access(self):
