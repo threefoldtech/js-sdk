@@ -4,17 +4,20 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 
-
 class CryptpadDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
+    SOLUTION_FEES = 10
+    BACKUP_FEES = 20
     steps = [
         "start",
         "solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",
+        "backup_choice",
+        "pay_service_fees",
         "infrastructure_setup",
         "overview",
         "reservation",
@@ -109,7 +112,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 disk_size=(self.query["sru"] - self.vol_size) * 1024,
                 volumes=volume_config,
                 env=var_dict,
-                interactive=False,
+                secret_env=self.backup_config,
+                interactive=True,
                 entrypoint="/start.sh",
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
