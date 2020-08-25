@@ -29,7 +29,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_proxied_solution("peertube", next_action, sync, owner=username)
 
     def list_discourse_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("peertube", next_action, sync, owner=username)
+        return self._list_proxied_solution("discourse", next_action, sync, owner=username)
 
     def list_taiga_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("taiga", next_action, sync, "nginx", owner=username)
