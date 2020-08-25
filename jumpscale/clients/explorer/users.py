@@ -92,6 +92,7 @@ class Users(BaseResource):
         pubkey
         host
         description
+        automatic_upgrade_agreement
 
         :param user: User
         :type user: User

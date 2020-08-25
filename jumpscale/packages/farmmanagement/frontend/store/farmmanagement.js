@@ -29,11 +29,15 @@ export default {
       }
       context.commit("setTfgridUrl", url);
     },
-    getUser: async context => {
-      var response = await tfService.getUser();
-      if (response.data.username.length > 0) {
-        context.commit("setUser", response.data);
+    getAuthenticatedUser: async context => {
+      var response = await tfService.getAuthenticatedUser();
+      var loggedUser = response.data;
+      if (loggedUser.username.length < 0) {
+        return
       }
+      response = await tfService.getUser(context.getters.tfgridUrl, response.data.tid);
+      const user = Object.assign(loggedUser, response.data);
+      context.commit("setUser", user);
     },
     getNodes(context, farm_id) {
       tfService.getNodes(context.getters.tfgridUrl, farm_id).then(response => {
@@ -50,13 +54,16 @@ export default {
       });
     },
     registerFarm: (context, farm) => {
-      return tfService.registerFarm(context.getters.tfgridUrl, farm)
+      return tfService.registerFarm(context.getters.tfgridUrl, farm);
     },
     updateFarm(context, farm) {
       return tfService.updateFarm(farm.id, farm);
     },
     deleteNodeFarm(context, node) {
-      return tfService.deleteNodeFarm(node)
+      return tfService.deleteNodeFarm(node);
+    },
+    signUpgradeAgreement(context, user) {
+      return tfService.signUpgradeAgreement(user);
     }
   },
   mutations: {

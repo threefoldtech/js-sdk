@@ -1,49 +1,62 @@
 <section v-if="isLoggedIn()" class="farmmanagement">
   <v-row class="my-3 mx-1">
-    <v-card style="width: 100%;">
-      <v-card-title primary-title class="primary py-3 mb-5 white--text">
-        <v-row>
-          <v-col cols="6" class="py-0">
-            My Farms
-            <v-btn text icon dark class="ml-2" @click="addFarmDialog = true">
-              <v-icon small>fa-plus</v-icon>
-            </v-btn>
-            <v-btn text icon dark @click="refreshFarms">
-              <v-icon small>fa-sync-alt</v-icon>
-            </v-btn>
-          </v-col>
-          <v-col></v-col>
-          <v-col cols="4" class="py-0">
-            <v-text-field dark class="pt-0" v-model="searchFarms" append-icon="fa-search" label="Search" single-line
-              hide-details>
-            </v-text-field>
-          </v-col>
-        </v-row>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-data-table item-key="name" :search="searchFarms" :headers="headers" :items="farms" :items-per-page="10"
-            @click:row="viewNodes" style="width: 100%;" :footer-props="{
+    <v-row v-if="!user.automatic_upgrade_agreement">
+      <v-col cols="12">
+        <v-alert outlined dismissible type="info" elevation="5">Lorem ipsum dolor sit amet
+          consectetur
+          adipisicing elit. Quis magnam quas eum nemo explicabo assumenda iste? Dolore, tempore in. Commodi minus
+          quibusdam ab beatae earum quam, repudiandae laudantium facilis incidunt.
+          <v-row>
+            <v-btn color="primary" small @click=" viewAgreement()">Sign agreement</v-btn>
+          </v-row>
+        </v-alert>
+      </v-col>
+    </v-row>
+  </v-row>
+  <v-card style="width: 100%;">
+    <v-card-title primary-title class="primary py-3 mb-5 white--text">
+      <v-row>
+        <v-col cols="6" class="py-0">
+          My Farms
+          <v-btn text icon dark class="ml-2" @click="addFarmDialog = true">
+            <v-icon small>fa-plus</v-icon>
+          </v-btn>
+          <v-btn text icon dark @click="refreshFarms">
+            <v-icon small>fa-sync-alt</v-icon>
+          </v-btn>
+        </v-col>
+        <v-col></v-col>
+        <v-col cols="4" class="py-0">
+          <v-text-field dark class="pt-0" v-model="searchFarms" append-icon="fa-search" label="Search" single-line
+            hide-details>
+          </v-text-field>
+        </v-col>
+      </v-row>
+    </v-card-title>
+    <v-card-text>
+      <v-row>
+        <v-data-table item-key="name" :search="searchFarms" :headers="headers" :items="farms" :items-per-page="10"
+          @click:row="viewNodes" style="width: 100%;" :footer-props="{
               prevIcon: 'fa-angle-left',
               nextIcon: 'fa-angle-right'
             }">
-            <template v-slot:item.action="{ item }">
-              <v-btn fab small text @click="viewNodes(item)">
-                <v-icon small>
-                  fa-eye
-                </v-icon>
-              </v-btn>
-              <v-btn fab small text @click.stop="viewSettings(item)">
-                <v-icon small>
-                  fa-cog
-                </v-icon>
-              </v-btn>
-            </template>
-          </v-data-table>
-        </v-row>
-      </v-card-text>
-    </v-card>
-    </v-flex>
+          <template v-slot:item.action="{ item }">
+            <v-btn fab small text @click="viewNodes(item)">
+              <v-icon small>
+                fa-eye
+              </v-icon>
+            </v-btn>
+            <v-btn fab small text @click.stop="viewSettings(item)">
+              <v-icon small>
+                fa-cog
+              </v-icon>
+            </v-btn>
+          </template>
+        </v-data-table>
+      </v-row>
+    </v-card-text>
+  </v-card>
+  </v-flex>
   </v-row>
   <v-row class="my-3 mx-1">
     <v-card v-if="!farmSelected.name" style="width: 100%;">
@@ -197,6 +210,33 @@
         </v-alert>
         <v-btn text class="mr-3" @click="addFarmDialog = false">Cancel</v-btn>
         <v-btn text color="secondary" class="mr-3" @click="addFarm">Save</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="agreementDialog" scrollable v-if="agreementDialog" max-width="700px">
+    <v-card>
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        Auto upgrade agreement
+      </v-card-title>
+      <v-card-text>
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Nesciunt excepturi debitis minima enim, minus
+                soluta
+                hic non, eaque, pariatur quisquam est suscipit inventore voluptatibus iusto numquam sunt repellat eos
+                alias!</p>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-alert :type="agreementAlert.type" v-if="agreementAlert" border="right" colored-border elevation="2">
+          {{agreementAlert.message}}
+        </v-alert>
+        <v-btn text color="secondary" class="mr-3" @click="signAgreement()">Agree</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

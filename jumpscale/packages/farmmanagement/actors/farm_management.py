@@ -22,5 +22,15 @@ class FarmManagemenet(BaseActor):
     def mark_node_free(self, node_id, free):
         return self._explorer.nodes.configure_free_to_use(node_id=node_id, free=free)
 
+    @actor_method
+    def sign_upgrade_agreement(self, user_id) -> bool:
+        if j.core.identity.me.tid != user_id:
+            raise j.exceptions.Input("user ID different from default identity")
+
+        user = self._explorer.users.get(user_id)
+        user.automatic_upgrade_agreement = True
+        self._explorer.users.update(user)
+        return True
+
 
 Actor = FarmManagemenet

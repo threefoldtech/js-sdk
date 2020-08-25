@@ -42,6 +42,7 @@ class Location(Base):
     def __str__(self):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
+
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -52,10 +53,10 @@ class Farm(Base):
     email = fields.Email()
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
+    automatic_upgrades = fields.Boolean()
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
-        
 
 
 class WorkloadsAmount(Base):
@@ -161,6 +162,7 @@ class User(Base):
     host = fields.String(default="")
     description = fields.String(default="")
     signature = fields.String(default="")
+    automatic_upgrade_agreement = fields.Boolean()
 
 
 """

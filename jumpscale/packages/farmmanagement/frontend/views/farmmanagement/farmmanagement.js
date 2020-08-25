@@ -15,12 +15,14 @@ module.exports = new Promise(async (resolve, reject) => {
                 addFarmDialog: false,
                 addNodeDialog: false,
                 settingsDialog: false,
+                agreementDialog: false,
                 farmDescriptionRules: [v => v.length <= 250 || "Max 250 characters"],
                 searchFarms: "",
                 'searchnodes': "",
                 farmSelected: {},
                 farmToEdit: {},
                 editFarmAlert: undefined,
+                agreementAlert: undefined,
                 showResult: false,
                 itemsPerPage: 4,
                 expanded: [],
@@ -40,7 +42,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         latitude: 0,
                         longitude: 0
                     },
-                    wallet_addresses:[],
+                    wallet_addresses: [],
                     // resource_prices: [
                     //     {
                     //         currency: "USD",
@@ -268,19 +270,20 @@ module.exports = new Promise(async (resolve, reject) => {
         },
         async mounted() {
             await this.getTfgridUrl();
-            await this.getUser();
+            await this.getAuthenticatedUser();
             this.getFarms();
             this.initialiseRefresh()
             this.newFarm.threebot_id = this.user.tid;
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
-                "getUser",
+                "getAuthenticatedUser",
                 "registerFarm",
                 "getFarms",
                 "updateFarm",
                 "getNodes",
-                "getTfgridUrl"
+                "getTfgridUrl",
+                "signUpgradeAgreement"
             ]),
             initialiseRefresh() {
                 const that = this;
@@ -305,6 +308,41 @@ module.exports = new Promise(async (resolve, reject) => {
             viewSettings(farm) {
                 this.farmToEdit = farm;
                 this.settingsDialog = true;
+            },
+            viewAgreement() {
+                this.agreementDialog = true;
+            },
+            signAgreement() {
+                console.log(this.user);
+                this.signUpgradeAgreement(this.user).then(response => {
+                    if (response.status == 200) {
+                        this.user.automatic_upgrade_agreement = true;
+                        this.agreementAlert = {
+                            message: "Automatic upgrade agreement signed",
+                            type: "success",
+                        }
+                    } else {
+                        this.agreementAlert = {
+                            message: response.data['error'],
+                            type: "error",
+                        }
+                    }
+                    setTimeout(() => {
+                        this.agreementAlert = undefined
+                        this.agreementDialog = false
+                    }, 2000)
+                }).catch(err => {
+                    var msg = "server error"
+                    if (err.response) {
+                        // The request was made and the server responded with a status code
+                        // that falls out of the range of 2xx
+                        msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                    }
+                    this.agreementAlert = {
+                        message: msg,
+                        type: "error",
+                    }
+                })
             },
             getColor(status) {
                 if (status === "Active") return "green";
