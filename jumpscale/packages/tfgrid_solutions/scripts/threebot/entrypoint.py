@@ -15,6 +15,7 @@ def main():
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
     backup_password = os.environ.get("BACKUP_PASSWORD", None)
+    test_cert = os.environ.get("TEST_CERT")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -57,7 +58,11 @@ def main():
             j.logger.error(str(e))
 
     j.logger.info("Starting threebot ...")
-    j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
+
+    if test_cert == "true":
+        j.servers.threebot.start_default(wait=True, local=False)
+    else:
+        j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
 
 
 if __name__ == "__main__":
