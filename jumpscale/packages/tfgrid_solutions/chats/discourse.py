@@ -20,6 +20,7 @@ class Discourse(GedisChatBot):
         "discourse_network",
         "overview",
         "reservation",
+        "intializing",
         "discourse_access",
     ]
 
@@ -212,6 +213,12 @@ class Discourse(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Discourse ...")
+        if not j.sals.nettools.wait_http_test(self.domain, timeout=600):
+            self.stop("Failed to initialize Discourse, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def discourse_access(self):

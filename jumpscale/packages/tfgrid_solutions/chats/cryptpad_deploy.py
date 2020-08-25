@@ -236,6 +236,8 @@ class CryptpadDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
         self.md_show_update("Initializing your Cryptpad ...")
+        if not j.sals.nettools.wait_http_test(self.container_url_https, timeout=600):
+            self.stop("Failed to initialize Cryptpad, please contact support")
         if not j.sals.nettools.wait_http_test(self.container_url_http, timeout=600):
             self.stop("Failed to initialize Cryptpad, please contact support")
 

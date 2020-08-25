@@ -23,6 +23,7 @@ class TaigaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
+        "intializing",
         "container_acess",
     ]
     title = "Taiga"
@@ -176,10 +177,7 @@ class TaigaDeploy(GedisChatBot):
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
+        metadata = {"name": self.solution_name, "form_info": {"Solution name": self.solution_name, "chatflow": "taiga"}}
         self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
@@ -232,6 +230,12 @@ class TaigaDeploy(GedisChatBot):
         if not nginx_wid:
             solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Taiga ...")
+        if not j.sals.nettools.wait_http_test("https://{self.domain}", timeout=600):
+            self.stop("Failed to initialize Taiga, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
