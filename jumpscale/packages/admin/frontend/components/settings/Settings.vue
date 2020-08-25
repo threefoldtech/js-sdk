@@ -1,14 +1,7 @@
 <template>
   <div>
     <base-component title="Setting" icon="mdi-tune">
-      <template #actions>
-      <v-switch
-        v-model="darkTheme"
-        hide-details
-        inset
-        label="Dark mode"
-      ></v-switch>
-      </template>
+      <template #actions></template>
 
       <template #default>
         <v-row align="start" justify="start">
@@ -77,7 +70,6 @@ module.exports = {
   },
   data() {
     return {
-      darkTheme: this.$vuetify.theme.dark,
       loading: {
         admins: false,
         identities: false,
@@ -155,12 +147,6 @@ module.exports = {
         return "";
       }
     },
-  },
-  watch: {
-    darkTheme(val){
-        $cookies.set('darkTheme', val ? "1" : "0")
-        this.$vuetify.theme.dark = val
-    }
   },
   mounted() {
     this.listAdmins();

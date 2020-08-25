@@ -29,8 +29,12 @@
             </v-simple-table>
           </v-tab-item>
           <v-tab-item :key="'moredetails'">
-            <v-card flat>
-              <json-tree :raw="JSON.stringify(json)"></json-tree>
+            <v-card flat><template>
+              <v-treeview
+                open-all
+                :items="json"
+              ></v-treeview>
+            </template>
             </v-card>
           </v-tab-item>
         </v-tabs>

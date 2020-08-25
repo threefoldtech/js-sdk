@@ -1,6 +1,12 @@
 <template>
   <v-app>
     <v-app-bar app>
+      <v-switch
+        v-model="darkTheme"
+        hide-details
+        inset
+        label="Dark mode"
+      ></v-switch>
       <v-spacer></v-spacer>
       <v-chip label flat color="transparent" class="pr-5">
         <v-icon color="primary" left>mdi-clock-outline</v-icon> {{ timenow }}
@@ -100,6 +106,7 @@
 module.exports =  {
   data () {
     return {
+      darkTheme: this.$vuetify.theme.dark,
       user: {},
       identity: null,
       menu: false,
@@ -121,6 +128,12 @@ module.exports =  {
       return this.$router.options.routes.filter((page) => {
         return page.meta.listed
       })
+    }
+  },
+  watch: {
+    darkTheme(val){
+        $cookies.set('darkTheme', val ? "1" : "0")
+        this.$vuetify.theme.dark = val
     }
   },
   methods: {
@@ -154,9 +167,9 @@ module.exports =  {
       checkDarkMode(){
         let cookie = this.getCookie("darkTheme")
         if (cookie == "")
-          this.$vuetify.theme.dark = false
+          this.$vuetify.theme.dark = this.darkTheme = false
         else
-          this.$vuetify.theme.dark = cookie == "1" ? true : false;
+          this.$vuetify.theme.dark = this.darkTheme = cookie == "1" ? true : false;
       }
   },
   mounted() {

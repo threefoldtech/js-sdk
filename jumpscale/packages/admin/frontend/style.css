@@ -10,6 +10,23 @@
   color: #fff ;
 }
 
+.theme--dark .v-toolbar{
+  background-color: inherit !important;
+}
+
+.theme--dark .json-tree-root {
+  background-color: rgb(54, 54, 54) !important;
+
+}
+
+.theme--dark .json-tree-sign, .theme--dark .json-tree-key, .theme--dark .json-tree-open, .theme--dark .json-tree-close, .theme--dark .json-tree-comma{
+  color: #aa0 !important;
+}
+
+.theme--dark .json-tree-root .json-tree-value{
+  color: #fff !important;
+}
+
 .CodeMirror {
   padding: 15px !important;
   margin-top: 15px !important;
