@@ -23,7 +23,7 @@
     ```python
         steps = [
             "start", # required
-            "solution_name", # required
+            "get_solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
             "payment_currency", # required
@@ -60,7 +60,7 @@
     - In `overview` step, you define your app metadata to be confirmed by the user
         - For example:
             ```python
-            @chatflow_step(title="Confirmation")
+            @chatflow_step(title="Deployment Information")
             def overview(self):
                 self.metadata = {
                     "Solution Name": self.solution_name,

@@ -1,6 +1,8 @@
 import uuid
 import random
 
+import requests
+
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from .solutions import solutions
@@ -24,7 +26,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
-            self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
+            msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+<br>
+<pre style="text-align:center">{self.wgconf}</pre>
+<br>
+<h3>navigate to where the config is downloaded and start your connection using "wg-quick up ./apps.conf"</h3>
+"""
+            self.download_file(msg=msg, data=self.wgconf, filename="apps.conf", html=True)
 
     def _get_pool(self):
         available_farms = []
@@ -101,7 +110,15 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                try:
+                    if j.sals.crtsh.has_reached_limit(domain):
+                        continue
+                except requests.exceptions.HTTPError:
+                    continue
                 domains[domain] = gw_dict
+
+        if not domains:
+            raise StopChatFlow("Letsencrypt limit has been reached on all gateways")
 
         self.domain = random.choice(list(domains.keys()))
 
@@ -127,7 +144,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         return self.domain
 
     @chatflow_step(title="Solution Name")
-    def solution_name(self):
+    def get_solution_name(self):
         valid = False
         while not valid:
             self.solution_name = self.string_ask("Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )", required=True)

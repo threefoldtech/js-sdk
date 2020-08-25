@@ -29,7 +29,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_proxied_solution("peertube", next_action, sync, owner=username)
 
     def list_discourse_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("peertube", next_action, sync, owner=username)
+        return self._list_proxied_solution("discourse", next_action, sync, owner=username)
 
     def list_taiga_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("taiga", next_action, sync, "nginx", owner=username)
@@ -79,7 +79,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             primary_dict = container_workloads[name][0]
             solution_dict = {
                 "wids": [primary_dict["wid"]] + primary_dict["vol_ids"],
-                "Name": name,
+                "Name": name[len(username) + 1 :],
                 "Network": primary_dict["network"],
                 "Primary IPv4": primary_dict["ipv4"],
                 "Primary IPv6": primary_dict["ipv6"],
@@ -117,7 +117,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         for name in container_workloads:
             if len(container_workloads[name]) != 3:
                 continue
-            solution_dict = {"wids": [], "Name": name}
+            solution_dict = {"wids": [], "Name": name[len(username) + 1 :]}
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 solution_dict["wids"] += c_dict["vol_ids"]

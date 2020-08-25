@@ -1,6 +1,12 @@
 <template>
   <v-app>
     <v-app-bar app>
+      <v-switch
+        v-model="darkTheme"
+        hide-details
+        inset
+        label="Dark mode"
+      ></v-switch>
       <v-spacer></v-spacer>
       <v-chip label flat color="transparent" class="pr-5">
         <v-icon color="primary" left>mdi-clock-outline</v-icon> {{ timenow }}
@@ -38,7 +44,7 @@
     </v-app-bar>
 
     <v-navigation-drawer
-      color="primary"
+      color="navbar"
       class="elevation-3"
       :mini-variant="mini"
       app
@@ -100,6 +106,7 @@
 module.exports =  {
   data () {
     return {
+      darkTheme: this.$vuetify.theme.dark,
       user: {},
       identity: null,
       menu: false,
@@ -123,6 +130,12 @@ module.exports =  {
       })
     }
   },
+  watch: {
+    darkTheme(val){
+        $cookies.set('darkTheme', val ? "1" : "0")
+        this.$vuetify.theme.dark = val
+    }
+  },
   methods: {
     getCurrentUser () {
       this.$api.user.currentUser().then((response) => {
@@ -136,9 +149,31 @@ module.exports =  {
     },
     setTimeLocal () {
       this.timenow = new Date().toLocaleString()
-    }
+    },
+    getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      },
+      checkDarkMode(){
+        let cookie = this.getCookie("darkTheme")
+        if (cookie == "")
+          this.$vuetify.theme.dark = this.darkTheme = false
+        else
+          this.$vuetify.theme.dark = this.darkTheme = cookie == "1" ? true : false;
+      }
   },
   mounted() {
+    this.checkDarkMode()
     this.getIdentity();
     this.getCurrentUser();
     this.setTimeLocal()

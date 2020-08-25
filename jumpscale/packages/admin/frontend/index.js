@@ -9,13 +9,17 @@ const vuetify = new Vuetify({
   },
   theme: {
     themes: {
-      light: {
+      dark: {
+        navbar: '#363636'
+      },
+      light:{
         primary: '#1B4F72',
+        navbar: '#1B4F72',
         secondary: '#CCCBCA',
         accent: '#59B88C',
         success: "#17A589",
         error: '#EC7063',
-      },
+      }
     },
   }
 })

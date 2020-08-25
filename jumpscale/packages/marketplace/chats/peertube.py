@@ -10,7 +10,7 @@ class Peertube(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "peertube"
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "volume_details",
         "solution_expiration",
         "payment_currency",
@@ -39,7 +39,7 @@ class Peertube(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -72,7 +72,7 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
+            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -88,7 +88,7 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
-        self.threebot_url = f"https://{self.domain}"
+        self.threebot_url = f"http://{self.domain}"
 
         entrypoint = f'/usr/local/bin/startup.sh "{self.domain}"'
         self.entrypoint = entrypoint
@@ -122,7 +122,6 @@ class Peertube(MarketPlaceAppsChatflow):
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
-            test_cert=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
@@ -130,7 +129,8 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            # FIXME
+            # solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
@@ -138,6 +138,7 @@ class Peertube(MarketPlaceAppsChatflow):
         self._wgconf_show_check()
         message = f"""\
 # Peertube has been deployed successfully: your reservation id is: {self.resv_id}
+
   ``` {self.threebot_url}```.It may take a few minutes.
                 """
         self.md_show(dedent(message), md=True)
