@@ -4,7 +4,7 @@ import math
 import random
 
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlowCleanWorkloads, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 
@@ -58,7 +58,7 @@ class CryptpadDeploy(GedisChatBot):
 
         form = self.new_form()
         vol_disk_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True
         )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
@@ -98,11 +98,15 @@ class CryptpadDeploy(GedisChatBot):
             bot=self,
             **self.solution_metadata,
         )
+
         if result:
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}",
+                        getattr(self, "workload_ids", None),
+                    )
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
@@ -110,7 +114,9 @@ class CryptpadDeploy(GedisChatBot):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", getattr(self, "workload_ids", None)
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -167,8 +173,9 @@ class CryptpadDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                getattr(self, "workload_ids", None),
             )
 
         # deploy volume
@@ -181,13 +188,14 @@ class CryptpadDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}",
+                getattr(self, "workload_ids", None),
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -208,8 +216,10 @@ class CryptpadDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            solutions.cancel_solution(self.workload_ids)
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                getattr(self, "workload_ids", None),
             )
 
         # expose solution on nginx container
@@ -230,7 +240,10 @@ class CryptpadDeploy(GedisChatBot):
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}",
+                getattr(self, "workload_ids", None),
+            )
         self.container_url_https = f"https://{self.domain}"
         self.container_url_http = f"http://{self.domain}"
 

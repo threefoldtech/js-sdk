@@ -9,6 +9,7 @@ import gevent
 import gevent.queue
 import html
 from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import solutions
 
 
 class Result:
@@ -646,3 +647,14 @@ class StopChatFlow(Exception):
         super().__init__(self, msg)
         self.msg = msg
         self.kwargs = kwargs
+
+
+class StopChatFlowCleanWorkloads(StopChatFlow):
+    def __init__(self, msg=None, workload_ids=None, **kwargs):
+        super().__init__(msg, **kwargs)
+        import pdb
+
+        pdb.set_trace()
+        if workload_ids:
+            solutions.cancel_solution(workload_ids)
+
