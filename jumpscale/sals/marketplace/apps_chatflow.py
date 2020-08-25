@@ -144,7 +144,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         return self.domain
 
     @chatflow_step(title="Solution Name")
-    def solution_name(self):
+    def get_solution_name(self):
         valid = False
         while not valid:
             self.solution_name = self.string_ask("Please enter a name for your solution", required=True)

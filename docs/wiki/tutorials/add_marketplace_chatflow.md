@@ -23,7 +23,7 @@
     ```python
         steps = [
             "start", # required
-            "solution_name", # required
+            "get_solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
             "payment_currency", # required

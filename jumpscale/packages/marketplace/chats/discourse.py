@@ -11,7 +11,7 @@ class Discourse(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "discourse"
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "discourse_smtp_info",
         "solution_expiration",
         "payment_currency",
