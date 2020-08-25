@@ -278,9 +278,31 @@
       restart () {
         localStorage.clear()
         location.reload()
+      },
+      getCookie(cname) {
+        var name = cname + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+      },
+      checkDarkMode(){
+        let cookie = this.getCookie("darkTheme")
+        if (cookie == "")
+          this.$vuetify.theme.dark = false
+        else
+          this.$vuetify.theme.dark = cookie == "1" ? true : false;
       }
     },
     mounted () {
+      this.checkDarkMode()
       this.start()
       document.body.addEventListener('keypress', (e) => {
         if (e.key == 'Enter') {
