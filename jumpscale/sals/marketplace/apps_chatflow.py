@@ -14,6 +14,12 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
 FARM_NAMES = ["freefarm"]
 
+# For fees stuff
+EXPLORER_URL = j.core.identity.me.explorer_url
+SERVICE_FEES = 5
+NETWORK = "TEST" if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL else "STD"
+WALLET_NAME = f"appstore_wallet_{NETWORK.lower()}"
+
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
@@ -23,6 +29,96 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.query = dict()
+
+    @property
+    def appstore_wallet(self):
+        if WALLET_NAME in j.clients.stellar.list_all():
+            return j.clients.stellar.get(WALLET_NAME)
+        else:
+            wallet = j.clients.stellar.get(WALLET_NAME)
+            wallet.network = NETWORK
+            if NETWORK == "TEST":
+                wallet.activate_through_friendbot()
+            else:
+                wallet.activate_through_threefold_service()
+            wallet.add_known_trustline("TFT")
+            wallet.add_known_trustline("FreeTFT")
+            wallet.add_known_trustline("TFTA")
+            wallet.save()
+            return wallet
+
+    def _refund(self, transaction, effects):
+        currency = self.currency or "TFT"
+        if effects.amount < 0:
+            return False
+
+        if effects.asset_code != (currency):
+            return False
+
+        refund_address = self.appstore_wallet.get_sender_wallet_address(transaction.hash)
+        asset = self.appstore_wallet.get_asset(currency)
+
+        amount = effects.amount
+        if currency == "TFT":
+            amount = effects.amount - 0.1  # Transaction fees
+        self.appstore_wallet.transfer(
+            refund_address, amount, asset=f"{asset.code}:{asset.issuer}", fund_transaction=False
+        )
+        return True
+
+    @chatflow_step(title="Service fees")
+    def pay_service_fees(self):
+        self._pay()
+
+    def _pay(self, msg=""):
+        currency = self.currency or "TFT"
+        self.memo_text = j.data.idgenerator.chars(15)
+        payment_info_content = j.sals.zos._escrow_to_qrcode(
+            escrow_address=self.appstore_wallet.address,
+            escrow_asset=currency,
+            total_amount=SERVICE_FEES,
+            message=self.memo_text,
+        )
+
+        message_text = f"""{msg}
+<h3> Please proceed with paying the fees for this service</h3>
+Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
+Make sure to add the payment ID as memo_text
+Please make the transaction and press Next
+<h4> Wallet address: </h4>  {self.appstore_wallet.address} \n
+<h4> Amount: </h4>  {SERVICE_FEES} {currency}\n
+<h4> Message (Payment ID): </h4>  {self.memo_text} \n
+        """
+
+        start_epoch = j.data.time.get().timestamp
+        expiration_epoch = j.data.time.get(start_epoch + (10 * 60)).timestamp
+        transfer_complete = False
+        self.qrcode_show(data=payment_info_content, msg=message_text, scale=4, update=True, html=True, md=True)
+        while not transfer_complete:
+            if expiration_epoch < j.data.time.get().timestamp:
+                self.stop("Payment not recieved in time. Please try again later.")
+            time_left = j.data.time.get(expiration_epoch).humanize(granularity=["minute", "second"])
+            message = f"Waiting for successful transfer of {SERVICE_FEES} {currency}. Process will be cancelled in {time_left}"
+            self.md_show_update(message, md=True, html=True)
+            transactions = self.appstore_wallet.list_transactions()
+            for transaction in transactions:
+                if not self.appstore_wallet.check_is_payment_transaction(transaction.hash):
+                    continue
+                transaction_effects = self.appstore_wallet.get_transaction_effects(
+                    transaction.hash, address=self.appstore_wallet.address
+                )[0]
+                amount_transfered = float(transaction_effects.amount)
+                if transaction.memo_text == self.memo_text:
+                    if amount_transfered == SERVICE_FEES:
+                        transfer_complete = True
+                        self.md_show(
+                            "You have successfully paid for using this service. Click next to continue with your deployment."
+                        )
+                        return
+                    else:
+                        if self._refund(transaction, transaction_effects):
+                            msg = f"\n`Wrong amount of {currency}'s has been received, they have been sent back to your wallet. Please try again`\n\n"
+                            return self._pay(msg)
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
