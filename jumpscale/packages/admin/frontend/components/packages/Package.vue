@@ -9,17 +9,32 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn icon v-if="pkg.installed && !pkg.system_package" @click="$emit('delete', pkg.name)">
-        <v-icon color="primary">mdi-trash-can-outline</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-if="pkg.installed && !pkg.system_package" @click="$emit('delete', pkg.name)">
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-trash-can-outline</v-icon>
+          </v-btn>
+        </template>
+        <span>Delete</span>
+      </v-tooltip>
 
-      <v-btn icon v-if="pkg.installed && pkg.frontend" :href="pkg.frontend">
-        <v-icon color="primary">mdi-web</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-if="pkg.installed && pkg.frontend" :href="pkg.frontend">
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
+          </v-btn>
+        </template>
+        <span>Open in browser</span>
+      </v-tooltip>
 
-      <v-btn icon v-if="!pkg.installed" :href="pkg.frontend" :loading="loading" @click="install">
-        <v-icon color="primary">mdi-archive-arrow-down-outline</v-icon>
-      </v-btn>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-if="!pkg.installed" :href="pkg.frontend" :loading="loading" @click="install">
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-archive-arrow-down-outline</v-icon>
+          </v-btn>
+        </template>
+        <span>Install</span>
+      </v-tooltip>
     </v-card-actions>
   </v-card>
 </template>
