@@ -2,7 +2,11 @@
   <v-card class="ma-4 mt-2" width="300" :loading="loading" :disabled="loading">
     <v-card-title class="primary--text">{{pkg.name}}</v-card-title>
     <v-card-subtitle v-if="pkg.system_package">System Package</v-card-subtitle>
-    <v-card-text>{{pkg.path}}</v-card-text>
+    <v-card-text style="height:75px">
+                {{pkg.path.length > PACKAGE_PATH_MAXLENGTH ?
+                pkg.path.slice(0, PACKAGE_PATH_MAXLENGTH) + "..." :
+                pkg.path}}
+              </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn icon v-if="pkg.installed && !pkg.system_package" @click="$emit('delete', pkg.name)">
@@ -28,6 +32,7 @@ module.exports = {
   data () {
     return {
       loading: false,
+      PACKAGE_PATH_MAXLENGTH: 80,
     }
   },
   methods: {
