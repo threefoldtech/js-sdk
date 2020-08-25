@@ -1101,6 +1101,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         proxy_pool_id=None,
         bot=None,
         public_key="",
+        nginx_config=None,
         **metadata,
     ):
         """
@@ -1120,6 +1121,12 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             public_key: your public key in case you want to have ssh access on the nginx container
 
         """
+
+        if not nginx_config:
+            nginx_config = j.sals.certbot_config.CertbotConfig()
+
+        http_config, https_config = nginx_config.serialize()
+
         test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
@@ -1137,8 +1144,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "SOLUTION_PORT": str(solution_port),
             "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
-            "PUBKEY": public_key,
+            "PUBKEY": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDM62HSUcago+A/xJRAeThmhPMT/M9ERyHunyy33NpVv8HXCiZEZsNbi+JR/RfStXU1qsgopL+D2MObm/X40RsZcj3laXPx9lPlHZgSYdzouKkOSPjaSg2obXWYNkW0bVF5SVqzmBE9SYKI9EFHPHLIdKW8msrfRktbFx26ILnGIGq/iSwI+Jn9BSr9bVjNch6OlDD5u0jyy4q7tqARdLEfWoluClQViTFxxD1Rrc8wRAy3AmxRnYL9b2pFHG/yVrbszM+z1Hz1Y58aY2pJ6bV0FcQ4KZQHKQL5bL4WhN5oyEZ19XAMXTBFR2l5F04nbO1A1XgP2QdPObthxu2oygGglZlfng0Zp/DOMctO/24Twj21kNuiDQmg3GLJJqr0My0og85qI2DmHkUpy+FzfDSRFv0b3aKOkz3TqU320zSKFQJuDxGVGpq/DfzqJS0p01iK5x0hnCjTkElIPWc5j5tqDNlgqJ/FYFSf9K6hVqIcnzAt1OnwvU567NSRH/THQpVSEv1vDt2iJZLvyhGVA7uQEEB+lxDRp6moKZqArT5z2rXrQUvhfbeyEQrvBzTX20DyEsOAEmjHtNfx6hKS5AuX3InVgOuf7Dh57glT1QpwOYxWtgDGxsTCmW1yrjVCCeZmDJAwuL1X4rk1zZC3y7Ra2WSN/tWSnr/RlSAkS5LF9w== omarelawady1998@gmail.com",
             "TEST_CERT": "true" if test_cert else "false",
+            "HTTP_CONFIG": http_config,
+            "HTTPS_CONFIG": https_config,
         }
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
@@ -1160,7 +1169,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-custom.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
