@@ -9,18 +9,25 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
+
     steps = [
         "start",
         "solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",
+        "backup_choice",
         "pay_service_fees",
         "infrastructure_setup",
         "overview",
         "reservation",
         "success",
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.service_fees = 0.5
+        self.backup_fees = 0.8
 
     @chatflow_step()
     def start(self):

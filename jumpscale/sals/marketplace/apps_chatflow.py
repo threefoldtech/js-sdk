@@ -15,20 +15,21 @@ from jumpscale.core.base import Base, fields
 FARM_NAMES = ["freefarm"]
 # For fees stuff
 EXPLORER_URL = j.core.identity.me.explorer_url
-SERVICE_FEES = 5
 NETWORK = "TEST" if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL else "STD"
 WALLET_NAME = f"appstore_wallet_{NETWORK.lower()}"
 
-MARKETPLACE_URL ="https://staging.marketplace.threefold.me/"
+MARKETPLACE_URL = "https://marketplace-testnet2.grid.tf"
 CREATE_USER_ENDPOINT = "marketplace/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "marketplace/actors/backup/public_key"
 
+
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def __init__(self, service_fees=0, backup_fees=0, backup_enabled=False, backup_config=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.service_fees = service_fees
         self.backup_fees = backup_fees
         self.backup_enabled = backup_enabled
-        self.backup_config = {} or backup_config
+        self.backup_config = backup_config or {}
 
     def _init_solution(self):
         self._validate_user()
@@ -73,56 +74,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             refund_address, amount, asset=f"{asset.code}:{asset.issuer}", fund_transaction=False
         )
         return True
-
-    def _pay(self, msg=""):
-        currency = self.currency or "TFT"
-        self.memo_text = j.data.idgenerator.chars(15)
-        payment_info_content = j.sals.zos._escrow_to_qrcode(
-            escrow_address=self.appstore_wallet.address,
-            escrow_asset=currency,
-            total_amount=SERVICE_FEES,
-            message=self.memo_text,
-        )
-
-        message_text = f"""{msg}
-<h3> Please proceed with paying the fees for this service</h3>
-Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
-Make sure to add the payment ID as memo_text
-Please make the transaction and press Next
-<h4> Wallet address: </h4>  {self.appstore_wallet.address} \n
-<h4> Amount: </h4>  {SERVICE_FEES} {currency}\n
-<h4> Message (Payment ID): </h4>  {self.memo_text} \n
-        """
-
-        start_epoch = j.data.time.get().timestamp
-        expiration_epoch = j.data.time.get(start_epoch + (10 * 60)).timestamp
-        transfer_complete = False
-        self.qrcode_show(data=payment_info_content, msg=message_text, scale=4, update=True, html=True, md=True)
-        while not transfer_complete:
-            if expiration_epoch < j.data.time.get().timestamp:
-                self.stop("Payment not recieved in time. Please try again later.")
-            time_left = j.data.time.get(expiration_epoch).humanize(granularity=["minute", "second"])
-            message = f"Waiting for successful transfer of {SERVICE_FEES} {currency}. Process will be cancelled in {time_left}"
-            self.md_show_update(message, md=True, html=True)
-            transactions = self.appstore_wallet.list_transactions()
-            for transaction in transactions:
-                if not self.appstore_wallet.check_is_payment_transaction(transaction.hash):
-                    continue
-                transaction_effects = self.appstore_wallet.get_transaction_effects(
-                    transaction.hash, address=self.appstore_wallet.address
-                )[0]
-                amount_transfered = float(transaction_effects.amount)
-                if transaction.memo_text == self.memo_text:
-                    if amount_transfered == SERVICE_FEES:
-                        transfer_complete = True
-                        self.md_show(
-                            "You have successfully paid for using this service. Click next to continue with your deployment."
-                        )
-                        return
-                    else:
-                        if self._refund(transaction, transaction_effects):
-                            msg = f"\n`Wrong amount of {currency}'s has been received, they have been sent back to your wallet. Please try again`\n\n"
-                            return self._pay(msg)
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
@@ -275,11 +226,20 @@ Please make the transaction and press Next
         self._deploy_network()
         self._get_domain()
 
+    def _setup_backup_conf(self, solution_name):
+        # TODO Make sure user cannot create two solutions with the same name
+        password = j.data.idgenerator.chars(15)
+        servers = self._init_backup_repos(solution_name, password)
+        self.backup_config["servers"] = servers
+        tname = j.core.identity.me.tname.split(".")[0]
+        self.backup_config["username"] = f"{tname}_{solution_name}"
+
     def _init_backup_repos(self, solution_name, password):
         import os
         import requests
         import nacl.encoding
         from nacl.public import Box
+
         headers = {"Content-Type": "application/json"}
         tname = j.core.identity.me.tname
         username = tname.split(".")[0]
@@ -291,21 +251,14 @@ Please make the transaction and press Next
         priv_key = j.core.identity.me.nacl.private_key
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
+
         self.backup_config["password"] = password_encrypted
-        data = {"threebot_name": tname, "passwd": password_encrypted, solution_name: ""}
+        data = {"threebot_name": username, "passwd": password_encrypted, "restic_username": solution_name}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
             raise j.exceptions.Value(f"can not create user with name:{username}, error={response.text}")
         return response.json()
-    
-    def _setup_backup_conf(self, solution_name):
-        # TODO Make sure user cannot create two solutions with the same name
-        password = j.data.idgenerator.chars(15)
-        servers = self._init_backup_repos(solution_name, password)
-        self.backup_config["servers"] = servers
-        tname = j.core.identity.me.tname.split(".")[0]
-        self.backup_config['username'] = f"{tname}_{solution_name}"
 
     @chatflow_step(title="Backup")
     def backup_choice(self):
@@ -323,13 +276,11 @@ Please make the transaction and press Next
     def _pay(self, msg=""):
         total_amount = self.service_fees
         backup_text = ""
+        currency = self.currency or "TFT"
+
         if self.backup_enabled:
             total_amount = self.service_fees + self.backup_fees
-            backup_text = """
-<h4> Backup Fees: </h4>  {BACKUP_FEES} {currency}\n
-"""
-
-        currency = self.currency or "TFT"
+            backup_text = f"<h5> Backup Fees: </h5>  {self.backup_fees} {currency}\n"
         self.memo_text = j.data.idgenerator.chars(15)
         payment_info_content = j.sals.zos._escrow_to_qrcode(
             escrow_address=self.appstore_wallet.address,
@@ -344,10 +295,11 @@ Scan the QR code with your application (do not change the message) or enter the 
 Make sure to add the payment ID as memo_text
 Please make the transaction and press Next
 <h4> Wallet address: </h4>  {self.appstore_wallet.address} \n
-<h4> Service Fees: </h4>  {self.service_fees} {currency}\n
 <h4> Message (Payment ID): </h4>  {self.memo_text} \n
+<h4> Fees </h4>\n
+<h5> Appstore service fees: </h5>  {self.service_fees} {currency} \n
 {backup_text}
-<h4> Amount: </h4>  {total_amount} {currency}\n
+<h4> Total Amount: </h4>  {total_amount} {currency}\n
 """
 
         start_epoch = j.data.time.get().timestamp
