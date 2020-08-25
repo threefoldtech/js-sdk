@@ -38,7 +38,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information")
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -90,7 +90,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {vol_id}")
+            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
@@ -133,7 +133,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

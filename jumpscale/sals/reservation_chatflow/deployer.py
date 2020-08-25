@@ -275,7 +275,11 @@ class ChatflowDeployer:
                 continue
             resources = available_farms[farm]
             farm_obj = farms_by_name[farm]
-            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
+            location_list = [
+                farm_obj.location.continent,
+                farm_obj.location.country,
+                farm_obj.location.city,
+            ]
             location = "-".join([info for info in location_list if info])
             if location:
                 location = f" location: {location}"
@@ -413,8 +417,8 @@ class ChatflowDeployer:
         return available_pools
 
     def check_pool_capacity(self, pool, cu=None, su=None):
-        available_su = pool.sus - pool.active_su
-        available_cu = pool.cus - pool.active_cu
+        available_su = pool.sus
+        available_cu = pool.cus
         if pool.empty_at < 0:
             return False, 0, 0
         if cu and available_cu < cu:
@@ -474,7 +478,11 @@ class ChatflowDeployer:
         return True, available_cu, available_su
 
     def ask_name(self, bot):
-        name = bot.string_ask("Please enter a name for you workload", required=True, field="name")
+        name = bot.string_ask(
+            "Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )",
+            required=True,
+            field="name",
+        )
         return name
 
     def ask_email(self, bot):
@@ -1089,7 +1097,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         solution_ip,
         solution_port,
         enforce_https=False,
-        test_cert=False,
         node_id=None,
         proxy_pool_id=None,
         bot=None,
@@ -1113,6 +1120,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             public_key: your public key in case you want to have ssh access on the nginx container
 
         """
+        test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 

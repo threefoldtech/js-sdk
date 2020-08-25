@@ -166,7 +166,7 @@ const APPS = {
     name: "Taiga",
     image: "./assets/taiga.png",
     url: "/solutions/taiga_deploy",
-    description: "Build your 'All in one' Taiga solution"
+    description: "Taiga is the project management tool for multi-functional agile teams. Build your 'All in one' Taiga solution"
   },
 }
 

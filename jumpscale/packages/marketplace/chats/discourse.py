@@ -40,7 +40,7 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information")
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -132,7 +132,6 @@ class Discourse(MarketPlaceAppsChatflow):
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
-            test_cert=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
