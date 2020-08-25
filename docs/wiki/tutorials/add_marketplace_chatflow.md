@@ -19,10 +19,13 @@
         SOLUTION_TYPE = "{app_name}"
         title = "App Title"
     ```
+4. Define the `query` your app needs.
+    ```python
+        self.query = {"cru": 1, "mru": 1, "sru": 1}
+    ```
 3. Define your chatflow steps:
     ```python
         steps = [
-            "start", # required
             "solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
@@ -34,18 +37,8 @@
         ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps `["start", "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
+    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
 
-    - In the `start` step, you have to:
-        1. Call `self._init_solution()` in the first line to initialize some props.
-
-        2. Override the value of the `self.query` that your app needs.
-            ```python
-            @chatflow_step()
-            def start(self):
-                self._init_solution()
-                self.query = {"cru": 1, "mru": 1, "sru": 1}
-            ```
     - In the `success` step, you have to:
         1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.
             ```python
