@@ -22,6 +22,7 @@ class GiteaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
+        "intializing",
         "container_acess",
     ]
     title = "Gitea"
@@ -252,6 +253,12 @@ class GiteaDeploy(GedisChatBot):
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
         self.container_url_https = f"https://{self.domain}"
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def intializing(self):
+        self.md_show_update("Initializing your Gitea ...")
+        if not j.sals.nettools.wait_http_test(self.container_url_https, timeout=600):
+            self.stop("Failed to initialize Gitea, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True)
     def container_acess(self):
