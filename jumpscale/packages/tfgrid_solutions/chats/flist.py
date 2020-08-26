@@ -247,9 +247,9 @@ class FlistDeploy(GedisChatBot):
 \n<br />\n
 - You can watch processes from the browser: <a href="https://{self.ip_address}:7681" target="_blank">https://{self.ip_address}:7681</a>
 \n<br />\n
-- and add `bash` process from here: <a href="https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
+- And add `bash` process from here: <a href="https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
 \n<br />\n
-- This web using <a href="https://devdocs.io/bash/" target="_blank">Bash</a>
+- Know more about <a href="https://devdocs.io/bash/" target="_blank">bash</a>
                     """
         else:
             message = f"""\

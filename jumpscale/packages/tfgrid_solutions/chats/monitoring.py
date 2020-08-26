@@ -240,9 +240,7 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         message = f"""\
-## Your containers have been deployed successfully. Your reservation ids are:
-\n<br/>\n
-- `{self.reservation_ids[0]}`, `{self.reservation_ids[1]}`, `{self.reservation_ids[2]}`
+## Your containers have been deployed successfully:
 \n<br/>\n
 ### Prometheus
 - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
@@ -253,8 +251,6 @@ class MonitoringDeploy(GedisChatBot):
 \n<br />\n
 ### Redis
 - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-\n<br />\n
-#### It may take a few minutes.
             """
         self.md_show(dedent(message), md=True)
 

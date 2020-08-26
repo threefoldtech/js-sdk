@@ -36,6 +36,7 @@ class DomainDelegation(GedisChatBot):
     def success(self):
         res = """\
 # Delegated your domain successfully:
+\n<br />\n
 - Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
     {% for dns in gateway.dns_nameserver -%}
     - {{dns}}
