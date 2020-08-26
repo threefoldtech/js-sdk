@@ -225,7 +225,7 @@ class SolutionExpose(GedisChatBot):
         message = f"""\
 # Congratulations! Your solution explosed successfully:
 \n<br />\n
-- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
         """
         self.md_show(dedent(message), md=True)
 

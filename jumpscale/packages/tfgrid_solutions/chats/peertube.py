@@ -200,7 +200,7 @@ class Peertube(GedisChatBot):
         message = f"""\
 # Congratulations! Your own instance from peertube deployed successfully:
 \n<br />\n
-- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
 - This domain maps to your container with ip: `{self.ip_address}`
                 """
