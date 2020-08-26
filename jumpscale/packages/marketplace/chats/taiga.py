@@ -55,6 +55,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
+        }
+        self.solution_metadata.update(metadata)
+
         self.workload_ids = []
 
         # reserve subdomain
