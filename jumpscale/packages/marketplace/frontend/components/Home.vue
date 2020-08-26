@@ -110,43 +110,43 @@ module.exports = {
       solutionCount: {},
       searchText: "",
       apps: Object.values(APPS),
-      solutions: Object.values(SOLUTIONS),
+      solutions: Object.values(SOLUTIONS)
     };
   },
   computed: {
     filteredSolutions() {
       if (this.searchText) {
-        return this.solutions.filter((obj) => {
+        return this.solutions.filter(obj => {
           return obj.name === this.searchText;
         });
       } else return this.solutions;
     },
     filteredApps() {
       if (this.searchText) {
-        return this.apps.filter((obj) => {
+        return this.apps.filter(obj => {
           return obj.name === this.searchText;
         });
       } else return this.apps;
-    },
+    }
   },
   methods: {
     openChatflow(solutionTopic) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionTopic },
+        params: { topic: solutionTopic }
       });
     },
     viewWorkloads(solutionType) {
       this.$router.push({ name: "Solution", params: { type: solutionType } });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
+      this.$api.solutions.getCount().then(response => {
         this.solutionCount = response.data.data;
       });
-    },
+    }
   },
   mounted() {
     this.getSolutionCount();
-  },
+  }
 };
 </script>
