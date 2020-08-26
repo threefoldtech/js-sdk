@@ -29,8 +29,8 @@ class NginxServer(Base):
         """
 
         # stop nginx service if it's already running
-        for pid in j.sals.process.get_pids("nginx"):
-            j.sals.process.kill(pid)
+        if j.sals.process.get_pids("nginx"):
+            j.sals.process.kill_all("nginx")
 
         nginx = j.sals.nginx.get(self.name)
         nginx.configure()
