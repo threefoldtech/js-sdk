@@ -8,11 +8,7 @@
       </template>
 
       <template #default>
-        <v-data-table :loading="loading" :search="search" :headers="headers" :items="data" class="elevation-1">
-
-          <template v-slot:item.id="{ item }">
-            <a @click="open(item)">{{ item.id }}</a>
-          </template>
+        <v-data-table :loading="loading" :search="search" :headers="headers" :items="data" @click:row="open" class="elevation-1">
 
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
@@ -25,7 +21,7 @@
           <template v-slot:item.level="{ item }">
             <v-chip dark :color="levels[item.level].color">{{ levels[item.level].text }}</v-chip>
           </template>
-          
+
           <template v-slot:body.prepend="{ headers }">
             <tr>
               <td>
@@ -55,7 +51,7 @@
         </v-data-table>
       </template>
     </base-component>
-    
+
     <show-record v-if="selected" v-model="dialogs.show" :record="selected"></show-record>
     <delete-record v-if="appname" v-model="dialogs.delete" :appname="appname" @done="getLogs"></delete-record>
 
@@ -145,5 +141,8 @@ input {
 }
 .v-text-field {
   padding: 10px 0px !important;
+}
+.v-data-table tr {
+  cursor: pointer;
 }
 </style>

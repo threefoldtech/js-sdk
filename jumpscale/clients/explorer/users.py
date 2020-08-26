@@ -1,34 +1,80 @@
-from jumpscale.core.exceptions import NotFound
+from typing import Iterator, List
+
 from jumpscale.core import identity
-from .models import TfgridPhonebookUser1
+from jumpscale.core.exceptions import NotFound
+
 from .base import BaseResource
+from .models import User
+from .pagination import get_all, get_page
+
+
+def _build_query(name: str = None, email: str = None) -> dict:
+    query = {}
+    if name is not None:
+        query["name"] = name
+    if email is not None:
+        query["email"] = email
+    return query
 
 
 class Users(BaseResource):
     _resource = "users"
 
-    def list(self, name=None, email=None):
-        query = {}
-        if name is not None:
-            query["name"] = name
-        if email is not None:
-            query["email"] = email
-        resp = self._session.get(self._url, params=query)
-        users = []
-        for user_data in resp.json():
-            user = TfgridPhonebookUser1.from_dict(user_data)
-            users.append(user)
+    def iter(self, name: str = None, email=None) -> Iterator:
+        """
+        Iterate over the users of the grid
+
+        :param name: filter by name
+        :type name: str, optional
+        :param email: filter by email
+        :type email: str, optional
+        :yield: return an iterator yielding users
+        :rtype: iterator
+        """
+        query = _build_query(name=name, email=email)
+        yield from get_all(self._session, User, self._url, query)
+
+    def list(self, name: str = None, email: str = None, page=None) -> List[User]:
+        """
+        list all users of the grid
+
+        :param name: filter by name
+        :type name: str, optional
+        :param email: filter by email
+        :type email: str, optional
+        :yield: return a list of User
+        :rtype: list
+        """
+        query = _build_query(name=name, email=email)
+        if page:
+            users, _ = get_page(self._session, page, User, self._url, query)
+        else:
+            users = list(self.iter(name=name, email=email))
         return users
 
-    def new(self):
-        return TfgridPhonebookUser1()
+    def new(self) -> User:
+        """
+        create an empty User object
 
-    def register(self, user):
+        :return: User
+        :rtype: User
+        """
+        return User()
+
+    def register(self, user) -> int:
+        """
+        register a new user on the explorer
+
+        :param user: User
+        :type user: User
+        :return: the new user ID
+        :rtype: int
+        """
         resp = self._session.post(self._url, json=user.to_dict())
         return resp.json()["id"]
 
     def validate(self, tid, payload, signature):
-        url = self._base_url + f"/users/{tid}/validate"
+        url = self._url + f"/users/{tid}/validate"
         data = {
             "payload": payload,
             "signature": signature,
@@ -37,8 +83,20 @@ class Users(BaseResource):
         resp = self._session.post(url, json=data)
         return resp.json()["is_valid"]
 
-    def update(self, user, me=None):
-        me = me or identity.get_identity()
+    def update(self, user: User) -> None:
+        """
+        Update user information
+
+        the updatable fields are:
+        email
+        pubkey
+        host
+        description
+
+        :param user: User
+        :type user: User
+        """
+        me = identity.get_identity()
         datatosign = ""
         datatosign += f"{user.id}{user.name}{user.email}"
         if user.host:
@@ -49,10 +107,23 @@ class Users(BaseResource):
         data["sender_signature_hex"] = signature.decode("utf8")
         self._session.put(f"{self._url}/{user.id}", json=data)
 
-    def get(self, tid=None, name=None, email=None):
+    def get(self, tid: int = None, name: str = None, email: str = None) -> User:
+        """
+        get the detail of a specific user
+
+        :param tid: search by ID
+        :type tid: int, optional
+        :param name: search by name, defaults to None
+        :type name: str, optional
+        :param email: search by email, defaults to None
+        :type email: str, optional
+        :raises NotFound: if not user found with the specified filters
+        :return: User
+        :rtype: User
+        """
         if tid is not None:
             resp = self._session.get(f"{self._url}/{tid}")
-            return TfgridPhonebookUser1.from_dict(resp.json())
+            return User.from_dict(resp.json())
 
         results = self.list(name=name, email=email)
         if results:

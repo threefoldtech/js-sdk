@@ -200,7 +200,7 @@ class Package:
         self.path = path
         self.giturl = giturl
         self._config = None
-        self.name = j.sals.fs.basename(path.rstrip('/'))
+        self.name = j.sals.fs.basename(path.rstrip("/"))
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
@@ -229,7 +229,7 @@ class Package:
     def config(self):
         if not self._config:
             self._config = self.load_config()
-        return  self._config
+        return self._config
 
     @property
     def actors_dir(self):
@@ -341,6 +341,7 @@ class PackageManager(Base):
                     "giturl": package.giturl,
                     "system_package": pkg in DEFAULT_PACKAGES.keys(),
                     "installed": True,
+                    "frontend": package.config.get("frontend", False),
                 }
             )
 
@@ -432,7 +433,6 @@ class PackageManager(Base):
         for bottle_server in list(self.threebot.rack._servers):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
-
 
         if self.threebot.started:
             # unregister gedis actors
