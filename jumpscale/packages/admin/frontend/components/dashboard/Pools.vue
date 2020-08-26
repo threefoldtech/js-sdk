@@ -13,7 +13,7 @@
           </template>
       </v-data-table>
     </base-section>
-    <pool-info v-model="dialog" :pool="selected"></pool-info>
+    <pool-info v-if="dialog" v-model="dialog" :pool="selected"></pool-info>
   </div>
 </template>
 
