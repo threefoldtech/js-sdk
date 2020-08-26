@@ -11,7 +11,6 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class CryptpadDeploy(GedisChatBot):
     steps = [
-        "cryptpad_start",
         "cryptpad_name",
         "solution_specs",
         "select_pool",
@@ -23,18 +22,17 @@ class CryptpadDeploy(GedisChatBot):
     ]
     title = "Cryptpad"
 
-    @chatflow_step()
-    def cryptpad_start(self):
+    def _cryptpad_start(self):
         self.solution_id = uuid.uuid4().hex
         self.flist_url = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
         self.user_form_data = dict()
         self.user_form_data["chatflow"] = "cryptpad"
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
-        self.md_show("# This wizard will help you deploy a cryptpad container", md=True)
 
     @chatflow_step(title="Solution name")
     def cryptpad_name(self):
+        self._cryptpad_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

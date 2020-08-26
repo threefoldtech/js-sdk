@@ -12,7 +12,6 @@ import uuid
 
 class FlistDeploy(GedisChatBot):
     steps = [
-        "flist_start",
         "flist_name",
         "container_resources",
         "container_volume",
@@ -32,15 +31,14 @@ class FlistDeploy(GedisChatBot):
     ]
     title = "Flist"
 
-    @chatflow_step()
-    def flist_start(self):
+    def _flist_start(self):
         self.solution_id = uuid.uuid4().hex
         self.env = dict()
-        self.md_show("# This wizard will help you deploy a container using any flist provided", md=True)
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def flist_name(self):
+        self._flist_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
