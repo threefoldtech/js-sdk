@@ -110,7 +110,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "DOMAIN": self.domain,
             # "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
-            "MARKETPLACE_URL": j.sals.nginx.main.websites.marketplace_marketplace_root_proxy_443.domain,
+            "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.marketplace_marketplace_root_proxy_443.domain}/",
         }
         self.network_view = self.network_view.copy()
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
