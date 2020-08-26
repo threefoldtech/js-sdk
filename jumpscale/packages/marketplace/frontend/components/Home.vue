@@ -20,7 +20,12 @@
           </v-col>
           <v-spacer></v-spacer>
         </v-row>
-        <h2 class="font-weight-black">Apps</h2>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
+          </template>
+          <span>Threefold end user applications</span>
+        </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card
             v-for="app in filteredApps"
@@ -55,8 +60,16 @@
           </v-card>
         </v-row>
         <br />
-
-        <h2 class="font-weight-black mt-4">Advanced Solutions</h2>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <span
+              v-bind="attrs"
+              v-on="on"
+              class="soTitle font-weight-black mt-4"
+            >Infrastructure solutions</span>
+          </template>
+          <span>Threefold grid primitives</span>
+        </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card
             v-for="solution in filteredSolutions"
@@ -150,3 +163,9 @@ module.exports = {
   },
 };
 </script>
+
+<style scoped>
+span.soTitle {
+  font-size: 27;
+}
+</style>
