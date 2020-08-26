@@ -9,7 +9,7 @@ from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class KubernetesDeploy(BaseKubernetesDeploy, MarketPlaceChatflow):
-    def deployment_start(self):
+    def _deployment_start(self):
         self._validate_user()
         super()._deployment_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
