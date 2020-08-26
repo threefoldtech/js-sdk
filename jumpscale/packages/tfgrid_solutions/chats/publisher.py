@@ -204,6 +204,7 @@ class Publisher(GedisChatBot):
 
         # 4- deploy container
         self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+        self.envars["DOMAIN"] = self.domain
         self.envars["TEST_CERT"] = "true" if j.config.get("TEST_CERT") else "false"
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
