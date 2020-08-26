@@ -9,5 +9,6 @@ mv /root/rest-server-0.9.7-linux-amd64 /usr/bin/rest-server
 
 apt-get install  -y apache2
 /etc/init.d/apache2 restart
-mkdir /home/backup_config
-rest-server --private-repos --path /home/backup_config
+mkdir /root/backup_config /root/backup
+touch /root/backup/.htpasswd
+rest-server --private-repos --path /root/backup_config
