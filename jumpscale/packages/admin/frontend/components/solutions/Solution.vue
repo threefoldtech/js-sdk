@@ -37,7 +37,7 @@
         </v-card>
       </template>
     </base-component>
-    <solution-info v-if="selected" v-model="dialog" :data="selected" :type="selected"></solution-info>
+    <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
   </div>
 </template>
 
@@ -51,7 +51,9 @@ module.exports = {
     return {
       loading: false,
       selected: null,
-      dialog: false,
+      dialogs: {
+        info: false
+      },
       deployedSolutions: {},
       solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)]
     };
@@ -79,7 +81,7 @@ module.exports = {
     },
     showInfo(data) {
       this.selected = data;
-      this.dialog = true;
+      this.dialogs.info = true;
     },
     getDeployedSolutions(solutionType) {
       this.$api.solutions.getDeployed(solutionType).then(response => {
