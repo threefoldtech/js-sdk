@@ -223,7 +223,7 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your solution explosed successfully:
+# Congratulations! Your solution has been exposed successfully:
 \n<br />\n
 - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
         """
