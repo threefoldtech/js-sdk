@@ -26,7 +26,7 @@
 3. Define your chatflow steps:
     ```python
         steps = [
-            "solution_name", # required
+            "get_solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
             "payment_currency", # required
@@ -37,7 +37,7 @@
         ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
+    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "get_solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
 
     - In the `success` step, you have to:
         1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.

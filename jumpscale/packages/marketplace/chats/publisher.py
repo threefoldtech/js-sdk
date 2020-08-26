@@ -10,7 +10,7 @@ class Publisher(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
     steps = [
-        "solution_name",
+        "get_solution_name",
         "configuration",
         "solution_expiration",
         "payment_currency",

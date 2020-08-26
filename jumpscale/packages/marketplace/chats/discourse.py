@@ -10,7 +10,7 @@ class Discourse(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
     SOLUTION_TYPE = "discourse"
     steps = [
-        "solution_name",
+        "get_solution_name",
         "discourse_smtp_info",
         "solution_expiration",
         "payment_currency",

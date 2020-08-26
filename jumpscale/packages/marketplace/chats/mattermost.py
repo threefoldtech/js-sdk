@@ -11,7 +11,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "mattermost"
     title = "Mattermost"
     steps = [
-        "solution_name",
+        "get_solution_name",
         "mattermost_info",
         "solution_expiration",
         "payment_currency",

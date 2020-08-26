@@ -10,7 +10,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     steps = [
-        "solution_name",
+        "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",

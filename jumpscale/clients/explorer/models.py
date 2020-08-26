@@ -42,6 +42,7 @@ class Location(Base):
     def __str__(self):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
+
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -55,7 +56,6 @@ class Farm(Base):
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
-        
 
 
 class WorkloadsAmount(Base):
@@ -247,6 +247,7 @@ class ContainerNetworkConnection(Base):
     network_id = fields.String(default="")
     ipaddress = fields.IPAddress()
     public_ip6 = fields.Boolean()
+    yggdrasil_ip = fields.Boolean()
 
 
 class ContainerLogsRedis(Base):
