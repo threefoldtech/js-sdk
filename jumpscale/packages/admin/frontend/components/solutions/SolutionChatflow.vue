@@ -1,5 +1,5 @@
 <template>
-  <external :package="package" :name="name" :path="path" :url="url"></external>
+  <external :package="package" :name="name" :url="url"></external>
 </template>
 
 <script>

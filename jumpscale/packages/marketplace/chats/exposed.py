@@ -1,7 +1,7 @@
 import uuid
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose
+from jumpscale.packages.tfgrid_solutions.chats.exposed import SolutionExpose as BaseSolutionExpose
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 

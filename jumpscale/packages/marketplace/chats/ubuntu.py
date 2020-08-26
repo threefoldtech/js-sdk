@@ -1,7 +1,7 @@
 import math
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.ubuntu_deploy import UbuntuDeploy as BaseUbuntuDeploy
+from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy as BaseUbuntuDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
