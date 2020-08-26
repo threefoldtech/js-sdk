@@ -8,19 +8,20 @@ import binascii
 from nacl.public import Box
 import nacl.encoding
 
-BACKUP_SERVER1 = "backup_server1"
-BACKUP_SERVER2 = "backup_server2"
-
 
 class Backup(BaseActor):
     def __init__(self):
         super().__init__()
         self.PRIVATE_KEY = j.core.identity.me.nacl.private_key
-
         self.explorer = j.core.identity.me.explorer
-        self.ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
-        self.ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
+
+    @property
+    def ssh_servers(self):
+        servers = []
+        for backup_server in j.config.get("BACKUP_SERVERS") or ["backup_server1", "backup_server2"]:
+            servers.append(j.clients.sshclient.get(backup_server))
+        return servers
 
     @actor_method
     def init(self, threebot_name: str, passwd: str, new=True) -> list:
@@ -34,20 +35,20 @@ class Backup(BaseActor):
         password_backup = box.decrypt(passwd.encode(), encoder=nacl.encoding.Base64Encoder).decode()
         threebot_name = threebot_name.split(".")[0]
         if new:
-            self._htpasswd(self.ssh_server1, threebot_name, password_backup)
-            self._htpasswd(self.ssh_server2, threebot_name, password_backup)
+            for ssh_server in self.ssh_servers:
+                self._htpasswd(ssh_server, threebot_name, password_backup)
         else:
             try:
-                self.ssh_server1.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
-                )
-                self.ssh_server2.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
-                )
+                for ssh_server in self.ssh_servers:
+                    ssh_server.sshclient.run(f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}")
             except:
                 raise j.exceptions.Value(f"3Bot name or password are incorrect")
 
-        return [self.ssh_server1.host, self.ssh_server2.host]
+        return [ssh_server.host for ssh_server in self.ssh_servers]
+
+    @actor_method
+    def backup_servers_count(self) -> int:
+        return len(self.ssh_servers)
 
     def _htpasswd(self, server, threebot_name, password_backup):
         server.sshclient.run(f"cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}")

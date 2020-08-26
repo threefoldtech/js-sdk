@@ -4,18 +4,28 @@ import os
 import requests
 import nacl.encoding
 from nacl.public import Box
+import nacl
 
-MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://marketplace-testnet.grid.tf/")
+
 CREATE_USER_ENDPOINT = "marketplace/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "marketplace/actors/backup/public_key"
-REPO_NAMES = ["config_backup_1", "config_backup_2"]
 
 
 class Backup(BaseActor):
+    @property
+    def marketplace_url(self):
+        return j.config.get("MARKETPLACE_URL") or "https://marketplace.grid.tf/"
+
+    @property
+    def repo_names(self):
+        response = requests.post(f"{self.marketplace_url}count")
+        count = int(response.text)
+        return [f"config_backup{i+1}" for i in range(count)]
+
     @actor_method
     def repos_exist(self) -> bool:
         restic_repos = j.tools.restic.list_all()
-        for repo in REPO_NAMES:
+        for repo in self.repo_names:
             if repo not in restic_repos:
                 return False
         return True
@@ -25,7 +35,7 @@ class Backup(BaseActor):
         headers = {"Content-Type": "application/json"}
         tname = j.core.identity.me.tname
         username = j.core.identity.me.tname.split(".")[0]
-        url = os.path.join(MARKETPLACE_URL, PUBLIC_KEY_ENDPOINT)
+        url = os.path.join(self.marketplace_url, PUBLIC_KEY_ENDPOINT)
         response = requests.post(url)
         if response.status_code != 200:
             raise Exception("Can not get market place publickey")
@@ -34,11 +44,11 @@ class Backup(BaseActor):
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
         data = {"threebot_name": tname, "passwd": password_encrypted, "new": new}
-        url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
+        url = os.path.join(self.marketplace_url, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
             raise j.exceptions.Value(f"can not create user with name:{username}, error={response.text}")
-        config_dict = dict(zip(REPO_NAMES, response.json()))
+        config_dict = dict(zip(self.repo_names, response.json()))
         for repo_name, serverip in config_dict.items():
             print(repo_name, serverip)
             repo = j.tools.restic.get(repo_name)
@@ -57,7 +67,7 @@ class Backup(BaseActor):
         else:
             tags = []
         tags.append(str(j.data.time.now().timestamp))
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
@@ -69,7 +79,7 @@ class Backup(BaseActor):
 
         snapshots = []
 
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             repo_snapshots = repo.list_snapshots(tags=tags)
             if repo_snapshots:
@@ -107,7 +117,7 @@ class Backup(BaseActor):
             return snapshot
 
         snapshots = []
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             repo_snapshots = repo.list_snapshots(last=True, tags=tags, path=j.core.dirs.JSCFGDIR)
             if repo_snapshots:
@@ -132,7 +142,7 @@ class Backup(BaseActor):
     def enable_auto_backup(self) -> str:
         if not self.repos_exist():
             raise j.exceptions.Value("Please configure backup first")
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             repo.auto_backup(j.core.dirs.JSCFGDIR)
         return j.data.serializers.json.dumps({"data": "auto backup enabled"})
@@ -142,7 +152,7 @@ class Backup(BaseActor):
         if not self.repos_exist():
             raise j.exceptions.Value("Please configure backup first")
 
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             if not repo.auto_backup_running(j.core.dirs.JSCFGDIR):
                 return False
@@ -152,7 +162,7 @@ class Backup(BaseActor):
     def disable_auto_backup(self) -> str:
         if not self.repos_exist():
             raise j.exceptions.Value("Please configure backup first")
-        for repo_name in REPO_NAMES:
+        for repo_name in self.repo_names:
             repo = j.tools.restic.get(repo_name)
             repo.disable_auto_backup(j.core.dirs.JSCFGDIR)
         return j.data.serializers.json.dumps({"data": "auto backup disabled"})
