@@ -1145,7 +1145,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "SOLUTION_PORT": str(solution_port),
             "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
-            "PUBKEY": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDM62HSUcago+A/xJRAeThmhPMT/M9ERyHunyy33NpVv8HXCiZEZsNbi+JR/RfStXU1qsgopL+D2MObm/X40RsZcj3laXPx9lPlHZgSYdzouKkOSPjaSg2obXWYNkW0bVF5SVqzmBE9SYKI9EFHPHLIdKW8msrfRktbFx26ILnGIGq/iSwI+Jn9BSr9bVjNch6OlDD5u0jyy4q7tqARdLEfWoluClQViTFxxD1Rrc8wRAy3AmxRnYL9b2pFHG/yVrbszM+z1Hz1Y58aY2pJ6bV0FcQ4KZQHKQL5bL4WhN5oyEZ19XAMXTBFR2l5F04nbO1A1XgP2QdPObthxu2oygGglZlfng0Zp/DOMctO/24Twj21kNuiDQmg3GLJJqr0My0og85qI2DmHkUpy+FzfDSRFv0b3aKOkz3TqU320zSKFQJuDxGVGpq/DfzqJS0p01iK5x0hnCjTkElIPWc5j5tqDNlgqJ/FYFSf9K6hVqIcnzAt1OnwvU567NSRH/THQpVSEv1vDt2iJZLvyhGVA7uQEEB+lxDRp6moKZqArT5z2rXrQUvhfbeyEQrvBzTX20DyEsOAEmjHtNfx6hKS5AuX3InVgOuf7Dh57glT1QpwOYxWtgDGxsTCmW1yrjVCCeZmDJAwuL1X4rk1zZC3y7Ra2WSN/tWSnr/RlSAkS5LF9w== omarelawady1998@gmail.com",
+            "PUBKEY": public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "HTTP_CONFIG": http_config,
             "HTTPS_CONFIG": https_config,
