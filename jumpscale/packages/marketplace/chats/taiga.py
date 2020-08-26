@@ -13,8 +13,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "taiga_credentials",
         "solution_expiration",
         "payment_currency",
@@ -24,11 +23,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 4}
-        self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 4}
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):

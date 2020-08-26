@@ -15,14 +15,14 @@ kinds = {
 
 
 class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
-    @chatflow_step(title="")
-    def deployment_start(self):
+    def _deployment_start(self):
         self._validate_user()
-        super().deployment_start()
+        super()._deployment_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
+        self._deployment_start()
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
         solutions = kinds[self.kind](self.solution_metadata["owner"])
         self.sols = {}

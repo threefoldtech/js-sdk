@@ -9,7 +9,6 @@ import uuid
 
 class Publisher(GedisChatBot):
     steps = [
-        "start",
         "publisher_name",
         "select_pool",
         "publisher_network",
@@ -21,21 +20,20 @@ class Publisher(GedisChatBot):
     ]
 
     title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
     publishing_chatflow = "publisher"  # chatflow used to deploy the solution
 
     @chatflow_step()
-    def start(self):
+    def _publisher_start(self):
         self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
         self.solution_id = uuid.uuid4().hex
         self.solution_currency = "TFT"
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-        self.md_show(self.welcome_message, md=True)
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def publisher_name(self):
+        self._publisher_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
