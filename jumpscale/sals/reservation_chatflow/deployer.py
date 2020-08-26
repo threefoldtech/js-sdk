@@ -483,6 +483,7 @@ class ChatflowDeployer:
             required=True,
             field="name",
         )
+
         return name
 
     def ask_email(self, bot):

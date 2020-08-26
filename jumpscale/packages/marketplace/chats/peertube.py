@@ -39,7 +39,7 @@ class Peertube(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,

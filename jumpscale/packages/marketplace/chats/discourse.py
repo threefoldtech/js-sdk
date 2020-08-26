@@ -40,7 +40,7 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
