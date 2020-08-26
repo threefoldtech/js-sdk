@@ -80,7 +80,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id)
+            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
@@ -147,7 +147,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def get_solution_name(self):
         valid = False
         while not valid:
-            self.solution_name = self.string_ask("Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )", required=True)
+            self.solution_name = self.string_ask(
+                "Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )",
+                required=True,
+            )
             method = getattr(solutions, f"list_{self.SOLUTION_TYPE}_solutions")
             solutions_list = method(self.solution_metadata["owner"], sync=False)
             valid = True

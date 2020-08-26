@@ -95,7 +95,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         available_pools=None,
         workload_name=None,
     ):
-        user_pools = available_pools or self.list_pools(username)
+        user_pools = available_pools or self.list_pools(username, su=su, cu=cu)
         return super().select_pool(
             bot,
             cu=cu,
