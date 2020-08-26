@@ -39,15 +39,6 @@
     - All steps methods should be decorated with `@chatflow_step(title="")`
     - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "get_solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
 
-    - In the `success` step, you have to:
-        1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.
-            ```python
-            @chatflow_step(title="Success", disable_previous=True, final_step=True)
-            def success(self):
-                self._wgconf_show_check()
-                message = "success message"
-                self.md_show(message, md=True)
-            ```
     - After `solution_name` step, put the extra info steps required for your app.
     - In `overview` step, you define your app metadata to be confirmed by the user
         - For example:
