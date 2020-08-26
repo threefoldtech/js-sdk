@@ -171,7 +171,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
             self.stop("Failed to initialize 3Bot, please contact support")
-        self.domain = self.threebot_url
+        self.domain = f"{self.domain}/admin"
 
 
 chat = ThreebotDeploy
