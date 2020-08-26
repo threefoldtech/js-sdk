@@ -81,7 +81,7 @@ module.exports = {
     },
     showInfo(data) {
       this.selected = data;
-      this.dialog = true;
+      this.dialogs.info = true;
     },
     getDeployedSolutions(solution_type) {
       this.$api.solutions.getDeployed(solution_type).then(response => {
