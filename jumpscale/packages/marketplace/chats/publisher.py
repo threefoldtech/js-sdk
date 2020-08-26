@@ -12,7 +12,7 @@ class Publisher(MarketPlaceAppsChatflow):
     welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "configuration",
         "solution_expiration",
         "payment_currency",
@@ -47,7 +47,7 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_info()["email"],
         }
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         info = {"Solution name": self.solution_name, "domain": self.domain}
         self.md_show_confirm(info)

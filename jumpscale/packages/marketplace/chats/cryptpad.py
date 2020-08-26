@@ -11,7 +11,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     title = "Cryptpad"
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",
@@ -38,7 +38,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -52,9 +52,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(
-        title="Reservation", disable_previous=True,
-    )
+    @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -133,7 +131,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

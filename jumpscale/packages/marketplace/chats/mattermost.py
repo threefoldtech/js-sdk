@@ -12,7 +12,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     title = "Mattermost"
     steps = [
         "start",
-        "solution_name",
+        "get_solution_name",
         "mattermost_info",
         "solution_expiration",
         "payment_currency",
@@ -37,7 +37,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         self.vol_size = int(volume_size.value)
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Confirmation")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
