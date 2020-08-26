@@ -1,37 +1,52 @@
+from typing import List
+
+from jumpscale.clients.explorer.models import K8s, WorkloadType
 from jumpscale.core.exceptions import Input
+
 from .crypto import encrypt_for_node
-from .id import _next_workload_id
-from jumpscale.clients.explorer.models import TfgridWorkloadsReservationK8s1
 
 
-class Kubernetes:
+class KubernetesGenerator:
+    """ """
+
     def __init__(self, explorer):
         self._nodes = explorer.nodes
 
-    def add_master(self, reservation, node_id, network_name, cluster_secret, ip_address, size, ssh_keys=[]):
-        """Add a master node to a kubernets cluster
+    def add_master(
+        self,
+        node_id: str,
+        network_name: str,
+        cluster_secret: str,
+        ip_address: str,
+        size: int,
+        ssh_keys: List[str],
+        pool_id: int,
+    ) -> K8s:
+        """create a kubernetes marster workload object
 
         Args:
-            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
-            node_id (str): Id of the node to be added
-            network_name (str): name of the network to join
-            cluster_secret (str): Secret of the cluster to be joined
-            ip_address (str): Ip address of the master node
-            size (int): size of master node, either 1 or 2
-            ssh_keys (list, optional): List of ssh keys to be added to that node. Defaults to [].
-
-        Raises:
-            jumpscale.core.exceptions.Input: If size is not supported
+          node_id(str): node ID on which to deploy the k8s master
+          network_name(str): name of the network to use
+          cluster_secret(str): secret of the cluster. all the member of a same cluster must share the same secret
+          ip_address(str): ip address of the k8s master
+          size(int): size of the VM.
+          ssh_keys(List[str]): list of public SSH key to authorize in the VM
+          pool_id(int): capacity pool ID
 
         Returns:
-            from jumpscale.clients.explorer.models.TfgridWorkloadsReservationK8s1: Master node
+          K8s: K8s
+
+        Raises:
+          Input: if size is not supported
+
         """
         if size not in [1, 2]:
             raise Input("size can only be 1 or 2")
 
-        master = TfgridWorkloadsReservationK8s1()
-        master.node_id = node_id
-        master.workload_id = _next_workload_id(reservation)
+        master = K8s()
+        master.info.node_id = node_id
+        master.info.workload_type = WorkloadType.Kubernetes
+        master.info.pool_id = pool_id
 
         node = self._nodes.get(node_id)
         master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret).decode()
@@ -42,36 +57,46 @@ class Kubernetes:
             ssh_keys = [ssh_keys]
         master.ssh_keys = ssh_keys
 
-        reservation.data_reservation.kubernetes.append(master)
         return master
 
-    def add_worker(self, reservation, node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys=[]):
-        """Add a worker node to a kubernets cluster
+    def add_worker(
+        self,
+        node_id: str,
+        network_name: str,
+        cluster_secret: str,
+        ip_address: str,
+        size: int,
+        master_ip: str,
+        ssh_keys: List[str],
+        pool_id: int,
+    ) -> K8s:
+        """create a kubernetes worker workload object
 
         Args:
-            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
-            node_id (str): Id of the node to be added
-            network_name (str): name of the network to join
-            cluster_secret (str): Secret of the cluster to be joined
-            ip_address (str): Ip address of the worker node
-            size (int): size of master node, either 1 or 2
-            master_ip (str): IP address of a master node
-            ssh_keys (list, optional): List of ssh keys to be added to that node. Defaults to [].
-
-        Raises:
-            jumpscale.core.exceptions.Input: If size is not supported
+          node_id(str): node ID on which to deploy the k8s master
+          network_name(str): name of the network to use
+          cluster_secret(str): secret of the cluster. all the member of a same cluster must share the same secret
+          ip_address(str): ip address of the k8s master
+          size(int): size of the VM.
+          ssh_keys(List[str]): list of public SSH key to authorize in the VM
+          master_ip(str): IP address of the master node of this cluster
+          pool_id(int): capacity pool ID
 
         Returns:
-            [type]: Worker node
+          K8s: K8s
+
+        Raises:
+          Input: if size is not supported
+
         """
         worker = self.add_master(
-            reservation=reservation,
             node_id=node_id,
             network_name=network_name,
             cluster_secret=cluster_secret,
             ip_address=ip_address,
             size=size,
             ssh_keys=ssh_keys,
+            pool_id=pool_id,
         )
         worker.master_ips = [master_ip]
         return worker

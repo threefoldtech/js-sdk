@@ -35,6 +35,31 @@ class Packages(BaseActor):
         return j.data.serializers.json.dumps({"data": self.threebot.packages.add(path=path, giturl=giturl, **extras)})
 
     @actor_method
+    def add_internal_package(self, name, extras=None) -> str:
+        """
+        add internal package with name
+
+        this will search `j.packages` namespace for the given name.
+
+        Args:
+            name (str): name of the package, e.g. codeserver.
+            extras (dict, optional): extras to be passed to `package.install`. Defaults to None.
+
+        Raises:
+            j.exceptions.NotFound: in case package cannot be found under `j.packages`
+
+        Returns:
+            str: package information as json
+        """
+        try:
+            package_module = getattr(j.packages, name)
+        except AttributeError:
+            raise j.exceptions.NotFound(f'package with name "{name}" cannot be found')
+
+        path = package_module.__path__[0]
+        return self.add_package(path=path, extras=extras)
+
+    @actor_method
     def delete_package(self, name: str) -> str:
         return j.data.serializers.json.dumps({"data": self.threebot.packages.delete(name)})
 

@@ -1,5 +1,5 @@
 """
-# Auth package is responsible for making authentication and authorization using threebot connect
+# Auth package is responsible for making authentication and authorization using 3Bot connect
 
 ## Components
 
@@ -15,7 +15,7 @@
 
 - In `bottle/templates` There are 3 templates
   - home.html: the main structure of the auth page
-  - login.html: the login component shows all available providers to login in with (3bot connect)
+  - login.html: the login component shows all available providers to login in with (3Bot connect)
   - access_denied.html: this page is when the user is not authorized to view this page
 
 ### Authentication flow:

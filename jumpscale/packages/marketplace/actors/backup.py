@@ -12,7 +12,6 @@ BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
 
 
-
 class Backup(BaseActor):
     def __init__(self):
         super().__init__()
@@ -28,7 +27,7 @@ class Backup(BaseActor):
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
-            raise j.exceptions.NotFound(f"Threebot name {threebot_name} is not found")
+            raise j.exceptions.NotFound(f"3Bot name {threebot_name} is not found")
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())
@@ -46,7 +45,7 @@ class Backup(BaseActor):
                     f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
             except:
-                raise j.exceptions.Value(f"Threebot name or password are incorrect")
+                raise j.exceptions.Value(f"3Bot name or password are incorrect")
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 

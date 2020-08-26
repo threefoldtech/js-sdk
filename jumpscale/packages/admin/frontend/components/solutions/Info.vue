@@ -2,14 +2,24 @@
   <div>
     <base-dialog :title="title" v-model="dialog" :loading="loading">
       <template #default>
-        <code-area mode="python" :content="json"></code-area>
+        <json-renderer
+          :title="title"
+          :jsonobj="json"
+          :typelist="KeysWithTypeList"
+          :typedict="KeysWithTypeDict"
+        ></json-renderer>
       </template>
       <template #actions>
-        <v-btn text color="error" @click.stop="cancel()">Delete Reservation</v-btn>
+        <v-btn
+          v-if="data.Name !== undefined"
+          text
+          color="error"
+          @click.stop="cancel()"
+        >Delete Reservation</v-btn>
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
-    <cancel-solution v-model="dialogs.cancelSolution" :name="data.name" :type="data.type"></cancel-solution>
+    <cancel-solution v-model="dialogs.cancelSolution" :wids="data.wids"></cancel-solution>
   </div>
 </template>
 
@@ -25,15 +35,21 @@ module.exports = {
       dialogs: {
         cancelSolution: false,
       },
+      KeysWithTypeList: ["Node ids", "wids", "Active workload ids"],
+      KeysWithTypeDict: ["nodes"]
     };
   },
   computed: {
     json() {
-      return JSON.stringify(JSON.parse(this.data.reservation.json), null, 2);
+      if (this.data["Last updated"] !== undefined)
+        this.data["Last updated"] = new Date(this.data["Last updated"] * 1000);
+      if (this.data["Empty at"] !== undefined)
+        this.data["Empty at"] = new Date(this.data["Empty at"] * 1000);
+      return this.data;
     },
     title() {
-      return this.data.status === "DELETED"
-        ? "Reservation details"
+      return this.data.Name === undefined
+        ? "Workload details"
         : "Solution details";
     },
   },

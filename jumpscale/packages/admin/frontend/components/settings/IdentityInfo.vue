@@ -9,11 +9,11 @@
               <td>{{ name }}</td>
             </tr>
             <tr>
-              <td>3bot ID</td>
+              <td>3Bot ID</td>
               <td>{{ identity.tid }}</td>
             </tr>
             <tr>
-              <td>3bot Name</td>
+              <td>3Bot Name</td>
               <td>{{ identity.name }}</td>
             </tr>
             <tr>
@@ -70,6 +70,7 @@ module.exports = {
         this.$api.identities.setIdentity(this.name).then((response) => {
           this.$parent.$parent.$parent.$parent.getIdentity()
           this.done("Identity Updated", "success")
+          window.location.reload()
         }).catch((error) => {
           console.log(error)
           this.alert("Failed to update identity", "error")

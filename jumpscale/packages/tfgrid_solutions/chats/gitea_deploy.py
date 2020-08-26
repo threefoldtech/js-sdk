@@ -161,7 +161,7 @@ class GiteaDeploy(GedisChatBot):
             "APP_NAME": self.user_form_data["Repository"],
             "ROOT_URL": f"https://{self.ip_address}",
             "HTTP_PORT": "3000",
-            "DOMAIN": f"{self.ip_address}"
+            "DOMAIN": f"{self.ip_address}",
         }
         database_password_encrypted = j.sals.zos.container.encrypt_secret(
             self.node_selected.node_id, self.user_form_data["Database Password"]

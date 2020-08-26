@@ -1,6 +1,7 @@
 name = "farmmanagement"
 is_auth = true
 is_admin = true
+frontend = "/farmmanagement"
 
 [[static_dirs]]
 name = "frontend"

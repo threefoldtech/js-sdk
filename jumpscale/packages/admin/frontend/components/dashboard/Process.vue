@@ -2,7 +2,7 @@
   <base-dialog title="Process details" v-model="dialog" :loading="loading">
     <template #default>
       <v-simple-table>
-        <template v-slot:default>          
+        <template v-slot:default>
           <tbody>
             <tr>
               <td>Name</td>
@@ -23,12 +23,11 @@
             <tr>
               <td>Ports</td>
               <td class="pt-2">
-                <v-chip class="ma-1" v-for="port in process.ports" :key="port.port">
+                <v-chip class="ma-1" v-for="(port, index) in process.ports" :key="index">
                   {{ port.port }} ({{ port.status }})
                 </v-chip>
               </td>
             </tr>
-      
           </tbody>
         </template>
       </v-simple-table>
@@ -36,7 +35,7 @@
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
     </template>
-  </base-dialog>  
+  </base-dialog>
 </template>
 
 <script>
@@ -46,4 +45,3 @@ module.exports = {
   mixins: [dialog]
 }
 </script>
-
