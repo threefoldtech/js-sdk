@@ -1,7 +1,7 @@
 import uuid
 import random
-
 import requests
+from textwrap import dedent
 
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -177,3 +177,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._get_pool()
         self._deploy_network()
         self._get_domain()
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        self._wgconf_show_check()
+        message = f"""\
+# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+\n<br />\n
+- You can use it from browser with <a href="http://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+\n<br />\n
+- If you have any problem, contact technical support and mention the workload IDs
+                """
+        self.md_show(dedent(message), md=True)

@@ -135,18 +135,5 @@ class Publisher(MarketPlaceAppsChatflow):
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
 
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
-        self.md_show(dedent(message), md=True)
-
 
 chat = Publisher
