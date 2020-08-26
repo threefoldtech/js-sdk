@@ -13,8 +13,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "taiga_credentials",
         "solution_expiration",
         "payment_currency",
@@ -24,11 +23,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 4}
-        self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 4}
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
@@ -81,12 +76,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
+        flask_secret = j.data.idgenerator.chars(10)
         var_dict = {
             "EMAIL_HOST_USER": self.EMAIL_HOST_USER,
             "EMAIL_HOST": self.EMAIL_HOST,
             "TAIGA_HOSTNAME": self.domain,
             "HTTP_PORT": "80",
-            "FLASK_SECRET_KEY": "flask",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
@@ -114,6 +109,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                     "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                     "PRIVATE_KEY": private_key,
                     "SECRET_KEY": self.SECRET_KEY,
+                    "FLASK_SECRET_KEY": flask_secret,
                 },
                 **self.solution_metadata,
                 solution_uuid=self.solution_id,
@@ -139,7 +135,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 node_id=self.selected_node.node_id,
                 solution_uuid=self.solution_id,
                 proxy_pool_id=self.gateway_pool.pool_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)

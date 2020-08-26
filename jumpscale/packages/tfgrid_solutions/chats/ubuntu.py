@@ -13,7 +13,6 @@ class UbuntuDeploy(GedisChatBot):
     IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
 
     steps = [
-        "ubuntu_start",
         "ubuntu_name",
         "ubuntu_version",
         "container_resources",
@@ -31,17 +30,16 @@ class UbuntuDeploy(GedisChatBot):
 
     title = "Ubuntu"
 
-    @chatflow_step()
-    def ubuntu_start(self):
+    def _ubuntu_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.query = dict()
         self.user_form_data["chatflow"] = "ubuntu"
-        self.md_show("# This wizard will help you deploy an ubuntu container", md=True)
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
+        self._ubuntu_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

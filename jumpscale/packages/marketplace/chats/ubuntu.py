@@ -1,19 +1,20 @@
 import math
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.ubuntu_deploy import UbuntuDeploy as BaseUbuntuDeploy
+from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy as BaseUbuntuDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
     @chatflow_step()
-    def ubuntu_start(self):
-        super().ubuntu_start()
+    def _ubuntu_start(self):
+        super()._ubuntu_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
+        self._ubuntu_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

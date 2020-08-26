@@ -1,19 +1,19 @@
 import math
 
-from jumpscale.packages.tfgrid_solutions.chats.gollum_deploy import GollumDeploy as BaseGollumDeploy
+from jumpscale.packages.tfgrid_solutions.chats.gollum import GollumDeploy as BaseGollumDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
-    @chatflow_step()
-    def gollum_start(self):
+    def _gollum_start(self):
         self._validate_user()
-        super().gollum_start()
+        super()._gollum_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def gollum_name(self):
+        self._gollum_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

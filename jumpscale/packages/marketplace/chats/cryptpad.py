@@ -9,9 +9,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     steps = [
-        "start",
         "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
@@ -29,12 +29,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.service_fees = 0.5
         self.backup_fees = 0.8
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard will help you deploy a cryptpad solution", md=True)
-
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
         form = self.new_form()
@@ -46,7 +40,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -60,9 +54,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(
-        title="Reservation", disable_previous=True,
-    )
+    @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -147,7 +139,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             test_cert=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

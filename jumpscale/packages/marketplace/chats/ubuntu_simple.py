@@ -1,4 +1,3 @@
-from jumpscale.packages.tfgrid_solutions.chats.cryptpad_deploy import CryptpadDeploy as BaseCryptpadDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 import uuid
@@ -9,7 +8,6 @@ FARM_NAMES = ["freefarm"]
 
 class UbuntuDeploy(MarketPlaceChatflow):
     steps = [
-        "ubuntu_start",
         "ubuntu_name",
         "ubuntu_info",
         "ubuntu_expiration",
@@ -19,16 +17,15 @@ class UbuntuDeploy(MarketPlaceChatflow):
         "ubuntu_access",
     ]
 
-    @chatflow_step()
-    def ubuntu_start(self):
+    def _ubuntu_start(self):
         self._validate_user()
-        self.md_show("This wizard will help you deploy ubuntu container")
         self.solution_metadata = dict()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step()
     def ubuntu_name(self):
+        self._ubuntu_start()
         self.md_show_update("Fetching Infromation...")
         used_names = [s["Name"] for s in solutions.list_ubuntu_solutions(self.solution_metadata["owner"])]
         valid = False

@@ -18,7 +18,6 @@ ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
 class SolutionExpose(GedisChatBot):
     steps = [
-        "deployment_start",
         "solution_type",
         "exposed_solution",
         "exposed_ports",
@@ -29,15 +28,14 @@ class SolutionExpose(GedisChatBot):
     ]
     title = "Solution Expose"
 
-    @chatflow_step(title="")
-    def deployment_start(self):
+    def _deployment_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = {}
-        self.md_show("# This wizard will help you expose a deployed solution using the web gateway")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
+        self._deployment_start()
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
         solutions = kinds[self.kind]()
         self.sols = {}

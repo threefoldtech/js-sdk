@@ -4,21 +4,21 @@ import uuid
 
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.monitoring_deploy import MonitoringDeploy as BaseMonitoringDeploy
+from jumpscale.packages.tfgrid_solutions.chats.monitoring import MonitoringDeploy as BaseMonitoringDeploy
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class MonitoringDeploy(BaseMonitoringDeploy, MarketPlaceChatflow):
-    @chatflow_step()
-    def deployment_start(self):
+    def _deployment_start(self):
         self._validate_user()
-        super().deployment_start()
+        super()._deployment_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def choose_name(self):
+        self._deployment_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

@@ -10,7 +10,6 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class GollumDeploy(GedisChatBot):
     steps = [
-        "gollum_start",
         "gollum_name",
         "container_resources",
         "select_pool",
@@ -27,18 +26,17 @@ class GollumDeploy(GedisChatBot):
     ]
     title = "Gollum"
 
-    @chatflow_step()
-    def gollum_start(self):
+    def _gollum_start(self):
         self.solution_id = uuid.uuid4().hex
         self.flist_url = "https://hub.grid.tf/asamir.3bot/14443-gollum-new.flist"
         self.user_form_data = dict()
         self.user_form_data["chatflow"] = "gollum"
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
-        self.md_show("# This wizard will help you deploy a gollum container", md=True)
 
     @chatflow_step(title="Solution name")
     def gollum_name(self):
+        self._gollum_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

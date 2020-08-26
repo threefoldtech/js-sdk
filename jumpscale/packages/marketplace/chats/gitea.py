@@ -1,17 +1,17 @@
-from jumpscale.packages.tfgrid_solutions.chats.gitea_deploy import GiteaDeploy as BaseGiteaDeploy
+from jumpscale.packages.tfgrid_solutions.chats.gitea import GiteaDeploy as BaseGiteaDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class GiteaDeploy(BaseGiteaDeploy, MarketPlaceChatflow):
-    @chatflow_step()
-    def gitea_start(self):
+    def _gitea_start(self):
         self._validate_user()
-        super().gitea_start()
+        super()._gitea_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def gitea_name(self):
+        self._gitea_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

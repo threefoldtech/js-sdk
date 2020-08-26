@@ -9,7 +9,6 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class ThreebotDeploy(GedisChatBot):
     steps = [
-        "start",
         "set_threebot_name",
         "container_resources",
         "select_pool",
@@ -26,17 +25,16 @@ class ThreebotDeploy(GedisChatBot):
     ]
     title = "3Bot"
 
-    @chatflow_step()
-    def start(self):
+    def _threebot_start(self):
         self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         self.solution_id = uuid.uuid4().hex
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.md_show("This wizard will help you deploy a 3Bot container", md=True)
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def set_threebot_name(self):
+        self._threebot_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
@@ -182,7 +180,7 @@ class ThreebotDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
-
+        test_cert = j.config.get("TEST_CERT")
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -190,6 +188,7 @@ class ThreebotDeploy(GedisChatBot):
             "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
+            "TEST_CERT": "true" if test_cert else "false",
         }
         self.network_view = self.network_view.copy()
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"

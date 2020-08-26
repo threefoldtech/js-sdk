@@ -5,13 +5,12 @@ from jumpscale.packages.tfgrid_solutions.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 
-class BlogDeploy(Publisher):
+class WebsiteDeploy(Publisher):
 
-    title = "Deploy Blog"
-    welcome_message = "This wizard will help you publish your blog."
-    publishing_chatflow = "blog"  # chatflow used to deploy the solution
+    title = "Deploy Website"
+    publishing_chatflow = "website"  # chatflow used to deploy the solution
 
-    @chatflow_step(title="blog Setup")
+    @chatflow_step(title="Website Setup")
     def configuration(self):
         form = self.new_form()
         title = form.string_ask("Title", required=True)
@@ -20,7 +19,7 @@ class BlogDeploy(Publisher):
         form.ask("Set configuration")
 
         self.envars = {
-            "TYPE": "blog",
+            "TYPE": "www",
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
@@ -36,4 +35,4 @@ class BlogDeploy(Publisher):
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
 
-chat = BlogDeploy
+chat = WebsiteDeploy

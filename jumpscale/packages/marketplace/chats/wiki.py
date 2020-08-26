@@ -8,7 +8,6 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WikiDeploy(Publisher):
 
     title = "Deploy Wiki"
-    welcome_message = "This wizard will help you publish your wiki."
     SOLUTION_TYPE = "wiki"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Wiki Setup")

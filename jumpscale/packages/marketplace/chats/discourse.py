@@ -10,8 +10,7 @@ class Discourse(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
     SOLUTION_TYPE = "discourse"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "discourse_smtp_info",
         "solution_expiration",
         "payment_currency",
@@ -22,12 +21,7 @@ class Discourse(MarketPlaceAppsChatflow):
     ]
 
     title = "Discourse"
-
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 2, "sru": 2}
-        self.md_show("# This wizard will help you deploy discourse", md=True)
+    query = {"cru": 1, "mru": 2, "sru": 2}
 
     @chatflow_step(title="SMTP information")
     def discourse_smtp_info(self):
@@ -40,7 +34,7 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,

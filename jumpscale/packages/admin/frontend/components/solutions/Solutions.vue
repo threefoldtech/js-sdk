@@ -3,17 +3,24 @@
     <base-component title="Solutions" icon="mdi-apps" :loading="loading">
       <template #default>
         <div v-if="hasMigrated">
-          <v-autocomplete
-            v-model="searchText"
-            :items="[...apps, ...solutions]"
-            :loading="loading"
-            color="grey"
-            hide-no-data
-            hide-selected
-            item-text="name"
-            placeholder="Search for solutions"
-            append-icon="mdi-magnify"
-          ></v-autocomplete>
+          <v-row>
+          <v-spacer></v-spacer>
+          <v-col>
+            <v-autocomplete
+              width="10"
+              v-model="searchText"
+              :items="[...apps, ...solutions]"
+              :loading="loading"
+              color="grey"
+              hide-no-data
+              hide-selected
+              item-text="name"
+              placeholder="Search for solutions"
+              append-icon="mdi-magnify"
+            ></v-autocomplete>
+          </v-col>
+          <v-spacer></v-spacer>
+        </v-row>
           <h2 class="font-weight-black mx-2">Apps</h2>
           <v-row class="mt-2" align="start" justify="start">
             <v-card
@@ -43,7 +50,7 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(app.topic)">New</v-btn>
+                <v-btn text medium @click.stop="openChatflow(app.type)">New</v-btn>
                 <v-btn text medium @click.stop="viewWorkloads(app.type)">My workloads</v-btn>
               </v-card-actions>
             </v-card>
@@ -54,7 +61,7 @@
           <v-row class="mt-2" align="start" justify="start">
             <v-card
               v-for="solution in filteredSolutions"
-              :key="solution.topic"
+              :key="solution.type"
               class="ma-2"
               width="290"
               :loading="loading"
@@ -85,7 +92,7 @@
               </v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(solution.topic)">New</v-btn>
+                <v-btn text medium @click.stop="openChatflow(solution.type)">New</v-btn>
                 <v-btn text medium @click.stop="viewWorkloads(solution.type)">My workloads</v-btn>
               </v-card-actions>
             </v-card>

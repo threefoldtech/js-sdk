@@ -13,7 +13,6 @@ class Discourse(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
 
     steps = [
-        "discourse_start",
         "discourse_name",
         "discourse_smtp_info",
         "select_pool",
@@ -25,16 +24,15 @@ class Discourse(GedisChatBot):
 
     title = "Discourse"
 
-    @chatflow_step()
-    def discourse_start(self):
+    def _discourse_start(self):
         self.solution_id = uuid.uuid4().hex
         self.query = dict()
-        self.md_show("# This wizard will help you deploy discourse", md=True)
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def discourse_name(self):
+        self._discourse_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="SMTP information")
@@ -134,6 +132,7 @@ class Discourse(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
         }
+        self.solution_metadata.update(metadata)
         threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode("utf-8")
 
         env = {
@@ -163,7 +162,7 @@ class Discourse(GedisChatBot):
             subdomain=self.domain,
             addresses=self.addresses,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         success = deployer.wait_workload(_id, self)
@@ -186,7 +185,7 @@ class Discourse(GedisChatBot):
             env=env,
             secret_env=secret_env,
             interactive=False,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)
@@ -206,7 +205,7 @@ class Discourse(GedisChatBot):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:

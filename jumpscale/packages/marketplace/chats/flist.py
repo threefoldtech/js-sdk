@@ -1,20 +1,20 @@
 import math
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.flist_deploy import FlistDeploy as BaseFlistDeploy
+from jumpscale.packages.tfgrid_solutions.chats.flist import FlistDeploy as BaseFlistDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class FlistDeploy(BaseFlistDeploy, MarketPlaceChatflow):
-    @chatflow_step()
-    def flist_start(self):
+    def _flist_start(self):
         self._validate_user()
-        super().flist_start()
+        super()._flist_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def flist_name(self):
+        self._flist_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

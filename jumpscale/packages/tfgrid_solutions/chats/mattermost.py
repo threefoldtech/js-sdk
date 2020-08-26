@@ -11,7 +11,6 @@ class MattermostDeploy(GedisChatBot):
     """
 
     steps = [
-        "mattermost_start",
         "mattermost_name",
         "select_pool",
         "mattermost_network",
@@ -22,17 +21,16 @@ class MattermostDeploy(GedisChatBot):
     ]
     title = "Mattermost"
 
-    @chatflow_step()
-    def mattermost_start(self):
+    def _mattermost_start(self):
         self.solution_id = uuid.uuid4().hex
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
-        self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def mattermost_name(self):
+        self._mattermost_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="Pool")

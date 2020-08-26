@@ -2,21 +2,21 @@ import math
 
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.kubernetes_deploy import KubernetesDeploy as BaseKubernetesDeploy
+from jumpscale.packages.tfgrid_solutions.chats.kubernetes import KubernetesDeploy as BaseKubernetesDeploy
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class KubernetesDeploy(BaseKubernetesDeploy, MarketPlaceChatflow):
-    @chatflow_step()
     def deployment_start(self):
         self._validate_user()
-        super().deployment_start()
+        super()._deployment_start()
         self.solution_metadata["owner"] = self.user_info()["username"]
 
     @chatflow_step(title="Solution name")
     def kubernetes_name(self):
+        self._deployment_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
