@@ -1,4 +1,5 @@
 import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import Category
 from jumpscale.loader import j
@@ -219,10 +220,14 @@ class SolutionExpose(GedisChatBot):
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        res_md = f"Use this Gateway to connect to your exposed solution `{self.domain}`"
-        self.md_show(res_md)
+        message = f"""\
+# Congratulations! Your solution explosed successfully:
+\n<br />\n
+- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = SolutionExpose

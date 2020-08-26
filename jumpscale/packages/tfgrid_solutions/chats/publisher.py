@@ -233,14 +233,13 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
+        message = f"""\
+# Congratulations! Your own {self.publishing_chatflow}  deployed successfully:
+\n<br />\n
+- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
         self.md_show(dedent(message), md=True)
 
 

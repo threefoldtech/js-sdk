@@ -1,13 +1,13 @@
 import math
-
+import uuid
 import requests
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-import uuid
 
 
 class FlistDeploy(GedisChatBot):
@@ -27,7 +27,7 @@ class FlistDeploy(GedisChatBot):
         "ipv6_config",
         "overview",
         "reservation",
-        "container_access",
+        "success",
     ]
     title = "Flist"
 
@@ -237,23 +237,27 @@ class FlistDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_access(self):
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
         if self.interactive:
-            res = f"""\
-# Container has been deployed successfully: your reservation id is: {self.resv_id}
-Open your browser at [http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash](http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash)
-# Then open your browser at [http://{self.ip_address}:7681](http://{self.ip_address}:7681) and press on job id to go into shell bash .
-# This web using [COREX](https://github.com/threefoldtech/corex)
-# In shell inside container using [Bash](https://devdocs.io/bash/)
+            message = f"""\
+# Congratulations! Your own container deployed successfully:
+\n<br />\n
+- This web using <a href="https://github.com/threefoldtech/corex" target="_blank">COREX</a>
+\n<br />\n
+- You can watch processes from the browser: <a href="https://{self.ip_address}:7681" target="_blank">https://{self.ip_address}:7681</a>
+\n<br />\n
+- and add `bash` process from here: <a href="https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
+\n<br />\n
+- This web using <a href="https://devdocs.io/bash/" target="_blank">Bash</a>
                     """
-            self.md_show(res, md=True)
         else:
-            res = f"""\
-# Container has been deployed successfully: your reservation id is: {self.resv_id}
-Your IP is  ```{self.ip_address}```
+            message = f"""\
+# Congratulations! Your own container deployed successfully:
+\n<br />\n
+- Your ip address: `{self.ip_address}`
                     """
-            self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = FlistDeploy

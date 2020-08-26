@@ -184,10 +184,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         message = f"""\
 # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
 \n<br />\n
-- You can use it from browser with <a href="http://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
 - This domain maps to your container with ip: `{self.ip_address}`
-\n<br />\n
-- If you have any problem, contact technical support and mention the workload IDs
                 """
         self.md_show(dedent(message), md=True)

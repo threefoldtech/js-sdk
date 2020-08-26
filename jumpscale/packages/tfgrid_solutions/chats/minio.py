@@ -1,5 +1,6 @@
 import math
 import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
@@ -284,15 +285,16 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
-        res = f"""\
+        message = f"""\
 # Minio cluster has been deployed successfully.
-Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000). It may take a few minutes.
+- Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000).
+\n<br />\n
                 """
         if self.mode == "Master/Slave":
-            res += f"""\
-You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
+            message += f"""\
+- You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
                 """
-        self.md_show(res)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MinioDeploy

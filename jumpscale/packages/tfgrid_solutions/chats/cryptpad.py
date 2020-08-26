@@ -2,6 +2,7 @@ import time
 import uuid
 import math
 import random
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -18,7 +19,7 @@ class CryptpadDeploy(GedisChatBot):
         "configuring_node",
         "overview",
         "reservation",
-        "container_access",
+        "success",
     ]
     title = "Cryptpad"
 
@@ -232,15 +233,16 @@ class CryptpadDeploy(GedisChatBot):
         self.container_url_https = f"https://{self.domain}"
         self.container_url_http = f"http://{self.domain}"
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_access(self):
-        res = f"""\
-# Cryptpad has been deployed successfully:\n<br>
-Reservation id: {self.workload_ids[-1]}\n
-You can access your container from browser at {self.container_url_https} \n or \n {self.container_url_http}\n
-# It may take a few minutes.
-        """
-        self.md_show(res, md=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from cryptpad deployed successfully:
+\n<br />\n
+- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
+        self.md_show(dedent(message), md=True)
 
 
 chat = CryptpadDeploy

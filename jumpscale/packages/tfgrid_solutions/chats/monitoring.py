@@ -1,11 +1,12 @@
 import math
+import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-import uuid
 
 
 class MonitoringDeploy(GedisChatBot):
@@ -238,7 +239,7 @@ class MonitoringDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
-        res = f"""\
+        message = f"""\
 ## Your containers have been deployed successfully. Your reservation ids are:
 \n<br/>\n
 - `{self.reservation_ids[0]}`, `{self.reservation_ids[1]}`, `{self.reservation_ids[2]}`
@@ -255,7 +256,7 @@ class MonitoringDeploy(GedisChatBot):
 \n<br />\n
 #### It may take a few minutes.
             """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MonitoringDeploy

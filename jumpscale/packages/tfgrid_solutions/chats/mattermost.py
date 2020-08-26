@@ -1,5 +1,7 @@
 import random
 import uuid
+from textwrap import dedent
+
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
@@ -17,7 +19,7 @@ class MattermostDeploy(GedisChatBot):
         "domain_select",
         "overview",
         "reservation",
-        "container_acess",
+        "success",
     ]
     title = "Mattermost"
 
@@ -193,14 +195,16 @@ class MattermostDeploy(GedisChatBot):
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_acess(self):
-        res = f"""\
-# mattermost has been deployed successfully: your reservation id is: {self.resv_id}
-It may take a few minutes.
-open mattermost from browser at ```{self.domain}```
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from mattermost deployed successfully:
+\n<br />\n
+- You can use it from browser with <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MattermostDeploy
