@@ -33,7 +33,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     def cryptpad_info(self):
         form = self.new_form()
         volume_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True
         )
         form.ask()
         self.vol_size = int(volume_size.value)
@@ -94,12 +94,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
 
-        # TODO: your backup directorires, to determine if it will be in here or in the backup script
-        self.backup_config["BACKUP_PATHS"] = []
+        # TODO: BACKUP_PATHS env should be set in the flist
 
         self.workload_ids.append(
             deployer.deploy_container(

@@ -11,6 +11,8 @@ from .chatflow import MarketPlaceChatflow
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.core.base import Base, fields
+from .models import BackupSolution
+
 
 FARM_NAMES = ["freefarm"]
 # For fees stuff
@@ -30,6 +32,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.backup_fees = backup_fees
         self.backup_enabled = backup_enabled
         self.backup_config = backup_config or {}
+        self.backup_model = StoredFactory(BackupSolution)
 
     def _init_solution(self):
         self._validate_user()
@@ -230,7 +233,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._get_domain()
 
     def _setup_backup_conf(self, solution_name):
-        password = j.data.idgenerator.chars(15)
+        backup_credentials_name = solution_name.replace("-", "_")
+        if backup_credentials_name in self.backup_model.list_all():
+            backup_credentials = self.backup_model.get(backup_credentials_name)
+            password = backup_credentials.restic_password
+        else:
+            password = j.data.idgenerator.chars(15)
+            backup_credentials = self.backup_model.get(backup_credentials_name)
+            backup_credentials.restic_password = password
+            backup_credentials.save()
+
         servers = self._init_backup_repos(solution_name, password)
         servers_str = " ".join(servers)
         self.backup_config["servers"] = f"({servers_str})"
@@ -279,7 +291,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def pay_service_fees(self):
         self._pay()
         if self.backup_enabled:
-            solution_name = self.solution_name.replace(".", "")
+            solution_name = f"{self.SOLUTION_TYPE}_{self.solution_name.replace('.', '')}"
             self._setup_backup_conf(solution_name)
 
     def _pay(self, msg=""):
