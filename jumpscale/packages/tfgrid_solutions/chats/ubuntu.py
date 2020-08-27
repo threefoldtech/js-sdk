@@ -11,7 +11,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class UbuntuDeploy(GedisChatBot):
     HUB_URL = "https://hub.grid.tf/tf-bootable"
-    IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
+    IMAGES = ["ubuntu-18.04", "ubuntu-20.04"]
 
     steps = [
         "ubuntu_name",
