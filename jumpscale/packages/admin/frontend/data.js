@@ -12,6 +12,13 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
+  network: {
+    name: "Network",
+    type: "network",
+    image: "./assets/network.png",
+    url: "/solutions/network",
+    description: "Deploy a network on the grid to connect your solutions together."
+  },
   ubuntu: {
     name: "Ubuntu",
     type: "ubuntu",
@@ -39,13 +46,6 @@ const SOLUTIONS = {
     image: "./assets/gitea.png",
     url: "/solutions/gitea",
     description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
-  },
-  network: {
-    name: "Network",
-    type: "network",
-    image: "./assets/network.png",
-    url: "/solutions/network",
-    description: "Deploy a network on the grid to connect your solutions together."
   },
   threebot: {
     name: "3Bot",

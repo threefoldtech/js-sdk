@@ -90,22 +90,29 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Flist url")
     def flist_url(self):
-        self.flist_link = self.string_ask(
-            "Please add the link to your flist to be deployed. For example: https://hub.grid.tf/usr/example.flist",
-            required=True,
-        )
-
-        self.flist_link = self.flist_link.strip()
-
-        if "hub.grid.tf" not in self.flist_link or ".md" in self.flist_link[-3:]:
-            raise StopChatFlow(
-                "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist"
+        valid = False
+        while not valid:
+            self.flist_link = self.string_ask(
+                "Please add the link to your flist to be deployed. For example: https://hub.grid.tf/usr/example.flist",
+                required=True,
             )
 
-        response = requests.head(self.flist_link)
-        response_md5 = requests.head(f"{self.flist_link}.md5")
-        if response.status_code != 200 or response_md5.status_code != 200:
-            raise StopChatFlow("This flist doesn't exist. Please make sure you enter a valid link to an existing flist")
+            self.flist_link = self.flist_link.strip()
+
+            if "hub.grid.tf" not in self.flist_link or ".md" in self.flist_link[-3:]:
+                self.md_show(
+                    "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist. click next yo try again"
+                )
+                continue
+
+            response = requests.head(self.flist_link)
+            response_md5 = requests.head(f"{self.flist_link}.md5")
+            if response.status_code != 200 or response_md5.status_code != 200:
+                self.md_show(
+                    "This flist doesn't exist. Please make sure you enter a valid link to an existing flist. click next to try again"
+                )
+                continue
+            valid = True
 
     @chatflow_step(title="Container ineractive & EntryPoint")
     def container_interactive(self):
@@ -239,7 +246,7 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        if self.interactive:
+        if self.interactive == "YES":
             message = f"""\
 # Congratulations! Your own container deployed successfully:
 \n<br />\n
