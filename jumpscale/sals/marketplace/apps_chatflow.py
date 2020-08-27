@@ -13,6 +13,8 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.core.base import Base, fields
 from .models import BackupSolution
 
+BACKUP_MODEL = StoredFactory(BackupSolution)
+BACKUP_MODEL.always_reload = True
 
 FARM_NAMES = ["freefarm"]
 # For fees stuff
@@ -32,7 +34,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.backup_fees = backup_fees
         self.backup_enabled = backup_enabled
         self.backup_config = backup_config or {}
-        self.backup_model = StoredFactory(BackupSolution)
+        self.backup_model = BACKUP_MODEL
 
     def _init_solution(self):
         self._validate_user()

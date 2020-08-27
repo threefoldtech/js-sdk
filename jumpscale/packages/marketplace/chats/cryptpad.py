@@ -122,6 +122,11 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
+
+        # Save the main container id (the one with backup)
+        self.backup_model.workload_id = self.workload_ids[1]
+        self.backup_model.domain = self.domain
+        self.backup_model.save()
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
