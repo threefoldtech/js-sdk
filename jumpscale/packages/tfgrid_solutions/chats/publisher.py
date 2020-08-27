@@ -161,7 +161,7 @@ class Publisher(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()

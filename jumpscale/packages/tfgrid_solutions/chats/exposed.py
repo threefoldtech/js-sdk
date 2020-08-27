@@ -166,7 +166,7 @@ class SolutionExpose(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node to network {wid}")
 
@@ -185,7 +185,7 @@ class SolutionExpose(GedisChatBot):
                 **self.solution_metadata,
                 solution_uuid=self.solution_id,
             )
-            success = deployer.wait_workload(self.dom_id)
+            success = deployer.wait_workload(self.dom_id, self)
             if not success:
                 solutions.cancel_solution([self.dom_id])
                 raise StopChatFlow(f"Failed to reserve sub-domain workload {self.dom_id}")
@@ -215,7 +215,7 @@ class SolutionExpose(GedisChatBot):
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
-        success = deployer.wait_workload(self.tcprouter_id)
+        success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")

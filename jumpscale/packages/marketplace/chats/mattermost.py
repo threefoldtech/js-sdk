@@ -115,7 +115,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
+            solutions.cancel_solution(self.solution_metadata["owner"], [self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
         # expose threebot container

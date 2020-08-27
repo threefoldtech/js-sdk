@@ -127,7 +127,7 @@ class MonitoringDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
