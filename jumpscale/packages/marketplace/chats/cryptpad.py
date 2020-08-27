@@ -79,6 +79,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
+        self.backup_model.workload_ids["subdomain"] = self.workload_ids[0]
 
         # deploy volume
         vol_id = deployer.deploy_volume(
@@ -91,6 +92,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+        self.backup_model.workload_ids["volume"] = vol_id
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
@@ -124,9 +126,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             )
 
         # Save the main container id (the one with backup)
-        self.backup_model.workload_id = self.workload_ids[1]
+        self.backup_model.workload_ids["container"] = self.workload_ids[1]
         self.backup_model.domain = self.domain
-        self.backup_model.save()
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -147,6 +148,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+        self.backup_model.workload_ids["nginx_container"] = _id
+        self.backup_model.save()
 
 
 chat = CryptpadDeploy

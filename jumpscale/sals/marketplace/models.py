@@ -16,7 +16,7 @@ class DeployStatus(Enum):
 
 class BackupSolution(Base):
     restic_password = fields.Secret()
-    workload_id = fields.String()
+    workload_ids = fields.Typed(dict)
     domain = fields.String()
     status = fields.Enum(DeployStatus)
     action_time = fields.DateTime()

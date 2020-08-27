@@ -62,7 +62,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_single_container_solution("gollum", next_action, sync, owner=username)
 
     def list_cryptpad_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("cryptpad", next_action, sync, owner=username)
+        return self._list_proxied_solution("cryptpad", next_action, sync, owner=username)
 
     def list_minio_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         if sync:
