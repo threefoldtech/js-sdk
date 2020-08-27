@@ -17,6 +17,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
@@ -108,6 +109,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise StopChatFlow(

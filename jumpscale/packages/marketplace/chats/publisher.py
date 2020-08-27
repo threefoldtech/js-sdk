@@ -17,6 +17,7 @@ class Publisher(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "deploy",
+        "initializing",
         "success",
     ]
 
@@ -130,6 +131,7 @@ class Publisher(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         if not success:
             solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(

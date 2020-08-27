@@ -17,6 +17,7 @@ class Discourse(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 

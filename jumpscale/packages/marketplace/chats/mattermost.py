@@ -18,6 +18,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 

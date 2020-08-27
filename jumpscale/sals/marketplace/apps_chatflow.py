@@ -178,6 +178,24 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._deploy_network()
         self._get_domain()
 
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self):
+        self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
+
+        if not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.domain}", timeout=600, verify=not j.config.get("TEST_CERT")
+        ):
+            self.stop(
+                f"""\
+Failed to initialize Mattermost, please contact support with this information:
+Node:{self.selected_node.node_id},
+Ip Address: {self.ip_address},
+Reservation Id: {self.resv_id},
+Pool Id : {self.pool_id},
+Domain : {self.domain}
+                """
+            )
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         self._wgconf_show_check()
