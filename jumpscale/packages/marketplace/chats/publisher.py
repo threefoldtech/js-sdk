@@ -17,6 +17,7 @@ class Publisher(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "deploy",
+        "initializing",
         "success",
     ]
 
@@ -65,7 +66,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -130,24 +131,12 @@ class Publisher(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         if not success:
             solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
-        self.md_show(dedent(message), md=True)
 
 
 chat = Publisher

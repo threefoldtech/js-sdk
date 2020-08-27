@@ -1,4 +1,5 @@
 import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import Category
 from jumpscale.loader import j
@@ -112,6 +113,7 @@ class SolutionExpose(GedisChatBot):
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
                     required=True,
+                    is_identifier=True,
                 )
                 if "." in domain:
                     retry = True
@@ -165,7 +167,7 @@ class SolutionExpose(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node to network {wid}")
 
@@ -184,7 +186,7 @@ class SolutionExpose(GedisChatBot):
                 **self.solution_metadata,
                 solution_uuid=self.solution_id,
             )
-            success = deployer.wait_workload(self.dom_id)
+            success = deployer.wait_workload(self.dom_id, self)
             if not success:
                 solutions.cancel_solution([self.dom_id])
                 raise StopChatFlow(f"Failed to reserve sub-domain workload {self.dom_id}")
@@ -214,15 +216,19 @@ class SolutionExpose(GedisChatBot):
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
-        success = deployer.wait_workload(self.tcprouter_id)
+        success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        res_md = f"Use this Gateway to connect to your exposed solution `{self.domain}`"
-        self.md_show(res_md)
+        message = f"""\
+# Congratulations! Your solution has been exposed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = SolutionExpose

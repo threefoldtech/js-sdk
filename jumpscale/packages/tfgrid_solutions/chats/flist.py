@@ -1,13 +1,13 @@
 import math
-
+import uuid
 import requests
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-import uuid
 
 
 class FlistDeploy(GedisChatBot):
@@ -27,7 +27,7 @@ class FlistDeploy(GedisChatBot):
         "ipv6_config",
         "overview",
         "reservation",
-        "container_access",
+        "success",
     ]
     title = "Flist"
 
@@ -90,22 +90,29 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Flist url")
     def flist_url(self):
-        self.flist_link = self.string_ask(
-            "Please add the link to your flist to be deployed. For example: https://hub.grid.tf/usr/example.flist",
-            required=True,
-        )
-
-        self.flist_link = self.flist_link.strip()
-
-        if "hub.grid.tf" not in self.flist_link or ".md" in self.flist_link[-3:]:
-            raise StopChatFlow(
-                "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist"
+        valid = False
+        while not valid:
+            self.flist_link = self.string_ask(
+                "Please add the link to your flist to be deployed. For example: https://hub.grid.tf/usr/example.flist",
+                required=True,
             )
 
-        response = requests.head(self.flist_link)
-        response_md5 = requests.head(f"{self.flist_link}.md5")
-        if response.status_code != 200 or response_md5.status_code != 200:
-            raise StopChatFlow("This flist doesn't exist. Please make sure you enter a valid link to an existing flist")
+            self.flist_link = self.flist_link.strip()
+
+            if "hub.grid.tf" not in self.flist_link or ".md" in self.flist_link[-3:]:
+                self.md_show(
+                    "This flist is not correct. Please make sure you enter a valid link to an existing flist For example: https://hub.grid.tf/usr/example.flist. click next yo try again"
+                )
+                continue
+
+            response = requests.head(self.flist_link)
+            response_md5 = requests.head(f"{self.flist_link}.md5")
+            if response.status_code != 200 or response_md5.status_code != 200:
+                self.md_show(
+                    "This flist doesn't exist. Please make sure you enter a valid link to an existing flist. click next to try again"
+                )
+                continue
+            valid = True
 
     @chatflow_step(title="Container ineractive & EntryPoint")
     def container_interactive(self):
@@ -162,7 +169,7 @@ class FlistDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -237,23 +244,27 @@ class FlistDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_access(self):
-        if self.interactive:
-            res = f"""\
-# Container has been deployed successfully: your reservation id is: {self.resv_id}
-Open your browser at [http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash](http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash)
-# Then open your browser at [http://{self.ip_address}:7681](http://{self.ip_address}:7681) and press on job id to go into shell bash .
-# This web using [COREX](https://github.com/threefoldtech/corex)
-# In shell inside container using [Bash](https://devdocs.io/bash/)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        if self.interactive == "YES":
+            message = f"""\
+# Congratulations! Your own container deployed successfully:
+\n<br />\n
+- <a href="https://github.com/threefoldtech/corex" target="_blank">COREX</a> enabled.
+\n<br />\n
+- You can monitor processes from the browser: <a href="https://{self.ip_address}:7681" target="_blank">https://{self.ip_address}:7681</a>
+\n<br />\n
+- And can start `bash` process from here: <a href="https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
+\n<br />\n
+- Know more about <a href="https://devdocs.io/bash/" target="_blank">bash</a>
                     """
-            self.md_show(res, md=True)
         else:
-            res = f"""\
-# Container has been deployed successfully: your reservation id is: {self.resv_id}
-Your IP is  ```{self.ip_address}```
+            message = f"""\
+# Congratulations! Your own container deployed successfully:
+\n<br />\n
+- Your ip address: `{self.ip_address}`
                     """
-            self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = FlistDeploy

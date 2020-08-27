@@ -158,7 +158,7 @@ class ThreebotDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -247,7 +247,9 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
         self.md_show_update("Initializing your 3Bot ...")
-        if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
+        if not j.sals.reservation_chatflow.wait_http_test(
+            self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
+        ):
             self.stop("Failed to initialize 3Bot, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)

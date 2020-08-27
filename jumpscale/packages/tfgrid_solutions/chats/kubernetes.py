@@ -94,7 +94,7 @@ class KubernetesDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
@@ -158,16 +158,16 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = f"""# Kubernetes cluster has been deployed successfully:
-
-Master reservation id is: {self.reservations[0]["reservation_id"]}
-IP: {self.reservations[0]["ip_address"]}
-To connect ssh rancher@{self.reservations[0]["ip_address"]}
-
+\n<br />\n
+- Master
+    - IP: {self.reservations[0]["ip_address"]}
+    - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
 """
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f"""Worker {idx + 1} reservation id is: {resv["reservation_id"]}
-IP: {resv["ip_address"]}
-To connect ssh rancher@{resv["ip_address"]}
+            res += f"""
+- Worker {idx + 1}
+    - IP: {resv["ip_address"]}
+    - To connect: `ssh rancher@{resv["ip_address"]}`
 """
         self.md_show(res)
 

@@ -93,17 +93,14 @@ class NetworkDeploy(GedisChatBot):
                 self.pool,
                 self.ipversion == "IPv4",
                 bot=self,
-                owner=self.solution_metadata.get("owner"),
+                **self.solution_metadata,
             )
         for wid in self.config["ids"]:
             try:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.access_node.node_id)
             except StopChatFlow as e:
                 if self.action == "Create":
                     solutions.cancel_solution(self.config["ids"])
-                elif self.action == "Add Access":
-                    for wid in self.config["ids"]:
-                        j.sals.zos.workload.decomission(wid)
                 raise e
             if not success:
                 raise StopChatFlow(f"Failed to deploy workload {wid}")

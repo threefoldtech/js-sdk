@@ -17,6 +17,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
@@ -108,6 +109,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise StopChatFlow(
@@ -132,19 +134,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-        self.container_url_https = f"https://{self.domain}"
-        self.container_url_http = f"http://{self.domain}"
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Cryptpad has been deployed successfully:\n<br>
-Reservation id: {self.workload_ids[-1]}\n
-You can access your container from browser at {self.container_url_https} \n or \n {self.container_url_http}\n
-# It may take a few minutes.
-        """
-        self.md_show(dedent(message), md=True)
 
 
 chat = CryptpadDeploy

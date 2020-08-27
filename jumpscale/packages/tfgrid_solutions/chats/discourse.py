@@ -1,12 +1,13 @@
 import math
+import random
+import uuid
+import nacl
+import nacl.signing
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-import uuid
 from jumpscale.sals.reservation_chatflow import deployer
-import nacl
-import nacl.signing
-import random
 
 
 class Discourse(GedisChatBot):
@@ -19,7 +20,7 @@ class Discourse(GedisChatBot):
         "discourse_network",
         "overview",
         "reservation",
-        "discourse_access",
+        "success",
     ]
 
     title = "Discourse"
@@ -83,7 +84,7 @@ class Discourse(GedisChatBot):
         if result:
             self.md_show_update("Deploying Network on Nodes....")
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -211,14 +212,16 @@ class Discourse(GedisChatBot):
         if not success:
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def discourse_access(self):
-        res = f"""\
-# Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-The site is deployed on {self.domain}.
- It takes approximately 10 minutes to deploy.
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = Discourse

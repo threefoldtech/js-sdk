@@ -4,24 +4,29 @@
       <template #default>
         <div v-if="hasMigrated">
           <v-row>
-          <v-spacer></v-spacer>
-          <v-col>
-            <v-autocomplete
-              width="10"
-              v-model="searchText"
-              :items="[...apps, ...solutions]"
-              :loading="loading"
-              color="grey"
-              hide-no-data
-              hide-selected
-              item-text="name"
-              placeholder="Search for solutions"
-              append-icon="mdi-magnify"
-            ></v-autocomplete>
-          </v-col>
-          <v-spacer></v-spacer>
-        </v-row>
-          <h2 class="font-weight-black mx-2">Apps</h2>
+            <v-spacer></v-spacer>
+            <v-col>
+              <v-autocomplete
+                width="10"
+                v-model="searchText"
+                :items="[...apps, ...solutions]"
+                :loading="loading"
+                color="grey"
+                hide-no-data
+                hide-selected
+                item-text="name"
+                placeholder="Search for solutions"
+                append-icon="mdi-magnify"
+              ></v-autocomplete>
+            </v-col>
+            <v-spacer></v-spacer>
+          </v-row>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
+            </template>
+            <span>Threefold end user applications</span>
+          </v-tooltip>
           <v-row class="mt-2" align="start" justify="start">
             <v-card
               v-for="app in filteredApps"
@@ -57,7 +62,16 @@
           </v-row>
           <br />
 
-          <h2 class="font-weight-black mt-4 ml-2">Advanced Solutions</h2>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <span
+                v-bind="attrs"
+                v-on="on"
+                class="soTitle font-weight-black mt-4"
+              >Infrastructure Solutions</span>
+            </template>
+            <span>Threefold grid primitives</span>
+          </v-tooltip>
           <v-row class="mt-2" align="start" justify="start">
             <v-card
               v-for="solution in filteredSolutions"
@@ -127,53 +141,59 @@ module.exports = {
       apps: Object.values(APPS),
       solutions: Object.values(SOLUTIONS),
       solutionCount: {},
-      searchText: ""
+      searchText: "",
     };
   },
   computed: {
     filteredSolutions() {
       if (this.searchText) {
-        return this.solutions.filter(obj => {
+        return this.solutions.filter((obj) => {
           return obj.name === this.searchText;
         });
       } else return this.solutions;
     },
     filteredApps() {
       if (this.searchText) {
-        return this.apps.filter(obj => {
+        return this.apps.filter((obj) => {
           return obj.name === this.searchText;
         });
       } else return this.apps;
-    }
+    },
   },
   methods: {
     openChatflow(solutionTopic) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionTopic }
+        params: { topic: solutionTopic },
       });
     },
     viewWorkloads(solutionType) {
       this.$router.push({ name: "Solution", params: { type: solutionType } });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then(response => {
+      this.$api.solutions.getCount().then((response) => {
         this.solutionCount = JSON.parse(response.data).data;
       });
     },
     migrate() {
-      this.$api.solutions.migrate().then(response => {
+      this.$api.solutions.migrate().then((response) => {
         window.location.reload();
       });
-    }
+    },
   },
   mounted() {
     this.getSolutionCount();
   },
   created() {
-    this.$api.solutions.hasMigrated().then(response => {
+    this.$api.solutions.hasMigrated().then((response) => {
       this.hasMigrated = JSON.parse(response.data).result;
     });
-  }
+  },
 };
 </script>
+
+<style scoped>
+span.soTitle {
+  font-size: 27;
+}
+</style>

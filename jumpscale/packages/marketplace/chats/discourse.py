@@ -17,6 +17,7 @@ class Discourse(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
@@ -135,15 +136,6 @@ class Discourse(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-  ``` {self.threebot_url}```.It may take a few minutes.
-                """
-        self.md_show(dedent(message), md=True)
 
 
 chat = Discourse

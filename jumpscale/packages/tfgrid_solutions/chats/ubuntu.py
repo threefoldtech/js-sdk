@@ -1,4 +1,5 @@
 import math
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
@@ -10,7 +11,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class UbuntuDeploy(GedisChatBot):
     HUB_URL = "https://hub.grid.tf/tf-bootable"
-    IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
+    IMAGES = ["ubuntu-18.04", "ubuntu-20.04"]
 
     steps = [
         "ubuntu_name",
@@ -25,7 +26,7 @@ class UbuntuDeploy(GedisChatBot):
         "ipv6_config",
         "overview",
         "reservation",
-        "ubuntu_access",
+        "success",
     ]
 
     title = "Ubuntu"
@@ -120,7 +121,7 @@ class UbuntuDeploy(GedisChatBot):
         if result:
             self.md_show_update("Deploying Network on Nodes....")
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -177,14 +178,14 @@ class UbuntuDeploy(GedisChatBot):
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def ubuntu_access(self):
-        res = f"""\
-# Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance deployed successfully:
 \n<br />\n
-To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
+- To connect: `ssh root@{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = UbuntuDeploy

@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-card flat height="100%" class="pa-5" outlined>
-      <v-card-title class="justify-center">Terms and Conditions for using Threefold Marketplace</v-card-title>
+      <v-card-title class="justify-center">Terms and Conditions for using TF Grid Marketplace</v-card-title>
       <v-card-text>
         It's required that you as a Marketplace user you agree to the
         <a

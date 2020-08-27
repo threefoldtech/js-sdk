@@ -1,11 +1,12 @@
 import math
+import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-import uuid
 
 
 class MonitoringDeploy(GedisChatBot):
@@ -126,7 +127,7 @@ class MonitoringDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
@@ -183,7 +184,7 @@ class MonitoringDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to add node {self.selected_nodes['Prometheus'].node_id} to network {vol_id}")
+            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}")
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
@@ -238,10 +239,8 @@ class MonitoringDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
-        res = f"""\
-## Your containers have been deployed successfully. Your reservation ids are:
-\n<br/>\n
-- `{self.reservation_ids[0]}`, `{self.reservation_ids[1]}`, `{self.reservation_ids[2]}`
+        message = f"""\
+## Your containers have been deployed successfully:
 \n<br/>\n
 ### Prometheus
 - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
@@ -252,10 +251,8 @@ class MonitoringDeploy(GedisChatBot):
 \n<br />\n
 ### Redis
 - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-\n<br />\n
-#### It may take a few minutes.
             """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MonitoringDeploy

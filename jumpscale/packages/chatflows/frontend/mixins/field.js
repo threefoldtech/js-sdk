@@ -15,7 +15,28 @@ validators = {
     }
   },
   string_ask: {
+    is_identifier: (field) => {
+      let str = field.val;
+      if (typeof str !== 'string') {
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
+      }
 
+      if (str.trim() !== str) {
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
+      }
+
+      try {
+        new Function(str, 'var ' + str);
+      } catch (_) {
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
+      }
+
+      if (str.toLowerCase() !== str) {
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
+      }
+
+      return true;
+    },
   },
   int_ask: {
     min: (field, min) => {

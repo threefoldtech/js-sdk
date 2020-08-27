@@ -1,5 +1,6 @@
 import random
 import uuid
+from textwrap import dedent
 
 from nacl.encoding import Base64Encoder
 from nacl.public import PrivateKey
@@ -22,7 +23,7 @@ class TaigaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
-        "container_acess",
+        "success",
     ]
     title = "Taiga"
 
@@ -90,7 +91,7 @@ class TaigaDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -232,20 +233,16 @@ class TaigaDeploy(GedisChatBot):
             solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_acess(self):
-        res = f"""\
-# Taiga has been deployed successfully:
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from taiga deployed successfully:
 \n<br />\n
-your reservation id is: `{self.workload_ids[1]}`
+- Open it from browser: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-your container ip is: `{self.ip_address}`
-\n<br />\n
-open Taiga from browser at <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- It may take few minutes to load.
+- your container ip is: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = TaigaDeploy

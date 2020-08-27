@@ -1,5 +1,6 @@
 import math
 import uuid
+from textwrap import dedent
 
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
@@ -182,7 +183,7 @@ class MinioDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
@@ -277,22 +278,23 @@ class MinioDeploy(GedisChatBot):
             **self.solution_metadata,
         )
         for resv_id in self.minio_result:
-            success = deployer.wait_workload(resv_id)
+            success = deployer.wait_workload(resv_id, self)
             if not success:
                 solutions.cancel_solution([resv_id])
                 raise StopChatFlow(f"Failed to deploy Minio container workload {resv_id}")
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
-        res = f"""\
+        message = f"""\
 # Minio cluster has been deployed successfully.
-Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000). It may take a few minutes.
+- Open your browser at [http://{self.ip_addresses[0]}:9000](http://{self.ip_addresses[0]}:9000).
+\n<br />\n
                 """
         if self.mode == "Master/Slave":
-            res += f"""\
-You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
+            message += f"""\
+- You can access the slave machine at [http://{self.ip_addresses[1]}:9000](http://{self.ip_addresses[1]}:9000)
                 """
-        self.md_show(res)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MinioDeploy

@@ -12,6 +12,13 @@ const WIKIS = {
 }
 
 const SOLUTIONS = {
+  network: {
+    name: "Network",
+    type: "network",
+    image: "./assets/network.png",
+    url: "/solutions/network",
+    description: "Deploy a network on the grid to connect your solutions together."
+  },
   ubuntu: {
     name: "Ubuntu",
     type: "ubuntu",
@@ -24,7 +31,7 @@ const SOLUTIONS = {
     type: "kubernetes",
     image: "./assets/kubernetes.png",
     url: "/solutions/kubernetes",
-    description: "Deploy a Kubernetes cluster with zdb using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
+    description: "Deploy a Kubernetes cluster using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
   },
   minio: {
     name: "Minio",
@@ -39,13 +46,6 @@ const SOLUTIONS = {
     image: "./assets/gitea.png",
     url: "/solutions/gitea",
     description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
-  },
-  network: {
-    name: "Network",
-    type: "network",
-    image: "./assets/network.png",
-    url: "/solutions/network",
-    description: "Deploy a network on the grid to connect your solutions together."
   },
   threebot: {
     name: "3Bot",

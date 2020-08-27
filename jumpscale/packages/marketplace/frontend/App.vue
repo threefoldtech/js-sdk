@@ -4,7 +4,7 @@
       <router-link to="/" style="text-decoration: none;">
       <v-row>
         <img class="ml-2" src="./assets/3bot.png" height="50" width="50" />
-        <h2 class="ml-4 mt-2">Threefold Marketplace</h2>
+        <h2 class="ml-4 mt-2">TF Grid Marketplace</h2>
       </v-row>
       </router-link>
       <v-spacer></v-spacer>

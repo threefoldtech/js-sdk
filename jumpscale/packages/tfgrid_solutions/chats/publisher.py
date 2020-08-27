@@ -63,7 +63,9 @@ class Publisher(GedisChatBot):
     @chatflow_step()
     def publisher_info(self):
         form = self.new_form()
-        self.solution_name = form.string_ask("Please enter a name for your solution", required=True)
+        self.solution_name = form.string_ask(
+            "Please enter a name for your solution", required=True, is_identifier=True,
+        )
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice(
@@ -161,7 +163,7 @@ class Publisher(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -234,14 +236,13 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
+        message = f"""\
+# Congratulations! Your own {self.publishing_chatflow}  deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
         self.md_show(dedent(message), md=True)
 
 
