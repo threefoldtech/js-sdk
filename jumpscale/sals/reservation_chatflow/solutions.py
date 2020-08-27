@@ -8,14 +8,6 @@ K8S_SIZES = {
 
 
 class ChatflowSolutions:
-    def get_node_farm(self, node_id):
-        explorer = j.core.identity.me.explorer
-        try:
-            farm_id = explorer.nodes.get(node_id).farm_id
-            return str(explorer.farms.get(farm_id))
-        except:
-            return "Couldn't fetch farm"
-
     def list_network_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=sync)
         if not sync and not networks:
@@ -28,10 +20,7 @@ class ChatflowSolutions:
                 {
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
-                    "nodes": {
-                        res.info.node_id: f"{res.iprange} {self.get_node_farm(res.info.node_id)}"
-                        for res in n.network_workloads
-                    },
+                    "nodes": {res.info.node_id: res.iprange for res in n.network_workloads},
                     "wids": [res.id for res in n.network_workloads],
                 }
             )
@@ -179,7 +168,6 @@ class ChatflowSolutions:
                 solution_dict[f"{cont_type} IPv4"] = c_dict["ipv4"]
                 solution_dict[f"{cont_type} IPv6"] = c_dict["ipv6"]
                 solution_dict[f"{cont_type} Node"] = c_dict["node"]
-                solution_dict[f"{cont_type} Farm"] = self.get_node_farm(c_dict["node"])
                 solution_dict[f"{cont_type} Pool"] = c_dict["pool"]
                 for key, val in c_dict["capacity"].items():
                     solution_dict[f"{cont_type} {key}"] = val
@@ -429,7 +417,6 @@ class ChatflowSolutions:
                     "ipv6": self.get_ipv6_address(workload),
                     "network": workload.network_connection[0].network_id,
                     "node": workload.info.node_id,
-                    "farm": self.get_node_farm(workload.info.node_id),
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
                     "capacity": self.get_workload_capacity(workload),
@@ -588,7 +575,6 @@ class ChatflowSolutions:
                             "IPv4 Address": c_dict["ipv4"],
                             "IPv6 Address": c_dict["ipv6"],
                             "Node": c_dict["node"],
-                            "Farm": self.get_node_farm(c_dict["node"]),
                             "Pool": c_dict["pool"],
                             "Network": c_dict["network"],
                         }
