@@ -30,6 +30,7 @@ class Publisher(GedisChatBot):
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
         self.solution_metadata = {}
+        self.user_email = self.user_info()["email"]
 
     @chatflow_step(title="Solution name")
     def publisher_name(self):
@@ -90,7 +91,7 @@ class Publisher(GedisChatBot):
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
         self.query = {
