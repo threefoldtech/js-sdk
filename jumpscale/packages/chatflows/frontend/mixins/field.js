@@ -18,7 +18,7 @@ validators = {
     is_identifier: (field) => {
       let str = field.val;
       if (typeof str !== 'string') {
-        return false;
+        return `Value is not a valid string`;
       }
 
       if (str.trim() !== str) {
