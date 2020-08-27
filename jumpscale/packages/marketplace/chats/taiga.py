@@ -55,6 +55,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
+        }
+        self.solution_metadata.update(metadata)
+
         self.workload_ids = []
 
         # reserve subdomain
@@ -142,22 +148,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         if not nginx_wid:
             solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Taiga has been deployed successfully:
-\n<br />\n
-your reservation id is: `{self.workload_ids[1]}`
-\n<br />\n
-your container ip is: `{self.ip_address}`
-\n<br />\n
-open Taiga from browser at <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- It may take few minutes to load.
-                """
-        self.md_show(message, md=True)
 
 
 chat = TaigaDeploy

@@ -1,8 +1,10 @@
 import uuid
+import random
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.loader import j
-import random
 
 
 class GiteaDeploy(GedisChatBot):
@@ -21,7 +23,7 @@ class GiteaDeploy(GedisChatBot):
         "container_ip",
         "overview",
         "reservation",
-        "container_acess",
+        "success",
     ]
     title = "Gitea"
 
@@ -249,18 +251,17 @@ class GiteaDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution([self.tcprouter_id])
             raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
-        self.container_url_https = f"https://{self.domain}"
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_acess(self):
-        res = f"""\
-# gitea has been deployed successfully: your reservation id is: {self.resv_id}
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from gitea deployed successfully:
 \n<br />\n
-To connect ```ssh git@{self.ip_address}``` .It may take a few minutes.
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-open gitea from browser at {self.container_url_https}
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = GiteaDeploy

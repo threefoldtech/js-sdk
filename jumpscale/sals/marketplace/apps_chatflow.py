@@ -1,7 +1,7 @@
 import uuid
 import random
-
 import requests
+from textwrap import dedent
 
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -352,3 +352,15 @@ Please make the transaction and press Next
                         if self._refund(transaction, transaction_effects):
                             msg = f"\n`Wrong amount of {currency}'s has been received, they have been sent back to your wallet. Please try again`\n\n"
                             return self._pay(msg)
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        self._wgconf_show_check()
+        message = f"""\
+# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
+        self.md_show(dedent(message), md=True)

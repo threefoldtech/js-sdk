@@ -37,12 +37,6 @@ const SOLUTIONS = {
     image: "./assets/network.png",
     description: "Deploy a network on the grid to connect your solutions together."
   },
-  threebot: {
-    name: "3Bot",
-    type: "threebot",
-    image: "./assets/3bot.png",
-    description: "Deploy your 3Bot on container."
-  },
   expose: {
     name: "Solution Expose",
     type: "exposed",
@@ -77,6 +71,12 @@ const SOLUTIONS = {
 
 
 const APPS = {
+  threebot: {
+    name: "3Bot",
+    type: "threebot",
+    image: "./assets/3bot.png",
+    description: "Deploy your 3Bot on container."
+  },
   wiki: {
     name: "Wiki",
     type: "wiki",
@@ -123,6 +123,6 @@ const APPS = {
     name: "Taiga",
     type: "taiga",
     image: "./assets/taiga.png",
-    description: "Build your 'All in one' Taiga solution"
+    description: "Taiga is the project management tool for multi-functional agile teams. Build your 'All in one' Taiga solution"
   },
 }

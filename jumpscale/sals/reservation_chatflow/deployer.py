@@ -430,9 +430,12 @@ class ChatflowDeployer:
     def select_pool(
         self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
     ):
+        if j.config.get("OVER_PROVISIONING"):
+            cru = 0
+            mru = 0
         available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
-            raise StopChatFlow("no available pools")
+            raise StopChatFlow("no available pools with enough capacity for your workload")
         pool_messages = {}
         for pool in available_pools:
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool, sru=sru, mru=mru, hru=hru, cru=cru)
