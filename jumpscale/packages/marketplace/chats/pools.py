@@ -8,8 +8,9 @@ class PoolReservation(MarketPlaceChatflow):
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
+        self.username = self.user_info()["username"]
         self._validate_user()
-        self.pools = deployer.list_user_pools(self.user_info()["username"])
+        self.pools = deployer.list_user_pools(self.username)
         if not self.pools:
             self.action = "create"
         else:
@@ -20,9 +21,9 @@ class PoolReservation(MarketPlaceChatflow):
     @chatflow_step(title="Pool Capacity")
     def reserve_pool(self):
         if self.action == "create":
-            self.pool_data = deployer.create_pool(self.user_info()["username"], self)
+            self.pool_data = deployer.create_pool(self.username, self)
         else:
-            pool_id = deployer.select_pool(self.user_info()["username"], self)
+            pool_id = deployer.select_pool(self.username, self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
     @chatflow_step(title="Pool Info")

@@ -7,18 +7,20 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
     @chatflow_step(title="Welcome")
     def welcome(self):
+        self.username = self.user_info()["username"]
         self._validate_user()
-        if deployer.list_networks(self.user_info()["username"]):
+        if deployer.list_networks(self.username):
             self.action = self.single_choice(
                 "Do you want to create a new network or add access to an existing one?",
                 options=["Create", "Add Access"],
                 required=True,
                 default="Create",
             )
+
         else:
             self.action = "Create"
         self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Network Name")
     def start(self):
@@ -26,7 +28,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
             valid = False
             while not valid:
                 self.solution_name = deployer.ask_name(self)
-                network_solutions = solutions.list_network_solutions(self.user_info()["username"], sync=False)
+                network_solutions = solutions.list_network_solutions(self.username, sync=False)
                 valid = True
                 for sol in network_solutions:
                     if sol["Name"] == self.solution_name:
@@ -34,9 +36,9 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
                         self.md_show("The specified solution name already exists. please choose another.")
                         break
                     valid = True
-            self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
+            self.solution_name = f"{self.username}_{self.solution_name}"
         elif self.action == "Add Access":
-            self.network_view = deployer.select_network(self.user_info()["username"], self)
+            self.network_view = deployer.select_network(self.username, self)
 
     @chatflow_step(title="IP Configuration")
     def ip_config(self):
@@ -48,7 +50,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
             default="IPv4",
         )
         self.md_show_update("searching for access node...")
-        pools = deployer.list_user_pools(self.user_info()["username"])
+        pools = deployer.list_user_pools(self.username)
         self.access_node = None
         for pool in pools:
             try:

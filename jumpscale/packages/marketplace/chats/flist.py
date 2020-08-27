@@ -10,7 +10,8 @@ class FlistDeploy(BaseFlistDeploy, MarketPlaceChatflow):
     def _flist_start(self):
         self._validate_user()
         super()._flist_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def flist_name(self):
@@ -27,7 +28,7 @@ class FlistDeploy(BaseFlistDeploy, MarketPlaceChatflow):
                     break
                 valid = True
 
-        self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
+        self.solution_name = f"{self.username}_{self.solution_name}"
 
     @chatflow_step(title="Pool")
     def select_pool(self):

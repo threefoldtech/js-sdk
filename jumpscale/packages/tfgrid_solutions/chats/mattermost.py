@@ -24,10 +24,12 @@ class MattermostDeploy(GedisChatBot):
     title = "Mattermost"
 
     def _mattermost_start(self):
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.solution_id = uuid.uuid4().hex
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
         self.query = {"mru": 1, "cru": 2, "sru": 6}
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -182,7 +184,7 @@ class MattermostDeploy(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=8065,
             enforce_https=False,

@@ -24,11 +24,13 @@ class CryptpadDeploy(GedisChatBot):
     title = "Cryptpad"
 
     def _cryptpad_start(self):
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.solution_id = uuid.uuid4().hex
         self.flist_url = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
         self.user_form_data = dict()
         self.user_form_data["chatflow"] = "cryptpad"
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -218,7 +220,7 @@ class CryptpadDeploy(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=3000,
             enforce_https=False,

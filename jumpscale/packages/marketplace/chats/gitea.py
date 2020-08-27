@@ -7,7 +7,8 @@ class GiteaDeploy(BaseGiteaDeploy, MarketPlaceChatflow):
     def _gitea_start(self):
         self._validate_user()
         super()._gitea_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def gitea_name(self):

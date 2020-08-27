@@ -9,7 +9,8 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
     def _gollum_start(self):
         self._validate_user()
         super()._gollum_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def gollum_name(self):

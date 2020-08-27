@@ -29,7 +29,9 @@ class Peertube(GedisChatBot):
         self.user_form_data = dict()
         self.query = dict()
         self.user_form_data["chatflow"] = "peertube"
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -182,7 +184,7 @@ class Peertube(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,

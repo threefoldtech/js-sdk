@@ -17,14 +17,14 @@ class BlogDeploy(Publisher):
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
-
+        self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": "blog",
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
         query = {

@@ -27,11 +27,12 @@ class GollumDeploy(GedisChatBot):
     title = "Gollum"
 
     def _gollum_start(self):
+        self.username = self.user_info()["username"]
         self.solution_id = uuid.uuid4().hex
         self.flist_url = "https://hub.grid.tf/asamir.3bot/14443-gollum-new.flist"
         self.user_form_data = dict()
         self.user_form_data["chatflow"] = "gollum"
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
