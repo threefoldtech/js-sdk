@@ -442,7 +442,7 @@ class PackageManager(Base):
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
                 j.logger.warning(
-                    f"Error during unloading the chats related to {package_name} package, this is the the exception {str(e)}"
+                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
                 )
 
             # reload nginx
