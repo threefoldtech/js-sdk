@@ -66,7 +66,7 @@
               v-bind="attrs"
               v-on="on"
               class="soTitle font-weight-black mt-4"
-            >Infrastructure solutions</span>
+            >Infrastructure Solutions</span>
           </template>
           <span>Threefold grid primitives</span>
         </v-tooltip>

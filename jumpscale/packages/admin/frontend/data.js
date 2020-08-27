@@ -24,7 +24,7 @@ const SOLUTIONS = {
     type: "kubernetes",
     image: "./assets/kubernetes.png",
     url: "/solutions/kubernetes",
-    description: "Deploy a Kubernetes cluster with zdb using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
+    description: "Deploy a Kubernetes cluster using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
   },
   minio: {
     name: "Minio",
