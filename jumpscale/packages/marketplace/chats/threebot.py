@@ -132,6 +132,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
@@ -164,15 +165,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
         self.threebot_url = f"https://{self.domain}/admin"
-
-    @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self):
-        self.md_show_update("Initializing your 3Bot ...")
-        if not j.sals.reservation_chatflow.wait_http_test(
-            self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
-        ):
-            self.stop("Failed to initialize 3Bot, please contact support")
-        self.domain = f"{self.domain}/admin"
+        self.domain = self.domain + "/admin"
 
 
 chat = ThreebotDeploy
