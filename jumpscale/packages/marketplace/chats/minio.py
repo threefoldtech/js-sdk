@@ -11,7 +11,8 @@ class MinioDeploy(BaseMinioDeploy, MarketPlaceChatflow):
     def _deployment_start(self):
         self._validate_user()
         super()._deployment_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def minio_name(self):

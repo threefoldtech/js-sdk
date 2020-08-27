@@ -9,7 +9,8 @@ class ThreebotDeploy(BaseThreebotDeploy, MarketPlaceChatflow):
     def _threebot_start(self):
         self._validate_user()
         super()._threebot_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def set_threebot_name(self):

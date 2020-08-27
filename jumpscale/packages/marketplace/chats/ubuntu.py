@@ -10,7 +10,8 @@ class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
     @chatflow_step()
     def _ubuntu_start(self):
         super()._ubuntu_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
@@ -26,7 +27,7 @@ class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
-        self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
+        self.solution_name = f"{self.username}_{self.solution_name}"
 
     @chatflow_step(title="Pool")
     def select_pool(self):

@@ -32,14 +32,15 @@ class Publisher(MarketPlaceAppsChatflow):
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
-
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": ttype.value,
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
     @chatflow_step(title="Deployment Information", disable_previous=True)
@@ -102,7 +103,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(
                 f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}"
             )
@@ -133,7 +134,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
