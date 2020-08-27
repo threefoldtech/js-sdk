@@ -30,7 +30,9 @@ class UbuntuDeploy(MarketPlaceChatflow):
         used_names = [s["Name"] for s in solutions.list_ubuntu_solutions(self.solution_metadata["owner"])]
         valid = False
         while not valid:
-            self.solution_name = self.string_ask("Please enter a name for your ubuntu container", required=True)
+            self.solution_name = self.string_ask(
+                "Please enter a name for your ubuntu container", required=True, is_identifier=True,
+            )
             if self.solution_name in used_names:
                 self.md_show("name already used. please click next to continue")
             else:

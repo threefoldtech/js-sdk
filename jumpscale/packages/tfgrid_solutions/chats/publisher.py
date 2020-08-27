@@ -63,7 +63,9 @@ class Publisher(GedisChatBot):
     @chatflow_step()
     def publisher_info(self):
         form = self.new_form()
-        self.solution_name = form.string_ask("Please enter a name for your solution", required=True)
+        self.solution_name = form.string_ask(
+            "Please enter a name for your solution", required=True, is_identifier=True,
+        )
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice(

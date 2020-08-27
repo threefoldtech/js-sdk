@@ -488,6 +488,7 @@ class ChatflowDeployer:
             "Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )",
             required=True,
             field="name",
+            is_identifier=True,
         )
 
         return name

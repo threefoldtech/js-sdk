@@ -70,6 +70,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
                     required=True,
+                    is_identifier=True,
                 )
                 if "." in domain:
                     retry = True
@@ -82,7 +83,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
             self.domain = domain + "." + self.domain
         else:
-            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True,)
+            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self.solution_metadata["owner"], self)
             self.domain_type = "Custom Domain"
             res = """\
