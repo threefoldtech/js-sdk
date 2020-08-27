@@ -607,7 +607,6 @@ class ChatflowSolutions:
                     "IPv4 Address": c_dict["ipv4"],
                     "IPv6 Address": c_dict["ipv6"],
                     "Node": c_dict["node"],
-                    "Farm": self.get_node_farm(c_dict["node"]),
                     "Pool": c_dict["pool"],
                     "Network": c_dict["network"],
                 }
