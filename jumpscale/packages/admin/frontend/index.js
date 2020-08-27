@@ -83,7 +83,7 @@ const router = new VueRouter({
     { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
     { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
     { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
-    { name: "Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
+    { name: "Capacity Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
     { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
     { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
     { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
