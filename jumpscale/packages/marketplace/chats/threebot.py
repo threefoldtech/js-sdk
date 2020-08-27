@@ -7,7 +7,7 @@ from jumpscale.data.nacl.jsnacl import NACL
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
-    SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
+    SOLUTION_TYPE = "3Bot"
     title = "3Bot"
     steps = [
         "get_solution_name",
