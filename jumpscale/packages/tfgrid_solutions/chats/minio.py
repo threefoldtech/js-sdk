@@ -183,7 +183,7 @@ class MinioDeploy(GedisChatBot):
             if not result:
                 continue
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
             self.network_view = self.network_view.copy()
@@ -278,7 +278,7 @@ class MinioDeploy(GedisChatBot):
             **self.solution_metadata,
         )
         for resv_id in self.minio_result:
-            success = deployer.wait_workload(resv_id)
+            success = deployer.wait_workload(resv_id, self)
             if not success:
                 solutions.cancel_solution([resv_id])
                 raise StopChatFlow(f"Failed to deploy Minio container workload {resv_id}")
