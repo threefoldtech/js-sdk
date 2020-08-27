@@ -29,7 +29,7 @@ class ChatflowSolutions:
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
                     "nodes": {
-                        res.info.node_id: (res.iprange, self.get_node_farm(res.info.node_id))
+                        res.info.node_id: f"{res.iprange} {self.get_node_farm(res.info.node_id)}"
                         for res in n.network_workloads
                     },
                     "wids": [res.id for res in n.network_workloads],
