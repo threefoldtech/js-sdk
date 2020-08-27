@@ -15,7 +15,28 @@ validators = {
     }
   },
   string_ask: {
+    is_identifier: (field) => {
+      let str = field.val;
+      if (typeof str !== 'string') {
+        return `Value is not a valid string`;
+      }
 
+      if (str.trim() !== str) {
+        return `Value can't contain spaces`
+      }
+
+      try {
+        new Function(str, 'var ' + str);
+      } catch (_) {
+        return `Value is invalid identifier`;
+      }
+
+      if (str.toLowerCase() !== str) {
+        return `Value must be all lower case`;
+      }
+
+      return true;
+    },
   },
   int_ask: {
     min: (field, min) => {

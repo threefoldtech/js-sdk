@@ -113,6 +113,7 @@ class SolutionExpose(GedisChatBot):
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
                     required=True,
+                    is_identifier=True,
                 )
                 if "." in domain:
                     retry = True
