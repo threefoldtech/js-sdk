@@ -18,21 +18,21 @@ validators = {
     is_identifier: (field) => {
       let str = field.val;
       if (typeof str !== 'string') {
-        return `Value is not a valid string`;
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
       }
 
       if (str.trim() !== str) {
-        return `Value can't contain spaces`
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
       }
 
       try {
         new Function(str, 'var ' + str);
       } catch (_) {
-        return `Value is invalid identifier`;
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
       }
 
       if (str.toLowerCase() !== str) {
-        return `Value must be all lower case`;
+        return `Invalid value. It should be lowercase, no spaces and no special characters`;
       }
 
       return true;
