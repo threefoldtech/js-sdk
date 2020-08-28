@@ -5,6 +5,7 @@ from jumpscale.clients.explorer.models import WorkloadType
 
 def sign_workload(workload, signing_key):
     challenge = _hash_signing_challenge(workload)
+    print(challenge)
     h = _hash(challenge)
     signature = signing_key.sign(h)
     return signature.signature
@@ -71,23 +72,23 @@ def _hash_signing_challenge(workload):
         WorkloadType.Network_resource: _network_resource_challenge,
     }
     b = StringIO()
-    b.write(_workload_info_challenge(workload.info))
-    enc = _encoders.get(workload.info.workload_type)
+    b.write(_it_contract_challenge(workload.it_contract))
+    enc = _encoders.get(workload.it_contract.contract.workload_type)
     b.write(enc(workload))
     return b.getvalue()
 
 
-def _workload_info_challenge(info):
+def _it_contract_challenge(it_contract):
     b = StringIO()
-    b.write(str(info.workload_id))
-    b.write(str(info.node_id))
-    b.write(str(info.pool_id))
-    b.write(str(info.reference))
-    b.write(str(info.customer_tid))
-    b.write(str(info.workload_type.name).upper())  # edited
-    b.write(str(int(info.epoch.timestamp())))  # edited
-    b.write(str(info.description))
-    b.write(str(info.metadata))
+    b.write(str(it_contract.contract.workload_id))
+    b.write(str(it_contract.contract.node_id))
+    b.write(str(it_contract.contract.pool_id))
+    b.write(str(it_contract.contract.reference))
+    b.write(str(it_contract.contract.customer_tid))
+    b.write(str(it_contract.contract.workload_type.name).upper())  # edited
+    b.write(str(int(it_contract.contract.epoch.timestamp())))  # edited
+    b.write(str(it_contract.contract.description))
+    b.write(str(it_contract.contract.metadata))
     return b.getvalue()
 
 

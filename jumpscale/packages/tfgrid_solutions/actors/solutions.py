@@ -14,10 +14,10 @@ class Solutions(BaseActor):
         res = []
         for workload in j.sals.zos.workloads.list(j.core.identity.me.tid):
             w_dict = workload.to_dict()
-            w_dict["workload_type"] = workload.info.workload_type.name
-            w_dict["pool_id"] = workload.info.pool_id
-            w_dict["epoch"] = workload.info.epoch.timestamp()
-            w_dict["next_action"] = workload.info.next_action.name
+            w_dict["workload_type"] = workload.it_contract.contract.workload_type.name
+            w_dict["pool_id"] = workload.it_contract.contract.pool_id
+            w_dict["epoch"] = workload.it_contract.contract.epoch.timestamp()
+            w_dict["next_action"] = workload.it_contract.state.next_action.name
             res.append(w_dict)
         return j.data.serializers.json.dumps({"data": res})
 
@@ -85,7 +85,9 @@ class Solutions(BaseActor):
             pool_dict["farm"] = farm.name
             for i, wid in enumerate(pool_dict["active_workload_ids"]):
                 if wid in workloads_dict:
-                    pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
+                    pool_dict["active_workload_ids"][
+                        i
+                    ] = f"{workloads_dict[wid].it_contract.contract.workload_type.name} - {wid}"
                 else:
                     # due to differnet next action. we'll just show the id
                     pool_dict["active_workload_ids"][i] = wid

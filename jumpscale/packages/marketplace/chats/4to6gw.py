@@ -53,7 +53,7 @@ class FourToSixGateway(MarketPlaceChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
+        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).it_contract.state.result
         res = """
 ## Use the following template to configure your wireguard connection. This will give you access to your network.
 \n<br/>\n

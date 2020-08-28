@@ -101,7 +101,7 @@ def test02_extend_pool_with_funded_wallet():
     pool_info = pools[-1]
     exist_cus = pool_info.cus
     exist_sus = pool_info.sus
-    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, currencies=["TFT"])
+    pool = zos.pools.extend(pool_id=pool_it_contract.contract.pool_id, cu=1, su=1, currencies=["TFT"])
 
     info("Pay for the pool")
     needed_tft_ammount = amount_paid_to_farmer(pool)
@@ -109,7 +109,7 @@ def test02_extend_pool_with_funded_wallet():
     time.sleep(60)
 
     info("Check that the pool has been extended")
-    pool_info = zos.pools.get(pool_info.pool_id)
+    pool_info = zos.pools.get(pool_it_contract.contract.pool_id)
     assert (pool_info.sus - exist_sus) == 1
     assert (pool_info.cus - exist_cus) == 1
 
@@ -168,7 +168,7 @@ def test04_extend_pool_with_empty_wallet():
     pool_info = pools[-1]
     exist_cus = pool_info.cus
     exist_sus = pool_info.sus
-    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, currencies=["TFT"])
+    pool = zos.pools.extend(pool_id=pool_it_contract.contract.pool_id, cu=1, su=1, currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
@@ -179,6 +179,6 @@ def test04_extend_pool_with_empty_wallet():
     time.sleep(60)
 
     info("Check that the pool has not been extended")
-    pool_info = zos.pools.get(pool_info.pool_id)
+    pool_info = zos.pools.get(pool_it_contract.contract.pool_id)
     assert (pool_info.sus - exist_sus) == 0
     assert (pool_info.cus - exist_cus) == 0

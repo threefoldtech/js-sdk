@@ -13,7 +13,7 @@ from .models import (
     K8s,
     NetworkResource,
     NextAction,
-    ReservationInfo,
+    ITContract,
     Volume,
     WorkloadType,
     ZdbNamespace,
@@ -43,12 +43,12 @@ class Decoder:
         }
 
     def workload(self):
-        info = ReservationInfo.from_dict(self.data)
-        model = self._models.get(info.workload_type)
+        it_contract = ITContract.from_dict(self.data)
+        model = self._models.get(it_contract.contract.workload_type)
         if not model:
-            raise j.core.exceptions.Input("unsupported workload type %s" % info.workload_type)
+            raise j.core.exceptions.Input("unsupported workload type %s" % it_contract.contract.workload_type)
         workload = model.from_dict(self.data)
-        workload.info = info
+        workload.it_contract = it_contract
         return workload
 
 
@@ -87,9 +87,9 @@ class Workloads:
         """
         url = self._base_url
         data = workload.to_dict()
-        del data["info"]["result"]
-        info = data.pop("info")
-        data.update(info)
+        del data["it_contract"]["state"]["result"]
+        it_contract = data.pop("it_contract")
+        data.update(it_contract)
         resp = self._session.post(url, json=data)
         return resp.json().get("reservation_id")
 
@@ -159,7 +159,7 @@ class Workloads:
         def filter_next_action(reservation):
             if next_action is None:
                 return True
-            return reservation.info.next_action == next_action
+            return reservation.it_contract.state.next_action == next_action
 
         url = self._base_url
 

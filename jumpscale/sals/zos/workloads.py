@@ -137,16 +137,16 @@ class Workloads:
 
         """
         me = j.core.identity.me
-        workload.info.customer_tid = me.tid
-        workload.info.workload_id = 1
-        workload.info.epoch = j.data.time.now().timestamp
-        workload.info.next_action = NextAction.DEPLOY
-        if me.tid not in workload.info.signing_request_delete.signers:
-            workload.info.signing_request_delete.signers.append(me.tid)
-        if not workload.info.signing_request_delete.quorum_min:
-            workload.info.signing_request_delete.quorum_min = 1
+        workload.it_contract.contract.customer_tid = me.tid
+        workload.it_contract.contract.workload_id = 1
+        workload.it_contract.contract.epoch = j.data.time.now().timestamp
+        workload.it_contract.state.next_action = NextAction.DEPLOY
+        if me.tid not in workload.it_contract.contract.signing_request_delete.signers:
+            workload.it_contract.contract.signing_request_delete.signers.append(me.tid)
+        if not workload.it_contract.contract.signing_request_delete.quorum_min:
+            workload.it_contract.contract.signing_request_delete.quorum_min = 1
         signature = sign_workload(workload, me.nacl.signing_key)
-        workload.info.customer_signature = binascii.hexlify(signature).decode()
+        workload.it_contract.state.customer_signature = binascii.hexlify(signature).decode()
         return self._workloads.create(workload)
 
     def decomission(self, workload_id: int):

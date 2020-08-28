@@ -24,9 +24,9 @@ class VolumesGenerator:
         volume = Volume()
         volume.size = size
         volume.type = type
-        volume.info.node_id = node_id
-        volume.info.pool_id = pool_id
-        volume.info.workload_type = WorkloadType.Volume
+        volume.it_contract.contract.node_id = node_id
+        volume.it_contract.contract.pool_id = pool_id
+        volume.it_contract.contract.workload_type = WorkloadType.Volume
         return volume
 
     def attach_existing(self, container: Container, volume_id: Union[str, Volume], mount_point: str):

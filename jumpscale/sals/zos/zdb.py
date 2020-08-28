@@ -37,9 +37,9 @@ class ZDBGenerator:
             disk_type = getattr(DiskType, disk_type)
 
         zdb = ZdbNamespace()
-        zdb.info.node_id = node_id
-        zdb.info.pool_id = pool_id
-        zdb.info.workload_type = WorkloadType.Zdb
+        zdb.it_contract.contract.node_id = node_id
+        zdb.it_contract.contract.pool_id = pool_id
+        zdb.it_contract.contract.workload_type = WorkloadType.Zdb
         zdb.size = size
         zdb.mode = mode
         if password:

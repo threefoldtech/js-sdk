@@ -44,9 +44,9 @@ class KubernetesGenerator:
             raise Input("size can only be 1 or 2")
 
         master = K8s()
-        master.info.node_id = node_id
-        master.info.workload_type = WorkloadType.Kubernetes
-        master.info.pool_id = pool_id
+        master.it_contract.contract.node_id = node_id
+        master.it_contract.contract.workload_type = WorkloadType.Kubernetes
+        master.it_contract.contract.pool_id = pool_id
 
         node = self._nodes.get(node_id)
         master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret).decode()

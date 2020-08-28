@@ -20,7 +20,7 @@ class ChatflowSolutions:
                 {
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
-                    "nodes": {res.info.node_id: res.iprange for res in n.network_workloads},
+                    "nodes": {res.it_contract.contract.node_id: res.iprange for res in n.network_workloads},
                     "wids": [res.id for res in n.network_workloads],
                 }
             )
@@ -113,10 +113,10 @@ class ChatflowSolutions:
             WorkloadType.Kubernetes
         ].values():
             for workload in kube_workloads:
-                if not workload.info.metadata:
+                if not workload.it_contract.contract.metadata:
                     continue
                 try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    metadata = j.data.serializers.json.loads(workload.it_contract.contract.metadata)
                 except:
                     continue
                 if not metadata.get("form_info"):
@@ -127,7 +127,7 @@ class ChatflowSolutions:
                         if len(workload.master_ips) != 0:
                             result[name]["wids"].append(workload.id)
                             result[name]["Slave IPs"].append(workload.ipaddress)
-                            result[name]["Slave Pools"].append(workload.info.pool_id)
+                            result[name]["Slave Pools"].append(workload.it_contract.contract.pool_id)
                         continue
                     result[f"{name}"] = {
                         "wids": [workload.id],
@@ -136,7 +136,7 @@ class ChatflowSolutions:
                         "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
                         "Slave IPs": [],
                         "Slave Pools": [],
-                        "Master Pool": workload.info.pool_id,
+                        "Master Pool": workload.it_contract.contract.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
@@ -187,8 +187,8 @@ class ChatflowSolutions:
                         "wids": [g.id],
                         "Name": g.public_key,
                         "Public Key": g.public_key,
-                        "Gateway": g.info.node_id,
-                        "Pool": g.info.pool_id,
+                        "Gateway": g.it_contract.contract.node_id,
+                        "Pool": g.it_contract.contract.pool_id,
                     }
                 )
         return result
@@ -204,7 +204,12 @@ class ChatflowSolutions:
         ].values():
             for dom in domains:
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {
+                        "wids": [dom.id],
+                        "Name": dom.domain,
+                        "Gateway": dom.it_contract.contract.node_id,
+                        "Pool": dom.it_contract.contract.pool_id,
+                    }
                 )
         return result
 
@@ -218,28 +223,28 @@ class ChatflowSolutions:
         name_to_proxy = {}
         for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy].values():
             for proxy in proxies:
-                if proxy.info.metadata:
-                    metadata = j.data.serializers.json.loads(proxy.info.metadata)
+                if proxy.it_contract.contract.metadata:
+                    metadata = j.data.serializers.json.loads(proxy.it_contract.contract.metadata)
                     if not metadata:
                         continue
                     chatflow = metadata.get("form_info", {}).get("chatflow")
                     if chatflow and chatflow != "exposed":
                         continue
-                    result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                    result[f"{proxy.it_contract.contract.pool_id}-{proxy.domain}"] = {
                         "wids": [proxy.id],
                         "Name": proxy.domain,
-                        "Gateway": proxy.info.node_id,
-                        "Pool": proxy.info.pool_id,
+                        "Gateway": proxy.it_contract.contract.node_id,
+                        "Pool": proxy.it_contract.contract.pool_id,
                         "Domain": proxy.domain,
                     }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
-                    name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
-                pools.add(proxy.info.pool_id)
+                    name_to_proxy[name] = f"{proxy.it_contract.contract.pool_id}-{proxy.domain}"
+                pools.add(proxy.it_contract.contract.pool_id)
 
         # link subdomains to proxy_reservations
         for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Subdomain].values():
             for workload in subdomains:
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                metadata = j.data.serializers.json.loads(workload.it_contract.contract.metadata)
                 if not metadata:
                     continue
                 chatflow = metadata.get("form_info", {}).get("chatflow")
@@ -261,10 +266,10 @@ class ChatflowSolutions:
             ][pool_id]:
                 if (
                     container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
-                    or not container_workload.info.metadata
+                    or not container_workload.it_contract.contract.metadata
                 ):
                     continue
-                metadata = j.data.serializers.json.loads(container_workload.info.metadata)
+                metadata = j.data.serializers.json.loads(container_workload.it_contract.contract.metadata)
                 if not metadata:
                     continue
                 chatflow = metadata.get("form_info", {}).get("chatflow")
@@ -330,10 +335,10 @@ class ChatflowSolutions:
         return count_dict
 
     def get_solution_uuid(self, workload):
-        if workload.info.metadata:
+        if workload.it_contract.contract.metadata:
             try:
                 metadata = j.data.serializers.json.loads(
-                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.it_contract.contract.metadata)
                 )
             except:
                 return
@@ -342,30 +347,30 @@ class ChatflowSolutions:
                 return solution_uuid
 
     def get_ipv6_address(self, workload):
-        result = j.data.serializers.json.loads(workload.info.result.data_json)
+        result = j.data.serializers.json.loads(workload.it_contract.state.result.data_json)
         if not result:
             result = {}
         return result.get("ipv6")
 
     def get_workload_capacity(self, workload):
         result = {}
-        if workload.info.workload_type == WorkloadType.Container:
+        if workload.it_contract.contract.workload_type == WorkloadType.Container:
             result["CPU"] = workload.capacity.cpu
             result["Memory"] = workload.capacity.memory
             result["RootFS Type"] = workload.capacity.disk_type.name
             result["RootFS Size"] = workload.capacity.disk_size
-        elif workload.info.workload_type == WorkloadType.Kubernetes:
+        elif workload.it_contract.contract.workload_type == WorkloadType.Kubernetes:
             result.update(K8S_SIZES.get(workload.size, {}))
-        elif workload.info.workload_type == WorkloadType.Volume:
+        elif workload.it_contract.contract.workload_type == WorkloadType.Volume:
             result["Size"] = workload.size * 1024
             result["Type"] = workload.type.name
         return result
 
     def _validate_workload_metadata(self, chatflow, workload):
-        if not workload.info.metadata:
+        if not workload.it_contract.contract.metadata:
             return
         try:
-            metadata = j.data.serializers.json.loads(workload.info.metadata)
+            metadata = j.data.serializers.json.loads(workload.it_contract.contract.metadata)
         except:
             return
 
@@ -416,8 +421,8 @@ class ChatflowSolutions:
                     "ipv4": workload.network_connection[0].ipaddress,
                     "ipv6": self.get_ipv6_address(workload),
                     "network": workload.network_connection[0].network_id,
-                    "node": workload.info.node_id,
-                    "pool": workload.info.pool_id,
+                    "node": workload.it_contract.contract.node_id,
+                    "pool": workload.it_contract.contract.pool_id,
                     "vol_ids": [],
                     "capacity": self.get_workload_capacity(workload),
                     "owner": metadata.get("owner"),

@@ -8,7 +8,7 @@ from jumpscale.clients.explorer.models import (
     WorkloadType,
     DiskType,
     ZDBMode,
-    State,
+    ResultState,
 )
 from nacl.public import Box
 import netaddr
@@ -36,18 +36,21 @@ class NetworkView:
 
     def _init_network_workloads(self, workloads):
         for workload in workloads:
-            if workload.info.next_action != NextAction.DEPLOY:
+            if workload.it_contract.state.next_action != NextAction.DEPLOY:
                 continue
-            if workload.info.workload_type == WorkloadType.Network_resource and workload.name == self.name:
+            if (
+                workload.it_contract.contract.workload_type == WorkloadType.Network_resource
+                and workload.name == self.name
+            ):
                 self.network_workloads.append(workload)
 
     def _fill_used_ips(self, workloads):
         for workload in workloads:
-            if workload.info.next_action != NextAction.DEPLOY:
+            if workload.it_contract.state.next_action != NextAction.DEPLOY:
                 continue
-            if workload.info.workload_type == WorkloadType.Kubernetes:
+            if workload.it_contract.contract.workload_type == WorkloadType.Kubernetes:
                 self.used_ips.append(workload.ipaddress)
-            elif workload.info.workload_type == WorkloadType.Container:
+            elif workload.it_contract.contract.workload_type == WorkloadType.Container:
                 for conn in workload.network_connection:
                     if conn.network_id == self.name:
                         self.used_ips.append(conn.ipaddress)
@@ -55,7 +58,7 @@ class NetworkView:
     def add_node(self, node, pool_id):
         used_ip_ranges = set()
         for workload in self.network_workloads:
-            if workload.info.node_id == node.node_id:
+            if workload.it_contract.contract.node_id == node.node_id:
                 return
             used_ip_ranges.add(workload.iprange)
             for peer in workload.peers:
@@ -70,7 +73,7 @@ class NetworkView:
             network = j.sals.zos.network.create(self.iprange, self.name)
             node_workloads = {}
             for net_workload in self.network_workloads:
-                node_workloads[net_workload.info.node_id] = net_workload
+                node_workloads[net_workload.it_contract.contract.node_id] = net_workload
             network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
             j.sals.zos.network.add_node(network, node.node_id, str(subnet), pool_id)
             return network
@@ -78,8 +81,8 @@ class NetworkView:
     def add_access(self, node_id=None, use_ipv4=True, pool_id=None):
         if node_id and not pool_id:
             raise StopChatFlow("You must specify the pool id if you specify the node id")
-        node_id = node_id or self.network_workloads[0].info.node_id
-        pool_id = pool_id or self.network_workloads[0].info.pool_id
+        node_id = node_id or self.network_workloads[0].it_contract.contract.node_id
+        pool_id = pool_id or self.network_workloads[0].it_contract.contract.pool_id
         used_ip_ranges = set()
         for workload in self.network_workloads:
             used_ip_ranges.add(workload.iprange)
@@ -95,7 +98,7 @@ class NetworkView:
         network = j.sals.zos.network.create(self.iprange, self.name)
         node_workloads = {}
         for net_workload in self.network_workloads:
-            node_workloads[net_workload.info.node_id] = net_workload
+            node_workloads[net_workload.it_contract.contract.node_id] = net_workload
         network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
         if node_id not in node_workloads:
             j.sals.zos.network.add_node(network, node_id, str(subnet), pool_id=pool_id)
@@ -103,10 +106,10 @@ class NetworkView:
         return network, wg_quick
 
     def delete_access(self, ip_range, node_id=None):
-        node_id = node_id or self.network_workloads[0].info.node_id
+        node_id = node_id or self.network_workloads[0].it_contract.contract.node_id
         node_workloads = {}
         for net_workload in self.network_workloads:
-            node_workloads[net_workload.info.node_id] = net_workload
+            node_workloads[net_workload.it_contract.contract.node_id] = net_workload
         network = j.sals.zos.network.create(self.iprange, self.name)
         network.network_resources = list(node_workloads.values())
         network = j.sals.zos.network.delete_access(network, node_id, ip_range)
@@ -114,9 +117,9 @@ class NetworkView:
 
     def get_node_range(self, node):
         for workload in self.network_workloads:
-            if workload.info.next_action != NextAction.DEPLOY:
+            if workload.it_contract.state.next_action != NextAction.DEPLOY:
                 continue
-            if workload.info.node_id == node.node_id:
+            if workload.it_contract.contract.node_id == node.node_id:
                 return workload.iprange
         raise StopChatFlow(f"Node {node.node_id} is not part of network")
 
@@ -159,7 +162,7 @@ class NetworkView:
                 node_pool_dict[node_id] = pool_ids[idx]
         else:
             for workload in self.network_workloads:
-                node_pool_dict[workload.info.node_id] = workload.info.pool_id
+                node_pool_dict[workload.it_contract.contract.node_id] = workload.it_contract.contract.pool_id
             node_ids = list(node_pool_dict.keys())
             pool_ids = list(node_pool_dict.values())
 
@@ -172,14 +175,15 @@ class NetworkView:
         result = []
         for resource in network.network_resources:
             if bot:
-                bot.md_show_update(f"testing deployment on node {resource.info.node_id}")
+                bot.md_show_update(f"testing deployment on node {resource.it_contract.contract.node_id}")
             try:
                 result.append(j.sals.zos.workloads.deploy(resource))
             except Exception as e:
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(
-                    f"failed to deploy workload on node {resource.info.node_id} due to" f" error {str(e)}"
+                    f"failed to deploy workload on node {resource.it_contract.contract.node_id} due to"
+                    f" error {str(e)}"
                 )
         for idx, wid in enumerate(result):
             try:
@@ -187,12 +191,13 @@ class NetworkView:
             except StopChatFlow:
                 workload = j.sals.zos.workloads.get(wid)
                 # if not a breaking nodes (old node not used for deployment) we can overlook it
-                if workload.info.node_id not in breaking_node_ids:
+                if workload.it_contract.contract.node_id not in breaking_node_ids:
                     continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(
-                    "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
+                    "Network nodes dry run failed on node"
+                    f" {network.network_resources[idx].it_contract.contract.node_id}"
                 )
         for wid in result:
             j.sals.zos.workloads.decomission(wid)
@@ -212,17 +217,17 @@ class ChatflowDeployer:
         all_workloads = j.sals.zos.workloads.list(j.core.identity.me.tid, next_action)
         self.workloads.pop(next_action, None)
         for workload in all_workloads:
-            if workload.info.metadata:
-                workload.info.metadata = self.decrypt_metadata(workload.info.metadata)
+            if workload.it_contract.contract.metadata:
+                workload.it_contract.contract.metadata = self.decrypt_metadata(workload.it_contract.contract.metadata)
                 try:
-                    j.data.serializers.json.loads(workload.info.metadata)
+                    j.data.serializers.json.loads(workload.it_contract.contract.metadata)
                 except:
-                    workload.info.metadata = "{}"
+                    workload.it_contract.contract.metadata = "{}"
             else:
-                workload.info.metadata = "{}"
-            self.workloads[workload.info.next_action][workload.info.workload_type][workload.info.pool_id].append(
-                workload
-            )
+                workload.it_contract.contract.metadata = "{}"
+            self.workloads[workload.it_contract.state.next_action][workload.it_contract.contract.workload_type][
+                workload.it_contract.contract.pool_id
+            ].append(workload)
 
     def decrypt_metadata(self, encrypted_metadata):
         try:
@@ -539,9 +544,9 @@ class ChatflowDeployer:
         ids = []
         parent_id = None
         for workload in network.network_resources:
-            workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            workload.it_contract.contract.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
             ids.append(j.sals.zos.workloads.deploy(workload))
             parent_id = ids[-1]
         network_config["ids"] = ids
@@ -557,20 +562,20 @@ class ChatflowDeployer:
         node_workloads = {}
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
-            node_workloads[workload.info.node_id] = workload
+            node_workloads[workload.it_contract.contract.node_id] = workload
         network_view.dry_run(
             list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
+            [w.it_contract.contract.pool_id for w in node_workloads.values()],
             bot,
             breaking_node_ids=[node_id],
         )
 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
-            resource.info.reference = ""
-            resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            resource.it_contract.contract.reference = ""
+            resource.it_contract.contract.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            resource.info.metadata = self.encrypt_metadata(metadata)
+            resource.it_contract.contract.metadata = self.encrypt_metadata(metadata)
             result["ids"].append(j.sals.zos.workloads.deploy(resource))
             parent_id = result["ids"][-1]
         result["rid"] = result["ids"][0]
@@ -585,20 +590,20 @@ class ChatflowDeployer:
         node_workloads = {}
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
-            node_workloads[workload.info.node_id] = workload
+            node_workloads[workload.it_contract.contract.node_id] = workload
         network_view.dry_run(
             list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
+            [w.it_contract.contract.pool_id for w in node_workloads.values()],
             bot,
             breaking_node_ids=[node_id],
         )
         parent_id = network_view.network_workloads[-1].id
         result = []
         for resource in node_workloads.values():
-            resource.info.reference = ""
-            resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            resource.it_contract.contract.reference = ""
+            resource.it_contract.contract.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            resource.info.metadata = self.encrypt_metadata(metadata)
+            resource.it_contract.contract.metadata = self.encrypt_metadata(metadata)
             result.append(j.sals.zos.workloads.deploy(resource))
             parent_id = result[-1]
         return result
@@ -618,12 +623,12 @@ Workload ID: {workload_id} \n
 Deployment will be cancelled if it is not successful in {remaning_time}
                 """
                 bot.md_show_update(deploying_message, md=True)
-            if workload.info.result.workload_id:
-                return workload.info.result.state.value == 1
+            if workload.it_contract.state.result.workload_id:
+                return workload.it_contract.state.result.state.value == 1
             if expiration_provisioning < j.data.time.get().timestamp:
-                if workload.info.workload_type != WorkloadType.Network_resource:
+                if workload.it_contract.contract.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
-                elif breaking_node_id and workload.info.node_id != breaking_node_id:
+                elif breaking_node_id and workload.it_contract.contract.node_id != breaking_node_id:
                     return True
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
@@ -639,19 +644,19 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         node_workloads = {}
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
-            node_workloads[workload.info.node_id] = workload
+            node_workloads[workload.it_contract.contract.node_id] = workload
 
         network_view.dry_run(
             list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
+            [w.it_contract.contract.pool_id for w in node_workloads.values()],
             bot,
             breaking_node_ids=[node.node_id],
         )
         for workload in node_workloads.values():
-            workload.info.reference = ""
-            workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            workload.it_contract.contract.reference = ""
+            workload.it_contract.contract.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
             ids.append(j.sals.zos.workloads.deploy(workload))
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
@@ -666,7 +671,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     def deploy_volume(self, pool_id, node_id, size, volume_type=DiskType.SSD, **metadata):
         volume = j.sals.zos.volume.create(node_id, pool_id, size, volume_type)
         if metadata:
-            volume.info.metadata = self.encrypt_metadata(metadata)
+            volume.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(volume)
 
     def deploy_container(
@@ -717,7 +722,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             for mount_point, vol_id in volumes.items():
                 j.sals.zos.volume.attach_existing(container, f"{vol_id}-1", mount_point)
         if metadata:
-            container.info.metadata = self.encrypt_metadata(metadata)
+            container.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         if log_config:
             j.sals.zos.container.add_logs(container, **log_config)
         return j.sals.zos.workloads.deploy(container)
@@ -844,7 +849,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     def delegate_domain(self, pool_id, gateway_id, domain_name, **metadata):
         domain_delegate = j.sals.zos.gateway.delegate_domain(gateway_id, domain_name, pool_id)
         if metadata:
-            domain_delegate.info.metadata = self.encrypt_metadata(metadata)
+            domain_delegate.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(domain_delegate)
 
     def deploy_kubernetes_master(
@@ -853,9 +858,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         master = j.sals.zos.kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
         )
-        master.info.description = j.data.serializers.json.dumps({"role": "master"})
+        master.it_contract.contract.description = j.data.serializers.json.dumps({"role": "master"})
         if metadata:
-            master.info.metadata = self.encrypt_metadata(metadata)
+            master.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(master)
 
     def deploy_kubernetes_worker(
@@ -864,9 +869,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         worker = j.sals.zos.kubernetes.add_worker(
             node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id,
         )
-        worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
+        worker.it_contract.contract.description = j.data.serializers.json.dumps({"role": "worker"})
         if metadata:
-            worker.info.metadata = self.encrypt_metadata(metadata)
+            worker.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(worker)
 
     def deploy_kubernetes_cluster(
@@ -1075,7 +1080,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             public_key = public_key.decode()
         workload = j.sals.zos.gateway.gateway_4to6(gateway_id, public_key, pool_id)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
     def deploy_zdb(
@@ -1083,7 +1088,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
     ):
         workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
     def create_subdomain(self, pool_id, gateway_id, subdomain, addresses=None, **metadata):
@@ -1096,7 +1101,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             addresses = [j.sals.nettools.get_host_by_name(ns) for ns in gateway.dns_nameserver]
         workload = j.sals.zos.gateway.sub_domain(gateway_id, subdomain, addresses, pool_id)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
     def create_proxy(self, pool_id, gateway_id, domain_name, trc_secret, **metadata):
@@ -1105,7 +1110,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         """
         workload = j.sals.zos.gateway.tcp_proxy_reverse(gateway_id, domain_name, trc_secret, pool_id)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.it_contract.contract.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
     def expose_and_create_certificate(
@@ -1409,7 +1414,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
 
     def get_zdb_url(self, zdb_id, password):
         workload = j.sals.zos.workloads.get(zdb_id)
-        result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+        result_json = j.data.serializers.json.loads(workload.it_contract.state.result.data_json)
         if "IPs" in result_json:
             ip = result_json["IPs"][0]
         else:

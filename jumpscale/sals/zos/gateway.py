@@ -22,21 +22,21 @@ class GatewayGenerator:
 
     def __init__(self, explorer):
         self._gateways = explorer.gateway
-        
+
     def correct_domain(self, domain):
-      """
+        """
       removes any invalid chars from a domain and return a valid one
-      only for _ it replaces it with - and for other chars it is removed 
+      only for _ it replaces it with - and for other chars it is removed
       """
-      domain = domain.replace("_", "-")
-      domain_regex = r"^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,11}?$"
-      if not re.match(domain_regex, domain):
-        domain_copy = domain
-        chars = string.ascii_letters+string.digits + "-."
-        for c in domain_copy:
-          if c not in chars:
-            domain = domain.replace(c, "")
-      return domain
+        domain = domain.replace("_", "-")
+        domain_regex = r"^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,11}?$"
+        if not re.match(domain_regex, domain):
+            domain_copy = domain
+            chars = string.ascii_letters + string.digits + "-."
+            for c in domain_copy:
+                if c not in chars:
+                    domain = domain.replace(c, "")
+        return domain
 
     def sub_domain(self, gateway_id: str, domain: str, ips: List[str], pool_id: int) -> GatewaySubdomain:
         """create a sub-domain workload object
@@ -56,11 +56,11 @@ class GatewayGenerator:
                 raise Input(f"{ip} is not valid IP address")
         domain = self.correct_domain(domain)
         sb = GatewaySubdomain()
-        sb.info.node_id = gateway_id
+        sb.it_contract.contract.node_id = gateway_id
         sb.domain = domain
         sb.ips = ips
-        sb.info.workload_type = WorkloadType.Subdomain
-        sb.info.pool_id = pool_id
+        sb.it_contract.contract.workload_type = WorkloadType.Subdomain
+        sb.it_contract.contract.pool_id = pool_id
         return sb
 
     def delegate_domain(self, gateway_id: str, domain: str, pool_id: int) -> GatewayDelegate:
@@ -76,10 +76,10 @@ class GatewayGenerator:
 
         """
         d = GatewayDelegate()
-        d.info.node_id = gateway_id
+        d.it_contract.contract.node_id = gateway_id
         d.domain = domain
-        d.info.workload_type = WorkloadType.Domain_delegate
-        d.info.pool_id = pool_id
+        d.it_contract.contract.workload_type = WorkloadType.Domain_delegate
+        d.it_contract.contract.pool_id = pool_id
         return d
 
     def tcp_proxy(
@@ -100,9 +100,9 @@ class GatewayGenerator:
 
         """
         p = GatewayProxy()
-        p.info.node_id = gateway_id
-        p.info.pool_id = pool_id
-        p.info.workload_type = WorkloadType.Proxy
+        p.it_contract.contract.node_id = gateway_id
+        p.it_contract.contract.pool_id = pool_id
+        p.it_contract.contract.workload_type = WorkloadType.Proxy
         p.domain = domain
         p.addr = addr
         p.port = port
@@ -124,9 +124,9 @@ class GatewayGenerator:
 
         """
         p = GatewayReverseProxy()
-        p.info.node_id = gateway_id
-        p.info.pool_id = pool_id
-        p.info.workload_type = WorkloadType.Reverse_proxy
+        p.it_contract.contract.node_id = gateway_id
+        p.it_contract.contract.pool_id = pool_id
+        p.it_contract.contract.workload_type = WorkloadType.Reverse_proxy
         p.domain = domain
         node = self._gateways.get(gateway_id)
         p.secret = encrypt_for_node(node.public_key_hex, secret).decode()
@@ -146,9 +146,9 @@ class GatewayGenerator:
         """
         gw = Gateway4to6()
         gw.public_key = public_key
-        gw.info.node_id = gateway_id
-        gw.info.pool_id = pool_id
-        gw.info.workload_type = WorkloadType.Gateway4to6
+        gw.it_contract.contract.node_id = gateway_id
+        gw.it_contract.contract.pool_id = pool_id
+        gw.it_contract.contract.workload_type = WorkloadType.Gateway4to6
         return gw
 
 

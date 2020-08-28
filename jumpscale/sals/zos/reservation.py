@@ -23,7 +23,7 @@ class Reservation:
     @property
     def sorted(self):
 
-        workloads = sorted(self.workloads, key=lambda w: _order.index(w.info.workload_type))
+        workloads = sorted(self.workloads, key=lambda w: _order.index(w.it_contract.contract.workload_type))
         out = []
         for w in workloads:
             if isinstance(w, Network):
@@ -35,7 +35,7 @@ class Reservation:
     def __repr__(self):
         per_type = {}
         for w in self.workloads:
-            wt = str(w.info.workload_type)
+            wt = str(w.it_contract.contract.workload_type)
             if wt not in per_type:
                 per_type[wt] = []
 

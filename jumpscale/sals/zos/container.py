@@ -58,9 +58,9 @@ class ContainerGenerator:
           Container: Container
         """
         cont = Container()
-        cont.info.node_id = node_id
-        cont.info.pool_id = capacity_pool_id
-        cont.info.workload_type = WorkloadType.Container
+        cont.it_contract.contract.node_id = node_id
+        cont.it_contract.contract.pool_id = capacity_pool_id
+        cont.it_contract.contract.workload_type = WorkloadType.Container
 
         cont.flist = flist
         cont.storage_url = storage_url

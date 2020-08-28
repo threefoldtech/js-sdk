@@ -192,7 +192,7 @@ class Category(Enum):
     Gateway4to6 = 9
 
 
-class State(Enum):
+class ResultState(Enum):
     Error = 0
     Ok = 1
     Deleted = 2
@@ -272,29 +272,37 @@ class ReservationResult(Base):
     workload_id = fields.String(default="")
     data_json = fields.Json()
     signature = fields.Bytes()
-    state = fields.Enum(State)
+    state = fields.Enum(ResultState)
     message = fields.String(default="")
     epoch = fields.DateTime()
 
 
-class ReservationInfo(Base):
+class Contract(Base):
     workload_id = fields.Integer()
     node_id = fields.String()
     pool_id = fields.Integer()
-    description = fields.String(default="")
-    reference = fields.String(default="")
+    signing_request_provision = fields.Object(SigningRequest)
+    signing_request_delete = fields.Object(SigningRequest)
     customer_tid = fields.Integer()
+    workload_type = fields.Enum(WorkloadType)
+    epoch = fields.DateTime(default=datetime.utcnow)
+    description = fields.String(default="")
+    metadata = fields.String(default="")
+    reference = fields.String(default="")
+
+
+class State(Base):
     customer_signature = fields.String()
     next_action = fields.Enum(NextAction)
     signatures_provision = fields.List(fields.Object(Signature))
-    signing_request_provision = fields.Object(SigningRequest)
-    signing_request_delete = fields.Object(SigningRequest)
     signatures_farmer = fields.List(fields.Object(Signature))
     signatures_delete = fields.List(fields.Object(Signature))
-    epoch = fields.DateTime(default=datetime.utcnow)
-    metadata = fields.String(default="")
     result = fields.Object(ReservationResult)
-    workload_type = fields.Enum(WorkloadType)
+
+
+class ITContract(Base):
+    state = fields.Object(State)
+    contract = fields.Object(Contract)
 
 
 class GatewayProxy(Base):
@@ -303,33 +311,33 @@ class GatewayProxy(Base):
     addr = fields.String(default="")
     port = fields.Integer()
     port_tls = fields.Integer()
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class GatewayReverseProxy(Base):
     id = fields.Integer()
     domain = fields.String(default="")
     secret = fields.String(default="")
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class GatewaySubdomain(Base):
     id = fields.Integer()
     domain = fields.String(default="")
     ips = fields.List(fields.String())
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class GatewayDelegate(Base):
     id = fields.Integer()
     domain = fields.String(default="")
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class Gateway4to6(Base):
     id = fields.Integer()
     public_key = fields.String(default="")
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class Statsaggregator(Base):
@@ -347,7 +355,7 @@ class K8s(Base):
     master_ips = fields.List(fields.IPAddress())
     ssh_keys = fields.List(fields.String())
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class WireguardPeer(Base):
@@ -399,7 +407,7 @@ class Container(Base):
     farmer_tid = fields.Integer()
     logs = fields.List(fields.Object(ContainerLogs))
     capacity = fields.Object(ContainerCapacity)
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class NetworkResource(Base):
@@ -411,7 +419,7 @@ class NetworkResource(Base):
     wireguard_listen_port = fields.Integer()
     iprange = fields.IPRange(default="10.10.10.0/24")
     peers = fields.List(fields.Object(WireguardPeer))
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class Network(Base):
@@ -428,7 +436,7 @@ class Volume(Base):
     size = fields.Integer()
     type = fields.Enum(DiskType)
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class ZdbNamespace(Base):
@@ -440,7 +448,7 @@ class ZdbNamespace(Base):
     disk_type = fields.Enum(DiskType)
     public = fields.Boolean(default=False)
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
-    info = fields.Object(ReservationInfo)
+    it_contract = fields.Object(ITContract)
 
 
 class ReservationData(Base):

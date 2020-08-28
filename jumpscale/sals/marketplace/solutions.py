@@ -16,7 +16,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 {
                     "Name": n.name[len(username) + 1 :],
                     "IP Range": n.network_workloads[-1].network_iprange,
-                    "nodes": {res.info.node_id: res.iprange for res in n.network_workloads},
+                    "nodes": {res.it_contract.contract.node_id: res.iprange for res in n.network_workloads},
                     "wids": [res.id for res in n.network_workloads],
                 }
             )
@@ -148,10 +148,10 @@ class MarketplaceSolutions(ChatflowSolutions):
             WorkloadType.Kubernetes
         ].values():
             for workload in kube_workloads:
-                if not workload.info.metadata:
+                if not workload.it_contract.contract.metadata:
                     continue
                 try:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    metadata = j.data.serializers.json.loads(workload.it_contract.contract.metadata)
                 except:
                     continue
                 if not metadata.get("form_info"):
@@ -164,7 +164,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         if len(workload.master_ips) != 0:
                             result[f"{name}"]["wids"].append(workload.id)
                             result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
-                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
+                            result[f"{name}"]["Slave Pools"].append(workload.it_contract.contract.pool_id)
                         continue
                     result[f"{name}"] = {
                         "wids": [workload.id],
@@ -173,7 +173,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
                         "Slave IPs": [],
                         "Slave Pools": [],
-                        "Master Pool": workload.info.pool_id,
+                        "Master Pool": workload.it_contract.contract.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
@@ -188,10 +188,10 @@ class MarketplaceSolutions(ChatflowSolutions):
         result = []
         for gateways in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6].values():
             for g in gateways:
-                if not g.info.metadata:
+                if not g.it_contract.contract.metadata:
                     continue
                 try:
-                    metadata = j.data.serializers.json.loads(g.info.metadata)
+                    metadata = j.data.serializers.json.loads(g.it_contract.contract.metadata)
                 except:
                     continue
                 if metadata.get("owner") != username:
@@ -201,8 +201,8 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "wids": [g.id],
                         "Name": g.public_key,
                         "Public Key": g.public_key,
-                        "Gateway": g.info.node_id,
-                        "Pool": g.info.pool_id,
+                        "Gateway": g.it_contract.contract.node_id,
+                        "Pool": g.it_contract.contract.pool_id,
                     }
                 )
         return result
@@ -218,13 +218,18 @@ class MarketplaceSolutions(ChatflowSolutions):
         ].values():
             for dom in domains:
                 try:
-                    metadata = j.data.serializers.json.loads(dom.info.metadata)
+                    metadata = j.data.serializers.json.loads(dom.it_contract.contract.metadata)
                 except:
                     continue
                 if metadata.get("owner") != username:
                     continue
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {
+                        "wids": [dom.id],
+                        "Name": dom.domain,
+                        "Gateway": dom.it_contract.contract.node_id,
+                        "Pool": dom.it_contract.contract.pool_id,
+                    }
                 )
         return result
 
@@ -238,8 +243,8 @@ class MarketplaceSolutions(ChatflowSolutions):
         name_to_proxy = {}
         for proxies in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Reverse_proxy].values():
             for proxy in proxies:
-                if proxy.info.metadata:
-                    metadata = j.data.serializers.json.loads(proxy.info.metadata)
+                if proxy.it_contract.contract.metadata:
+                    metadata = j.data.serializers.json.loads(proxy.it_contract.contract.metadata)
                     if not metadata:
                         continue
                     if metadata.get("owner") != username:
@@ -247,21 +252,21 @@ class MarketplaceSolutions(ChatflowSolutions):
                     chatflow = metadata.get("form_info", {}).get("chatflow")
                     if chatflow and chatflow != "exposed":
                         continue
-                    result[f"{proxy.info.pool_id}-{proxy.domain}"] = {
+                    result[f"{proxy.it_contract.contract.pool_id}-{proxy.domain}"] = {
                         "wids": [proxy.id],
                         "Name": proxy.domain,
-                        "Gateway": proxy.info.node_id,
-                        "Pool": proxy.info.pool_id,
+                        "Gateway": proxy.it_contract.contract.node_id,
+                        "Pool": proxy.it_contract.contract.pool_id,
                         "Domain": proxy.domain,
                     }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
-                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
-                pools.add(proxy.info.pool_id)
+                    name_to_proxy[f"{name}"] = f"{proxy.it_contract.contract.pool_id}-{proxy.domain}"
+                pools.add(proxy.it_contract.contract.pool_id)
 
         # link subdomains to proxy_reservations
         for subdomains in j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Subdomain].values():
             for workload in subdomains:
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                metadata = j.data.serializers.json.loads(workload.it_contract.contract.metadata)
                 if not metadata:
                     continue
                 if metadata.get("owner") != username:
@@ -285,10 +290,10 @@ class MarketplaceSolutions(ChatflowSolutions):
             ][pool_id]:
                 if (
                     container_workload.flist != "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
-                    or not container_workload.info.metadata
+                    or not container_workload.it_contract.contract.metadata
                 ):
                     continue
-                metadata = j.data.serializers.json.loads(container_workload.info.metadata)
+                metadata = j.data.serializers.json.loads(container_workload.it_contract.contract.metadata)
                 if not metadata:
                     continue
                 if metadata.get("owner") != username:
@@ -350,7 +355,9 @@ class MarketplaceSolutions(ChatflowSolutions):
         valid = True
         for wid in solution_wids:
             workload = j.sals.zos.workloads.get(wid)
-            metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+            metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(
+                workload.it_contract.contract.metadata
+            )
             metadata = j.data.serializers.json.loads(metadata_json)
             if metadata.get("owner") != username:
                 valid = False

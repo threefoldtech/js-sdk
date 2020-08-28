@@ -30,7 +30,7 @@ class NetworkGenerator:
 
     def _load_network(self, network):
         for nr in network.network_resources:
-            nr.public_endpoints = get_endpoints(self._nodes.get(nr.info.node_id))
+            nr.public_endpoints = get_endpoints(self._nodes.get(nr.it_contract.contract.node_id))
 
         network.access_points = extract_access_points(network)
 
@@ -95,11 +95,11 @@ class NetworkGenerator:
         _, wg_private_encrypted, wg_public = generate_zos_keys(node.public_key_hex)
 
         nr = NetworkResource()
-        nr.info.pool_id = pool_id
-        nr.info.workload_type = WorkloadType.Network_resource
+        nr.it_contract.contract.pool_id = pool_id
+        nr.it_contract.contract.workload_type = WorkloadType.Network_resource
         nr.network_iprange = network.iprange
         nr.iprange = ip_range
-        nr.info.node_id = node_id
+        nr.it_contract.contract.node_id = node_id
         nr.wireguard_listen_port = wg_port
         nr.wireguard_public_key = wg_public
         nr.wireguard_private_key_encrypted = wg_private_encrypted
@@ -136,7 +136,7 @@ class NetworkGenerator:
 
             access_point_nr = None
             for nr in network.network_resources:
-                if node_id == nr.info.node_id:
+                if node_id == nr.it_contract.contract.node_id:
                     access_point_nr = nr
 
             if access_point_nr is None:
@@ -195,7 +195,7 @@ class NetworkGenerator:
         node_workloads = {}
         node_ranges = set()
         for net_workload in network.network_resources:
-            node_workloads[net_workload.info.node_id] = net_workload
+            node_workloads[net_workload.it_contract.contract.node_id] = net_workload
             node_ranges.add(net_workload.iprange)
         if iprange in node_ranges:
             raise Input("Can't delete zos node peer")
@@ -241,8 +241,8 @@ class NetworkGenerator:
         nrs = {}
         # first gather all the latest version of each network resource for this network
         for w in self._workloads.iter(customer_tid=tid, next_action=NextAction.DEPLOY.name):
-            if w.info.workload_type == WorkloadType.Network_resource and w.name == network_name:
-                nrs[w.info.node_id] = w
+            if w.it_contract.contract.workload_type == WorkloadType.Network_resource and w.name == network_name:
+                nrs[w.it_contract.contract.node_id] = w
 
         network = None
         for nr in nrs.values():
@@ -256,7 +256,7 @@ class NetworkGenerator:
                         f"found a network resource with IP range ({nr.network_iprange}) different from the network IP range ({network.iprange})"
                     )
 
-            nr.info.reference = ""  # just to handle possible migrated network
+            nr.it_contract.contract.reference = ""  # just to handle possible migrated network
             network.network_resources.append(nr)
 
         return network
@@ -279,7 +279,7 @@ def generate_peers(network):
     # Map the network subnets to their respective node ids first for easy access later
     internal_subnets = {}
     for nr in network.network_resources:
-        internal_subnets[nr.info.node_id] = nr.iprange
+        internal_subnets[nr.it_contract.contract.node_id] = nr.iprange
 
     external_subnet = {}
     for ap in network.access_points:
@@ -304,17 +304,17 @@ def generate_peers(network):
     ipv6_only_subnets = {}
     for nr in network.network_resources:
         if len(nr.public_endpoints) == 0:
-            hidden_subnets[nr.info.node_id] = nr.iprange
+            hidden_subnets[nr.it_contract.contract.node_id] = nr.iprange
             continue
 
         if not has_ipv4(nr):
-            ipv6_only_subnets[nr.info.node_id] = nr.iprange
+            ipv6_only_subnets[nr.it_contract.contract.node_id] = nr.iprange
 
     for nr in network.network_resources:
         nr.peers = []
         for onr in network.network_resources:
             # skip ourself
-            if nr.info.node_id == onr.info.node_id:
+            if nr.it_contract.contract.node_id == onr.it_contract.contract.node_id:
                 continue
 
             endpoint = ""
@@ -329,10 +329,10 @@ def generate_peers(network):
                     continue
 
                 # Also add all other subnets if this is the pub node
-                if public_nr and onr.info.node_id == public_nr.info.node_id:
+                if public_nr and onr.it_contract.contract.node_id == public_nr.it_contract.contract.node_id:
                     for owner, subnet in hidden_subnets.items():
                         # Do not add our own subnet
-                        if owner == nr.info.node_id:
+                        if owner == nr.it_contract.contract.node_id:
                             continue
 
                         allowed_ips.add(subnet)
@@ -366,7 +366,7 @@ def generate_peers(network):
                 # both nodes are public therefore we can connect over IPv6
 
                 # if this is the selected public_nr - also need to add allowedIPs for the hidden nodes
-                if public_nr and onr.info.node_id == public_nr.info.node_id:
+                if public_nr and onr.it_contract.contract.node_id == public_nr.it_contract.contract.node_id:
                     for subnet in hidden_subnets.values():
                         allowed_ips.add(subnet)
                         allowed_ips.add(wg_routing_ip(subnet))
@@ -400,7 +400,7 @@ def generate_peers(network):
             peer.public_key = onr.wireguard_public_key
             nr.peers.append(peer)
         #  Add configured external access peers
-        for ea in access_points.get(nr.info.node_id, []):
+        for ea in access_points.get(nr.it_contract.contract.node_id, []):
             allowed_ips = [str(ea.subnet), wg_routing_ip(ea.subnet)]
 
             peer = WireguardPeer()
@@ -565,7 +565,7 @@ def extract_access_points(network):
             if peer.public_key not in actual_nodes:
                 # peer is not a node so it must be external
                 ap = AccessPoint(
-                    node_id=nr.info.node_id,
+                    node_id=nr.it_contract.contract.node_id,
                     subnet=peer.iprange,
                     wg_public_key=peer.public_key,
                     # we can't infer if we use IPv6 or IPv4
