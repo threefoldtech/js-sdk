@@ -47,13 +47,6 @@ const SOLUTIONS = {
     url: "/solutions/gitea",
     description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
   },
-  threebot: {
-    name: "3Bot",
-    type: "threebot",
-    image: "./assets/3bot.png",
-    url: "/solutions/threebot",
-    description: "Deploy your 3Bot on container."
-  },
   expose: {
     name: "Solution Expose",
     type: "exposed",
