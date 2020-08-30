@@ -44,7 +44,7 @@
                   text
                   :link="true"
                   color="blue"
-                  href="https:/manual-testnet.threefold.io/#/"
+                  href="https://manual-testnet.threefold.io/#/"
                   target="_blank"
                 >Manual</v-btn>
               </v-list-item-content>
@@ -74,26 +74,26 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
-      solutionCount: {}
+      solutionCount: {},
     };
   },
   computed: {},
   methods: {},
   methods: {
     getCurrentUser() {
-      this.$api.admins.getCurrentUser().then(response => {
+      this.$api.admins.getCurrentUser().then((response) => {
         this.user = response.data;
       });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then(response => {
+      this.$api.solutions.getCount().then((response) => {
         this.solutionCount = response.data.data;
       });
-    }
+    },
   },
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
-  }
+  },
 };
 </script>

@@ -1,6 +1,13 @@
 // const axios = require('axios')
 
 const apiClient = {
+  content: {
+    get: (url) => {
+      return axios({
+        url: url
+      })
+    }
+  },
   admins: {
     getCurrentUser: () => {
       return axios({

@@ -19,6 +19,7 @@ const vuetify = new Vuetify({
     },
   }
 })
+const markdownViewer = httpVueLoader('./components/MarkdownViewer.vue')
 
 const baseComponent = httpVueLoader('./components/base/Component.vue')
 const baseDialog = httpVueLoader('./components/base/Dialog.vue')
@@ -32,6 +33,7 @@ const home = httpVueLoader('./components/solutions/Solution.vue')
 const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
 const license = httpVueLoader('./components/License.vue')
 const terms = httpVueLoader('./components/Terms.vue')
+const disclaimer = httpVueLoader('./components/Disclaimer.vue')
 
 
 Vue.component("base-component", baseComponent)
@@ -40,12 +42,14 @@ Vue.component("base-dialog", baseDialog)
 Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
+Vue.component("markdown-view", markdownViewer)
 
 const router = new VueRouter({
   routes: [
     { name: "Home", path: '/', component: home, props: true, meta: { icon: "mdi-apps" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
+    { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
     { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
 
   ]
