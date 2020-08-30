@@ -33,7 +33,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         available_farms = []
-        for farm_name in [f.name for f in j.sals.zos._explorer.farms.list()]:
+        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
                 available_farms.append(farm_name)

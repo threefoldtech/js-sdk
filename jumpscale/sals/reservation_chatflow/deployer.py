@@ -1045,7 +1045,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     gateway.location.country,
                     gateway.location.city,
                 ]
-                location = " - ".join([info for info in location_list if info])
+                location = " - ".join([info for info in location_list if info and info != "Unkown"])
                 if location:
                     location = f" Location: {location}"
                 if name:
