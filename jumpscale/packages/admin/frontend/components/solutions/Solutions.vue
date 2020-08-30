@@ -21,7 +21,7 @@
             </v-col>
             <v-spacer></v-spacer>
           </v-row>
-          <v-tooltip bottom>
+          <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
               <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
             </template>
@@ -47,6 +47,18 @@
                   small
                   outlined
                 >{{solutionCount[app.type]}}</v-chip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <a
+                      class="chatflowInfo"
+                      :href="`https://manual-testnet.threefold.io/#/${app.type}`"
+                      target="blank"
+                    >
+                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                    </a>
+                  </template>
+                  <span>Chatflow Information</span>
+                </v-tooltip>
               </v-card-title>
               <v-card-text style="height:100px" class="mx-2 text--primary">
                 {{app.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
@@ -94,6 +106,18 @@
                   small
                   outlined
                 >{{solutionCount[solution.type]}}</v-chip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <a
+                      class="chatflowInfo"
+                      :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
+                      target="blank"
+                    >
+                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                    </a>
+                  </template>
+                  <span>Chatflow Information</span>
+                </v-tooltip>
               </v-card-title>
               <v-card-text style="height:100px" class="mx-2 text--primary">
                 {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
@@ -191,5 +215,10 @@ module.exports = {
 <style scoped>
 span.soTitle {
   font-size: 27;
+}
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
 }
 </style>
