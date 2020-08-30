@@ -45,31 +45,31 @@
 module.exports = {
   props: { type: String },
   components: {
-    "solution-info": httpVueLoader("./Info.vue")
+    "solution-info": httpVueLoader("./Info.vue"),
   },
   data() {
     return {
       loading: false,
       selected: null,
       dialogs: {
-        info: false
+        info: false,
       },
       deployedSolutions: {},
-      solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)]
+      solutions: [...Object.values(APPS)],
     };
   },
   computed: {
     solution() {
-      return this.solutions.find(obj => {
+      return this.solutions.find((obj) => {
         return obj.type === this.type;
       });
-    }
+    },
   },
   methods: {
     open(solutionId) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId }
+        params: { topic: solutionId },
       });
     },
     restart(solutionId) {
@@ -84,7 +84,7 @@ module.exports = {
       this.dialogs.info = true;
     },
     getDeployedSolutions(solution_type) {
-      this.$api.solutions.getDeployed(solution_type).then(response => {
+      this.$api.solutions.getDeployed(solution_type).then((response) => {
         if (solution_type === "pools") {
           const data = response.data.data;
           let parsedData = [];
@@ -101,17 +101,17 @@ module.exports = {
                 ? "-"
                 : new Date(data[i].empty_at * 1000),
               "Node ids": data[i].node_ids,
-              "Active workload ids": data[i].active_workload_ids
+              "Active workload ids": data[i].active_workload_ids,
             };
             parsedData.push(obj);
           }
           this.deployedSolutions = parsedData;
         } else this.deployedSolutions = response.data.data;
       });
-    }
+    },
   },
   mounted() {
     this.getDeployedSolutions(this.type);
-  }
+  },
 };
 </script>
