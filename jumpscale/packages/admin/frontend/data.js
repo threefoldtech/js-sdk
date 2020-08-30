@@ -38,7 +38,7 @@ const SOLUTIONS = {
     type: "minio",
     image: "./assets/minio.png",
     url: "/solutions/minio",
-    description: "MinIO is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
+    description: "S3 Storage solution is using MinIO a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
   },
   gitea: {
     name: "Gitea",
