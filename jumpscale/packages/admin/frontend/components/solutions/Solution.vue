@@ -16,7 +16,13 @@
                   :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
                   target="blank"
                 >
-                  <v-icon color="primary" large v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                  <v-icon
+                    color="primary"
+                    large
+                    v-bind="attrs"
+                    v-on="on"
+                    right
+                  >mdi-information-outline</v-icon>
                 </a>
               </template>
               <span>Chatflow Information</span>
@@ -67,7 +73,7 @@ module.exports = {
         info: false,
       },
       deployedSolutions: {},
-      solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)],
+      solutions: [...Object.values(SOLUTIONS)],
     };
   },
   computed: {
