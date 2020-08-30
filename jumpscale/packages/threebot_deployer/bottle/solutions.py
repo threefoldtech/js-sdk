@@ -18,14 +18,6 @@ def list_threebots() -> str:
     return j.data.serializers.json.dumps({"data": solutions})
 
 
-@app.route("/api/solutions/count")
-@login_required
-def count_solutions():
-    user_info = j.data.serializers.json.loads(get_user_info())
-    res = j.sals.marketplace.solutions.count_solutions(user_info["username"])
-    return j.data.serializers.json.dumps({"data": res})
-
-
 @app.route("/api/solutions/cancel", method="POST")
 @login_required
 def cancel_solution():

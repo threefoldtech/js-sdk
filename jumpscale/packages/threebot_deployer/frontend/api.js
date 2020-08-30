@@ -16,12 +16,6 @@ const apiClient = {
     },
   },
   solutions: {
-    getCount: () => {
-      return axios({
-        url: "/threebot_deployer/api/solutions/count/",
-        method: "get"
-      })
-    },
     getDeployed: () => {
       return axios({
         url: `/threebot_deployer/api/threebots/list`,
