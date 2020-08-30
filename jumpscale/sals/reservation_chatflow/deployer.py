@@ -1047,7 +1047,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 ]
                 location = " - ".join([info for info in location_list if info])
                 if location:
-                    location = f" location: {location}"
+                    location = f" Location: {location}"
                 if name:
                     message = f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}{location}"
                 else:

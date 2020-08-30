@@ -1,7 +1,7 @@
 import uuid
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import Category
+from jumpscale.clients.explorer.models import Category, Location
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
@@ -22,7 +22,7 @@ class SolutionExpose(GedisChatBot):
         "solution_type",
         "exposed_solution",
         "exposed_ports",
-        "domain",
+        "domain_selection",
         "confirmation",
         "reservation",
         "success",
@@ -74,7 +74,7 @@ class SolutionExpose(GedisChatBot):
             self.solution_ip = self.solution["IPv4 Address"]
 
     @chatflow_step(title="Domain")
-    def domain(self):
+    def domain_selection(self):
         # {"domain": {"gateway": gw, "pool": p}}
 
         gateways = deployer.list_all_gateways()
@@ -89,7 +89,15 @@ class SolutionExpose(GedisChatBot):
             gateway_id_dict[gw_dict["gateway"].node_id] = gw_dict["gateway"]
             pool_id_dict[gw_dict["pool"].pool_id] = gw_dict["pool"]
             for dom in gw_dict["gateway"].managed_domains:
-                messages[f"Managed {dom}"] = gw_dict
+                location_list = [
+                    gw_dict["gateway"].location.continent,
+                    gw_dict["gateway"].location.country,
+                    gw_dict["gateway"].location.city,
+                ]
+                location = " - ".join([info for info in location_list if info])
+                if location:
+                    location = f" Location: {location}"
+                messages[f"Managed {dom}{location}"] = gw_dict
 
         # add delegate domains
         delegated_domains = solutions.list_delegated_domain_solutions()
