@@ -28,7 +28,7 @@ class MinioDeploy(GedisChatBot):
         "minio_reservation",
         "success",
     ]
-    title = "Minio"
+    title = "S3 Storage"
 
     def _deployment_start(self):
         self.solution_id = uuid.uuid4().hex
