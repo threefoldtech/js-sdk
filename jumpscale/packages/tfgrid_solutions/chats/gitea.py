@@ -222,35 +222,25 @@ class GiteaDeploy(GedisChatBot):
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-        self.proxy_id = deployer.create_proxy(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            domain_name=self.domain,
-            trc_secret=self.secret,
-            **self.solution_metadata,
-            solution_uuid=self.solution_id,
-        )
-        success = deployer.wait_workload(self.proxy_id, self)
-        if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
-
-        self.tcprouter_id = deployer.expose_address(
+        self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=3000,
-            tls_port=3000,
             trc_secret=self.secret,
-            bot=self,
-            **self.solution_metadata,
+            domain=self.domain,
+            email=self.user_info()["email"],
+            solution_ip=self.ip_address,
+            solution_port=3000,
+            enforse_https=True,
+            node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            **self.solution_metadata,
         )
-        success = deployer.wait_workload(self.tcprouter_id, self)
+        success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+            solutions.cancel_solution([self.reverse_proxy_id])
+            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
