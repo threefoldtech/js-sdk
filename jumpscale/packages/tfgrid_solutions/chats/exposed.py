@@ -46,6 +46,8 @@ class SolutionExpose(GedisChatBot):
 
     @chatflow_step(title="Solution to be exposed")
     def exposed_solution(self):
+        if len(self.sols.keys()) == 0:
+            raise StopChatFlow(f"You don't have {self.kind} solutions")
         self.solution_name = self.single_choice(
             "Please choose the solution to expose", list(self.sols.keys()), required=True
         )
