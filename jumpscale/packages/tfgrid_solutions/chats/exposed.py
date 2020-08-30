@@ -1,7 +1,5 @@
 import uuid
 from textwrap import dedent
-
-from jumpscale.clients.explorer.models import Category, Location
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
