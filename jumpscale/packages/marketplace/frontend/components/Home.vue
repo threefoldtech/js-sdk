@@ -8,7 +8,7 @@
             <v-autocomplete
               width="10"
               v-model="searchText"
-              :items="[...apps, ...solutions]"
+              :items="[...apps]"
               :loading="loading"
               color="grey"
               hide-no-data
@@ -24,7 +24,7 @@
           <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
           </template>
-          <span>Threefold end user applications</span>
+          <span>Threefold demo applications</span>
         </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card
@@ -60,55 +60,6 @@
           </v-card>
         </v-row>
         <br />
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <span
-              v-bind="attrs"
-              v-on="on"
-              class="soTitle font-weight-black mt-4"
-            >Infrastructure Solutions</span>
-          </template>
-          <span>Threefold grid primitives</span>
-        </v-tooltip>
-        <v-row class="mt-2" align="start" justify="start">
-          <v-card
-            v-for="solution in filteredSolutions"
-            :key="solution.type"
-            class="ma-2"
-            width="280"
-            :loading="loading"
-            :disabled="loading"
-          >
-            <v-img
-              v-if="solution.image"
-              class="mt-6"
-              height="100px"
-              :contain="true"
-              :src="solution.image"
-            ></v-img>
-            <v-icon v-else class="ma-4" x-large color="primary">{{solution.icon}}</v-icon>
-            <v-card-title class="mx-2 font-weight-bold">
-              {{solution.name}}
-              <v-chip
-                v-if="solutionCount[solution.type] !== undefined"
-                :loading="true"
-                class="ml-2"
-                small
-                outlined
-              >{{solutionCount[solution.type]}}</v-chip>
-            </v-card-title>
-            <v-card-text style="height:100px" class="mx-2 text--primary">
-              {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
-              solution.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
-              solution.description}}
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text medium @click.stop="openChatflow(solution.type)">New</v-btn>
-              <v-btn text medium @click.stop="viewWorkloads(solution.type)">My workloads</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-row>
       </template>
     </div>
   </div>
@@ -123,7 +74,6 @@ module.exports = {
       solutionCount: {},
       searchText: "",
       apps: Object.values(APPS),
-      solutions: Object.values(SOLUTIONS),
     };
   },
   computed: {
