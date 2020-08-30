@@ -12,9 +12,6 @@ from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
 
-FARM_NAMES = ["freefarm"]
-
-
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
         self._validate_user()
@@ -36,7 +33,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         available_farms = []
-        for farm_name in FARM_NAMES:
+        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
                 available_farms.append(farm_name)
