@@ -37,10 +37,21 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Solution type")
     def solution_type(self):
         self._deployment_start()
-        self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
-        solutions = kinds[self.kind]()
+
+        available_solutions = {}
+        for kind in list(kinds.keys()):
+            solutions = kinds[kind]()
+            if solutions:
+                available_solutions.update({kind: solutions})
+
+        if not available_solutions:
+            raise StopChatFlow(f"You don't have any solutions to expose")
+
+        self.kind = self.single_choice(
+            "Please choose the solution type", list(available_solutions.keys()), required=True
+        )
         self.sols = {}
-        for sol in solutions:
+        for sol in available_solutions[self.kind]:
             name = sol["Name"]
             self.sols[name] = sol
 
