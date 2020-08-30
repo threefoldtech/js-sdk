@@ -41,7 +41,7 @@ def main():
         identity.register()
         identity.save()
 
-    j.core.identity.set_default("main")
+    j.core.identity.set_default("test")
 
     if backup_password:
         try:
