@@ -149,6 +149,11 @@ class TaigaDeploy(GedisChatBot):
     def reservation(self):
         self.workload_ids = []
 
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": "taiga", "Solution name": self.solution_name},
+        }
+        self.solution_metadata.update(metadata)
         # reserve subdomain
         subdomain_wid = self.workload_ids.append(
             deployer.create_subdomain(
@@ -177,11 +182,6 @@ class TaigaDeploy(GedisChatBot):
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
-        self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
             deployer.deploy_container(

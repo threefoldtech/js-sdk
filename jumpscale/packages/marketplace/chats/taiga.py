@@ -94,11 +94,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
-        self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
             deployer.deploy_container(
