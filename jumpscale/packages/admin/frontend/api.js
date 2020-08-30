@@ -2,6 +2,13 @@
 const baseURL = "/admin/actors"
 
 const apiClient = {
+  content: {
+    get: (url) => {
+      return axios({
+        url: url
+      })
+    }
+  },
   logs: {
     listApps: () => {
       return axios({
@@ -231,7 +238,7 @@ const apiClient = {
     },
     getPools: (include_hidden) => {
       return axios({
-        method:"post",
+        method: "post",
         url: `/tfgrid_solutions/actors/solutions/list_pools`,
         data: {
           include_hidden: include_hidden || false,

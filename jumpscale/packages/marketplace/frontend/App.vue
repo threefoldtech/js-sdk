@@ -33,6 +33,22 @@
                 <v-btn text color="blue" :to="'/terms'">Terms and Conditions</v-btn>
               </v-list-item-content>
             </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn text color="blue" :to="'/disclaimer'">Disclaimer</v-btn>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn
+                  text
+                  :link="true"
+                  color="blue"
+                  href="https:/manual-testnet.threefold.io/#/"
+                  target="_blank"
+                >Manual</v-btn>
+              </v-list-item-content>
+            </v-list-item>
           </v-list>
           <v-divider></v-divider>
           <v-card-actions>
@@ -58,26 +74,26 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
-      solutionCount: {},
+      solutionCount: {}
     };
   },
   computed: {},
   methods: {},
   methods: {
     getCurrentUser() {
-      this.$api.admins.getCurrentUser().then((response) => {
+      this.$api.admins.getCurrentUser().then(response => {
         this.user = response.data;
       });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
+      this.$api.solutions.getCount().then(response => {
         this.solutionCount = response.data.data;
       });
-    },
+    }
   },
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
-  },
+  }
 };
 </script>
