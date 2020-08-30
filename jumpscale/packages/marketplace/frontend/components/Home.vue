@@ -24,7 +24,7 @@
           <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
           </template>
-          <span>Threefold end user applications</span>
+          <span>Threefold demo applications</span>
         </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card

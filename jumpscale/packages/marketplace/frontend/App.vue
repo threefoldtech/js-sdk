@@ -2,10 +2,10 @@
   <v-app>
     <v-app-bar app>
       <router-link to="/" style="text-decoration: none;">
-      <v-row>
-        <img class="ml-2" src="./assets/3bot.png" height="50" width="50" />
-        <h2 class="ml-4 mt-2">TF Grid Marketplace</h2>
-      </v-row>
+        <v-row>
+          <img class="ml-2" src="./assets/3bot.png" height="50" width="50" />
+          <h2 class="ml-4 mt-2">TF Grid Demo</h2>
+        </v-row>
       </router-link>
       <v-spacer></v-spacer>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
@@ -65,19 +65,19 @@ module.exports = {
   methods: {},
   methods: {
     getCurrentUser() {
-      this.$api.admins.getCurrentUser().then(response => {
+      this.$api.admins.getCurrentUser().then((response) => {
         this.user = response.data;
       });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then(response => {
+      this.$api.solutions.getCount().then((response) => {
         this.solutionCount = response.data.data;
       });
-    }
+    },
   },
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
-  }
+  },
 };
 </script>
