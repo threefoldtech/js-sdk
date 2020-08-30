@@ -9,6 +9,24 @@
               <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
             </v-avatar>
             <span>{{solution.name}}</span>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <a
+                  class="chatflowInfo"
+                  :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
+                  target="blank"
+                >
+                  <v-icon
+                    color="primary"
+                    large
+                    v-bind="attrs"
+                    v-on="on"
+                    right
+                  >mdi-information-outline</v-icon>
+                </a>
+              </template>
+              <span>Chatflow Information</span>
+            </v-tooltip>
           </v-card-title>
 
           <v-card-text>
@@ -115,3 +133,12 @@ module.exports = {
   },
 };
 </script>
+
+<style scoped>
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+</style>

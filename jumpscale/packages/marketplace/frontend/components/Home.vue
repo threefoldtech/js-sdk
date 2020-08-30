@@ -38,14 +38,22 @@
             <v-img v-if="app.image" class="mt-6" height="100px" :contain="true" :src="app.image"></v-img>
             <v-icon v-else class="ma-4" x-large color="primary">{{app.icon}}</v-icon>
             <v-card-title class="mx-2 font-weight-bold">
-              {{app.name}}
-              <v-chip
-                v-if="solutionCount[app.type] !== undefined"
-                :loading="true"
-                class="ml-2"
-                small
-                outlined
-              >{{solutionCount[app.type]}}</v-chip>
+                {{app.name}}
+                <v-chip
+                  v-if="solutionCount[app.type] !== undefined"
+                  :loading="true"
+                  class="ml-2"
+                  small
+                  outlined
+                >{{solutionCount[app.type]}}</v-chip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <a class="chatflowInfo" :href="`https://manual-testnet.threefold.io/#/${app.type}`" target="blank">
+                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                    </a>
+                  </template>
+                  <span>Chatflow Information</span>
+                </v-tooltip>
             </v-card-title>
             <v-card-text style="height:100px" class="mx-2 text--primary">
               {{app.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
@@ -117,5 +125,10 @@ module.exports = {
 <style scoped>
 span.soTitle {
   font-size: 27;
+}
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
 }
 </style>
