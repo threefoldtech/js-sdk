@@ -76,11 +76,7 @@
 
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <span
-                v-bind="attrs"
-                v-on="on"
-                class="soTitle font-weight-black mt-4"
-              >Infrastructure Solutions</span>
+              <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Solutions</span>
             </template>
             <span>Threefold grid primitives</span>
           </v-tooltip>

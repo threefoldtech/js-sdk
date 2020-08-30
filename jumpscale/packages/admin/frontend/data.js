@@ -34,7 +34,7 @@ const SOLUTIONS = {
     description: "Deploy a Kubernetes cluster using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
   },
   minio: {
-    name: "Minio",
+    name: "S3 Storage",
     type: "minio",
     image: "./assets/minio.png",
     url: "/solutions/minio",
@@ -46,13 +46,6 @@ const SOLUTIONS = {
     image: "./assets/gitea.png",
     url: "/solutions/gitea",
     description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
-  },
-  threebot: {
-    name: "3Bot",
-    type: "threebot",
-    image: "./assets/3bot.png",
-    url: "/solutions/threebot",
-    description: "Deploy your 3Bot on container."
   },
   expose: {
     name: "Solution Expose",
