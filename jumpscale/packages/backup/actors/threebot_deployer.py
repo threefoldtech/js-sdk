@@ -1,9 +1,11 @@
+import os
+
+import nacl.encoding
+import requests
+from nacl.public import Box
+
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-import os
-import requests
-import nacl.encoding
-from nacl.public import Box
 
 MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.grid.tf/")
 CREATE_USER_ENDPOINT = "threebot_deploy/actors/backup/init"
