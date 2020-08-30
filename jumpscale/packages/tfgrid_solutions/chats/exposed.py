@@ -92,7 +92,7 @@ class SolutionExpose(GedisChatBot):
                     gw_dict["gateway"].location.country,
                     gw_dict["gateway"].location.city,
                 ]
-                location = " - ".join([info for info in location_list if info and info != "Unkown"])
+                location = " - ".join([info for info in location_list if info and info != "Unknown"])
                 if location:
                     location = f" Location: {location}"
                 messages[f"Managed {dom}{location}"] = gw_dict
