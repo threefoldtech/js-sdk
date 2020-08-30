@@ -1040,18 +1040,18 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     name = local_config.name
                 if hidden:
                     continue
+                location_list = [
+                    gateway.location.continent,
+                    gateway.location.country,
+                    gateway.location.city,
+                ]
+                location = " - ".join([info for info in location_list if info])
+                if location:
+                    location = f" location: {location}"
                 if name:
-                    message = (
-                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
-                        f" {gateway.location.continent} {gateway.location.country}"
-                        f" {gateway.node_id}"
-                    )
+                    message = f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}{location}"
                 else:
-                    message = (
-                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
-                        f" {gateway.location.continent} {gateway.location.country}"
-                        f" {gateway.node_id}"
-                    )
+                    message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}{location}"
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")

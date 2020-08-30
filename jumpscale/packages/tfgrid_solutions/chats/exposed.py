@@ -94,6 +94,8 @@ class SolutionExpose(GedisChatBot):
         # add delegate domains
         delegated_domains = solutions.list_delegated_domain_solutions()
         for dom in delegated_domains:
+            if dom["Pool"] not in pool_id_dict:
+                pool_id_dict[dom["Pool"]] = gateway_id_dict[dom["Gateway"]]
             gw_dict = {"gateway": gateway_id_dict[dom["Gateway"]], "pool": pool_id_dict[dom["Pool"]]}
             messages[f"Delegated {dom['Name']}"] = gw_dict
 
