@@ -334,17 +334,17 @@ const apiClient = {
   mrktbackup: {
     inited() {
       return axios({
-        url: `/backup/actors/marketplace/repos_exist`
+        url: `/backup/actors/threebot_deployer/repos_exist`
       })
     },
     snapshots() {
       return axios({
-        url: `/backup/actors/marketplace/snapshots`
+        url: `/backup/actors/threebot_deployer/snapshots`
       })
     },
     init(password) {
       return axios({
-        url: `/backup/actors/marketplace/init`,
+        url: `/backup/actors/threebot_deployer/init`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
         data: { password: password }
@@ -352,7 +352,7 @@ const apiClient = {
     },
     backup(tags) {
       return axios({
-        url: `/backup/actors/marketplace/backup`,
+        url: `/backup/actors/threebot_deployer/backup`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
         data: { tags: tags }
@@ -360,17 +360,17 @@ const apiClient = {
     },
     enable: () => {
       return axios({
-        url: `/backup/actors/marketplace/enable_auto_backup`
+        url: `/backup/actors/threebot_deployer/enable_auto_backup`
       })
     },
     disable() {
       return axios({
-        url: `/backup/actors/marketplace/disable_auto_backup`
+        url: `/backup/actors/threebot_deployer/disable_auto_backup`
       })
     },
     enabled() {
       return axios({
-        url: `/backup/actors/marketplace/check_auto_backup`
+        url: `/backup/actors/threebot_deployer/check_auto_backup`
       })
     },
   },
