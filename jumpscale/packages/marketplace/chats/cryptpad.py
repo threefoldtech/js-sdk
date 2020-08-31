@@ -15,7 +15,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "reservation",
         "initializing",
         "success",
@@ -34,21 +33,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_size = int(volume_size.value)
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
-
-    @chatflow_step(title="Deployment Information", disable_previous=True)
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_info.reservation_id,
-            "CPU": self.query["cru"],
-            "Memory": self.query["mru"],
-            "Disk Size": (self.query["sru"] - self.vol_size) * 1024,
-            "IP Address": self.ip_address,
-            "URL": self.domain,
-        }
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):

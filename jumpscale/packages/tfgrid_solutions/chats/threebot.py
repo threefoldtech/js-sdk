@@ -18,7 +18,6 @@ class ThreebotDeploy(GedisChatBot):
         "upload_public_key",
         "domain_select",
         "ipv6_config",
-        "overview",
         "deploy",
         "intializing",
         "success",
@@ -128,18 +127,6 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        info = {
-            "Solution name": self.solution_name,
-            "Threebot version": self.branch,
-            "Number of cpu cores": self.resources["cpu"],
-            "Memory": self.resources["memory"],
-            "Root filesystem type": "SSD",
-            "Root filesystem size": self.resources["disk_size"],
-        }
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

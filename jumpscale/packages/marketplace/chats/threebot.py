@@ -16,7 +16,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "deploy",
         "initializing",
         "success",
@@ -71,11 +70,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def threebot_branch(self):
         self.branch = self.string_ask("Please type branch name", required=True, default="development")
 
-    @chatflow_step(title="Deployment Information", disable_previous=True)
-    def overview(self):
-        self.domain = f"{self.threebot_name}-{self.domain}"
-        info = {"Solution name": self.solution_name, "domain": self.domain}
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

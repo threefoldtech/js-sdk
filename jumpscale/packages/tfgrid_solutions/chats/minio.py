@@ -23,7 +23,6 @@ class MinioDeploy(GedisChatBot):
         "public_key",
         "ip_selection",
         "ipv6_config",
-        "overview",
         "zdb_reservation",
         "minio_reservation",
         "success",
@@ -208,9 +207,6 @@ class MinioDeploy(GedisChatBot):
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
             "Solution Type": "minio",
@@ -218,12 +214,10 @@ class MinioDeploy(GedisChatBot):
             "Master IP": self.ip_addresses[0],
         }
         self.solution_metadata.update(self.metadata)
-        if self.mode == "Master/Slave":
-            self.metadata["Slave IP"] = self.ip_addresses[1]
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reserve zdb", disable_previous=True)
     def zdb_reservation(self):
+
         self.password = uuid.uuid4().hex
         self.zdb_result = deployer.deploy_minio_zdb(
             pool_id=self.zdb_pool_ids[0],

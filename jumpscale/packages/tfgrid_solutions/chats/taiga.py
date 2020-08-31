@@ -21,7 +21,6 @@ class TaigaDeploy(GedisChatBot):
         "taiga_network",
         "taiga_credentials",
         "container_ip",
-        "overview",
         "reservation",
         "success",
     ]
@@ -132,18 +131,6 @@ class TaigaDeploy(GedisChatBot):
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "IP Address": self.ip_address,
-            "Domain": self.domain,
-        }
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):

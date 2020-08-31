@@ -25,7 +25,6 @@ class FlistDeploy(GedisChatBot):
         "container_ip",
         "container_env",
         "ipv6_config",
-        "overview",
         "reservation",
         "success",
     ]
@@ -181,24 +180,6 @@ class FlistDeploy(GedisChatBot):
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "CPU": self.resources["cpu"],
-            "Memory": self.resources["memory"],
-            "Disk Size": self.resources["disk_size"],
-            "IP Address": self.ip_address,
-        }
-        if self.container_volume_attach:
-            self.metadata["Volume Size"] = self.vol_size
-            self.metadata["Volume Mountpoint"] = self.vol_mount_point
-        self.metadata.update(self.log_config)
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):
