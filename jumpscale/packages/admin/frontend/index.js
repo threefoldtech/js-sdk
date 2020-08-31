@@ -4,24 +4,24 @@ Vue.use(Vuetify)
 Vue.prototype.$api = apiClient
 
 const vuetify = new Vuetify({
-  icons: {
-    iconfont: 'mdi'
-  },
-  theme: {
-    themes: {
-      dark: {
-        navbar: '#363636'
-      },
-      light: {
-        primary: '#1B4F72',
-        navbar: '#1B4F72',
-        secondary: '#CCCBCA',
-        accent: '#59B88C',
-        success: "#17A589",
-        error: '#EC7063',
-      }
+    icons: {
+        iconfont: 'mdi'
     },
-  }
+    theme: {
+        themes: {
+            dark: {
+                navbar: '#363636'
+            },
+            light: {
+                primary: '#1B4F72',
+                navbar: '#1B4F72',
+                secondary: '#CCCBCA',
+                accent: '#59B88C',
+                success: "#17A589",
+                error: '#EC7063',
+            }
+        },
+    }
 })
 
 const baseComponent = httpVueLoader('./components/base/Component.vue')
@@ -60,11 +60,11 @@ Vue.use(VueCodemirror)
 
 
 Vue.mixin({
-  methods: {
-    alert(message, status) {
-      this.$root.$emit('popup', message, status)
+    methods: {
+        alert(message, status) {
+            this.$root.$emit('popup', message, status)
+        }
     }
-  }
 })
 
 // Vue.component('code-mirror', )
@@ -79,33 +79,39 @@ Vue.component("markdown-view", markdownViewer)
 
 
 const router = new VueRouter({
-  routes: [
-    { name: "Dashboard", path: '/', component: dashboard, meta: { icon: "mdi-view-dashboard", listed: true } },
-    { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
-    { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
-    { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
-    { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
-    { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
-    { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
-    { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
-    { name: "Capacity Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
-    { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
-    { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
-    { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
-    { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
-    { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
-    { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
-    { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
-    { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
-    { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
-    { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
-    { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
-  ]
+    routes: [
+        { name: "Dashboard", path: '/', component: dashboard, meta: { icon: "mdi-view-dashboard", listed: true } },
+        { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
+        { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
+        { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
+
+        { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
+        { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
+        { name: "Capacity Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
+        { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
+
+        { name: "Deployed Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
+        { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
+
+        { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
+
+        { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
+        { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
+        { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
+        { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
+        { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
+
+
+        { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
+        { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
+        { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
+        { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
+    ]
 })
 
 new Vue({
-  el: '#app',
-  components: { App: app },
-  router,
-  vuetify
+    el: '#app',
+    components: { App: app },
+    router,
+    vuetify
 })

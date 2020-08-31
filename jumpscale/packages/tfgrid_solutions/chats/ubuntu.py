@@ -24,7 +24,6 @@ class UbuntuDeploy(GedisChatBot):
         "container_node_id",
         "container_ip",
         "ipv6_config",
-        "overview",
         "reservation",
         "success",
     ]
@@ -133,21 +132,6 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "CPU": self.resources["cpu"],
-            "Memory": self.resources["memory"],
-            "Disk Size": self.resources["disk_size"],
-            "IP Address": self.ip_address,
-        }
-        self.metadata.update(self.log_config)
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):

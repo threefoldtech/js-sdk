@@ -17,7 +17,6 @@ class MattermostDeploy(GedisChatBot):
         "select_pool",
         "mattermost_network",
         "domain_select",
-        "overview",
         "reservation",
         "success",
     ]
@@ -101,18 +100,6 @@ class MattermostDeploy(GedisChatBot):
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "Domain": self.domain,
-            "IP Address": self.ip_address,
-        }
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):

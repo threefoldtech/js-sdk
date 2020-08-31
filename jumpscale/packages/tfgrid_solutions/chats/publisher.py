@@ -14,7 +14,6 @@ class Publisher(GedisChatBot):
         "publisher_network",
         "configuration",
         "domain_select",
-        "overview",
         "deploy",
         "success",
     ]
@@ -139,10 +138,6 @@ class Publisher(GedisChatBot):
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        info = {"Solution name": self.solution_name, "domain": self.domain}
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

@@ -20,7 +20,6 @@ class MonitoringDeploy(GedisChatBot):
         "container_node_ids",
         "network_selection",
         "ip_selection",
-        "overview",
         "reservation",
         "success",
     ]
@@ -142,29 +141,6 @@ class MonitoringDeploy(GedisChatBot):
                 )
             )
             self.network_view.used_ips.append(self.ip_addresses[i])
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metatata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Prometheus Node ID": self.selected_nodes[1].node_id,
-            "Prometheus CPU": self.query["Prometheus"]["cpu"],
-            "Prometheus Memory": self.query["Prometheus"]["memory"],
-            "Prometheus Disk Size": self.query["Prometheus"]["disk_size"],
-            "Prometheus IP Address": self.ip_addresses[1],
-            "Grafana Node ID": self.selected_nodes[2].node_id,
-            "Grafana CPU": self.query["Grafana"]["cpu"],
-            "Grafana Memory": self.query["Grafana"]["memory"],
-            "Grafana Disk Size": self.query["Grafana"]["disk_size"],
-            "Grafana IP Address": self.ip_addresses[2],
-            "Redis Node ID": self.selected_nodes[0].node_id,
-            "Redis CPU": self.query["Redis"]["cpu"],
-            "Redis Memory": self.query["Redis"]["memory"],
-            "Redis Disk Size": self.query["Redis"]["disk_size"],
-            "Redis IP Address": self.ip_addresses[0],
-        }
-        self.md_show_confirm(self.metatata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):
