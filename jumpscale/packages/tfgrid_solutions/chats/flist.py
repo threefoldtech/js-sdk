@@ -252,11 +252,10 @@ class FlistDeploy(GedisChatBot):
 \n<br />\n
 - <a href="https://github.com/threefoldtech/corex" target="_blank">COREX</a> enabled.
 \n<br />\n
-- You can monitor processes from the browser: <a href="https://{self.ip_address}:7681" target="_blank">https://{self.ip_address}:7681</a>
+- You can monitor processes from the browser: <a href="http://{self.ip_address}:7681" target="_blank">http://{self.ip_address}:7681</a>
 \n<br />\n
-- And can start `bash` process from here: <a href="https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">https://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
+- And can start `bash` process from here: <a href="http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
 \n<br />\n
-- Know more about <a href="https://devdocs.io/bash/" target="_blank">bash</a>
                     """
         else:
             message = f"""\
