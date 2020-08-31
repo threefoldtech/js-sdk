@@ -78,13 +78,13 @@ class ThreebotDeploy(GedisChatBot):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="Password")
+    @chatflow_step(title="The recovery secret")
     def set_backup_password(self):
-        messege = "Please enter the password (using this password, you can recover any 3Bot you deploy online)"
+        messege = "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect password for 3Bot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="3Bot version")
