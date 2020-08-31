@@ -46,6 +46,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             "Memory": self.query["mru"],
             "Disk Size": (self.query["sru"] - self.vol_size) * 1024,
             "IP Address": self.ip_address,
+            "URL": self.domain,
         }
         self.md_show_confirm(self.metadata)
 
