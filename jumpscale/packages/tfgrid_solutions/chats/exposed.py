@@ -21,7 +21,6 @@ class SolutionExpose(GedisChatBot):
         "exposed_solution",
         "exposed_ports",
         "domain_selection",
-        "confirmation",
         "reservation",
         "success",
     ]
@@ -159,19 +158,6 @@ class SolutionExpose(GedisChatBot):
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
-    @chatflow_step(title="Confirmation", disable_previous=True)
-    def confirmation(self):
-        self.metadata = {
-            "Exposed Solution": self.solution_name,
-            "Solution Type": self.kind,
-            "Solution Exposed IP": self.solution_ip,
-            "Port": self.port,
-            "TLS Port": self.tls_port,
-            "Gateway": self.domain_gateway.node_id,
-            "Pool": self.pool_id,
-            "TRC Secret": self.secret,
-        }
-        self.md_show_confirm(self.metadata, html=True)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):

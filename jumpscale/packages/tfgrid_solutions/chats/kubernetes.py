@@ -11,7 +11,6 @@ class KubernetesDeploy(GedisChatBot):
         "network_selection",
         "public_key_get",
         "ip_selection",
-        "overview",
         "reservation",
         "success",
     ]
@@ -116,18 +115,6 @@ class KubernetesDeploy(GedisChatBot):
                 )
             )
             self.network_view.used_ips.append(self.ip_addresses[i])
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution name": self.solution_name,
-            "Network": self.network_view.name,
-            "Masters count": 1,
-            "Slaves count": self.workernodes.value,
-            "Cluster size": self.cluster_size,
-            "Cluster secret": self.cluster_secret,
-            "Nodes IP Addresses": self.ip_addresses,
-        }
 
     @chatflow_step(title="Cluster reservations", disable_previous=True)
     def reservation(self):
