@@ -1,17 +1,17 @@
 import math
+import uuid
+import random
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-import uuid
 from jumpscale.sals.reservation_chatflow import deployer
-import random
 
 
 class Peertube(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
 
     steps = [
-        "peertube_start",
         "peertube_name",
         "peertube_email",
         "volume_details",
@@ -19,23 +19,24 @@ class Peertube(GedisChatBot):
         "peertube_network",
         "overview",
         "reservation",
-        "peertube_access",
+        "success",
     ]
 
     title = "Peertube"
 
-    @chatflow_step()
-    def peertube_start(self):
+    def _peertube_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.query = dict()
         self.user_form_data["chatflow"] = "peertube"
-        self.md_show("# This wizard will help you deploy peertube", md=True)
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def peertube_name(self):
+        self._peertube_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="Email")
@@ -183,7 +184,7 @@ class Peertube(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
@@ -196,13 +197,16 @@ class Peertube(GedisChatBot):
         if not success:
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def peertube_access(self):
-        res = f"""\
-# Peertube has been deployed successfully: your reservation id is: {self.resv_id}
-  ``` {self.threebot_url}```.It may take a few minutes.
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from peertube deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = Peertube

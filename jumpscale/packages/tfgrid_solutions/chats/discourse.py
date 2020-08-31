@@ -1,40 +1,41 @@
 import math
+import random
+import uuid
+import nacl
+import nacl.signing
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-import uuid
 from jumpscale.sals.reservation_chatflow import deployer
-import nacl
-import nacl.signing
-import random
 
 
 class Discourse(GedisChatBot):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
 
     steps = [
-        "discourse_start",
         "discourse_name",
         "discourse_smtp_info",
         "select_pool",
         "discourse_network",
         "overview",
         "reservation",
-        "discourse_access",
+        "success",
     ]
 
     title = "Discourse"
 
-    @chatflow_step()
-    def discourse_start(self):
+    def _discourse_start(self):
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.solution_id = uuid.uuid4().hex
         self.query = dict()
-        self.md_show("# This wizard will help you deploy discourse", md=True)
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def discourse_name(self):
+        self._discourse_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="SMTP information")
@@ -85,7 +86,7 @@ class Discourse(GedisChatBot):
         if result:
             self.md_show_update("Deploying Network on Nodes....")
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -134,6 +135,7 @@ class Discourse(GedisChatBot):
             "name": self.solution_name,
             "form_info": {"chatflow": "discourse", "Solution name": self.solution_name},
         }
+        self.solution_metadata.update(metadata)
         threebot_private_key = nacl.signing.SigningKey.generate().encode(nacl.encoding.Base64Encoder).decode("utf-8")
 
         env = {
@@ -143,7 +145,7 @@ class Discourse(GedisChatBot):
             "DISCOURSE_HOSTNAME": self.domain,
             "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
-            "DISCOURSE_DEVELOPER_EMAILS": self.user_info()["email"],
+            "DISCOURSE_DEVELOPER_EMAILS": self.user_email,
             "DISCOURSE_SMTP_PORT": "587",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
@@ -163,7 +165,7 @@ class Discourse(GedisChatBot):
             subdomain=self.domain,
             addresses=self.addresses,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
 
         success = deployer.wait_workload(_id, self)
@@ -186,7 +188,7 @@ class Discourse(GedisChatBot):
             env=env,
             secret_env=secret_env,
             interactive=False,
-            **metadata,
+            **self.solution_metadata,
             solution_uuid=self.solution_id,
         )
         success = deployer.wait_workload(self.resv_id, self)
@@ -199,27 +201,29 @@ class Discourse(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def discourse_access(self):
-        res = f"""\
-# Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-The site is deployed on {self.domain}.
- It takes approximately 10 minutes to deploy.
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = Discourse

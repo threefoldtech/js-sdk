@@ -1,7 +1,7 @@
 import uuid
 import random
-
 import requests
+from textwrap import dedent
 
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -12,9 +12,6 @@ from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
 
-FARM_NAMES = ["freefarm"]
-
-
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
         self._validate_user()
@@ -22,7 +19,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.query = dict()
 
     def _wgconf_show_check(self):
         if hasattr(self, "wgconf"):
@@ -37,7 +33,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         available_farms = []
-        for farm_name in FARM_NAMES:
+        farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+        for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
                 available_farms.append(farm_name)
@@ -80,7 +77,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id)
+            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
@@ -92,7 +89,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             if result:
                 self.md_show_update("Deploying Network on Nodes....")
                 for wid in result["ids"]:
-                    success = deployer.wait_workload(wid)
+                    success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
                         raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
                 self.network_view = self.network_view.copy()
@@ -144,10 +141,15 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         return self.domain
 
     @chatflow_step(title="Solution Name")
-    def solution_name(self):
+    def get_solution_name(self):
+        self._init_solution()
         valid = False
         while not valid:
-            self.solution_name = self.string_ask("Please enter a name for your solution", required=True)
+            self.solution_name = self.string_ask(
+                "Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )",
+                required=True,
+                is_identifier=True,
+            )
             method = getattr(solutions, f"list_{self.SOLUTION_TYPE}_solutions")
             solutions_list = method(self.solution_metadata["owner"], sync=False)
             valid = True
@@ -174,3 +176,33 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._get_pool()
         self._deploy_network()
         self._get_domain()
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self):
+        self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
+
+        if not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.domain}", timeout=600, verify=not j.config.get("TEST_CERT")
+        ):
+            self.stop(
+                f"""\
+Failed to initialize Mattermost, please contact support with this information:
+Node:{self.selected_node.node_id},
+Ip Address: {self.ip_address},
+Reservation Id: {self.resv_id},
+Pool Id : {self.pool_id},
+Domain : {self.domain}
+                """
+            )
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        self._wgconf_show_check()
+        message = f"""\
+# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
+        self.md_show(dedent(message), md=True)

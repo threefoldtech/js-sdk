@@ -10,24 +10,19 @@ class Discourse(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
     SOLUTION_TYPE = "discourse"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "discourse_smtp_info",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
     title = "Discourse"
-
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 2, "sru": 2}
-        self.md_show("# This wizard will help you deploy discourse", md=True)
+    query = {"cru": 1, "mru": 2, "sru": 2}
 
     @chatflow_step(title="SMTP information")
     def discourse_smtp_info(self):
@@ -39,8 +34,10 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
+        self.user_email = self.user_info()["email"]
+        self.username = self.user_info()["username"]
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -70,7 +67,7 @@ class Discourse(MarketPlaceAppsChatflow):
             "DISCOURSE_HOSTNAME": self.domain,
             "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
-            "DISCOURSE_DEVELOPER_EMAILS": self.user_info()["email"],
+            "DISCOURSE_DEVELOPER_EMAILS": self.user_email,
             "DISCOURSE_SMTP_PORT": "587",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
@@ -128,7 +125,7 @@ class Discourse(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
@@ -139,17 +136,8 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Discourse has been deployed successfully: your reservation id is: {self.resv_id}
-  ``` {self.threebot_url}```.It may take a few minutes.
-                """
-        self.md_show(dedent(message), md=True)
 
 
 chat = Discourse

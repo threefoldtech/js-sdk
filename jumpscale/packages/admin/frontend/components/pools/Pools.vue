@@ -1,8 +1,8 @@
 <template>
   <div>
-    <base-component title="Pools" icon="mdi-cloud" :loading="loading">
+    <base-component title="Capacity Pools" icon="mdi-cloud" :loading="loading">
       <template #actions>
-        <v-btn color="primary" text to="/solutions/pools_reservation">
+        <v-btn color="primary" text to="/solutions/pools">
           <v-icon left>mdi-cloud</v-icon>Create/Extend Pool
         </v-btn>
         <v-btn color="primary" text @click="toggleHiddenPools">

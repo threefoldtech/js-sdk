@@ -9,25 +9,20 @@ class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
     title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog."
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "configuration",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "deploy",
+        "initializing",
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.storage_url = "zdb://hub.grid.tf:9900"
-        self.query = {"cru": 1, "mru": 1, "sru": 2}
-        self.md_show(self.welcome_message, md=True)
+    storage_url = "zdb://hub.grid.tf:9900"
+    query = {"cru": 1, "mru": 1, "sru": 2}
 
     @chatflow_step(title="Solution Settings")
     def configuration(self):
@@ -37,17 +32,18 @@ class Publisher(MarketPlaceAppsChatflow):
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
-
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": ttype.value,
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         info = {"Solution name": self.solution_name, "domain": self.domain}
         self.md_show_confirm(info)
@@ -71,7 +67,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -107,7 +103,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(
                 f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}"
             )
@@ -115,6 +111,7 @@ class Publisher(MarketPlaceAppsChatflow):
         # 4- deploy container
         self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
         self.envars["DOMAIN"] = self.domain
+        self.envars["TEST_CERT"] = "true" if j.config.get("TEST_CERT") else "false"
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
             deployer.deploy_container(
@@ -135,24 +132,12 @@ class Publisher(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
-        self.md_show(dedent(message), md=True)
 
 
 chat = Publisher

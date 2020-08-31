@@ -9,24 +9,19 @@ class Peertube(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-peertube-latest.flist"
     SOLUTION_TYPE = "peertube"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "volume_details",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
     title = "Peertube"
-
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard will help you deploy peertube", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Volume details")
     def volume_details(self):
@@ -38,8 +33,9 @@ class Peertube(MarketPlaceAppsChatflow):
         self.vol_size = int(volume_size.value)
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
+        self.user_email = self.user_info()["email"]
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -118,7 +114,7 @@ class Peertube(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
@@ -132,16 +128,6 @@ class Peertube(MarketPlaceAppsChatflow):
             # FIXME
             # solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Peertube has been deployed successfully: your reservation id is: {self.resv_id}
-
-  ``` {self.threebot_url}```.It may take a few minutes.
-                """
-        self.md_show(dedent(message), md=True)
 
 
 chat = Peertube

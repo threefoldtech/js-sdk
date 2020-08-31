@@ -396,18 +396,14 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
+            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
-        self.packages[package.name] = {
-            "name": package.name,
-            "path": package.path,
-            "giturl": package.giturl,
-        }
+        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         # execute package install method
         package.install(**kwargs)
@@ -441,8 +437,13 @@ class PackageManager(Base):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
-            if package.chats_dir:
-                self.threebot.chatbot.unload(package.chats_dir)
+            try:
+                if package.chats_dir:
+                    self.threebot.chatbot.unload(package.chats_dir)
+            except Exception as e:
+                j.logger.warning(
+                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
+                )
 
             # reload nginx
             self.threebot.nginx.reload()

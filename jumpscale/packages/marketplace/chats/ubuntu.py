@@ -1,19 +1,21 @@
 import math
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.ubuntu_deploy import UbuntuDeploy as BaseUbuntuDeploy
+from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy as BaseUbuntuDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
     @chatflow_step()
-    def ubuntu_start(self):
-        super().ubuntu_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+    def _ubuntu_start(self):
+        super()._ubuntu_start()
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def ubuntu_name(self):
+        self._ubuntu_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
@@ -25,7 +27,7 @@ class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
                     self.md_show("The specified solution name already exists. please choose another.")
                     break
                 valid = True
-        self.solution_name = f"{self.user_info()['username']}_{self.solution_name}"
+        self.solution_name = f"{self.username}_{self.solution_name}"
 
     @chatflow_step(title="Pool")
     def select_pool(self):

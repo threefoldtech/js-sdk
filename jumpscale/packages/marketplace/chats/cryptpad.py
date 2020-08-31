@@ -10,25 +10,22 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard will help you deploy a cryptpad solution", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
+        self.user_email = self.user_info()["email"]
         form = self.new_form()
         volume_size = form.single_choice(
             "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
@@ -38,7 +35,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -52,9 +49,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         }
         self.md_show_confirm(self.metadata)
 
-    @chatflow_step(
-        title="Reservation", disable_previous=True,
-    )
+    @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -115,6 +110,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
+        self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise StopChatFlow(
@@ -127,31 +123,18 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=3000,
             enforce_https=False,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
-            **metadata,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-        self.container_url_https = f"https://{self.domain}"
-        self.container_url_http = f"http://{self.domain}"
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Cryptpad has been deployed successfully:\n<br>
-Reservation id: {self.workload_ids[-1]}\n
-You can access your container from browser at {self.container_url_https} \n or \n {self.container_url_http}\n
-# It may take a few minutes.
-        """
-        self.md_show(dedent(message), md=True)
 
 
 chat = CryptpadDeploy

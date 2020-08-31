@@ -11,22 +11,18 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "mattermost"
     title = "Mattermost"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "mattermost_info",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Mattermost Information")
     def mattermost_info(self):
@@ -36,8 +32,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         form.ask()
         self.vol_size = int(volume_size.value)
         self.query["sru"] += self.vol_size
+        self.user_email = self.user_info()["email"]
 
-    @chatflow_step(title="Deployment Information")
+    @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
         self.metadata = {
             "Solution Name": self.solution_name,
@@ -120,7 +117,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
+            solutions.cancel_solution(self.solution_metadata["owner"], [self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
         # expose threebot container
@@ -130,7 +127,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=8065,
             enforce_https=False,
@@ -142,22 +139,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# mattermost has been deployed successfully:
-\n<br />\n
-your reservation id is: {self.resv_id}
-\n<br />\n
-your container ip is: `{self.ip_address}`
-\n<br />\n
-open Mattermost from browser at <a href="http://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- It may take few minutes to load.
-                """
-        self.md_show(dedent(message), md=True)
 
 
 chat = MattermostDeploy

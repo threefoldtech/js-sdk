@@ -9,13 +9,17 @@ const vuetify = new Vuetify({
   },
   theme: {
     themes: {
+      dark: {
+        navbar: '#363636'
+      },
       light: {
         primary: '#1B4F72',
+        navbar: '#1B4F72',
         secondary: '#CCCBCA',
         accent: '#59B88C',
         success: "#17A589",
         error: '#EC7063',
-      },
+      }
     },
   }
 })
@@ -27,6 +31,8 @@ const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
 const code = httpVueLoader('./components/base/Code.vue')
+const markdownViewer = httpVueLoader('./components/base/MarkdownViewer.vue')
+
 
 const app = httpVueLoader('./App.vue')
 const dashboard = httpVueLoader('./components/dashboard/Dashboard.vue')
@@ -47,7 +53,8 @@ const solutions = httpVueLoader('./components/solutions/Solutions.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
 const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
 const backup = httpVueLoader('./components/backup/Backup.vue')
-
+const terms = httpVueLoader('./components/legal/Terms.vue')
+const disclaimer = httpVueLoader('./components/legal/Disclaimer.vue')
 
 Vue.use(VueCodemirror)
 
@@ -68,6 +75,8 @@ Vue.component("json-renderer", JSONRender)
 Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
+Vue.component("markdown-view", markdownViewer)
+
 
 const router = new VueRouter({
   routes: [
@@ -79,7 +88,7 @@ const router = new VueRouter({
     { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
     { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
     { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
-    { name: "Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
+    { name: "Capacity Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
     { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
     { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
     { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
@@ -89,6 +98,8 @@ const router = new VueRouter({
     { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
     { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
     { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
+    { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
+    { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
   ]
 })
 

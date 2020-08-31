@@ -1,4 +1,3 @@
-from jumpscale.packages.tfgrid_solutions.chats.cryptpad_deploy import CryptpadDeploy as BaseCryptpadDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 import uuid
@@ -9,7 +8,6 @@ FARM_NAMES = ["freefarm"]
 
 class UbuntuDeploy(MarketPlaceChatflow):
     steps = [
-        "ubuntu_start",
         "ubuntu_name",
         "ubuntu_info",
         "ubuntu_expiration",
@@ -19,21 +17,23 @@ class UbuntuDeploy(MarketPlaceChatflow):
         "ubuntu_access",
     ]
 
-    @chatflow_step()
-    def ubuntu_start(self):
+    def _ubuntu_start(self):
         self._validate_user()
-        self.md_show("This wizard will help you deploy ubuntu container")
         self.solution_metadata = dict()
         self.solution_id = uuid.uuid4().hex
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step()
     def ubuntu_name(self):
+        self._ubuntu_start()
         self.md_show_update("Fetching Infromation...")
         used_names = [s["Name"] for s in solutions.list_ubuntu_solutions(self.solution_metadata["owner"])]
         valid = False
         while not valid:
-            self.solution_name = self.string_ask("Please enter a name for your ubuntu container", required=True)
+            self.solution_name = self.string_ask(
+                "Please enter a name for your ubuntu container", required=True, is_identifier=True,
+            )
             if self.solution_name in used_names:
                 self.md_show("name already used. please click next to continue")
             else:
@@ -119,7 +119,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             if result:
                 self.md_show_update("Deploying Network on Nodes....")
                 for wid in result["ids"]:
-                    success = deployer.wait_workload(wid)
+                    success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
                         raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
                 self.network_view = self.network_view.copy()

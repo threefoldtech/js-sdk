@@ -19,11 +19,14 @@
         SOLUTION_TYPE = "{app_name}"
         title = "App Title"
     ```
+4. Define the `query` your app needs.
+    ```python
+        self.query = {"cru": 1, "mru": 1, "sru": 1}
+    ```
 3. Define your chatflow steps:
     ```python
         steps = [
-            "start", # required
-            "solution_name", # required
+            "get_solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
             "payment_currency", # required
@@ -34,28 +37,8 @@
         ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps `["start", "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
+    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "get_solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
 
-    - In the `start` step, you have to:
-        1. Call `self._init_solution()` in the first line to initialize some props.
-
-        2. Override the value of the `self.query` that your app needs.
-            ```python
-            @chatflow_step()
-            def start(self):
-                self._init_solution()
-                self.query = {"cru": 1, "mru": 1, "sru": 1}
-                self.md_show("# This wizard will help you deploy an App", md=True)
-            ```
-    - In the `success` step, you have to:
-        1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.
-            ```python
-            @chatflow_step(title="Success", disable_previous=True, final_step=True)
-            def success(self):
-                self._wgconf_show_check()
-                message = "success message"
-                self.md_show(message, md=True)
-            ```
     - After `solution_name` step, put the extra info steps required for your app.
     - In `overview` step, you define your app metadata to be confirmed by the user
         - For example:

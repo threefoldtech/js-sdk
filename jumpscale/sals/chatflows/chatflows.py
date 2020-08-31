@@ -145,7 +145,9 @@ class GedisChatBot:
             except StopChatFlow as e:
                 internal_error = True
                 if e.msg:
-                    self.send_error(e.msg, **e.kwargs)
+                    self.send_error(
+                        e.msg + ". Please use the refresh button on the upper right to restart the chatflow", **e.kwargs
+                    )
                 self.send_data({"category": "end"})
 
             except Exception as e:
@@ -156,12 +158,16 @@ class GedisChatBot:
                 )
                 if self.user_info()["username"] in j.core.identity.me.admins:
                     self.send_error(
-                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>""",
+                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>"""
+                        "<br>Please use the refresh button on the upper right to restart the chatflow",
                         md=True,
                         html=True,
                     )
                 else:
-                    self.send_error(f"Something wrong happened, please contact support with alert ID: {alert.id}")
+                    self.send_error(
+                        f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
+                        "<br>Please use the refresh button on the upper right to restart the chatflow"
+                    )
                 self.send_data({"category": "end"})
 
             if not internal_error:

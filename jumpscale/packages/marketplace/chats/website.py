@@ -8,7 +8,6 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WebsiteDeploy(Publisher):
 
     title = "Deploy Website"
-    welcome_message = "This wizard will help you publish your website."
     SOLUTION_TYPE = "website"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Website Setup")
@@ -18,14 +17,14 @@ class WebsiteDeploy(Publisher):
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
-
+        self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": "www",
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
 

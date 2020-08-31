@@ -9,7 +9,6 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 class ThreebotDeploy(GedisChatBot):
     steps = [
-        "start",
         "set_threebot_name",
         "container_resources",
         "select_pool",
@@ -26,17 +25,17 @@ class ThreebotDeploy(GedisChatBot):
     ]
     title = "3Bot"
 
-    @chatflow_step()
-    def start(self):
+    def _threebot_start(self):
         self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         self.solution_id = uuid.uuid4().hex
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.md_show("This wizard will help you deploy a 3Bot container", md=True)
+        self.username = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def set_threebot_name(self):
+        self._threebot_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
@@ -160,7 +159,7 @@ class ThreebotDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -182,7 +181,7 @@ class ThreebotDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
-
+        test_cert = j.config.get("TEST_CERT")
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -190,6 +189,7 @@ class ThreebotDeploy(GedisChatBot):
             "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,
             "SSHKEY": self.public_key,
+            "TEST_CERT": "true" if test_cert else "false",
         }
         self.network_view = self.network_view.copy()
         entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
@@ -248,7 +248,9 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def intializing(self):
         self.md_show_update("Initializing your 3Bot ...")
-        if not j.sals.nettools.wait_http_test(self.threebot_url, timeout=600):
+        if not j.sals.reservation_chatflow.wait_http_test(
+            self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
+        ):
             self.stop("Failed to initialize 3Bot, please contact support")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)

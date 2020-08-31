@@ -1,7 +1,7 @@
 import uuid
 
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.solution_expose import SolutionExpose as BaseSolutionExpose
+from jumpscale.packages.tfgrid_solutions.chats.exposed import SolutionExpose as BaseSolutionExpose
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
@@ -15,14 +15,15 @@ kinds = {
 
 
 class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
-    @chatflow_step(title="")
-    def deployment_start(self):
+    def _deployment_start(self):
         self._validate_user()
-        super().deployment_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        super()._deployment_start()
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
+        self._deployment_start()
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
         solutions = kinds[self.kind](self.solution_metadata["owner"])
         self.sols = {}
@@ -70,6 +71,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
                     f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
                     retry=retry,
                     required=True,
+                    is_identifier=True,
                 )
                 if "." in domain:
                     retry = True
@@ -82,7 +84,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
             self.domain = domain + "." + self.domain
         else:
-            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True,)
+            self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self.solution_metadata["owner"], self)
             self.domain_type = "Custom Domain"
             res = """\

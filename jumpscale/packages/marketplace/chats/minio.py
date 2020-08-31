@@ -2,20 +2,21 @@ import math
 
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.packages.tfgrid_solutions.chats.minio_deploy import MinioDeploy as BaseMinioDeploy
+from jumpscale.packages.tfgrid_solutions.chats.minio import MinioDeploy as BaseMinioDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class MinioDeploy(BaseMinioDeploy, MarketPlaceChatflow):
-    @chatflow_step(title="Welcome")
-    def deployment_start(self):
+    def _deployment_start(self):
         self._validate_user()
-        super().deployment_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        super()._deployment_start()
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
     @chatflow_step(title="Solution name")
     def minio_name(self):
+        self._deployment_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)

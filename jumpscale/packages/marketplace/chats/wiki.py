@@ -8,7 +8,6 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WikiDeploy(Publisher):
 
     title = "Deploy Wiki"
-    welcome_message = "This wizard will help you publish your wiki."
     SOLUTION_TYPE = "wiki"  # chatflow used to deploy the solution
 
     @chatflow_step(title="Wiki Setup")
@@ -18,14 +17,14 @@ class WikiDeploy(Publisher):
         url = form.string_ask("Repository url", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
-
+        self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": "wiki",
             "NAME": "entrypoint",
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
 

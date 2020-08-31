@@ -1,5 +1,7 @@
 import random
 import uuid
+from textwrap import dedent
+
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
@@ -11,28 +13,28 @@ class MattermostDeploy(GedisChatBot):
     """
 
     steps = [
-        "mattermost_start",
         "mattermost_name",
         "select_pool",
         "mattermost_network",
         "domain_select",
         "overview",
         "reservation",
-        "container_acess",
+        "success",
     ]
     title = "Mattermost"
 
-    @chatflow_step()
-    def mattermost_start(self):
+    def _mattermost_start(self):
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.solution_id = uuid.uuid4().hex
         self.HUB_URL = "https://hub.grid.tf/ayoubm.3bot/rafyamgadbenjamin-mattermost-latest.flist"
-        self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
         self.query = {"mru": 1, "cru": 2, "sru": 6}
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
     def mattermost_name(self):
+        self._mattermost_start()
         self.solution_name = deployer.ask_name(self)
 
     @chatflow_step(title="Pool")
@@ -58,7 +60,7 @@ class MattermostDeploy(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
             self.network_view_copy = self.network_view_copy.copy()
@@ -182,7 +184,7 @@ class MattermostDeploy(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=8065,
             enforce_https=False,
@@ -195,14 +197,16 @@ class MattermostDeploy(GedisChatBot):
             # solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
-    def container_acess(self):
-        res = f"""\
-# mattermost has been deployed successfully: your reservation id is: {self.resv_id}
-It may take a few minutes.
-open mattermost from browser at ```{self.domain}```
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        message = f"""\
+# Congratulations! Your own instance from mattermost deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
                 """
-        self.md_show(res, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = MattermostDeploy

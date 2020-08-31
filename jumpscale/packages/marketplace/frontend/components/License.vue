@@ -1,13 +1,18 @@
 <template>
   <div>
     <v-card flat height="100%" class="pa-5" outlined>
-      <v-card-title class="justify-center">Terms and Conditions for using Threefold Marketplace</v-card-title>
+      <v-card-title class="justify-center">Terms and Conditions for using TF Grid Marketplace</v-card-title>
       <v-card-text>
-        It's required that you as a Marketplace user you agree to the
+        It's required that you as TF Grid user you agree to the
         <a
           target="_blank"
           href="https://wiki.threefold.io/#/terms_conditions"
-        >Terms and Conditions</a>
+        >Terms and Conditions.</a>
+        After that, to get started quickly, please check
+        <a
+          target="_blank"
+          href="https://manual-testnet.threefold.io/#/getting_started"
+        >pre-requisites</a>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -33,18 +38,18 @@
 <script>
 module.exports = {
   methods: {
-    accept: function (event) {
-      this.$api.license.accept().then((result) => {
+    accept: function(event) {
+      this.$api.license.accept().then(result => {
         this.$root.$emit("sidebar", true);
         this.$router.push({ path: "/" });
       });
-    },
+    }
   },
   data() {
     return { showConfirmation: false };
   },
   mounted() {
     this.$root.$emit("sidebar", false);
-  },
+  }
 };
 </script>

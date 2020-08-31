@@ -38,8 +38,6 @@ class NetworkView:
         for workload in workloads:
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
-            if workload.info.result.state != State.Ok:
-                continue
             if workload.info.workload_type == WorkloadType.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
 
@@ -147,7 +145,8 @@ class NetworkView:
                 return ip
         return None
 
-    def dry_run(self, node_ids=None, pool_ids=None, bot=None):
+    def dry_run(self, node_ids=None, pool_ids=None, bot=None, breaking_node_ids=None):
+        breaking_node_ids = breaking_node_ids or node_ids
         if bot:
             bot.md_show_update("Starting dry run to check nodes status")
         ip_range = netaddr.IPNetwork("10.10.0.0/16")
@@ -186,6 +185,10 @@ class NetworkView:
             try:
                 deployer.wait_workload(wid, bot, 2)
             except StopChatFlow:
+                workload = j.sals.zos.workloads.get(wid)
+                # if not a breaking nodes (old node not used for deployment) we can overlook it
+                if workload.info.node_id not in breaking_node_ids:
+                    continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(
@@ -430,9 +433,12 @@ class ChatflowDeployer:
     def select_pool(
         self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
     ):
+        if j.config.get("OVER_PROVISIONING"):
+            cru = 0
+            mru = 0
         available_pools = available_pools or self.list_pools(cu, su)
         if not available_pools:
-            raise StopChatFlow("no available pools")
+            raise StopChatFlow("no available pools with enough capacity for your workload")
         pool_messages = {}
         for pool in available_pools:
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool, sru=sru, mru=mru, hru=hru, cru=cru)
@@ -482,7 +488,9 @@ class ChatflowDeployer:
             "Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )",
             required=True,
             field="name",
+            is_identifier=True,
         )
+
         return name
 
     def ask_email(self, bot):
@@ -551,7 +559,10 @@ class ChatflowDeployer:
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
         network_view.dry_run(
-            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+            list(node_workloads.keys()),
+            [w.info.pool_id for w in node_workloads.values()],
+            bot,
+            breaking_node_ids=[node_id],
         )
 
         parent_id = network_view.network_workloads[-1].id
@@ -576,7 +587,10 @@ class ChatflowDeployer:
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
         network_view.dry_run(
-            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+            list(node_workloads.keys()),
+            [w.info.pool_id for w in node_workloads.values()],
+            bot,
+            breaking_node_ids=[node_id],
         )
         parent_id = network_view.network_workloads[-1].id
         result = []
@@ -589,7 +603,7 @@ class ChatflowDeployer:
             parent_id = result[-1]
         return result
 
-    def wait_workload(self, workload_id, bot=None, expiry=10):
+    def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None):
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
         while True:
@@ -609,6 +623,8 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             if expiration_provisioning < j.data.time.get().timestamp:
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
+                elif breaking_node_id and workload.info.node_id != breaking_node_id:
+                    return True
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
 
@@ -626,7 +642,10 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_workloads[workload.info.node_id] = workload
 
         network_view.dry_run(
-            list(node_workloads.keys()), [w.info.pool_id for w in node_workloads.values()], bot,
+            list(node_workloads.keys()),
+            [w.info.pool_id for w in node_workloads.values()],
+            bot,
+            breaking_node_ids=[node.node_id],
         )
         for workload in node_workloads.values():
             workload.info.reference = ""
@@ -793,6 +812,9 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         if automatic_choice == "YES":
             return None
         farm_id = self.get_pool_farm_id(pool_id)
+        if j.config.get("OVER_PROVISIONING"):
+            cru = 0
+            mru = 0
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)
         nodes = list(nodes)
         nodes = j.sals.reservation_chatflow.reservation_chatflow.filter_nodes(nodes, free_to_use, ip_version)
@@ -887,7 +909,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                 res = self.add_network_node(network_name, node, pool_id)
                 if res:
                     for wid in res["ids"]:
-                        success = self.wait_workload(wid)
+                        success = self.wait_workload(wid, breaking_node_id=node.node_id)
                         if not success:
                             raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
                 network_view = NetworkView(network_name)
@@ -1018,18 +1040,18 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     name = local_config.name
                 if hidden:
                     continue
+                location_list = [
+                    gateway.location.continent,
+                    gateway.location.country,
+                    gateway.location.city,
+                ]
+                location = " - ".join([info for info in location_list if info and info != "Unknown"])
+                if location:
+                    location = f" Location: {location}"
                 if name:
-                    message = (
-                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
-                        f" {gateway.location.continent} {gateway.location.country}"
-                        f" {gateway.node_id}"
-                    )
+                    message = f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}{location}"
                 else:
-                    message = (
-                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
-                        f" {gateway.location.continent} {gateway.location.country}"
-                        f" {gateway.node_id}"
-                    )
+                    message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}{location}"
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")
@@ -1149,7 +1171,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         res = self.add_network_node(network_name, node, pool_id, bot=bot)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot)
+                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
                 if not success:
                     j.sals.reservation_chatflows.solutions.cancel_solution([wid])
         network_view = NetworkView(network_name)
@@ -1212,7 +1234,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         res = self.add_network_node(network_name, node, pool_id, bot=bot)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot)
+                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
                 if not success:
                     if reserve_proxy:
                         j.sals.reservation_chatflows.solutions.cancel_solution([wid])

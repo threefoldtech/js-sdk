@@ -9,7 +9,6 @@ import uuid
 
 class Publisher(GedisChatBot):
     steps = [
-        "start",
         "publisher_name",
         "select_pool",
         "publisher_network",
@@ -21,21 +20,21 @@ class Publisher(GedisChatBot):
     ]
 
     title = "Publisher"
-    welcome_message = "This wizard will help you publish a Wiki, a Website or Blog"
     publishing_chatflow = "publisher"  # chatflow used to deploy the solution
 
     @chatflow_step()
-    def start(self):
+    def _publisher_start(self):
         self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
         self.solution_id = uuid.uuid4().hex
         self.solution_currency = "TFT"
         self.storage_url = "zdb://hub.grid.tf:9900"
         self.resources = {"cpu": 1, "memory": 1024, "disk_size": 2048}
-        self.md_show(self.welcome_message, md=True)
         self.solution_metadata = {}
+        self.user_email = self.user_info()["email"]
 
     @chatflow_step(title="Solution name")
     def publisher_name(self):
+        self._publisher_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
@@ -65,7 +64,9 @@ class Publisher(GedisChatBot):
     @chatflow_step()
     def publisher_info(self):
         form = self.new_form()
-        self.solution_name = form.string_ask("Please enter a name for your solution", required=True)
+        self.solution_name = form.string_ask(
+            "Please enter a name for your solution", required=True, is_identifier=True,
+        )
         disk_sizes = [2, 5, 10]
         self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice(
@@ -90,7 +91,7 @@ class Publisher(GedisChatBot):
             "TITLE": title.value,
             "URL": url.value,
             "BRANCH": branch.value,
-            "EMAIL": self.user_info()["email"],
+            "EMAIL": self.user_email,
         }
 
         self.query = {
@@ -163,7 +164,7 @@ class Publisher(GedisChatBot):
         )
         if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self)
+                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
@@ -206,6 +207,7 @@ class Publisher(GedisChatBot):
 
         # 4- deploy container
         self.envars["TRC_REMOTE"] = f"{self.gateway.dns_nameserver[0]}:{self.gateway.tcp_router_port}"
+        self.envars["DOMAIN"] = self.domain
         self.envars["TEST_CERT"] = "true" if j.config.get("TEST_CERT") else "false"
         secret_env = {"TRC_SECRET": self.secret}
         self.workload_ids.append(
@@ -235,14 +237,13 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""## Deployment success
-\n<br>\n
-You can access your container using:
-
-- Domain: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-
-- IP address: `{self.ip_address}`
-        """
+        message = f"""\
+# Congratulations! Your own {self.publishing_chatflow}  deployed successfully:
+\n<br />\n
+- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+\n<br />\n
+- This domain maps to your container with ip: `{self.ip_address}`
+                """
         self.md_show(dedent(message), md=True)
 
 

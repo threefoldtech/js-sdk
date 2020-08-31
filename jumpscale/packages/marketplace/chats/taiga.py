@@ -13,22 +13,18 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
     steps = [
-        "start",
-        "solution_name",
+        "get_solution_name",
         "taiga_credentials",
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
         "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 4}
-        self.md_show("# This wizard wil help you deploy an taiga solution", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 4}
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
@@ -45,6 +41,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.EMAIL_HOST = EMAIL_HOST.value
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
+        self.user_email = self.user_info()["email"]
+        self.username = self.user_info()["username"]
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -60,6 +58,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
+        }
+        self.solution_metadata.update(metadata)
+
         self.workload_ids = []
 
         # reserve subdomain
@@ -81,20 +85,15 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
+        flask_secret = j.data.idgenerator.chars(10)
         var_dict = {
             "EMAIL_HOST_USER": self.EMAIL_HOST_USER,
             "EMAIL_HOST": self.EMAIL_HOST,
             "TAIGA_HOSTNAME": self.domain,
             "HTTP_PORT": "80",
-            "FLASK_SECRET_KEY": "flask",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
-        self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
             deployer.deploy_container(
@@ -114,6 +113,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                     "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                     "PRIVATE_KEY": private_key,
                     "SECRET_KEY": self.SECRET_KEY,
+                    "FLASK_SECRET_KEY": flask_secret,
                 },
                 **self.solution_metadata,
                 solution_uuid=self.solution_id,
@@ -121,7 +121,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
         if not self.resv_id:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
         # expose threebot container
@@ -132,36 +132,20 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 network_name=self.network_view.name,
                 trc_secret=self.secret,
                 domain=self.domain,
-                email=self.user_info()["email"],
+                email=self.user_email,
                 solution_ip=self.ip_address,
                 solution_port=80,
                 enforce_https=True,
                 node_id=self.selected_node.node_id,
                 solution_uuid=self.solution_id,
                 proxy_pool_id=self.gateway_pool.pool_id,
-                **metadata,
+                **self.solution_metadata,
             )
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
         if not nginx_wid:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# Taiga has been deployed successfully:
-\n<br />\n
-your reservation id is: `{self.workload_ids[1]}`
-\n<br />\n
-your container ip is: `{self.ip_address}`
-\n<br />\n
-open Taiga from browser at <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- It may take few minutes to load.
-                """
-        self.md_show(message, md=True)
 
 
 chat = TaigaDeploy
