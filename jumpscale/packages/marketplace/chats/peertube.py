@@ -24,12 +24,8 @@ class Peertube(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Volume details")
     def volume_details(self):
-        form = self.new_form()
-        volume_size = form.single_choice(
-            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True,
-        )
-        form.ask()
-        self.vol_size = int(volume_size.value)
+        self._choose_flavor()
+        self.vol_size = self.flavor_resources["sru"]
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
         self.user_email = self.user_info()["email"]

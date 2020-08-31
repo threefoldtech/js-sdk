@@ -611,11 +611,10 @@ class ChatflowDeployer:
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
             if bot:
                 deploying_message = f"""
-# Deploying...\n
+# Deploying...\n\n
 
-Workload ID: {workload_id} \n
-
-Deployment will be cancelled if it is not successful in {remaning_time}
+\n\nWorkload ID: {workload_id} \n
+\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in {remaning_time}
                 """
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:

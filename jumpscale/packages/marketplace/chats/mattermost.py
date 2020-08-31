@@ -25,11 +25,8 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Mattermost Information")
     def mattermost_info(self):
-        form = self.new_form()
-        disk_sizes = [2, 5, 10]
-        volume_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
-        form.ask()
-        self.vol_size = int(volume_size.value)
+        self._choose_flavor()
+        self.vol_size = self.flavor_resources["sru"]
         self.query["sru"] += self.vol_size
         self.user_email = self.user_info()["email"]
 
