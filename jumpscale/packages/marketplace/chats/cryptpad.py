@@ -25,6 +25,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
+        self.user_email = self.user_info()["email"]
         form = self.new_form()
         volume_size = form.single_choice(
             "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
@@ -122,7 +123,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=3000,
             enforce_https=False,

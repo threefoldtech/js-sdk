@@ -28,6 +28,7 @@ class GiteaDeploy(GedisChatBot):
     title = "Gitea"
 
     def _gitea_start(self):
+        self.username = self.user_info()["username"]
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")

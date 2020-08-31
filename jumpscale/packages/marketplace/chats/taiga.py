@@ -41,6 +41,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.EMAIL_HOST = EMAIL_HOST.value
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
+        self.user_email = self.user_info()["email"]
+        self.username = self.user_info()["username"]
 
     @chatflow_step(title="Confirmation")
     def overview(self):
@@ -92,11 +94,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
-        self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
             deployer.deploy_container(
@@ -124,7 +121,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
         if not self.resv_id:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
         # expose threebot container
@@ -135,7 +132,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 network_name=self.network_view.name,
                 trc_secret=self.secret,
                 domain=self.domain,
-                email=self.user_info()["email"],
+                email=self.user_email,
                 solution_ip=self.ip_address,
                 solution_port=80,
                 enforce_https=True,
@@ -147,7 +144,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
         if not nginx_wid:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
 
 

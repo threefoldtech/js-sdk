@@ -1,7 +1,5 @@
 import uuid
 from textwrap import dedent
-
-from jumpscale.clients.explorer.models import Category
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
@@ -22,7 +20,7 @@ class SolutionExpose(GedisChatBot):
         "solution_type",
         "exposed_solution",
         "exposed_ports",
-        "domain",
+        "domain_selection",
         "confirmation",
         "reservation",
         "success",
@@ -37,10 +35,21 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Solution type")
     def solution_type(self):
         self._deployment_start()
-        self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
-        solutions = kinds[self.kind]()
+
+        available_solutions = {}
+        for kind in list(kinds.keys()):
+            solutions = kinds[kind]()
+            if solutions:
+                available_solutions.update({kind: solutions})
+
+        if not available_solutions:
+            raise StopChatFlow(f"You don't have any solutions to expose")
+
+        self.kind = self.single_choice(
+            "Please choose the solution type", list(available_solutions.keys()), required=True
+        )
         self.sols = {}
-        for sol in solutions:
+        for sol in available_solutions[self.kind]:
             name = sol["Name"]
             self.sols[name] = sol
 
@@ -74,7 +83,7 @@ class SolutionExpose(GedisChatBot):
             self.solution_ip = self.solution["IPv4 Address"]
 
     @chatflow_step(title="Domain")
-    def domain(self):
+    def domain_selection(self):
         # {"domain": {"gateway": gw, "pool": p}}
 
         gateways = deployer.list_all_gateways()
@@ -89,11 +98,21 @@ class SolutionExpose(GedisChatBot):
             gateway_id_dict[gw_dict["gateway"].node_id] = gw_dict["gateway"]
             pool_id_dict[gw_dict["pool"].pool_id] = gw_dict["pool"]
             for dom in gw_dict["gateway"].managed_domains:
-                messages[f"Managed {dom}"] = gw_dict
+                location_list = [
+                    gw_dict["gateway"].location.continent,
+                    gw_dict["gateway"].location.country,
+                    gw_dict["gateway"].location.city,
+                ]
+                location = " - ".join([info for info in location_list if info and info != "Unknown"])
+                if location:
+                    location = f" Location: {location}"
+                messages[f"Managed {dom}{location}"] = gw_dict
 
         # add delegate domains
         delegated_domains = solutions.list_delegated_domain_solutions()
         for dom in delegated_domains:
+            if dom["Pool"] not in pool_id_dict:
+                pool_id_dict[dom["Pool"]] = gateway_id_dict[dom["Gateway"]]
             gw_dict = {"gateway": gateway_id_dict[dom["Gateway"]], "pool": pool_id_dict[dom["Pool"]]}
             messages[f"Delegated {dom['Name']}"] = gw_dict
 

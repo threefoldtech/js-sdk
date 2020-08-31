@@ -17,9 +17,10 @@ class FourToSixGateway(MarketPlaceChatflow):
 
     @chatflow_step(title="Pool")
     def select_pool(self):
+        self.username = self.user_info()["username"]
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {"owner": self.user_info()["username"]}
+        self.solution_metadata = {"owner": self.username}
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):

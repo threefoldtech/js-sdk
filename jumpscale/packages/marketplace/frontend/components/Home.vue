@@ -8,7 +8,7 @@
             <v-autocomplete
               width="10"
               v-model="searchText"
-              :items="[...apps, ...solutions]"
+              :items="[...apps]"
               :loading="loading"
               color="grey"
               hide-no-data
@@ -24,7 +24,7 @@
           <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
           </template>
-          <span>Threefold end user applications</span>
+          <span>Threefold demo applications</span>
         </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card
@@ -38,14 +38,22 @@
             <v-img v-if="app.image" class="mt-6" height="100px" :contain="true" :src="app.image"></v-img>
             <v-icon v-else class="ma-4" x-large color="primary">{{app.icon}}</v-icon>
             <v-card-title class="mx-2 font-weight-bold">
-              {{app.name}}
-              <v-chip
-                v-if="solutionCount[app.type] !== undefined"
-                :loading="true"
-                class="ml-2"
-                small
-                outlined
-              >{{solutionCount[app.type]}}</v-chip>
+                {{app.name}}
+                <v-chip
+                  v-if="solutionCount[app.type] !== undefined"
+                  :loading="true"
+                  class="ml-2"
+                  small
+                  outlined
+                >{{solutionCount[app.type]}}</v-chip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <a class="chatflowInfo" :href="`https://manual-testnet.threefold.io/#/${app.type}`" target="blank">
+                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                    </a>
+                  </template>
+                  <span>Chatflow Information</span>
+                </v-tooltip>
             </v-card-title>
             <v-card-text style="height:100px" class="mx-2 text--primary">
               {{app.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
@@ -60,55 +68,6 @@
           </v-card>
         </v-row>
         <br />
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <span
-              v-bind="attrs"
-              v-on="on"
-              class="soTitle font-weight-black mt-4"
-            >Infrastructure Solutions</span>
-          </template>
-          <span>Threefold grid primitives</span>
-        </v-tooltip>
-        <v-row class="mt-2" align="start" justify="start">
-          <v-card
-            v-for="solution in filteredSolutions"
-            :key="solution.type"
-            class="ma-2"
-            width="280"
-            :loading="loading"
-            :disabled="loading"
-          >
-            <v-img
-              v-if="solution.image"
-              class="mt-6"
-              height="100px"
-              :contain="true"
-              :src="solution.image"
-            ></v-img>
-            <v-icon v-else class="ma-4" x-large color="primary">{{solution.icon}}</v-icon>
-            <v-card-title class="mx-2 font-weight-bold">
-              {{solution.name}}
-              <v-chip
-                v-if="solutionCount[solution.type] !== undefined"
-                :loading="true"
-                class="ml-2"
-                small
-                outlined
-              >{{solutionCount[solution.type]}}</v-chip>
-            </v-card-title>
-            <v-card-text style="height:100px" class="mx-2 text--primary">
-              {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
-              solution.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
-              solution.description}}
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text medium @click.stop="openChatflow(solution.type)">New</v-btn>
-              <v-btn text medium @click.stop="viewWorkloads(solution.type)">My workloads</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-row>
       </template>
     </div>
   </div>
@@ -122,50 +81,54 @@ module.exports = {
       loading: false,
       solutionCount: {},
       searchText: "",
-      apps: Object.values(APPS),
-      solutions: Object.values(SOLUTIONS),
+      apps: Object.values(APPS)
     };
   },
   computed: {
     filteredSolutions() {
       if (this.searchText) {
-        return this.solutions.filter((obj) => {
+        return this.solutions.filter(obj => {
           return obj.name === this.searchText;
         });
       } else return this.solutions;
     },
     filteredApps() {
       if (this.searchText) {
-        return this.apps.filter((obj) => {
+        return this.apps.filter(obj => {
           return obj.name === this.searchText;
         });
       } else return this.apps;
-    },
+    }
   },
   methods: {
     openChatflow(solutionTopic) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionTopic },
+        params: { topic: solutionTopic }
       });
     },
     viewWorkloads(solutionType) {
       this.$router.push({ name: "Solution", params: { type: solutionType } });
     },
     getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
+      this.$api.solutions.getCount().then(response => {
         this.solutionCount = response.data.data;
       });
-    },
+    }
   },
   mounted() {
     this.getSolutionCount();
-  },
+  }
 };
 </script>
 
 <style scoped>
 span.soTitle {
   font-size: 27;
+}
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
 }
 </style>

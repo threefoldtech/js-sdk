@@ -10,7 +10,8 @@ class DomainDelegation(BaseDomainDelegation, MarketPlaceChatflow):
     def select_pool(self):
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {"owner": self.user_info()["username"]}
+        self.username = self.user_info()["username"]
+        self.solution_metadata = {"owner": self.username}
         self.gateway, pool = deployer.select_gateway(self.solution_metadata["owner"], bot=self)
         self.pool_id = pool.pool_id
 

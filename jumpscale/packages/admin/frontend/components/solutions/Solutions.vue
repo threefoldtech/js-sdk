@@ -9,7 +9,7 @@
               <v-autocomplete
                 width="10"
                 v-model="searchText"
-                :items="[...apps, ...solutions]"
+                :items="[...solutions]"
                 :loading="loading"
                 color="grey"
                 hide-no-data
@@ -21,54 +21,10 @@
             </v-col>
             <v-spacer></v-spacer>
           </v-row>
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
-            </template>
-            <span>Threefold end user applications</span>
-          </v-tooltip>
-          <v-row class="mt-2" align="start" justify="start">
-            <v-card
-              v-for="app in filteredApps"
-              :key="app.topic"
-              class="ma-2"
-              width="290"
-              :loading="loading"
-              :disabled="loading"
-            >
-              <v-img v-if="app.image" class="mt-6" height="100px" :contain="true" :src="app.image"></v-img>
-              <v-icon v-else class="ma-4" x-large color="primary">{{app.icon}}</v-icon>
-              <v-card-title class="mx-2 font-weight-bold">
-                {{app.name}}
-                <v-chip
-                  v-if="solutionCount[app.type] !== undefined"
-                  :loading="true"
-                  class="ml-2"
-                  small
-                  outlined
-                >{{solutionCount[app.type]}}</v-chip>
-              </v-card-title>
-              <v-card-text style="height:100px" class="mx-2 text--primary">
-                {{app.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
-                app.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
-                app.description}}
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(app.type)">New</v-btn>
-                <v-btn text medium @click.stop="viewWorkloads(app.type)">My workloads</v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-row>
-          <br />
 
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <span
-                v-bind="attrs"
-                v-on="on"
-                class="soTitle font-weight-black mt-4"
-              >Infrastructure Solutions</span>
+              <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Solutions</span>
             </template>
             <span>Threefold grid primitives</span>
           </v-tooltip>
@@ -98,6 +54,18 @@
                   small
                   outlined
                 >{{solutionCount[solution.type]}}</v-chip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <a
+                      class="chatflowInfo"
+                      :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
+                      target="blank"
+                    >
+                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
+                    </a>
+                  </template>
+                  <span>Chatflow Information</span>
+                </v-tooltip>
               </v-card-title>
               <v-card-text style="height:100px" class="mx-2 text--primary">
                 {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
@@ -138,7 +106,6 @@ module.exports = {
       SOLUTION_DESCRIPTION_MAXLENGTH: 130,
       loading: false,
       hasMigrated: true,
-      apps: Object.values(APPS),
       solutions: Object.values(SOLUTIONS),
       solutionCount: {},
       searchText: "",
@@ -151,13 +118,6 @@ module.exports = {
           return obj.name === this.searchText;
         });
       } else return this.solutions;
-    },
-    filteredApps() {
-      if (this.searchText) {
-        return this.apps.filter((obj) => {
-          return obj.name === this.searchText;
-        });
-      } else return this.apps;
     },
   },
   methods: {
@@ -195,5 +155,10 @@ module.exports = {
 <style scoped>
 span.soTitle {
   font-size: 27;
+}
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
 }
 </style>

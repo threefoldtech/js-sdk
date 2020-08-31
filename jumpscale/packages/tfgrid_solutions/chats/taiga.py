@@ -30,7 +30,9 @@ class TaigaDeploy(GedisChatBot):
     def _taiga_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.HUB_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
         self.query = {"sru": 2}
         self.solution_metadata = {}
@@ -147,6 +149,11 @@ class TaigaDeploy(GedisChatBot):
     def reservation(self):
         self.workload_ids = []
 
+        metadata = {
+            "name": self.solution_name,
+            "form_info": {"chatflow": "taiga", "Solution name": self.solution_name},
+        }
+        self.solution_metadata.update(metadata)
         # reserve subdomain
         subdomain_wid = self.workload_ids.append(
             deployer.create_subdomain(
@@ -175,11 +182,6 @@ class TaigaDeploy(GedisChatBot):
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "taiga",},
-        }
-        self.solution_metadata.update(metadata)
 
         self.workload_ids.append(
             deployer.deploy_container(
@@ -218,7 +220,7 @@ class TaigaDeploy(GedisChatBot):
                 network_name=self.network_view.name,
                 trc_secret=self.secret,
                 domain=self.domain,
-                email=self.user_info()["email"],
+                email=self.user_email,
                 solution_ip=self.ip_address,
                 solution_port=80,
                 enforce_https=True,

@@ -5,7 +5,7 @@ monkey.patch_all(subprocess=False)  # noqa: E402
 import os
 import requests
 from jumpscale.loader import j
-from jumpscale.packages.backup.actors.marketplace import Backup
+from jumpscale.packages.backup.actors.threebot_deployer import Backup
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
         identity.register()
         identity.save()
 
-    j.core.identity.set_default("main")
+    j.core.identity.set_default("test")
 
     if backup_password:
         try:

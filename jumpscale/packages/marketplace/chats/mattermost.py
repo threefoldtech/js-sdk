@@ -32,6 +32,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         form.ask()
         self.vol_size = int(volume_size.value)
         self.query["sru"] += self.vol_size
+        self.user_email = self.user_info()["email"]
 
     @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
@@ -126,7 +127,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=8065,
             enforce_https=False,

@@ -34,25 +34,11 @@ const SOLUTIONS = {
     description: "Deploy a Kubernetes cluster using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
   },
   minio: {
-    name: "Minio",
+    name: "S3 Storage",
     type: "minio",
     image: "./assets/minio.png",
     url: "/solutions/minio",
-    description: "MinIO is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
-  },
-  gitea: {
-    name: "Gitea",
-    type: "gitea",
-    image: "./assets/gitea.png",
-    url: "/solutions/gitea",
-    description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
-  },
-  threebot: {
-    name: "3Bot",
-    type: "threebot",
-    image: "./assets/3bot.png",
-    url: "/solutions/threebot",
-    description: "Deploy your 3Bot on container."
+    description: "S3 Storage solution is using MinIO a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
   },
   expose: {
     name: "Solution Expose",
@@ -88,66 +74,6 @@ const SOLUTIONS = {
     image: "./assets/4to6.png",
     url: "/solutions/4to6gw",
     description: "4to6 Gateway gives you access to IPv6 networks using a wireguard tunnel"
-  },
-}
-
-
-const APPS = {
-  wiki: {
-    name: "Wiki",
-    type: "wiki",
-    image: "./assets/doc-flat.svg",
-    url: "/solutions/wiki",
-    description: "Publish a wiki like https://wiki.threefold.io/"
-  },
-  website: {
-    name: "Website",
-    type: "website",
-    image: "./assets/web.png",
-    url: "/solutions/website",
-    description: "Publish a website like https://www.threefold.io/"
-  },
-  blog: {
-    name: "Blog",
-    type: "blog",
-    image: "./assets/blog.png",
-    url: "/solutions/blog",
-    description: "Publish a blog like https://blog.threefold.io/"
-  },
-  mattermost: {
-    name: "Mattermost",
-    type: "mattermost",
-    image: "./assets/mattermost.png",
-    url: "/solutions/mattermost",
-    description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration"
-  },
-  peertube: {
-    name: "Peertube",
-    type: "peertube",
-    image: "./assets/peertube.png",
-    url: "/solutions/peertube",
-    description: "Peertube is a free and open-source, decentralized video platform that uses P2P technology to reduce load on individual servers."
-  },
-  discourse: {
-    name: "Discourse",
-    type: "discourse",
-    image: "./assets/discourse.png",
-    url: "/solutions/discourse",
-    description: "Discourse is an open source Internet forum and mailing list management software application."
-  },
-  cryptpad: {
-    name: "Cryptpad",
-    type: "cryptpad",
-    image: "./assets/cryptpad.png",
-    url: "/solutions/cryptpad",
-    description: "CryptPad is the Zero Knowledge realtime collaborative editor."
-  },
-  taiga: {
-    name: "Taiga",
-    type: "taiga",
-    image: "./assets/taiga.png",
-    url: "/solutions/taiga",
-    description: "Taiga is the project management tool for multi-functional agile teams. Build your 'All in one' Taiga solution"
   },
 }
 

@@ -107,5 +107,17 @@ class Admin(BaseActor):
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
+    @actor_method
+    def get_developer_options(self) -> str:
+        test_cert = j.core.config.get("TEST_CERT")
+        over_provision = j.core.config.get("OVER_PROVISIONING")
+        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
+
+    @actor_method
+    def set_developer_options(self, test_cert: bool, over_provision: bool) -> str:
+        j.core.config.set("TEST_CERT", test_cert)
+        j.core.config.set("OVER_PROVISIONING", over_provision)
+        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
+
 
 Actor = Admin

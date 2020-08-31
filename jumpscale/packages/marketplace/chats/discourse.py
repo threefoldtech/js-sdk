@@ -34,6 +34,8 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
+        self.user_email = self.user_info()["email"]
+        self.username = self.user_info()["username"]
 
     @chatflow_step(title="Deployment Information", disable_previous=True)
     def overview(self):
@@ -65,7 +67,7 @@ class Discourse(MarketPlaceAppsChatflow):
             "DISCOURSE_HOSTNAME": self.domain,
             "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
-            "DISCOURSE_DEVELOPER_EMAILS": self.user_info()["email"],
+            "DISCOURSE_DEVELOPER_EMAILS": self.user_email,
             "DISCOURSE_SMTP_PORT": "587",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
@@ -123,7 +125,7 @@ class Discourse(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
@@ -134,7 +136,7 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
+            solutions.cancel_solution(self.username, self.workload_ids)
             raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
 
 

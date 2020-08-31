@@ -26,9 +26,11 @@ class Discourse(GedisChatBot):
     title = "Discourse"
 
     def _discourse_start(self):
+        self.username = self.user_info()["username"]
+        self.user_email = self.user_info()["email"]
         self.solution_id = uuid.uuid4().hex
         self.query = dict()
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
     @chatflow_step(title="Solution name")
@@ -143,7 +145,7 @@ class Discourse(GedisChatBot):
             "DISCOURSE_HOSTNAME": self.domain,
             "DISCOURSE_SMTP_USER_NAME": self.smtp_username,
             "DISCOURSE_SMTP_ADDRESS": self.smtp_server,
-            "DISCOURSE_DEVELOPER_EMAILS": self.user_info()["email"],
+            "DISCOURSE_DEVELOPER_EMAILS": self.user_email,
             "DISCOURSE_SMTP_PORT": "587",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
@@ -199,7 +201,7 @@ class Discourse(GedisChatBot):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=80,
             enforce_https=True,
