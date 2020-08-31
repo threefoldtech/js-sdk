@@ -1,11 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 import uuid
-from time import sleep
-from jumpscale.loader import j
-
-
-DOMAIN_TIMEOUT = 90
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -88,8 +83,8 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
             public_ipv6=True,
             disk_size=self.query["sru"] * 1024,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
-            **self.solution_metadata,
             solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
