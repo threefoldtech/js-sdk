@@ -71,7 +71,7 @@ module.exports = {
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
       selected_rows: [],
       workloads: [],

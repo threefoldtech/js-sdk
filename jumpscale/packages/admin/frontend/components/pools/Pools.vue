@@ -33,7 +33,7 @@ module.exports = {
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
       dialog: false,
       hidden_dialog: false,
