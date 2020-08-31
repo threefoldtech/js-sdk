@@ -10,11 +10,8 @@ K8S_SIZES = {
 class ChatflowSolutions:
     def get_node_farm(self, node_id):
         explorer = j.core.identity.me.explorer
-        try:
-            farm_id = explorer.nodes.get(node_id).farm_id
-            return str(explorer.farms.get(farm_id))
-        except:
-            return "Couldn't fetch farm"
+        farm_id = explorer.nodes.get(node_id).farm_id
+        return str(explorer.farms.get(farm_id))
 
     def list_network_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=sync)
