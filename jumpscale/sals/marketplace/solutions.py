@@ -38,7 +38,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_single_container_solution("flist", next_action, sync, owner=username)
 
     def list_gitea_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("gitea", next_action, sync, owner=username)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx", owner=username)
 
     def list_mattermost_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
