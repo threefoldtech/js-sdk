@@ -179,12 +179,27 @@ def status():
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
+@click.option("--domain", default=None, help="threebot domain")
+@click.option("--email", default=None, help="threebot ssl email")
+@click.option("--development", default=False, is_flag=True, help="start in development mode (no identity is required)")
+@click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
+@click.option(
+    "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
+)
 @click.pass_context
-def restart(ctx, identity=None):
+def restart(ctx, identity=None, background=False, local=False, development=False, domain=None, email=None):
     """restart threebot server
     """
     ctx.invoke(stop)
-    ctx.invoke(start, identity=identity)
+    ctx.invoke(
+        start,
+        identity=identity,
+        background=background,
+        local=local,
+        development=development,
+        domain=domain,
+        email=email,
+    )
 
 
 @click.group()
