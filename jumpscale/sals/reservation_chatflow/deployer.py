@@ -1040,18 +1040,18 @@ Deployment will be cancelled if it is not successful in {remaning_time}
                     name = local_config.name
                 if hidden:
                     continue
-                location_list = [
-                    gateway.location.continent,
-                    gateway.location.country,
-                    gateway.location.city,
-                ]
-                location = " - ".join([info for info in location_list if info and info != "Unknown"])
-                if location:
-                    location = f" Location: {location}"
                 if name:
-                    message = f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}{location}"
+                    message = (
+                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 else:
-                    message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}{location}"
+                    message = (
+                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")
@@ -1182,7 +1182,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-prestart.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
