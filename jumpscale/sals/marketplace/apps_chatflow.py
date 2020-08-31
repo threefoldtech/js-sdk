@@ -122,16 +122,18 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
 
-        solution_name = self.solution_name.replace(".", "").replace("_", "-")
+        solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
+        owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
+        solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
         # check if domain name is free or append random number
-        full_domain = f"{solution_name}.{self.domain}"
+        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{self.domain}"
         while True:
             if j.tools.dnstool.is_free(full_domain):
                 self.domain = full_domain
                 break
             else:
                 random_number = random.randint(1000, 100000)
-                full_domain = f"{solution_name}-{random_number}.{self.domain}"
+                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{self.domain}"
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
