@@ -298,6 +298,16 @@ class ChatflowSolutions:
         for wid in ids_to_delete:
             j.sals.zos.workloads.decomission(wid)
 
+    def cancel_solution_uuid(self, solution_uuid):
+        ids_to_delete = []
+        # Get workloads with specific UUID
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+            if solution_uuid == self.get_solution_uuid(workload):
+                ids_to_delete.append(workload.id)
+        # Delete workloads
+        for wid in ids_to_delete:
+            j.sals.zos.workloads.decomission(wid)
+
     def count_solutions(self, next_action=NextAction.DEPLOY):
         count_dict = {
             "network": 0,

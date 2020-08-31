@@ -7,6 +7,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, Stop
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 import uuid
 from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 
 
 class UbuntuDeploy(GedisChatBot):
@@ -123,7 +124,10 @@ class UbuntuDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
+
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
@@ -176,7 +180,7 @@ class UbuntuDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

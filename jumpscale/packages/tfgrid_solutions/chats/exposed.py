@@ -2,7 +2,7 @@ import uuid
 from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 kinds = {
     "minio": solutions.list_minio_solutions,
@@ -43,7 +43,7 @@ class SolutionExpose(GedisChatBot):
                 available_solutions.update({kind: solutions})
 
         if not available_solutions:
-            raise StopChatFlow(f"You don't have any solutions to expose")
+            raise StopChatFlowCleanWorkloads(f"You don't have any solutions to expose", self.solution_id)
 
         self.kind = self.single_choice(
             "Please choose the solution type", list(available_solutions.keys()), required=True
@@ -88,7 +88,9 @@ class SolutionExpose(GedisChatBot):
 
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools", self.solution_id
+            )
 
         # add managed domains
         gateway_id_dict = {}
@@ -182,19 +184,20 @@ class SolutionExpose(GedisChatBot):
         self.network_name = self.solution["Network"]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner"),
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner")
         )
         if result:
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node to network {wid}")
+                    raise StopChatFlowCleanWorkloads(f"Failed to add node to network {wid}", self.solution_id)
 
         self.network_view = deployer.get_network_view(self.network_name)
         self.tcprouter_ip = self.network_view.get_free_ip(self.selected_node)
         if not self.tcprouter_ip:
-            raise StopChatFlow(
-                f"No available ips one for network {self.network_view.name} node {self.selected_node.node_id}"
+            raise StopChatFlowCleanWorkloads(
+                f"No available ips one for network {self.network_view.name} node {self.selected_node.node_id}",
+                self.solution_id,
             )
 
         if self.domain_type != "Custom Domain":
@@ -207,8 +210,9 @@ class SolutionExpose(GedisChatBot):
             )
             success = deployer.wait_workload(self.dom_id, self)
             if not success:
-                solutions.cancel_solution([self.dom_id])
-                raise StopChatFlow(f"Failed to reserve sub-domain workload {self.dom_id}")
+                raise StopChatFlowCleanWorkloads(
+                    f"Failed to reserve sub-domain workload {self.dom_id}", self.solution_id
+                )
 
         self.proxy_id = deployer.create_proxy(
             pool_id=self.domain_pool.pool_id,
@@ -220,8 +224,9 @@ class SolutionExpose(GedisChatBot):
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to reserve reverse proxy workload {self.proxy_id}", self.solution_id
+            )
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -237,8 +242,9 @@ class SolutionExpose(GedisChatBot):
         )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to reserve tcprouter container workload {self.tcprouter_id}", self.solution_id
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

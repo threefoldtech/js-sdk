@@ -1,6 +1,7 @@
 from textwrap import dedent
 
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
 
@@ -27,7 +28,7 @@ class Peertube(MarketPlaceAppsChatflow):
     def volume_details(self):
         form = self.new_form()
         volume_size = form.single_choice(
-            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True,
+            "Please specify the peertube storage size in GBs", ["5", "15", "35"], default="5", required=True
         )
         form.ask()
         self.vol_size = int(volume_size.value)
@@ -68,7 +69,10 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}", self.solution_id
+            )
+
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -83,7 +87,10 @@ class Peertube(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}",
+                self.solution_id,
+            )
         self.threebot_url = f"http://{self.domain}"
 
         entrypoint = f'/usr/local/bin/startup.sh "{self.domain}"'
@@ -106,7 +113,7 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_info.reservation_id,
@@ -125,9 +132,9 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # FIXME
-            # solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {_id}", self.solution_id
+            )
 
 
 chat = Peertube

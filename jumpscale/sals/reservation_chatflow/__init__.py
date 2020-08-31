@@ -1,6 +1,15 @@
 from .reservation_chatflow import reservation_chatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+
+
+class StopChatFlowCleanWorkloads(StopChatFlow):
+    def __init__(self, msg=None, solution_uuid=None, **kwargs):
+        super().__init__(msg, **kwargs)
+
+        if solution_uuid:
+            solutions.cancel_solution_uuid(solution_uuid)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3

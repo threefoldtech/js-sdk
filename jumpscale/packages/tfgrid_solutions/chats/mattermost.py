@@ -4,7 +4,7 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 
 class MattermostDeploy(GedisChatBot):
@@ -62,7 +62,9 @@ class MattermostDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
@@ -70,7 +72,9 @@ class MattermostDeploy(GedisChatBot):
         self.md_show_update("Configuring node domain ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -124,7 +128,7 @@ class MattermostDeploy(GedisChatBot):
         }
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost",},
+            "form_info": {"Solution name": self.solution_name, "Domain name": self.domain, "chatflow": "mattermost"},
         }
         self.solution_metadata.update(metadata)
 
@@ -140,7 +144,10 @@ class MattermostDeploy(GedisChatBot):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}",
+                self.solution_id,
+            )
         self.solution_url = f"https://{self.domain}"
 
         # create volume
@@ -148,11 +155,13 @@ class MattermostDeploy(GedisChatBot):
         vol_mount_point = "/var/lib/mysql/"
         volume_config = {}
         vol_id = deployer.deploy_volume(
-            self.pool_id, self.selected_node.node_id, vol_size, solution_uuid=self.solution_id, **self.metadata,
+            self.pool_id, self.selected_node.node_id, vol_size, solution_uuid=self.solution_id, **self.metadata
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}", self.solution_id
+            )
         volume_config[vol_mount_point] = vol_id
 
         # Create container
@@ -174,8 +183,7 @@ class MattermostDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         # expose threebot container
         _id = deployer.expose_and_create_certificate(
@@ -194,8 +202,9 @@ class MattermostDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}", self.solution_id
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

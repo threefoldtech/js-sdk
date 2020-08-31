@@ -6,7 +6,7 @@ from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 
 class MonitoringDeploy(GedisChatBot):
@@ -129,7 +129,10 @@ class MonitoringDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {node.node_id} to network {wid}", self.solution_id
+                    )
+
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -170,7 +173,7 @@ class MonitoringDeploy(GedisChatBot):
     def reservation(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "monitoring", "Solution name": self.solution_name,},
+            "form_info": {"chatflow": "monitoring", "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
         self.md_show_update("Deploying Volume....")
@@ -184,7 +187,9 @@ class MonitoringDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}", self.solution_id
+            )
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
@@ -234,8 +239,7 @@ class MonitoringDeploy(GedisChatBot):
             )
             success = deployer.wait_workload(self.reservation_ids[i], self)
             if not success:
-                solutions.cancel_solution(self.reservation_ids)
-                raise StopChatFlow(f"Failed to deploy {self.tools_names[i]}")
+                raise StopChatFlowCleanWorkloads(f"Failed to deploy {self.tools_names[i]}", self.solution_id)
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):

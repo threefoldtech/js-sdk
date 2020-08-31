@@ -3,7 +3,7 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow import deployer, StopChatFlowCleanWorkloads
 
 
 class DomainDelegation(GedisChatBot):
@@ -30,7 +30,7 @@ class DomainDelegation(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):

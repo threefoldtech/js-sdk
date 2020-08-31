@@ -4,7 +4,7 @@ import uuid
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.data.nacl.jsnacl import NACL
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 
 class ThreebotDeploy(GedisChatBot):
@@ -102,7 +102,9 @@ class ThreebotDeploy(GedisChatBot):
     def domain_select(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -161,7 +163,9 @@ class ThreebotDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -178,8 +182,9 @@ class ThreebotDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
         test_cert = j.config.get("TEST_CERT")
         # 3- deploy threebot container
@@ -214,9 +219,9 @@ class ThreebotDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                self.solution_id,
             )
 
         # 4- expose threebot container
@@ -239,9 +244,9 @@ class ThreebotDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[2], self)
         if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                self.solution_id,
             )
         self.threebot_url = f"https://{self.domain}/admin"
 

@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 import uuid
 
 
@@ -96,7 +96,9 @@ class KubernetesDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {node.node_id} to network {wid}", self.solution_id
+                    )
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -152,8 +154,9 @@ class KubernetesDeploy(GedisChatBot):
         for resv in self.reservations:
             success = deployer.wait_workload(resv["reservation_id"], self)
             if not success:
-                solutions.cancel_solution([resv["reservation_id"]])
-                raise StopChatFlow(f"Failed to deploy workload {resv['reservation_id']}")
+                raise StopChatFlowCleanWorkloads(
+                    f"Failed to deploy workload {resv['reservation_id']}", self.solution_id
+                )
 
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):

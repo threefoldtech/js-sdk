@@ -655,12 +655,3 @@ class StopChatFlow(Exception):
         self.kwargs = kwargs
 
 
-class StopChatFlowCleanWorkloads(StopChatFlow):
-    def __init__(self, msg=None, workload_ids=None, **kwargs):
-        super().__init__(msg, **kwargs)
-        import pdb
-
-        pdb.set_trace()
-        if workload_ids:
-            solutions.cancel_solution(workload_ids)
-

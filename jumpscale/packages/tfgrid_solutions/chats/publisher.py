@@ -3,7 +3,7 @@ import math
 from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 import uuid
 
 
@@ -107,7 +107,9 @@ class Publisher(GedisChatBot):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -166,7 +168,9 @@ class Publisher(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -183,8 +187,9 @@ class Publisher(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
 
         # 3- reserve tcp proxy
@@ -200,9 +205,9 @@ class Publisher(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}",
+                self.solution_id,
             )
 
         # 4- deploy container
@@ -230,9 +235,9 @@ class Publisher(GedisChatBot):
             )
         )
         if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                self.solution_id,
             )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)

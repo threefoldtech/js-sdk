@@ -7,7 +7,7 @@ from nacl.public import PrivateKey
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 
 class TaigaDeploy(GedisChatBot):
@@ -95,7 +95,9 @@ class TaigaDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = random.choice(free_ips)
@@ -103,7 +105,9 @@ class TaigaDeploy(GedisChatBot):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -168,8 +172,9 @@ class TaigaDeploy(GedisChatBot):
         subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
@@ -209,8 +214,7 @@ class TaigaDeploy(GedisChatBot):
         )
         self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
         if not self.resv_id:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         # expose threebot container
         self.workload_ids.append(
@@ -232,8 +236,9 @@ class TaigaDeploy(GedisChatBot):
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
         if not nginx_wid:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}", self.solution_id
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

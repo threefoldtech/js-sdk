@@ -3,7 +3,7 @@ import random
 from textwrap import dedent
 
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 from jumpscale.loader import j
 
 
@@ -71,21 +71,17 @@ class GiteaDeploy(GedisChatBot):
     @chatflow_step(title="Database credentials & Repository name")
     def gitea_credentials(self):
         form = self.new_form()
-        database_name = form.string_ask(
-            "Please add the database name of your gitea", default="postgres", required=True,
-        )
+        database_name = form.string_ask("Please add the database name of your gitea", default="postgres", required=True)
         database_user = form.string_ask(
             "Please add the username for your gitea database. Make sure not to lose it",
             default="postgres",
             required=True,
         )
         database_password = form.string_ask(
-            "Please add the secret for your gitea database. Make sure not to lose it",
-            default="postgres",
-            required=True,
+            "Please add the secret for your gitea database. Make sure not to lose it", default="postgres", required=True
         )
         repository_name = form.string_ask(
-            "Please add the name of repository in your gitea", default="myrepo", required=True,
+            "Please add the name of repository in your gitea", default="myrepo", required=True
         )
         form.ask()
         self.database_name = database_name.value
@@ -126,16 +122,21 @@ class GiteaDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
+
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -180,10 +181,7 @@ class GiteaDeploy(GedisChatBot):
             "HTTP_PORT": "3000",
             "DOMAIN": f"{self.domain}",
         }
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
-        }
+        metadata = {"name": self.solution_name, "form_info": {"Solution name": self.solution_name, "chatflow": "gitea"}}
         self.solution_metadata.update(metadata)
         # reserve subdomain
         subdomain_wid = deployer.create_subdomain(
@@ -197,8 +195,9 @@ class GiteaDeploy(GedisChatBot):
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}",
+                self.solution_id,
             )
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
@@ -220,8 +219,7 @@ class GiteaDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         self.proxy_id = deployer.create_proxy(
             pool_id=self.pool_id,
@@ -233,8 +231,9 @@ class GiteaDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to reserve reverse proxy workload {self.proxy_id}", self.solution_id
+            )
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -250,8 +249,9 @@ class GiteaDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to reserve tcprouter container workload {self.tcprouter_id}", self.solution_id
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

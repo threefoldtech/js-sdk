@@ -5,7 +5,7 @@ import math
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, StopChatFlowCleanWorkloads
 
 
 class GollumDeploy(GedisChatBot):
@@ -80,21 +80,21 @@ class GollumDeploy(GedisChatBot):
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask("Please enter an email to get ssl certificate updates of your container",)
+        self.email = form.string_ask("Please enter an email to get ssl certificate updates of your container")
         form.ask()
 
     @chatflow_step(title="Github repo setup")
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask("Please enter your github username",)
+        self.github_user = form.string_ask("Please enter your github username")
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask("Please enter your github email",)
+        self.github_email = form.string_ask("Please enter your github email")
         self.github_repo = form.string_ask(
-            "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists",
+            "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists"
         )
         self.github_token = form.string_ask(
             "Please enter github personal access token."
-            "You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token",
+            "You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token"
         )
         form.ask()
 
@@ -124,7 +124,9 @@ class GollumDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise StopChatFlowCleanWorkloads(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                    )
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice("Please choose IP Address for your solution", free_ips)
@@ -133,7 +135,9 @@ class GollumDeploy(GedisChatBot):
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools.", self.solution_id
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -196,8 +200,9 @@ class GollumDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
 
         # expose container domain
@@ -220,9 +225,9 @@ class GollumDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                self.solution_id,
             )
         self.container_url = f"https://{self.domain}/"
 
@@ -254,8 +259,9 @@ class GollumDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.workload_ids[2], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                self.solution_id,
             )
 
     @chatflow_step(title="Success", disable_previous=True)
