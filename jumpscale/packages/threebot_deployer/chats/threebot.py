@@ -58,7 +58,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="The recovery secret")
     def set_backup_password(self):
-        messege = "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        messege = (
+            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        )
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
@@ -68,13 +70,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Select payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
-            "Please select the currency you would like to pay your 3Bot deployment with.", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you would like to pay your 3Bot deployment with.",
+            ["FreeTFT", "TFT", "TFTA"],
+            required=True,
         )
 
     @chatflow_step(title="3Bot version")
     def threebot_branch(self):
         self.branch = self.string_ask("Please type branch name", required=True, default="development")
-
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
@@ -94,7 +97,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        success = deployer.wait_workload(self.workload_ids[0], self)
+        deploying_message = f"""
+# Deploying your 3Bot...\n\n
+<br>It will usually take a few minutes to succeed. Please wait patiently.\n
+You will be automatically redirected to the next step once succeeded.
+                """
+        self.md_show_update(deploying_message, md=True)
+
+        success = deployer.wait_workload(self.workload_ids[0])
         if not success:
             raise StopChatFlow(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
@@ -130,7 +140,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        success = deployer.wait_workload(self.workload_ids[1], self)
+        success = deployer.wait_workload(self.workload_ids[1])
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
             raise StopChatFlow(
@@ -155,7 +165,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        success = deployer.wait_workload(self.workload_ids[2], self)
+        success = deployer.wait_workload(self.workload_ids[2])
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
             raise StopChatFlow(
