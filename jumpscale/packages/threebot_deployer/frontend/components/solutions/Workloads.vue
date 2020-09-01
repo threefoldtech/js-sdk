@@ -17,6 +17,9 @@
           <template v-slot:item.domain="{ item }">
             <a :href="`https://${item.Domain}/admin`">{{item.Domain}}</a>
           </template>
+          <template v-slot:item.Expiration="{ item }">
+            <div :class="`${item.class}`">{{ item.Expiration }}</div>
+          </template>
           <template v-slot:item.actions="{ item }">
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
@@ -69,6 +72,7 @@ module.exports = {
       headers: [
         { text: "Name", value: "Name" },
         { text: "URL", value: "domain" },
+        { text: "Expiration", value: "expiration" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
@@ -91,12 +95,32 @@ module.exports = {
       });
     },
     getDeployedSolutions() {
+      const DURATION_MAX = 9223372036854775807;
+      let today = new Date();
+      let alert_time = new Date();
+      alert_time.setDate(today.getDate() + 2);
       this.$api.solutions
         .getDeployed()
         .then((response) => {
           this.deployed3Bots = [...response.data.data];
-        })
-        .finally(() => {
+          for (let i = 0; i < this.deployed3Bots.length; i++) {
+            deployed3Bot = this.deployed3Bots[i];
+            if (deployed3Bot.Expiration < DURATION_MAX) {
+              let expiration = new Date(deployed3Bot.Expiration * 1000);
+              deployed3Bot.Expiration = expiration.toLocaleString();
+              if (expiration < today) {
+                deployed3Bot.class = "red--text";
+                deployed3Bot.Expiration = "EXPIRED";
+              } else if (expiration < alert_time) {
+                deployed3Bot.class = "red--text";
+              } else {
+                deployed3Bot.class = "";
+              }
+            } else {
+              deployed3Bot.Expiration = "-";
+            }
+          }
+        }).finally(() => {
           this.loading = false;
         });
     },
