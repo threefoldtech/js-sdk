@@ -11,7 +11,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     title = "3Bot"
     steps = [
         "get_solution_name",
-        "threebot_branch",
         "set_backup_password",
         "solution_expiration",
         "payment_currency",
