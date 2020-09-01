@@ -82,26 +82,20 @@ const router = new VueRouter({
     routes: [
         { name: "Dashboard", path: '/', component: dashboard, meta: { icon: "mdi-view-dashboard", listed: true } },
         { name: "Wallets", path: '/wallets', component: wallets, meta: { icon: "mdi-wallet", listed: true } },
-        { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
-        { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
-
-        { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
-        { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
         { name: "Capacity Pools", path: '/pools', component: pools, meta: { icon: "mdi-cloud", listed: true } },
         { name: "Solutions", path: '/solutions', component: solutions, meta: { icon: "mdi-apps", listed: true } },
-
         { name: "Deployed Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
+        { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
         { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
-
+        { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
+        { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
+        { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
         { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
-
         { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
         { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
         { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
         { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
         { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
-
-
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
         { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
