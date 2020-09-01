@@ -25,7 +25,7 @@
                   >mdi-information-outline</v-icon>
                 </a>
               </template>
-              <span>Chatflow Information</span>
+              <span>Go to How-to Manual</span>
             </v-tooltip>
           </v-card-title>
 
