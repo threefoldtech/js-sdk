@@ -22,12 +22,16 @@ export default {
   },
   actions: {
     getTfgridUrl: async context => {
-      var response = await tfService.getExplorer();
-      var url = JSON.parse(response.data).data.url
-      if (!url.startsWith('http')) {
-        url = `https://${url}/api/v1`;
+      const response = await tfService.getExplorer()
+      let url = JSON.parse(response.data).data.url
+      // Temporary fix.
+      // This should be reverted when capacity pool goes live on mainnet.
+      if (!url.startsWith('http') && !url.includes("testnet")) {
+        url = `https://${url}/explorer`
+      } else {
+        url = `https://${url}/api/v1`
       }
-      context.commit("setTfgridUrl", url);
+      context.commit("setTfgridUrl", url)
     },
     getUser: async context => {
       var response = await tfService.getUser();
