@@ -6,7 +6,9 @@ from jumpscale.data.nacl.jsnacl import NACL
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
+    FLIST_URL = (
+        "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
+    )
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -24,24 +26,35 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def _threebot_start(self):
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(
+            self.user_info()["username"], ".3bot"
+        )
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.query = {"cru": 2, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Get a 3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
         while not valid:
-            self.solution_name = deployer.ask_name(self)
-            threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
+            self.solution_name = self.string_ask(
+                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime.",
+                required=True,
+                field="name",
+                is_identifier=True,
+            )
+            threebot_solutions = solutions.list_threebot_solutions(
+                self.solution_metadata["owner"], sync=False
+            )
             valid = True
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show(
+                        "The specified solution name already exists. please choose another."
+                    )
                     break
                 valid = True
 
@@ -62,24 +75,34 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
-            self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
+            error = (
+                messege
+                + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+            )
+            self.backup_password = self.secret_ask(
+                error, required=True, max_length=32, md=True
+            )
 
     @chatflow_step(title="Select payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
-            "Please select the currency you would like to pay your 3Bot deployment with.", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you would like to pay your 3Bot deployment with.",
+            ["FreeTFT", "TFT", "TFTA"],
+            required=True,
         )
 
     @chatflow_step(title="3Bot version")
     def threebot_branch(self):
-        self.branch = self.string_ask("Please type branch name", required=True, default="development")
-
+        self.branch = self.string_ask(
+            "Please type branch name", required=True, default="development"
+        )
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
         # 1- add node to network
-        metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
+        metadata = {
+            "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}
+        }
         self.solution_metadata.update(metadata)
         self.workload_ids = []
 
@@ -132,7 +155,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
+            solutions.cancel_solution(
+                self.solution_metadata["owner"], self.workload_ids
+            )
             raise StopChatFlow(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
@@ -157,7 +182,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[2], self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
+            solutions.cancel_solution(
+                self.solution_metadata["owner"], self.workload_ids
+            )
             raise StopChatFlow(
                 f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
