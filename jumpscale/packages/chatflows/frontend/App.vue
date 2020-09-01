@@ -258,7 +258,8 @@ module.exports = {
         data: {
           package: this.package,
           chat: this.chat,
-          client_ip: CLIENT_IP
+          client_ip: CLIENT_IP,
+          query_params: this.$route.query
         }
       }).then(response => {
         this.sessionId = response.data.sessionId;
