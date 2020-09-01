@@ -11,7 +11,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     title = "3Bot"
     steps = [
         "get_solution_name",
-        "threebot_branch",
         "set_backup_password",
         "solution_expiration",
         "payment_currency",
@@ -23,6 +22,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _threebot_start(self):
         self._validate_user()
+        self.branch = "development"
         self.solution_id = uuid.uuid4().hex
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
         self.explorer = j.core.identity.me.explorer
@@ -79,10 +79,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             ["FreeTFT", "TFT", "TFTA"],
             required=True,
         )
-
-    @chatflow_step(title="3Bot version")
-    def threebot_branch(self):
-        self.branch = self.string_ask("Please type branch name", required=True, default="development")
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
@@ -177,6 +173,11 @@ You will be automatically redirected to the next step once succeeded.
                 f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
         self.threebot_url = f"https://{self.domain}/admin"
+
+    @chatflow_step(title="Expiration Date and Time")
+    def solution_expiration(self):
+        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
+        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=msg)
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

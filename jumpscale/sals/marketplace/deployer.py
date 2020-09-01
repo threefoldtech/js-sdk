@@ -294,10 +294,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         wgcfg = result["wg"]
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None):
+    def ask_expiration(self, bot, default=None, msg=""):
         default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
-            "Please enter solution expiration time.",
+            "Please enter solution expiration time." if not msg else msg,
             required=True,
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=default,
