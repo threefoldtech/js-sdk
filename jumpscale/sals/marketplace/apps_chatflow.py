@@ -11,6 +11,15 @@ from .chatflow import MarketPlaceChatflow
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
+FLAVORS = {"Silver": {"sru": 2,}, "Gold": {"sru": 5,}, "Platinum": {"sru": 10,}}
+
+RESOURCE_VALUE_KEYS = {
+    "cru": "CPU {}",
+    "mru": "Memory {} GB",
+    "sru": "Disk {} GB [SSD]",
+    "hru": "Disk {} GB [HDD]",
+}
+
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
@@ -19,6 +28,30 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+
+    def _choose_flavor(self, flavors=None):
+        flavors = flavors or FLAVORS
+        # use cru, mru, hru, mru values as defined in the class query if they are not specified in the flavor
+        query = getattr(self, "query", {})
+        for resource in query:
+            for flavor_dict in flavors.values():
+                if resource not in flavor_dict:
+                    flavor_dict[resource] = query[resource]
+        messages = []
+        for flavor in flavors:
+            flavor_specs = ""
+            for key in flavors[flavor]:
+                flavor_specs += f"{RESOURCE_VALUE_KEYS[key].format(flavors[flavor][key])} - "
+            msg = f"{flavor} ({flavor_specs[:-3]})"
+            messages.append(msg)
+        chosen_flavor = self.single_choice(
+            "Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)",
+            options=messages,
+            required=True,
+            default=messages[0],
+        )
+        self.flavor = chosen_flavor.split()[0]
+        self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
         available_farms = []
@@ -34,7 +67,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
             # old user
-            self.pool_info = deployer.create_solution_pool(
+            self.pool_info, qr_code = deployer.create_solution_pool(
                 bot=self,
                 username=self.solution_metadata["owner"],
                 farm_name=self.farm_name,
@@ -42,7 +75,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
-            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
+            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
         else:
@@ -137,7 +170,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         valid = False
         while not valid:
             self.solution_name = self.string_ask(
-                "Please enter a name for your solution (Can be used to prepare domain for you and needed to track your solution on the grid )",
+                "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
                 required=True,
                 is_identifier=True,
             )
@@ -160,9 +193,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Expiration Time")
     def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
+        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000)
 
-    @chatflow_step(title="Setup")
+    @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
         self._get_pool()
         self._deploy_network()
@@ -205,10 +238,8 @@ Domain : {self.domain}
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+# You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
 \n<br />\n
 - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- This domain maps to your container with ip: `{self.ip_address}`
                 """
         self.md_show(dedent(message), md=True)

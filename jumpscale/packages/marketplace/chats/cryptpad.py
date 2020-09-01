@@ -25,12 +25,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
         self.user_email = self.user_info()["email"]
-        form = self.new_form()
-        volume_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
-        )
-        form.ask()
-        self.vol_size = int(volume_size.value)
+        self._choose_flavor()
+        self.vol_size = self.flavor_resources["sru"]
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
