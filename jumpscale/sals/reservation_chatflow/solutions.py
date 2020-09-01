@@ -50,7 +50,7 @@ class ChatflowSolutions:
         return self._list_single_container_solution("flist", next_action, sync)
 
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("gitea", next_action, sync)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx")
 
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")

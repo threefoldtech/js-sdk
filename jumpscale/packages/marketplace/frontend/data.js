@@ -17,12 +17,6 @@ const APPS = {
     image: "./assets/blog.png",
     description: "Publish a blog like https://blog.threefold.io/"
   },
-  // gitea: {
-  //   name: "Gitea",
-  //   type: "gitea",
-  //   image: "./assets/gitea.png",
-  //   description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
-  // },
   mattermost: {
     name: "Mattermost",
     type: "mattermost",
@@ -34,6 +28,12 @@ const APPS = {
     type: "peertube",
     image: "./assets/peertube.png",
     description: "Peertube is a free and open-source, decentralized video platform that uses P2P technology to reduce load on individual servers."
+  },
+  gitea: {
+    name: "Gitea",
+    type: "gitea",
+    image: "./assets/gitea.png",
+    description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
   },
   discourse: {
     name: "Discourse",
