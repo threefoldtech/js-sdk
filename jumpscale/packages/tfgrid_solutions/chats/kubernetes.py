@@ -17,6 +17,8 @@ class KubernetesDeploy(GedisChatBot):
     title = "Kubernetes"
 
     def _deployment_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
 
@@ -62,7 +64,7 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def network_selection(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):

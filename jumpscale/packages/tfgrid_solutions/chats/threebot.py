@@ -25,6 +25,8 @@ class ThreebotDeploy(GedisChatBot):
     title = "3Bot"
 
     def _threebot_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         self.solution_id = uuid.uuid4().hex
         self.username = self.user_info()["username"]
@@ -64,7 +66,7 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def threebot_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     def _verify_password(self, password):
         try:
@@ -79,7 +81,9 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="The recovery secret")
     def set_backup_password(self):
-        messege = "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        messege = (
+            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        )
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):

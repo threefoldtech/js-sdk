@@ -30,6 +30,8 @@ class MinioDeploy(GedisChatBot):
     title = "S3 Storage"
 
     def _deployment_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = {}
         self.user_form_data["chatflow"] = "minio"
@@ -116,7 +118,7 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def minio_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="Access credentials")
     def access_credentials(self):

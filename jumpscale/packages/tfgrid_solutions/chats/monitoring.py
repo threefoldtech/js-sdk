@@ -26,6 +26,8 @@ class MonitoringDeploy(GedisChatBot):
     title = "Monitoring"
 
     def _deployment_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.tools_names = ["Redis", "Prometheus", "Grafana"]
         self.flists = [
             "https://hub.grid.tf/tf-official-apps/redis_zinit.flist",
@@ -106,7 +108,7 @@ class MonitoringDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def network_selection(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="IP selection")
     def ip_selection(self):

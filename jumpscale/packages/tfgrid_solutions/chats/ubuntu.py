@@ -31,6 +31,8 @@ class UbuntuDeploy(GedisChatBot):
     title = "Ubuntu"
 
     def _ubuntu_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.query = dict()
@@ -72,7 +74,7 @@ class UbuntuDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def ubuntu_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="Container logs")
     def container_logs(self):
