@@ -2,7 +2,10 @@
   <div>
     <base-component title="MY 3BOTS" icon="mdi-clipboard-list-outline" :loading="loading">
       <template #actions>
-        <v-btn color="primary" text @click.stop="openChatflow()">
+        <v-btn color="primary" text @click.stop="openChatflow('extend')">
+          <v-icon left>mdi-upload</v-icon>Extend 3Bot
+        </v-btn>
+        <v-btn color="primary" text @click.stop="openChatflow('threebot')">
           <v-icon left>mdi-plus</v-icon>New
         </v-btn>
       </template>
@@ -88,10 +91,10 @@ module.exports = {
       this.wids = wids;
       this.dialogs.cancelWorkload = true;
     },
-    openChatflow() {
+    openChatflow(type) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: this.threebot_data.type },
+        params: { topic: type },
       });
     },
     getDeployedSolutions() {
