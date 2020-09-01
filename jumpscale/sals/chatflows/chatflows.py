@@ -84,10 +84,9 @@ class GedisChatBot:
 
     def __init__(self, **kwargs):
         """
-        :param session_id: user session id created by ChatBotFactory session_new method
-        :param topic_method: the bot topic (chatflow)
-        :param kwargs: any extra kwargs that is passed while creating the session
-                       (i.e. can be used for passing any query parameters)
+        Keyword Args
+            any extra kwargs that is passed while creating the session
+            (i.e. can be used for passing any query parameters)
         """
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
