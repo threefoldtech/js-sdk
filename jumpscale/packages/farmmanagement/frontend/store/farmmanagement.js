@@ -23,10 +23,7 @@ export default {
   actions: {
     getTfgridUrl: async context => {
       var response = await tfService.getExplorer();
-      var url = JSON.parse(response.data).data.url
-      if (!url.startsWith('http')) {
-        url = `https://${url}/api/v1`;
-      }
+      var url = JSON.parse(response.data).url
       context.commit("setTfgridUrl", url);
     },
     getUser: async context => {
