@@ -2,6 +2,13 @@
 const baseURL = "/admin/actors"
 
 const apiClient = {
+  content: {
+    get: (url) => {
+      return axios({
+        url: url
+      })
+    }
+  },
   logs: {
     listApps: () => {
       return axios({
@@ -100,6 +107,14 @@ const apiClient = {
         data: { path: path, giturl: giturl, extras: extras }
       })
     },
+    addInternal: (name, extras) => {
+      return axios({
+        url: `${baseURL}/packages/add_internal_package`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name, extras: extras }
+      })
+    },
     delete: (name) => {
       return axios({
         url: `${baseURL}/packages/delete_package`,
@@ -139,6 +154,19 @@ const apiClient = {
     getCurrentUser: () => {
       return axios({
         url: `/auth/authenticated/`
+      })
+    },
+    getDeveloperOptions: () => {
+      return axios({
+        url: `${baseURL}/admin/get_developer_options`
+      })
+    },
+    setDeveloperOptions: (testCert, overProvision) => {
+      return axios({
+        url: `${baseURL}/admin/set_developer_options`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { test_cert: testCert, over_provision: overProvision }
       })
     }
   },
@@ -208,19 +236,78 @@ const apiClient = {
         data: { solution_type: solution_type }
       })
     },
+    getPools: (include_hidden) => {
+      return axios({
+        method: "post",
+        url: `/tfgrid_solutions/actors/solutions/list_pools`,
+        data: {
+          include_hidden: include_hidden || false,
+        }
+      })
+    },
     getAll: () => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
       })
     },
-    cancelReservation: (solutionType, solutionName) => {
+    cancelWorkload: (wid) => {
+      return axios({
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        url: `/tfgrid_solutions/actors/solutions/cancel_workload`,
+        data: { wid: wid }
+      })
+    },
+    patchCancelWorkload: (wids) => {
+      return axios({
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        url: `/tfgrid_solutions/actors/solutions/patch_cancel_workloads`,
+        data: { wids: wids }
+      })
+    },
+    cancelReservation: (wids) => {
       return axios({
         url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
-        data: { solution_type: solutionType, solution_name: solutionName }
+        data: { wids: wids }
       })
-    }
+    },
+    hasMigrated: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/has_migrated`,
+      })
+    },
+    migrate: () => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/migrate`,
+      })
+    },
+    hidePool: (pool_id) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/hide_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id }
+      })
+    },
+    renamePool: (pool_id, name) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/rename_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id, name: name }
+      })
+    },
+    unhidePool: (pool_id) => {
+      return axios({
+        url: `/tfgrid_solutions/actors/solutions/unhide_pool`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { pool_id: pool_id }
+      })
+    },
   },
   health: {
     getMemoryUsage() {
@@ -237,22 +324,27 @@ const apiClient = {
       return axios({
         url: `${baseURL}/health/get_running_processes`
       })
-    }
+    },
+    getHealthChecks() {
+      return axios({
+        url: `${baseURL}/health/get_health_checks`
+      })
+    },
   },
   mrktbackup: {
     inited() {
       return axios({
-        url: `/backup/actors/marketplace/repos_exist`
+        url: `/backup/actors/threebot_deployer/repos_exist`
       })
     },
     snapshots() {
       return axios({
-        url: `/backup/actors/marketplace/snapshots`
+        url: `/backup/actors/threebot_deployer/snapshots`
       })
     },
     init(password) {
       return axios({
-        url: `/backup/actors/marketplace/init`,
+        url: `/backup/actors/threebot_deployer/init`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
         data: { password: password }
@@ -260,7 +352,7 @@ const apiClient = {
     },
     backup(tags) {
       return axios({
-        url: `/backup/actors/marketplace/backup`,
+        url: `/backup/actors/threebot_deployer/backup`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
         data: { tags: tags }
@@ -268,17 +360,17 @@ const apiClient = {
     },
     enable: () => {
       return axios({
-        url: `/backup/actors/marketplace/enable_auto_backup`
+        url: `/backup/actors/threebot_deployer/enable_auto_backup`
       })
     },
     disable() {
       return axios({
-        url: `/backup/actors/marketplace/disable_auto_backup`
+        url: `/backup/actors/threebot_deployer/disable_auto_backup`
       })
     },
     enabled() {
       return axios({
-        url: `/backup/actors/marketplace/check_auto_backup`
+        url: `/backup/actors/threebot_deployer/check_auto_backup`
       })
     },
   },

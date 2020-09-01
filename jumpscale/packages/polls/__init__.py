@@ -12,7 +12,7 @@
   WALLET_NAME = "polls_receive"
   ```
 
-- Start 3bot server and add the package
+- Start 3Bot server and add the package
 
 - polls now available at http://localhost/polls/chats/<poll_name>
 

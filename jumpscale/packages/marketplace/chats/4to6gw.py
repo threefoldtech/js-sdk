@@ -1,23 +1,32 @@
-from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
-from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.loader import j
-import requests
 import uuid
+
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 
 
 class FourToSixGateway(MarketPlaceChatflow):
-    SOLUTION_TYPE = SolutionType.FourToSixGw
-
-    steps = ["welcome", "expiration_time", "wireguard_public_get", "wg_reservation", "wg_config"]
+    steps = [
+        "select_pool",
+        "gateway_start",
+        "wireguard_public_get",
+        "wg_reservation",
+        "wg_config",
+    ]
     title = "4to6 GW"
 
-    @chatflow_step(title="welcome")
-    def welcome(self):
-        super().welcome()
-        self.gateway = j.sals.reservation_chatflow.select_gateway(self)
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        self.username = self.user_info()["username"]
+        self._validate_user()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {"owner": self.username}
+
+    @chatflow_step(title="Gateway")
+    def gateway_start(self):
+        self.gateway, pool = deployer.select_gateway(self.solution_metadata["owner"], bot=self)
+        self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
-        self.user_form_data["Gateway"] = self.gateway_id
 
     @chatflow_step(title="Wireguard public key")
     def wireguard_public_get(self):
@@ -25,59 +34,38 @@ class FourToSixGateway(MarketPlaceChatflow):
             "Please enter wireguard public key or leave empty if you want us to generate one for you."
         )
         self.privatekey = "enter private key here"
-        res = "# Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
+        res = "### Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
         self.md_show(res, md=True)
 
     @chatflow_step(title="Create your Wireguard ", disable_previous=True)
     def wg_reservation(self):
         if not self.publickey:
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
-            self.privatekey, self.publickey = self.privatekey.decode(), self.publickey.decode()
 
-        currencies = list()
-        farm_id = self.gateway.farm_id
-        self.user_form_data["Public Key"] = self.publickey
-        try:
-            addresses = j.sals.zos._explorer.farms.get(farm_id).wallet_addresses
-        except requests.HTTPError:
-            self.stop(f"The selected gateway {self.gateway.node_id} have an invalid farm_id {farm_id}")
-        for address in addresses:
-            if address.asset not in currencies:
-                currencies.append(address.asset)
-
-        if len(currencies) > 1:
-            currency = self.single_choice(
-                "Please choose a currency that will be used for the payment", currencies, default="TFT", required=True
-            )
-        else:
-            currency = currencies[0]
-
-        reservation = j.sals.zos.reservation_create()
-        j.sals.zos._gateway.gateway_4to6(reservation=reservation, node_id=self.gateway_id, public_key=self.publickey)
-        metadata = deployer.get_solution_metadata(
-            self.user_form_data["Public Key"],
-            SolutionType.FourToSixGw,
-            self.user_info()["username"],
-            self.user_form_data,
+        self.resv_id = deployer.create_ipv6_gateway(
+            self.gateway_id,
+            self.pool_id,
+            self.publickey,
+            SolutionType="4to6GW",
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
-        reservation = j.sals.reservation_chatflow.add_reservation_metadata(reservation, metadata)
-
-        self.resv_id = deployer.register_and_pay_reservation(
-            reservation, self.expiration, customer_tid=j.core.identity.me.tid, currency=currency, bot=self
-        )
-        self.reservation_result = j.sals.reservation_chatflow.wait_reservation(self, self.resv_id)
-
+        success = deployer.wait_workload(self.resv_id, self)
+        if not success:
+            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
         res = """
-# Use the following template to configure your wireguard connection. This will give you access to your network.
-## Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
+## Use the following template to configure your wireguard connection. This will give you access to your network.
+\n<br/>\n
+Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
 Click next
 to download your configuration
-                """
+        """
         self.md_show(res)
 
     @chatflow_step(title="Wireguard configuration", disable_previous=True)
     def wg_config(self):
-        cfg = j.data.serializers.json.loads(self.reservation_result[0].data_json)
+        cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = """\
 [Interface]
 Address = {{cfg.ips[0]}}
@@ -90,16 +78,20 @@ AllowedIPs = {{",".join(peer.allowed_ips)}}
 Endpoint = {{peer.endpoint}}
 {% endif %}
 {% endfor %}
-        """
-        config = j.tools.jinja2.render_template(template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey)
+            """
+        config = j.tools.jinja2.render_template(
+            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+        )
+        config = config
 
         filename = "wg-{}.conf".format(self.resv_id)
         self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=filename, html=True)
         res = f"""
 # In order to connect to the 4 to 6 gateway execute this command:
+\n<br/>\n
 ## ```wg-quick up ./{filename}```
-                """
-        self.md_show(res)
+                    """
+        self.md_show(res, md=True)
 
 
 chat = FourToSixGateway

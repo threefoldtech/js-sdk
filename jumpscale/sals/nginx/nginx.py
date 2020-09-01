@@ -112,6 +112,7 @@ class Location(Base):
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get("threebot_connect", True),
+            https_port=PORTS.HTTPS
         )
 
     def configure(self):
@@ -208,7 +209,6 @@ class Website(Base):
         needed_dirs = ("body", "client-body", "fastcgi", "proxy", "scgi", "uwsgi")
         for d in needed_dirs:
             j.sals.fs.mkdir(j.sals.fs.join_paths(self.cfg_dir, d))
-        
         for location in self.get_locations():
             location.configure()
 

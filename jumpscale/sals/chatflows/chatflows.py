@@ -142,16 +142,36 @@ class GedisChatBot:
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
-                if e.msg:
-                    self.send_error(e.msg, **e.kwargs)
-
-            except Exception as e:
                 internal_error = True
                 j.logger.exception("error", exception=e)
                 j.tools.alerthandler.alert_raise(
                     appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
-                self.send_error("Something wrong happened, please contact support")
+                if e.msg:
+                    self.send_error(
+                        e.msg + ". Please use the refresh button on the upper right to restart the chatflow", **e.kwargs
+                    )
+                self.send_data({"category": "end"})
+
+            except Exception as e:
+                internal_error = True
+                j.logger.exception("error", exception=e)
+                alert = j.tools.alerthandler.alert_raise(
+                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                )
+                if self.user_info()["username"] in j.core.identity.me.admins:
+                    self.send_error(
+                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>"""
+                        "<br>Please use the refresh button on the upper right to restart the chatflow",
+                        md=True,
+                        html=True,
+                    )
+                else:
+                    self.send_error(
+                        f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
+                        "<br>Please use the refresh button on the upper right to restart the chatflow"
+                    )
+                self.send_data({"category": "end"})
 
             if not internal_error:
                 if self.is_last_step:

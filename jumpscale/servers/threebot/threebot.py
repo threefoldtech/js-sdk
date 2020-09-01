@@ -200,7 +200,7 @@ class Package:
         self.path = path
         self.giturl = giturl
         self._config = None
-        self.name = j.sals.fs.basename(path.rstrip('/'))
+        self.name = j.sals.fs.basename(path.rstrip("/"))
         self.nginx_config = NginxPackageConfig(self)
         self._module = None
         self.default_domain = default_domain
@@ -229,7 +229,7 @@ class Package:
     def config(self):
         if not self._config:
             self._config = self.load_config()
-        return  self._config
+        return self._config
 
     @property
     def actors_dir(self):
@@ -341,6 +341,7 @@ class PackageManager(Base):
                     "giturl": package.giturl,
                     "system_package": pkg in DEFAULT_PACKAGES.keys(),
                     "installed": True,
+                    "frontend": package.config.get("frontend", False),
                 }
             )
 
@@ -395,18 +396,14 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl,
+            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
-        self.packages[package.name] = {
-            "name": package.name,
-            "path": package.path,
-            "giturl": package.giturl,
-        }
+        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         # execute package install method
         package.install(**kwargs)
@@ -433,7 +430,6 @@ class PackageManager(Base):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
-
         if self.threebot.started:
             # unregister gedis actors
             for actor in self.threebot.gedis._loaded_actors.keys():
@@ -441,8 +437,13 @@ class PackageManager(Base):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
             # unload chats
-            if package.chats_dir:
-                self.threebot.chatbot.unload(package.chats_dir)
+            try:
+                if package.chats_dir:
+                    self.threebot.chatbot.unload(package.chats_dir)
+            except Exception as e:
+                j.logger.warning(
+                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
+                )
 
             # reload nginx
             self.threebot.nginx.reload()

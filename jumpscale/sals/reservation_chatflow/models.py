@@ -5,6 +5,7 @@ from enum import Enum
 
 
 class SolutionType(Enum):
+    Pools = "pools"
     FourToSixGw = "4to6gw"
     DelegatedDomain = "delegated_domain"
     Exposed = "exposed"
@@ -16,7 +17,12 @@ class SolutionType(Enum):
     Ubuntu = "ubuntu"
     Monitoring = "monitoring"
     Publisher = "publisher"
+    Peertube = "peertube"
+    Discourse = "discourse"
     Threebot = "threebot"
+    Gollum = "gollum"
+    Mattermost = "mattermost"
+    Cryptpad = "cryptpad"
     Unknown = "unknown"
 
 

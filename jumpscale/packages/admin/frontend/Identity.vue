@@ -4,7 +4,7 @@
       <v-form>
         <!-- <v-select label="Explorer" v-model="form.explorer" :items="explorers" item-text="name" item-value="url"></v-select> -->
         <v-combobox label="Label" v-model="form.label" :items="Object.keys(identities)" @change="changeIdentity"></v-combobox>
-        <v-text-field v-model="form.tname" label="Threebot name" dense></v-text-field>
+        <v-text-field v-model="form.tname" label="3Bot name" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
         <v-text-field type="password" v-model="form.words" label="Secret words" dense></v-text-field>
         <v-text-field type="password" v-model="form.backup_password" label="Specify backup password(Optional). If set will restore last snapshot" dense></v-text-field>

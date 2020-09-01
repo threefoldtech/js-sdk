@@ -42,32 +42,6 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
 
     @actor_method
-    def set_explorer(self, explorer_type: str) -> str:
-        if explorer_type in explorers:
-            me = j.core.identity.me
-            url = f"https://{explorers[explorer_type]}/explorer"
-            client = j.clients.explorer.get(name=explorer_type, url=url)
-            # check if we can switch with existing identity
-            try:
-                user = client.users.get(name=me.tname, email=me.email)
-            except j.exceptions.NotFound:
-                raise j.exceptions.NotFound(f"Your identity does not exist on {explorer_type}")
-
-            if user.pubkey != j.core.identity.me.nacl.get_verify_key_hex():
-                raise j.exceptions.Value(f"Your identity does not match on {explorer_type}")
-
-            j.clients.explorer.default_addr_set(url=url)
-
-            # update our solutions
-            j.sals.reservation_chatflow.update_local_reservations()
-
-            return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
-        else:
-            return j.data.serializers.json.dumps(
-                {"data": f"{explorer_type} is not a valid explorer type, must be 'testnet' or 'main'"}
-            )
-
-    @actor_method
     def list_identities(self) -> str:
         identities = j.core.identity.list_all()
         identity_data = {}
@@ -104,16 +78,13 @@ class Admin(BaseActor):
         if identity_instance_name in identity_names:
             j.core.identity.set_default(identity_instance_name)
 
-            # update our solutions
-            j.sals.reservation_chatflow.update_local_reservations()
-
             return j.data.serializers.json.dumps({"data": {"instance_name": identity_instance_name}})
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
     def add_identity(self, identity_instance_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
-        explorer_url = f"https://{explorers[explorer_type]}/explorer"
+        explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
         new_identity = j.core.identity.new(
@@ -135,6 +106,18 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} deleted successfully"})
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
+
+    @actor_method
+    def get_developer_options(self) -> str:
+        test_cert = j.core.config.get("TEST_CERT")
+        over_provision = j.core.config.get("OVER_PROVISIONING")
+        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
+
+    @actor_method
+    def set_developer_options(self, test_cert: bool, over_provision: bool) -> str:
+        j.core.config.set("TEST_CERT", test_cert)
+        j.core.config.set("OVER_PROVISIONING", over_provision)
+        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
 
 
 Actor = Admin

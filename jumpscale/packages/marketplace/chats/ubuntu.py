@@ -1,50 +1,47 @@
-import time
+import math
 
 from jumpscale.loader import j
-from jumpscale.clients.explorer.models import DiskType
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.marketplace import deployer, MarketPlaceChatflow
+from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy as BaseUbuntuDeploy
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
-class UbuntuDeploy(MarketPlaceChatflow):
-    SOLUTION_TYPE = SolutionType.Ubuntu
+class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
+    @chatflow_step()
+    def _ubuntu_start(self):
+        super()._ubuntu_start()
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
-    HUB_URL = "https://hub.grid.tf/tf-bootable"
-    IMAGES = ["ubuntu-18.04", "ubuntu-19.10", "ubuntu-20.04"]
+    @chatflow_step(title="Solution name")
+    def ubuntu_name(self):
+        self._ubuntu_start()
+        valid = False
+        while not valid:
+            self.solution_name = deployer.ask_name(self)
+            ubuntu_solutions = solutions.list_ubuntu_solutions(self.solution_metadata["owner"], sync=False)
+            valid = True
+            for sol in ubuntu_solutions:
+                if sol["Name"] == self.solution_name:
+                    valid = False
+                    self.md_show("The specified solution name already exists. please choose another.")
+                    break
+                valid = True
+        self.solution_name = f"{self.username}_{self.solution_name}"
 
-    steps = [
-        "welcome",
-        "choose_network",
-        "container_resources",
-        "container_node_id",
-        "container_farm",
-        "solution_name",
-        "ubuntu_version",
-        "container_logs",
-        "public_key_get",
-        "container_ip",
-        "expiration_time",
-        "overview",
-        "container_pay",
-        "ubuntu_acess",
-    ]
-    title = "Ubuntu"
+    @chatflow_step(title="Pool")
+    def select_pool(self):
+        query = {
+            "cru": self.resources["cpu"],
+            "mru": math.ceil(self.resources["memory"] / 1024),
+            "sru": math.ceil(self.resources["disk_size"] / 1024),
+        }
+        cu, su = deployer.calculate_capacity_units(**query)
+        self.pool_id = deployer.select_pool(self.solution_metadata["owner"], self, cu=cu, su=su, **query)
 
-    @chatflow_step(title="Ubuntu version")
-    def ubuntu_version(self):
-        self.user_form_data["Version"] = self.single_choice("Please choose ubuntu version", self.IMAGES, required=True)
-        self.metadata["Version"] = self.user_form_data["Version"]
-        self.entry_point = "/bin/bash /start.sh"
-        self.flist_url = f"{self.HUB_URL}/3bot-{self.user_form_data['Version']}.flist"
-
-    @chatflow_step(title="Success", disable_previous=True)
-    def ubuntu_acess(self):
-        res = f"""\
-# Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
-To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
-"""
-        self.md_show(res, md=True)
+    @chatflow_step(title="Network")
+    def ubuntu_network(self):
+        self.network_view = deployer.select_network(self.solution_metadata["owner"], self)
 
 
 chat = UbuntuDeploy

@@ -1,6 +1,13 @@
 // const axios = require('axios')
 
 const apiClient = {
+  content: {
+    get: (url) => {
+      return axios({
+        url: url
+      })
+    }
+  },
   admins: {
     getCurrentUser: () => {
       return axios({
@@ -29,10 +36,12 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    cancelReservation: (solutionType, reservationId) => {
+    cancelReservation: (wids) => {
       return axios({
-        url: `/marketplace/api/solutions/${solutionType}/${reservationId}/`,
-        method: "delete"
+        url: `/marketplace/api/solutions/cancel`,
+        headers: { 'Content-Type': 'application/json' },
+        data: { wids: wids },
+        method: "post"
       })
     }
   },

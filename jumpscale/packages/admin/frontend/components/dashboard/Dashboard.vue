@@ -3,6 +3,10 @@
     <base-component title="Dashboard" icon="mdi-view-dashboard" :loading="loading">
 
       <template #actions>
+        <v-btn color="primary" text to="/solutions/pools">
+          <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
+        </v-btn>
+
         <v-btn color="primary" text @click.stop="dialogs.addAdmin = true">
           <v-icon left>mdi-account-plus-outline</v-icon> Add Admin
         </v-btn>
@@ -19,10 +23,9 @@
           <v-icon left>mdi-tune</v-icon> Settings
         </v-btn>
       </template>
- 
+
 
       <template #default>
-
         <v-row>
           <v-col cols="8">
             <v-row>
@@ -35,7 +38,16 @@
             </v-row>
             <v-row>
               <v-col cols="6">
-                <wikis></wikis>
+                <v-row>
+                  <v-col>
+                    <wikis></wikis>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <pools></pools>
+                  </v-col>
+                </v-row>
               </v-col>
               <v-col cols="6">
                 <solutions></solutions>
@@ -44,7 +56,16 @@
           </v-col>
 
           <v-col cols="4">
-            <processes></processes>
+            <v-row>
+              <v-col>
+                <health-checks></health-checks>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <processes></processes>
+              </v-col>
+            </v-row>
           </v-col>
         </v-row>
       </template>
@@ -65,8 +86,10 @@
       'create-wallet': httpVueLoader("../wallets/Create.vue"),
       'memory-usage': httpVueLoader("./MemoryUsage.vue"),
       'disk-usage': httpVueLoader("./DiskUsage.vue"),
+      'health-checks': httpVueLoader("./HealthChecks.vue"),
       'processes': httpVueLoader("./Processes.vue"),
       'solutions': httpVueLoader("./Solutions.vue"),
+      'pools': httpVueLoader("./Pools.vue"),
       'wikis': httpVueLoader("./Wikis.vue"),
       'system': httpVueLoader("./System.vue")
     },
