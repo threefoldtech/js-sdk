@@ -2,7 +2,7 @@ import axios from "/weblibs/axios/axios.min.js";
 
 export default {
   getExplorer() {
-    return axios.get("/admin/actors/admin/get_explorer");
+    return axios.get("/admin/actors/identity/get_explorer_url");
   },
   getUser() {
     return axios.get("/auth/authenticated");
