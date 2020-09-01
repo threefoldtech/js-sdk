@@ -30,12 +30,17 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.query = {"cru": 2, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Get a 3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
         while not valid:
-            self.solution_name = deployer.ask_name(self)
+            self.solution_name = self.string_ask(
+                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime.",
+                required=True,
+                field="name",
+                is_identifier=True,
+            )
             threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in threebot_solutions:
