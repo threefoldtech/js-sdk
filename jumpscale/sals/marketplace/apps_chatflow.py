@@ -226,12 +226,12 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         ):
             self.stop(
                 f"""\
-Failed to initialize Mattermost, please contact support with this information:
-Node:{self.selected_node.node_id},
+Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+Node: {self.selected_node.node_id},
 Ip Address: {self.ip_address},
 Reservation Id: {self.resv_id},
-Pool Id : {self.pool_id},
-Domain : {self.domain}
+Pool Id: {self.pool_id},
+Domain: {self.domain}
                 """
             )
 
