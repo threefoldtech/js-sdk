@@ -14,10 +14,10 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 FLAVORS = {"Silver": {"sru": 2,}, "Gold": {"sru": 5,}, "Platinum": {"sru": 10,}}
 
 RESOURCE_VALUE_KEYS = {
-    "cru": "CPU",
-    "mru": "Memory GB",
-    "sru": "Disk GB [SSD]",
-    "hru": "Disk GB [HDD]",
+    "cru": "CPU {}",
+    "mru": "Memory {} GB",
+    "sru": "Disk {} GB [SSD]",
+    "hru": "Disk {} GB [HDD]",
 }
 
 
@@ -32,15 +32,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
         # use cru, mru, hru, mru values as defined in the class query if they are not specified in the flavor
-        for resource in self.query:
+        query = getattr(self, "query", {})
+        for resource in query:
             for flavor_dict in flavors.values():
                 if resource not in flavor_dict:
-                    flavor_dict[resource] = self.query[resource]
+                    flavor_dict[resource] = query[resource]
         messages = []
         for flavor in flavors:
             flavor_specs = ""
             for key in flavors[flavor]:
-                flavor_specs += f"{flavors[flavor][key]} {RESOURCE_VALUE_KEYS[key]} - "
+                flavor_specs += f"{RESOURCE_VALUE_KEYS[key].format(flavors[flavor][key])} - "
             msg = f"{flavor} ({flavor_specs[:-3]})"
             messages.append(msg)
         chosen_flavor = self.single_choice(
