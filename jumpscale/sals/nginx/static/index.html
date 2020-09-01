@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 <title>index</title>
 <style>
-    
+
 body {
     margin: 0 auto;
     font-family: Tahoma, Verdana, Arial, sans-serif;
@@ -19,57 +22,21 @@ body {
 
 
 }
-.button {
-    background-color: #4CAF50;
-    border: none;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-}
-.center {
-   width: 200px;
-   height: 600px;
-   position: absolute; /*Can also be `fixed`*/
-   left: 0;
-   right: 0;
-   top: 250px;
-   bottom: 0;
-   margin: auto;
-   /*Solves a problem in which the content is being cut when the div is smaller than its' wrapper:*/
-   max-width: 100%;
-   max-height: 100%;
-   overflow: auto;
-}
-.h-center {
-  margin-top:60px;
-  width: 50%;
-  margin: 0 auto;
-}
-.large-font{
-    font-size: 300%;
-    text-align: center;
-}
-.medium-font{
-    font-size: 200%;
-    text-align: center;
-}
-}
-
 </style>
+
 </head>
 <body>
-    <div class="h-center">
-        <p class="large-font">Welcome to 3Bot</p>
+    <div class="d-flex flex-column align-items-center" style="margin-top: 140px;">
+        <div class="h1">
+            <p class="large-font">Welcome to 3Bot</p>
+        </div>
+        <div class="h3">
+            <p class="medium-font">Press the following button to access your admin dashboard</p>
+        </div>
+        <div>
+            <a class="btn btn-success" href="/admin/#" role="button" style="font-size: 2rem;">Admin Dashboard</a>
+        </div>
     </div>
-    <div class="h-center">
-        <p class="medium-font">Press the following button to access your admin dashboard</p>
-    </div>
-    <div class="center">
-        <a href="/admin/#" class="button">Admin Dashboard</a>
-    </div>
+
+
 </html>                  
