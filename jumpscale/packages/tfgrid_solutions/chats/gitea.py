@@ -30,7 +30,8 @@ class GiteaDeploy(GedisChatBot):
         self.username = self.user_info()["username"]
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
+        self.email = self.user_info()["email"]
         self.HUB_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-gitea_all_in_one-latest.flist"
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
@@ -210,14 +211,13 @@ class GiteaDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.email,
             solution_ip=self.ip_address,
             solution_port=3000,
             enforse_https=True,
