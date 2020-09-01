@@ -8,7 +8,7 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class PoolReservation(GedisChatBot):
-    steps = ["pool_start", "choose_pool_name", "reserve_pool", "pool_success"]
+    steps = ["pool_start", "reserve_pool", "pool_success"]
     title = "Pool"
 
     @chatflow_step(title="Welcome")
@@ -21,8 +21,8 @@ class PoolReservation(GedisChatBot):
                 "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
             )
 
-    @chatflow_step(title="Pool Name")
-    def choose_pool_name(self):
+    @chatflow_step(title="Pool Capacity")
+    def reserve_pool(self):
         if self.action == "create":
             valid = False
             pool_factory = StoredFactory(PoolConfig)
@@ -35,10 +35,6 @@ class PoolReservation(GedisChatBot):
                     self.md_show("the name is already used. please choose a different one")
                     continue
                 valid = True
-
-    @chatflow_step(title="Pool Capacity")
-    def reserve_pool(self):
-        if self.action == "create":
             self.pool_data = deployer.create_pool(self)
         else:
             pool_id = deployer.select_pool(self)
