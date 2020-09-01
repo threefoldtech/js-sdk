@@ -164,6 +164,7 @@ Some components will be defined by default based on the parent package classes i
 - **chats**
     - chats (chatflows) are interactive communication tools implemented as chatbots where interactive question structures are defined in the parent class
     - chatflows can be accessed through `<HOST>/{PACKAGE_NAME}/chats/{CHATFLOW_NAME}`.
+    - Query parameter can be passed to chatflow as: `<HOST>/{PACKAGE_NAME}/chats/{CHATFLOW_NAME}#/?a=1&b=2` and can be accessed via `self.kwargs`.
     - Parent class : `from jumpscale.sals.chatflows.chatflows import GedisChatBot`
     - decorator for chatflow methods `from jumpscale.sals.chatflows.chatflows import chatflow_step`
     <br />

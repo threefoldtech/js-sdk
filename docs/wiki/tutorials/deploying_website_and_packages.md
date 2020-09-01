@@ -2,9 +2,12 @@
 
 ## Index
 
-- [Requirments](#requirments)
-- [create package using jsng](#creating-jsng-package)
-- [create website with custom locations](#create-website-with-custom-locations)
+- [Deploy website and packages on jsng](#deploy-website-and-packages-on-jsng)
+  - [Index](#index)
+  - [Requirments](#requirments)
+  - [Creating jsng package (Automatically with jsng and threebotserver)](#creating-jsng-package-automatically-with-jsng-and-threebotserver)
+  - [Create website with custom locations (Manually)](#create-website-with-custom-locations-manually)
+    - [Troubleshooting](#troubleshooting)
 
 ## Requirments
 
@@ -58,7 +61,7 @@
   threebot_server.start()
   ```
 
-- More about starting 3bot server start [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot.md)
+- More about starting 3bot server start [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/threebot/threebot.md)
 
 ## Create website with custom locations (Manually)
 
