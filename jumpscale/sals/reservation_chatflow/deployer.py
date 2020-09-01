@@ -618,7 +618,15 @@ class ChatflowDeployer:
                 """
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:
-                return workload.info.result.state.value == 1
+                success = workload.info.result.state.value == 1
+                if not success:
+                    error_message = workload.info.result.message
+                    msg = f"Workload {workload.id} failed to deploy due to error {error_message}. For more details: {j.core.identity.me.explorer_url}/reservations/workloads/{workload.id}"
+                    j.logger.error(msg)
+                    j.tools.alerthandler.alert_raise(
+                        appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
+                    )
+                return success
             if expiration_provisioning < j.data.time.get().timestamp:
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
