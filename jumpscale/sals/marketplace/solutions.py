@@ -344,7 +344,7 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_solutions(self, username, solution_type):
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=NextAction.DEPLOY)
         method = getattr(self, f"list_{solution_type}_solutions")
-        return method(username, next_action=NextAction.DEPLOY, sync=True)
+        return method(username, next_action=NextAction.DEPLOY, sync=False)
 
     def cancel_solution(self, username, solution_wids):
         valid = True
