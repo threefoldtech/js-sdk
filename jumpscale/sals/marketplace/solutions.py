@@ -38,7 +38,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_single_container_solution("flist", next_action, sync, owner=username)
 
     def list_gitea_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("gitea", next_action, sync, owner=username)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx", owner=username)
 
     def list_mattermost_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
@@ -344,7 +344,7 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_solutions(self, username, solution_type):
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=NextAction.DEPLOY)
         method = getattr(self, f"list_{solution_type}_solutions")
-        return method(username, next_action=NextAction.DEPLOY, sync=True)
+        return method(username, next_action=NextAction.DEPLOY, sync=False)
 
     def cancel_solution(self, username, solution_wids):
         valid = True

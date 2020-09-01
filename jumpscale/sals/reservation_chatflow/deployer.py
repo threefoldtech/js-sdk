@@ -342,17 +342,18 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app")
+        wallet_names.append("3Bot app (QR code)")
         message = f"""
-        Billing details:
-        <h4> Wallet address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
-        <h4> Total Amount: </h4> {total_amount} \n
-        <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+        <h3>Billing details:</h3><br>
+        <b> Wallet address:</b>  {escrow_address}<br>
+        <b> Currency: </b>  {escrow_asset.split(':')[0]}<br>
+        <b> Total Amount: </b> {total_amount} {escrow_asset.split(':')[0]}<br>
+        <b> Transaction Fees:</b> 0.1 {escrow_asset.split(':')[0]}<br>
+        <br><hr><br>
+        <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3Bot app":
+        if result == "3Bot app (QR code)":
             qr_code = (
                 f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
             )
@@ -743,14 +744,14 @@ class ChatflowDeployer:
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu, required=True, min=1,)
+            cpu_answer = form.int_ask("Please specify how many CPUs", default=default_cpu, required=True, min=1,)
         if memory:
             memory_answer = form.int_ask(
-                "Please specify how much memory", default=default_memory, required=True, min=1024,
+                "Please specify how much memory (in MB)", default=default_memory, required=True, min=1024,
             )
         if disk_size:
             disk_size_answer = form.int_ask(
-                "Please specify the size of root filesystem", default=default_disk_size, required=True,
+                "Please specify the size of root filesystem (in MB)", default=default_disk_size, required=True,
             )
         if disk_type:
             disk_type_answer = form.single_choice(
@@ -1047,18 +1048,18 @@ class ChatflowDeployer:
                     name = local_config.name
                 if hidden:
                     continue
-                location_list = [
-                    gateway.location.continent,
-                    gateway.location.country,
-                    gateway.location.city,
-                ]
-                location = " - ".join([info for info in location_list if info and info != "Unknown"])
-                if location:
-                    location = f" Location: {location}"
                 if name:
-                    message = f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}{location}"
+                    message = (
+                        f"Pool: {pool.pool_id} Name: {name} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 else:
-                    message = f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}{location}"
+                    message = (
+                        f"Pool: {pool.pool_id} {gateway.dns_nameserver[0]}"
+                        f" {gateway.location.continent} {gateway.location.country}"
+                        f" {gateway.node_id}"
+                    )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
             raise StopChatFlow(f"no available gateways")
@@ -1189,7 +1190,7 @@ class ChatflowDeployer:
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-prestart.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",

@@ -1,10 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
-K8S_SIZES = {
-    1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"},
-    2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"},
-}
+K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
 
 
 class ChatflowSolutions:
@@ -50,7 +47,7 @@ class ChatflowSolutions:
         return self._list_single_container_solution("flist", next_action, sync)
 
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("gitea", next_action, sync)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx")
 
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
@@ -213,7 +210,7 @@ class ChatflowSolutions:
         ].values():
             for dom in domains:
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
                 )
         return result
 
@@ -241,7 +238,7 @@ class ChatflowSolutions:
                         "Pool": proxy.info.pool_id,
                         "Domain": proxy.domain,
                     }
-                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
@@ -255,7 +252,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -280,7 +277,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -523,11 +520,7 @@ class ChatflowSolutions:
                     continue
 
                 name = name_identitfier(metadata)
-                proxy_dict = {
-                    "wid": workload.id,
-                    "domain": workload.domain,
-                    "owner": metadata.get("owner"),
-                }
+                proxy_dict = {"wid": workload.id, "domain": workload.domain, "owner": metadata.get("owner")}
                 if name not in result:
                     result[name] = [proxy_dict]
                 else:
@@ -580,6 +573,7 @@ class ChatflowSolutions:
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
+                    pool = j.sals.zos.pools.get(c_dict["pool"])
                     solution_dict.update(
                         {
                             "IPv4 Address": c_dict["ipv4"],
@@ -588,6 +582,7 @@ class ChatflowSolutions:
                             "Farm": self.get_node_farm(c_dict["node"]),
                             "Pool": c_dict["pool"],
                             "Network": c_dict["network"],
+                            "Expiration": pool.empty_at,
                         }
                     )
                     solution_dict.update(c_dict["capacity"])

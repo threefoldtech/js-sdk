@@ -31,7 +31,8 @@ class GiteaDeploy(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = dict()
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
-        self.HUB_URL = "https://hub.grid.tf/bishoy.3bot/threefolddev-gitea_all_in_one-latest.flist"
+        self.email = self.user_info()["email"]
+        self.HUB_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-gitea_all_in_one-latest.flist"
         self.query = {"mru": 1, "cru": 2, "sru": 6}
         self.solution_metadata = {}
 
@@ -70,13 +71,9 @@ class GiteaDeploy(GedisChatBot):
     @chatflow_step(title="Database credentials & Repository name")
     def gitea_credentials(self):
         form = self.new_form()
-        database_name = form.string_ask(
-            "Please add the database name of your gitea", default="postgres", required=True,
-        )
+        database_name = form.string_ask("Please add the database name of your gitea", default="gitea", required=True,)
         database_user = form.string_ask(
-            "Please add the username for your gitea database. Make sure not to lose it",
-            default="postgres",
-            required=True,
+            "Please add the username for your gitea database. Make sure not to lose it", default="root", required=True,
         )
         database_password = form.string_ask(
             "Please add the secret for your gitea database. Make sure not to lose it",
@@ -210,36 +207,25 @@ class GiteaDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution([self.resv_id])
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-
-        self.proxy_id = deployer.create_proxy(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            domain_name=self.domain,
-            trc_secret=self.secret,
-            **self.solution_metadata,
-            solution_uuid=self.solution_id,
-        )
-        success = deployer.wait_workload(self.proxy_id, self)
-        if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f"Failed to reserve reverse proxy workload {self.proxy_id}")
-
-        self.tcprouter_id = deployer.expose_address(
+        self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=3000,
-            tls_port=3000,
             trc_secret=self.secret,
-            bot=self,
-            **self.solution_metadata,
+            domain=self.domain,
+            email=self.email,
+            solution_ip=self.ip_address,
+            solution_port=3000,
+            enforse_https=True,
+            node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            **self.solution_metadata,
         )
-        success = deployer.wait_workload(self.tcprouter_id, self)
+        success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+            solutions.cancel_solution([self.reverse_proxy_id])
+            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

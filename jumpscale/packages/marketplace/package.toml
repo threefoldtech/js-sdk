@@ -1,5 +1,4 @@
 name = "marketplace"
-ports = [ 80, 443]
 is_auth = true
 is_admin = false
 frontend = "/marketplace"
