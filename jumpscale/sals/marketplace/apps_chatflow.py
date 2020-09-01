@@ -191,9 +191,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
 
-    @chatflow_step(title="Expiration Time")
+    @chatflow_step(title="Expiration Date and Time")
     def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000)
+        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg="")
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
