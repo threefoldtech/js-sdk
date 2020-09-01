@@ -237,6 +237,7 @@ Domain : {self.domain}
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
+        display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
         message = f"""\
 # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
 \n<br />\n
