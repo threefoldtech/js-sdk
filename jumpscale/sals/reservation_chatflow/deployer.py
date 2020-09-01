@@ -744,14 +744,14 @@ class ChatflowDeployer:
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask("Please specify how many cpus", default=default_cpu, required=True, min=1,)
+            cpu_answer = form.int_ask("Please specify how many CPUs", default=default_cpu, required=True, min=1,)
         if memory:
             memory_answer = form.int_ask(
-                "Please specify how much memory", default=default_memory, required=True, min=1024,
+                "Please specify how much memory (in MB)", default=default_memory, required=True, min=1024,
             )
         if disk_size:
             disk_size_answer = form.int_ask(
-                "Please specify the size of root filesystem", default=default_disk_size, required=True,
+                "Please specify the size of root filesystem (in MB)", default=default_disk_size, required=True,
             )
         if disk_type:
             disk_type_answer = form.single_choice(
