@@ -1,5 +1,4 @@
 name = "threebot_deployer"
-ports = [ 80, 443]
 is_auth = true
 is_admin = false
 frontend = "/threebot_deployer"
