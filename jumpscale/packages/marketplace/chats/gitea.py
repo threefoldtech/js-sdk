@@ -12,7 +12,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "reservation",
         "initializing",
         "success",
@@ -20,24 +19,12 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
     query = {"cru": 2, "mru": 1, "sru": 6}
 
-    @chatflow_step(title="Confirmation")
-    def overview(self):
+    @chatflow_step(title="Reservation", disable_previous=True)
+    def reservation(self):
         self.database_name = "gitea"
         self.database_user = "root"
         self.database_password = uuid.uuid4().hex
         self.repository_name = self.solution_name
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "IP Address": self.ip_address,
-            "Domain": self.domain,
-        }
-        self.md_show_confirm(self.metadata)
-
-    @chatflow_step(title="Reservation", disable_previous=True)
-    def reservation(self):
         var_dict = {
             "POSTGRES_DB": self.database_name,
             "DB_TYPE": "postgres",
