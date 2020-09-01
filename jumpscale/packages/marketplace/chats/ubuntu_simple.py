@@ -1,5 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 import uuid
 import random
 
@@ -32,7 +33,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         valid = False
         while not valid:
             self.solution_name = self.string_ask(
-                "Please enter a name for your ubuntu container", required=True, is_identifier=True,
+                "Please enter a name for your ubuntu container", required=True, is_identifier=True
             )
             if self.solution_name in used_names:
                 self.md_show("name already used. please click next to continue")
@@ -88,7 +89,9 @@ class UbuntuDeploy(MarketPlaceChatflow):
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
             self.wgconf = None
             if not result:
-                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                raise StopChatFlowCleanWorkloads(
+                    f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}", self.solution_id
+                )
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -101,7 +104,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             )
 
         if not self.pool_info:
-            raise StopChatFlow("Failed to reserve resources for your app")
+            raise StopChatFlowCleanWorkloads("Failed to reserve resources for your app", self.solution_id)
 
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
@@ -121,7 +124,10 @@ class UbuntuDeploy(MarketPlaceChatflow):
                 for wid in result["ids"]:
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
-                        raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                        raise StopChatFlowCleanWorkloads(
+                            f"Failed to add node {self.selected_node.node_id} to network {wid}", self.solution_id
+                        )
+
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
 
@@ -149,7 +155,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
     @chatflow_step(title="Success", disable_previous=True)
     def ubuntu_access(self):

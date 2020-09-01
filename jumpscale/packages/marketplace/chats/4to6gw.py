@@ -3,16 +3,11 @@ import uuid
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 
 
 class FourToSixGateway(MarketPlaceChatflow):
-    steps = [
-        "select_pool",
-        "gateway_start",
-        "wireguard_public_get",
-        "wg_reservation",
-        "wg_config",
-    ]
+    steps = ["select_pool", "gateway_start", "wireguard_public_get", "wg_reservation", "wg_config"]
     title = "4to6 GW"
 
     @chatflow_step(title="Pool")
@@ -52,7 +47,7 @@ class FourToSixGateway(MarketPlaceChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
         res = """
 ## Use the following template to configure your wireguard connection. This will give you access to your network.

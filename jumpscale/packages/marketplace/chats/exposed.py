@@ -4,6 +4,7 @@ from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.chats.exposed import SolutionExpose as BaseSolutionExpose
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 
 kinds = {
     "minio": solutions.list_minio_solutions,
@@ -37,7 +38,9 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
         gateways = deployer.list_all_gateways(self.solution_metadata["owner"])
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
+            raise StopChatFlowCleanWorkloads(
+                "There are no available gateways in the farms bound to your pools", self.solution_id
+            )
 
         # add managed domains
         gateway_id_dict = {}
@@ -58,7 +61,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
         domain_ask_list = list(messages.keys())
         # add custom_domain
         domain_ask_list.append("Custom Domain")
-        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list, required=True,)
+        chosen_domain = self.single_choice("Please choose the domain you wish to use", domain_ask_list, required=True)
         if chosen_domain != "Custom Domain":
             self.domain_gateway = messages[chosen_domain]["gateway"]
             self.domain_pool = messages[chosen_domain]["pool"]

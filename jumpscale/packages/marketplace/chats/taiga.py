@@ -5,6 +5,7 @@ from nacl.public import PrivateKey
 
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 from jumpscale.loader import j
 
 
@@ -80,8 +81,9 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
@@ -121,8 +123,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
         if not self.resv_id:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         # expose threebot container
         self.workload_ids.append(
@@ -144,8 +145,9 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
         if not nginx_wid:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}", self.solution_id
+            )
 
 
 chat = TaigaDeploy

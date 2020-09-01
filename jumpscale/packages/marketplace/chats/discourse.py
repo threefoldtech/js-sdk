@@ -2,6 +2,7 @@ from textwrap import dedent
 
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 from jumpscale.loader import j
 import nacl
 
@@ -93,7 +94,10 @@ class Discourse(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}",
+                self.solution_id,
+            )
         self.threebot_url = f"https://{self.domain}"
 
         entrypoint = f"/.start_discourse.sh"
@@ -117,7 +121,7 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise StopChatFlowCleanWorkloads(f"Failed to deploy workload {self.resv_id}", self.solution_id)
 
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -136,8 +140,9 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {_id}", self.solution_id
+            )
 
 
 chat = Discourse

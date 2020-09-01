@@ -3,6 +3,7 @@ from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
@@ -28,7 +29,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()["email"]
         form = self.new_form()
         volume_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True
         )
         form.ask()
         self.vol_size = int(volume_size.value)
@@ -71,8 +72,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
 
         # deploy volume
@@ -85,13 +87,13 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}", self.solution_id
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -113,8 +115,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                self.solution_id,
             )
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
@@ -133,8 +136,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}", self.solution_id
+            )
 
 
 chat = CryptpadDeploy

@@ -1,6 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import StopChatFlowCleanWorkloads
 import uuid
 from jumpscale.data.nacl.jsnacl import NACL
 
@@ -80,9 +81,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
         # 1- add node to network
-        metadata = {
-            "form_info": {"Solution name": self.solution_name, "chatflow": "threebot"},
-        }
+        metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
         self.solution_metadata.update(metadata)
         self.workload_ids = []
 
@@ -99,8 +98,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                self.solution_id,
             )
         test_cert = j.config.get("TEST_CERT")
         # 3- deploy threebot container
@@ -136,9 +136,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.resv_id = self.workload_ids[-1]
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                self.solution_id,
             )
 
         # 4- expose threebot container
@@ -161,9 +161,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[2], self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise StopChatFlowCleanWorkloads(
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                self.solution_id,
             )
         self.threebot_url = f"https://{self.domain}/admin"
         self.domain = self.domain + "/admin"
