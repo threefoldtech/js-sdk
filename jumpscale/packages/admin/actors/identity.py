@@ -15,7 +15,7 @@ class Identity(BaseActor):
     def get_identity(self) -> str:
         data = None
         if j.core.identity.list_all():
-            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknow")
+            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknown")
             data = {
                 "id": j.core.identity.me.tid,
                 "name": j.core.identity.me.tname,
@@ -41,5 +41,8 @@ class Identity(BaseActor):
             identities[label] = {"name": identity.tname, "email": identity.email}
         return j.data.serializers.json.dumps(identities)
 
+    @actor_method
+    def get_explorer_url(self) -> str:
+        return j.data.serializers.json.dumps({"url":j.core.identity.me.explorer.url})
 
 Actor = Identity
