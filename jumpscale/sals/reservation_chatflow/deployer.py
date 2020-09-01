@@ -342,17 +342,18 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app")
+        wallet_names.append("3Bot app (QR code)")
         message = f"""
-        Billing details:
-        <h4> Wallet address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
-        <h4> Total Amount: </h4> {total_amount} \n
-        <h4> Transaction Fees: 0.1 {escrow_asset.split(':')[0]} </h4> \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+        <h3>Billing details:</h3><br>
+        <b> Wallet address:</b>  {escrow_address}<br>
+        <b> Currency: </b>  {escrow_asset.split(':')[0]}<br>
+        <b> Total Amount: </b> {total_amount} {escrow_asset.split(':')[0]}<br>
+        <b> Transaction Fees:</b> 0.1 {escrow_asset.split(':')[0]}<br>
+        <br><hr><br>
+        <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3Bot app":
+        if result == "3Bot app (QR code)":
             qr_code = (
                 f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
             )
