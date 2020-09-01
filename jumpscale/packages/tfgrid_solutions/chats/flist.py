@@ -28,9 +28,11 @@ class FlistDeploy(GedisChatBot):
         "reservation",
         "success",
     ]
-    title = "Flist"
+    title = "Generic Container"
 
     def _flist_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.solution_id = uuid.uuid4().hex
         self.env = dict()
         self.solution_metadata = {}
@@ -85,7 +87,7 @@ class FlistDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def flist_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="Flist url")
     def flist_url(self):

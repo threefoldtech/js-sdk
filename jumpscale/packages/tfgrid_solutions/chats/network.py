@@ -18,6 +18,7 @@ class NetworkDeploy(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def welcome(self):
+        deployer.chatflow_pools_check()
         if solutions.list_network_solutions():
             self.action = self.single_choice(
                 "Do you want to create a new network or add access to an existing one?",

@@ -655,8 +655,8 @@ class ChatflowDeployer:
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
 
-    def select_network(self, bot):
-        network_views = self.list_networks()
+    def select_network(self, bot, network_views=None):
+        network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
         network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
@@ -1488,6 +1488,16 @@ class ChatflowDeployer:
             pool = node_to_pool[node.node_id]
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
+
+    def chatflow_pools_check(self):
+        if not self.list_pools():
+            raise StopChatFlow("You don't have any capacity pools. Please create one first.")
+
+    def chatflow_network_check(self, bot):
+        networks = self.list_networks()
+        if not networks:
+            raise StopChatFlow("You don't have any deployed networks. Please create one first.")
+        bot.all_network_viewes = networks
 
 
 deployer = ChatflowDeployer()
