@@ -8,7 +8,7 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class PoolReservation(GedisChatBot):
-    steps = ["pool_start", "reserve_pool", "pool_success"]
+    steps = ["pool_start", "choose_pool_name", "reserve_pool", "pool_success"]
     title = "Pool"
 
     @chatflow_step(title="Welcome")
@@ -20,6 +20,21 @@ class PoolReservation(GedisChatBot):
             self.action = self.single_choice(
                 "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
             )
+
+    @chatflow_step(title="Pool Name")
+    def choose_pool_name(self):
+        if self.action == "create":
+            valid = False
+            pool_factory = StoredFactory(PoolConfig)
+            while not valid:
+                self.pool_name = self.string_ask(
+                    "Please choose a name to identify your pool locally", required=True, is_identifier=True
+                )
+                _, _, result = pool_factory.find_many(name=self.pool_name)
+                if list(result):
+                    self.md_show("the name is already used. please choose a different one")
+                    continue
+                valid = True
 
     @chatflow_step(title="Pool Capacity")
     def reserve_pool(self):
@@ -33,24 +48,12 @@ class PoolReservation(GedisChatBot):
     def pool_success(self):
         if self.action == "create":
             pool_id = self.pool_data.reservation_id
-            self.md_show(
-                f"Transaction successful. it may take a few minutes to reflect. please click next to add a local name for your pool {pool_id}"
-            )
-            valid = False
             pool_factory = StoredFactory(PoolConfig)
-            while not valid:
-                pool_name = self.string_ask("Please choose a name to identify your pool locally", required=True)
-                _, _, result = pool_factory.find_many(name=pool_name)
-                if list(result):
-                    self.md_show("the name is already used. please choose a different one")
-                else:
-                    p = pool_factory.new(f"pool_{pool_id}")
-                    p.name = pool_name
-                    p.pool_id = pool_id
-                    p.save()
-                    valid = True
-        else:
-            self.md_show("Transaction successful. it may take a few minutes to reflect.")
+            p = pool_factory.new(f"pool_{pool_id}")
+            p.name = self.pool_name
+            p.pool_id = pool_id
+            p.save()
+        self.md_show("Transaction successful. it may take a few minutes to reflect.")
 
 
 chat = PoolReservation
