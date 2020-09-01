@@ -70,6 +70,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         <h4> Total Amount: </h4> {total_amount} \n
         """
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
+        return qr_code
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
@@ -243,30 +244,33 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        self.show_payment(pool_info, bot)
+        qr_code = self.show_payment(pool_info, bot)
         pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
-        return pool_info
+        return pool_info, qr_code
 
-    def wait_pool_payment(self, bot, pool_id, exp=5):
+    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None):
         expiration = j.data.time.now().timestamp + exp * 60
-
+        msg = "### Waiting for payment...\n\n"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
+            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
         while j.data.time.get().timestamp < expiration:
-            bot.md_show_update("Waiting for payment")
+            bot.md_show_update(msg, md=True)
             pool = j.sals.zos.pools.get(pool_id)
             if pool.cus > 0 or pool.sus > 0:
                 bot.md_show_update("Preparing app resources")
                 return True
-            gevent.sleep(1)
+            gevent.sleep(2)
 
         return False
 
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
-        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id)
+        pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
@@ -290,12 +294,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         wgcfg = result["wg"]
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot):
+    def ask_expiration(self, bot, default=None):
+        default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
             "Please enter solution expiration time.",
             required=True,
             min_time=[3600, "Date/time should be at least 1 hour from now"],
-            default=j.data.time.get().timestamp + 3900,
+            default=default,
         )
         return self.expiration - j.data.time.get().timestamp
 

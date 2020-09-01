@@ -21,7 +21,6 @@ class SolutionExpose(GedisChatBot):
         "exposed_solution",
         "exposed_ports",
         "domain_selection",
-        "confirmation",
         "reservation",
         "success",
     ]
@@ -136,6 +135,7 @@ class SolutionExpose(GedisChatBot):
                     required=True,
                     is_identifier=True,
                 )
+                domain = j.sals.zos.gateway.correct_domain(domain)
                 if "." in domain:
                     retry = True
                     self.md_show("You can't nest domains. please click next to try again")
@@ -148,6 +148,7 @@ class SolutionExpose(GedisChatBot):
             self.domain = domain + "." + self.domain
         else:
             self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
+            domain = j.sals.zos.gateway.correct_domain(domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = "Custom Domain"
             res = """\
@@ -161,19 +162,6 @@ class SolutionExpose(GedisChatBot):
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
-    @chatflow_step(title="Confirmation", disable_previous=True)
-    def confirmation(self):
-        self.metadata = {
-            "Exposed Solution": self.solution_name,
-            "Solution Type": self.kind,
-            "Solution Exposed IP": self.solution_ip,
-            "Port": self.port,
-            "TLS Port": self.tls_port,
-            "Gateway": self.domain_gateway.node_id,
-            "Pool": self.pool_id,
-            "TRC Secret": self.secret,
-        }
-        self.md_show_confirm(self.metadata, html=True)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):

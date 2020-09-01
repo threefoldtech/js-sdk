@@ -16,7 +16,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "deploy",
         "initializing",
         "success",
@@ -57,24 +56,25 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="Password")
+    @chatflow_step(title="The recovery secret")
     def set_backup_password(self):
-        messege = "Please enter the password (using this password, you can recover any 3Bot you deploy online)"
+        messege = "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect password for 3Bot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
+
+    @chatflow_step(title="Select payment currency")
+    def payment_currency(self):
+        self.currency = self.single_choice(
+            "Please select the currency you would like to pay your 3Bot deployment with.", ["FreeTFT", "TFT", "TFTA"], required=True
+        )
 
     @chatflow_step(title="3Bot version")
     def threebot_branch(self):
         self.branch = self.string_ask("Please type branch name", required=True, default="development")
 
-    @chatflow_step(title="Deployment Information", disable_previous=True)
-    def overview(self):
-        self.domain = f"{self.threebot_name}-{self.domain}"
-        info = {"Solution name": self.solution_name, "domain": self.domain}
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

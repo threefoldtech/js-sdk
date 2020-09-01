@@ -14,7 +14,6 @@ class Publisher(GedisChatBot):
         "publisher_network",
         "configuration",
         "domain_select",
-        "overview",
         "deploy",
         "success",
     ]
@@ -24,6 +23,8 @@ class Publisher(GedisChatBot):
 
     @chatflow_step()
     def _publisher_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.flist = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
         self.solution_id = uuid.uuid4().hex
         self.solution_currency = "TFT"
@@ -59,7 +60,7 @@ class Publisher(GedisChatBot):
 
     @chatflow_step(title="Network")
     def publisher_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step()
     def publisher_info(self):
@@ -140,11 +141,6 @@ class Publisher(GedisChatBot):
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        info = {"Solution name": self.solution_name, "domain": self.domain}
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

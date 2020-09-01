@@ -18,7 +18,6 @@ class CryptpadDeploy(GedisChatBot):
         "select_pool",
         "cryptpad_network",
         "configuring_node",
-        "overview",
         "reservation",
         "success",
     ]
@@ -137,20 +136,6 @@ class CryptpadDeploy(GedisChatBot):
             self.addresses.append(j.sals.nettools.get_host_by_name(ns))
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "CPU": self.resources["cpu"],
-            "Memory": self.resources["memory"],
-            "Disk Size": self.resources["disk_size"],
-            "IP Address": self.ip_address,
-        }
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation")
     def reservation(self):

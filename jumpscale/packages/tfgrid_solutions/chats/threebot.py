@@ -18,7 +18,6 @@ class ThreebotDeploy(GedisChatBot):
         "upload_public_key",
         "domain_select",
         "ipv6_config",
-        "overview",
         "deploy",
         "intializing",
         "success",
@@ -26,6 +25,8 @@ class ThreebotDeploy(GedisChatBot):
     title = "3Bot"
 
     def _threebot_start(self):
+        deployer.chatflow_pools_check()
+        deployer.chatflow_network_check(self)
         self.flist = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
         self.solution_id = uuid.uuid4().hex
         self.username = self.user_info()["username"]
@@ -65,7 +66,7 @@ class ThreebotDeploy(GedisChatBot):
 
     @chatflow_step(title="Network")
     def threebot_network(self):
-        self.network_view = deployer.select_network(self)
+        self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     def _verify_password(self, password):
         try:
@@ -78,13 +79,15 @@ class ThreebotDeploy(GedisChatBot):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="Password")
+    @chatflow_step(title="The recovery secret")
     def set_backup_password(self):
-        messege = "Please enter the password (using this password, you can recover any 3Bot you deploy online)"
+        messege = (
+            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        )
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect password for 3Bot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="3Bot version")
@@ -130,18 +133,6 @@ class ThreebotDeploy(GedisChatBot):
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        info = {
-            "Solution name": self.solution_name,
-            "Threebot version": self.branch,
-            "Number of cpu cores": self.resources["cpu"],
-            "Memory": self.resources["memory"],
-            "Root filesystem type": "SSD",
-            "Root filesystem size": self.resources["disk_size"],
-        }
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):

@@ -16,7 +16,6 @@ class Publisher(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "deploy",
         "initializing",
         "success",
@@ -44,10 +43,6 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_email,
         }
 
-    @chatflow_step(title="Deployment Information", disable_previous=True)
-    def overview(self):
-        info = {"Solution name": self.solution_name, "domain": self.domain}
-        self.md_show_confirm(info)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def deploy(self):
