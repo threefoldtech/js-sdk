@@ -11,8 +11,7 @@
         <v-data-table
           :loading="loading"
           :headers="headers"
-          :items="deployedSolutions"
-          @click:row="open"
+          :items="deployed3Bots"
           class="elevation-1"
         >
           <template v-slot:item.domain="{ item }">
@@ -29,25 +28,26 @@
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
-                <v-btn icon :href="`https://${item.Domain}/admin`">
-                  <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
+                <v-btn icon @click.stop="delete3Bot(item.wids)">
+                  <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
                 </v-btn>
               </template>
-              <span>Open in browser</span>
+              <span>Delete</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
-                <v-btn icon :href="`https://${item.Domain}/admin`">
-                  <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
+                <v-btn icon @click.stop="open(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
                 </v-btn>
               </template>
-              <span>Open in browser</span>
+              <span>Show Information</span>
             </v-tooltip>
           </template>
         </v-data-table>
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
+    <cancel-workload v-model="dialogs.cancelWorkload" :wids="wids"></cancel-workload>
   </div>
 </template>
 
@@ -55,12 +55,14 @@
 module.exports = {
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
+    "cancel-workload": httpVueLoader("./Delete.vue"),
   },
   data() {
     return {
       threebot_data: APPS["threebot"],
       dialogs: {
         info: false,
+        cancelWorkload: false,
       },
       selected: null,
       loading: true,
@@ -69,13 +71,18 @@ module.exports = {
         { text: "URL", value: "domain" },
         { text: "Actions", value: "actions", sortable: false },
       ],
-      deployedSolutions: [],
+      deployed3Bots: [],
+      wids : [],
     };
   },
   methods: {
     open(record) {
       this.selected = record;
       this.dialogs.info = true;
+    },
+    delete3Bot(wids) {
+      this.wids = wids;
+      this.dialogs.cancelWorkload = true;
     },
     openChatflow() {
       this.$router.push({
@@ -87,14 +94,11 @@ module.exports = {
       this.$api.solutions
         .getDeployed()
         .then((response) => {
-          this.deployedSolutions = [...response.data.data];
+          this.deployed3Bots = [...response.data.data];
         })
         .finally(() => {
           this.loading = false;
         });
-    },
-    goto(domain) {
-      // TODO:
     },
   },
   mounted() {
