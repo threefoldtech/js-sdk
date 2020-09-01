@@ -100,7 +100,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self._wgconf_show_check()
         message = f"""\
 # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
 \n<br />\n

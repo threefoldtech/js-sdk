@@ -71,13 +71,9 @@ class GiteaDeploy(GedisChatBot):
     @chatflow_step(title="Database credentials & Repository name")
     def gitea_credentials(self):
         form = self.new_form()
-        database_name = form.string_ask(
-            "Please add the database name of your gitea", default="postgres", required=True,
-        )
+        database_name = form.string_ask("Please add the database name of your gitea", default="gitea", required=True,)
         database_user = form.string_ask(
-            "Please add the username for your gitea database. Make sure not to lose it",
-            default="postgres",
-            required=True,
+            "Please add the username for your gitea database. Make sure not to lose it", default="root", required=True,
         )
         database_password = form.string_ask(
             "Please add the secret for your gitea database. Make sure not to lose it",
