@@ -36,6 +36,15 @@ class GatewayGenerator:
         for c in domain_copy:
           if c not in chars:
             domain = domain.replace(c, "")
+      # maybe the user add - at the begining of the domain or at the end let's deal with it
+      domain_list = domain.split("//")
+      for idx, part in enumerate(domain_list):
+        domain_list[idx] = part.strip("-")
+      domain = "//".join(domain_list)
+      domain_list = domain.split(".")
+      for idx, part in enumerate(domain_list):
+        domain_list[idx] = part.strip("-")
+      domain = ".".join(domain_list)
       return domain
 
     def sub_domain(self, gateway_id: str, domain: str, ips: List[str], pool_id: int) -> GatewaySubdomain:
