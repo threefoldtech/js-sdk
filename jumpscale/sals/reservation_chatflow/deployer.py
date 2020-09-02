@@ -304,11 +304,11 @@ class ChatflowDeployer:
             if location:
                 location = f" location: {location}"
             farm_messages[
-                f"{farm}{location} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
+                f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
-        selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()), required=True)
+        selected_farm = bot.single_choice("Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ", list(farm_messages.keys()), required=True)
         farm = farm_messages[selected_farm]
         try:
             pool_info = j.sals.zos.pools.create(cu, su, farm, currencies)
