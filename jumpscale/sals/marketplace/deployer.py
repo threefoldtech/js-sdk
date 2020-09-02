@@ -1,10 +1,11 @@
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.clients.explorer.models import Currency, NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from decimal import Decimal
 from .models import UserPool
+import random
 import gevent
 
 
@@ -260,7 +261,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info, qr_code
 
-    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None):
+    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=0):
         expiration = j.data.time.now().timestamp + exp * 60
         msg = "### Waiting for payment...\n\n"
         if qr_code:
@@ -269,12 +270,66 @@ class MarketPlaceDeployer(ChatflowDeployer):
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, md=True)
             pool = j.sals.zos.pools.get(pool_id)
-            if pool.cus > 0 or pool.sus > 0:
+            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
                 return True
             gevent.sleep(2)
 
         return False
+
+    def get_free_pools(self, username, workload_types=None):
+        user_pools = self.list_user_pools(username)
+        j.sals.reservation_chatflow.deployer.load_user_workloads()
+        free_pools = []
+        workload_types = workload_types or [WorkloadType.Container]
+        for pool in user_pools:
+            if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][pool.pool_id]:
+                continue
+            if pool.cus == 0 and pool.sus == 0:
+                continue
+            free_pools.append(pool)
+        return free_pools
+
+    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, free_to_use=False):
+        cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
+        required_cu = cu * expiration
+        required_su = su * expiration
+        exact_fit_pools = []  # contains pools that are exact match of the required resources
+        over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
+        under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
+        nodes = {}
+        if free_to_use:
+            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
+        for pool in pools:
+            if free_to_use:
+                for node_id in pool.node_ids:
+                    node = nodes.get(node_id)
+                    if node and not node.free_to_use:
+                        continue
+            if pool.cus == required_cu and pool.sus == required_su:
+                exact_fit_pools.append(pool)
+            else:
+                if pool.cus < required_cu or pool.sus < required_su:
+                    under_fit_pools.append(pool)
+                else:
+                    over_fit_pools.append(pool)
+        if exact_fit_pools:
+            return random.choice(exact_fit_pools), 0, 0
+
+        if over_fit_pools:
+            # sort overfit_pools ascending according to the sum of extra cus and sus
+            for pool in over_fit_pools:
+                pool.unit_diff = pool.cus + pool.sus - required_cu - required_su
+            sorted_result = sorted(over_fit_pools, key=lambda x: x.unit_diff)
+            result_pool = sorted_result[0]
+            return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
+        else:
+            # sort underfit pools descending according to the sum of diff cus and sus
+            for pool in over_fit_pools:
+                pool.unit_diff = pool.cus + pool.sus - required_cu - required_su
+            sorted_result = sorted(under_fit_pools, key=lambda x: x.unit_diff, reverse=True)
+            result_pool = sorted_result[0]
+            return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
