@@ -91,8 +91,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     deployer.wait_pool_payment(
                         pool.pool_id,
                         self,
-                        trigger_cus=pool.cus + (cu_diff * 0.75),
-                        trigger_sus=pool.sus + (su_diff * 0.75),
+                        trigger_cus=pool.cus + (cu_diff * 0.9),
+                        trigger_sus=pool.sus + (su_diff * 0.9),
                     )
                 else:
                     self.md_show_update(

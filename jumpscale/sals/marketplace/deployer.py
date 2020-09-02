@@ -261,7 +261,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info, qr_code
 
-    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=0):
+    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
         msg = "### Waiting for payment...\n\n"
         if qr_code:
@@ -283,7 +283,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
         free_pools = []
         workload_types = workload_types or [WorkloadType.Container]
         for pool in user_pools:
-            if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][pool.pool_id]:
+            valid = True
+            for wokrkload_type in workload_types:
+                if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][wokrkload_type][pool.pool_id]:
+                    valid = False
+                    break
+            if not valid:
                 continue
             if pool.cus == 0 and pool.sus == 0:
                 continue
