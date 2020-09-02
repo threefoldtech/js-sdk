@@ -90,7 +90,7 @@ class Poll(GedisChatBot):
             )
 
             message_text = f"""
-<h3> Please make your payment </h3>
+<h3>Make a Payment</h3>
 Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
 Make sure to add the message (user code) as memo_text
 Please make the transaction and press Next

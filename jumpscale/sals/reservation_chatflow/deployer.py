@@ -375,7 +375,7 @@ class ChatflowDeployer:
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         if result == "3Bot app (QR code)":
             msg_text = f"""
-            <h3> Please make your payment </h3>
+            <h3>Make a Payment</h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
             <h4> Destination Wallet Address: </h4>  {escrow_address} \n

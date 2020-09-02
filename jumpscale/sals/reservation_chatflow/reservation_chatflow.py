@@ -528,7 +528,7 @@ class ReservationChatflow:
         payment_details = self.get_payment_details(escrow_info, escrow_asset.split(":")[0])
 
         message_text = f"""
-        <h3> Please make your payment </h3>
+        <h3>Make a Payment</h3>
         Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         <p>If no payment is made {remaning_time} the reservation will be canceled</p>
 
