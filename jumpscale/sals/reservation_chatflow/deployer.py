@@ -253,10 +253,27 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
+        time_unit = form.drop_down_choice(
+            "Please choose time unit to use for pool's time-to-live",
+            ["Day", "Month", "Year"],
+            required=True,
+            default="Month",
+        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
-        cu = cu.value
-        su = su.value
+        ttl = ttl.value
+        time_unit = time_unit.value
+        if time_unit == "Day":
+            days = 1
+        elif time_unit == "Month":
+            days = 30
+        elif time_unit == "Year":
+            days = 365
+        else:
+            raise j.exceptions.Input("Invalid time unit")
+        cu = cu.value * 60 * 60 * 24 * days * ttl
+        su = su.value * 60 * 60 * 24 * days * ttl
         currencies = [currencies.value]
         all_farms = self._explorer.farms.list()
         available_farms = {}
@@ -386,10 +403,27 @@ class ChatflowDeployer:
                     break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
-        currencies = form.single_choice("Please choose the currency", assets, required=True)
+        time_unit = form.drop_down_choice(
+            "Please choose time unit to use for pool's time-to-live",
+            ["Day", "Month", "Year"],
+            required=True,
+            default="Month",
+        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
+        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
-        cu = cu.value
-        su = su.value
+        time_unit = time_unit.value
+        ttl = ttl.value
+        if time_unit == "Day":
+            days = 1
+        elif time_unit == "Month":
+            days = 30
+        elif time_unit == "Year":
+            days = 365
+        else:
+            raise j.exceptions.Input("Invalid time unit")
+        cu = cu.value * 60 * 60 * 24 * days * ttl
+        su = su.value * 60 * 60 * 24 * days * ttl
         currencies = [currencies.value]
         try:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
