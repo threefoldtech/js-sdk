@@ -20,7 +20,7 @@ def destroy(self):
     """
     # validiate user
     data = j.data.serializers.json.loads(request.body.read())
-    threebot_name = data.get("username", "")
+    threebot_name = data.get("threebot_name", "")
     user_info = j.data.serializers.json.loads(get_user_info())
     current_username = threebot_name.split("_")[0]
     logged_in_username = user_info["username"].split(".")[0]
