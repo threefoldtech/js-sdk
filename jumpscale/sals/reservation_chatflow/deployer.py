@@ -259,12 +259,7 @@ class ChatflowDeployer:
             required=True,
             default="Month",
         )
-        ttl = form.int_ask(
-            "Please specify the pools time-to-live (result units equals second * UNIT)",
-            required=True,
-            min=1,
-            default=0,
-        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         ttl = ttl.value
@@ -414,9 +409,7 @@ class ChatflowDeployer:
             required=True,
             default="Month",
         )
-        ttl = form.int_ask(
-            "Please specify the pools time-to-live (result units equal second * UNIT)", required=True, min=1, default=0,
-        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         time_unit = time_unit.value
