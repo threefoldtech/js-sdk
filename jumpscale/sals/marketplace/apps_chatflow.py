@@ -67,17 +67,51 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
             # old user
-            self.pool_info, qr_code = deployer.create_solution_pool(
-                bot=self,
-                username=self.solution_metadata["owner"],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
-                currency=self.currency,
-                **self.query,
+            self.md_show_update(
+                "Checking if you have free resources (If you deleted an old solution before expiration or if an old deployment failed after payment)...."
             )
-            result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
-            if not result:
-                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+            free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
+            if free_pools:
+                self.md_show_update(
+                    "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
+                )
+                # select free pool and extend if required
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(
+                    free_pools, self.expiration, free_to_use=self.currency == "FreeTFT", **self.query
+                )
+                if cu_diff < 0 or su_diff < 0:
+                    # extend pool
+                    self.md_show_update(
+                        "Found pool that requires extension. payment screen will be shown in a moment..."
+                    )
+                    cu_diff = abs(cu_diff) if cu_diff < 0 else 0
+                    su_diff = abs(su_diff) if su_diff < 0 else 0
+                    pool_info = j.sals.zos.pools.extend(pool.pool_id, cu_diff, su_diff)
+                    deployer.show_payment(pool_info, self)
+                    deployer.wait_pool_payment(
+                        pool.pool_id,
+                        self,
+                        trigger_cus=pool.cus + (cu_diff * 0.9),
+                        trigger_sus=pool.sus + (su_diff * 0.9),
+                    )
+                else:
+                    self.md_show_update(
+                        f"Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment..."
+                    )
+                    self.pool_id = pool.pool_id
+            else:
+                self.pool_info, qr_code = deployer.create_solution_pool(
+                    bot=self,
+                    username=self.solution_metadata["owner"],
+                    farm_name=self.farm_name,
+                    expiration=self.expiration,
+                    currency=self.currency,
+                    **self.query,
+                )
+                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+                if not result:
+                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                self.pool_id = self.pool_info.reservation_id
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -88,10 +122,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+            self.pool_id = self.pool_info.reservation_id
 
-        if not self.pool_info:
-            raise StopChatFlow(f"Failed to deploy solution {self.pool_info}")
-        self.pool_id = self.pool_info.reservation_id
         return self.pool_id
 
     def _deploy_network(self):
@@ -99,11 +131,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_info.reservation_id, **self.query)
+            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
-                self.pool_info.reservation_id,
+                self.pool_id,
                 self.network_view,
                 bot=self,
                 owner=self.solution_metadata.get("owner"),
