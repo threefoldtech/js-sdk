@@ -152,7 +152,7 @@ class NetworkGenerator:
                     endpoint = f"{str(ep.ip)}:{wg_port}"
                     break
                 if not ipv4 and ep.version == 6:
-                    ip = str(access_point_nr.public_endpoints[0].ip)
+                    ip = str(ep.ip)
                     endpoint = f"[{ip}]:{wg_port}"
                     break
 
