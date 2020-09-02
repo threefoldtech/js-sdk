@@ -15,6 +15,11 @@ class ChatflowSolutions:
         if not sync and not networks:
             networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=False)
         result = []
+        nodes = {}
+        farms = {}
+        if networks:
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
         for n in networks.values():
             if len(n.network_workloads) == 0:
                 continue
@@ -23,7 +28,7 @@ class ChatflowSolutions:
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
                     "nodes": {
-                        res.info.node_id: f"{res.iprange} {self.get_node_farm(res.info.node_id)}"
+                        res.info.node_id: f"{res.iprange} {farms.get(nodes.get(res.info.node_id))}"
                         for res in n.network_workloads
                     },
                     "wids": [res.id for res in n.network_workloads],
