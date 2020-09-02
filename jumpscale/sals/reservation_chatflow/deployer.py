@@ -297,7 +297,8 @@ class ChatflowDeployer:
             pool_info = j.sals.zos.pools.create(cu, su, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
-        self.show_payment(pool_info, bot)
+        qr_code = self.show_payment(pool_info, bot)
+        self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=[], sru=None, cru=None, mru=None, hru=None):
@@ -353,10 +354,8 @@ class ChatflowDeployer:
         <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
+        qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         if result == "3Bot app (QR code)":
-            qr_code = (
-                f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
-            )
             msg_text = f"""
             <h3> Please make your payment </h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
@@ -372,6 +371,7 @@ class ChatflowDeployer:
             wallet.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}",
             )
+        return qr_code
 
     def extend_pool(self, bot, pool_id):
         form = bot.new_form()
@@ -395,7 +395,11 @@ class ChatflowDeployer:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
-        self.show_payment(pool_info, bot)
+        qr_code = self.show_payment(pool_info, bot)
+        pool = j.sals.zos.pools.get(pool_id)
+        self.wait_pool_payment(
+            bot, pool_id, 10, qr_code, trigger_cus=pool.cus + (cu * 0.75), trigger_sus=pool.sus + (su * 0.75)
+        )
         return pool_info
 
     def list_pools(self, cu=None, su=None):
@@ -1507,6 +1511,22 @@ class ChatflowDeployer:
         if not networks:
             raise StopChatFlow("You don't have any deployed networks. Please create one first.")
         bot.all_network_viewes = networks
+
+    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
+        expiration = j.data.time.now().timestamp + exp * 60
+        msg = "### Waiting for payment...\n\n"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
+            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
+        while j.data.time.get().timestamp < expiration:
+            bot.md_show_update(msg, md=True)
+            pool = j.sals.zos.pools.get(pool_id)
+            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+                bot.md_show_update("Preparing app resources")
+                return True
+            gevent.sleep(2)
+
+        return False
 
 
 deployer = ChatflowDeployer()
