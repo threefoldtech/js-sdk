@@ -1,7 +1,7 @@
 {% extends "home.html"%}
 {% block title %}Login{% endblock %}
 {% block content %}
-<h3>Choose one of the following available methods</h3>
+<h3>Welcome to 3Bot</h3>
 <br />
 <div class="row justify-content-md-center">
     <div class="col-sm-4">
@@ -14,7 +14,7 @@
 
         <a class="btn btn-block btn-social btn-vk text-center"
             href="/auth/login?provider=3bot&{% if next_url %}next_url={{next_url}}{% endif %}">
-            <span class="bot"></span>Sign in with 3Bot connect
+            <span class="bot"></span>Log in via 3Bot Connect
         </a>
     </div>
 </div>
