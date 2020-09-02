@@ -58,16 +58,19 @@ class MarketPlaceDeployer(ChatflowDeployer):
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+        thecurrency = escrow_asset.split(':')[0]
         total_amount = "{0:f}".format(total_amount_dec)
         qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
-        <h3> Please make your payment </h3>
+        <h3>Make a Payment</h3>
         Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
         <h4> Wallet Address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
+        <h4> Currency: </h4>  {thecurrency} \n
         <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
-        <h4> Total Amount: </h4> {total_amount} \n
+        <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
         """
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code

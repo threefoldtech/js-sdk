@@ -361,26 +361,31 @@ class ChatflowDeployer:
         for w in wallets.keys():
             wallet_names.append(w)
         wallet_names.append("3Bot app (QR code)")
+        thecurrency = escrow_asset.split(':')[0]
         message = f"""
         <h3>Billing details:</h3><br>
         <b> Wallet address:</b>  {escrow_address}<br>
-        <b> Currency: </b>  {escrow_asset.split(':')[0]}<br>
-        <b> Total Amount: </b> {total_amount} {escrow_asset.split(':')[0]}<br>
-        <b> Transaction Fees:</b> 0.1 {escrow_asset.split(':')[0]}<br>
+        <b> Currency: </b>  {thecurrency}<br>
+        <b> Total Amount: </b> {total_amount} {thecurrency}<br>
+        <b> Transaction Fees:</b> 0.1 {thecurrency}<br>
         <br><hr><br>
         <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         if result == "3Bot app (QR code)":
             msg_text = f"""
             <h3> Please make your payment </h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
-            <h4> Wallet Address: </h4>  {escrow_address} \n
-            <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
-            <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
-            <h4> Total Amount: </h4> {total_amount} \n
+            <h4> Destination Wallet Address: </h4>  {escrow_address} \n
+            <h4> Currency: </h4>  {thecurrency} \n
+            <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+            <h4> Memo Text (Reservation ID): </h4>  p-{resv_id} \n
+
+            <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
+
+
             """
             bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         else:
