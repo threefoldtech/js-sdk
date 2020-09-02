@@ -40,7 +40,7 @@ class PoolReservation(GedisChatBot):
             pool_id = deployer.select_pool(self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
-    @chatflow_step(title="Pool Info")
+    @chatflow_step(title="Pool Info", final_step=True)
     def pool_success(self):
         if self.action == "create":
             pool_id = self.pool_data.reservation_id

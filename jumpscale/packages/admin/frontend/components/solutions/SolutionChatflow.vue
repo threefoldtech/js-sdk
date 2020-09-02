@@ -23,10 +23,16 @@
           let message = "chat ended"
           if(event.origin != location.origin || event.data != message)
             return;
-          this.$router.push({
-            name: "Solution",
-            params: {type: this.topic}
-          })
+          if(this.topic == "pools"){
+            this.$router.push({
+              name: "Capacity Pools"
+            })
+          }else{
+            this.$router.push({
+              name: "Solution",
+              params: {type: this.topic}
+            })
+          }
         })
       }
     }

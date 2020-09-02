@@ -279,7 +279,7 @@ class MinioDeploy(GedisChatBot):
                 solutions.cancel_solution([resv_id])
                 raise StopChatFlow(f"Failed to deploy Minio container workload {resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
 # Minio cluster has been deployed successfully.
