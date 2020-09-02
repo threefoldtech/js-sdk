@@ -215,7 +215,7 @@ class MonitoringDeploy(GedisChatBot):
                 solutions.cancel_solution(self.reservation_ids)
                 raise StopChatFlow(f"Failed to deploy {self.tools_names[i]}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
 ## Your containers have been deployed successfully:

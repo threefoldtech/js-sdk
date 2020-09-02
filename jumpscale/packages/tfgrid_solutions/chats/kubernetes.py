@@ -144,7 +144,7 @@ class KubernetesDeploy(GedisChatBot):
                 solutions.cancel_solution([resv["reservation_id"]])
                 raise StopChatFlow(f"Failed to deploy workload {resv['reservation_id']}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         res = f"""# Kubernetes cluster has been deployed successfully:
 \n<br />\n
