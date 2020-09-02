@@ -4,7 +4,7 @@ from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer
 
 class PoolReservation(MarketPlaceChatflow):
     steps = ["pool_start", "reserve_pool", "pool_success"]
-    title = "Pool"
+    title = "Capacity Pool"
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
@@ -18,7 +18,7 @@ class PoolReservation(MarketPlaceChatflow):
                 "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
             )
 
-    @chatflow_step(title="Pool Capacity")
+    @chatflow_step(title="Capacity Pool")
     def reserve_pool(self):
         if self.action == "create":
             self.pool_data = deployer.create_pool(self.username, self)
@@ -28,7 +28,8 @@ class PoolReservation(MarketPlaceChatflow):
 
     @chatflow_step(title="Pool Info")
     def pool_success(self):
-        self.md_show(f"Transaction successful. it may take a few minutes to reflect")
+        self.md_show(f"Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.")
+
 
 
 chat = PoolReservation
