@@ -361,7 +361,6 @@ class MarketplaceSolutions(ChatflowSolutions):
                 valid = False
                 break
         if valid:
-            workload = j.sals.zos.workloads.get(solution_wids[0])
             if pool_id and delete_pool:
                 # deassociate the pool from user
                 pool_factory = StoredFactory(UserPool)
