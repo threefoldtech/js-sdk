@@ -253,10 +253,17 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
+        days = form.int_ask(
+            "Please specify the number of days for the above units to live (UNIT * 60 * 60 * 24 * days)",
+            required=True,
+            min=1,
+            default=30,
+        )
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
-        cu = cu.value
-        su = su.value
+        days = days.value
+        cu = cu.value * 60 * 60 * 24 * days
+        su = su.value * 60 * 60 * 24 * days
         currencies = [currencies.value]
         all_farms = self._explorer.farms.list()
         available_farms = {}
@@ -386,10 +393,17 @@ class ChatflowDeployer:
                     break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
+        days = form.int_ask(
+            "Please specify the number of days for the above units to live (UNIT * 60 * 60 * 24 * days)",
+            required=True,
+            min=1,
+            default=30,
+        )
         currencies = form.single_choice("Please choose the currency", assets, required=True)
         form.ask()
-        cu = cu.value
-        su = su.value
+        days = days.value
+        cu = cu.value * 60 * 60 * 24 * days
+        su = su.value * 60 * 60 * 24 * days
         currencies = [currencies.value]
         try:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
