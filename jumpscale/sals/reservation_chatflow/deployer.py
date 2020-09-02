@@ -251,8 +251,8 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
-        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
+        cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
+        su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
             "Please choose time unit to use for pool's time-to-live",
             ["Day", "Month", "Year"],
@@ -261,7 +261,7 @@ class ChatflowDeployer:
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
-        form.ask()
+        form.ask("""Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""", html=True)
         ttl = ttl.value
         time_unit = time_unit.value
         if time_unit == "Day":
