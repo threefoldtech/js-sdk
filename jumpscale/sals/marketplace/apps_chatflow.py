@@ -84,8 +84,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     self.md_show_update(
                         "Found pool that requires extension. payment screen will be shown in a moment..."
                     )
-                    cu_diff = (-1 * cu_diff) if cu_diff < 0 else 0
-                    su_diff = (-1 * su_diff) if su_diff < 0 else 0
+                    cu_diff = abs(cu_diff) if cu_diff < 0 else 0
+                    su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.pools.extend(pool.pool_id, cu_diff, su_diff)
                     deployer.show_payment(pool_info, self)
                     deployer.wait_pool_payment(
