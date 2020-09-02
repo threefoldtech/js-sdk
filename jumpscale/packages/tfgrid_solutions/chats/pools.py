@@ -21,14 +21,14 @@ class PoolReservation(GedisChatBot):
                 "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
             )
 
-    @chatflow_step(title="Capacity Pool")
+    @chatflow_step(title="Name Your New Capacity Pool")
     def reserve_pool(self):
         if self.action == "create":
             valid = False
             pool_factory = StoredFactory(PoolConfig)
             while not valid:
                 self.pool_name = self.string_ask(
-                    "Please choose a name to identify your pool locally", required=True, is_identifier=True
+                    "Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.", required=True, is_identifier=True
                 )
                 _, _, result = pool_factory.find_many(name=self.pool_name)
                 if list(result):
@@ -40,7 +40,7 @@ class PoolReservation(GedisChatBot):
             pool_id = deployer.select_pool(self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
-    @chatflow_step(title="Pool Info", final_step=True)
+    @chatflow_step(title="Capacity Pool Info", final_step=True)
     def pool_success(self):
         if self.action == "create":
             pool_id = self.pool_data.reservation_id
