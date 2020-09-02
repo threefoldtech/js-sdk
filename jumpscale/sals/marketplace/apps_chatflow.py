@@ -82,7 +82,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 if cu_diff < 0 or su_diff < 0:
                     # extend pool
                     self.md_show_update(
-                        "Found pool that requires extension. payment screen willbe shown in a moment..."
+                        "Found pool that requires extension. payment screen will be shown in a moment..."
                     )
                     cu_diff = (-1 * cu_diff) if cu_diff < 0 else 0
                     su_diff = (-1 * su_diff) if su_diff < 0 else 0
