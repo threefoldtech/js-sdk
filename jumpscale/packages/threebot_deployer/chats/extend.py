@@ -29,6 +29,7 @@ class ExtendThreebot(MarketPlaceChatflow):
     @chatflow_step(title="Payment")
     def solution_extension(self):
         self.pool_id = self._threebots_dict[self.threebot_selected]["Pool"]
+        pool = j.sals.zos.pools.get(self.pool_id)
         farm_id = deployer.get_pool_farm_id(self.pool_id)
         farm = deployer._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
@@ -41,10 +42,12 @@ class ExtendThreebot(MarketPlaceChatflow):
         currency = self.single_choice("Please choose the currency", assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
-            self, self.threebot_name, self.pool_id, self.expiration, self.currencies, **self.query
+            self, self.pool_id, self.expiration, self.currencies, **self.query
         )
 
-        result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code)
+        result = deployer.wait_pool_payment(
+            self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
+        )
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 

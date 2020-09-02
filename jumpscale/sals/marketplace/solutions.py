@@ -1,6 +1,8 @@
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow.solutions import ChatflowSolutions
+from jumpscale.core.base import StoredFactory
+from .models import UserPool
 
 
 class MarketplaceSolutions(ChatflowSolutions):
@@ -346,16 +348,25 @@ class MarketplaceSolutions(ChatflowSolutions):
         method = getattr(self, f"list_{solution_type}_solutions")
         return method(username, next_action=NextAction.DEPLOY, sync=False)
 
-    def cancel_solution(self, username, solution_wids):
+    def cancel_solution(self, username, solution_wids, delete_pool=False):
         valid = True
+        pool_id = None
         for wid in solution_wids:
             workload = j.sals.zos.workloads.get(wid)
+            if workload.info.workload_type == WorkloadType.Container:
+                pool_id = workload.info.pool_id
             metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
             metadata = j.data.serializers.json.loads(metadata_json)
             if metadata.get("owner") != username:
                 valid = False
                 break
         if valid:
+            workload = j.sals.zos.workloads.get(solution_wids[0])
+            if pool_id and delete_pool:
+                # deassociate the pool from user
+                pool_factory = StoredFactory(UserPool)
+                instance_name = f"pool_{username.replace('.3bot', '')}_{pool_id}"
+                pool_factory.delete(instance_name)
             super().cancel_solution(solution_wids)
 
 

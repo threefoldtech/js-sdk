@@ -1,4 +1,4 @@
-from jumpscale.clients.explorer.models import Currency, NextAction, WorkloadType
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
@@ -6,7 +6,6 @@ from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, Netwo
 from decimal import Decimal
 from .models import UserPool
 import random
-import gevent
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -242,11 +241,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
-    def extend_solution_pool(self, bot, username, pool_id, expiration, currency, **resources):
+    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
+        cu = int(cu * expiration)
+        su = int(su * expiration)
         if not isinstance(currency, list):
             currency = [currency]
-        pool_info = j.sals.zos.pools.extend(pool_id, int(cu * expiration), int(su * expiration), currency)
+        pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
         qr_code = self.show_payment(pool_info, bot)
         return pool_info, qr_code
 
@@ -260,22 +261,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
         return pool_info, qr_code
-
-    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
-        expiration = j.data.time.now().timestamp + exp * 60
-        msg = "### Waiting for payment...\n\n"
-        if qr_code:
-            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
-            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
-        while j.data.time.get().timestamp < expiration:
-            bot.md_show_update(msg, md=True)
-            pool = j.sals.zos.pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
-                bot.md_show_update("Preparing app resources")
-                return True
-            gevent.sleep(2)
-
-        return False
 
     def get_free_pools(self, username, workload_types=None):
         user_pools = self.list_user_pools(username)
