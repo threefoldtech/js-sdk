@@ -213,10 +213,13 @@ class ReservationChatflow:
     def __init__(self, **kwargs):
         """This class is responsible for managing, creating, cancelling reservations
         """
-        self.me = j.core.identity.me
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
+
+    @property
+    def me(self):
+        return j.core.identity.me
 
     @property
     def _explorer(self):
