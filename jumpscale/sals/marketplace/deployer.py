@@ -284,6 +284,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return free_pools
 
     def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, free_to_use=False):
+        def is_pool_free(pool, nodes_dict):
+            for node_id in pool.node_ids:
+                node = nodes_dict.get(node_id)
+                if node and not node.free_to_use:
+                    return False
+            return True
+
         cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
         required_cu = cu * expiration
         required_su = su * expiration
@@ -294,11 +301,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if free_to_use:
             nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in pools:
-            if free_to_use:
-                for node_id in pool.node_ids:
-                    node = nodes.get(node_id)
-                    if node and not node.free_to_use:
-                        continue
+            if free_to_use and not is_pool_free(pool, nodes):
+                continue
             if pool.cus == required_cu and pool.sus == required_su:
                 exact_fit_pools.append(pool)
             else:

@@ -444,9 +444,9 @@ class ChatflowDeployer:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.pools.get(pool_id)
-        self.wait_pool_payment(
-            bot, pool_id, 10, qr_code, trigger_cus=pool.cus + (cu * 0.75), trigger_sus=pool.sus + (su * 0.75)
-        )
+        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+        trigger_sus = pool.sus + (su * 0.75) if su else 0
+        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
     def list_pools(self, cu=None, su=None):
