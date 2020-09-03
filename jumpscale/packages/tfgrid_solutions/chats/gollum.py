@@ -239,7 +239,7 @@ class GollumDeploy(GedisChatBot):
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
             )
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def container_access(self):
         res = f"""\
 # Gollum has been deployed successfully:\n<br>

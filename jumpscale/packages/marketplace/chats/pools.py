@@ -26,10 +26,11 @@ class PoolReservation(MarketPlaceChatflow):
             pool_id = deployer.select_pool(self.username, self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
-    @chatflow_step(title="Pool Info")
+    @chatflow_step(title="Pool Info", final_step=True)
     def pool_success(self):
-        self.md_show(f"Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.")
-
+        self.md_show(
+            f"Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect."
+        )
 
 
 chat = PoolReservation

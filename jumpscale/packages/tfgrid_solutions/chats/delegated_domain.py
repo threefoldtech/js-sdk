@@ -32,7 +32,7 @@ class DomainDelegation(GedisChatBot):
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         res = """\
 # Delegated your domain successfully:
