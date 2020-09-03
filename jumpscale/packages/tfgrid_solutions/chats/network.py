@@ -129,7 +129,7 @@ to download your configuration
 \n<br />\n
 #### ```wg-quick up /etc/wireguard/{self.filename}```
 \n<br />\n
-            """
+        """
 
         self.md_show(message, md=True)
 
