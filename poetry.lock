@@ -97,13 +97,12 @@ description = "Classes Without Boilerplate"
 name = "attrs"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "19.3.0"
+version = "20.1.0"
 
 [package.extras]
-azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "pytest-azurepipelines"]
-dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
-docs = ["sphinx", "zope.interface"]
-tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+dev = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "sphinx-rtd-theme", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
 
 [[package]]
 category = "main"
@@ -376,7 +375,7 @@ description = "A Python library for the Docker Engine API."
 name = "docker"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "4.3.0"
+version = "4.3.1"
 
 [package.dependencies]
 pywin32 = "227"
@@ -601,56 +600,52 @@ tests = ["coverage (>=4.0)", "pytest-cache (>=1.0)", "pytest-cov", "flake8", "py
 
 [[package]]
 category = "main"
-description = ""
+description = "system automation, configuration management and RPC framework"
 name = "js-ng"
 optional = false
-python-versions = "^3.6"
-version = "11.0.0-alpha.1"
+python-versions = ">=3.6,<4.0"
+version = "11.0.0a2"
 
 [package.dependencies]
-GitPython = "^3.0"
-PyYAML = "^5.1"
-Whoosh = "^2.7.4"
-arrow = "^0.15.7"
-base58 = "^2.0.0"
-better-exceptions = "^0.2.2"
-bottle = "^0.12.18"
-captcha = "^0.3"
-certifi = "^2019.6"
-click = "^7.0"
-colorama = "^0.4.1"
-cryptocompare = "^0.6.4"
-dill = "^0.3.0"
-distro = "^1.4"
-docker = "^4.2.0"
-fabric = "^2.4"
-faker = "^2.0"
+GitPython = ">=3.0,<4.0"
+PyYAML = ">=5.1,<6.0"
+Whoosh = ">=2.7.4,<3.0.0"
+arrow = ">=0.15.7,<0.16.0"
+base58 = ">=2.0.0,<3.0.0"
+better-exceptions = ">=0.2.2,<0.3.0"
+bottle = ">=0.12.18,<0.13.0"
+captcha = ">=0.3,<0.4"
+certifi = ">=2019.6,<2020.0"
+click = ">=7.0,<8.0"
+colorama = ">=0.4.1,<0.5.0"
+cryptocompare = ">=0.6.4,<0.7.0"
+dill = ">=0.3.0,<0.4.0"
+distro = ">=1.4,<2.0"
+docker = ">=4.2.0,<5.0.0"
+fabric = ">=2.4,<3.0"
+faker = ">=2.0,<3.0"
 gevent = "1.4.0"
-jinja2 = "^2.11.1"
-libtmux = "^0.8.2"
-loguru = "^0.3.2"
-msgpack = "^0.6.1"
-netaddr = "^0.7.19"
-pdoc3 = "^0.6.3"
-pillow = "^6.2.2"
+jinja2 = ">=2.11.1,<3.0.0"
+libtmux = ">=0.8.2,<0.9.0"
+loguru = ">=0.3.2,<0.4.0"
+msgpack = ">=0.6.1,<0.7.0"
+netaddr = ">=0.7.19,<0.8.0"
+pdoc3 = ">=0.6.3,<0.7.0"
+pillow = ">=6.2.2,<7.0.0"
 prompt-toolkit = "<3.0.0"
-psutil = "^5.7.0"
-ptpython = "^2.0"
-pudb = "^2019.1"
-pycparser = "^2.20"
-pylzma = "^0.5.0"
+psutil = ">=5.7.0,<6.0.0"
+ptpython = ">=2.0,<3.0"
+pudb = ">=2019.1,<2020.0"
+pycparser = ">=2.20,<3.0"
+pylzma = ">=0.5.0,<0.6.0"
 pynacl = "1.3.0"
-pytoml = "^0.1.21"
-redis = "^3.3"
-secretconf = "^0.1.2"
-terminaltables = "^3.1"
-watchdog = "^0.9.0"
-zipp = "^3.1.0"
+pytoml = ">=0.1.21,<0.2.0"
+redis = ">=3.3,<4.0"
+secretconf = ">=0.1.2,<0.2.0"
+terminaltables = ">=3.1,<4.0"
+watchdog = ">=0.9.0,<0.10.0"
+zipp = ">=3.1.0,<4.0.0"
 
-[package.source]
-reference = "a323379b349f507bb412f60878dfec0d546285ac"
-type = "git"
-url = "https://github.com/threefoldtech/js-ng.git"
 [[package]]
 category = "main"
 description = "Python library for serializing any arbitrary object graph into JSON"
@@ -787,7 +782,7 @@ description = "SSH2 protocol library"
 name = "paramiko"
 optional = false
 python-versions = "*"
-version = "2.7.1"
+version = "2.7.2"
 
 [package.dependencies]
 bcrypt = ">=3.1.3"
@@ -1093,7 +1088,7 @@ description = "HTTP REST client, simplified for Python"
 name = "python-http-client"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.2.7"
+version = "3.3.1"
 
 [[package]]
 category = "main"
@@ -1208,7 +1203,7 @@ description = "Twilio SendGrid library for Python"
 name = "sendgrid"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "6.4.5"
+version = "6.4.6"
 
 [package.dependencies]
 python-http-client = ">=3.2.1"
@@ -1299,7 +1294,7 @@ marker = "python_version < \"3.8\""
 name = "typing-extensions"
 optional = false
 python-versions = "*"
-version = "3.7.4.2"
+version = "3.7.4.3"
 
 [[package]]
 category = "main"
@@ -1529,8 +1524,7 @@ docs = ["sphinx", "repoze.sphinx.autointerface"]
 test = ["zope.security", "zope.testrunner"]
 
 [metadata]
-content-hash = "a974b358ce6e0b702736dce3a9da842aea34c9a660658dde60088a3b13e7bf81"
-lock-version = "1.0"
+content-hash = "cd6655f1eba617e91c8fc5f904181947964ddce8fac78c1a714e694af71852b9"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1569,8 +1563,8 @@ async-timeout = [
     {file = "async_timeout-3.0.1-py3-none-any.whl", hash = "sha256:4291ca197d287d274d0b6cb5d6f8f8f82d434ed288f962539ff18cc9012f9ea3"},
 ]
 attrs = [
-    {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
-    {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+    {file = "attrs-20.1.0-py2.py3-none-any.whl", hash = "sha256:2867b7b9f8326499ab5b0e2d12801fa5c98842d2cbd22b35112ae04bf85b4dff"},
+    {file = "attrs-20.1.0.tar.gz", hash = "sha256:0ef97238856430dcf9228e07f316aefc17e8939fc8507e18c6501b761ef1a42a"},
 ]
 base58 = [
     {file = "base58-2.0.1-py3-none-any.whl", hash = "sha256:447adc750d6b642987ffc6d397ecd15a799852d5f6a1d308d384500243825058"},
@@ -1709,8 +1703,8 @@ dnspython = [
     {file = "dnspython-1.16.0.zip", hash = "sha256:36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01"},
 ]
 docker = [
-    {file = "docker-4.3.0-py2.py3-none-any.whl", hash = "sha256:ba118607b0ba6bfc1b236ec32019a355c47b5d012d01d976467d4692ef443929"},
-    {file = "docker-4.3.0.tar.gz", hash = "sha256:431a268f2caf85aa30613f9642da274c62f6ee8bae7d70d968e01529f7d6af93"},
+    {file = "docker-4.3.1-py2.py3-none-any.whl", hash = "sha256:13966471e8bc23b36bfb3a6fb4ab75043a5ef1dac86516274777576bed3b9828"},
+    {file = "docker-4.3.1.tar.gz", hash = "sha256:bad94b8dd001a8a4af19ce4becc17f41b09f228173ffe6a4e0355389eef142f2"},
 ]
 docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
@@ -1814,7 +1808,10 @@ josepy = [
     {file = "josepy-1.4.0-py2.py3-none-any.whl", hash = "sha256:42c5900b0627573facede884d309369ed9f2e8e8119b13e32f5114e23fed73e6"},
     {file = "josepy-1.4.0.tar.gz", hash = "sha256:c37ff4b93606e6a452b72cdb992da5e0544be12912fac01b31ddbdd61f6d5bd0"},
 ]
-js-ng = []
+js-ng = [
+    {file = "js-ng-11.0.0a2.tar.gz", hash = "sha256:679d2f88c07e7efb8ecf82ee15ae609a97519bc7e53811cc13ff24a127fc490b"},
+    {file = "js_ng-11.0.0a2-py3-none-any.whl", hash = "sha256:e05e571666fb8b0bfc4e6b02c07fe17aac5389cd7279f4b604c32ad68d69092b"},
+]
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},
     {file = "jsonpickle-1.4.1.tar.gz", hash = "sha256:e8d4b7cd0bd6826001a74377df1079a76ad8bae0f909282de2554164c837c8ba"},
@@ -1926,8 +1923,8 @@ netaddr = [
     {file = "netaddr-0.7.20.tar.gz", hash = "sha256:d09252e5aec3913815d77eb8e8ea8fa6eb33521253e52f977f6abaa964776f3e"},
 ]
 paramiko = [
-    {file = "paramiko-2.7.1-py2.py3-none-any.whl", hash = "sha256:9c980875fa4d2cb751604664e9a2d0f69096643f5be4db1b99599fe114a97b2f"},
-    {file = "paramiko-2.7.1.tar.gz", hash = "sha256:920492895db8013f6cc0179293147f830b8c7b21fdfc839b6bad760c27459d9f"},
+    {file = "paramiko-2.7.2-py2.py3-none-any.whl", hash = "sha256:4f3e316fef2ac628b05097a637af35685183111d4bc1b5979bd397c2ab7b5898"},
+    {file = "paramiko-2.7.2.tar.gz", hash = "sha256:7f36f4ba2c0d81d219f4595e35f70d56cc94f9ac40a6acdf51d6ca210ce65035"},
 ]
 parsedatetime = [
     {file = "parsedatetime-2.6-py3-none-any.whl", hash = "sha256:cb96edd7016872f58479e35879294258c71437195760746faffedb692aef000b"},
@@ -2127,7 +2124,7 @@ python-digitalocean = [
     {file = "python-digitalocean-1.15.0.tar.gz", hash = "sha256:e318fe7b866ae00820f7ecec690a9320337f88c6e645310bf92f9b491148122a"},
 ]
 python-http-client = [
-    {file = "python_http_client-3.2.7.tar.gz", hash = "sha256:93d6a26b426e48b04e589c1f103e7c040193e4ccc379ea50cd6e12f94cca7c69"},
+    {file = "python_http_client-3.3.1.tar.gz", hash = "sha256:f5cb0d407b30ed699c2f7ac4ba2ba8a1f2352d44bd9db6ea3bab98d081b433ce"},
 ]
 python-taiga = [
     {file = "python-taiga-1.0.0.tar.gz", hash = "sha256:4ab4ae81324c8b4c8a7dae3a3300096326181e5074b238516a134825df0c25a3"},
@@ -2189,8 +2186,8 @@ secretconf = [
     {file = "secretconf-0.1.2.tar.gz", hash = "sha256:89aa68c7bcd995aad277a0dadaaf9f92c2e22d56a17bc4f923a01077e097eb47"},
 ]
 sendgrid = [
-    {file = "sendgrid-6.4.5-py3-none-any.whl", hash = "sha256:0bb53924d3f46e895c19150f4ee8451cebb59eee0aaa1f8f7232f37eac79ca7a"},
-    {file = "sendgrid-6.4.5.tar.gz", hash = "sha256:50e0061954ead24167a300f104a6c5ea11f1e132e4fdba440f634ed79a1cbef9"},
+    {file = "sendgrid-6.4.6-py3-none-any.whl", hash = "sha256:904dbfe2e0da2bf07f51202af837cac029b160a829e041e1972da2489a928d3b"},
+    {file = "sendgrid-6.4.6.tar.gz", hash = "sha256:145436de333ad4c38ea4b697db820de6e1ba70bf3a4aecc88818758438e25fcb"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
@@ -2222,9 +2219,9 @@ toml = [
     {file = "toml-0.10.1.tar.gz", hash = "sha256:926b612be1e5ce0634a2ca03470f95169cf16f939018233a670519cb4ac58b0f"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-3.7.4.2-py2-none-any.whl", hash = "sha256:f8d2bd89d25bc39dabe7d23df520442fa1d8969b82544370e03d88b5a591c392"},
-    {file = "typing_extensions-3.7.4.2-py3-none-any.whl", hash = "sha256:6e95524d8a547a91e08f404ae485bbb71962de46967e1b71a0cb89af24e761c5"},
-    {file = "typing_extensions-3.7.4.2.tar.gz", hash = "sha256:79ee589a3caca649a9bfd2a8de4709837400dfa00b6cc81962a1e6a1815969ae"},
+    {file = "typing_extensions-3.7.4.3-py2-none-any.whl", hash = "sha256:dafc7639cde7f1b6e1acc0f457842a83e722ccca8eef5270af2d74792619a89f"},
+    {file = "typing_extensions-3.7.4.3-py3-none-any.whl", hash = "sha256:7cb407020f00f7bfc3cb3e7881628838e69d8f3fcab2f64742a5e76b2f841918"},
+    {file = "typing_extensions-3.7.4.3.tar.gz", hash = "sha256:99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c"},
 ]
 urllib3 = [
     {file = "urllib3-1.25.10-py2.py3-none-any.whl", hash = "sha256:e7983572181f5e1522d9c98453462384ee92a0be7fac5f1413a1e35c56cc0461"},
