@@ -235,7 +235,7 @@
             this.saveSession(response.data)
             this.handleResponse(response.data)
         }).catch((response) => {
-          alert("Request timedout. please refresh the page.")
+          alert("Request timed out. please refresh the page.")
         })
       },
       reportWork (result) {
