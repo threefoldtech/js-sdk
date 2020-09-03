@@ -29,7 +29,7 @@ class NetworkView:
         self.network_workloads = []
         self._fill_used_ips(self.workloads)
         self._init_network_workloads(self.workloads)
-        if len(self.network_workloads) > 0:
+        if self.network_workloads:
             self.iprange = self.network_workloads[0].network_iprange
         else:
             self.iprange = "can't be retrieved"
@@ -251,12 +251,32 @@ class ChatflowDeployer:
 
     def create_pool(self, bot):
         form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
-        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
+        cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
+        su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
+        time_unit = form.drop_down_choice(
+            "Please choose time unit to use for pool's time-to-live",
+            ["Day", "Month", "Year"],
+            required=True,
+            default="Month",
+        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
-        form.ask()
-        cu = cu.value
-        su = su.value
+        form.ask(
+            """Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""",
+            html=True,
+        )
+        ttl = ttl.value
+        time_unit = time_unit.value
+        if time_unit == "Day":
+            days = 1
+        elif time_unit == "Month":
+            days = 30
+        elif time_unit == "Year":
+            days = 365
+        else:
+            raise j.exceptions.Input("Invalid time unit")
+        cu = cu.value * 60 * 60 * 24 * days * ttl
+        su = su.value * 60 * 60 * 24 * days * ttl
         currencies = [currencies.value]
         all_farms = self._explorer.farms.list()
         available_farms = {}
@@ -287,20 +307,26 @@ class ChatflowDeployer:
             if location:
                 location = f" location: {location}"
             farm_messages[
-                f"{farm}{location} cru: {resources[0]} sru: {resources[1]} hru: {resources[2]} mru {resources[3]}"
+                f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
-        selected_farm = bot.single_choice("Please choose a farm", list(farm_messages.keys()), required=True)
+        selected_farm = bot.single_choice(
+            "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
+            list(farm_messages.keys()),
+            required=True,
+        )
         farm = farm_messages[selected_farm]
         try:
             pool_info = j.sals.zos.pools.create(cu, su, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
-        self.show_payment(pool_info, bot)
+        qr_code = self.show_payment(pool_info, bot)
+        self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=[], sru=None, cru=None, mru=None, hru=None):
+    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
+        currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
         available_sru = 0
@@ -342,29 +368,32 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app (QR code)")
+        wallet_names.append("External Wallet (QR Code)")
+        thecurrency = escrow_asset.split(":")[0]
         message = f"""
         <h3>Billing details:</h3><br>
         <b> Wallet address:</b>  {escrow_address}<br>
-        <b> Currency: </b>  {escrow_asset.split(':')[0]}<br>
-        <b> Total Amount: </b> {total_amount} {escrow_asset.split(':')[0]}<br>
-        <b> Transaction Fees:</b> 0.1 {escrow_asset.split(':')[0]}<br>
+        <b> Currency: </b>  {thecurrency}<br>
+        <b> Total Amount: </b> {total_amount} {thecurrency}<br>
+        <b> Transaction Fees:</b> 0.1 {thecurrency}<br>
         <br><hr><br>
-        <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
+        <h3> Choose a wallet name to use for payment or proceed with payment through External wallet (QR Code) </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
-        if result == "3Bot app (QR code)":
-            qr_code = (
-                f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
-            )
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        if result == "External Wallet (QR Code)":
             msg_text = f"""
-            <h3> Please make your payment </h3>
+            <h3>Make a Payment</h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
-            <h4> Wallet Address: </h4>  {escrow_address} \n
-            <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
-            <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
-            <h4> Total Amount: </h4> {total_amount} \n
+            <h4> Destination Wallet Address: </h4>  {escrow_address} \n
+            <h4> Currency: </h4>  {thecurrency} \n
+            <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+            <h4> Memo Text (Reservation ID): </h4>  p-{resv_id} \n
+
+            <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
+
+
             """
             bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         else:
@@ -372,6 +401,7 @@ class ChatflowDeployer:
             wallet.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}",
             )
+        return qr_code
 
     def extend_pool(self, bot, pool_id):
         form = bot.new_form()
@@ -386,16 +416,37 @@ class ChatflowDeployer:
                     break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
-        currencies = form.single_choice("Please choose the currency", assets, required=True)
+        time_unit = form.drop_down_choice(
+            "Please choose time unit to use for pool's time-to-live",
+            ["Day", "Month", "Year"],
+            required=True,
+            default="Month",
+        )
+        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
+        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
-        cu = cu.value
-        su = su.value
+        time_unit = time_unit.value
+        ttl = ttl.value
+        if time_unit == "Day":
+            days = 1
+        elif time_unit == "Month":
+            days = 30
+        elif time_unit == "Year":
+            days = 365
+        else:
+            raise j.exceptions.Input("Invalid time unit")
+        cu = cu.value * 60 * 60 * 24 * days * ttl
+        su = su.value * 60 * 60 * 24 * days * ttl
         currencies = [currencies.value]
         try:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
-        self.show_payment(pool_info, bot)
+        qr_code = self.show_payment(pool_info, bot)
+        pool = j.sals.zos.pools.get(pool_id)
+        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+        trigger_sus = pool.sus + (su * 0.75) if su else 0
+        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
     def list_pools(self, cu=None, su=None):
@@ -1037,7 +1088,7 @@ class ChatflowDeployer:
         pool_factory = StoredFactory(PoolConfig)
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
-                if len(gateway.dns_nameserver) < 1:
+                if not gateway.dns_nameserver:
                     continue
                 pool = available_node_ids[gateway.node_id]
                 hidden = False
@@ -1507,6 +1558,22 @@ class ChatflowDeployer:
         if not networks:
             raise StopChatFlow("You don't have any deployed networks. Please create one first.")
         bot.all_network_viewes = networks
+
+    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
+        expiration = j.data.time.now().timestamp + exp * 60
+        msg = "### Waiting for payment...\n\n"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
+            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
+        while j.data.time.get().timestamp < expiration:
+            bot.md_show_update(msg, md=True)
+            pool = j.sals.zos.pools.get(pool_id)
+            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+                bot.md_show_update("Preparing app resources")
+                return True
+            gevent.sleep(2)
+
+        return False
 
 
 deployer = ChatflowDeployer()

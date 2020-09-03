@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.packages.stellar_stats.bottle.stats_service API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.packages.stellar_stats.bottle.stats_service</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">#!/usr/bin/env python
+# pylint: disable=no-value-for-parameter
+
+from jumpscale.loader import j
+import click
+import stellar_sdk
+import datetime
+
+from urllib import parse
+
+
+_ASSET_ISUERS = {
+    &#34;test&#34;: {
+        &#34;TFT&#34;: &#34;GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3&#34;,
+        &#34;FreeTFT&#34;: &#34;GBLDUINEFYTF7XEE7YNWA3JQS4K2VD37YU7I2YAE7R5AHZDKQXSS2J6R&#34;,
+        &#34;TFTA&#34;: &#34;GB55A4RR4G2MIORJTQA4L6FENZU7K4W7ATGY6YOT2CW47M5SZYGYKSCT&#34;,
+    },
+    &#34;public&#34;: {
+        &#34;TFT&#34;: &#34;GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47&#34;,
+        &#34;FreeTFT&#34;: &#34;GCBGS5TFE2BPPUVY55ZPEMWWGR6CLQ7T6P46SOFGHXEBJ34MSP6HVEUT&#34;,
+        &#34;TFTA&#34;: &#34;GBUT4GP5GJ6B3XW5PXENHQA7TXJI5GOPW3NF4W3ZIW6OOO4ISY6WNLN2&#34;,
+    },
+}
+_HORIZON_NETWORKS = {&#34;test&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;public&#34;: &#34;https://horizon.stellar.org&#34;}
+_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {&#34;test&#34;: &#34;testnet.threefold.io&#34;, &#34;public&#34;: &#34;tokenservices.threefold.io&#34;}
+
+_NETWORK_PASSPHRASES = {
+    &#34;test&#34;: stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
+    &#34;public&#34;: stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
+}
+
+
+class StatisticsCollector(object):
+    &#34;&#34;&#34;
+    Gathers statistics on TFT, TFTA and FreeTFT.
+    Reuse an instance of this class to cache the locktimes of escrow accounts and speed up the detailed statistics gathering
+    &#34;&#34;&#34;
+
+    def __init__(self, network: str):
+        self._network = network
+        self.locked_accounts = {}
+
+    @property
+    def _horizon_server(self):
+        server_url = _HORIZON_NETWORKS[self._network]
+        return stellar_sdk.Server(horizon_url=server_url)
+
+    @property
+    def _network_passphrase(self):
+        return _NETWORK_PASSPHRASES[self._network]
+
+    def get_accounts(self, tokencode: str, issuer: str):
+        locked_accounts = []
+        horizon_server = self._horizon_server
+        asset = stellar_sdk.Asset(tokencode, issuer)
+        accounts_endpoint = horizon_server.accounts().for_asset(asset).limit(50)
+        old_cursor = &#34;old&#34;
+        new_cursor = &#34;&#34;
+        while new_cursor != old_cursor:
+            old_cursor = new_cursor
+            accounts_endpoint.cursor(new_cursor)
+            response = accounts_endpoint.call()
+            next_link = response[&#34;_links&#34;][&#34;next&#34;][&#34;href&#34;]
+            next_link_query = parse.urlsplit(next_link).query
+            new_cursor = parse.parse_qs(next_link_query)[&#34;cursor&#34;][0]
+            accounts = response[&#34;_embedded&#34;][&#34;records&#34;]
+            for account in accounts:
+                account_id = account[&#34;account_id&#34;]
+                preauth_signers = [signer[&#34;key&#34;] for signer in account[&#34;signers&#34;] if signer[&#34;type&#34;] == &#34;preauth_tx&#34;]
+                tokenbalances = [
+                    float(b[&#34;balance&#34;])
+                    for b in account[&#34;balances&#34;]
+                    if b[&#34;asset_type&#34;] == &#34;credit_alphanum4&#34;
+                    and b[&#34;asset_code&#34;] == tokencode
+                    and b[&#34;asset_issuer&#34;] == issuer
+                ]
+                tokenbalance = tokenbalances[0] if tokenbalances else 0
+                if len(preauth_signers) &gt; 0:
+                    locked_accounts.append(
+                        {&#34;account&#34;: account_id, &#34;amount&#34;: tokenbalance, &#34;preauth_signers&#34;: preauth_signers}
+                    )
+        return locked_accounts
+
+    def _get_url(self, endpoint):
+        url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[self._network]
+        if not j.sals.nettools.wait_connection_test(url, 443, 5):
+            raise j.exceptions.Timeout(f&#34;Can not connect to server {url}, connection timeout&#34;)
+        return f&#34;https://{url}{endpoint}&#34;
+
+    def _get_unlockhash_transaction(self, unlockhash):
+        data = {&#34;unlockhash&#34;: unlockhash}
+        resp = j.tools.http.post(
+            self._get_url(&#34;/threefoldfoundation/unlock_service/get_unlockhash_transaction&#34;), json={&#34;args&#34;: data}
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def lookup_lock_time(self, preauth_signer: str):
+        unlock_tx = self._get_unlockhash_transaction(unlockhash=preauth_signer)
+        if unlock_tx is None:
+            return None
+        txe = stellar_sdk.TransactionEnvelope.from_xdr(unlock_tx[&#34;transaction_xdr&#34;], self._network_passphrase)
+        tx = txe.transaction
+        if tx.time_bounds is not None:
+            return tx.time_bounds.min_time
+        return None
+
+    def getstatistics(self, tokencode: str, detailed: bool):
+        stats = {&#34;asset&#34;: tokencode}
+        horizon_server = self._horizon_server
+        asset_issuer = _ASSET_ISUERS[self._network][tokencode]
+        stats[&#34;issuer&#34;] = asset_issuer
+        response = horizon_server.assets().for_code(tokencode).for_issuer(asset_issuer).call()
+        record = response[&#34;_embedded&#34;][&#34;records&#34;][0]
+        stats[&#34;total&#34;] = float(record[&#34;amount&#34;])
+        stats[&#34;num_accounts&#34;] = record[&#34;num_accounts&#34;]
+        locked_accounts = self.get_accounts(tokencode, asset_issuer)
+        total_locked = 0.0
+        for locked_account in locked_accounts:
+            total_locked += locked_account[&#34;amount&#34;]
+        stats[&#34;total_locked&#34;] = total_locked
+        if not detailed:
+            return stats
+        amounts_per_locktime = {}
+        for locked_account in locked_accounts:
+            if locked_account[&#34;account&#34;] in self.locked_accounts:
+                locked_account[&#34;until&#34;] = self.locked_accounts[locked_account[&#34;account&#34;]][&#34;until&#34;]
+            else:
+                locked_account[&#34;until&#34;] = self.lookup_lock_time(locked_account[&#34;preauth_signers&#34;][0])
+                self.locked_accounts[locked_account[&#34;account&#34;]] = locked_account
+        for locked_account in locked_accounts:
+            amount = amounts_per_locktime.get(locked_account[&#34;until&#34;], 0.0)
+            amount += locked_account[&#34;amount&#34;]
+            amounts_per_locktime[locked_account[&#34;until&#34;]] = amount
+        locked_amounts = []
+        for until, amount in amounts_per_locktime.items():
+            locked_amounts.append({&#34;until&#34;: until, &#34;amount&#34;: amount})
+
+        def sort_key(a):
+            return a[&#34;until&#34;]
+
+        locked_amounts.sort(key=sort_key)
+        stats[&#34;locked&#34;] = locked_amounts
+        return stats
+
+
+@click.command(help=&#34;Statistics about TFT, TFTA and FreeTFT&#34;)
+@click.argument(&#34;tokencode&#34;, type=click.Choice([&#34;TFT&#34;, &#34;TFTA&#34;, &#34;FreeTFT&#34;]), default=&#34;TFT&#34;)
+@click.option(&#34;--network&#34;, type=click.Choice([&#34;test&#34;, &#34;public&#34;], case_sensitive=False), default=&#34;public&#34;)
+@click.option(&#34;--detailed/--not-detailed&#34;, default=False)
+def show_stats(tokencode, network, detailed):
+    print(f&#34;Statistics for {tokencode} on the {network} network&#34;)
+    collector = StatisticsCollector(network)
+    stats = collector.getstatistics(tokencode, detailed)
+    print(f&#34;Total amount of tokens: {stats[&#39;total&#39;]:,.7f}&#34;)
+    print(f&#34;Number of accounts: {stats[&#39;num_accounts&#39;]}&#34;)
+    print(f&#34;Amount of locked tokens: {stats[&#39;total_locked&#39;]:,.7f}&#34;)
+    if detailed:
+        for locked_amount in stats[&#34;locked&#34;]:
+            print(
+                f&#34;{locked_amount[&#39;amount&#39;]:,.7f} locked until {datetime.datetime.fromtimestamp(locked_amount[&#39;until&#39;])}&#34;
+            )
+
+
+if __name__ == &#34;__main__&#34;:
+    show_stats()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector"><code class="flex name class">
+<span>class <span class="ident">StatisticsCollector</span></span>
+<span>(</span><span>network)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gathers statistics on TFT, TFTA and FreeTFT.
+Reuse an instance of this class to cache the locktimes of escrow accounts and speed up the detailed statistics gathering</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class StatisticsCollector(object):
+    &#34;&#34;&#34;
+    Gathers statistics on TFT, TFTA and FreeTFT.
+    Reuse an instance of this class to cache the locktimes of escrow accounts and speed up the detailed statistics gathering
+    &#34;&#34;&#34;
+
+    def __init__(self, network: str):
+        self._network = network
+        self.locked_accounts = {}
+
+    @property
+    def _horizon_server(self):
+        server_url = _HORIZON_NETWORKS[self._network]
+        return stellar_sdk.Server(horizon_url=server_url)
+
+    @property
+    def _network_passphrase(self):
+        return _NETWORK_PASSPHRASES[self._network]
+
+    def get_accounts(self, tokencode: str, issuer: str):
+        locked_accounts = []
+        horizon_server = self._horizon_server
+        asset = stellar_sdk.Asset(tokencode, issuer)
+        accounts_endpoint = horizon_server.accounts().for_asset(asset).limit(50)
+        old_cursor = &#34;old&#34;
+        new_cursor = &#34;&#34;
+        while new_cursor != old_cursor:
+            old_cursor = new_cursor
+            accounts_endpoint.cursor(new_cursor)
+            response = accounts_endpoint.call()
+            next_link = response[&#34;_links&#34;][&#34;next&#34;][&#34;href&#34;]
+            next_link_query = parse.urlsplit(next_link).query
+            new_cursor = parse.parse_qs(next_link_query)[&#34;cursor&#34;][0]
+            accounts = response[&#34;_embedded&#34;][&#34;records&#34;]
+            for account in accounts:
+                account_id = account[&#34;account_id&#34;]
+                preauth_signers = [signer[&#34;key&#34;] for signer in account[&#34;signers&#34;] if signer[&#34;type&#34;] == &#34;preauth_tx&#34;]
+                tokenbalances = [
+                    float(b[&#34;balance&#34;])
+                    for b in account[&#34;balances&#34;]
+                    if b[&#34;asset_type&#34;] == &#34;credit_alphanum4&#34;
+                    and b[&#34;asset_code&#34;] == tokencode
+                    and b[&#34;asset_issuer&#34;] == issuer
+                ]
+                tokenbalance = tokenbalances[0] if tokenbalances else 0
+                if len(preauth_signers) &gt; 0:
+                    locked_accounts.append(
+                        {&#34;account&#34;: account_id, &#34;amount&#34;: tokenbalance, &#34;preauth_signers&#34;: preauth_signers}
+                    )
+        return locked_accounts
+
+    def _get_url(self, endpoint):
+        url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[self._network]
+        if not j.sals.nettools.wait_connection_test(url, 443, 5):
+            raise j.exceptions.Timeout(f&#34;Can not connect to server {url}, connection timeout&#34;)
+        return f&#34;https://{url}{endpoint}&#34;
+
+    def _get_unlockhash_transaction(self, unlockhash):
+        data = {&#34;unlockhash&#34;: unlockhash}
+        resp = j.tools.http.post(
+            self._get_url(&#34;/threefoldfoundation/unlock_service/get_unlockhash_transaction&#34;), json={&#34;args&#34;: data}
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def lookup_lock_time(self, preauth_signer: str):
+        unlock_tx = self._get_unlockhash_transaction(unlockhash=preauth_signer)
+        if unlock_tx is None:
+            return None
+        txe = stellar_sdk.TransactionEnvelope.from_xdr(unlock_tx[&#34;transaction_xdr&#34;], self._network_passphrase)
+        tx = txe.transaction
+        if tx.time_bounds is not None:
+            return tx.time_bounds.min_time
+        return None
+
+    def getstatistics(self, tokencode: str, detailed: bool):
+        stats = {&#34;asset&#34;: tokencode}
+        horizon_server = self._horizon_server
+        asset_issuer = _ASSET_ISUERS[self._network][tokencode]
+        stats[&#34;issuer&#34;] = asset_issuer
+        response = horizon_server.assets().for_code(tokencode).for_issuer(asset_issuer).call()
+        record = response[&#34;_embedded&#34;][&#34;records&#34;][0]
+        stats[&#34;total&#34;] = float(record[&#34;amount&#34;])
+        stats[&#34;num_accounts&#34;] = record[&#34;num_accounts&#34;]
+        locked_accounts = self.get_accounts(tokencode, asset_issuer)
+        total_locked = 0.0
+        for locked_account in locked_accounts:
+            total_locked += locked_account[&#34;amount&#34;]
+        stats[&#34;total_locked&#34;] = total_locked
+        if not detailed:
+            return stats
+        amounts_per_locktime = {}
+        for locked_account in locked_accounts:
+            if locked_account[&#34;account&#34;] in self.locked_accounts:
+                locked_account[&#34;until&#34;] = self.locked_accounts[locked_account[&#34;account&#34;]][&#34;until&#34;]
+            else:
+                locked_account[&#34;until&#34;] = self.lookup_lock_time(locked_account[&#34;preauth_signers&#34;][0])
+                self.locked_accounts[locked_account[&#34;account&#34;]] = locked_account
+        for locked_account in locked_accounts:
+            amount = amounts_per_locktime.get(locked_account[&#34;until&#34;], 0.0)
+            amount += locked_account[&#34;amount&#34;]
+            amounts_per_locktime[locked_account[&#34;until&#34;]] = amount
+        locked_amounts = []
+        for until, amount in amounts_per_locktime.items():
+            locked_amounts.append({&#34;until&#34;: until, &#34;amount&#34;: amount})
+
+        def sort_key(a):
+            return a[&#34;until&#34;]
+
+        locked_amounts.sort(key=sort_key)
+        stats[&#34;locked&#34;] = locked_amounts
+        return stats</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.get_accounts"><code class="name flex">
+<span>def <span class="ident">get_accounts</span></span>(<span>self, tokencode, issuer)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_accounts(self, tokencode: str, issuer: str):
+    locked_accounts = []
+    horizon_server = self._horizon_server
+    asset = stellar_sdk.Asset(tokencode, issuer)
+    accounts_endpoint = horizon_server.accounts().for_asset(asset).limit(50)
+    old_cursor = &#34;old&#34;
+    new_cursor = &#34;&#34;
+    while new_cursor != old_cursor:
+        old_cursor = new_cursor
+        accounts_endpoint.cursor(new_cursor)
+        response = accounts_endpoint.call()
+        next_link = response[&#34;_links&#34;][&#34;next&#34;][&#34;href&#34;]
+        next_link_query = parse.urlsplit(next_link).query
+        new_cursor = parse.parse_qs(next_link_query)[&#34;cursor&#34;][0]
+        accounts = response[&#34;_embedded&#34;][&#34;records&#34;]
+        for account in accounts:
+            account_id = account[&#34;account_id&#34;]
+            preauth_signers = [signer[&#34;key&#34;] for signer in account[&#34;signers&#34;] if signer[&#34;type&#34;] == &#34;preauth_tx&#34;]
+            tokenbalances = [
+                float(b[&#34;balance&#34;])
+                for b in account[&#34;balances&#34;]
+                if b[&#34;asset_type&#34;] == &#34;credit_alphanum4&#34;
+                and b[&#34;asset_code&#34;] == tokencode
+                and b[&#34;asset_issuer&#34;] == issuer
+            ]
+            tokenbalance = tokenbalances[0] if tokenbalances else 0
+            if len(preauth_signers) &gt; 0:
+                locked_accounts.append(
+                    {&#34;account&#34;: account_id, &#34;amount&#34;: tokenbalance, &#34;preauth_signers&#34;: preauth_signers}
+                )
+    return locked_accounts</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.getstatistics"><code class="name flex">
+<span>def <span class="ident">getstatistics</span></span>(<span>self, tokencode, detailed)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getstatistics(self, tokencode: str, detailed: bool):
+    stats = {&#34;asset&#34;: tokencode}
+    horizon_server = self._horizon_server
+    asset_issuer = _ASSET_ISUERS[self._network][tokencode]
+    stats[&#34;issuer&#34;] = asset_issuer
+    response = horizon_server.assets().for_code(tokencode).for_issuer(asset_issuer).call()
+    record = response[&#34;_embedded&#34;][&#34;records&#34;][0]
+    stats[&#34;total&#34;] = float(record[&#34;amount&#34;])
+    stats[&#34;num_accounts&#34;] = record[&#34;num_accounts&#34;]
+    locked_accounts = self.get_accounts(tokencode, asset_issuer)
+    total_locked = 0.0
+    for locked_account in locked_accounts:
+        total_locked += locked_account[&#34;amount&#34;]
+    stats[&#34;total_locked&#34;] = total_locked
+    if not detailed:
+        return stats
+    amounts_per_locktime = {}
+    for locked_account in locked_accounts:
+        if locked_account[&#34;account&#34;] in self.locked_accounts:
+            locked_account[&#34;until&#34;] = self.locked_accounts[locked_account[&#34;account&#34;]][&#34;until&#34;]
+        else:
+            locked_account[&#34;until&#34;] = self.lookup_lock_time(locked_account[&#34;preauth_signers&#34;][0])
+            self.locked_accounts[locked_account[&#34;account&#34;]] = locked_account
+    for locked_account in locked_accounts:
+        amount = amounts_per_locktime.get(locked_account[&#34;until&#34;], 0.0)
+        amount += locked_account[&#34;amount&#34;]
+        amounts_per_locktime[locked_account[&#34;until&#34;]] = amount
+    locked_amounts = []
+    for until, amount in amounts_per_locktime.items():
+        locked_amounts.append({&#34;until&#34;: until, &#34;amount&#34;: amount})
+
+    def sort_key(a):
+        return a[&#34;until&#34;]
+
+    locked_amounts.sort(key=sort_key)
+    stats[&#34;locked&#34;] = locked_amounts
+    return stats</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.lookup_lock_time"><code class="name flex">
+<span>def <span class="ident">lookup_lock_time</span></span>(<span>self, preauth_signer)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def lookup_lock_time(self, preauth_signer: str):
+    unlock_tx = self._get_unlockhash_transaction(unlockhash=preauth_signer)
+    if unlock_tx is None:
+        return None
+    txe = stellar_sdk.TransactionEnvelope.from_xdr(unlock_tx[&#34;transaction_xdr&#34;], self._network_passphrase)
+    tx = txe.transaction
+    if tx.time_bounds is not None:
+        return tx.time_bounds.min_time
+    return None</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.packages.stellar_stats.bottle" href="index.html">jumpscale.packages.stellar_stats.bottle</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector" href="#jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector">StatisticsCollector</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.get_accounts" href="#jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.get_accounts">get_accounts</a></code></li>
+<li><code><a title="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.getstatistics" href="#jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.getstatistics">getstatistics</a></code></li>
+<li><code><a title="jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.lookup_lock_time" href="#jumpscale.packages.stellar_stats.bottle.stats_service.StatisticsCollector.lookup_lock_time">lookup_lock_time</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

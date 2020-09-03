@@ -148,7 +148,8 @@ module.exports = {
             workload.state = Workload_STATE[workload.info.result.state];
             workload.message = workload.info.result.message;
             // convert date
-            workload.epoch = new Date(workload.epoch * 1000).toLocaleString();
+            workload["Creation Date"] = new Date(workload.epoch * 1000).toLocaleString();
+            delete workload["epoch"];
             // convert vloume type
             if (workload.workload_type === "Volume")
               workload.type = VOLUMES_TYPE[workload.type];

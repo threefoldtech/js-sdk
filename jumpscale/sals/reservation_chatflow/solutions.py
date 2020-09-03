@@ -15,15 +15,20 @@ class ChatflowSolutions:
         if not sync and not networks:
             networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=False)
         result = []
+        nodes = {}
+        farms = {}
+        if networks:
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
         for n in networks.values():
-            if len(n.network_workloads) == 0:
+            if not n.network_workloads:
                 continue
             result.append(
                 {
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
                     "nodes": {
-                        res.info.node_id: f"{res.iprange} {self.get_node_farm(res.info.node_id)}"
+                        res.info.node_id: f"{res.iprange} {farms.get(nodes.get(res.info.node_id))}"
                         for res in n.network_workloads
                     },
                     "wids": [res.id for res in n.network_workloads],
@@ -129,22 +134,22 @@ class ChatflowSolutions:
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
                     if name in result:
-                        if len(workload.master_ips) != 0:
+                        if workload.master_ips:
                             result[name]["wids"].append(workload.id)
                             result[name]["Slave IPs"].append(workload.ipaddress)
                             result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
-                    result[f"{name}"] = {
+                    result[name] = {
                         "wids": [workload.id],
                         "Name": name,
                         "Network": workload.network_id,
-                        "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
+                        "Master IP": workload.ipaddress if not workload.master_ips else workload.master_ips[0],
                         "Slave IPs": [],
                         "Slave Pools": [],
                         "Master Pool": workload.info.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
-                    if len(workload.master_ips) != 0:
+                    if workload.master_ips:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 

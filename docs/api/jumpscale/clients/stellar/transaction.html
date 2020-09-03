@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.stellar.transaction API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.stellar.transaction</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from .balance import Balance
+import decimal, base64, binascii
+
+
+class TransactionSummary:
+    def __init__(self, hash, memo_text=None, memo_hash=None, created_at=None):
+        self.hash = hash
+        self.memo_text = memo_text
+        self.memo_hash = memo_hash
+        self.created_at = created_at
+
+    @property
+    def memo_hash_as_hex(self):
+        if not self.memo_hash:
+            return None
+        return binascii.hexlify(base64.b64decode(self.memo_hash)).decode(&#34;utf-8&#34;)
+
+    @staticmethod
+    def from_horizon_response(response_transaction):
+        hash = response_transaction[&#34;hash&#34;]
+        created_at = response_transaction[&#34;created_at&#34;]
+        memo_text = None
+        memo_hash = None
+        if &#34;memo&#34; in response_transaction:
+            if response_transaction[&#34;memo_type&#34;] == &#34;text&#34;:
+                memo_text = response_transaction[&#34;memo&#34;]
+            if response_transaction[&#34;memo_type&#34;] == &#34;hash&#34;:
+                memo_hash = response_transaction[&#34;memo&#34;]
+        return TransactionSummary(hash, memo_text, memo_hash, created_at)
+
+    def __str__(self):
+        representation = f&#34;{self.hash} created at {self.created_at}&#34;
+        if self.memo_text is not None:
+            representation += f&#34; with memo text &#39;{self.memo_text}&#39;&#34;
+        if self.memo_hash is not None:
+            representation += f&#34; with memo hash &#39;{self.memo_hash}&#39;&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)
+
+
+class Effect:
+    def __init__(self, amount=0.0, asset_code=&#34;XLM&#34;, asset_issuer=None):
+        self.amount = amount
+        self.asset_code = asset_code
+        self.asset_issuer = asset_issuer
+
+    @staticmethod
+    def from_horizon_response(response_effect):
+        amount = decimal.Decimal(response_effect[&#34;amount&#34;])
+        if response_effect[&#34;asset_type&#34;] == &#34;native&#34;:
+            asset_code = &#34;XLM&#34;
+            asset_issuer = None
+        else:
+            asset_code = response_effect[&#34;asset_code&#34;]
+            asset_issuer = response_effect[&#34;asset_issuer&#34;]
+        if &#34;type&#34; in response_effect and response_effect[&#34;type&#34;] == &#34;account_debited&#34;:
+            amount = -amount
+        return Effect(amount, asset_code, asset_issuer)
+
+    def __str__(self):
+        balance = Balance(self.amount, self.asset_code, self.asset_issuer)
+        representation = str(balance)
+        return representation
+
+    def __repr__(self):
+        return str(self)
+
+
+class PaymentSummary(object):
+    def __init__(
+        self,
+        transaction_hash,
+        balance: Balance,
+        payment_type: str,
+        created_at,
+        from_address: str,
+        to_address: str,
+        my_address: str,
+    ):
+        self.balance = balance
+        self.created_at = created_at
+        self.from_address = from_address
+        self.to_address = to_address
+        self.payment_type = payment_type
+        self.transaction_hash = transaction_hash
+        self.my_address = my_address
+
+    @staticmethod
+    def from_horizon_response(response_payment, my_address: str):
+        transaction_hash = response_payment[&#34;transaction_hash&#34;]
+        created_at = response_payment[&#34;created_at&#34;]
+        payment_type = response_payment[&#34;type&#34;]
+
+        if payment_type == &#34;create_account&#34;:
+            return PaymentSummary(
+                transaction_hash,
+                Balance(response_payment[&#34;starting_balance&#34;]),
+                payment_type,
+                created_at,
+                response_payment[&#34;funder&#34;],
+                response_payment[&#34;account&#34;],
+                my_address,
+            )
+
+        if payment_type == &#34;account_merge&#34;:
+            return PaymentSummary(
+                transaction_hash,
+                None,
+                payment_type,
+                created_at,
+                response_payment[&#34;account&#34;],
+                response_payment[&#34;into&#34;],
+                my_address,
+            )
+
+        balance = Balance(response_payment[&#34;amount&#34;])
+        if response_payment[&#34;asset_type&#34;] != &#34;native&#34;:
+            balance.asset_code = response_payment[&#34;asset_code&#34;]
+            balance.asset_issuer = response_payment[&#34;asset_issuer&#34;]
+        return PaymentSummary(
+            transaction_hash,
+            balance,
+            payment_type,
+            created_at,
+            response_payment[&#34;from&#34;],
+            response_payment[&#34;to&#34;],
+            my_address,
+        )
+
+    def __str__(self):
+        if self.payment_type == &#34;create_account&#34;:
+            if self.to_address == self.my_address:
+                representation = f&#34;Account created with {self.balance} by {self.from_address}&#34;
+            else:
+                representation = f&#34;Created account {self.to_address} with {self.balance}&#34;
+        elif self.payment_type == &#34;account_merge&#34;:
+            representation = f&#34;Account {self.from_address} merged&#34;
+        else:
+            if self.to_address == self.my_address:
+                representation = f&#34;{self.balance} received from {self.from_address}&#34;
+            else:
+                representation = f&#34;{self.balance} sent to {self.to_address}&#34;
+
+        representation += f&#34; at {self.created_at} tx: {self.transaction_hash}&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.clients.stellar.transaction.Effect"><code class="flex name class">
+<span>class <span class="ident">Effect</span></span>
+<span>(</span><span>amount=0.0, asset_code='XLM', asset_issuer=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Effect:
+    def __init__(self, amount=0.0, asset_code=&#34;XLM&#34;, asset_issuer=None):
+        self.amount = amount
+        self.asset_code = asset_code
+        self.asset_issuer = asset_issuer
+
+    @staticmethod
+    def from_horizon_response(response_effect):
+        amount = decimal.Decimal(response_effect[&#34;amount&#34;])
+        if response_effect[&#34;asset_type&#34;] == &#34;native&#34;:
+            asset_code = &#34;XLM&#34;
+            asset_issuer = None
+        else:
+            asset_code = response_effect[&#34;asset_code&#34;]
+            asset_issuer = response_effect[&#34;asset_issuer&#34;]
+        if &#34;type&#34; in response_effect and response_effect[&#34;type&#34;] == &#34;account_debited&#34;:
+            amount = -amount
+        return Effect(amount, asset_code, asset_issuer)
+
+    def __str__(self):
+        balance = Balance(self.amount, self.asset_code, self.asset_issuer)
+        representation = str(balance)
+        return representation
+
+    def __repr__(self):
+        return str(self)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="jumpscale.clients.stellar.transaction.Effect.from_horizon_response"><code class="name flex">
+<span>def <span class="ident">from_horizon_response</span></span>(<span>response_effect)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@staticmethod
+def from_horizon_response(response_effect):
+    amount = decimal.Decimal(response_effect[&#34;amount&#34;])
+    if response_effect[&#34;asset_type&#34;] == &#34;native&#34;:
+        asset_code = &#34;XLM&#34;
+        asset_issuer = None
+    else:
+        asset_code = response_effect[&#34;asset_code&#34;]
+        asset_issuer = response_effect[&#34;asset_issuer&#34;]
+    if &#34;type&#34; in response_effect and response_effect[&#34;type&#34;] == &#34;account_debited&#34;:
+        amount = -amount
+    return Effect(amount, asset_code, asset_issuer)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.clients.stellar.transaction.PaymentSummary"><code class="flex name class">
+<span>class <span class="ident">PaymentSummary</span></span>
+<span>(</span><span>transaction_hash, balance, payment_type, created_at, from_address, to_address, my_address)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class PaymentSummary(object):
+    def __init__(
+        self,
+        transaction_hash,
+        balance: Balance,
+        payment_type: str,
+        created_at,
+        from_address: str,
+        to_address: str,
+        my_address: str,
+    ):
+        self.balance = balance
+        self.created_at = created_at
+        self.from_address = from_address
+        self.to_address = to_address
+        self.payment_type = payment_type
+        self.transaction_hash = transaction_hash
+        self.my_address = my_address
+
+    @staticmethod
+    def from_horizon_response(response_payment, my_address: str):
+        transaction_hash = response_payment[&#34;transaction_hash&#34;]
+        created_at = response_payment[&#34;created_at&#34;]
+        payment_type = response_payment[&#34;type&#34;]
+
+        if payment_type == &#34;create_account&#34;:
+            return PaymentSummary(
+                transaction_hash,
+                Balance(response_payment[&#34;starting_balance&#34;]),
+                payment_type,
+                created_at,
+                response_payment[&#34;funder&#34;],
+                response_payment[&#34;account&#34;],
+                my_address,
+            )
+
+        if payment_type == &#34;account_merge&#34;:
+            return PaymentSummary(
+                transaction_hash,
+                None,
+                payment_type,
+                created_at,
+                response_payment[&#34;account&#34;],
+                response_payment[&#34;into&#34;],
+                my_address,
+            )
+
+        balance = Balance(response_payment[&#34;amount&#34;])
+        if response_payment[&#34;asset_type&#34;] != &#34;native&#34;:
+            balance.asset_code = response_payment[&#34;asset_code&#34;]
+            balance.asset_issuer = response_payment[&#34;asset_issuer&#34;]
+        return PaymentSummary(
+            transaction_hash,
+            balance,
+            payment_type,
+            created_at,
+            response_payment[&#34;from&#34;],
+            response_payment[&#34;to&#34;],
+            my_address,
+        )
+
+    def __str__(self):
+        if self.payment_type == &#34;create_account&#34;:
+            if self.to_address == self.my_address:
+                representation = f&#34;Account created with {self.balance} by {self.from_address}&#34;
+            else:
+                representation = f&#34;Created account {self.to_address} with {self.balance}&#34;
+        elif self.payment_type == &#34;account_merge&#34;:
+            representation = f&#34;Account {self.from_address} merged&#34;
+        else:
+            if self.to_address == self.my_address:
+                representation = f&#34;{self.balance} received from {self.from_address}&#34;
+            else:
+                representation = f&#34;{self.balance} sent to {self.to_address}&#34;
+
+        representation += f&#34; at {self.created_at} tx: {self.transaction_hash}&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="jumpscale.clients.stellar.transaction.PaymentSummary.from_horizon_response"><code class="name flex">
+<span>def <span class="ident">from_horizon_response</span></span>(<span>response_payment, my_address)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@staticmethod
+def from_horizon_response(response_payment, my_address: str):
+    transaction_hash = response_payment[&#34;transaction_hash&#34;]
+    created_at = response_payment[&#34;created_at&#34;]
+    payment_type = response_payment[&#34;type&#34;]
+
+    if payment_type == &#34;create_account&#34;:
+        return PaymentSummary(
+            transaction_hash,
+            Balance(response_payment[&#34;starting_balance&#34;]),
+            payment_type,
+            created_at,
+            response_payment[&#34;funder&#34;],
+            response_payment[&#34;account&#34;],
+            my_address,
+        )
+
+    if payment_type == &#34;account_merge&#34;:
+        return PaymentSummary(
+            transaction_hash,
+            None,
+            payment_type,
+            created_at,
+            response_payment[&#34;account&#34;],
+            response_payment[&#34;into&#34;],
+            my_address,
+        )
+
+    balance = Balance(response_payment[&#34;amount&#34;])
+    if response_payment[&#34;asset_type&#34;] != &#34;native&#34;:
+        balance.asset_code = response_payment[&#34;asset_code&#34;]
+        balance.asset_issuer = response_payment[&#34;asset_issuer&#34;]
+    return PaymentSummary(
+        transaction_hash,
+        balance,
+        payment_type,
+        created_at,
+        response_payment[&#34;from&#34;],
+        response_payment[&#34;to&#34;],
+        my_address,
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.clients.stellar.transaction.TransactionSummary"><code class="flex name class">
+<span>class <span class="ident">TransactionSummary</span></span>
+<span>(</span><span>hash, memo_text=None, memo_hash=None, created_at=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class TransactionSummary:
+    def __init__(self, hash, memo_text=None, memo_hash=None, created_at=None):
+        self.hash = hash
+        self.memo_text = memo_text
+        self.memo_hash = memo_hash
+        self.created_at = created_at
+
+    @property
+    def memo_hash_as_hex(self):
+        if not self.memo_hash:
+            return None
+        return binascii.hexlify(base64.b64decode(self.memo_hash)).decode(&#34;utf-8&#34;)
+
+    @staticmethod
+    def from_horizon_response(response_transaction):
+        hash = response_transaction[&#34;hash&#34;]
+        created_at = response_transaction[&#34;created_at&#34;]
+        memo_text = None
+        memo_hash = None
+        if &#34;memo&#34; in response_transaction:
+            if response_transaction[&#34;memo_type&#34;] == &#34;text&#34;:
+                memo_text = response_transaction[&#34;memo&#34;]
+            if response_transaction[&#34;memo_type&#34;] == &#34;hash&#34;:
+                memo_hash = response_transaction[&#34;memo&#34;]
+        return TransactionSummary(hash, memo_text, memo_hash, created_at)
+
+    def __str__(self):
+        representation = f&#34;{self.hash} created at {self.created_at}&#34;
+        if self.memo_text is not None:
+            representation += f&#34; with memo text &#39;{self.memo_text}&#39;&#34;
+        if self.memo_hash is not None:
+            representation += f&#34; with memo hash &#39;{self.memo_hash}&#39;&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="jumpscale.clients.stellar.transaction.TransactionSummary.from_horizon_response"><code class="name flex">
+<span>def <span class="ident">from_horizon_response</span></span>(<span>response_transaction)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@staticmethod
+def from_horizon_response(response_transaction):
+    hash = response_transaction[&#34;hash&#34;]
+    created_at = response_transaction[&#34;created_at&#34;]
+    memo_text = None
+    memo_hash = None
+    if &#34;memo&#34; in response_transaction:
+        if response_transaction[&#34;memo_type&#34;] == &#34;text&#34;:
+            memo_text = response_transaction[&#34;memo&#34;]
+        if response_transaction[&#34;memo_type&#34;] == &#34;hash&#34;:
+            memo_hash = response_transaction[&#34;memo&#34;]
+    return TransactionSummary(hash, memo_text, memo_hash, created_at)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.stellar.transaction.TransactionSummary.memo_hash_as_hex"><code class="name">var <span class="ident">memo_hash_as_hex</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def memo_hash_as_hex(self):
+    if not self.memo_hash:
+        return None
+    return binascii.hexlify(base64.b64decode(self.memo_hash)).decode(&#34;utf-8&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients.stellar" href="index.html">jumpscale.clients.stellar</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.clients.stellar.transaction.Effect" href="#jumpscale.clients.stellar.transaction.Effect">Effect</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.stellar.transaction.Effect.from_horizon_response" href="#jumpscale.clients.stellar.transaction.Effect.from_horizon_response">from_horizon_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.stellar.transaction.PaymentSummary" href="#jumpscale.clients.stellar.transaction.PaymentSummary">PaymentSummary</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.stellar.transaction.PaymentSummary.from_horizon_response" href="#jumpscale.clients.stellar.transaction.PaymentSummary.from_horizon_response">from_horizon_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.stellar.transaction.TransactionSummary" href="#jumpscale.clients.stellar.transaction.TransactionSummary">TransactionSummary</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.stellar.transaction.TransactionSummary.from_horizon_response" href="#jumpscale.clients.stellar.transaction.TransactionSummary.from_horizon_response">from_horizon_response</a></code></li>
+<li><code><a title="jumpscale.clients.stellar.transaction.TransactionSummary.memo_hash_as_hex" href="#jumpscale.clients.stellar.transaction.TransactionSummary.memo_hash_as_hex">memo_hash_as_hex</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

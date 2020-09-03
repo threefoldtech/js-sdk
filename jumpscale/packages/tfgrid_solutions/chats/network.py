@@ -18,6 +18,7 @@ class NetworkDeploy(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def welcome(self):
+        self.md_show_update("Initializing chatflow...")
         deployer.chatflow_pools_check()
         if solutions.list_network_solutions():
             self.action = self.single_choice(

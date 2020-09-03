@@ -213,10 +213,13 @@ class ReservationChatflow:
     def __init__(self, **kwargs):
         """This class is responsible for managing, creating, cancelling reservations
         """
-        self.me = j.core.identity.me
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
+
+    @property
+    def me(self):
+        return j.core.identity.me
 
     @property
     def _explorer(self):
@@ -528,7 +531,7 @@ class ReservationChatflow:
         payment_details = self.get_payment_details(escrow_info, escrow_asset.split(":")[0])
 
         message_text = f"""
-        <h3> Please make your payment </h3>
+        <h3>Make a Payment</h3>
         Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         <p>If no payment is made {remaning_time} the reservation will be canceled</p>
 
@@ -600,7 +603,7 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3Bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of External wallet (QR code) is shown
         where a QR code is viewed for the user to scan and continue with their payment
 
         Args:
@@ -626,7 +629,7 @@ class ReservationChatflow:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app")
+        wallet_names.append("External Wallet (QR Code)")
 
         payment_details = self.get_payment_details(escrow_info, currency)
 
@@ -635,7 +638,7 @@ class ReservationChatflow:
         <h4> Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
         <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+        <h4> Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) </h4>
         """
         retry = False
         while True:
@@ -645,7 +648,7 @@ class ReservationChatflow:
             if result not in wallet_names:
                 retry = True
                 continue
-            if result == "3Bot app":
+            if result == "External Wallet (QR Code)":
                 reservation = self._explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
@@ -654,7 +657,7 @@ class ReservationChatflow:
                     escrow_address=escrow_address,
                     escrow_asset=escrow_asset,
                     total_amount=total_amount,
-                    payment_source="3bot app",
+                    payment_source="external_wallet",
                     farmer_payments=escrow_info["farmer_payments"],
                 )
                 return payment, payment_obj
@@ -683,7 +686,7 @@ class ReservationChatflow:
                 <h4> Wallet address: </h4>  {escrow_address} \n
                 <h4> Currency: </h4>  {escrow_asset} \n
                 <h4> Payment details: </h4> {payment_details} \n
-                <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+                <h4> Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) </h4>
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):

@@ -1,0 +1,3498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.sals.fs API documentation</title>
+<meta name="description" content="This module is providing everything needed for decent filesystem management
+Using System Fs …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.sals.fs</code></h1>
+</header>
+<section id="section-intro">
+<p>This module is providing everything needed for decent filesystem management</p>
+<h1 id="using-system-fs">Using System Fs</h1>
+<p>Manipulating filesystem is one of the most common things in the daily life of a developer, administrator, .. etc. js-ng comes with tons of helpers and utilities around that in <code>j.sals.fs</code>. You will find the module already self documented with lots of examples in each function.</p>
+<h3 id="get-current-working-dir">Get current working dir</h3>
+<pre><code>&gt; j.sals.fs.cwd()
+'/home/xmonader/wspace/threefoldtech/js-ng'
+</code></pre>
+<h3 id="get-basename">Get basename</h3>
+<pre><code>&gt; j.sals.fs.basename(j.sals.fs.cwd())
+'js-ng'
+</code></pre>
+<h3 id="get-dir-name">Get Dir name</h3>
+<pre><code>&gt; j.sals.fs.dirname(j.sals.fs.cwd())
+'/home/xmonader/wspace/threefoldtech'
+&gt; j.sals.fs.parent(j.sals.fs.cwd())
+'/home/xmonader/wspace/threefoldtech'
+</code></pre>
+<h3 id="is-dir">is dir</h3>
+<pre><code>&gt; j.sals.fs.is_dir(path= '/home/rafy')
+True
+</code></pre>
+<h3 id="is-file">is file</h3>
+<pre><code>&gt; j.sals.fs.is_file(path= '/home/rafy')
+False
+</code></pre>
+<h3 id="is-ascii-file">is ascii file</h3>
+<pre><code>&gt; j.sals.fs.is_ascii_file(path=&quot;/home/rafy/testfile&quot;)
+True
+</code></pre>
+<h3 id="is-absolute-path">Is absolute path</h3>
+<pre><code>&gt; j.sals.fs.is_absolute('/home/rafy/')
+True
+</code></pre>
+<h3 id="check-if-empty-dir">Check if empty dir</h3>
+<pre><code>&gt; j.sals.fs.is_empty_dir(&quot;/home/rafy/empty_dir&quot;)
+True
+</code></pre>
+<h3 id="file-paths-exists-or-not">File paths exists or not</h3>
+<pre><code>&gt; j.sals.fs.exists(&quot;/home/rafy/testing_make_dir/test1&quot;)
+True
+</code></pre>
+<h2 id="readingwriting-to-a-file">Reading/Writing to a file</h2>
+<p>There're some helpers around reading/writing text, binary like <code>read_text</code>, <code>read_binary</code>, <code>read_file</code>, <code>write_text</code>, <code>write_binary</code>, <code>touch</code></p>
+<h3 id="touching-a-new-file">Touching a new file</h3>
+<pre><code>&gt; j.sals.fs.touch(&quot;/home/rafy/testing_touch&quot;)
+</code></pre>
+<h3 id="reading-a-text">Reading a text</h3>
+<pre><code>&gt; j.sals.fs.read_text(&quot;/home/rafy/testing_text.txt&quot;)
+'hello world
+'
+
+</code></pre>
+<h3 id="reading-binary">Reading binary</h3>
+<pre><code>&gt; j.sals.fs.read_bytes(&quot;/home/rafy/testing_text.txt&quot;)
+b'hello world
+'
+</code></pre>
+<h3 id="writing-text">Writing text</h3>
+<pre><code>&gt; j.sals.fs.write_text(path=&quot;/home/rafy/testing_text.txt&quot;,data=&quot;hello world&quot;)
+11
+</code></pre>
+<h3 id="writing-binary">Writing binary</h3>
+<pre><code>&gt; j.sals.fs.write_bytes(path=&quot;/home/rafy/testing_text.txt&quot;,data=b&quot;hello world&quot;)
+11
+</code></pre>
+<p>rename, move, copy_file, copy_tree, mkdir, mkdirs, join_paths, , rmtree, rm_empty_dir, symlink, chmod, chown, basename, dirname, normalizing paths, expanding <code>~</code></p>
+<h3 id="making-directories">Making directories</h3>
+<pre><code>&gt; j.sals.fs.mkdirs(&quot;/home/rafy/testing_make_dir/test1/test2&quot;,exist_ok=False)
+</code></pre>
+<p>will raise if in case the directory already exists</p>
+<pre><code>&gt; j.sals.fs.mkdirs(&quot;/home/rafy/testing_make_dir/test1/test2&quot;,exist_ok=True)
+</code></pre>
+<p>Won't raise if the directory exists</p>
+<h3 id="get-the-stem-of-the-filepath">Get the stem of the filepath</h3>
+<pre><code>&gt; j.sals.fs.stem(&quot;/tmp/tmp-5383p1GOmMOOwvfi.tpl&quot;) 'tmp-5383p1GOmMOOwvfi'
+
+</code></pre>
+<h3 id="get-the-parent">Get the parent</h3>
+<pre><code>&gt; j.sals.fs.parent(&quot;/home/rafy/testing_make_dir/test1&quot;)
+'/home/rafy/testing_make_dir'
+</code></pre>
+<h3 id="get-parents">Get parents</h3>
+<pre><code>&gt; j.sals.fs.parents(&quot;/tmp/home/ahmed/myfile.py&quot;)
+    [PosixPath('/tmp/home/ahmed'),
+    PosixPath('/tmp/home'),
+    PosixPath('/tmp'),
+    PosixPath('/')]
+</code></pre>
+<h3 id="rename-file">Rename file</h3>
+<pre><code>&gt; j.sals.fs.rename(&quot;/home/rafy/testing_make_dir&quot;,&quot;/home/rafy/testing_dir&quot;)
+</code></pre>
+<h3 id="expand-user">Expand user</h3>
+<pre><code>&gt; j.sals.fs.expanduser(&quot;~/work&quot;)
+'/home/xmonader/work'
+</code></pre>
+<h3 id="get-temporary-filename">Get temporary filename</h3>
+<pre><code>&gt; j.sals.fs.get_temp_filename(dir=&quot;/home/rafy/&quot;)
+'/home/rafy/tmp6x7w71ml'
+</code></pre>
+<pre><code>&gt; j.sals.fs.get_temp_dirname(dir=&quot;/home/rafy&quot;)
+'/home/rafy/tmpntm2ptqy'
+</code></pre>
+<pre><code>&gt; j.sals.fs.join_paths(&quot;home&quot;,&quot;rafy&quot;)
+'home/rafy'
+</code></pre>
+<h3 id="resolving-a-path">Resolving a path</h3>
+<pre><code>&gt; j.sals.fs.resolve(&quot;&quot;)
+PosixPath('/home/rafy/Documents')
+&gt; j.sals.fs.resolve(&quot;./testing_text.txt&quot;)
+PosixPath('/home/rafy/Documents/testing_text.txt')
+</code></pre>
+<h2 id="walkers">Walkers</h2>
+<p>It's very common to walk on the filesystem and filtering based on some properties of the path
+And very fancy walkers</p>
+<h3 id="walk-over-on-files-only">Walk over on files only</h3>
+<pre><code>for el in walk('/tmp', filter_fun=j.sals.fs.is_file) : ..
+</code></pre>
+<p>or more specific function walk_files</p>
+<pre><code>for el in walk_files('/tmp') : ..
+</code></pre>
+<h3 id="walk-over-on-dirs-only">Walk over on dirs only</h3>
+<pre><code>for el in walk('/tmp', filter_fun=j.sals.fs.is_dir) : ..
+</code></pre>
+<p>or more specific function <code>walk_dirs</code></p>
+<pre><code>for el in walk_dirs('/tmp') : ..
+
+</code></pre>
+<h3 id="walk-over-with-a-bit-complex-filter">walk over with a bit complex filter</h3>
+<p>Walk over paths that are files or dirs and longer than 4 characters in the name</p>
+<pre><code>for el in walk('/tmp', filter_fun= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+</code></pre>
+<p>There are more functionality available in the SAL <code>j.sals.fs</code> make sure you check the API documentation for more.</p>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;This module is providing everything needed for decent filesystem management
+# Using System Fs
+
+Manipulating filesystem is one of the most common things in the daily life of a developer, administrator, .. etc. js-ng comes with tons of helpers and utilities around that in `j.sals.fs`. You will find the module already self documented with lots of examples in each function.
+
+
+### Get current working dir
+
+```
+&gt; j.sals.fs.cwd()
+&#39;/home/xmonader/wspace/threefoldtech/js-ng&#39;
+```
+
+### Get basename
+```
+&gt; j.sals.fs.basename(j.sals.fs.cwd())
+&#39;js-ng&#39;
+```
+
+### Get Dir name
+```
+&gt; j.sals.fs.dirname(j.sals.fs.cwd())
+&#39;/home/xmonader/wspace/threefoldtech&#39;
+&gt; j.sals.fs.parent(j.sals.fs.cwd())
+&#39;/home/xmonader/wspace/threefoldtech&#39;
+```
+
+### is dir
+
+```
+&gt; j.sals.fs.is_dir(path= &#39;/home/rafy&#39;)
+True
+```
+### is file
+```
+&gt; j.sals.fs.is_file(path= &#39;/home/rafy&#39;)
+False
+```
+
+### is ascii file
+
+```
+&gt; j.sals.fs.is_ascii_file(path=&#34;/home/rafy/testfile&#34;)
+True
+```
+
+### Is absolute path
+
+```
+&gt; j.sals.fs.is_absolute(&#39;/home/rafy/&#39;)
+True
+```
+
+### Check if empty dir
+```
+&gt; j.sals.fs.is_empty_dir(&#34;/home/rafy/empty_dir&#34;)
+True
+```
+
+### File paths exists or not
+
+```
+&gt; j.sals.fs.exists(&#34;/home/rafy/testing_make_dir/test1&#34;)
+True
+```
+
+## Reading/Writing to a file
+
+There&#39;re some helpers around reading/writing text, binary like `read_text`, `read_binary`, `read_file`, `write_text`, `write_binary`, `touch`
+
+### Touching a new file
+
+```
+&gt; j.sals.fs.touch(&#34;/home/rafy/testing_touch&#34;)
+```
+
+### Reading a text
+
+```
+&gt; j.sals.fs.read_text(&#34;/home/rafy/testing_text.txt&#34;)
+&#39;hello world\n&#39;
+
+```
+
+### Reading binary
+
+```
+&gt; j.sals.fs.read_bytes(&#34;/home/rafy/testing_text.txt&#34;)
+b&#39;hello world\n&#39;
+```
+
+
+### Writing text
+
+```
+&gt; j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)
+11
+```
+
+### Writing binary
+
+```
+&gt; j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)
+11
+```
+
+
+rename, move, copy_file, copy_tree, mkdir, mkdirs, join_paths, , rmtree, rm_empty_dir, symlink, chmod, chown, basename, dirname, normalizing paths, expanding `~`
+
+
+
+### Making directories
+```
+&gt; j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)
+```
+will raise if in case the directory already exists
+
+```
+&gt; j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=True)
+```
+Won&#39;t raise if the directory exists
+
+### Get the stem of the filepath
+
+```
+&gt; j.sals.fs.stem(&#34;/tmp/tmp-5383p1GOmMOOwvfi.tpl&#34;) &#39;tmp-5383p1GOmMOOwvfi&#39;
+
+```
+
+### Get the parent
+
+```
+&gt; j.sals.fs.parent(&#34;/home/rafy/testing_make_dir/test1&#34;)
+&#39;/home/rafy/testing_make_dir&#39;
+```
+
+### Get parents
+
+```
+&gt; j.sals.fs.parents(&#34;/tmp/home/ahmed/myfile.py&#34;)
+    [PosixPath(&#39;/tmp/home/ahmed&#39;),
+    PosixPath(&#39;/tmp/home&#39;),
+    PosixPath(&#39;/tmp&#39;),
+    PosixPath(&#39;/&#39;)]
+```
+
+
+### Rename file
+```
+&gt; j.sals.fs.rename(&#34;/home/rafy/testing_make_dir&#34;,&#34;/home/rafy/testing_dir&#34;)
+```
+
+### Expand user
+```
+&gt; j.sals.fs.expanduser(&#34;~/work&#34;)
+&#39;/home/xmonader/work&#39;
+```
+
+### Get temporary filename
+```
+&gt; j.sals.fs.get_temp_filename(dir=&#34;/home/rafy/&#34;)
+&#39;/home/rafy/tmp6x7w71ml&#39;
+```
+
+```
+&gt; j.sals.fs.get_temp_dirname(dir=&#34;/home/rafy&#34;)
+&#39;/home/rafy/tmpntm2ptqy&#39;
+```
+
+```
+&gt; j.sals.fs.join_paths(&#34;home&#34;,&#34;rafy&#34;)
+&#39;home/rafy&#39;
+```
+
+### Resolving a path
+```
+&gt; j.sals.fs.resolve(&#34;&#34;)
+PosixPath(&#39;/home/rafy/Documents&#39;)
+&gt; j.sals.fs.resolve(&#34;./testing_text.txt&#34;)
+PosixPath(&#39;/home/rafy/Documents/testing_text.txt&#39;)
+```
+
+## Walkers
+It&#39;s very common to walk on the filesystem and filtering based on some properties of the path
+And very fancy walkers
+
+### Walk over on files only
+
+```
+for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_file) : ..
+```
+or more specific function walk_files
+
+```
+for el in walk_files(&#39;/tmp&#39;) : ..
+```
+
+
+
+### Walk over on dirs only
+
+```
+for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_dir) : ..
+```
+or more specific function `walk_dirs`
+
+```
+for el in walk_dirs(&#39;/tmp&#39;) : ..
+
+```
+
+### walk over with a bit complex filter
+
+ Walk over paths that are files or dirs and longer than 4 characters in the name
+
+```
+for el in walk(&#39;/tmp&#39;, filter_fun= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+```
+
+
+There are more functionality available in the SAL `j.sals.fs` make sure you check the API documentation for more.
+
+&#34;&#34;&#34;
+
+import pathlib
+import tempfile
+import os
+import shutil
+import stat
+from distutils import dir_util
+from typing import List
+
+basename = os.path.basename
+dirname = os.path.dirname
+common_path = os.path.commonpath
+common_prefix = os.path.commonprefix
+norm_path = os.path.normpath
+norm_case = os.path.normcase
+get_access_time = os.path.getatime
+get_modified_time = os.path.getmtime
+get_creation_time = os.path.getctime
+sep = os.path.sep
+is_samefile = os.path.samefile
+expandvars = os.path.expandvars
+expanduser = os.path.expanduser
+realpath = os.path.realpath
+
+
+def home() -&gt; str:
+    &#34;&#34;&#34;Return the home directory
+    e.g
+        j.sals.fs.home()  -&gt; &#39;/home/rafy&#39;
+
+    Returns:
+        str: home directory.
+    &#34;&#34;&#34;
+    return str(pathlib.Path.home())
+
+
+def cwd() -&gt; str:
+    &#34;&#34;&#34;Return current working directory.
+    e.g
+        j.sals.fs.cwd()  -&gt; &#39;/home/rafy&#39;
+
+
+    Returns:
+        str: current directory
+    &#34;&#34;&#34;
+    return str(pathlib.Path.cwd())
+
+
+def is_dir(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a dir
+    e.g
+        j.sals.fs.is_dir(path= &#39;/home/rafy&#39;)  -&gt; True
+        j.sals.fs.is_dir(path= &#39;/home/rafy/file.txt&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if is directory
+    Returns:
+        bool: True if is dir and False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_dir()
+
+
+def is_file(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a file
+    e.g
+        j.sals.fs.is_file(path= &#39;/home/rafy&#39;)  -&gt; False
+        j.sals.fs.is_file(path= &#39;/home/rafy/file.txt&#39;)  -&gt; True
+
+    Args:
+        path (str): path to check if is file
+
+    Returns:
+        bool: True if is file and False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_file()
+
+
+def is_symlink(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path symlink
+    e.g
+        j.sals.fs.is_symlink(&#39;/home/rafy/testfile3&#39;)  -&gt; True
+        j.sals.fs.is_symlink(&#39;/home/rafy/testfile2&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if symlink
+
+    Returns:
+        bool: True if symlink False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_symlink()
+
+
+def is_absolute(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is absolute
+    e.g
+        j.sals.fs.is_absolute(&#39;/home/rafy/&#39;)  -&gt; True
+        j.sals.fs.is_absolute(&#39;~/rafy/&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if it is absolute
+
+    Returns:
+        bool: True if absolute
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_absolute()
+
+
+def is_mount(path: str) -&gt; bool:
+    # TODO add example here
+    &#34;&#34;&#34;Checks if path is mount
+
+    Args:
+        path (str): path to check if it is mounded or not
+
+    Returns:
+        bool: True if mount
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).is_mount()
+
+
+def is_ascii_file(path: str, checksize=4096) -&gt; bool:
+    &#34;&#34;&#34;Checks if file `path` is ascii
+    e.g
+         j.sals.fs.is_ascii_file(path=&#34;/home/rafy/testfile&#34;)  -&gt; True
+
+    Args:
+        path (str): file path
+        checksize (int, optional): checksize. Defaults to 4096.
+
+    Returns:
+        bool: True if ascii file
+    &#34;&#34;&#34;
+    # TODO: let&#39;s talk about checksize feature.
+    try:
+        with open(path, encoding=&#34;ascii&#34;) as f:
+            f.read()
+            return True
+    except UnicodeDecodeError:
+        return False
+
+
+def is_empty_dir(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is emptry directory
+    e.g
+        j.sals.fs.is_empty_dir(&#34;/home/rafy/empty_dir&#34;)  -&gt; True
+        j.sals.fs.is_empty_dir(&#34;/home/rafy&#34;)  -&gt; False
+
+    Args:
+        path (str): path to check if empty directory
+
+    Returns:
+        bool: True if path is emptry directory
+    &#34;&#34;&#34;
+
+    try:
+        g = pathlib.Path(path).iterdir()
+        next(g)
+    except StopIteration:
+        # means we can&#39;t get next entry -&gt; dir is empty.
+        return True
+    else:
+        return False
+
+
+is_binary_file = lambda path: not is_ascii_file(path)
+
+
+def is_broken_link(path: str, clean=False) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a broken symlink
+
+    Args:
+        path (str): path to check
+        clean (bool, optional): remove symlink if broken. Defaults to False.
+
+    Raises:
+        NotImplementedError: [description]
+
+    Returns:
+        bool: True if path is a broken symlink
+    &#34;&#34;&#34;
+    raise NotImplementedError()
+
+
+def stem(path: str) -&gt; str:
+    &#34;&#34;&#34;returns the stem of a path (path without parent directory and without extension)
+    e.g
+        j.sals.fs.stem(&#34;/tmp/tmp-5383p1GOmMOOwvfi.tpl&#34;)  -&gt; &#39;tmp-5383p1GOmMOOwvfi&#39;
+
+    Args:
+        path (str): path we want to get its stem
+
+    Returns:
+        str: path without parent directory and without extension
+    &#34;&#34;&#34;
+    return pathlib.Path(path).stem
+
+
+def mkdir(path: str, exist_ok=True):
+    &#34;&#34;&#34;Makes directory at path
+    e.g
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;)
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;,exist_ok=True)
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;,exist_ok=False) -&gt; File exists: &#39;/home/rafy/testing_make_dir&#39; (raise exception as the file exist and  exist_ok flag is false)
+
+    Args:
+        path (str): path to create dir at
+        exist_ok (bool, optional): won&#39;t fail if directory exists. Defaults to True.
+
+    Returns:
+        [type]: [description]
+    &#34;&#34;&#34;
+    return pathlib.Path(path).mkdir(exist_ok=exist_ok)
+
+
+def mkdirs(path: str, exist_ok=True):
+    &#34;&#34;&#34;Creates dir as well as all non exisitng parents in the path
+    e.g
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=True)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)  -&gt; File exists: &#39;/home/rafy/testing_make_dir/test1/test2&#39;(raise exception as the file exist and  exist_ok flag is false)
+
+    Args:
+        path (str): path to create dir at
+        exist_ok (bool, optional): won&#39;t fail if directory exists. Defaults to True.
+    &#34;&#34;&#34;
+    return os.makedirs(path, exist_ok=exist_ok)
+
+
+def make_path(path):
+    &#34;&#34;&#34;
+    to ensure the given path, create it if it does not exist
+
+    Args:
+        path (str): path
+    &#34;&#34;&#34;
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        return pathlib.Path(path).touch()
+
+
+
+def parent(path: str) -&gt; str:
+    &#34;&#34;&#34;Get path&#39;s parent
+    e.g
+        j.sals.fs.parent(&#34;/home/rafy/testing_make_dir/test1&#34;)  -&gt; &#39;/home/rafy/testing_make_dir&#39;
+
+    Args:
+        path (str): path to get its parent
+
+    Returns:
+        str: parent path.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).parent)
+
+
+def parents(path: str) -&gt; List[str]:
+    &#34;&#34;&#34;Get parents list
+
+    e.g
+        j.sals.fs.parents(&#34;/tmp/home/ahmed/myfile.py&#34;) -&gt;
+    [PosixPath(&#39;/tmp/home/ahmed&#39;),
+    PosixPath(&#39;/tmp/home&#39;),
+    PosixPath(&#39;/tmp&#39;),
+    PosixPath(&#39;/&#39;)]
+
+    Args:
+        path (str): path to get its parents
+
+    Returns:
+        List[str]: list of parents
+    &#34;&#34;&#34;
+
+    return list([str(p) for p in pathlib.Path(path).parents])
+
+
+def path_parts(path: str) -&gt; List[str]:
+    &#34;&#34;&#34;Convert path to a list of parts
+    e.g
+        &#39;/tmp/tmp-5383p1GOmMOOwvfi.tpl&#39; -&gt;  (&#39;/&#39;, &#39;tmp&#39;, &#39;tmp-5383p1GOmMOOwvfi.tpl&#39;)
+    Args:
+        path (str): path to convert to parts
+
+    Returns:
+        List[str]: path parts.
+    &#34;&#34;&#34;
+    return pathlib.Path(path).parts
+
+
+def exists(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path exists
+    e.g
+        j.sals.fs.exists(&#34;/home/rafy/testing_make_dir/test1&#34;)  -&gt; True
+        j.sals.fs.exists(&#34;/home/rafy/testing_make_dir/fasdljd&#34;)  -&gt; False
+
+    Args:
+        path (str): path to check for existence
+
+    Returns:
+        bool: True if exists
+    &#34;&#34;&#34;
+    return pathlib.Path(path).exists()
+
+
+def rename(path1: str, path2: str):
+    &#34;&#34;&#34;Rename path1 to path2
+    e.g
+        j.sals.fs.rename(&#34;/home/rafy/testing_make_dir&#34;,&#34;/home/rafy/testing_dir&#34;)
+
+    Args:
+        path1 (str): source path
+        path2 (str): dest path
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path1).rename(path2)
+
+
+def expanduser(path: str) -&gt; str:
+    &#34;&#34;&#34;Expands the tilde `~` to username
+    e.g
+        j.sals.fs.expanduser(&#34;~/work&#34;) -&gt; &#39;/home/xmonader/work&#39;
+    Args:
+        path (str): path with optionally `~`
+
+    Returns:
+        str: path with tilde `~` resolved.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).expanduser())
+
+
+def unlink(path: str):
+    &#34;&#34;&#34;unlink path
+    e.g
+        j.sals.fs.unlink(&#34;/home/rafy/testfile3&#34;)
+    Args:
+        path (str): path to unlink
+    &#34;&#34;&#34;
+    return pathlib.Path(path).unlink()
+
+
+def read_text(path: str) -&gt; str:
+    &#34;&#34;&#34;read ascii content at `path`
+    e.g
+        j.sals.fs.read_text(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; &#39;hello world\n&#39;
+
+    Args:
+        path (str): ascii file path
+
+    Returns:
+        str: ascii content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_text()
+
+
+read_ascii = read_file = read_text
+
+
+def read_bytes(path: str) -&gt; bytes:
+    &#34;&#34;&#34;read binary content at `path`
+    e.g
+        j.sals.fs.read_bytes(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; b&#39;hello world\n&#39;
+
+    Args:
+        path (str): binary file path
+
+    Returns:
+        bytes: binary content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_bytes()
+
+
+read_binary = read_file_binary = read_bytes
+
+
+def write_text(path: str, data: str, encoding=None):
+    &#34;&#34;&#34;write text `data` to path `path` with encoding
+    e.g
+        j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (str): ascii content
+        encoding ([type], optional): encoding. Defaults to None.
+
+    Returns:
+        int: Return the decoded contents of the pointed-to file as a string
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_text(data, encoding)
+
+
+write_ascii = write_file = write_text
+
+
+def write_bytes(path: str, data: bytes):
+    &#34;&#34;&#34;write binary `data` to path `path`
+    e.g
+        j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (bytes): binary content
+
+    Returns:
+        int: Return the binary contents of the pointed-to file as a bytes object
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_bytes(data)
+
+
+write_binary = write_file_binary = write_bytes
+
+
+def touch(path: str):
+    &#34;&#34;&#34;create file
+    e.g
+        j.sals.fs.touch(&#34;/home/rafy/testing_touch&#34;)
+
+    Args:
+        path (str): path to create file
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).touch()
+
+
+def get_temp_filename(mode=&#34;w+b&#34;, buffering=-1, encoding=None, newline=None, suffix=None, prefix=None, dir=None) -&gt; str:
+    &#34;&#34;&#34;Get temp filename
+    e.g
+        j.sals.fs.get_temp_filename(dir=&#34;/home/rafy/&#34;)  -&gt; &#39;/home/rafy/tmp6x7w71ml&#39;
+
+    Args:
+        mode (str, optional): [description]. Defaults to &#34;w+b&#34;.
+        buffering (int, optional): buffering. Defaults to -1.
+        encoding ([type], optional): encoding . Defaults to None.
+        newline ([type], optional):  Defaults to None.
+        suffix ([type], optional): ending suffix. Defaults to None.
+        prefix ([type], optional): prefix . Defaults to None.
+        dir ([type], optional): where to create the file. Defaults to None.
+
+    Returns:
+        [str]: temp filename
+    &#34;&#34;&#34;
+    return tempfile.NamedTemporaryFile(mode, buffering, encoding, newline, suffix, prefix, dir).name
+
+
+def get_temp_dirname(suffix=None, prefix=None, dir=None) -&gt; str:
+    &#34;&#34;&#34;Get temp directory name
+    e.g
+        j.sals.fs.get_temp_dirname(dir=&#34;/home/rafy&#34;)  -&gt; &#39;/home/rafy/tmpntm2ptqy&#39;
+
+    Args:
+        suffix ([type], optional): ending suffix. Defaults to None.
+        prefix ([type], optional): prefix . Defaults to None.
+        dir ([type], optional): where to create the directory. Defaults to None.
+
+
+    Returns:
+        str: temp directory name.
+    &#34;&#34;&#34;
+    return tempfile.TemporaryDirectory(suffix, prefix, dir).name
+
+
+NamedTemporaryFile = tempfile.NamedTemporaryFile
+TempraryDirectory = tempfile.TemporaryDirectory
+mkdtemp = tempfile.mkdtemp
+mkstemp = tempfile.mkstemp
+get_temp_dir = tempfile.gettempdir
+
+
+def parts_to_path(parts: List[str]) -&gt; str:
+    &#34;&#34;&#34;Convert list of path parts into a path string
+    e.g
+        j.sals.fs.parts_to_path([&#34;home&#34;,&#34;rafy&#34;])  -&gt; &#39;home/rafy&#39;
+
+    Args:
+        parts (List[str]): path parts
+
+    Returns:
+        str: joined path parts
+    &#34;&#34;&#34;
+    path = pathlib.Path(parts[0])
+    for p in parts[1:]:
+        path = path.joinpath(p)
+    return str(path)
+
+
+def join_paths(*paths) -&gt; str:
+    &#34;&#34;&#34;
+    Convert tuple of path parts into a path string
+    e.g
+        j.sals.fs.join_paths(&#34;home&#34;,&#34;rafy&#34;)  -&gt; &#39;home/rafy&#39;
+
+    Args:
+        parts (tuple): path parts (path parts comma seprated and they will be used as a tuple)
+
+    Returns:
+        str: joined path parts
+
+    &#34;&#34;&#34;
+
+    return parts_to_path(paths)
+
+
+def rm_emptry_dir(path: str):
+    &#34;&#34;&#34;Remove empty directory if the directory is not empty it will throw exception (Directory not empty)
+    e.g
+        j.sals.fs.rm_emptry_dir(&#34;/home/rafy/empty_dir&#34;)
+
+    Args:
+        path (str): path to remove.
+    &#34;&#34;&#34;
+    path = pathlib.Path(path)
+    path.rmdir()
+
+
+def rmtree(path: str):
+    &#34;&#34;&#34;Remove directory tree
+    Args:
+        path (str): path to remove
+    &#34;&#34;&#34;
+    path = pathlib.Path(path)
+    if path.is_file() or path.is_symlink():
+        os.remove(path)
+    elif path.is_dir():
+        shutil.rmtree(path)
+
+
+def copy_stat(src: str, dst: str, times=True, perms=True):
+    &#34;&#34;&#34;Copy stat of src to dst
+
+    Args:
+        src (str): source path
+        dst (str): destination
+        times (bool, optional):  Defaults to True.
+        perms (bool, optional): permissions Defaults to True.
+    &#34;&#34;&#34;
+    st = os.stat(src)
+    if hasattr(os, &#34;utime&#34;):
+        os.utime(dst, (st.st_atime, st.st_mtime))
+    if hasattr(os, &#34;chmod&#34;):
+        m = stat.S_IMODE(st.st_mode)
+        os.chmod(dst, m)
+
+
+def copy_file(src: str, dst: str, times=False, perms=False):
+    &#34;&#34;&#34;Copy the file, optionally copying the permission bits (mode) and
+        last access/modify time. If the destination file exists, it will be
+        replaced. Raises OSError if the destination is a directory. If the
+        platform does not have the ability to set the permission or times,
+        ignore it.
+        This is shutil.copyfile plus bits of shutil.copymode and
+        shutil.copystat&#39;s implementation.
+        shutil.copy and shutil.copy2 are not supported but are easy to do.
+    e.g
+        j.sals.fs.copy_file(src=&#34;/home/rafy/testing_text.txt&#34;,dst=&#34;/home/rafy/Documents/testing_text.txt&#34;)
+
+    Args:
+        src (str): source path
+        dst (str): destination
+
+    &#34;&#34;&#34;
+    shutil.copyfile(src, dst)
+    if times or perms:
+        copy_stat(src, dst, times, perms)
+
+
+def symlink(src: str, dst: str, overwrite=False):
+    &#34;&#34;&#34;Create a symbolic link.
+    e.g
+        j.sals.fs.symlink(src=&#34;/home/rafy/testing_text.txt&#34;,dst=&#34;/home/rafy/link_test&#34;)
+
+    Args:
+        src (str): Source of link
+        dst (str): Destination path of link
+        overwrite (bool, optional): If link exists will delete it. Defaults to False.
+    &#34;&#34;&#34;
+    if overwrite and exists(dst):
+        os.unlink(dst)
+
+    os.symlink(src, dst)
+
+
+copy_tree = dir_util.copy_tree
+chdir = os.chdir
+
+
+def change_dir(path: str) -&gt; str:
+    &#34;&#34;&#34;Change current working directory to `path`
+    e.g
+         j.sals.fs.change_dir(&#34;/home/rafy/Documents&#34;)  -&gt; &#39;/home/rafy/Documents&#39;
+
+    Args:
+        path (str): path to switch current working directory to
+
+    Returns:
+        str: new current working dir
+    &#34;&#34;&#34;
+    os.chdir(path)
+    return path
+
+
+def chmod(path: str, mode):
+    &#34;&#34;&#34;change file mode for path to mode
+    e.g
+        j.sals.fs.chmod(&#34;/home/rafy/testing_dir&#34;,777)
+
+    Args:
+        path (str): path
+        mode (int): file mode
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).chmod(mode)
+
+
+def lchmod(path: str, mode):
+    &#34;&#34;&#34;change file mode for path to mode (handles links too)
+
+    Args:
+        path (str): path
+        mode (int): file mode
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).lchmod(mode)
+
+
+def stat(path: str):
+    &#34;&#34;&#34;Gets stat of path `path`
+    e.g
+        j.sals.fs.stat(&#34;/home/rafy/test_dir/test&#34;)  -&gt; os.stat_result(st_mode=33204, st_ino=795348, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=0, st_atime=1586445434, st_mtime=1586445434, st_ctime=1586445434)
+    Args:
+        path (str): path to get its stat
+
+    Returns:
+        stat_result: returns stat struct.
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).stat()
+
+
+def lstat(path: str):
+    &#34;&#34;&#34;Gets stat of path `path` (handles links)
+    e.g
+         j.sals.fs.lstat(&#34;/home/rafy/testing_link&#34;)  -&gt; os.stat_result(st_mode=41471, st_ino=7081257, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=16, st_atime=1586445737, st_mtime=1586445734, st_ctime=1586445734)
+
+    Args:
+        path (str): path to get its stat
+
+    Returns:
+        stat_result: returns stat struct.
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).lstat()
+
+
+def resolve(path: str) -&gt; str:
+    &#34;&#34;&#34;resolve `.` and `..` in path
+    e.g
+        j.sals.fs.resolve(&#34;&#34;)  -&gt; PosixPath(&#39;/home/rafy/Documents&#39;)
+        j.sals.fs.resolve(&#34;./testing_text.txt&#34;)  -&gt; PosixPath(&#39;/home/rafy/Documents/testing_text.txt&#39;)
+
+    Args:
+        path (str): path with optionally `.` and `..`
+
+    Returns:
+        str: resolved path
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).resolve())
+
+
+def extension(path: str, include_dot=True):
+    &#34;&#34;&#34;Gets the extension of path
+    e.g
+        &#39;/home/ahmed/myfile.py&#39; -&gt; `.py` if include_dot else `py`
+
+    Args:
+        path (str): [description]
+        include_dot (bool, optional): controls whether to include the dot or not. Defaults to True.
+
+    Returns:
+        str: extension
+    &#34;&#34;&#34;
+    splitted = os.path.splitext(path)
+    ext = &#34;&#34;
+    if len(splitted) == 1:
+        return ext
+
+    if include_dot:
+        return splitted[1]
+    else:
+        return splitted[1].strip(&#34;.&#34;)
+
+
+ext = extension
+
+
+def chown():
+    raise NotImplementedError()
+
+
+def read_link(path):
+    raise NotImplementedError()
+
+
+def remove_links(path):
+    raise NotImplementedError()
+
+
+def change_filenames(from_, to, where):
+    pass
+
+
+def replace_words_in_files(from_, to, where):
+    pass
+
+
+move = shutil.move
+
+
+def default_filter_fun(entry):
+    return True
+
+
+def walk(path: str, pat=&#34;*&#34;, filter_fun=default_filter_fun):
+    &#34;&#34;&#34;walk recursively on path
+    e.g
+        for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_file) : ..
+        for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_dir) : ..
+        for el in walk(&#39;/tmp&#39;, filter_fun= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+
+
+    Args:
+        path (str): path to walk over
+        pat (str, optional): pattern to match against. Defaults to &#34;*&#34;.
+        filter_fun (Function, optional): filtering function. Defaults to default_filter_fun which accepts anything.
+    &#34;&#34;&#34;
+    p = pathlib.Path(path)
+    for entry in p.rglob(pat):
+        # use rglob instead of glob(&#34;**/*&#34;)
+        if filter_fun(entry):
+            yield str(entry)
+
+
+def walk_non_recursive(path: str, filter_fun=default_filter_fun):
+    &#34;&#34;&#34;walks non recursively on path
+    e.g
+        for el in walk(&#39;/tmp&#39;, filter=j.sals.fs.is_file) : ..
+        for el in walk(&#39;/tmp&#39;, filter=j.sals.fs.is_dir) : ..
+        for el in walk(&#39;/tmp&#39;, filter= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+
+
+    Args:
+        path (str): path to walk over
+        pat (str, optional): pattern to match against. Defaults to &#34;*&#34;.
+        filter_fun (Function, optional): filtering function. Defaults to default_filter_fun which accepts anything.
+    &#34;&#34;&#34;
+    p = pathlib.Path(path)
+    for entry in p.iterdir():
+        if filter_fun(entry):
+            yield str(entry)
+
+
+def walk_files(path: str, recursive=True):
+    &#34;&#34;&#34;
+    walk over files in path and applies function `fun`
+    e.g
+
+        for el in walk_files(&#39;/tmp&#39;) : ..
+
+    Args:
+        path (str): path to walk over
+        recursive (bool, optional): recursive or not. Defaults to True.
+
+
+    &#34;&#34;&#34;
+
+    if recursive:
+        return walk(path, filter_fun=is_file)
+    else:
+        return walk_non_recursive(path, filter_fun=is_file)
+
+
+def walk_dirs(path, recursive=True):
+    &#34;&#34;&#34;
+        walk over directories in path and applies function `fun`
+    e.g
+
+        for el in walk_dirs(&#39;/tmp&#39;) : ..
+
+
+    Args:
+        path (str): path to walk over
+        recursive (bool, optional): recursive or not. Defaults to True.
+
+
+    &#34;&#34;&#34;
+    if recursive:
+        return walk(path, filter_fun=is_dir)
+    else:
+        return walk_non_recursive(path, filter_fun=is_dir)
+
+
+def fs_check(**arguments):
+    &#34;&#34;&#34;Abstracts common checks over your file system related functions.
+    To reduce the boilerplate of expanding paths, checking for existence or ensuring non empty values.
+
+    Checks are defined for each argument separately in a form of a set
+        e.g
+        @fs_check(path={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;})
+        @fs_check(path1={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;}, path2={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;})
+
+    Available checks:
+        - `required`: ensures the argument is passed with a non-empty value.
+        - `expand`  : expands the tilde `~` in path.
+        - `exists`  : the path exists.
+        - `file`    : the path is a file.
+        - `dir`     : the path is a dir.
+
+    &#34;&#34;&#34;
+
+    for argument, validators in arguments.items():
+        if not isinstance(validators, set):
+            raise ValueError(f&#34;Expected tuple of validators for argument {argument}&#34;)
+        for validator in validators:
+            if validator not in {&#34;required&#34;, &#34;exists&#34;, &#34;file&#34;, &#34;dir&#34;, &#34;expand&#34;}:
+                raise ValueError(f&#34;Unsupported validator &#39;{validator}&#39; for argument {argument}&#34;)
+
+    def decorator(func):
+        import inspect
+
+        signature = inspect.signature(func)
+        for argument in arguments:
+            if signature.parameters.get(argument) is None:
+                raise j.exceptions.Value(f&#34;Argument {argument} not found in function declaration of {func.__name__}&#34;)
+
+        def wrapper(*args, **kwargs):
+            args = list(args)
+            position = 0
+            for parameter in signature.parameters.values():
+                if parameter.name in arguments:
+                    value = args[position] if position &lt; len(args) else kwargs[parameter.name]
+                    if isinstance(value, str):
+                        value = expanduser(expandvars(value))
+                    if position &lt; len(args):
+                        args[position] = value
+                    else:
+                        kwargs[parameter.name] = value
+
+                    validators = arguments[parameter.name]
+                    if value and validators.intersection({&#34;exists&#34;, &#34;file&#34;, &#34;dir&#34;}) and not exists(value):
+                        msg = f&#34;Argument {parameter.name} in {func.__name__} expects an existing path value! {value} does not exist.&#34;
+                        raise j.exceptions.Value(msg)
+
+                    if &#34;required&#34; in validators and (value is None or value.strip() == &#34;&#34;):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__}  should not be None or empty string!&#34;
+                        )
+
+                    if &#34;required&#34; in validators:
+                        value = norm_path(value)
+                        if position &lt; len(args):
+                            args[position] = value
+                        else:
+                            kwargs[parameter.name] = value
+
+                    if value and validators.intersection({&#34;file&#34;}) and not isfile(value):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__} expects a file path! {value} is not a file.&#34;
+                        )
+                    if value and validators.intersection({&#34;dir&#34;}) and not isdir(value):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__} expects a directory path! {value} is not a directory.&#34;
+                        )
+                position += 1
+            return fun(*args, **kwargs)
+
+        return wrapper
+
+    return decorator</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.sals.fs.change_dir"><code class="name flex">
+<span>def <span class="ident">change_dir</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Change current working directory to <code>path</code>
+e.g
+j.sals.fs.change_dir("/home/rafy/Documents")
+-&gt; '/home/rafy/Documents'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to switch current working directory to</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>new current working dir</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def change_dir(path: str) -&gt; str:
+    &#34;&#34;&#34;Change current working directory to `path`
+    e.g
+         j.sals.fs.change_dir(&#34;/home/rafy/Documents&#34;)  -&gt; &#39;/home/rafy/Documents&#39;
+
+    Args:
+        path (str): path to switch current working directory to
+
+    Returns:
+        str: new current working dir
+    &#34;&#34;&#34;
+    os.chdir(path)
+    return path</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.change_filenames"><code class="name flex">
+<span>def <span class="ident">change_filenames</span></span>(<span>from_, to, where)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def change_filenames(from_, to, where):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.chmod"><code class="name flex">
+<span>def <span class="ident">chmod</span></span>(<span>path, mode)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>change file mode for path to mode
+e.g
+j.sals.fs.chmod("/home/rafy/testing_dir",777)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>int</code></dt>
+<dd>file mode</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def chmod(path: str, mode):
+    &#34;&#34;&#34;change file mode for path to mode
+    e.g
+        j.sals.fs.chmod(&#34;/home/rafy/testing_dir&#34;,777)
+
+    Args:
+        path (str): path
+        mode (int): file mode
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).chmod(mode)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.chown"><code class="name flex">
+<span>def <span class="ident">chown</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def chown():
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.copy_file"><code class="name flex">
+<span>def <span class="ident">copy_file</span></span>(<span>src, dst, times=False, perms=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy the file, optionally copying the permission bits (mode) and
+last access/modify time. If the destination file exists, it will be
+replaced. Raises OSError if the destination is a directory. If the
+platform does not have the ability to set the permission or times,
+ignore it.
+This is shutil.copyfile plus bits of shutil.copymode and
+shutil.copystat's implementation.
+shutil.copy and shutil.copy2 are not supported but are easy to do.
+e.g
+j.sals.fs.copy_file(src="/home/rafy/testing_text.txt",dst="/home/rafy/Documents/testing_text.txt")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>src</code></strong> :&ensp;<code>str</code></dt>
+<dd>source path</dd>
+<dt><strong><code>dst</code></strong> :&ensp;<code>str</code></dt>
+<dd>destination</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def copy_file(src: str, dst: str, times=False, perms=False):
+    &#34;&#34;&#34;Copy the file, optionally copying the permission bits (mode) and
+        last access/modify time. If the destination file exists, it will be
+        replaced. Raises OSError if the destination is a directory. If the
+        platform does not have the ability to set the permission or times,
+        ignore it.
+        This is shutil.copyfile plus bits of shutil.copymode and
+        shutil.copystat&#39;s implementation.
+        shutil.copy and shutil.copy2 are not supported but are easy to do.
+    e.g
+        j.sals.fs.copy_file(src=&#34;/home/rafy/testing_text.txt&#34;,dst=&#34;/home/rafy/Documents/testing_text.txt&#34;)
+
+    Args:
+        src (str): source path
+        dst (str): destination
+
+    &#34;&#34;&#34;
+    shutil.copyfile(src, dst)
+    if times or perms:
+        copy_stat(src, dst, times, perms)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.copy_stat"><code class="name flex">
+<span>def <span class="ident">copy_stat</span></span>(<span>src, dst, times=True, perms=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy stat of src to dst</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>src</code></strong> :&ensp;<code>str</code></dt>
+<dd>source path</dd>
+<dt><strong><code>dst</code></strong> :&ensp;<code>str</code></dt>
+<dd>destination</dd>
+<dt><strong><code>times</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Defaults to True.</dd>
+<dt><strong><code>perms</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>permissions Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def copy_stat(src: str, dst: str, times=True, perms=True):
+    &#34;&#34;&#34;Copy stat of src to dst
+
+    Args:
+        src (str): source path
+        dst (str): destination
+        times (bool, optional):  Defaults to True.
+        perms (bool, optional): permissions Defaults to True.
+    &#34;&#34;&#34;
+    st = os.stat(src)
+    if hasattr(os, &#34;utime&#34;):
+        os.utime(dst, (st.st_atime, st.st_mtime))
+    if hasattr(os, &#34;chmod&#34;):
+        m = stat.S_IMODE(st.st_mode)
+        os.chmod(dst, m)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.cwd"><code class="name flex">
+<span>def <span class="ident">cwd</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Return current working directory.
+e.g
+j.sals.fs.cwd()
+-&gt; '/home/rafy'</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>current directory</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def cwd() -&gt; str:
+    &#34;&#34;&#34;Return current working directory.
+    e.g
+        j.sals.fs.cwd()  -&gt; &#39;/home/rafy&#39;
+
+
+    Returns:
+        str: current directory
+    &#34;&#34;&#34;
+    return str(pathlib.Path.cwd())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.default_filter_fun"><code class="name flex">
+<span>def <span class="ident">default_filter_fun</span></span>(<span>entry)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def default_filter_fun(entry):
+    return True</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.exists"><code class="name flex">
+<span>def <span class="ident">exists</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path exists
+e.g
+j.sals.fs.exists("/home/rafy/testing_make_dir/test1")
+-&gt; True
+j.sals.fs.exists("/home/rafy/testing_make_dir/fasdljd")
+-&gt; False</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check for existence</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if exists</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def exists(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path exists
+    e.g
+        j.sals.fs.exists(&#34;/home/rafy/testing_make_dir/test1&#34;)  -&gt; True
+        j.sals.fs.exists(&#34;/home/rafy/testing_make_dir/fasdljd&#34;)  -&gt; False
+
+    Args:
+        path (str): path to check for existence
+
+    Returns:
+        bool: True if exists
+    &#34;&#34;&#34;
+    return pathlib.Path(path).exists()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.expanduser"><code class="name flex">
+<span>def <span class="ident">expanduser</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Expands the tilde <code>~</code> to username
+e.g
+j.sals.fs.expanduser("~/work") -&gt; '/home/xmonader/work'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path with optionally <code>~</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>path with tilde <code>~</code> resolved.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def expanduser(path: str) -&gt; str:
+    &#34;&#34;&#34;Expands the tilde `~` to username
+    e.g
+        j.sals.fs.expanduser(&#34;~/work&#34;) -&gt; &#39;/home/xmonader/work&#39;
+    Args:
+        path (str): path with optionally `~`
+
+    Returns:
+        str: path with tilde `~` resolved.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).expanduser())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.ext"><code class="name flex">
+<span>def <span class="ident">ext</span></span>(<span>path, include_dot=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets the extension of path
+e.g
+'/home/ahmed/myfile.py' -&gt; <code>.py</code> if include_dot else <code>py</code></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>[description]</dd>
+<dt><strong><code>include_dot</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>controls whether to include the dot or not. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>extension</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def extension(path: str, include_dot=True):
+    &#34;&#34;&#34;Gets the extension of path
+    e.g
+        &#39;/home/ahmed/myfile.py&#39; -&gt; `.py` if include_dot else `py`
+
+    Args:
+        path (str): [description]
+        include_dot (bool, optional): controls whether to include the dot or not. Defaults to True.
+
+    Returns:
+        str: extension
+    &#34;&#34;&#34;
+    splitted = os.path.splitext(path)
+    ext = &#34;&#34;
+    if len(splitted) == 1:
+        return ext
+
+    if include_dot:
+        return splitted[1]
+    else:
+        return splitted[1].strip(&#34;.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.extension"><code class="name flex">
+<span>def <span class="ident">extension</span></span>(<span>path, include_dot=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets the extension of path
+e.g
+'/home/ahmed/myfile.py' -&gt; <code>.py</code> if include_dot else <code>py</code></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>[description]</dd>
+<dt><strong><code>include_dot</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>controls whether to include the dot or not. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>extension</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def extension(path: str, include_dot=True):
+    &#34;&#34;&#34;Gets the extension of path
+    e.g
+        &#39;/home/ahmed/myfile.py&#39; -&gt; `.py` if include_dot else `py`
+
+    Args:
+        path (str): [description]
+        include_dot (bool, optional): controls whether to include the dot or not. Defaults to True.
+
+    Returns:
+        str: extension
+    &#34;&#34;&#34;
+    splitted = os.path.splitext(path)
+    ext = &#34;&#34;
+    if len(splitted) == 1:
+        return ext
+
+    if include_dot:
+        return splitted[1]
+    else:
+        return splitted[1].strip(&#34;.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.fs_check"><code class="name flex">
+<span>def <span class="ident">fs_check</span></span>(<span>**arguments)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Abstracts common checks over your file system related functions.
+To reduce the boilerplate of expanding paths, checking for existence or ensuring non empty values.</p>
+<p>Checks are defined for each argument separately in a form of a set
+e.g
+@fs_check(path={'required', 'exists', 'expand'})
+@fs_check(path1={'required', 'exists', 'expand'}, path2={'required', 'exists', 'expand'})</p>
+<p>Available checks:
+- <code>required</code>: ensures the argument is passed with a non-empty value.
+- <code>expand</code>
+: expands the tilde <code>~</code> in path.
+- <a title="jumpscale.sals.fs.exists" href="#jumpscale.sals.fs.exists"><code>exists()</code></a>
+: the path exists.
+- <code>file</code>
+: the path is a file.
+- <code>dir</code>
+: the path is a dir.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def fs_check(**arguments):
+    &#34;&#34;&#34;Abstracts common checks over your file system related functions.
+    To reduce the boilerplate of expanding paths, checking for existence or ensuring non empty values.
+
+    Checks are defined for each argument separately in a form of a set
+        e.g
+        @fs_check(path={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;})
+        @fs_check(path1={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;}, path2={&#39;required&#39;, &#39;exists&#39;, &#39;expand&#39;})
+
+    Available checks:
+        - `required`: ensures the argument is passed with a non-empty value.
+        - `expand`  : expands the tilde `~` in path.
+        - `exists`  : the path exists.
+        - `file`    : the path is a file.
+        - `dir`     : the path is a dir.
+
+    &#34;&#34;&#34;
+
+    for argument, validators in arguments.items():
+        if not isinstance(validators, set):
+            raise ValueError(f&#34;Expected tuple of validators for argument {argument}&#34;)
+        for validator in validators:
+            if validator not in {&#34;required&#34;, &#34;exists&#34;, &#34;file&#34;, &#34;dir&#34;, &#34;expand&#34;}:
+                raise ValueError(f&#34;Unsupported validator &#39;{validator}&#39; for argument {argument}&#34;)
+
+    def decorator(func):
+        import inspect
+
+        signature = inspect.signature(func)
+        for argument in arguments:
+            if signature.parameters.get(argument) is None:
+                raise j.exceptions.Value(f&#34;Argument {argument} not found in function declaration of {func.__name__}&#34;)
+
+        def wrapper(*args, **kwargs):
+            args = list(args)
+            position = 0
+            for parameter in signature.parameters.values():
+                if parameter.name in arguments:
+                    value = args[position] if position &lt; len(args) else kwargs[parameter.name]
+                    if isinstance(value, str):
+                        value = expanduser(expandvars(value))
+                    if position &lt; len(args):
+                        args[position] = value
+                    else:
+                        kwargs[parameter.name] = value
+
+                    validators = arguments[parameter.name]
+                    if value and validators.intersection({&#34;exists&#34;, &#34;file&#34;, &#34;dir&#34;}) and not exists(value):
+                        msg = f&#34;Argument {parameter.name} in {func.__name__} expects an existing path value! {value} does not exist.&#34;
+                        raise j.exceptions.Value(msg)
+
+                    if &#34;required&#34; in validators and (value is None or value.strip() == &#34;&#34;):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__}  should not be None or empty string!&#34;
+                        )
+
+                    if &#34;required&#34; in validators:
+                        value = norm_path(value)
+                        if position &lt; len(args):
+                            args[position] = value
+                        else:
+                            kwargs[parameter.name] = value
+
+                    if value and validators.intersection({&#34;file&#34;}) and not isfile(value):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__} expects a file path! {value} is not a file.&#34;
+                        )
+                    if value and validators.intersection({&#34;dir&#34;}) and not isdir(value):
+                        raise j.exceptions.Value(
+                            f&#34;Argument {parameter.name} in {func.__name__} expects a directory path! {value} is not a directory.&#34;
+                        )
+                position += 1
+            return fun(*args, **kwargs)
+
+        return wrapper
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.get_temp_dirname"><code class="name flex">
+<span>def <span class="ident">get_temp_dirname</span></span>(<span>suffix=None, prefix=None, dir=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get temp directory name
+e.g
+j.sals.fs.get_temp_dirname(dir="/home/rafy")
+-&gt; '/home/rafy/tmpntm2ptqy'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>suffix</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>ending suffix. Defaults to None.</dd>
+<dt><strong><code>prefix</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>prefix . Defaults to None.</dd>
+<dt><strong><code>dir</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>where to create the directory. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>temp directory name.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_temp_dirname(suffix=None, prefix=None, dir=None) -&gt; str:
+    &#34;&#34;&#34;Get temp directory name
+    e.g
+        j.sals.fs.get_temp_dirname(dir=&#34;/home/rafy&#34;)  -&gt; &#39;/home/rafy/tmpntm2ptqy&#39;
+
+    Args:
+        suffix ([type], optional): ending suffix. Defaults to None.
+        prefix ([type], optional): prefix . Defaults to None.
+        dir ([type], optional): where to create the directory. Defaults to None.
+
+
+    Returns:
+        str: temp directory name.
+    &#34;&#34;&#34;
+    return tempfile.TemporaryDirectory(suffix, prefix, dir).name</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.get_temp_filename"><code class="name flex">
+<span>def <span class="ident">get_temp_filename</span></span>(<span>mode=&#39;w+b&#39;, buffering=-1, encoding=None, newline=None, suffix=None, prefix=None, dir=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get temp filename
+e.g
+j.sals.fs.get_temp_filename(dir="/home/rafy/")
+-&gt; '/home/rafy/tmp6x7w71ml'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mode</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>[description]. Defaults to "w+b".</dd>
+<dt><strong><code>buffering</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>buffering. Defaults to -1.</dd>
+<dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>encoding . Defaults to None.</dd>
+<dt><strong><code>newline</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>Defaults to None.</dd>
+<dt><strong><code>suffix</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>ending suffix. Defaults to None.</dd>
+<dt><strong><code>prefix</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>prefix . Defaults to None.</dd>
+<dt><strong><code>dir</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>where to create the file. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>[str]: temp filename</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_temp_filename(mode=&#34;w+b&#34;, buffering=-1, encoding=None, newline=None, suffix=None, prefix=None, dir=None) -&gt; str:
+    &#34;&#34;&#34;Get temp filename
+    e.g
+        j.sals.fs.get_temp_filename(dir=&#34;/home/rafy/&#34;)  -&gt; &#39;/home/rafy/tmp6x7w71ml&#39;
+
+    Args:
+        mode (str, optional): [description]. Defaults to &#34;w+b&#34;.
+        buffering (int, optional): buffering. Defaults to -1.
+        encoding ([type], optional): encoding . Defaults to None.
+        newline ([type], optional):  Defaults to None.
+        suffix ([type], optional): ending suffix. Defaults to None.
+        prefix ([type], optional): prefix . Defaults to None.
+        dir ([type], optional): where to create the file. Defaults to None.
+
+    Returns:
+        [str]: temp filename
+    &#34;&#34;&#34;
+    return tempfile.NamedTemporaryFile(mode, buffering, encoding, newline, suffix, prefix, dir).name</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.home"><code class="name flex">
+<span>def <span class="ident">home</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Return the home directory
+e.g
+j.sals.fs.home()
+-&gt; '/home/rafy'</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>home directory.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def home() -&gt; str:
+    &#34;&#34;&#34;Return the home directory
+    e.g
+        j.sals.fs.home()  -&gt; &#39;/home/rafy&#39;
+
+    Returns:
+        str: home directory.
+    &#34;&#34;&#34;
+    return str(pathlib.Path.home())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_absolute"><code class="name flex">
+<span>def <span class="ident">is_absolute</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is absolute
+e.g
+j.sals.fs.is_absolute('/home/rafy/')
+-&gt; True
+j.sals.fs.is_absolute('~/rafy/')
+-&gt; False</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if it is absolute</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if absolute</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_absolute(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is absolute
+    e.g
+        j.sals.fs.is_absolute(&#39;/home/rafy/&#39;)  -&gt; True
+        j.sals.fs.is_absolute(&#39;~/rafy/&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if it is absolute
+
+    Returns:
+        bool: True if absolute
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_absolute()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_ascii_file"><code class="name flex">
+<span>def <span class="ident">is_ascii_file</span></span>(<span>path, checksize=4096)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if file <code>path</code> is ascii
+e.g
+j.sals.fs.is_ascii_file(path="/home/rafy/testfile")
+-&gt; True</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>file path</dd>
+<dt><strong><code>checksize</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>checksize. Defaults to 4096.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if ascii file</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_ascii_file(path: str, checksize=4096) -&gt; bool:
+    &#34;&#34;&#34;Checks if file `path` is ascii
+    e.g
+         j.sals.fs.is_ascii_file(path=&#34;/home/rafy/testfile&#34;)  -&gt; True
+
+    Args:
+        path (str): file path
+        checksize (int, optional): checksize. Defaults to 4096.
+
+    Returns:
+        bool: True if ascii file
+    &#34;&#34;&#34;
+    # TODO: let&#39;s talk about checksize feature.
+    try:
+        with open(path, encoding=&#34;ascii&#34;) as f:
+            f.read()
+            return True
+    except UnicodeDecodeError:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_binary_file"><code class="name flex">
+<span>def <span class="ident">is_binary_file</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">is_binary_file = lambda path: not is_ascii_file(path)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_broken_link"><code class="name flex">
+<span>def <span class="ident">is_broken_link</span></span>(<span>path, clean=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is a broken symlink</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check</dd>
+<dt><strong><code>clean</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>remove symlink if broken. Defaults to False.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>NotImplementedError</code></strong></dt>
+<dd>[description]</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if path is a broken symlink</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_broken_link(path: str, clean=False) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a broken symlink
+
+    Args:
+        path (str): path to check
+        clean (bool, optional): remove symlink if broken. Defaults to False.
+
+    Raises:
+        NotImplementedError: [description]
+
+    Returns:
+        bool: True if path is a broken symlink
+    &#34;&#34;&#34;
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_dir"><code class="name flex">
+<span>def <span class="ident">is_dir</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is a dir
+e.g
+j.sals.fs.is_dir(path= '/home/rafy')
+-&gt; True
+j.sals.fs.is_dir(path= '/home/rafy/file.txt')
+-&gt; False</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if is directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if is dir and False otherwise</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_dir(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a dir
+    e.g
+        j.sals.fs.is_dir(path= &#39;/home/rafy&#39;)  -&gt; True
+        j.sals.fs.is_dir(path= &#39;/home/rafy/file.txt&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if is directory
+    Returns:
+        bool: True if is dir and False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_dir()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_empty_dir"><code class="name flex">
+<span>def <span class="ident">is_empty_dir</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is emptry directory
+e.g
+j.sals.fs.is_empty_dir("/home/rafy/empty_dir")
+-&gt; True
+j.sals.fs.is_empty_dir("/home/rafy")
+-&gt; False</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if empty directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if path is emptry directory</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_empty_dir(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is emptry directory
+    e.g
+        j.sals.fs.is_empty_dir(&#34;/home/rafy/empty_dir&#34;)  -&gt; True
+        j.sals.fs.is_empty_dir(&#34;/home/rafy&#34;)  -&gt; False
+
+    Args:
+        path (str): path to check if empty directory
+
+    Returns:
+        bool: True if path is emptry directory
+    &#34;&#34;&#34;
+
+    try:
+        g = pathlib.Path(path).iterdir()
+        next(g)
+    except StopIteration:
+        # means we can&#39;t get next entry -&gt; dir is empty.
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_file"><code class="name flex">
+<span>def <span class="ident">is_file</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is a file
+e.g
+j.sals.fs.is_file(path= '/home/rafy')
+-&gt; False
+j.sals.fs.is_file(path= '/home/rafy/file.txt')
+-&gt; True</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if is file</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if is file and False otherwise</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_file(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path is a file
+    e.g
+        j.sals.fs.is_file(path= &#39;/home/rafy&#39;)  -&gt; False
+        j.sals.fs.is_file(path= &#39;/home/rafy/file.txt&#39;)  -&gt; True
+
+    Args:
+        path (str): path to check if is file
+
+    Returns:
+        bool: True if is file and False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_file()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_mount"><code class="name flex">
+<span>def <span class="ident">is_mount</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path is mount</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if it is mounded or not</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if mount</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_mount(path: str) -&gt; bool:
+    # TODO add example here
+    &#34;&#34;&#34;Checks if path is mount
+
+    Args:
+        path (str): path to check if it is mounded or not
+
+    Returns:
+        bool: True if mount
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).is_mount()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.is_symlink"><code class="name flex">
+<span>def <span class="ident">is_symlink</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if path symlink
+e.g
+j.sals.fs.is_symlink('/home/rafy/testfile3')
+-&gt; True
+j.sals.fs.is_symlink('/home/rafy/testfile2')
+-&gt; False</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to check if symlink</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if symlink False otherwise</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_symlink(path: str) -&gt; bool:
+    &#34;&#34;&#34;Checks if path symlink
+    e.g
+        j.sals.fs.is_symlink(&#39;/home/rafy/testfile3&#39;)  -&gt; True
+        j.sals.fs.is_symlink(&#39;/home/rafy/testfile2&#39;)  -&gt; False
+
+    Args:
+        path (str): path to check if symlink
+
+    Returns:
+        bool: True if symlink False otherwise
+    &#34;&#34;&#34;
+    return pathlib.Path(path).is_symlink()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.join_paths"><code class="name flex">
+<span>def <span class="ident">join_paths</span></span>(<span>*paths)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert tuple of path parts into a path string
+e.g
+j.sals.fs.join_paths("home","rafy")
+-&gt; 'home/rafy'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parts</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>path parts (path parts comma seprated and they will be used as a tuple)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>joined path parts</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def join_paths(*paths) -&gt; str:
+    &#34;&#34;&#34;
+    Convert tuple of path parts into a path string
+    e.g
+        j.sals.fs.join_paths(&#34;home&#34;,&#34;rafy&#34;)  -&gt; &#39;home/rafy&#39;
+
+    Args:
+        parts (tuple): path parts (path parts comma seprated and they will be used as a tuple)
+
+    Returns:
+        str: joined path parts
+
+    &#34;&#34;&#34;
+
+    return parts_to_path(paths)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.lchmod"><code class="name flex">
+<span>def <span class="ident">lchmod</span></span>(<span>path, mode)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>change file mode for path to mode (handles links too)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path</dd>
+<dt><strong><code>mode</code></strong> :&ensp;<code>int</code></dt>
+<dd>file mode</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def lchmod(path: str, mode):
+    &#34;&#34;&#34;change file mode for path to mode (handles links too)
+
+    Args:
+        path (str): path
+        mode (int): file mode
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).lchmod(mode)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.lstat"><code class="name flex">
+<span>def <span class="ident">lstat</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets stat of path <code>path</code> (handles links)
+e.g
+j.sals.fs.lstat("/home/rafy/testing_link")
+-&gt; os.stat_result(st_mode=41471, st_ino=7081257, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=16, st_atime=1586445737, st_mtime=1586445734, st_ctime=1586445734)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to get its stat</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>stat_result</code></strong></dt>
+<dd>returns stat struct.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def lstat(path: str):
+    &#34;&#34;&#34;Gets stat of path `path` (handles links)
+    e.g
+         j.sals.fs.lstat(&#34;/home/rafy/testing_link&#34;)  -&gt; os.stat_result(st_mode=41471, st_ino=7081257, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=16, st_atime=1586445737, st_mtime=1586445734, st_ctime=1586445734)
+
+    Args:
+        path (str): path to get its stat
+
+    Returns:
+        stat_result: returns stat struct.
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).lstat()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.make_path"><code class="name flex">
+<span>def <span class="ident">make_path</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>to ensure the given path, create it if it does not exist</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def make_path(path):
+    &#34;&#34;&#34;
+    to ensure the given path, create it if it does not exist
+
+    Args:
+        path (str): path
+    &#34;&#34;&#34;
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        return pathlib.Path(path).touch()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.mkdir"><code class="name flex">
+<span>def <span class="ident">mkdir</span></span>(<span>path, exist_ok=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Makes directory at path
+e.g
+j.sals.fs.mkdir("/home/rafy/testing_make_dir")
+j.sals.fs.mkdir("/home/rafy/testing_make_dir",exist_ok=True)
+j.sals.fs.mkdir("/home/rafy/testing_make_dir",exist_ok=False) -&gt; File exists: '/home/rafy/testing_make_dir' (raise exception as the file exist and
+exist_ok flag is false)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to create dir at</dd>
+<dt><strong><code>exist_ok</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>won't fail if directory exists. Defaults to True.</dd>
+</dl>
+<h2 id="returns">Returns</h2></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def mkdir(path: str, exist_ok=True):
+    &#34;&#34;&#34;Makes directory at path
+    e.g
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;)
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;,exist_ok=True)
+        j.sals.fs.mkdir(&#34;/home/rafy/testing_make_dir&#34;,exist_ok=False) -&gt; File exists: &#39;/home/rafy/testing_make_dir&#39; (raise exception as the file exist and  exist_ok flag is false)
+
+    Args:
+        path (str): path to create dir at
+        exist_ok (bool, optional): won&#39;t fail if directory exists. Defaults to True.
+
+    Returns:
+        [type]: [description]
+    &#34;&#34;&#34;
+    return pathlib.Path(path).mkdir(exist_ok=exist_ok)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.mkdirs"><code class="name flex">
+<span>def <span class="ident">mkdirs</span></span>(<span>path, exist_ok=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creates dir as well as all non exisitng parents in the path
+e.g
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=False)
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=True)
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=False)
+-&gt; File exists: '/home/rafy/testing_make_dir/test1/test2'(raise exception as the file exist and
+exist_ok flag is false)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to create dir at</dd>
+<dt><strong><code>exist_ok</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>won't fail if directory exists. Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def mkdirs(path: str, exist_ok=True):
+    &#34;&#34;&#34;Creates dir as well as all non exisitng parents in the path
+    e.g
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=True)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)  -&gt; File exists: &#39;/home/rafy/testing_make_dir/test1/test2&#39;(raise exception as the file exist and  exist_ok flag is false)
+
+    Args:
+        path (str): path to create dir at
+        exist_ok (bool, optional): won&#39;t fail if directory exists. Defaults to True.
+    &#34;&#34;&#34;
+    return os.makedirs(path, exist_ok=exist_ok)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.parent"><code class="name flex">
+<span>def <span class="ident">parent</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get path's parent
+e.g
+j.sals.fs.parent("/home/rafy/testing_make_dir/test1")
+-&gt; '/home/rafy/testing_make_dir'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to get its parent</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>parent path.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def parent(path: str) -&gt; str:
+    &#34;&#34;&#34;Get path&#39;s parent
+    e.g
+        j.sals.fs.parent(&#34;/home/rafy/testing_make_dir/test1&#34;)  -&gt; &#39;/home/rafy/testing_make_dir&#39;
+
+    Args:
+        path (str): path to get its parent
+
+    Returns:
+        str: parent path.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).parent)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.parents"><code class="name flex">
+<span>def <span class="ident">parents</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get parents list</p>
+<p>e.g
+j.sals.fs.parents("/tmp/home/ahmed/myfile.py") -&gt;
+[PosixPath('/tmp/home/ahmed'),
+PosixPath('/tmp/home'),
+PosixPath('/tmp'),
+PosixPath('/')]</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to get its parents</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[<code>str</code>]: <code>list</code> of <a title="jumpscale.sals.fs.parents" href="#jumpscale.sals.fs.parents"><code>parents()</code></a></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def parents(path: str) -&gt; List[str]:
+    &#34;&#34;&#34;Get parents list
+
+    e.g
+        j.sals.fs.parents(&#34;/tmp/home/ahmed/myfile.py&#34;) -&gt;
+    [PosixPath(&#39;/tmp/home/ahmed&#39;),
+    PosixPath(&#39;/tmp/home&#39;),
+    PosixPath(&#39;/tmp&#39;),
+    PosixPath(&#39;/&#39;)]
+
+    Args:
+        path (str): path to get its parents
+
+    Returns:
+        List[str]: list of parents
+    &#34;&#34;&#34;
+
+    return list([str(p) for p in pathlib.Path(path).parents])</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.parts_to_path"><code class="name flex">
+<span>def <span class="ident">parts_to_path</span></span>(<span>parts)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert list of path parts into a path string
+e.g
+j.sals.fs.parts_to_path(["home","rafy"])
+-&gt; 'home/rafy'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parts</code></strong> :&ensp;<code>List</code>[<code>str</code>]</dt>
+<dd>path parts</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>joined path parts</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def parts_to_path(parts: List[str]) -&gt; str:
+    &#34;&#34;&#34;Convert list of path parts into a path string
+    e.g
+        j.sals.fs.parts_to_path([&#34;home&#34;,&#34;rafy&#34;])  -&gt; &#39;home/rafy&#39;
+
+    Args:
+        parts (List[str]): path parts
+
+    Returns:
+        str: joined path parts
+    &#34;&#34;&#34;
+    path = pathlib.Path(parts[0])
+    for p in parts[1:]:
+        path = path.joinpath(p)
+    return str(path)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.path_parts"><code class="name flex">
+<span>def <span class="ident">path_parts</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Convert path to a list of parts
+e.g
+'/tmp/tmp-5383p1GOmMOOwvfi.tpl' -&gt;
+('/', 'tmp', 'tmp-5383p1GOmMOOwvfi.tpl')</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to convert to parts</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List[str]: path parts.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def path_parts(path: str) -&gt; List[str]:
+    &#34;&#34;&#34;Convert path to a list of parts
+    e.g
+        &#39;/tmp/tmp-5383p1GOmMOOwvfi.tpl&#39; -&gt;  (&#39;/&#39;, &#39;tmp&#39;, &#39;tmp-5383p1GOmMOOwvfi.tpl&#39;)
+    Args:
+        path (str): path to convert to parts
+
+    Returns:
+        List[str]: path parts.
+    &#34;&#34;&#34;
+    return pathlib.Path(path).parts</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_ascii"><code class="name flex">
+<span>def <span class="ident">read_ascii</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read ascii content at <code>path</code>
+e.g
+j.sals.fs.read_text("/home/rafy/testing_text.txt")
+-&gt; 'hello world
+'</p>
+<pre><code>Args:
+    path (str): ascii file path
+
+Returns:
+    str: ascii content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_text(path: str) -&gt; str:
+    &#34;&#34;&#34;read ascii content at `path`
+    e.g
+        j.sals.fs.read_text(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; &#39;hello world\n&#39;
+
+    Args:
+        path (str): ascii file path
+
+    Returns:
+        str: ascii content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_text()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_binary"><code class="name flex">
+<span>def <span class="ident">read_binary</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read binary content at <code>path</code>
+e.g
+j.sals.fs.read_bytes("/home/rafy/testing_text.txt")
+-&gt; b'hello world
+'</p>
+<pre><code>Args:
+    path (str): binary file path
+
+Returns:
+    bytes: binary content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_bytes(path: str) -&gt; bytes:
+    &#34;&#34;&#34;read binary content at `path`
+    e.g
+        j.sals.fs.read_bytes(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; b&#39;hello world\n&#39;
+
+    Args:
+        path (str): binary file path
+
+    Returns:
+        bytes: binary content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_bytes()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_bytes"><code class="name flex">
+<span>def <span class="ident">read_bytes</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read binary content at <code>path</code>
+e.g
+j.sals.fs.read_bytes("/home/rafy/testing_text.txt")
+-&gt; b'hello world
+'</p>
+<pre><code>Args:
+    path (str): binary file path
+
+Returns:
+    bytes: binary content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_bytes(path: str) -&gt; bytes:
+    &#34;&#34;&#34;read binary content at `path`
+    e.g
+        j.sals.fs.read_bytes(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; b&#39;hello world\n&#39;
+
+    Args:
+        path (str): binary file path
+
+    Returns:
+        bytes: binary content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_bytes()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_file"><code class="name flex">
+<span>def <span class="ident">read_file</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read ascii content at <code>path</code>
+e.g
+j.sals.fs.read_text("/home/rafy/testing_text.txt")
+-&gt; 'hello world
+'</p>
+<pre><code>Args:
+    path (str): ascii file path
+
+Returns:
+    str: ascii content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_text(path: str) -&gt; str:
+    &#34;&#34;&#34;read ascii content at `path`
+    e.g
+        j.sals.fs.read_text(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; &#39;hello world\n&#39;
+
+    Args:
+        path (str): ascii file path
+
+    Returns:
+        str: ascii content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_text()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_file_binary"><code class="name flex">
+<span>def <span class="ident">read_file_binary</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read binary content at <code>path</code>
+e.g
+j.sals.fs.read_bytes("/home/rafy/testing_text.txt")
+-&gt; b'hello world
+'</p>
+<pre><code>Args:
+    path (str): binary file path
+
+Returns:
+    bytes: binary content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_bytes(path: str) -&gt; bytes:
+    &#34;&#34;&#34;read binary content at `path`
+    e.g
+        j.sals.fs.read_bytes(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; b&#39;hello world\n&#39;
+
+    Args:
+        path (str): binary file path
+
+    Returns:
+        bytes: binary content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_bytes()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_link"><code class="name flex">
+<span>def <span class="ident">read_link</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_link(path):
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.read_text"><code class="name flex">
+<span>def <span class="ident">read_text</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>read ascii content at <code>path</code>
+e.g
+j.sals.fs.read_text("/home/rafy/testing_text.txt")
+-&gt; 'hello world
+'</p>
+<pre><code>Args:
+    path (str): ascii file path
+
+Returns:
+    str: ascii content in path
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def read_text(path: str) -&gt; str:
+    &#34;&#34;&#34;read ascii content at `path`
+    e.g
+        j.sals.fs.read_text(&#34;/home/rafy/testing_text.txt&#34;)  -&gt; &#39;hello world\n&#39;
+
+    Args:
+        path (str): ascii file path
+
+    Returns:
+        str: ascii content in path
+    &#34;&#34;&#34;
+    return pathlib.Path(path).read_text()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.remove_links"><code class="name flex">
+<span>def <span class="ident">remove_links</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def remove_links(path):
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.rename"><code class="name flex">
+<span>def <span class="ident">rename</span></span>(<span>path1, path2)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Rename path1 to path2
+e.g
+j.sals.fs.rename("/home/rafy/testing_make_dir","/home/rafy/testing_dir")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path1</code></strong> :&ensp;<code>str</code></dt>
+<dd>source path</dd>
+<dt><strong><code>path2</code></strong> :&ensp;<code>str</code></dt>
+<dd>dest path</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def rename(path1: str, path2: str):
+    &#34;&#34;&#34;Rename path1 to path2
+    e.g
+        j.sals.fs.rename(&#34;/home/rafy/testing_make_dir&#34;,&#34;/home/rafy/testing_dir&#34;)
+
+    Args:
+        path1 (str): source path
+        path2 (str): dest path
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path1).rename(path2)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.replace_words_in_files"><code class="name flex">
+<span>def <span class="ident">replace_words_in_files</span></span>(<span>from_, to, where)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def replace_words_in_files(from_, to, where):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.resolve"><code class="name flex">
+<span>def <span class="ident">resolve</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>resolve <code>.</code> and <code>..</code> in path
+e.g
+j.sals.fs.resolve("")
+-&gt; PosixPath('/home/rafy/Documents')
+j.sals.fs.resolve("./testing_text.txt")
+-&gt; PosixPath('/home/rafy/Documents/testing_text.txt')</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path with optionally <code>.</code> and <code>..</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>resolved path</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def resolve(path: str) -&gt; str:
+    &#34;&#34;&#34;resolve `.` and `..` in path
+    e.g
+        j.sals.fs.resolve(&#34;&#34;)  -&gt; PosixPath(&#39;/home/rafy/Documents&#39;)
+        j.sals.fs.resolve(&#34;./testing_text.txt&#34;)  -&gt; PosixPath(&#39;/home/rafy/Documents/testing_text.txt&#39;)
+
+    Args:
+        path (str): path with optionally `.` and `..`
+
+    Returns:
+        str: resolved path
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).resolve())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.rm_emptry_dir"><code class="name flex">
+<span>def <span class="ident">rm_emptry_dir</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Remove empty directory if the directory is not empty it will throw exception (Directory not empty)
+e.g
+j.sals.fs.rm_emptry_dir("/home/rafy/empty_dir")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to remove.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def rm_emptry_dir(path: str):
+    &#34;&#34;&#34;Remove empty directory if the directory is not empty it will throw exception (Directory not empty)
+    e.g
+        j.sals.fs.rm_emptry_dir(&#34;/home/rafy/empty_dir&#34;)
+
+    Args:
+        path (str): path to remove.
+    &#34;&#34;&#34;
+    path = pathlib.Path(path)
+    path.rmdir()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.rmtree"><code class="name flex">
+<span>def <span class="ident">rmtree</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Remove directory tree</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to remove</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def rmtree(path: str):
+    &#34;&#34;&#34;Remove directory tree
+    Args:
+        path (str): path to remove
+    &#34;&#34;&#34;
+    path = pathlib.Path(path)
+    if path.is_file() or path.is_symlink():
+        os.remove(path)
+    elif path.is_dir():
+        shutil.rmtree(path)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.stat"><code class="name flex">
+<span>def <span class="ident">stat</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets stat of path <code>path</code>
+e.g
+j.sals.fs.stat("/home/rafy/test_dir/test")
+-&gt; os.stat_result(st_mode=33204, st_ino=795348, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=0, st_atime=1586445434, st_mtime=1586445434, st_ctime=1586445434)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to get its stat</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>stat_result</code></strong></dt>
+<dd>returns stat struct.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def stat(path: str):
+    &#34;&#34;&#34;Gets stat of path `path`
+    e.g
+        j.sals.fs.stat(&#34;/home/rafy/test_dir/test&#34;)  -&gt; os.stat_result(st_mode=33204, st_ino=795348, st_dev=2049, st_nlink=1, st_uid=1000, st_gid=1000, st_size=0, st_atime=1586445434, st_mtime=1586445434, st_ctime=1586445434)
+    Args:
+        path (str): path to get its stat
+
+    Returns:
+        stat_result: returns stat struct.
+    &#34;&#34;&#34;
+
+    return pathlib.Path(path).stat()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.stem"><code class="name flex">
+<span>def <span class="ident">stem</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns the stem of a path (path without parent directory and without extension)
+e.g
+j.sals.fs.stem("/tmp/tmp-5383p1GOmMOOwvfi.tpl")
+-&gt; 'tmp-5383p1GOmMOOwvfi'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path we want to get its stem</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>path without parent directory and without extension</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def stem(path: str) -&gt; str:
+    &#34;&#34;&#34;returns the stem of a path (path without parent directory and without extension)
+    e.g
+        j.sals.fs.stem(&#34;/tmp/tmp-5383p1GOmMOOwvfi.tpl&#34;)  -&gt; &#39;tmp-5383p1GOmMOOwvfi&#39;
+
+    Args:
+        path (str): path we want to get its stem
+
+    Returns:
+        str: path without parent directory and without extension
+    &#34;&#34;&#34;
+    return pathlib.Path(path).stem</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.symlink"><code class="name flex">
+<span>def <span class="ident">symlink</span></span>(<span>src, dst, overwrite=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create a symbolic link.
+e.g
+j.sals.fs.symlink(src="/home/rafy/testing_text.txt",dst="/home/rafy/link_test")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>src</code></strong> :&ensp;<code>str</code></dt>
+<dd>Source of link</dd>
+<dt><strong><code>dst</code></strong> :&ensp;<code>str</code></dt>
+<dd>Destination path of link</dd>
+<dt><strong><code>overwrite</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If link exists will delete it. Defaults to False.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def symlink(src: str, dst: str, overwrite=False):
+    &#34;&#34;&#34;Create a symbolic link.
+    e.g
+        j.sals.fs.symlink(src=&#34;/home/rafy/testing_text.txt&#34;,dst=&#34;/home/rafy/link_test&#34;)
+
+    Args:
+        src (str): Source of link
+        dst (str): Destination path of link
+        overwrite (bool, optional): If link exists will delete it. Defaults to False.
+    &#34;&#34;&#34;
+    if overwrite and exists(dst):
+        os.unlink(dst)
+
+    os.symlink(src, dst)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.touch"><code class="name flex">
+<span>def <span class="ident">touch</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create file
+e.g
+j.sals.fs.touch("/home/rafy/testing_touch")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to create file</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def touch(path: str):
+    &#34;&#34;&#34;create file
+    e.g
+        j.sals.fs.touch(&#34;/home/rafy/testing_touch&#34;)
+
+    Args:
+        path (str): path to create file
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).touch()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.unlink"><code class="name flex">
+<span>def <span class="ident">unlink</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>unlink path
+e.g
+j.sals.fs.unlink("/home/rafy/testfile3")</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to unlink</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def unlink(path: str):
+    &#34;&#34;&#34;unlink path
+    e.g
+        j.sals.fs.unlink(&#34;/home/rafy/testfile3&#34;)
+    Args:
+        path (str): path to unlink
+    &#34;&#34;&#34;
+    return pathlib.Path(path).unlink()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.walk"><code class="name flex">
+<span>def <span class="ident">walk</span></span>(<span>path, pat=&#39;*&#39;, filter_fun=&lt;function default_filter_fun&gt;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>walk recursively on path
+e.g
+for el in walk('/tmp', filter_fun=j.sals.fs.is_file) : ..
+for el in walk('/tmp', filter_fun=j.sals.fs.is_dir) : ..
+for el in walk('/tmp', filter_fun= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to walk over</dd>
+<dt><strong><code>pat</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>pattern to match against. Defaults to "*".</dd>
+<dt><strong><code>filter_fun</code></strong> :&ensp;<code>Function</code>, optional</dt>
+<dd>filtering function. Defaults to default_filter_fun which accepts anything.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def walk(path: str, pat=&#34;*&#34;, filter_fun=default_filter_fun):
+    &#34;&#34;&#34;walk recursively on path
+    e.g
+        for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_file) : ..
+        for el in walk(&#39;/tmp&#39;, filter_fun=j.sals.fs.is_dir) : ..
+        for el in walk(&#39;/tmp&#39;, filter_fun= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+
+
+    Args:
+        path (str): path to walk over
+        pat (str, optional): pattern to match against. Defaults to &#34;*&#34;.
+        filter_fun (Function, optional): filtering function. Defaults to default_filter_fun which accepts anything.
+    &#34;&#34;&#34;
+    p = pathlib.Path(path)
+    for entry in p.rglob(pat):
+        # use rglob instead of glob(&#34;**/*&#34;)
+        if filter_fun(entry):
+            yield str(entry)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.walk_dirs"><code class="name flex">
+<span>def <span class="ident">walk_dirs</span></span>(<span>path, recursive=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>walk over directories in path and applies function <code>fun</code>
+e.g</p>
+<pre><code>for el in walk_dirs('/tmp') : ..
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to walk over</dd>
+<dt><strong><code>recursive</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>recursive or not. Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def walk_dirs(path, recursive=True):
+    &#34;&#34;&#34;
+        walk over directories in path and applies function `fun`
+    e.g
+
+        for el in walk_dirs(&#39;/tmp&#39;) : ..
+
+
+    Args:
+        path (str): path to walk over
+        recursive (bool, optional): recursive or not. Defaults to True.
+
+
+    &#34;&#34;&#34;
+    if recursive:
+        return walk(path, filter_fun=is_dir)
+    else:
+        return walk_non_recursive(path, filter_fun=is_dir)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.walk_files"><code class="name flex">
+<span>def <span class="ident">walk_files</span></span>(<span>path, recursive=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>walk over files in path and applies function <code>fun</code>
+e.g</p>
+<pre><code>for el in walk_files('/tmp') : ..
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to walk over</dd>
+<dt><strong><code>recursive</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>recursive or not. Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def walk_files(path: str, recursive=True):
+    &#34;&#34;&#34;
+    walk over files in path and applies function `fun`
+    e.g
+
+        for el in walk_files(&#39;/tmp&#39;) : ..
+
+    Args:
+        path (str): path to walk over
+        recursive (bool, optional): recursive or not. Defaults to True.
+
+
+    &#34;&#34;&#34;
+
+    if recursive:
+        return walk(path, filter_fun=is_file)
+    else:
+        return walk_non_recursive(path, filter_fun=is_file)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.walk_non_recursive"><code class="name flex">
+<span>def <span class="ident">walk_non_recursive</span></span>(<span>path, filter_fun=&lt;function default_filter_fun&gt;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>walks non recursively on path
+e.g
+for el in walk('/tmp', filter=j.sals.fs.is_file) : ..
+for el in walk('/tmp', filter=j.sals.fs.is_dir) : ..
+for el in walk('/tmp', filter= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to walk over</dd>
+<dt><strong><code>pat</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>pattern to match against. Defaults to "*".</dd>
+<dt><strong><code>filter_fun</code></strong> :&ensp;<code>Function</code>, optional</dt>
+<dd>filtering function. Defaults to default_filter_fun which accepts anything.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def walk_non_recursive(path: str, filter_fun=default_filter_fun):
+    &#34;&#34;&#34;walks non recursively on path
+    e.g
+        for el in walk(&#39;/tmp&#39;, filter=j.sals.fs.is_file) : ..
+        for el in walk(&#39;/tmp&#39;, filter=j.sals.fs.is_dir) : ..
+        for el in walk(&#39;/tmp&#39;, filter= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) or j.sals.fs.is_dir(x)) ) : ..
+
+
+    Args:
+        path (str): path to walk over
+        pat (str, optional): pattern to match against. Defaults to &#34;*&#34;.
+        filter_fun (Function, optional): filtering function. Defaults to default_filter_fun which accepts anything.
+    &#34;&#34;&#34;
+    p = pathlib.Path(path)
+    for entry in p.iterdir():
+        if filter_fun(entry):
+            yield str(entry)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_ascii"><code class="name flex">
+<span>def <span class="ident">write_ascii</span></span>(<span>path, data, encoding=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
+e.g
+j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>ascii content</dd>
+<dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>encoding. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the decoded contents of the pointed-to file as a string</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+    &#34;&#34;&#34;write text `data` to path `path` with encoding
+    e.g
+        j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (str): ascii content
+        encoding ([type], optional): encoding. Defaults to None.
+
+    Returns:
+        int: Return the decoded contents of the pointed-to file as a string
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_binary"><code class="name flex">
+<span>def <span class="ident">write_binary</span></span>(<span>path, data)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+e.g
+j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>binary content</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_bytes(path: str, data: bytes):
+    &#34;&#34;&#34;write binary `data` to path `path`
+    e.g
+        j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (bytes): binary content
+
+    Returns:
+        int: Return the binary contents of the pointed-to file as a bytes object
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_bytes(data)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_bytes"><code class="name flex">
+<span>def <span class="ident">write_bytes</span></span>(<span>path, data)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+e.g
+j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>binary content</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_bytes(path: str, data: bytes):
+    &#34;&#34;&#34;write binary `data` to path `path`
+    e.g
+        j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (bytes): binary content
+
+    Returns:
+        int: Return the binary contents of the pointed-to file as a bytes object
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_bytes(data)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_file"><code class="name flex">
+<span>def <span class="ident">write_file</span></span>(<span>path, data, encoding=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
+e.g
+j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>ascii content</dd>
+<dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>encoding. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the decoded contents of the pointed-to file as a string</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+    &#34;&#34;&#34;write text `data` to path `path` with encoding
+    e.g
+        j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (str): ascii content
+        encoding ([type], optional): encoding. Defaults to None.
+
+    Returns:
+        int: Return the decoded contents of the pointed-to file as a string
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_file_binary"><code class="name flex">
+<span>def <span class="ident">write_file_binary</span></span>(<span>path, data)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+e.g
+j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>binary content</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_bytes(path: str, data: bytes):
+    &#34;&#34;&#34;write binary `data` to path `path`
+    e.g
+        j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (bytes): binary content
+
+    Returns:
+        int: Return the binary contents of the pointed-to file as a bytes object
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_bytes(data)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.write_text"><code class="name flex">
+<span>def <span class="ident">write_text</span></span>(<span>path, data, encoding=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
+e.g
+j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
+-&gt; 11</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to write to</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>ascii content</dd>
+<dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dd>encoding. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Return the decoded contents of the pointed-to file as a string</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+    &#34;&#34;&#34;write text `data` to path `path` with encoding
+    e.g
+        j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
+
+    Args:
+        path (str): path to write to
+        data (str): ascii content
+        encoding ([type], optional): encoding. Defaults to None.
+
+    Returns:
+        int: Return the decoded contents of the pointed-to file as a string
+
+    &#34;&#34;&#34;
+    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#using-system-fs">Using System Fs</a><ul>
+<li><a href="#get-current-working-dir">Get current working dir</a></li>
+<li><a href="#get-basename">Get basename</a></li>
+<li><a href="#get-dir-name">Get Dir name</a></li>
+<li><a href="#is-dir">is dir</a></li>
+<li><a href="#is-file">is file</a></li>
+<li><a href="#is-ascii-file">is ascii file</a></li>
+<li><a href="#is-absolute-path">Is absolute path</a></li>
+<li><a href="#check-if-empty-dir">Check if empty dir</a></li>
+<li><a href="#file-paths-exists-or-not">File paths exists or not</a></li>
+<li><a href="#readingwriting-to-a-file">Reading/Writing to a file</a><ul>
+<li><a href="#touching-a-new-file">Touching a new file</a></li>
+<li><a href="#reading-a-text">Reading a text</a></li>
+<li><a href="#reading-binary">Reading binary</a></li>
+<li><a href="#writing-text">Writing text</a></li>
+<li><a href="#writing-binary">Writing binary</a></li>
+<li><a href="#making-directories">Making directories</a></li>
+<li><a href="#get-the-stem-of-the-filepath">Get the stem of the filepath</a></li>
+<li><a href="#get-the-parent">Get the parent</a></li>
+<li><a href="#get-parents">Get parents</a></li>
+<li><a href="#rename-file">Rename file</a></li>
+<li><a href="#expand-user">Expand user</a></li>
+<li><a href="#get-temporary-filename">Get temporary filename</a></li>
+<li><a href="#resolving-a-path">Resolving a path</a></li>
+</ul>
+</li>
+<li><a href="#walkers">Walkers</a><ul>
+<li><a href="#walk-over-on-files-only">Walk over on files only</a></li>
+<li><a href="#walk-over-on-dirs-only">Walk over on dirs only</a></li>
+<li><a href="#walk-over-with-a-bit-complex-filter">walk over with a bit complex filter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.sals" href="../index.html">jumpscale.sals</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jumpscale.sals.fs.change_dir" href="#jumpscale.sals.fs.change_dir">change_dir</a></code></li>
+<li><code><a title="jumpscale.sals.fs.change_filenames" href="#jumpscale.sals.fs.change_filenames">change_filenames</a></code></li>
+<li><code><a title="jumpscale.sals.fs.chmod" href="#jumpscale.sals.fs.chmod">chmod</a></code></li>
+<li><code><a title="jumpscale.sals.fs.chown" href="#jumpscale.sals.fs.chown">chown</a></code></li>
+<li><code><a title="jumpscale.sals.fs.copy_file" href="#jumpscale.sals.fs.copy_file">copy_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.copy_stat" href="#jumpscale.sals.fs.copy_stat">copy_stat</a></code></li>
+<li><code><a title="jumpscale.sals.fs.cwd" href="#jumpscale.sals.fs.cwd">cwd</a></code></li>
+<li><code><a title="jumpscale.sals.fs.default_filter_fun" href="#jumpscale.sals.fs.default_filter_fun">default_filter_fun</a></code></li>
+<li><code><a title="jumpscale.sals.fs.exists" href="#jumpscale.sals.fs.exists">exists</a></code></li>
+<li><code><a title="jumpscale.sals.fs.expanduser" href="#jumpscale.sals.fs.expanduser">expanduser</a></code></li>
+<li><code><a title="jumpscale.sals.fs.ext" href="#jumpscale.sals.fs.ext">ext</a></code></li>
+<li><code><a title="jumpscale.sals.fs.extension" href="#jumpscale.sals.fs.extension">extension</a></code></li>
+<li><code><a title="jumpscale.sals.fs.fs_check" href="#jumpscale.sals.fs.fs_check">fs_check</a></code></li>
+<li><code><a title="jumpscale.sals.fs.get_temp_dirname" href="#jumpscale.sals.fs.get_temp_dirname">get_temp_dirname</a></code></li>
+<li><code><a title="jumpscale.sals.fs.get_temp_filename" href="#jumpscale.sals.fs.get_temp_filename">get_temp_filename</a></code></li>
+<li><code><a title="jumpscale.sals.fs.home" href="#jumpscale.sals.fs.home">home</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_absolute" href="#jumpscale.sals.fs.is_absolute">is_absolute</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_ascii_file" href="#jumpscale.sals.fs.is_ascii_file">is_ascii_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_binary_file" href="#jumpscale.sals.fs.is_binary_file">is_binary_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_broken_link" href="#jumpscale.sals.fs.is_broken_link">is_broken_link</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_dir" href="#jumpscale.sals.fs.is_dir">is_dir</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_empty_dir" href="#jumpscale.sals.fs.is_empty_dir">is_empty_dir</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_file" href="#jumpscale.sals.fs.is_file">is_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_mount" href="#jumpscale.sals.fs.is_mount">is_mount</a></code></li>
+<li><code><a title="jumpscale.sals.fs.is_symlink" href="#jumpscale.sals.fs.is_symlink">is_symlink</a></code></li>
+<li><code><a title="jumpscale.sals.fs.join_paths" href="#jumpscale.sals.fs.join_paths">join_paths</a></code></li>
+<li><code><a title="jumpscale.sals.fs.lchmod" href="#jumpscale.sals.fs.lchmod">lchmod</a></code></li>
+<li><code><a title="jumpscale.sals.fs.lstat" href="#jumpscale.sals.fs.lstat">lstat</a></code></li>
+<li><code><a title="jumpscale.sals.fs.make_path" href="#jumpscale.sals.fs.make_path">make_path</a></code></li>
+<li><code><a title="jumpscale.sals.fs.mkdir" href="#jumpscale.sals.fs.mkdir">mkdir</a></code></li>
+<li><code><a title="jumpscale.sals.fs.mkdirs" href="#jumpscale.sals.fs.mkdirs">mkdirs</a></code></li>
+<li><code><a title="jumpscale.sals.fs.parent" href="#jumpscale.sals.fs.parent">parent</a></code></li>
+<li><code><a title="jumpscale.sals.fs.parents" href="#jumpscale.sals.fs.parents">parents</a></code></li>
+<li><code><a title="jumpscale.sals.fs.parts_to_path" href="#jumpscale.sals.fs.parts_to_path">parts_to_path</a></code></li>
+<li><code><a title="jumpscale.sals.fs.path_parts" href="#jumpscale.sals.fs.path_parts">path_parts</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_ascii" href="#jumpscale.sals.fs.read_ascii">read_ascii</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_binary" href="#jumpscale.sals.fs.read_binary">read_binary</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_bytes" href="#jumpscale.sals.fs.read_bytes">read_bytes</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_file" href="#jumpscale.sals.fs.read_file">read_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_file_binary" href="#jumpscale.sals.fs.read_file_binary">read_file_binary</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_link" href="#jumpscale.sals.fs.read_link">read_link</a></code></li>
+<li><code><a title="jumpscale.sals.fs.read_text" href="#jumpscale.sals.fs.read_text">read_text</a></code></li>
+<li><code><a title="jumpscale.sals.fs.remove_links" href="#jumpscale.sals.fs.remove_links">remove_links</a></code></li>
+<li><code><a title="jumpscale.sals.fs.rename" href="#jumpscale.sals.fs.rename">rename</a></code></li>
+<li><code><a title="jumpscale.sals.fs.replace_words_in_files" href="#jumpscale.sals.fs.replace_words_in_files">replace_words_in_files</a></code></li>
+<li><code><a title="jumpscale.sals.fs.resolve" href="#jumpscale.sals.fs.resolve">resolve</a></code></li>
+<li><code><a title="jumpscale.sals.fs.rm_emptry_dir" href="#jumpscale.sals.fs.rm_emptry_dir">rm_emptry_dir</a></code></li>
+<li><code><a title="jumpscale.sals.fs.rmtree" href="#jumpscale.sals.fs.rmtree">rmtree</a></code></li>
+<li><code><a title="jumpscale.sals.fs.stat" href="#jumpscale.sals.fs.stat">stat</a></code></li>
+<li><code><a title="jumpscale.sals.fs.stem" href="#jumpscale.sals.fs.stem">stem</a></code></li>
+<li><code><a title="jumpscale.sals.fs.symlink" href="#jumpscale.sals.fs.symlink">symlink</a></code></li>
+<li><code><a title="jumpscale.sals.fs.touch" href="#jumpscale.sals.fs.touch">touch</a></code></li>
+<li><code><a title="jumpscale.sals.fs.unlink" href="#jumpscale.sals.fs.unlink">unlink</a></code></li>
+<li><code><a title="jumpscale.sals.fs.walk" href="#jumpscale.sals.fs.walk">walk</a></code></li>
+<li><code><a title="jumpscale.sals.fs.walk_dirs" href="#jumpscale.sals.fs.walk_dirs">walk_dirs</a></code></li>
+<li><code><a title="jumpscale.sals.fs.walk_files" href="#jumpscale.sals.fs.walk_files">walk_files</a></code></li>
+<li><code><a title="jumpscale.sals.fs.walk_non_recursive" href="#jumpscale.sals.fs.walk_non_recursive">walk_non_recursive</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_ascii" href="#jumpscale.sals.fs.write_ascii">write_ascii</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_binary" href="#jumpscale.sals.fs.write_binary">write_binary</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_bytes" href="#jumpscale.sals.fs.write_bytes">write_bytes</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_file" href="#jumpscale.sals.fs.write_file">write_file</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_file_binary" href="#jumpscale.sals.fs.write_file_binary">write_file_binary</a></code></li>
+<li><code><a title="jumpscale.sals.fs.write_text" href="#jumpscale.sals.fs.write_text">write_text</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
