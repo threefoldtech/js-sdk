@@ -71,7 +71,7 @@ class GiteaDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -155,7 +155,7 @@ class GiteaDeploy(GedisChatBot):
         self.md_show_update(&#34;Preparing gateways ...&#34;)
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -326,7 +326,7 @@ any extra kwargs that is passed while creating the session
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -410,7 +410,7 @@ any extra kwargs that is passed while creating the session
         self.md_show_update(&#34;Preparing gateways ...&#34;)
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -717,7 +717,7 @@ any extra kwargs that is passed while creating the session
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -801,7 +801,7 @@ any extra kwargs that is passed while creating the session
         self.md_show_update(&#34;Preparing gateways ...&#34;)
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
