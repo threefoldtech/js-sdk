@@ -69,9 +69,8 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                Just upload the file with the key.
-                Note: please use keys compatible with Dropbear server eg: rsa """,
+            """Please upload your public SSH key to be able to access the depolyed container via ssh
+                Note: please use keys compatible with Dropbear server eg: RSA""",
             required=True,
         ).split("\n")
 

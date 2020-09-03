@@ -89,11 +89,10 @@ class UbuntuDeploy(GedisChatBot):
         else:
             self.log_config = {}
 
-    @chatflow_step(title="Access keys")
+    @chatflow_step(title="Access key")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
+            """Please upload your public SSH key to be able to access the depolyed container via ssh""",
             required=True,
         ).split("\n")[0]
 
@@ -128,7 +127,10 @@ class UbuntuDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
+            "Please choose IP Address for your solution",
+            free_ips,
+            default=free_ips[0],
+            required=True,
         )
 
     @chatflow_step(title="Global IPv6 Address")
