@@ -28,7 +28,7 @@ def destroy():
     if current_username != logged_in_username:
         abort(401, "Unauthorized")
 
-    status = "Failed to destroy backups, 3Bot name is not existed"
+    status = "Failed to destroy backups, 3Bot name doesn't exist"
     try:
         ssh_server1.sshclient.run(
             f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
