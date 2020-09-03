@@ -2,8 +2,7 @@ import uuid
 import random
 import requests
 from textwrap import dedent
-
-from jumpscale.core.base import StoredFactory
+import math
 from jumpscale.loader import j
 from .solutions import solutions
 from .deployer import deployer
@@ -86,7 +85,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
-                    pool_info = j.sals.zos.pools.extend(pool.pool_id, cu_diff, su_diff)
+                    pool_info = j.sals.zos.pools.extend(pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff))
                     deployer.show_payment(pool_info, self)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0

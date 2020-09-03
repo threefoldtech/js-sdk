@@ -322,7 +322,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
         else:
             # sort underfit pools descending according to the sum of diff cus and sus
-            for pool in over_fit_pools:
+            for pool in under_fit_pools:
                 pool.unit_diff = pool.cus + pool.sus - required_cu - required_su
             sorted_result = sorted(under_fit_pools, key=lambda x: x.unit_diff, reverse=True)
             result_pool = sorted_result[0]
