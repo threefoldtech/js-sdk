@@ -94,7 +94,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     if not result:
                         raise StopChatFlow(
-                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}"
+                            f"Your payment session has expired. reservation_id: {pool_info.reservation_id}"
                         )
                     self.pool_id = pool.pool_id
                 else:
@@ -113,7 +113,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 )
                 result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
                 if not result:
-                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                    raise StopChatFlow(f"Your payment session has expired. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user
@@ -158,7 +158,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways(self.user_info()["username"])
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -205,7 +205,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         valid = False
         while not valid:
             self.solution_name = self.string_ask(
-                "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
+                "Please enter a name for your solution (This will be used to identify your solution on the list.)",
                 required=True,
                 is_identifier=True,
             )
@@ -215,7 +215,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             for sol in solutions_list:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
@@ -223,7 +223,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @chatflow_step(title="Payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
-            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you want to pay the solution with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
 
     @chatflow_step(title="Expiration Date and Time")

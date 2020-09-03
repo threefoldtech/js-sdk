@@ -152,7 +152,7 @@ class NetworkView:
         ip_range = netaddr.IPNetwork("10.10.0.0/16")
         name = uuid.uuid4().hex
         if any([node_ids, pool_ids]) and not all([node_ids, pool_ids]):
-            raise StopChatFlow("you must specify both pool ids and node ids together")
+            raise StopChatFlow("you must specify both Pool IDs and Node IDs together")
         node_pool_dict = {}
         if node_ids:
             for idx, node_id in enumerate(node_ids):

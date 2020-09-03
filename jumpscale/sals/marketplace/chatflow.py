@@ -23,9 +23,9 @@ class MarketPlaceChatflow(GedisChatBot):
             user_entry = user_factory.get(instance_name)
             if not user_entry.has_agreed:
                 raise StopChatFlow(
-                    f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
+                    f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms terms and conditions."
                 )
         else:
             raise StopChatFlow(
-                f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms"
+                f"You must accept terms and conditions before using this solution. please head towards the main page to read our terms and conditions."
             )

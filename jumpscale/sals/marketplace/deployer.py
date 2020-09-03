@@ -63,14 +63,14 @@ class MarketPlaceDeployer(ChatflowDeployer):
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
         <h3>Make a Payment</h3>
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+        Scan the QR code with your wallet (do not change the message), or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text.
 
         <h4> Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {thecurrency} \n
         <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
         <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
         """
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
@@ -192,7 +192,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         self, username, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None
     ):
         """
-        Choose multiple pools and to distribute workload automatically
+        Choose multiple pools to distribute workload automatically
 
         Args:
             bot: chatflow object
@@ -216,12 +216,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
         messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
         while True:
             pool_choices = bot.multi_list_choice(
-                f"Please seclect the pools you wish to distribute you {workload_name} on",
+                f"Please seclect the pools you wish to distribute your {workload_name} on",
                 options=list(messages.keys()),
                 required=True,
             )
             if not pool_choices:
-                bot.md_show("You must select at least one pool. please click next to try again.")
+                bot.md_show("You must select at least 1 pool. please click 'Next' to try again.")
             else:
                 break
 
@@ -332,7 +332,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
         if not result:
-            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
+            raise StopChatFlow(f"Your payment session has expired. pool_id: {pool_info.reservation_id}")
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, pool_ids=[pool_info.reservation_id], ip_version="IPv4"
         )[0]
@@ -357,7 +357,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def ask_expiration(self, bot, default=None, msg=""):
         default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
-            "Please enter solution expiration time." if not msg else msg,
+            "Please enter the solution's expiration time:" if not msg else msg,
             required=True,
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=default,
