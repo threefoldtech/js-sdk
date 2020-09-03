@@ -352,7 +352,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
         if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+            raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {pool_info.reservation_id}&#34;)
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
         )[0]
@@ -724,7 +724,7 @@ deployer = MarketPlaceDeployer()</code></pre>
         pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
         if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+            raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {pool_info.reservation_id}&#34;)
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
         )[0]
@@ -920,7 +920,7 @@ deployer = MarketPlaceDeployer()</code></pre>
     pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
     result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
     if not result:
-        raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+        raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {pool_info.reservation_id}&#34;)
     access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
         1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
     )[0]

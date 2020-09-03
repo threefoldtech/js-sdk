@@ -73,7 +73,7 @@ class ExtendThreebot(MarketPlaceChatflow):
             self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
         )
         if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
+            raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
@@ -149,7 +149,7 @@ any extra kwargs that is passed while creating the session
             self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
         )
         if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
+            raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
@@ -284,7 +284,7 @@ any extra kwargs that is passed while creating the session
             self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
         )
         if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
+            raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
