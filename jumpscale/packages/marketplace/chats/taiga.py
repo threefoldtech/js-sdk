@@ -119,9 +119,9 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_id,
             )
         )
-        self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
-        if not self.resv_id:
-            raise DeploymentFailed(f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id)
+        success = deployer.wait_workload(self.workload_ids[1], self)
+        if not success:
+            raise DeploymentFailed(f"Failed to deploy workload {self.workload_ids[1]}", solution_uuid=self.solution_id)
 
         # expose threebot container
         self.workload_ids.append(
@@ -141,10 +141,10 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
-        if not nginx_wid:
+        success = deployer.wait_workload(self.workload_ids[2], self)
+        if not success:
             raise DeploymentFailed(
-                f"Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}",
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}",
                 solution_uuid=self.solution_id,
             )
 
