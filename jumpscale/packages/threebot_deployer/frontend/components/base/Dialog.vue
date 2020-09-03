@@ -8,6 +8,14 @@
           {{error}}
         </v-alert>
 
+        <v-alert v-if="info" dense outlined type="info" class="mb-5">
+          {{info}}
+        </v-alert>
+
+        <v-alert v-if="warning" dense outlined type="warning" class="mb-5">
+          {{warning}}
+        </v-alert>
+
         <slot name="default"></slot>
       </v-card-text>
 
@@ -25,6 +33,8 @@
       value: Boolean,
       title: String,
       error: String,
+      info: String,
+      warning:String,
       loading: Boolean
     },
     computed: {

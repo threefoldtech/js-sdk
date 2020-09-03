@@ -573,6 +573,10 @@ class ChatflowSolutions:
                 "Name": sol_name,
                 "Domain": subdomain_dict["domain"],
             }
+            if chatflow == "threebot":
+                solution_dict.update(
+                    {"Owner": owner,}
+                )
             if len(container_workloads[name]) != containers_len:
                 continue
             for c_dict in container_workloads[name]:
@@ -625,6 +629,12 @@ class ChatflowSolutions:
             )
             result[-1].update(c_dict["capacity"])
         return result
+
+    def cancel_solution_by_uuid(self, solution_uuid):
+        # Get workloads with specific UUID
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+            if solution_uuid == self.get_solution_uuid(workload):
+                j.sals.zos.workloads.decomission(workload.id)
 
 
 solutions = ChatflowSolutions()

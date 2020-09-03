@@ -1,6 +1,23 @@
 from .reservation_chatflow import reservation_chatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from contextlib import ContextDecorator
+
+
+class DeploymentFailed(StopChatFlow):
+    def __init__(self, msg=None, solution_uuid=None, **kwargs):
+        super().__init__(msg, **kwargs)
+        self.solution_uuid = solution_uuid
+
+
+class deployment_context(ContextDecorator):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb):
+        if exc_type == DeploymentFailed and exc.solution_uuid:
+            solutions.cancel_solution_by_uuid(exc.solution_uuid)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3

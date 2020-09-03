@@ -26,12 +26,13 @@ class ExtendThreebot(MarketPlaceChatflow):
 
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
-        if self.pool.empty_at < 9223372036854775807:
-            # Pool resources available
+        DURATION_MAX = 9223372036854775807
+        if self.pool.empty_at < DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
             min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
             default_time = self.pool.empty_at + 3900
         else:
-            # Pool resources empty so empty_at value is max
+            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
             min_timestamp_fromnow = None
             default_time = j.data.time.get().timestamp + 15552000
         self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)

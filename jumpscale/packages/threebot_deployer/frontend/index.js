@@ -36,6 +36,13 @@ const license = httpVueLoader('./components/License.vue')
 const terms = httpVueLoader('./components/Terms.vue')
 const disclaimer = httpVueLoader('./components/Disclaimer.vue')
 
+Vue.mixin({
+  methods: {
+      alert(message, status) {
+          this.$root.$emit('popup', message, status)
+      }
+  }
+})
 
 Vue.component("base-component", baseComponent)
 Vue.component("base-section", baseSection)

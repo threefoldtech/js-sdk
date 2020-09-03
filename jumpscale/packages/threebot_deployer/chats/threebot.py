@@ -1,8 +1,9 @@
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 import uuid
 from jumpscale.data.nacl.jsnacl import NACL
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
@@ -81,6 +82,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
 
     @chatflow_step(title="Reservation", disable_previous=True)
+    @deployment_context()
     def deploy(self):
         # 1- add node to network
         metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
@@ -107,7 +109,7 @@ You will be automatically redirected to the next step once succeeded.
 
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
         test_cert = j.config.get("TEST_CERT")
@@ -143,9 +145,9 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+            raise DeploymentFailed(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                solution_uuid=self.solution_id,
             )
 
         # 4- expose threebot container
@@ -168,9 +170,9 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
-            solutions.cancel_solution(self.solution_metadata["owner"], self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise DeploymentFailed(
+                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                solution_uuid=self.solution_id,
             )
         self.threebot_url = f"https://{self.domain}/admin"
 
