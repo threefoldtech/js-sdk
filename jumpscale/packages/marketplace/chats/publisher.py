@@ -26,9 +26,9 @@ class Publisher(MarketPlaceAppsChatflow):
     @chatflow_step(title="Solution Settings")
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice("Choose the type", options=["wiki", "www", "blog"], default="wiki", required=True)
+        ttype = form.single_choice("Choose the publication type", options=["Wiki", "www", "Blog"], default="Wiki", required=True)
         title = form.string_ask("Title", required=True)
-        url = form.string_ask("Repository url", required=True)
+        url = form.string_ask("Repository URL", required=True)
         branch = form.string_ask("Branch", required=True)
         form.ask("Set configuration")
         self.username = self.user_info()["username"]

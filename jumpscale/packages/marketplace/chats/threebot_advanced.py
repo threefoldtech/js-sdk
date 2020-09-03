@@ -23,7 +23,7 @@ class ThreebotDeploy(BaseThreebotDeploy, MarketPlaceChatflow):
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name name.")
                     break
                 valid = True
 

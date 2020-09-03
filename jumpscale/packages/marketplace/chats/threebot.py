@@ -31,7 +31,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata["owner"] = self.username
         self.query = {"cru": 2, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Name Your 3Bot")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
@@ -42,7 +42,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name name.")
                     break
                 valid = True
 
@@ -57,18 +57,18 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="The recovery secret")
+    @chatflow_step(title="Add a Recovery Secret Key")
     def set_backup_password(self):
-        messege = "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+        messege = "Please add a recovery secret key. (By Using this recovery secret key, you will be able to recover your online deployed 3Bot.)"
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect recovery secret key for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title="3Bot version")
+    @chatflow_step(title="3Bot Version")
     def threebot_branch(self):
-        self.branch = self.string_ask("Please type branch name", required=True, default="development")
+        self.branch = self.string_ask("Please type a default branch name", required=True, default="development")
 
 
     @chatflow_step(title="Reservation", disable_previous=True)

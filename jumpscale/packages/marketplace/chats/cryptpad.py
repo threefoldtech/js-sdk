@@ -7,7 +7,7 @@ from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, soluti
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
-    SOLUTION_TYPE = "cryptpad"
+    SOLUTION_TYPE = "Cryptpad"
     title = "Cryptpad"
     steps = [
         "get_solution_name",
@@ -115,7 +115,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
+            raise StopChatFlow(f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}")
 
 
 chat = CryptpadDeploy

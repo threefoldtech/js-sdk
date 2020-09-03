@@ -24,7 +24,7 @@ class UbuntuDeploy(BaseUbuntuDeploy, MarketPlaceChatflow):
             for sol in ubuntu_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.username}_{self.solution_name}"

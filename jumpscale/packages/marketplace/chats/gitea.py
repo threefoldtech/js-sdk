@@ -5,7 +5,7 @@ import uuid
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-gitea_all_in_one-latest.flist"
-    SOLUTION_TYPE = "gitea"
+    SOLUTION_TYPE = "Gitea"
     title = "Gitea"
     steps = [
         "get_solution_name",
@@ -96,16 +96,16 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.reverse_proxy_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}")
+            raise StopChatFlow(f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+# Congratulations! You have successfully deployed a new {self.SOLUTION_TYPE}.
 \n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it on your browser browser at: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-- After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
+- After the installation process, you can access your admin account at: <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
 \n<br />\n
                 """
         self.md_show(message, md=True)

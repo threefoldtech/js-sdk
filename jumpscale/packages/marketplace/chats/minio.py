@@ -25,7 +25,7 @@ class MinioDeploy(BaseMinioDeploy, MarketPlaceChatflow):
             for sol in minio_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"

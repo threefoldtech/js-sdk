@@ -21,7 +21,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
 
-    @chatflow_step(title="Solution type")
+    @chatflow_step(title="Solution Type")
     def solution_type(self):
         self._deployment_start()
         self.kind = self.single_choice("Please choose the solution type", list(kinds.keys()), required=True)
@@ -37,7 +37,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
         gateways = deployer.list_all_gateways(self.solution_metadata["owner"])
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         # add managed domains
         gateway_id_dict = {}
@@ -68,19 +68,19 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
             retry = False
             while True:
                 domain = self.string_ask(
-                    f"Please specify the sub domain name you wish to bind to. will be (subdomain).{self.domain}",
+                    f"Please specify the sub domain name you wish to bind to. This will be a (subdomain).{self.domain}",
                     retry=retry,
                     required=True,
                     is_identifier=True,
                 )
                 if "." in domain:
                     retry = True
-                    self.md_show("You can't nest domains. please click next to try again")
+                    self.md_show("You can't nest domains. please click next to try again.")
                 else:
                     if j.tools.dnstool.is_free(domain + "." + self.domain):
                         break
                     else:
-                        self.md_show(f"domain {domain + '.' + self.domain} is not available")
+                        self.md_show(f"domain {domain + '.' + self.domain} is not available.")
 
             self.domain = domain + "." + self.domain
         else:
@@ -88,7 +88,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self.solution_metadata["owner"], self)
             self.domain_type = "Custom Domain"
             res = """\
-            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            Please create a `CNAME` record in your DNS manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
             - {{dns}}
             {% endfor %}

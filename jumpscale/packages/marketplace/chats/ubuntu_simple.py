@@ -35,7 +35,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
                 "Please enter a name for your ubuntu container", required=True, is_identifier=True,
             )
             if self.solution_name in used_names:
-                self.md_show("name already used. please click next to continue")
+                self.md_show("The name is already taken. please click 'Next' to continue")
             else:
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
@@ -44,7 +44,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
     def ubuntu_info(self):
         form = self.new_form()
         self.currency = form.single_choice(
-            "Please select the currency you want to pay with.", ["TFT", "TFTA"], required=True
+            "Please select the currency you want to pay your workload with", ["TFT", "TFTA"], required=True
         )
         form.ask()
         self.currency = self.currency.value
@@ -54,11 +54,11 @@ class UbuntuDeploy(MarketPlaceChatflow):
     def ubuntu_expiration(self):
         self.expiration = deployer.ask_expiration(self)
 
-    @chatflow_step(title="Access keys")
+    @chatflow_step(title="Access Keys")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
+            """Please add your public SSH key, this will allow you to access the deployed container using SSH.
+                    by uploading your SSH Key file""",
             required=True,
         ).split("\n")[0]
 
@@ -88,7 +88,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
             self.wgconf = None
             if not result:
-                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                raise StopChatFlow(f"Your payment session has expired. pool_id: {self.pool_info.reservation_id}")
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -151,14 +151,14 @@ class UbuntuDeploy(MarketPlaceChatflow):
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Deployment Succeded", disable_previous=True)
     def ubuntu_access(self):
         if self.wgconf:
             self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)
         res = f"""\
-    # Ubuntu has been deployed successfully: your reservation id is: {self.resv_id}
+    # Congratulations! Ubuntu has been successfully deployed. Here is your reservation ID: {self.resv_id}
     \n<br />\n
-    To connect ```ssh root@{self.ip_address}``` .It may take a few minutes.
+    To connect ```ssh root@{self.ip_address}``` . It may take a few minutes.
                     """
         self.md_show(res, md=True)
 

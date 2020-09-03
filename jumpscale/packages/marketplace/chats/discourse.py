@@ -8,7 +8,7 @@ import nacl
 
 class Discourse(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-discourse-http.flist"
-    SOLUTION_TYPE = "discourse"
+    SOLUTION_TYPE = "Discourse"
     steps = [
         "get_solution_name",
         "discourse_smtp_info",
@@ -23,12 +23,12 @@ class Discourse(MarketPlaceAppsChatflow):
     title = "Discourse"
     query = {"cru": 1, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="SMTP information")
+    @chatflow_step(title="SMTP Information")
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask("SMTP server address", required=True)
-        self.smtp_username = form.string_ask("SMTP server username", required=True)
-        self.smtp_password = form.secret_ask("SMTP server password", required=True)
+        self.smtp_server = form.string_ask("SMTP Server Address", required=True)
+        self.smtp_username = form.string_ask("SMTP Server Username", required=True)
+        self.smtp_password = form.secret_ask("SMTP Server Password", required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -122,7 +122,7 @@ class Discourse(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+            raise StopChatFlow(f"Failed to create TRC container on node {self.selected_node.node_id} {_id}")
 
 
 chat = Discourse

@@ -12,7 +12,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -23,7 +23,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
             for sol in gollum_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"

@@ -22,7 +22,7 @@ class Peertube(MarketPlaceAppsChatflow):
     title = "Peertube"
     query = {"cru": 1, "mru": 1, "sru": 1}
 
-    @chatflow_step(title="Volume details")
+    @chatflow_step(title="Volume Details")
     def volume_details(self):
         self._choose_flavor()
         self.vol_size = self.flavor_resources["sru"]

@@ -11,7 +11,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
         self._validate_user()
         if deployer.list_networks(self.username):
             self.action = self.single_choice(
-                "Do you want to create a new network or add access to an existing one?",
+                "Would you like to create a new network, or add access to an existing one?",
                 options=["Create", "Add Access"],
                 required=True,
                 default="Create",
@@ -33,7 +33,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
                 for sol in network_solutions:
                     if sol["Name"] == self.solution_name:
                         valid = False
-                        self.md_show("The specified solution name already exists. please choose another.")
+                        self.md_show("The specified solution name already exists. please choose another name one.")
                         break
                     valid = True
             self.solution_name = f"{self.username}_{self.solution_name}"
@@ -44,12 +44,12 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
     def ip_config(self):
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
-            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4",
+            "How would you like to connect to your network? If unsure, choose IPv4",
             ips,
             required=True,
             default="IPv4",
         )
-        self.md_show_update("searching for access node...")
+        self.md_show_update("Searching for access node...")
         pools = deployer.list_user_pools(self.username)
         self.access_node = None
         for pool in pools:
@@ -64,7 +64,7 @@ class NetworkDeploy(BaseNetworkDeploy, MarketPlaceChatflow):
                 self.pool = pool.pool_id
                 break
         if not self.access_node:
-            raise StopChatFlow("There are no available access nodes in your existing pools")
+            raise StopChatFlow("There is no available access node in your existing pools")
         if self.action == "Create":
             self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
 

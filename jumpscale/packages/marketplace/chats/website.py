@@ -10,14 +10,14 @@ class WebsiteDeploy(Publisher):
     title = "Deploy Website"
     SOLUTION_TYPE = "website"  # chatflow used to deploy the solution
 
-    @chatflow_step(title="Website Setup")
+    @chatflow_step(title="Website Set Up")
     def configuration(self):
         form = self.new_form()
         title = form.string_ask("Title", required=True)
-        url = form.string_ask("Repository url", required=True)
+        url = form.string_ask("Repository URL", required=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask("Set configuration")
-        self.user_email = self.user_info()["email"]
+        form.ask("Set Configuration")
+        self.user_email = self.user_info()["E-mail"]
         self.envars = {
             "TYPE": "www",
             "NAME": "entrypoint",

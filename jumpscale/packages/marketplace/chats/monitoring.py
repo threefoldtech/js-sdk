@@ -28,7 +28,7 @@ class MonitoringDeploy(BaseMonitoringDeploy, MarketPlaceChatflow):
             for sol in monitoring_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"
