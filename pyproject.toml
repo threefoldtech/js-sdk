@@ -10,7 +10,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 cryptography = "3.0"
 js-ng = "11.0.0-a2"
-python = "^3.7"
+python = "^3.6"
 pillow = "^6.1"
 sendgrid = "^6.0"
 minio = "^4.0"
