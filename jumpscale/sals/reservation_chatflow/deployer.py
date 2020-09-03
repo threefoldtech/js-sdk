@@ -401,6 +401,7 @@ class ChatflowDeployer:
             wallet.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}",
             )
+            return None
         return qr_code
 
     def extend_pool(self, bot, pool_id):
