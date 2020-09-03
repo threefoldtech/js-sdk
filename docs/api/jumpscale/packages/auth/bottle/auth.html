@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.packages.auth.bottle.auth API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.packages.auth.bottle.auth</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from functools import wraps
+from json import JSONDecodeError
+from urllib.parse import urlencode
+
+import nacl
+import requests
+from beaker.middleware import SessionMiddleware
+from bottle import Bottle, abort, redirect, request, response
+from nacl.public import Box
+from nacl.signing import VerifyKey
+
+from jumpscale.loader import j
+
+SESSION_OPTS = {&#34;session.type&#34;: &#34;file&#34;, &#34;session.data_dir&#34;: f&#34;{j.core.dirs.VARDIR}/data&#34;, &#34;session.auto&#34;: True}
+REDIRECT_URL = &#34;https://login.threefold.me&#34;
+CALLBACK_URL = &#34;/auth/3bot_callback&#34;
+LOGIN_URL = &#34;/auth/login&#34;
+
+app = Bottle()
+
+
+templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), &#34;templates&#34;)
+env = j.tools.jinja2.get_env(templates_path)
+
+
+@app.route(&#34;/login&#34;)
+def login():
+    &#34;&#34;&#34;List available providers for login and redirect to the selected provider (3bot connect)
+
+    Returns:
+        Renders the template of login page
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;)
+    provider = request.query.get(&#34;provider&#34;)
+    next_url = request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;))
+
+    if provider and provider == &#34;3bot&#34;:
+        state = j.data.idgenerator.chars(20)
+        session[&#34;next_url&#34;] = next_url
+        session[&#34;state&#34;] = state
+        app_id = request.get_header(&#34;host&#34;)
+        params = {
+            &#34;state&#34;: state,
+            &#34;appid&#34;: app_id,
+            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True}),
+            &#34;redirecturl&#34;: CALLBACK_URL,
+            &#34;publickey&#34;: j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
+        }
+        params = urlencode(params)
+        return redirect(f&#34;{REDIRECT_URL}?{params}&#34;, code=302)
+
+    return env.get_template(&#34;login.html&#34;).render(providers=[], next_url=next_url)
+
+
+@app.route(&#34;/3bot_callback&#34;)
+def callback():
+    &#34;&#34;&#34;Takes the response from the provider and verify the identity of the logged in user
+
+    Returns:
+        Redirect to the wanted page after authentication
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;)
+    data = request.query.get(&#34;signedAttempt&#34;)
+
+    if not data:
+        return abort(400, &#34;signedAttempt parameter is missing&#34;)
+
+    data = j.data.serializers.json.loads(data)
+
+    if &#34;signedAttempt&#34; not in data:
+        return abort(400, &#34;signedAttempt value is missing&#34;)
+
+    username = data[&#34;doubleName&#34;]
+
+    if not username:
+        return abort(400, &#34;DoubleName is missing&#34;)
+
+    res = requests.get(f&#34;https://login.threefold.me/api/users/{username}&#34;, {&#34;Content-Type&#34;: &#34;application/json&#34;})
+    if res.status_code != 200:
+        return abort(400, &#34;Error getting user pub key&#34;)
+    pub_key = res.json()[&#34;publicKey&#34;]
+
+    user_pub_key = VerifyKey(j.data.serializers.base64.decode(pub_key))
+
+    # verify data
+    signedData = data[&#34;signedAttempt&#34;]
+
+    verifiedData = user_pub_key.verify(j.data.serializers.base64.decode(signedData)).decode()
+
+    data = j.data.serializers.json.loads(verifiedData)
+
+    if &#34;doubleName&#34; not in data:
+        return abort(400, &#34;Decrypted data does not contain (doubleName)&#34;)
+
+    if &#34;signedState&#34; not in data:
+        return abort(400, &#34;Decrypted data does not contain (state)&#34;)
+
+    if data[&#34;doubleName&#34;] != username:
+        return abort(400, &#34;username mismatch!&#34;)
+
+    # verify state
+    state = data[&#34;signedState&#34;]
+    if state != session[&#34;state&#34;]:
+        return abort(400, &#34;Invalid state. not matching one in user session&#34;)
+
+    nonce = j.data.serializers.base64.decode(data[&#34;data&#34;][&#34;nonce&#34;])
+    ciphertext = j.data.serializers.base64.decode(data[&#34;data&#34;][&#34;ciphertext&#34;])
+
+    try:
+        priv = j.core.identity.me.nacl.private_key
+        box = Box(priv, user_pub_key.to_curve25519_public_key())
+        decrypted = box.decrypt(ciphertext, nonce)
+    except nacl.exceptions.CryptoError:
+        return abort(400, &#34;Error decrypting data&#34;)
+
+    try:
+        result = j.data.serializers.json.loads(decrypted)
+    except JSONDecodeError:
+        return abort(400, &#34;3Bot login returned faulty data&#34;)
+
+    if &#34;email&#34; not in result:
+        return abort(400, &#34;Email is not present in data&#34;)
+
+    email = result[&#34;email&#34;][&#34;email&#34;]
+
+    sei = result[&#34;email&#34;][&#34;sei&#34;]
+    res = requests.post(
+        &#34;https://openkyc.live/verification/verify-sei&#34;,
+        headers={&#34;Content-Type&#34;: &#34;application/json&#34;},
+        json={&#34;signedEmailIdentifier&#34;: sei},
+    )
+
+    if res.status_code != 200:
+        return abort(400, &#34;Email is not verified&#34;)
+
+    session[&#34;username&#34;] = username
+    session[&#34;email&#34;] = email
+    session[&#34;authorized&#34;] = True
+    session[&#34;signedAttempt&#34;] = signedData
+    try:
+        tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({&#34;username&#34;: username, &#34;email&#34;: email}).id
+        session[&#34;tid&#34;] = tid
+        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
+    except Exception as e:
+        j.logger.warning(
+            f&#34;Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
+        )
+
+    return redirect(session.get(&#34;next_url&#34;, &#34;/&#34;))
+
+
+@app.route(&#34;/logout&#34;)
+def logout():
+    &#34;&#34;&#34;Invalidates the user session and redirect to login page
+
+    Returns:
+        Redirect to the login page
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    try:
+        session.invalidate()
+    except AttributeError:
+        pass
+
+    next_url = request.query.get(&#34;next_url&#34;, &#34;/&#34;)
+    return redirect(f&#34;{LOGIN_URL}?next_url={next_url}&#34;)
+
+
+@app.route(&#34;/accessdenied&#34;)
+def access_denied():
+    &#34;&#34;&#34;Displays the access denied page when the authenticated user is not authorized to view the page
+
+    Returns:
+        Renders access denied page
+    &#34;&#34;&#34;
+    email = request.environ.get(&#34;beaker.session&#34;).get(&#34;email&#34;)
+    next_url = request.query.get(&#34;next_url&#34;)
+    return env.get_template(&#34;access_denied.html&#34;).render(email=email, next_url=next_url)
+
+
+def get_user_info():
+    &#34;&#34;&#34;Parse user information from the session object
+
+    Returns:
+        [JSON string]: [user information session]
+    &#34;&#34;&#34;
+
+    def _valid(tname, temail, explorer_url):
+        if tname != j.core.identity.me.tname:
+            return False
+        if temail != j.core.identity.me.email:
+            return False
+        if explorer_url != j.core.identity.me.explorer_url:
+            return False
+        return True
+
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    tname = session.get(&#34;username&#34;, &#34;&#34;)
+    temail = session.get(&#34;email&#34;, &#34;&#34;)
+    tid = session.get(&#34;tid&#34;)
+    explorer_url = session.get(&#34;explorer&#34;)
+    # update tid in session when the identity changes
+    if not _valid(tname, temail, explorer_url):
+        session[&#34;tid&#34;] = None
+        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
+        try:
+            session[&#34;tid&#34;] = j.sals.reservation_chatflow.reservation_chatflow.validate_user(
+                {&#34;username&#34;: tname, &#34;email&#34;: temail}
+            ).id
+        except Exception as e:
+            j.logger.warning(
+                f&#34;Error in validating user: {tname} with email: {temail} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
+            )
+    session.get(&#34;signedAttempt&#34;, &#34;&#34;)
+    response.content_type = &#34;application/json&#34;
+    return j.data.serializers.json.dumps(
+        {
+            &#34;username&#34;: tname.lower(),
+            &#34;email&#34;: temail.lower(),
+            &#34;tid&#34;: tid,
+            &#34;devmode&#34;: not j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
+        }
+    )
+
+
+def is_admin(tname):
+    &#34;&#34;&#34;Checks if the user provided is considered an admin or not
+
+    Args:
+        tname (str): threebot name
+
+    Returns:
+        [Bool]: [True if the user is an admin]
+    &#34;&#34;&#34;
+    threebot_me = j.core.identity.me
+    return threebot_me.tname == tname or tname in threebot_me.admins
+
+
+def authenticated(handler):
+    &#34;&#34;&#34;decorator for the methods to be for authenticated users only
+
+    Args:
+        handler (method)
+    &#34;&#34;&#34;
+
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            if not session.get(&#34;authorized&#34;, False):
+                return abort(401)
+        return handler(*args, **kwargs)
+
+    return decorator
+
+
+def admin_only(handler):
+    &#34;&#34;&#34;decorator for methods for admin access only
+
+    Args:
+        handler (method)
+    &#34;&#34;&#34;
+
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            username = session.get(&#34;username&#34;)
+            if not is_admin(username):
+                return abort(403)
+
+        return handler(*args, **kwargs)
+
+    return decorator
+
+
+@app.route(&#34;/authenticated&#34;)
+@authenticated
+def is_authenticated():
+    &#34;&#34;&#34;get user information if it is authenticated
+
+    Returns:
+        [JSON string]: [user information session]
+    &#34;&#34;&#34;
+    return get_user_info()
+
+
+@app.route(&#34;/authorized&#34;)
+@authenticated
+@admin_only
+def is_authorized():
+    &#34;&#34;&#34;get user information if it is authenticated and authorized as admin only
+
+    Returns:
+        [JSON string]: [user information session]
+    &#34;&#34;&#34;
+    return get_user_info()
+
+
+def login_required(func):
+    &#34;&#34;&#34;Decorator for the methods we want to secure
+
+    Args:
+        func (method)
+    &#34;&#34;&#34;
+
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            if not session.get(&#34;authorized&#34;, False):
+                session[&#34;next_url&#34;] = request.url
+                return redirect(LOGIN_URL)
+        return func(*args, **kwargs)
+
+    return decorator
+
+
+app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.packages.auth.bottle.auth.access_denied"><code class="name flex">
+<span>def <span class="ident">access_denied</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Displays the access denied page when the authenticated user is not authorized to view the page</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Renders</code> <code>access</code> <code>denied</code> <code>page</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/accessdenied&#34;)
+def access_denied():
+    &#34;&#34;&#34;Displays the access denied page when the authenticated user is not authorized to view the page
+
+    Returns:
+        Renders access denied page
+    &#34;&#34;&#34;
+    email = request.environ.get(&#34;beaker.session&#34;).get(&#34;email&#34;)
+    next_url = request.query.get(&#34;next_url&#34;)
+    return env.get_template(&#34;access_denied.html&#34;).render(email=email, next_url=next_url)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.admin_only"><code class="name flex">
+<span>def <span class="ident">admin_only</span></span>(<span>handler)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>decorator for methods for admin access only</p>
+<h2 id="args">Args</h2>
+<p>handler (method)</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def admin_only(handler):
+    &#34;&#34;&#34;decorator for methods for admin access only
+
+    Args:
+        handler (method)
+    &#34;&#34;&#34;
+
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            username = session.get(&#34;username&#34;)
+            if not is_admin(username):
+                return abort(403)
+
+        return handler(*args, **kwargs)
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.authenticated"><code class="name flex">
+<span>def <span class="ident">authenticated</span></span>(<span>handler)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>decorator for the methods to be for authenticated users only</p>
+<h2 id="args">Args</h2>
+<p>handler (method)</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def authenticated(handler):
+    &#34;&#34;&#34;decorator for the methods to be for authenticated users only
+
+    Args:
+        handler (method)
+    &#34;&#34;&#34;
+
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            if not session.get(&#34;authorized&#34;, False):
+                return abort(401)
+        return handler(*args, **kwargs)
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.callback"><code class="name flex">
+<span>def <span class="ident">callback</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Takes the response from the provider and verify the identity of the logged in user</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Redirect</code> <code>to</code> <code>the</code> <code>wanted</code> <code>page</code> <code>after</code> <code>authentication</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/3bot_callback&#34;)
+def callback():
+    &#34;&#34;&#34;Takes the response from the provider and verify the identity of the logged in user
+
+    Returns:
+        Redirect to the wanted page after authentication
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;)
+    data = request.query.get(&#34;signedAttempt&#34;)
+
+    if not data:
+        return abort(400, &#34;signedAttempt parameter is missing&#34;)
+
+    data = j.data.serializers.json.loads(data)
+
+    if &#34;signedAttempt&#34; not in data:
+        return abort(400, &#34;signedAttempt value is missing&#34;)
+
+    username = data[&#34;doubleName&#34;]
+
+    if not username:
+        return abort(400, &#34;DoubleName is missing&#34;)
+
+    res = requests.get(f&#34;https://login.threefold.me/api/users/{username}&#34;, {&#34;Content-Type&#34;: &#34;application/json&#34;})
+    if res.status_code != 200:
+        return abort(400, &#34;Error getting user pub key&#34;)
+    pub_key = res.json()[&#34;publicKey&#34;]
+
+    user_pub_key = VerifyKey(j.data.serializers.base64.decode(pub_key))
+
+    # verify data
+    signedData = data[&#34;signedAttempt&#34;]
+
+    verifiedData = user_pub_key.verify(j.data.serializers.base64.decode(signedData)).decode()
+
+    data = j.data.serializers.json.loads(verifiedData)
+
+    if &#34;doubleName&#34; not in data:
+        return abort(400, &#34;Decrypted data does not contain (doubleName)&#34;)
+
+    if &#34;signedState&#34; not in data:
+        return abort(400, &#34;Decrypted data does not contain (state)&#34;)
+
+    if data[&#34;doubleName&#34;] != username:
+        return abort(400, &#34;username mismatch!&#34;)
+
+    # verify state
+    state = data[&#34;signedState&#34;]
+    if state != session[&#34;state&#34;]:
+        return abort(400, &#34;Invalid state. not matching one in user session&#34;)
+
+    nonce = j.data.serializers.base64.decode(data[&#34;data&#34;][&#34;nonce&#34;])
+    ciphertext = j.data.serializers.base64.decode(data[&#34;data&#34;][&#34;ciphertext&#34;])
+
+    try:
+        priv = j.core.identity.me.nacl.private_key
+        box = Box(priv, user_pub_key.to_curve25519_public_key())
+        decrypted = box.decrypt(ciphertext, nonce)
+    except nacl.exceptions.CryptoError:
+        return abort(400, &#34;Error decrypting data&#34;)
+
+    try:
+        result = j.data.serializers.json.loads(decrypted)
+    except JSONDecodeError:
+        return abort(400, &#34;3Bot login returned faulty data&#34;)
+
+    if &#34;email&#34; not in result:
+        return abort(400, &#34;Email is not present in data&#34;)
+
+    email = result[&#34;email&#34;][&#34;email&#34;]
+
+    sei = result[&#34;email&#34;][&#34;sei&#34;]
+    res = requests.post(
+        &#34;https://openkyc.live/verification/verify-sei&#34;,
+        headers={&#34;Content-Type&#34;: &#34;application/json&#34;},
+        json={&#34;signedEmailIdentifier&#34;: sei},
+    )
+
+    if res.status_code != 200:
+        return abort(400, &#34;Email is not verified&#34;)
+
+    session[&#34;username&#34;] = username
+    session[&#34;email&#34;] = email
+    session[&#34;authorized&#34;] = True
+    session[&#34;signedAttempt&#34;] = signedData
+    try:
+        tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({&#34;username&#34;: username, &#34;email&#34;: email}).id
+        session[&#34;tid&#34;] = tid
+        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
+    except Exception as e:
+        j.logger.warning(
+            f&#34;Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
+        )
+
+    return redirect(session.get(&#34;next_url&#34;, &#34;/&#34;))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.get_user_info"><code class="name flex">
+<span>def <span class="ident">get_user_info</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Parse user information from the session object</p>
+<h2 id="returns">Returns</h2>
+<p>[JSON string]: [user information session]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_user_info():
+    &#34;&#34;&#34;Parse user information from the session object
+
+    Returns:
+        [JSON string]: [user information session]
+    &#34;&#34;&#34;
+
+    def _valid(tname, temail, explorer_url):
+        if tname != j.core.identity.me.tname:
+            return False
+        if temail != j.core.identity.me.email:
+            return False
+        if explorer_url != j.core.identity.me.explorer_url:
+            return False
+        return True
+
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    tname = session.get(&#34;username&#34;, &#34;&#34;)
+    temail = session.get(&#34;email&#34;, &#34;&#34;)
+    tid = session.get(&#34;tid&#34;)
+    explorer_url = session.get(&#34;explorer&#34;)
+    # update tid in session when the identity changes
+    if not _valid(tname, temail, explorer_url):
+        session[&#34;tid&#34;] = None
+        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
+        try:
+            session[&#34;tid&#34;] = j.sals.reservation_chatflow.reservation_chatflow.validate_user(
+                {&#34;username&#34;: tname, &#34;email&#34;: temail}
+            ).id
+        except Exception as e:
+            j.logger.warning(
+                f&#34;Error in validating user: {tname} with email: {temail} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
+            )
+    session.get(&#34;signedAttempt&#34;, &#34;&#34;)
+    response.content_type = &#34;application/json&#34;
+    return j.data.serializers.json.dumps(
+        {
+            &#34;username&#34;: tname.lower(),
+            &#34;email&#34;: temail.lower(),
+            &#34;tid&#34;: tid,
+            &#34;devmode&#34;: not j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
+        }
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.is_admin"><code class="name flex">
+<span>def <span class="ident">is_admin</span></span>(<span>tname)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if the user provided is considered an admin or not</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>tname</code></strong> :&ensp;<code>str</code></dt>
+<dd>threebot name</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>[Bool]: [True if the user is an admin]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_admin(tname):
+    &#34;&#34;&#34;Checks if the user provided is considered an admin or not
+
+    Args:
+        tname (str): threebot name
+
+    Returns:
+        [Bool]: [True if the user is an admin]
+    &#34;&#34;&#34;
+    threebot_me = j.core.identity.me
+    return threebot_me.tname == tname or tname in threebot_me.admins</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.is_authenticated"><code class="name flex">
+<span>def <span class="ident">is_authenticated</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def decorator(*args, **kwargs):
+    session = request.environ.get(&#34;beaker.session&#34;)
+    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+        if not session.get(&#34;authorized&#34;, False):
+            return abort(401)
+    return handler(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.is_authorized"><code class="name flex">
+<span>def <span class="ident">is_authorized</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def decorator(*args, **kwargs):
+    session = request.environ.get(&#34;beaker.session&#34;)
+    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+        if not session.get(&#34;authorized&#34;, False):
+            return abort(401)
+    return handler(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.login"><code class="name flex">
+<span>def <span class="ident">login</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List available providers for login and redirect to the selected provider (3bot connect)</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Renders</code> <code>the</code> <code>template</code> of <a title="jumpscale.packages.auth.bottle.auth.login" href="#jumpscale.packages.auth.bottle.auth.login"><code>login()</code></a> <code>page</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/login&#34;)
+def login():
+    &#34;&#34;&#34;List available providers for login and redirect to the selected provider (3bot connect)
+
+    Returns:
+        Renders the template of login page
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;)
+    provider = request.query.get(&#34;provider&#34;)
+    next_url = request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;))
+
+    if provider and provider == &#34;3bot&#34;:
+        state = j.data.idgenerator.chars(20)
+        session[&#34;next_url&#34;] = next_url
+        session[&#34;state&#34;] = state
+        app_id = request.get_header(&#34;host&#34;)
+        params = {
+            &#34;state&#34;: state,
+            &#34;appid&#34;: app_id,
+            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True}),
+            &#34;redirecturl&#34;: CALLBACK_URL,
+            &#34;publickey&#34;: j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
+        }
+        params = urlencode(params)
+        return redirect(f&#34;{REDIRECT_URL}?{params}&#34;, code=302)
+
+    return env.get_template(&#34;login.html&#34;).render(providers=[], next_url=next_url)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.login_required"><code class="name flex">
+<span>def <span class="ident">login_required</span></span>(<span>func)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Decorator for the methods we want to secure</p>
+<h2 id="args">Args</h2>
+<p>func (method)</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def login_required(func):
+    &#34;&#34;&#34;Decorator for the methods we want to secure
+
+    Args:
+        func (method)
+    &#34;&#34;&#34;
+
+    @wraps(func)
+    def decorator(*args, **kwargs):
+        session = request.environ.get(&#34;beaker.session&#34;)
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+            if not session.get(&#34;authorized&#34;, False):
+                session[&#34;next_url&#34;] = request.url
+                return redirect(LOGIN_URL)
+        return func(*args, **kwargs)
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.logout"><code class="name flex">
+<span>def <span class="ident">logout</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Invalidates the user session and redirect to login page</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Redirect</code> <code>to</code> <code>the</code> <a title="jumpscale.packages.auth.bottle.auth.login" href="#jumpscale.packages.auth.bottle.auth.login"><code>login()</code></a> <code>page</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/logout&#34;)
+def logout():
+    &#34;&#34;&#34;Invalidates the user session and redirect to login page
+
+    Returns:
+        Redirect to the login page
+    &#34;&#34;&#34;
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    try:
+        session.invalidate()
+    except AttributeError:
+        pass
+
+    next_url = request.query.get(&#34;next_url&#34;, &#34;/&#34;)
+    return redirect(f&#34;{LOGIN_URL}?next_url={next_url}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.packages.auth.bottle" href="index.html">jumpscale.packages.auth.bottle</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="jumpscale.packages.auth.bottle.auth.access_denied" href="#jumpscale.packages.auth.bottle.auth.access_denied">access_denied</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.admin_only" href="#jumpscale.packages.auth.bottle.auth.admin_only">admin_only</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.authenticated" href="#jumpscale.packages.auth.bottle.auth.authenticated">authenticated</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.callback" href="#jumpscale.packages.auth.bottle.auth.callback">callback</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.get_user_info" href="#jumpscale.packages.auth.bottle.auth.get_user_info">get_user_info</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.is_admin" href="#jumpscale.packages.auth.bottle.auth.is_admin">is_admin</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.is_authenticated" href="#jumpscale.packages.auth.bottle.auth.is_authenticated">is_authenticated</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.is_authorized" href="#jumpscale.packages.auth.bottle.auth.is_authorized">is_authorized</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.login" href="#jumpscale.packages.auth.bottle.auth.login">login</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.login_required" href="#jumpscale.packages.auth.bottle.auth.login_required">login_required</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.logout" href="#jumpscale.packages.auth.bottle.auth.logout">logout</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

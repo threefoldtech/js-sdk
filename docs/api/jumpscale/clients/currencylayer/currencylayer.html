@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.currencylayer.currencylayer API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.currencylayer.currencylayer</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from pprint import pprint as print
+import cryptocompare as cc
+from jumpscale.clients.base import Client
+from jumpscale.core.base import fields
+from jumpscale.loader import j
+from .currencies import CURRENCIES, CURRNECIES_IDS
+from pprint import pprint
+
+
+def get_currency_data(api_key, fake=False, fakeonerror=False):
+    if fake:
+        return CURRENCIES
+    else:
+        url = &#34;http://apilayer.net/api/live?access_key={}&#34;.format(api_key)
+        r = j.tools.http.get(url)
+        try:
+            json_res = r.json()
+            data = json_res[&#34;quotes&#34;]
+
+            data[&#34;USDETH&#34;] = 1 / cc.get_price(&#34;ETH&#34;, &#34;USD&#34;)[&#34;ETH&#34;][&#34;USD&#34;]
+            data[&#34;USDXRP&#34;] = cc.get_price(&#34;USD&#34;, &#34;XRP&#34;)[&#34;USD&#34;][&#34;XRP&#34;]
+            data[&#34;USDBTC&#34;] = 1 / cc.get_price(&#34;BTC&#34;, &#34;USD&#34;)[&#34;BTC&#34;][&#34;USD&#34;]
+
+            normalized_data = {k.lower().lstrip(&#34;usd&#34;): v for k, v in data.items()}
+            return normalized_data
+
+        except Exception as e:
+            print(&#34;error happened&#34;)
+            if not fakeonerror:
+                raise e
+            else:
+                return CURRENCIES
+
+
+class CurrencyLayerClient(Client):
+
+    name = fields.String()
+    api_key = fields.String()
+    fake = fields.Boolean(default=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__client = None
+
+        self._data_cur = {}
+        self._id2cur = {}
+        self._cur2id = {}
+
+    def load(self):
+        # data = self._cache.get(&#34;currency_data&#34;, get, expire=3600 * 24)
+        data = get_currency_data(self.api_key, fake=self.fake)
+        self._data_cur = data
+
+    @property
+    def cur2usd(self):
+        &#34;&#34;&#34;
+        e.g. AED = 3,672 means 3,6... times AED=1 USD
+        &#34;&#34;&#34;
+        if not self._data_cur:
+            self.load()
+        return self._data_cur
+
+    def cur2usd_print(self):
+        print(self.cur2usd)
+
+    @property
+    def id2cur(self):
+        if not self._id2cur:
+            self._id2cur = CURRNECIES_IDS
+        return self._id2cur
+
+    @property
+    def cur2id(self):
+        if not self._cur2id:
+            self._cur2id = dict(zip(self.id2cur.values(), self.id2cur.keys()))
+        return self._cur2id
+
+    def id2cur_print(self):
+        pprint(self.id2cur)
+
+    def cur2id_print(self):
+        pprint(self.cur2id)
+
+    def test(self):
+        self._log_info(self.cur2usd)
+        assert &#34;aed&#34; in self.cur2usd</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.clients.currencylayer.currencylayer.get_currency_data"><code class="name flex">
+<span>def <span class="ident">get_currency_data</span></span>(<span>api_key, fake=False, fakeonerror=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_currency_data(api_key, fake=False, fakeonerror=False):
+    if fake:
+        return CURRENCIES
+    else:
+        url = &#34;http://apilayer.net/api/live?access_key={}&#34;.format(api_key)
+        r = j.tools.http.get(url)
+        try:
+            json_res = r.json()
+            data = json_res[&#34;quotes&#34;]
+
+            data[&#34;USDETH&#34;] = 1 / cc.get_price(&#34;ETH&#34;, &#34;USD&#34;)[&#34;ETH&#34;][&#34;USD&#34;]
+            data[&#34;USDXRP&#34;] = cc.get_price(&#34;USD&#34;, &#34;XRP&#34;)[&#34;USD&#34;][&#34;XRP&#34;]
+            data[&#34;USDBTC&#34;] = 1 / cc.get_price(&#34;BTC&#34;, &#34;USD&#34;)[&#34;BTC&#34;][&#34;USD&#34;]
+
+            normalized_data = {k.lower().lstrip(&#34;usd&#34;): v for k, v in data.items()}
+            return normalized_data
+
+        except Exception as e:
+            print(&#34;error happened&#34;)
+            if not fakeonerror:
+                raise e
+            else:
+                return CURRENCIES</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient"><code class="flex name class">
+<span>class <span class="ident">CurrencyLayerClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CurrencyLayerClient(Client):
+
+    name = fields.String()
+    api_key = fields.String()
+    fake = fields.Boolean(default=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__client = None
+
+        self._data_cur = {}
+        self._id2cur = {}
+        self._cur2id = {}
+
+    def load(self):
+        # data = self._cache.get(&#34;currency_data&#34;, get, expire=3600 * 24)
+        data = get_currency_data(self.api_key, fake=self.fake)
+        self._data_cur = data
+
+    @property
+    def cur2usd(self):
+        &#34;&#34;&#34;
+        e.g. AED = 3,672 means 3,6... times AED=1 USD
+        &#34;&#34;&#34;
+        if not self._data_cur:
+            self.load()
+        return self._data_cur
+
+    def cur2usd_print(self):
+        print(self.cur2usd)
+
+    @property
+    def id2cur(self):
+        if not self._id2cur:
+            self._id2cur = CURRNECIES_IDS
+        return self._id2cur
+
+    @property
+    def cur2id(self):
+        if not self._cur2id:
+            self._cur2id = dict(zip(self.id2cur.values(), self.id2cur.keys()))
+        return self._cur2id
+
+    def id2cur_print(self):
+        pprint(self.id2cur)
+
+    def cur2id_print(self):
+        pprint(self.cur2id)
+
+    def test(self):
+        self._log_info(self.cur2usd)
+        assert &#34;aed&#34; in self.cur2usd</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.base.Client" href="../base.html#jumpscale.clients.base.Client">Client</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.api_key"><code class="name">var <span class="ident">api_key</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id"><code class="name">var <span class="ident">cur2id</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def cur2id(self):
+    if not self._cur2id:
+        self._cur2id = dict(zip(self.id2cur.values(), self.id2cur.keys()))
+    return self._cur2id</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd"><code class="name">var <span class="ident">cur2usd</span></code></dt>
+<dd>
+<section class="desc"><p>e.g. AED = 3,672 means 3,6&hellip; times AED=1 USD</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def cur2usd(self):
+    &#34;&#34;&#34;
+    e.g. AED = 3,672 means 3,6... times AED=1 USD
+    &#34;&#34;&#34;
+    if not self._data_cur:
+        self.load()
+    return self._data_cur</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.fake"><code class="name">var <span class="ident">fake</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur"><code class="name">var <span class="ident">id2cur</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def id2cur(self):
+    if not self._id2cur:
+        self._id2cur = CURRNECIES_IDS
+    return self._id2cur</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id_print"><code class="name flex">
+<span>def <span class="ident">cur2id_print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def cur2id_print(self):
+    pprint(self.cur2id)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd_print"><code class="name flex">
+<span>def <span class="ident">cur2usd_print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def cur2usd_print(self):
+    print(self.cur2usd)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur_print"><code class="name flex">
+<span>def <span class="ident">id2cur_print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def id2cur_print(self):
+    pprint(self.id2cur)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def load(self):
+    # data = self._cache.get(&#34;currency_data&#34;, get, expire=3600 * 24)
+    data = get_currency_data(self.api_key, fake=self.fake)
+    self._data_cur = data</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.test"><code class="name flex">
+<span>def <span class="ident">test</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def test(self):
+    self._log_info(self.cur2usd)
+    assert &#34;aed&#34; in self.cur2usd</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.base.Client" href="../base.html#jumpscale.clients.base.Client">Client</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.base.Client.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.clients.base.Client.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.clients.base.Client.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients.currencylayer" href="index.html">jumpscale.clients.currencylayer</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.get_currency_data" href="#jumpscale.clients.currencylayer.currencylayer.get_currency_data">get_currency_data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient">CurrencyLayerClient</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.api_key" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.api_key">api_key</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id">cur2id</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id_print" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2id_print">cur2id_print</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd">cur2usd</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd_print" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.cur2usd_print">cur2usd_print</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.fake" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.fake">fake</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur">id2cur</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur_print" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.id2cur_print">id2cur_print</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.load" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.load">load</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.name" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.name">name</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.test" href="#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient.test">test</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

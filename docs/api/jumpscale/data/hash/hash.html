@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.data.hash.hash API documentation</title>
+<meta name="description" content="This module helps with everything related to hashing strings, bytes with popular algorithms like, md5, sha256, sha384, sha512, blake2 …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.data.hash.hash</code></h1>
+</header>
+<section id="section-intro">
+<p>This module helps with everything related to hashing strings, bytes with popular algorithms like, md5, sha256, sha384, sha512, blake2</p>
+<pre><code>JS-NG&gt; j.data.hash.md5(&quot;abc&quot;)                                                                       
+'900150983cd24fb0d6963f7d28e17f72'
+
+JS-NG&gt; j.data.hash.sha1(&quot;abc&quot;)                                                                      
+'a9993e364706816aba3e25717850c26c9cd0d89d'
+
+JS-NG&gt; j.data.hash.sha224(&quot;abc&quot;)                                                                    
+'23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7'
+
+JS-NG&gt; j.data.hash.sha512(&quot;abc&quot;)                                                                    
+'ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454
+d4423643ce80e2a9ac94fa54ca49f'
+
+JS-NG&gt; j.data.hash.blake2s(&quot;abc&quot;)                                                                   
+'508c5e8c327c14e2e1a72ba34eeb452f37458b209ed63a294d999b4c86675982'
+
+JS-NG&gt;
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;This module helps with everything related to hashing strings, bytes with popular algorithms like, md5, sha256, sha384, sha512, blake2
+
+```
+JS-NG&gt; j.data.hash.md5(&#34;abc&#34;)                                                                       
+&#39;900150983cd24fb0d6963f7d28e17f72&#39;
+
+JS-NG&gt; j.data.hash.sha1(&#34;abc&#34;)                                                                      
+&#39;a9993e364706816aba3e25717850c26c9cd0d89d&#39;
+
+JS-NG&gt; j.data.hash.sha224(&#34;abc&#34;)                                                                    
+&#39;23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7&#39;
+
+JS-NG&gt; j.data.hash.sha512(&#34;abc&#34;)                                                                    
+&#39;ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454
+d4423643ce80e2a9ac94fa54ca49f&#39;
+
+JS-NG&gt; j.data.hash.blake2s(&#34;abc&#34;)                                                                   
+&#39;508c5e8c327c14e2e1a72ba34eeb452f37458b209ed63a294d999b4c86675982&#39;
+
+JS-NG&gt;
+```  
+&#34;&#34;&#34;
+
+import hashlib
+import os
+
+
+def encode_string(obj, encode):
+    if isinstance(obj, str):
+        return obj.encode(encode)
+    return obj
+
+
+def get_list_files(dir_name):
+    &#34;&#34;&#34;returns a list of directories for all files in a root folder
+
+    Arguments:
+        dir_name (str) : the directory of the root folder
+
+    Returns:
+        all_files (list) : the list of directories for all files in the root folder
+    &#34;&#34;&#34;
+    # create a list of file and sub directories
+    # names in the given directory
+    files_list = os.listdir(dir_name)
+    all_files = list()
+    # Iterate over all the entries
+    for entry in files_list:
+        # Create full path
+        full_path = os.path.join(dir_name, entry)
+        # If entry is a directory then get the list of files in this directory
+        if os.path.isdir(full_path):
+            all_files = all_files + get_list_files(full_path)
+        else:
+            all_files.append(full_path)
+
+    return all_files
+
+
+def md5(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a md5 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.md5(encode_string(string, encode)).hexdigest()
+
+
+def sha1(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha1 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha1(encode_string(string, encode)).hexdigest()
+
+
+def sha224(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha224 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha224(encode_string(string, encode)).hexdigest()
+
+
+def sha384(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha384 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha384(encode_string(string, encode)).hexdigest()
+
+
+def sha256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha256(encode_string(string, encode)).hexdigest()
+
+
+def sha512(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha512 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha512(encode_string(string, encode)).hexdigest()
+
+
+def sha3_224(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_224 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_224(encode_string(string, encode)).hexdigest()
+
+
+def sha3_256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_256(encode_string(string, encode)).hexdigest()
+
+
+def sha3_384(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_384 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_384(encode_string(string, encode)).hexdigest()
+
+
+def sha3_512(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_512 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_512(encode_string(string, encode)).hexdigest()
+
+
+def blake2s(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a blake2s hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.blake2s(encode_string(string, encode)).hexdigest()
+
+
+def blake2b(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a blake2b hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.blake2b(encode_string(string, encode)).hexdigest()
+
+
+def shake_128(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a shake_128 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.shake_128(encode_string(string, encode)).hexdigest(16)
+
+
+def shake_256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a shake_256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.shake_256(encode_string(string, encode)).hexdigest(16)
+
+
+# TODO: review
+def hash_alg(name, data, **kwargs):
+    &#34;&#34;&#34;create a hash object
+
+    Arguments:
+        name (str) : name of algorithm name
+        data (str) : data need to be hashed
+
+    Returns:
+        list of byte : the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.new(name, data, **kwargs)
+
+
+def hash_file(path, hash_type):
+    &#34;&#34;&#34;create hash string for a file
+
+    Arguments:
+        path (str) : the path for the file
+        hash_type (str) : the type of the hash
+
+    Returns:
+        list of byte : the hash bytes
+    &#34;&#34;&#34;
+    with open(path, &#34;rb&#34;) as f:
+        h = hashlib.new(hash_type)
+        while True:
+            data = f.read(2 ** 20)
+            if not data:
+                break
+            h.update(data)
+        return h
+
+
+# TODO: review and allow ignore files e.g .swp, .. etc
+def hash_directory(root_dir, hash_type):
+    &#34;&#34;&#34;create hash string list for the files in a folder
+
+    Arguments:
+        root_dir (str) : the dir for the root folder
+        hash_type (str) : the type of the hash
+
+    Returns:
+        dict : the hashes dict, keys are full paths and values are hexdigests
+    &#34;&#34;&#34;
+    hashes = {}
+    for d in get_list_files(root_dir):
+        hashes[d] = hash_file(d, hash_type).hexdigest()
+    return hashes</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.data.hash.hash.blake2b"><code class="name flex">
+<span>def <span class="ident">blake2b</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a blake2b hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def blake2b(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a blake2b hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.blake2b(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.blake2s"><code class="name flex">
+<span>def <span class="ident">blake2s</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a blake2s hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def blake2s(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a blake2s hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.blake2s(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.encode_string"><code class="name flex">
+<span>def <span class="ident">encode_string</span></span>(<span>obj, encode)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def encode_string(obj, encode):
+    if isinstance(obj, str):
+        return obj.encode(encode)
+    return obj</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.get_list_files"><code class="name flex">
+<span>def <span class="ident">get_list_files</span></span>(<span>dir_name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>returns a list of directories for all files in a root folder</p>
+<h2 id="arguments">Arguments</h2>
+<p>dir_name (str) : the directory of the root folder</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>all_files</code> (<code>list</code>) : <code>the</code> <code>list</code> of <code>directories</code> <code>for</code> <code>all</code> <code>files</code> <code>in</code> <code>the</code> <code>root</code> <code>folder</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_list_files(dir_name):
+    &#34;&#34;&#34;returns a list of directories for all files in a root folder
+
+    Arguments:
+        dir_name (str) : the directory of the root folder
+
+    Returns:
+        all_files (list) : the list of directories for all files in the root folder
+    &#34;&#34;&#34;
+    # create a list of file and sub directories
+    # names in the given directory
+    files_list = os.listdir(dir_name)
+    all_files = list()
+    # Iterate over all the entries
+    for entry in files_list:
+        # Create full path
+        full_path = os.path.join(dir_name, entry)
+        # If entry is a directory then get the list of files in this directory
+        if os.path.isdir(full_path):
+            all_files = all_files + get_list_files(full_path)
+        else:
+            all_files.append(full_path)
+
+    return all_files</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.hash_alg"><code class="name flex">
+<span>def <span class="ident">hash_alg</span></span>(<span>name, data, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a hash object</p>
+<h2 id="arguments">Arguments</h2>
+<p>name (str) : name of algorithm name
+data (str) : data need to be hashed</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code> : <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def hash_alg(name, data, **kwargs):
+    &#34;&#34;&#34;create a hash object
+
+    Arguments:
+        name (str) : name of algorithm name
+        data (str) : data need to be hashed
+
+    Returns:
+        list of byte : the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.new(name, data, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.hash_directory"><code class="name flex">
+<span>def <span class="ident">hash_directory</span></span>(<span>root_dir, hash_type)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create hash string list for the files in a folder</p>
+<h2 id="arguments">Arguments</h2>
+<p>root_dir (str) : the dir for the root folder
+hash_type (str) : the type of the hash</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong> :&ensp;<code>the</code> <code>hashes</code> <code>dict</code>, <code>keys</code> <code>are</code> <code>full</code> <code>paths</code> <code>and</code> <code>values</code> <code>are</code> <code>hexdigests</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def hash_directory(root_dir, hash_type):
+    &#34;&#34;&#34;create hash string list for the files in a folder
+
+    Arguments:
+        root_dir (str) : the dir for the root folder
+        hash_type (str) : the type of the hash
+
+    Returns:
+        dict : the hashes dict, keys are full paths and values are hexdigests
+    &#34;&#34;&#34;
+    hashes = {}
+    for d in get_list_files(root_dir):
+        hashes[d] = hash_file(d, hash_type).hexdigest()
+    return hashes</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.hash_file"><code class="name flex">
+<span>def <span class="ident">hash_file</span></span>(<span>path, hash_type)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create hash string for a file</p>
+<h2 id="arguments">Arguments</h2>
+<p>path (str) : the path for the file
+hash_type (str) : the type of the hash</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code> : <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def hash_file(path, hash_type):
+    &#34;&#34;&#34;create hash string for a file
+
+    Arguments:
+        path (str) : the path for the file
+        hash_type (str) : the type of the hash
+
+    Returns:
+        list of byte : the hash bytes
+    &#34;&#34;&#34;
+    with open(path, &#34;rb&#34;) as f:
+        h = hashlib.new(hash_type)
+        while True:
+            data = f.read(2 ** 20)
+            if not data:
+                break
+            h.update(data)
+        return h</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.md5"><code class="name flex">
+<span>def <span class="ident">md5</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a md5 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def md5(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a md5 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.md5(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha1"><code class="name flex">
+<span>def <span class="ident">sha1</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha1 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha1(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha1 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha1(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha224"><code class="name flex">
+<span>def <span class="ident">sha224</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha224 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha224(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha224 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha224(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha256"><code class="name flex">
+<span>def <span class="ident">sha256</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha256 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha256(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha384"><code class="name flex">
+<span>def <span class="ident">sha384</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha384 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha384(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha384 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha384(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha3_224"><code class="name flex">
+<span>def <span class="ident">sha3_224</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha3_224 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha3_224(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_224 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_224(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha3_256"><code class="name flex">
+<span>def <span class="ident">sha3_256</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha3_256 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha3_256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_256(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha3_384"><code class="name flex">
+<span>def <span class="ident">sha3_384</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha3_384 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha3_384(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_384 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_384(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha3_512"><code class="name flex">
+<span>def <span class="ident">sha3_512</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha3_512 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha3_512(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha3_512 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha3_512(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.sha512"><code class="name flex">
+<span>def <span class="ident">sha512</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a sha512 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sha512(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a sha512 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.sha512(encode_string(string, encode)).hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.shake_128"><code class="name flex">
+<span>def <span class="ident">shake_128</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a shake_128 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def shake_128(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a shake_128 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.shake_128(encode_string(string, encode)).hexdigest(16)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.hash.hash.shake_256"><code class="name flex">
+<span>def <span class="ident">shake_256</span></span>(<span>string, encode=&#39;utf-8&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>create a shake_256 hash string for any string</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>the string need to be hashed</dd>
+</dl>
+<p>Keyword Arguments:
+encode (str): the encoding for the string (default: {"utf-8"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> of <code>byte</code>: <code>the</code> <code>hash</code> <code>bytes</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def shake_256(string, encode=&#34;utf-8&#34;):
+    &#34;&#34;&#34;create a shake_256 hash string for any string
+
+    Arguments:
+        string (str): the string need to be hashed
+
+    Keyword Arguments:
+        encode (str): the encoding for the string (default: {&#34;utf-8&#34;})
+
+    Returns:
+        list of byte: the hash bytes
+    &#34;&#34;&#34;
+    return hashlib.shake_256(encode_string(string, encode)).hexdigest(16)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.data.hash" href="index.html">jumpscale.data.hash</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="jumpscale.data.hash.hash.blake2b" href="#jumpscale.data.hash.hash.blake2b">blake2b</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.blake2s" href="#jumpscale.data.hash.hash.blake2s">blake2s</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.encode_string" href="#jumpscale.data.hash.hash.encode_string">encode_string</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.get_list_files" href="#jumpscale.data.hash.hash.get_list_files">get_list_files</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.hash_alg" href="#jumpscale.data.hash.hash.hash_alg">hash_alg</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.hash_directory" href="#jumpscale.data.hash.hash.hash_directory">hash_directory</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.hash_file" href="#jumpscale.data.hash.hash.hash_file">hash_file</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.md5" href="#jumpscale.data.hash.hash.md5">md5</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha1" href="#jumpscale.data.hash.hash.sha1">sha1</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha224" href="#jumpscale.data.hash.hash.sha224">sha224</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha256" href="#jumpscale.data.hash.hash.sha256">sha256</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha384" href="#jumpscale.data.hash.hash.sha384">sha384</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha3_224" href="#jumpscale.data.hash.hash.sha3_224">sha3_224</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha3_256" href="#jumpscale.data.hash.hash.sha3_256">sha3_256</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha3_384" href="#jumpscale.data.hash.hash.sha3_384">sha3_384</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha3_512" href="#jumpscale.data.hash.hash.sha3_512">sha3_512</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.sha512" href="#jumpscale.data.hash.hash.sha512">sha512</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.shake_128" href="#jumpscale.data.hash.hash.shake_128">shake_128</a></code></li>
+<li><code><a title="jumpscale.data.hash.hash.shake_256" href="#jumpscale.data.hash.hash.shake_256">shake_256</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

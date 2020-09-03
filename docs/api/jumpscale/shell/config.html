@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.shell.config API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.shell.config</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">import better_exceptions
+import pudb
+import sys
+import traceback
+
+from functools import partial
+from prompt_toolkit.application import get_app
+from prompt_toolkit.keys import Keys
+from prompt_toolkit.formatted_text import ANSI
+from prompt_toolkit.shortcuts import print_formatted_text
+from prompt_toolkit.completion import Completion
+
+from ptpython.prompt_style import PromptStyle
+from ptpython.utils import get_jedi_script_from_document
+
+
+def patched_handle_exception(self, e):
+    &#34;&#34;&#34;
+    a new handler for ptpython repl exceptions
+    it will call excepthook after ommitting all this framework&#39;s calls from traceback
+
+    for the original, see ptpython.repl.PythonInput._handle_exception
+    &#34;&#34;&#34;
+    output = self.app.output
+
+    t, v, tb = sys.exc_info()
+
+    # Required for pdb.post_mortem() to work.
+    sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
+
+    # loop until getting actual traceback
+    last_stdin_tb = tb
+    while tb:
+        if tb.tb_frame.f_code.co_filename == &#34;&lt;stdin&gt;&#34;:
+            last_stdin_tb = tb
+        tb = tb.tb_next
+
+    # except hook does not work as expected
+    sys.excepthook(t, v, last_stdin_tb)
+    # just print formatted exception for now
+    formatted = better_exceptions.format_exception(t, v, last_stdin_tb)
+    print_formatted_text(ANSI(formatted))
+
+    output.write(&#34;%s\n&#34; % e)
+    output.flush()
+
+
+def sort_completions_key(completion):
+    &#34;&#34;&#34;
+    sort completions according to their type
+
+    Args:
+        completion (jedi.api.classes.Completion): completion
+
+    Returns:
+        int: sorting order
+    &#34;&#34;&#34;
+    if completion.type == &#34;function&#34;:
+        return 2
+    elif completion.type == &#34;instance&#34;:
+        return 1
+    else:
+        return 3
+
+
+def get_style_for_completion(completion):
+    base = &#34;bg:%s fg:ansiblack&#34;
+    if completion.type == &#34;function&#34;:
+        return base % &#34;ansigreen&#34;
+    elif completion.type == &#34;instance&#34;:
+        return base % &#34;ansiyellow&#34;
+    else:
+        return base % &#34;ansigray&#34;
+
+
+HIDDEN_PREFIXES = (&#34;_&#34;, &#34;__&#34;)
+
+
+def get_completions(self, document, complete_event):
+    &#34;&#34;&#34;
+    get completions filtered and colored
+
+    To filter and color completions on type, we try get jedi completions first
+    and check their type, because `prompt-toolkit.completion.Completion` does not contain type information
+    &#34;&#34;&#34;
+    try:
+        script = get_jedi_script_from_document(document, self.get_globals(), self.get_locals())
+    except:
+        return
+
+    if script:
+        try:
+            reference = script.get_references()[0]
+        except Exception:
+            reference = &#34;&#34;
+
+        for c in sorted(script.completions(), key=sort_completions_key):
+            if c.name.startswith(HIDDEN_PREFIXES):
+                if not reference or not reference.description.startswith(&#34;_&#34;):
+                    continue
+
+            yield Completion(
+                c.name_with_symbols,
+                len(c.complete) - len(c.name_with_symbols),
+                display=c.name_with_symbols,
+                selected_style=&#34;bg:ansidarkgray&#34;,
+                style=get_style_for_completion(c),
+            )
+
+
+def ptconfig(repl):
+    repl.exit_message = &#34;Bye!&#34;
+    repl.show_docstring = True
+
+    # When CompletionVisualisation.POP_UP has been chosen, use this
+    # scroll_offset in the completion menu.
+    repl.completion_menu_scroll_offset = 0
+
+    # Show line numbers (when the input contains multiple lines.)
+    repl.show_line_numbers = True
+
+    # Show status bar.
+    repl.show_status_bar = True
+
+    # When the sidebar is visible, also show the help text.
+    # repl.show_sidebar_help = True
+
+    # Highlight matching parethesis.
+    repl.highlight_matching_parenthesis = True
+
+    # Line wrapping. (Instead of horizontal scrolling.)
+    repl.wrap_lines = True
+
+    # Mouse support.
+    repl.enable_mouse_support = False
+
+    # Complete while typing. (Don&#39;t require tab before the
+    # completion menu is shown.)
+    # repl.complete_while_typing = True
+
+    # Vi mode.
+    repl.vi_mode = False
+
+    # Paste mode. (When True, don&#39;t insert whitespace after new line.)
+    repl.paste_mode = False
+
+    # Use the classic prompt. (Display &#39;&gt;&gt;&gt;&#39; instead of &#39;In [1]&#39;.)
+    repl.prompt_style = &#34;classic&#34;  # &#39;classic&#39; or &#39;ipython&#39;
+
+    # Don&#39;t insert a blank line after the output.
+    repl.insert_blank_line_after_output = False
+
+    # History Search.
+    # When True, going back in history will filter the history on the records
+    # starting with the current input. (Like readline.)
+    # Note: When enable, please disable the `complete_while_typing` option.
+    #       otherwise, when there is a completion available, the arrows will
+    #       browse through the available completions instead of the history.
+    # repl.enable_history_search = False
+
+    # Enable auto suggestions. (Pressing right arrow will complete the input,
+    # based on the history.)
+    repl.enable_auto_suggest = True
+
+    # Enable open-in-editor. Pressing C-X C-E in emacs mode or &#39;v&#39; in
+    # Vi navigation mode will open the input in the current editor.
+    # repl.enable_open_in_editor = True
+
+    # Enable system prompt. Pressing meta-! will display the system prompt.
+    # Also enables Control-Z suspend.
+    repl.enable_system_bindings = False
+
+    # Ask for confirmation on exit.
+    repl.confirm_exit = False
+
+    # Enable input validation. (Don&#39;t try to execute when the input contains
+    # syntax errors.)
+    # repl.enable_input_validation = True
+
+    # Use this colorscheme for the code.
+    repl.use_code_colorscheme(&#34;perldoc&#34;)
+
+    # Set color depth (keep in mind that not all terminals support true color).
+    repl.color_depth = &#34;DEPTH_24_BIT&#34;  # True color.
+
+    repl.enable_syntax_highlighting = True
+
+    repl.min_brightness = 0.3
+
+    # Add custom key binding for PDB.
+
+    @repl.add_key_binding(Keys.ControlB)
+    def _debug_event(event):
+        &#39; Pressing Control-B will insert &#34;pdb.set_trace()&#34; &#39;
+        event.cli.current_buffer.insert_text(&#34;\nimport pdb; pdb.set_trace()\n&#34;)
+
+    @repl.add_key_binding(Keys.ControlJ)
+    def _debug_event(event):
+        &#34;&#34;&#34;
+        custom binding for pudb, to allow debugging a statement and also
+        post-mortem debugging in case of any exception
+        &#34;&#34;&#34;
+        b = event.cli.current_buffer
+        app = get_app()
+
+        statements = b.document.text.strip()
+        if statements:
+            _globals = repl.get_globals()
+            _globals[&#34;_MODULE_SOURCE_CODE&#34;] = statements
+            app.exit(pudb.runstatement(statements, globals=_globals, locals=repl.get_locals()))
+            app.pre_run_callables.append(b.reset)
+        else:
+            pudb.pm()
+
+    # Custom key binding for some simple autocorrection while typing.
+
+    corrections = {&#34;impotr&#34;: &#34;import&#34;, &#34;pritn&#34;: &#34;print&#34;, &#34;pr&#34;: &#34;print(&#34;}
+
+    @repl.add_key_binding(&#34; &#34;)
+    def _(event):
+        &#34; When a space is pressed. Check &amp; correct word before cursor. &#34;
+        b = event.cli.current_buffer
+        w = b.document.get_word_before_cursor()
+        if w is not None:
+            if w in corrections:
+                b.delete_before_cursor(count=len(w))
+                b.insert_text(corrections[w])
+        b.insert_text(&#34; &#34;)
+
+    class CustomPrompt(PromptStyle):
+        &#34;&#34;&#34;
+        The classic Python prompt.
+        &#34;&#34;&#34;
+
+        def in_prompt(self):
+            return [(&#34;class:prompt&#34;, &#34;JS-NG&gt; &#34;)]
+
+        def in2_prompt(self, width):
+            return [(&#34;class:prompt.dots&#34;, &#34;...&#34;)]
+
+        def out_prompt(self):
+            return []
+
+    repl.all_prompt_styles[&#34;custom&#34;] = CustomPrompt()
+    repl.prompt_style = &#34;custom&#34;
+
+    repl._handle_exception = partial(patched_handle_exception, repl)
+    better_exceptions.hook()
+
+    old_get_completions = repl._completer.completer.__class__.get_completions
+
+    def custom_get_completions(self, document, complete_event):
+        completions = []
+
+        try:
+            completions = list(get_completions(self, document, complete_event))
+
+            if not completions:
+                completions = old_get_completions(self, document, complete_event)
+        except Exception:
+            pass
+
+        yield from completions
+
+    repl._completer.completer.__class__.get_completions = custom_get_completions</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.shell.config.get_completions"><code class="name flex">
+<span>def <span class="ident">get_completions</span></span>(<span>self, document, complete_event)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get completions filtered and colored</p>
+<p>To filter and color completions on type, we try get jedi completions first
+and check their type, because <code>prompt-toolkit.completion.Completion</code> does not contain type information</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_completions(self, document, complete_event):
+    &#34;&#34;&#34;
+    get completions filtered and colored
+
+    To filter and color completions on type, we try get jedi completions first
+    and check their type, because `prompt-toolkit.completion.Completion` does not contain type information
+    &#34;&#34;&#34;
+    try:
+        script = get_jedi_script_from_document(document, self.get_globals(), self.get_locals())
+    except:
+        return
+
+    if script:
+        try:
+            reference = script.get_references()[0]
+        except Exception:
+            reference = &#34;&#34;
+
+        for c in sorted(script.completions(), key=sort_completions_key):
+            if c.name.startswith(HIDDEN_PREFIXES):
+                if not reference or not reference.description.startswith(&#34;_&#34;):
+                    continue
+
+            yield Completion(
+                c.name_with_symbols,
+                len(c.complete) - len(c.name_with_symbols),
+                display=c.name_with_symbols,
+                selected_style=&#34;bg:ansidarkgray&#34;,
+                style=get_style_for_completion(c),
+            )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.shell.config.get_style_for_completion"><code class="name flex">
+<span>def <span class="ident">get_style_for_completion</span></span>(<span>completion)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_style_for_completion(completion):
+    base = &#34;bg:%s fg:ansiblack&#34;
+    if completion.type == &#34;function&#34;:
+        return base % &#34;ansigreen&#34;
+    elif completion.type == &#34;instance&#34;:
+        return base % &#34;ansiyellow&#34;
+    else:
+        return base % &#34;ansigray&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.shell.config.patched_handle_exception"><code class="name flex">
+<span>def <span class="ident">patched_handle_exception</span></span>(<span>self, e)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>a new handler for ptpython repl exceptions
+it will call excepthook after ommitting all this framework's calls from traceback</p>
+<p>for the original, see ptpython.repl.PythonInput._handle_exception</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def patched_handle_exception(self, e):
+    &#34;&#34;&#34;
+    a new handler for ptpython repl exceptions
+    it will call excepthook after ommitting all this framework&#39;s calls from traceback
+
+    for the original, see ptpython.repl.PythonInput._handle_exception
+    &#34;&#34;&#34;
+    output = self.app.output
+
+    t, v, tb = sys.exc_info()
+
+    # Required for pdb.post_mortem() to work.
+    sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
+
+    # loop until getting actual traceback
+    last_stdin_tb = tb
+    while tb:
+        if tb.tb_frame.f_code.co_filename == &#34;&lt;stdin&gt;&#34;:
+            last_stdin_tb = tb
+        tb = tb.tb_next
+
+    # except hook does not work as expected
+    sys.excepthook(t, v, last_stdin_tb)
+    # just print formatted exception for now
+    formatted = better_exceptions.format_exception(t, v, last_stdin_tb)
+    print_formatted_text(ANSI(formatted))
+
+    output.write(&#34;%s\n&#34; % e)
+    output.flush()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.shell.config.ptconfig"><code class="name flex">
+<span>def <span class="ident">ptconfig</span></span>(<span>repl)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ptconfig(repl):
+    repl.exit_message = &#34;Bye!&#34;
+    repl.show_docstring = True
+
+    # When CompletionVisualisation.POP_UP has been chosen, use this
+    # scroll_offset in the completion menu.
+    repl.completion_menu_scroll_offset = 0
+
+    # Show line numbers (when the input contains multiple lines.)
+    repl.show_line_numbers = True
+
+    # Show status bar.
+    repl.show_status_bar = True
+
+    # When the sidebar is visible, also show the help text.
+    # repl.show_sidebar_help = True
+
+    # Highlight matching parethesis.
+    repl.highlight_matching_parenthesis = True
+
+    # Line wrapping. (Instead of horizontal scrolling.)
+    repl.wrap_lines = True
+
+    # Mouse support.
+    repl.enable_mouse_support = False
+
+    # Complete while typing. (Don&#39;t require tab before the
+    # completion menu is shown.)
+    # repl.complete_while_typing = True
+
+    # Vi mode.
+    repl.vi_mode = False
+
+    # Paste mode. (When True, don&#39;t insert whitespace after new line.)
+    repl.paste_mode = False
+
+    # Use the classic prompt. (Display &#39;&gt;&gt;&gt;&#39; instead of &#39;In [1]&#39;.)
+    repl.prompt_style = &#34;classic&#34;  # &#39;classic&#39; or &#39;ipython&#39;
+
+    # Don&#39;t insert a blank line after the output.
+    repl.insert_blank_line_after_output = False
+
+    # History Search.
+    # When True, going back in history will filter the history on the records
+    # starting with the current input. (Like readline.)
+    # Note: When enable, please disable the `complete_while_typing` option.
+    #       otherwise, when there is a completion available, the arrows will
+    #       browse through the available completions instead of the history.
+    # repl.enable_history_search = False
+
+    # Enable auto suggestions. (Pressing right arrow will complete the input,
+    # based on the history.)
+    repl.enable_auto_suggest = True
+
+    # Enable open-in-editor. Pressing C-X C-E in emacs mode or &#39;v&#39; in
+    # Vi navigation mode will open the input in the current editor.
+    # repl.enable_open_in_editor = True
+
+    # Enable system prompt. Pressing meta-! will display the system prompt.
+    # Also enables Control-Z suspend.
+    repl.enable_system_bindings = False
+
+    # Ask for confirmation on exit.
+    repl.confirm_exit = False
+
+    # Enable input validation. (Don&#39;t try to execute when the input contains
+    # syntax errors.)
+    # repl.enable_input_validation = True
+
+    # Use this colorscheme for the code.
+    repl.use_code_colorscheme(&#34;perldoc&#34;)
+
+    # Set color depth (keep in mind that not all terminals support true color).
+    repl.color_depth = &#34;DEPTH_24_BIT&#34;  # True color.
+
+    repl.enable_syntax_highlighting = True
+
+    repl.min_brightness = 0.3
+
+    # Add custom key binding for PDB.
+
+    @repl.add_key_binding(Keys.ControlB)
+    def _debug_event(event):
+        &#39; Pressing Control-B will insert &#34;pdb.set_trace()&#34; &#39;
+        event.cli.current_buffer.insert_text(&#34;\nimport pdb; pdb.set_trace()\n&#34;)
+
+    @repl.add_key_binding(Keys.ControlJ)
+    def _debug_event(event):
+        &#34;&#34;&#34;
+        custom binding for pudb, to allow debugging a statement and also
+        post-mortem debugging in case of any exception
+        &#34;&#34;&#34;
+        b = event.cli.current_buffer
+        app = get_app()
+
+        statements = b.document.text.strip()
+        if statements:
+            _globals = repl.get_globals()
+            _globals[&#34;_MODULE_SOURCE_CODE&#34;] = statements
+            app.exit(pudb.runstatement(statements, globals=_globals, locals=repl.get_locals()))
+            app.pre_run_callables.append(b.reset)
+        else:
+            pudb.pm()
+
+    # Custom key binding for some simple autocorrection while typing.
+
+    corrections = {&#34;impotr&#34;: &#34;import&#34;, &#34;pritn&#34;: &#34;print&#34;, &#34;pr&#34;: &#34;print(&#34;}
+
+    @repl.add_key_binding(&#34; &#34;)
+    def _(event):
+        &#34; When a space is pressed. Check &amp; correct word before cursor. &#34;
+        b = event.cli.current_buffer
+        w = b.document.get_word_before_cursor()
+        if w is not None:
+            if w in corrections:
+                b.delete_before_cursor(count=len(w))
+                b.insert_text(corrections[w])
+        b.insert_text(&#34; &#34;)
+
+    class CustomPrompt(PromptStyle):
+        &#34;&#34;&#34;
+        The classic Python prompt.
+        &#34;&#34;&#34;
+
+        def in_prompt(self):
+            return [(&#34;class:prompt&#34;, &#34;JS-NG&gt; &#34;)]
+
+        def in2_prompt(self, width):
+            return [(&#34;class:prompt.dots&#34;, &#34;...&#34;)]
+
+        def out_prompt(self):
+            return []
+
+    repl.all_prompt_styles[&#34;custom&#34;] = CustomPrompt()
+    repl.prompt_style = &#34;custom&#34;
+
+    repl._handle_exception = partial(patched_handle_exception, repl)
+    better_exceptions.hook()
+
+    old_get_completions = repl._completer.completer.__class__.get_completions
+
+    def custom_get_completions(self, document, complete_event):
+        completions = []
+
+        try:
+            completions = list(get_completions(self, document, complete_event))
+
+            if not completions:
+                completions = old_get_completions(self, document, complete_event)
+        except Exception:
+            pass
+
+        yield from completions
+
+    repl._completer.completer.__class__.get_completions = custom_get_completions</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.shell.config.sort_completions_key"><code class="name flex">
+<span>def <span class="ident">sort_completions_key</span></span>(<span>completion)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>sort completions according to their type</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>completion</code></strong> :&ensp;<code>jedi.api.classes.Completion</code></dt>
+<dd>completion</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>sorting order</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sort_completions_key(completion):
+    &#34;&#34;&#34;
+    sort completions according to their type
+
+    Args:
+        completion (jedi.api.classes.Completion): completion
+
+    Returns:
+        int: sorting order
+    &#34;&#34;&#34;
+    if completion.type == &#34;function&#34;:
+        return 2
+    elif completion.type == &#34;instance&#34;:
+        return 1
+    else:
+        return 3</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.shell" href="index.html">jumpscale.shell</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jumpscale.shell.config.get_completions" href="#jumpscale.shell.config.get_completions">get_completions</a></code></li>
+<li><code><a title="jumpscale.shell.config.get_style_for_completion" href="#jumpscale.shell.config.get_style_for_completion">get_style_for_completion</a></code></li>
+<li><code><a title="jumpscale.shell.config.patched_handle_exception" href="#jumpscale.shell.config.patched_handle_exception">patched_handle_exception</a></code></li>
+<li><code><a title="jumpscale.shell.config.ptconfig" href="#jumpscale.shell.config.ptconfig">ptconfig</a></code></li>
+<li><code><a title="jumpscale.shell.config.sort_completions_key" href="#jumpscale.shell.config.sort_completions_key">sort_completions_key</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

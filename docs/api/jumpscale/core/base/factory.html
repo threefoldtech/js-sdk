@@ -1,0 +1,1831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.core.base.factory API documentation</title>
+<meta name="description" content="Hierarchal configurations and factories for any `jumpscale.core.base.meta.Base` type/class …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.core.base.factory</code></h1>
+</header>
+<section id="section-intro">
+<p>Hierarchal configurations and factories for any <a title="jumpscale.core.base.meta.Base" href="meta.html#jumpscale.core.base.meta.Base"><code>Base</code></a> type/class.</p>
+<p>It is implemented using:</p>
+<ul>
+<li><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>: the base for all factories, implements an in-memory factory for any type.</li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory"><code>StoredFactory</code></a>: a factory which stores and load configuration according to the current configured store backend.</li>
+</ul>
+<p>Default store configured is file system, you can show current store config by doing:</p>
+<pre><code>✗ jsctl config get store
+store = filesystem
+</code></pre>
+<p>Get all stores configurations:</p>
+<pre><code>✗ jsctl config get stores
+redis.hostname = &quot;localhost&quot;
+redis.port = 6379
+filesystem.path = &quot;/home/abom/.config/jumpscale/secureconfig&quot;
+whoosh.path = &quot;/home/abom/.config/jumpscale/whoosh_indexes&quot;
+</code></pre>
+<p>For example, set current store to redis:</p>
+<pre><code>jsctl config update store redis
+</code></pre>
+<p>This will use current redis config (hostname: localhost, port: 6379).</p>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Hierarchal configurations and factories for any `jumpscale.core.base.meta.Base` type/class.
+
+It is implemented using:
+
+- `Factory`: the base for all factories, implements an in-memory factory for any type.
+- `StoredFactory`: a factory which stores and load configuration according to the current configured store backend.
+
+
+Default store configured is file system, you can show current store config by doing:
+
+```
+✗ jsctl config get store
+store = filesystem
+```
+
+Get all stores configurations:
+
+```
+✗ jsctl config get stores
+redis.hostname = &#34;localhost&#34;
+redis.port = 6379
+filesystem.path = &#34;/home/abom/.config/jumpscale/secureconfig&#34;
+whoosh.path = &#34;/home/abom/.config/jumpscale/whoosh_indexes&#34;
+```
+
+For example, set current store to redis:
+
+```
+jsctl config update store redis
+```
+
+This will use current redis config (hostname: localhost, port: 6379).
+&#34;&#34;&#34;
+from functools import partial
+from jumpscale.core import config, events
+
+from .events import InstanceCreateEvent, InstanceDeleteEvent
+from .store import ConfigNotFound, KEY_FIELD_NAME, Location
+from .store.filesystem import FileSystemStore
+from .store.redis import RedisStore
+from .store.whooshfts import WhooshStore
+
+
+STORES = {&#34;filesystem&#34;: FileSystemStore, &#34;redis&#34;: RedisStore, &#34;whoosh&#34;: WhooshStore}
+
+
+class DuplicateError(Exception):
+    &#34;&#34;&#34;
+    raised when you try to create an instance by the same name of an existing one for a factory
+    &#34;&#34;&#34;
+
+
+class Factory:
+    &#34;&#34;&#34;
+    Base factory, where you can create/get/list/delete new instances.
+
+    All of the operations are done in memory, also instances will be available as properties.
+
+    Example:
+
+    ```python
+
+    class Car(Base):
+        name = fields.String()
+        color = fields.String()
+
+    cars = Factory(Car)
+    acar = cars.get(&#34;mycar&#34;)
+    acar.name = &#34;fiat&#34;
+
+    print(cars.mycar.name)
+    ```
+    &#34;&#34;&#34;
+
+    def __init__(self, type_, name_=None, parent_instance_=None, parent_factory_=None):
+        &#34;&#34;&#34;
+        get a new factory given the type to create instances for.
+
+        Any factory can have a name, parent `Base` instance and a parent factory.
+
+        Args:
+            type_ (Base): `Base` class type
+            name_ (str, optional): factory name. Defaults to None.
+            parent_instance_ (Base, optional): a parent `Base` instance. Defaults to None.
+            parent_factory_ (Factory, optional): a parent `Factory`. Defaults to None.
+        &#34;&#34;&#34;
+        self.__name = name_
+        self.__parent_instance = parent_instance_
+        self.__parent_factory = parent_factory_
+
+        self.type = type_
+        self.count = 0
+
+    @property
+    def parent_instance(self):
+        return self.__parent_instance
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def parent_factory(self):
+        return self.__parent_factory
+
+    def _set_parent_factory(self, factory):
+        &#34;&#34;&#34;
+        set current parent factory
+
+        Args:
+            factory (Factory)
+        &#34;&#34;&#34;
+        self.__parent_factory = factory
+
+    def find(self, name):
+        &#34;&#34;&#34;
+        find an instance with the given name
+
+        Args:
+            name (str): instance name
+
+        Raises:
+            ValueError: in case the name is an internal attribute of this factory, like `get` or `new`.
+
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        instance = getattr(self, name, None)
+        if instance and not isinstance(instance, self.type):
+            raise ValueError(&#34;{} is an internal attribute&#34;.format(name))
+        return instance
+
+    def _create_instance(self, name_, *args, **kwargs):
+        &#34;&#34;&#34;
+        create a new instance, this method is only responsible for:
+
+        - validating the name used is correct (must be a valid identifier and does not start with &#34;__&#34;)
+        - creating the instance from `self.type`
+        - setting this instance name with the given name
+        - setting the parent instance to it if this factory have a parent instance
+        - update the counter and trigger `_created`
+
+        Args:
+            name_ (str): instance name
+
+        Raises:
+            ValueError: in case the name is not a valid identifier (e.g contains spaces) or starts with &#34;__&#34;
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        if not name_.isidentifier():
+            raise ValueError(&#34;{} is not a valid identifier&#34;.format(name_))
+
+        if name_.startswith(&#34;__&#34;):
+            raise ValueError(&#34;name cannot start with &#39;__&#39;&#34;)
+
+        kwargs[&#34;instance_name_&#34;] = name_
+        kwargs[&#34;parent_&#34;] = self.parent_instance
+        instance = self.type(*args, **kwargs)
+
+        self.count += 1
+        self._created(instance)
+        return instance
+
+    def new(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get a new instance and make it available as an attribute
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        if self.find(name):
+            raise DuplicateError(f&#34;instance with name {name} already exists&#34;)
+
+        instance = self._create_instance(name, *args, **kwargs)
+        setattr(self, name, instance)
+        return instance
+
+    def get(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get an instance (will create if it does not exist)
+
+        if the instance with `name` exists, `args` and `kwargs` are ignored.
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        instance = self.find(name)
+        if instance:
+            return instance
+        return self.new(name, *args, **kwargs)
+
+    def _delete_instance(self, name):
+        &#34;&#34;&#34;
+        delete the instance with given name
+
+        here, we only remove the attribute
+
+        Args:
+            name (str): instance/attribute name
+        &#34;&#34;&#34;
+        if hasattr(self, name):
+            delattr(self, name)
+
+    def delete(self, name):
+        &#34;&#34;&#34;
+        delete an instance (with its attribute)
+
+        this will update the count and trigger `_deleted`
+
+        Args:
+            name (str)
+        &#34;&#34;&#34;
+        self.count -= 1
+        self._delete_instance(name)
+        self._deleted(name)
+
+    def _deleted(self, name):
+        &#34;&#34;&#34;
+        called when an instance is deleted, will trigger `InstanceDeleteEvent`
+
+        Args:
+            name (name)
+        &#34;&#34;&#34;
+        event = InstanceDeleteEvent(name, factory=self)
+        events.notify(event)
+
+    def _created(self, instance):
+        &#34;&#34;&#34;
+        called when an instance is created, will trigger `InstanceCreateEvent`
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        event = InstanceCreateEvent(instance=instance, factory=self)
+        events.notify(event)
+
+    def list_all(self):
+        &#34;&#34;&#34;
+        get a set of all instance names
+
+        this only get a list of all properties that are of factory `Base` type.
+
+        Returns:
+            set
+        &#34;&#34;&#34;
+        names = set()
+        for name, value in self.__dict__.items():
+            if isinstance(value, self.type) and not name.startswith(&#34;__&#34;):
+                names.add(name)
+        return names
+
+
+class StoredFactory(events.Handler, Factory):
+    &#34;&#34;&#34;
+    Stored factories are a custom type of `Factory`, which uses current configured store backend
+    to store all instance configurations.
+    &#34;&#34;&#34;
+
+    STORE = STORES[config.get(&#34;store&#34;)]
+
+    def __init__(self, type_, name_=None, parent_instance_=None, parent_factory_=None):
+        &#34;&#34;&#34;
+        get a new stored factory given the type to create and store instances for.
+
+        Any factory can have a name, parent `Base` instance and a parent factory.
+
+        Once a stored factory is created, it tries to lazy-load all current configuration for given `type_`.
+
+        Args:
+            type_ (Base): `Base` class type
+            name_ (str, optional): factory name. Defaults to None.
+            parent_instance_ (Base, optional): a parent `Base` instance. Defaults to None.
+            parent_factory_ (Factory, optional): a parent `Factory`. Defaults to None.
+        &#34;&#34;&#34;
+        super().__init__(type_, name_=name_, parent_instance_=parent_instance_, parent_factory_=parent_factory_)
+        self.__store = None
+
+        if not parent_instance_:
+            # no parent, then load all instance configurations
+            # if it&#39;s a parent, it should trigger this loading
+            self._load()
+
+        # to handle when a parent instance is deleted
+        events.add_listenter(self, InstanceDeleteEvent)
+
+        # if we need to always reload the config from store when getting an instance
+        self.always_reload = config.get(&#34;factory&#34;).get(&#34;always_reload&#34;, False)
+
+    @property
+    def parent_location(self):
+        if not self.parent_factory:
+            raise ValueError(&#34;cannot get parent location if parent factory is not set&#34;)
+        return self.parent_factory.location
+
+    @property
+    def location(self):
+        &#34;&#34;&#34;
+        get a unique location for this factory
+
+        Returns:
+            Location: location object
+        &#34;&#34;&#34;
+        name_list = []
+
+        # first, get the location of parent factory if any
+        if self.parent_factory:
+            name_list += self.parent_location.name_list
+
+        # if we have a parent instance, then this location should be unique
+        # for this instance
+        if self.parent_instance:
+            name_list.append(self.parent_instance.instance_name)
+
+        # if this factory have a name, append it too
+        if self.name:
+            name_list.append(self.name)
+
+        # then we append the location of the type
+        type_location = Location.from_type(self.type)
+        name_list += type_location.name_list
+
+        return Location(*name_list, type_=self.type)
+
+    @property
+    def store(self):
+        if not self.__store:
+            self.__store = self.STORE(self.location)
+        return self.__store
+
+    def _validate_and_save_instance(self, instance):
+        &#34;&#34;&#34;
+        validate and save a given instance to the store
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        instance.validate()
+        self.store.save(instance.instance_name, instance._get_data())
+        if instance.parent and hasattr(instance.parent, &#34;save&#34;):
+            instance.parent.save()
+
+    def handle(self, ev):
+        &#34;&#34;&#34;
+        handle when the parent instance is deleted
+
+        Args:
+            ev (InstanceDeleteEvent): instance delete event
+        &#34;&#34;&#34;
+        # do nothing if this is a root factory
+        if not self.parent_instance or not self.parent_factory:
+            return
+
+        # handle deletion of children
+        if isinstance(ev, InstanceDeleteEvent):
+            if ev.factory == self.parent_factory and ev.name == self.parent_instance.instance_name:
+                for name in self.list_all():
+                    self.delete(name)
+
+    def _load_sub_factories(self, instance):
+        &#34;&#34;&#34;
+        load sub-factories for an instance
+
+        this will also set current factory as a parent for any sub-factories this instance have
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        for factory in instance._get_factories().values():
+            factory._set_parent_factory(self)
+            factory._load()
+
+    def _init_save_and_sub_factories(self, instance):
+        &#34;&#34;&#34;
+        allow an instance to have a `save` method
+
+        also, this method inits the loading of sub-factories for this instance
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        instance.save = partial(self._validate_and_save_instance, instance)
+        self._load_sub_factories(instance)
+
+    def _get_object_from_config(self, name, data):
+        instance = self._create_instance(name, **data)
+        self._init_save_and_sub_factories(instance)
+        return instance
+
+    def _load_from_store(self, name):
+        &#34;&#34;&#34;
+        loads instance from store
+
+        Args:
+            name (str): instance name
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        try:
+            instance_config = self.store.get(name)
+        except ConfigNotFound:
+            return
+
+        instance = self._get_object_from_config(name, instance_config)
+        setattr(self, name, instance)
+        return instance
+
+    def find(self, name):
+        &#34;&#34;&#34;
+        find an instance with the given name
+
+        Args:
+            name (str): instance name
+
+        Raises:
+            ValueError: in case the name is an internal attribute of this factory, like `get` or `new`.
+
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        instance = super().find(name)
+        if instance:
+            if self.always_reload:
+                try:
+                    instance._set_data(self.store.get(name))
+                except ConfigNotFound:
+                    # no config is written, still not saved
+                    pass
+        else:
+            instance = self._load_from_store(name)
+
+        return instance
+
+    def new(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get a new instance and make it available as an attribute
+
+        this method also initialize sub-factories for this instance.
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        instance = super().new(name, *args, **kwargs)
+        self._init_save_and_sub_factories(instance)
+        return instance
+
+    def get_instance_property(self, name):
+        &#34;&#34;&#34;
+        return a new property descriptor for a given name, this will help in lazy-loading
+        as this property will only create and load an instance from the store once accessed.
+
+        Args:
+            name (str): instance name
+
+        Returns:
+            property: property descriptor (object)
+        &#34;&#34;&#34;
+        inner_name = f&#34;__{name}&#34;
+
+        def getter(factory):
+            # we need to avoid AttributeError which hasattr swallows
+            # instead we check the internal __dict__
+            if inner_name in factory.__dict__:
+                return getattr(factory, inner_name)
+
+            instance = self._get_object_from_config(name, factory.store.get(name))
+            setattr(factory, inner_name, instance)
+            return instance
+
+        return property(getter)
+
+    def _load(self):
+        &#34;&#34;&#34;
+        lazy-load all instance configuration
+
+        it will a new class for this factory with property descriptors for all instances listed by the store
+        &#34;&#34;&#34;
+        # get a class name
+        cls_name = self.location.name.replace(&#34;.&#34;, &#34;&#34;)
+        # get a new class based on self.__class__
+        new_cls = type(cls_name, (self.__class__,), {})
+
+        # list all instance names in the store and set a property descriptor as an attribute
+        for name in self.store.list_all():
+            # it will create the actual instance with configuration from the store when accessed only
+            setattr(new_cls, name, self.get_instance_property(name))
+
+        # update current factory class with this class
+        self.__class__ = new_cls
+
+    def _delete_instance(self, name):
+        &#34;&#34;&#34;
+        delete an instance
+
+        this will delete it from the store too, also, delete its property descriptor if found
+
+        Args:
+            name (str): instance name
+        &#34;&#34;&#34;
+        self.store.delete(name)
+
+        class_prop = getattr(self.__class__, name, None)
+        if isinstance(class_prop, property):
+            # created with a property descriptor inside the class, delete it
+            delattr(self.__class__, name)
+
+            # check if the instance was actually created or not (if the property was accessed)
+            inner_name = f&#34;__{name}&#34;
+            if hasattr(self, inner_name):
+                # delete the instance itself too if it was accessed and created
+                delattr(self, inner_name)
+        else:
+            super()._delete_instance(name)
+
+    def find_many(self, cursor_=None, limit_=None, **query):
+        &#34;&#34;&#34;
+        do a search against the store (not loaded objects) with this query.
+
+        queries can relate to current store backend used.
+
+        Keyword Args:
+            cursor_ (any, optional): an optional cursor, to start searching from. Defaults to None.
+            limit_ (int, optional): results limit. Defaults to None.
+            query: a mapping for field/query, e.g. first_name=&#34;aa&#34;
+
+        Returns:
+            tuple: the new cursor, total results count, and a list of objects as a result
+        &#34;&#34;&#34;
+        if not query:
+            raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
+
+        new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
+        return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)
+
+    def list_all(self):
+        &#34;&#34;&#34;
+        get all instance names (stored or not)
+
+        Returns:
+            set: instance names
+        &#34;&#34;&#34;
+        names = set(self.store.list_all())
+        return names.union(super().list_all())
+
+    def __iter__(self):
+        for value in vars(self).values():
+            if isinstance(value, self.type):
+                yield value
+
+    def __eq__(self, other):
+        return self.location == other.location
+
+    def __hash__(self):
+        return hash(self.location)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.core.base.factory.DuplicateError"><code class="flex name class">
+<span>class <span class="ident">DuplicateError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>raised when you try to create an instance by the same name of an existing one for a factory</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class DuplicateError(Exception):
+    &#34;&#34;&#34;
+    raised when you try to create an instance by the same name of an existing one for a factory
+    &#34;&#34;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory"><code class="flex name class">
+<span>class <span class="ident">Factory</span></span>
+<span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Base factory, where you can create/get/list/delete new instances.</p>
+<p>All of the operations are done in memory, also instances will be available as properties.</p>
+<p>Example:</p>
+<pre><code class="python">
+class Car(Base):
+    name = fields.String()
+    color = fields.String()
+
+cars = Factory(Car)
+acar = cars.get(&quot;mycar&quot;)
+acar.name = &quot;fiat&quot;
+
+print(cars.mycar.name)
+</code></pre>
+<p>get a new factory given the type to create instances for.</p>
+<p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>type_</code></strong> :&ensp;<code>Base</code></dt>
+<dd><code>Base</code> class type</dd>
+<dt><strong><code>name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>factory name. Defaults to None.</dd>
+<dt><strong><code>parent_instance_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>a parent <code>Base</code> instance. Defaults to None.</dd>
+<dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
+<dd>a parent <code>Factory</code>. Defaults to None.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Factory:
+    &#34;&#34;&#34;
+    Base factory, where you can create/get/list/delete new instances.
+
+    All of the operations are done in memory, also instances will be available as properties.
+
+    Example:
+
+    ```python
+
+    class Car(Base):
+        name = fields.String()
+        color = fields.String()
+
+    cars = Factory(Car)
+    acar = cars.get(&#34;mycar&#34;)
+    acar.name = &#34;fiat&#34;
+
+    print(cars.mycar.name)
+    ```
+    &#34;&#34;&#34;
+
+    def __init__(self, type_, name_=None, parent_instance_=None, parent_factory_=None):
+        &#34;&#34;&#34;
+        get a new factory given the type to create instances for.
+
+        Any factory can have a name, parent `Base` instance and a parent factory.
+
+        Args:
+            type_ (Base): `Base` class type
+            name_ (str, optional): factory name. Defaults to None.
+            parent_instance_ (Base, optional): a parent `Base` instance. Defaults to None.
+            parent_factory_ (Factory, optional): a parent `Factory`. Defaults to None.
+        &#34;&#34;&#34;
+        self.__name = name_
+        self.__parent_instance = parent_instance_
+        self.__parent_factory = parent_factory_
+
+        self.type = type_
+        self.count = 0
+
+    @property
+    def parent_instance(self):
+        return self.__parent_instance
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def parent_factory(self):
+        return self.__parent_factory
+
+    def _set_parent_factory(self, factory):
+        &#34;&#34;&#34;
+        set current parent factory
+
+        Args:
+            factory (Factory)
+        &#34;&#34;&#34;
+        self.__parent_factory = factory
+
+    def find(self, name):
+        &#34;&#34;&#34;
+        find an instance with the given name
+
+        Args:
+            name (str): instance name
+
+        Raises:
+            ValueError: in case the name is an internal attribute of this factory, like `get` or `new`.
+
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        instance = getattr(self, name, None)
+        if instance and not isinstance(instance, self.type):
+            raise ValueError(&#34;{} is an internal attribute&#34;.format(name))
+        return instance
+
+    def _create_instance(self, name_, *args, **kwargs):
+        &#34;&#34;&#34;
+        create a new instance, this method is only responsible for:
+
+        - validating the name used is correct (must be a valid identifier and does not start with &#34;__&#34;)
+        - creating the instance from `self.type`
+        - setting this instance name with the given name
+        - setting the parent instance to it if this factory have a parent instance
+        - update the counter and trigger `_created`
+
+        Args:
+            name_ (str): instance name
+
+        Raises:
+            ValueError: in case the name is not a valid identifier (e.g contains spaces) or starts with &#34;__&#34;
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        if not name_.isidentifier():
+            raise ValueError(&#34;{} is not a valid identifier&#34;.format(name_))
+
+        if name_.startswith(&#34;__&#34;):
+            raise ValueError(&#34;name cannot start with &#39;__&#39;&#34;)
+
+        kwargs[&#34;instance_name_&#34;] = name_
+        kwargs[&#34;parent_&#34;] = self.parent_instance
+        instance = self.type(*args, **kwargs)
+
+        self.count += 1
+        self._created(instance)
+        return instance
+
+    def new(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get a new instance and make it available as an attribute
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        if self.find(name):
+            raise DuplicateError(f&#34;instance with name {name} already exists&#34;)
+
+        instance = self._create_instance(name, *args, **kwargs)
+        setattr(self, name, instance)
+        return instance
+
+    def get(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get an instance (will create if it does not exist)
+
+        if the instance with `name` exists, `args` and `kwargs` are ignored.
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        instance = self.find(name)
+        if instance:
+            return instance
+        return self.new(name, *args, **kwargs)
+
+    def _delete_instance(self, name):
+        &#34;&#34;&#34;
+        delete the instance with given name
+
+        here, we only remove the attribute
+
+        Args:
+            name (str): instance/attribute name
+        &#34;&#34;&#34;
+        if hasattr(self, name):
+            delattr(self, name)
+
+    def delete(self, name):
+        &#34;&#34;&#34;
+        delete an instance (with its attribute)
+
+        this will update the count and trigger `_deleted`
+
+        Args:
+            name (str)
+        &#34;&#34;&#34;
+        self.count -= 1
+        self._delete_instance(name)
+        self._deleted(name)
+
+    def _deleted(self, name):
+        &#34;&#34;&#34;
+        called when an instance is deleted, will trigger `InstanceDeleteEvent`
+
+        Args:
+            name (name)
+        &#34;&#34;&#34;
+        event = InstanceDeleteEvent(name, factory=self)
+        events.notify(event)
+
+    def _created(self, instance):
+        &#34;&#34;&#34;
+        called when an instance is created, will trigger `InstanceCreateEvent`
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        event = InstanceCreateEvent(instance=instance, factory=self)
+        events.notify(event)
+
+    def list_all(self):
+        &#34;&#34;&#34;
+        get a set of all instance names
+
+        this only get a list of all properties that are of factory `Base` type.
+
+        Returns:
+            set
+        &#34;&#34;&#34;
+        names = set()
+        for name, value in self.__dict__.items():
+            if isinstance(value, self.type) and not name.startswith(&#34;__&#34;):
+                names.add(name)
+        return names</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.core.base.factory.Factory.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def name(self):
+    return self.__name</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.parent_factory"><code class="name">var <span class="ident">parent_factory</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def parent_factory(self):
+    return self.__parent_factory</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.parent_instance"><code class="name">var <span class="ident">parent_instance</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def parent_instance(self):
+    return self.__parent_instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.core.base.factory.Factory.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>delete an instance (with its attribute)</p>
+<p>this will update the count and trigger <code>_deleted</code></p>
+<h2 id="args">Args</h2>
+<p>name (str)</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def delete(self, name):
+    &#34;&#34;&#34;
+    delete an instance (with its attribute)
+
+    this will update the count and trigger `_deleted`
+
+    Args:
+        name (str)
+    &#34;&#34;&#34;
+    self.count -= 1
+    self._delete_instance(name)
+    self._deleted(name)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.find"><code class="name flex">
+<span>def <span class="ident">find</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>find an instance with the given name</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>instance name</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>ValueError</code></strong></dt>
+<dd>in case the name is an internal attribute of this factory, like <code>get</code> or <code>new</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Base</code> or <code>NoneType</code>: <code>an</code> <code>instance</code> or <code>none</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def find(self, name):
+    &#34;&#34;&#34;
+    find an instance with the given name
+
+    Args:
+        name (str): instance name
+
+    Raises:
+        ValueError: in case the name is an internal attribute of this factory, like `get` or `new`.
+
+    Returns:
+        Base or NoneType: an instance or none
+    &#34;&#34;&#34;
+    instance = getattr(self, name, None)
+    if instance and not isinstance(instance, self.type):
+        raise ValueError(&#34;{} is an internal attribute&#34;.format(name))
+    return instance</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, name, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get an instance (will create if it does not exist)</p>
+<p>if the instance with <code>name</code> exists, <code>args</code> and <code>kwargs</code> are ignored.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name</dd>
+<dt><strong><code>*args</code></strong></dt>
+<dd>arbitrary arguments passed to the factory <code>Base</code> type</dd>
+<dt><strong><code>*kwargs</code></strong></dt>
+<dd>arbitrary keyword arguments passed to the factory <code>Base</code> type</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dd>in case an instance with the same name exists</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Base</code></strong></dt>
+<dd>instance</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get(self, name, *args, **kwargs):
+    &#34;&#34;&#34;
+    get an instance (will create if it does not exist)
+
+    if the instance with `name` exists, `args` and `kwargs` are ignored.
+
+    Args:
+        name (str): name
+        *args: arbitrary arguments passed to the factory `Base` type
+        *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+    Raises:
+        DuplicateError: in case an instance with the same name exists
+
+    Returns:
+        Base: instance
+    &#34;&#34;&#34;
+    instance = self.find(name)
+    if instance:
+        return instance
+    return self.new(name, *args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.list_all"><code class="name flex">
+<span>def <span class="ident">list_all</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get a set of all instance names</p>
+<p>this only get a list of all properties that are of factory <code>Base</code> type.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>set</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all(self):
+    &#34;&#34;&#34;
+    get a set of all instance names
+
+    this only get a list of all properties that are of factory `Base` type.
+
+    Returns:
+        set
+    &#34;&#34;&#34;
+    names = set()
+    for name, value in self.__dict__.items():
+        if isinstance(value, self.type) and not name.startswith(&#34;__&#34;):
+            names.add(name)
+    return names</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.Factory.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>self, name, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get a new instance and make it available as an attribute</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name</dd>
+<dt><strong><code>*args</code></strong></dt>
+<dd>arbitrary arguments passed to the factory <code>Base</code> type</dd>
+<dt><strong><code>*kwargs</code></strong></dt>
+<dd>arbitrary keyword arguments passed to the factory <code>Base</code> type</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dd>in case an instance with the same name exists</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Base</code></strong></dt>
+<dd>instance</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def new(self, name, *args, **kwargs):
+    &#34;&#34;&#34;
+    get a new instance and make it available as an attribute
+
+    Args:
+        name (str): name
+        *args: arbitrary arguments passed to the factory `Base` type
+        *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+    Raises:
+        DuplicateError: in case an instance with the same name exists
+
+    Returns:
+        Base: instance
+    &#34;&#34;&#34;
+    if self.find(name):
+        raise DuplicateError(f&#34;instance with name {name} already exists&#34;)
+
+    instance = self._create_instance(name, *args, **kwargs)
+    setattr(self, name, instance)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory"><code class="flex name class">
+<span>class <span class="ident">StoredFactory</span></span>
+<span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Stored factories are a custom type of <a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>, which uses current configured store backend
+to store all instance configurations.</p>
+<p>get a new stored factory given the type to create and store instances for.</p>
+<p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
+<p>Once a stored factory is created, it tries to lazy-load all current configuration for given <code>type_</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>type_</code></strong> :&ensp;<code>Base</code></dt>
+<dd><code>Base</code> class type</dd>
+<dt><strong><code>name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>factory name. Defaults to None.</dd>
+<dt><strong><code>parent_instance_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>a parent <code>Base</code> instance. Defaults to None.</dd>
+<dt><strong><code>parent_factory_</code></strong> :&ensp;<a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>, optional</dt>
+<dd>a parent <a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>. Defaults to None.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class StoredFactory(events.Handler, Factory):
+    &#34;&#34;&#34;
+    Stored factories are a custom type of `Factory`, which uses current configured store backend
+    to store all instance configurations.
+    &#34;&#34;&#34;
+
+    STORE = STORES[config.get(&#34;store&#34;)]
+
+    def __init__(self, type_, name_=None, parent_instance_=None, parent_factory_=None):
+        &#34;&#34;&#34;
+        get a new stored factory given the type to create and store instances for.
+
+        Any factory can have a name, parent `Base` instance and a parent factory.
+
+        Once a stored factory is created, it tries to lazy-load all current configuration for given `type_`.
+
+        Args:
+            type_ (Base): `Base` class type
+            name_ (str, optional): factory name. Defaults to None.
+            parent_instance_ (Base, optional): a parent `Base` instance. Defaults to None.
+            parent_factory_ (Factory, optional): a parent `Factory`. Defaults to None.
+        &#34;&#34;&#34;
+        super().__init__(type_, name_=name_, parent_instance_=parent_instance_, parent_factory_=parent_factory_)
+        self.__store = None
+
+        if not parent_instance_:
+            # no parent, then load all instance configurations
+            # if it&#39;s a parent, it should trigger this loading
+            self._load()
+
+        # to handle when a parent instance is deleted
+        events.add_listenter(self, InstanceDeleteEvent)
+
+        # if we need to always reload the config from store when getting an instance
+        self.always_reload = config.get(&#34;factory&#34;).get(&#34;always_reload&#34;, False)
+
+    @property
+    def parent_location(self):
+        if not self.parent_factory:
+            raise ValueError(&#34;cannot get parent location if parent factory is not set&#34;)
+        return self.parent_factory.location
+
+    @property
+    def location(self):
+        &#34;&#34;&#34;
+        get a unique location for this factory
+
+        Returns:
+            Location: location object
+        &#34;&#34;&#34;
+        name_list = []
+
+        # first, get the location of parent factory if any
+        if self.parent_factory:
+            name_list += self.parent_location.name_list
+
+        # if we have a parent instance, then this location should be unique
+        # for this instance
+        if self.parent_instance:
+            name_list.append(self.parent_instance.instance_name)
+
+        # if this factory have a name, append it too
+        if self.name:
+            name_list.append(self.name)
+
+        # then we append the location of the type
+        type_location = Location.from_type(self.type)
+        name_list += type_location.name_list
+
+        return Location(*name_list, type_=self.type)
+
+    @property
+    def store(self):
+        if not self.__store:
+            self.__store = self.STORE(self.location)
+        return self.__store
+
+    def _validate_and_save_instance(self, instance):
+        &#34;&#34;&#34;
+        validate and save a given instance to the store
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        instance.validate()
+        self.store.save(instance.instance_name, instance._get_data())
+        if instance.parent and hasattr(instance.parent, &#34;save&#34;):
+            instance.parent.save()
+
+    def handle(self, ev):
+        &#34;&#34;&#34;
+        handle when the parent instance is deleted
+
+        Args:
+            ev (InstanceDeleteEvent): instance delete event
+        &#34;&#34;&#34;
+        # do nothing if this is a root factory
+        if not self.parent_instance or not self.parent_factory:
+            return
+
+        # handle deletion of children
+        if isinstance(ev, InstanceDeleteEvent):
+            if ev.factory == self.parent_factory and ev.name == self.parent_instance.instance_name:
+                for name in self.list_all():
+                    self.delete(name)
+
+    def _load_sub_factories(self, instance):
+        &#34;&#34;&#34;
+        load sub-factories for an instance
+
+        this will also set current factory as a parent for any sub-factories this instance have
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        for factory in instance._get_factories().values():
+            factory._set_parent_factory(self)
+            factory._load()
+
+    def _init_save_and_sub_factories(self, instance):
+        &#34;&#34;&#34;
+        allow an instance to have a `save` method
+
+        also, this method inits the loading of sub-factories for this instance
+
+        Args:
+            instance (Base)
+        &#34;&#34;&#34;
+        instance.save = partial(self._validate_and_save_instance, instance)
+        self._load_sub_factories(instance)
+
+    def _get_object_from_config(self, name, data):
+        instance = self._create_instance(name, **data)
+        self._init_save_and_sub_factories(instance)
+        return instance
+
+    def _load_from_store(self, name):
+        &#34;&#34;&#34;
+        loads instance from store
+
+        Args:
+            name (str): instance name
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        try:
+            instance_config = self.store.get(name)
+        except ConfigNotFound:
+            return
+
+        instance = self._get_object_from_config(name, instance_config)
+        setattr(self, name, instance)
+        return instance
+
+    def find(self, name):
+        &#34;&#34;&#34;
+        find an instance with the given name
+
+        Args:
+            name (str): instance name
+
+        Raises:
+            ValueError: in case the name is an internal attribute of this factory, like `get` or `new`.
+
+        Returns:
+            Base or NoneType: an instance or none
+        &#34;&#34;&#34;
+        instance = super().find(name)
+        if instance:
+            if self.always_reload:
+                try:
+                    instance._set_data(self.store.get(name))
+                except ConfigNotFound:
+                    # no config is written, still not saved
+                    pass
+        else:
+            instance = self._load_from_store(name)
+
+        return instance
+
+    def new(self, name, *args, **kwargs):
+        &#34;&#34;&#34;
+        get a new instance and make it available as an attribute
+
+        this method also initialize sub-factories for this instance.
+
+        Args:
+            name (str): name
+            *args: arbitrary arguments passed to the factory `Base` type
+            *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+        Raises:
+            DuplicateError: in case an instance with the same name exists
+
+        Returns:
+            Base: instance
+        &#34;&#34;&#34;
+        instance = super().new(name, *args, **kwargs)
+        self._init_save_and_sub_factories(instance)
+        return instance
+
+    def get_instance_property(self, name):
+        &#34;&#34;&#34;
+        return a new property descriptor for a given name, this will help in lazy-loading
+        as this property will only create and load an instance from the store once accessed.
+
+        Args:
+            name (str): instance name
+
+        Returns:
+            property: property descriptor (object)
+        &#34;&#34;&#34;
+        inner_name = f&#34;__{name}&#34;
+
+        def getter(factory):
+            # we need to avoid AttributeError which hasattr swallows
+            # instead we check the internal __dict__
+            if inner_name in factory.__dict__:
+                return getattr(factory, inner_name)
+
+            instance = self._get_object_from_config(name, factory.store.get(name))
+            setattr(factory, inner_name, instance)
+            return instance
+
+        return property(getter)
+
+    def _load(self):
+        &#34;&#34;&#34;
+        lazy-load all instance configuration
+
+        it will a new class for this factory with property descriptors for all instances listed by the store
+        &#34;&#34;&#34;
+        # get a class name
+        cls_name = self.location.name.replace(&#34;.&#34;, &#34;&#34;)
+        # get a new class based on self.__class__
+        new_cls = type(cls_name, (self.__class__,), {})
+
+        # list all instance names in the store and set a property descriptor as an attribute
+        for name in self.store.list_all():
+            # it will create the actual instance with configuration from the store when accessed only
+            setattr(new_cls, name, self.get_instance_property(name))
+
+        # update current factory class with this class
+        self.__class__ = new_cls
+
+    def _delete_instance(self, name):
+        &#34;&#34;&#34;
+        delete an instance
+
+        this will delete it from the store too, also, delete its property descriptor if found
+
+        Args:
+            name (str): instance name
+        &#34;&#34;&#34;
+        self.store.delete(name)
+
+        class_prop = getattr(self.__class__, name, None)
+        if isinstance(class_prop, property):
+            # created with a property descriptor inside the class, delete it
+            delattr(self.__class__, name)
+
+            # check if the instance was actually created or not (if the property was accessed)
+            inner_name = f&#34;__{name}&#34;
+            if hasattr(self, inner_name):
+                # delete the instance itself too if it was accessed and created
+                delattr(self, inner_name)
+        else:
+            super()._delete_instance(name)
+
+    def find_many(self, cursor_=None, limit_=None, **query):
+        &#34;&#34;&#34;
+        do a search against the store (not loaded objects) with this query.
+
+        queries can relate to current store backend used.
+
+        Keyword Args:
+            cursor_ (any, optional): an optional cursor, to start searching from. Defaults to None.
+            limit_ (int, optional): results limit. Defaults to None.
+            query: a mapping for field/query, e.g. first_name=&#34;aa&#34;
+
+        Returns:
+            tuple: the new cursor, total results count, and a list of objects as a result
+        &#34;&#34;&#34;
+        if not query:
+            raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
+
+        new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
+        return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)
+
+    def list_all(self):
+        &#34;&#34;&#34;
+        get all instance names (stored or not)
+
+        Returns:
+            set: instance names
+        &#34;&#34;&#34;
+        names = set(self.store.list_all())
+        return names.union(super().list_all())
+
+    def __iter__(self):
+        for value in vars(self).values():
+            if isinstance(value, self.type):
+                yield value
+
+    def __eq__(self, other):
+        return self.location == other.location
+
+    def __hash__(self):
+        return hash(self.location)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.events.Handler" href="../events/index.html#jumpscale.core.events.Handler">Handler</a></li>
+<li><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.zdb.ZDBFactory" href="../../clients/zdb/index.html#jumpscale.clients.zdb.ZDBFactory">ZDBFactory</a></li>
+<li><a title="jumpscale.clients.digitalocean.digitalocean.ProjectFactory" href="../../clients/digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.ProjectFactory">ProjectFactory</a></li>
+<li><a title="jumpscale.clients.digitalocean.digitalocean.DropletFactory" href="../../clients/digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.DropletFactory">DropletFactory</a></li>
+<li><a title="jumpscale.core.identity.IdentityFactory" href="../identity/index.html#jumpscale.core.identity.IdentityFactory">IdentityFactory</a></li>
+<li><a title="jumpscale.clients.explorer.ExplorerFactory" href="../../clients/explorer/index.html#jumpscale.clients.explorer.ExplorerFactory">ExplorerFactory</a></li>
+<li><a title="jumpscale.clients.stellar.StellarFactory" href="../../clients/stellar/index.html#jumpscale.clients.stellar.StellarFactory">StellarFactory</a></li>
+<li><a title="jumpscale.servers.threebot.ThreebotServerFactory" href="../../servers/threebot/index.html#jumpscale.servers.threebot.ThreebotServerFactory">ThreebotServerFactory</a></li>
+<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServer</li>
+<li>jumpscale.core.base.factory.jumpscaleserversgedisserverGedisServer</li>
+<li>jumpscale.core.base.factory.jumpscaleserversgedis_httpGedisHTTPServer</li>
+<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServerdefault_package_managerjumpscaleserversthreebotthreebotPackageManager</li>
+<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServerdefault_package_managerjumpscaleserversthreebotthreebotPackageManager</li>
+<li>jumpscale.core.base.factory.jumpscalesalsnginxnginxNginxConfig</li>
+<li>jumpscale.core.base.factory.jumpscalesalsnginxnginxNginxConfigmainwebsitesjumpscalesalsnginxnginxWebsite</li>
+<li>jumpscale.core.base.factory.jumpscalesalschatflowsmodelsvoter_modelUser</li>
+<li>jumpscale.core.base.factory.jumpscalesalsreservation_chatflowmodelsTfgridSolution1</li>
+<li>jumpscale.core.base.factory.jumpscalesalsreservation_chatflowmodelsTfgridSolutionsPayment1</li>
+<li>jumpscale.core.base.factory.jumpscaleclientsexplorermodelsDeployedReservation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.core.base.factory.StoredFactory.STORE"><code class="name">var <span class="ident">STORE</span></code></dt>
+<dd>
+<section class="desc"><p>Filesystem store is an EncryptedConfigStore</p>
+<p>It saves the config relative to <code>config_env.get_store_config("filesystem")</code></p>
+<p>To store every instance config in a different path, it uses the given <code>Location</code>.</p></section>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.core.base.factory.StoredFactory.location"><code class="name">var <span class="ident">location</span></code></dt>
+<dd>
+<section class="desc"><p>get a unique location for this factory</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Location</code></strong></dt>
+<dd>location object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def location(self):
+    &#34;&#34;&#34;
+    get a unique location for this factory
+
+    Returns:
+        Location: location object
+    &#34;&#34;&#34;
+    name_list = []
+
+    # first, get the location of parent factory if any
+    if self.parent_factory:
+        name_list += self.parent_location.name_list
+
+    # if we have a parent instance, then this location should be unique
+    # for this instance
+    if self.parent_instance:
+        name_list.append(self.parent_instance.instance_name)
+
+    # if this factory have a name, append it too
+    if self.name:
+        name_list.append(self.name)
+
+    # then we append the location of the type
+    type_location = Location.from_type(self.type)
+    name_list += type_location.name_list
+
+    return Location(*name_list, type_=self.type)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.parent_location"><code class="name">var <span class="ident">parent_location</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def parent_location(self):
+    if not self.parent_factory:
+        raise ValueError(&#34;cannot get parent location if parent factory is not set&#34;)
+    return self.parent_factory.location</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.store"><code class="name">var <span class="ident">store</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def store(self):
+    if not self.__store:
+        self.__store = self.STORE(self.location)
+    return self.__store</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.core.base.factory.StoredFactory.find_many"><code class="name flex">
+<span>def <span class="ident">find_many</span></span>(<span>self, cursor_=None, limit_=None, **query)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>do a search against the store (not loaded objects) with this query.</p>
+<p>queries can relate to current store backend used.</p>
+<p>Keyword Args:
+cursor_ (any, optional): an optional cursor, to start searching from. Defaults to None.
+limit_ (int, optional): results limit. Defaults to None.
+query: a mapping for field/query, e.g. first_name="aa"</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>tuple</code></strong></dt>
+<dd>the new cursor, total results count, and a list of objects as a result</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def find_many(self, cursor_=None, limit_=None, **query):
+    &#34;&#34;&#34;
+    do a search against the store (not loaded objects) with this query.
+
+    queries can relate to current store backend used.
+
+    Keyword Args:
+        cursor_ (any, optional): an optional cursor, to start searching from. Defaults to None.
+        limit_ (int, optional): results limit. Defaults to None.
+        query: a mapping for field/query, e.g. first_name=&#34;aa&#34;
+
+    Returns:
+        tuple: the new cursor, total results count, and a list of objects as a result
+    &#34;&#34;&#34;
+    if not query:
+        raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
+
+    new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
+    return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.get_instance_property"><code class="name flex">
+<span>def <span class="ident">get_instance_property</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>return a new property descriptor for a given name, this will help in lazy-loading
+as this property will only create and load an instance from the store once accessed.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>instance name</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>property</code></strong></dt>
+<dd>property descriptor (object)</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_instance_property(self, name):
+    &#34;&#34;&#34;
+    return a new property descriptor for a given name, this will help in lazy-loading
+    as this property will only create and load an instance from the store once accessed.
+
+    Args:
+        name (str): instance name
+
+    Returns:
+        property: property descriptor (object)
+    &#34;&#34;&#34;
+    inner_name = f&#34;__{name}&#34;
+
+    def getter(factory):
+        # we need to avoid AttributeError which hasattr swallows
+        # instead we check the internal __dict__
+        if inner_name in factory.__dict__:
+            return getattr(factory, inner_name)
+
+        instance = self._get_object_from_config(name, factory.store.get(name))
+        setattr(factory, inner_name, instance)
+        return instance
+
+    return property(getter)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.handle"><code class="name flex">
+<span>def <span class="ident">handle</span></span>(<span>self, ev)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>handle when the parent instance is deleted</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ev</code></strong> :&ensp;<code>InstanceDeleteEvent</code></dt>
+<dd>instance delete event</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def handle(self, ev):
+    &#34;&#34;&#34;
+    handle when the parent instance is deleted
+
+    Args:
+        ev (InstanceDeleteEvent): instance delete event
+    &#34;&#34;&#34;
+    # do nothing if this is a root factory
+    if not self.parent_instance or not self.parent_factory:
+        return
+
+    # handle deletion of children
+    if isinstance(ev, InstanceDeleteEvent):
+        if ev.factory == self.parent_factory and ev.name == self.parent_instance.instance_name:
+            for name in self.list_all():
+                self.delete(name)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.list_all"><code class="name flex">
+<span>def <span class="ident">list_all</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get all instance names (stored or not)</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>set</code></strong></dt>
+<dd>instance names</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all(self):
+    &#34;&#34;&#34;
+    get all instance names (stored or not)
+
+    Returns:
+        set: instance names
+    &#34;&#34;&#34;
+    names = set(self.store.list_all())
+    return names.union(super().list_all())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.base.factory.StoredFactory.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>self, name, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get a new instance and make it available as an attribute</p>
+<p>this method also initialize sub-factories for this instance.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name</dd>
+<dt><strong><code>*args</code></strong></dt>
+<dd>arbitrary arguments passed to the factory <code>Base</code> type</dd>
+<dt><strong><code>*kwargs</code></strong></dt>
+<dd>arbitrary keyword arguments passed to the factory <code>Base</code> type</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dd>in case an instance with the same name exists</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Base</code></strong></dt>
+<dd>instance</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def new(self, name, *args, **kwargs):
+    &#34;&#34;&#34;
+    get a new instance and make it available as an attribute
+
+    this method also initialize sub-factories for this instance.
+
+    Args:
+        name (str): name
+        *args: arbitrary arguments passed to the factory `Base` type
+        *kwargs: arbitrary keyword arguments passed to the factory `Base` type
+
+    Raises:
+        DuplicateError: in case an instance with the same name exists
+
+    Returns:
+        Base: instance
+    &#34;&#34;&#34;
+    instance = super().new(name, *args, **kwargs)
+    self._init_save_and_sub_factories(instance)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.factory.Factory.delete" href="#jumpscale.core.base.factory.Factory.delete">delete</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.find" href="#jumpscale.core.base.factory.Factory.find">find</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.get" href="#jumpscale.core.base.factory.Factory.get">get</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.core.base" href="index.html">jumpscale.core.base</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError">DuplicateError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.core.base.factory.Factory.delete" href="#jumpscale.core.base.factory.Factory.delete">delete</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.find" href="#jumpscale.core.base.factory.Factory.find">find</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.get" href="#jumpscale.core.base.factory.Factory.get">get</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.list_all" href="#jumpscale.core.base.factory.Factory.list_all">list_all</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.name" href="#jumpscale.core.base.factory.Factory.name">name</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.new" href="#jumpscale.core.base.factory.Factory.new">new</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.parent_factory" href="#jumpscale.core.base.factory.Factory.parent_factory">parent_factory</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.Factory.parent_instance" href="#jumpscale.core.base.factory.Factory.parent_instance">parent_instance</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.STORE" href="#jumpscale.core.base.factory.StoredFactory.STORE">STORE</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.find_many" href="#jumpscale.core.base.factory.StoredFactory.find_many">find_many</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.get_instance_property" href="#jumpscale.core.base.factory.StoredFactory.get_instance_property">get_instance_property</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.handle" href="#jumpscale.core.base.factory.StoredFactory.handle">handle</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.list_all" href="#jumpscale.core.base.factory.StoredFactory.list_all">list_all</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.location" href="#jumpscale.core.base.factory.StoredFactory.location">location</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.new" href="#jumpscale.core.base.factory.StoredFactory.new">new</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.parent_location" href="#jumpscale.core.base.factory.StoredFactory.parent_location">parent_location</a></code></li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory.store" href="#jumpscale.core.base.factory.StoredFactory.store">store</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

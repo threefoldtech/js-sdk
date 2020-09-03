@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.tools.syncer API documentation</title>
+<meta name="description" content="Module to help syncing multiple machines with specific directories you have.
+used in the jsync tool.
+```
+JS-NG&gt; xmonader = …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.tools.syncer</code></h1>
+</header>
+<section id="section-intro">
+<p>Module to help syncing multiple machines with specific directories you have.
+used in the jsync tool.</p>
+<pre><code>JS-NG&gt; xmonader = j.clients.sshkey.new(&quot;xmonader&quot;)
+JS-NG&gt; xmonader.private_key_path = &quot;/home/xmonader/.ssh/id_rsa&quot;
+JS-NG&gt; xmonader.load_from_file_system()
+JS-NG&gt; xmonader.save()
+JS-NG&gt; xmonader = j.clients.sshclient.new(&quot;xmonader&quot;)
+JS-NG&gt; xmonader.sshkey = &quot;xmonader&quot;
+JS-NG&gt; s = j.tools.syncer.Syncer([&quot;xmonader&quot;], {&quot;/home/xmonader/wspace/tfchain-py&quot;:&quot;/tmp/tfchain-py&quot;})
+JS-NG&gt; s.start()
+2019-09-03T11:38:47.183394+0200 - paths: {'/home/xmonader/wspace/tfchain-py': '/tmp/tfchain-py'}
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;Module to help syncing multiple machines with specific directories you have.
+used in the jsync tool.
+```
+JS-NG&gt; xmonader = j.clients.sshkey.new(&#34;xmonader&#34;)
+JS-NG&gt; xmonader.private_key_path = &#34;/home/xmonader/.ssh/id_rsa&#34;
+JS-NG&gt; xmonader.load_from_file_system()
+JS-NG&gt; xmonader.save()
+JS-NG&gt; xmonader = j.clients.sshclient.new(&#34;xmonader&#34;)
+JS-NG&gt; xmonader.sshkey = &#34;xmonader&#34;
+JS-NG&gt; s = j.tools.syncer.Syncer([&#34;xmonader&#34;], {&#34;/home/xmonader/wspace/tfchain-py&#34;:&#34;/tmp/tfchain-py&#34;})
+JS-NG&gt; s.start()
+2019-09-03T11:38:47.183394+0200 - paths: {&#39;/home/xmonader/wspace/tfchain-py&#39;: &#39;/tmp/tfchain-py&#39;}
+```
+&#34;&#34;&#34;
+
+from jumpscale.loader import j
+from watchdog.events import PatternMatchingEventHandler
+from watchdog.observers import Observer
+import gevent
+from typing import List, Dict, Optional
+
+DEFAULT_IGNORED_PATTERNS = [&#34;.git&#34;, &#34;.pyc&#34;, &#34;__pycache__&#34;, &#34;.swp&#34;, &#34;.swx&#34;]
+
+
+class Syncer(PatternMatchingEventHandler):
+    def __init__(
+        self,
+        sshclients_names: List[str],
+        paths: Dict[str, str],
+        patterns: Optional[List[str]] = None,
+        ignore_patterns: Optional[List[str]] = None,
+        ignore_directories: Optional[List[str]] = False,
+        case_sensitive: bool = True,
+    ):
+        &#34;&#34;&#34;Creates new syncer tool
+
+        Arguments:
+            sshclients_names {List[str]} -- list of sshclient names
+            paths {Dict[str, str]} -- paths to watch src/dest form of dict {&#39;/tmp/myproj&#39;:&#39;/root/proj&#39;}
+
+        Keyword Arguments:
+            patterns {Optional[List[str]]} -- optional list of patterns to watch (default: {None})
+            ignore_patterns {Optional[List[str]]} -- patterns to ignore, e.g .git, __pycache__ (default: {None})
+            ignore_directories {Optional[List[str]]} -- directories to ignore (default: {False})
+            case_sensitive {bool} -- case sensitive watching  (default: {True})
+
+        Returns:
+            Syncer -- Syncer object
+        &#34;&#34;&#34;
+        ignore_patterns = ignore_patterns or DEFAULT_IGNORED_PATTERNS
+        super().__init__(patterns, ignore_patterns, ignore_directories, case_sensitive)
+        self.observer = Observer()
+        self.sshclients_names = sshclients_names
+        self.paths = paths or {}  # src:dst
+
+    def _get_dest_path(self, src_path: str) -&gt; str:
+        &#34;&#34;&#34;returns destination path in remote machine
+
+        Arguments:
+            src_path {str} -- path in source machine
+
+        Returns:
+            str -- path in remote machine
+        &#34;&#34;&#34;
+        j.logger.debug(f&#34;paths: {self.paths} and path: {src_path}&#34;)
+
+        for path in self.paths.keys():
+            if path.startswith(src_path):
+                return self.paths[src_path]
+
+    def _rewrite_path_for_dest(self, src_path: str) -&gt; str:
+        &#34;&#34;&#34;rewrite src_path to remote_path
+        e.g
+            local: /tmp/myproj/file.py
+            remote: /root/myproj/file.py
+
+        Arguments:
+            src_path {str} -- source machine path
+
+        Returns:
+            str -- rewritten path for remote
+        &#34;&#34;&#34;
+        src_path = str(src_path)
+        for path in self.paths.keys():
+            if src_path.startswith(path):
+                return src_path.replace(path, self.paths[path])
+
+    def _get_sshclients(self):
+        &#34;&#34;&#34;Returns list of sshclient objects.
+
+        Returns:
+            List[SSHClient] -- list of ssh clients
+        &#34;&#34;&#34;
+        clients = []
+        for name in self.sshclients_names:
+            clients.append(j.clients.sshclient.get(name))
+        return clients
+
+    def sync(self):
+        &#34;&#34;&#34;Sync directory structure and files
+
+        &#34;&#34;&#34;
+        j.logger.debug(f&#34;paths: {self.paths}&#34;)
+
+        def ensure_dirs():
+            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
+
+            &#34;&#34;&#34;
+            for path in self.paths:
+                for src_dir in j.sals.fs.walk_dirs(path):
+                    dest_dir = str(self._rewrite_path_for_dest(src_dir))
+                    for cl in self._get_sshclients():
+                        j.logger.debug(f&#34;making dir {dest_dir}&#34;)
+                        cl.sshclient.run(f&#34;mkdir -p {dest_dir}&#34;)
+                        self.observer.schedule(self, src_dir)
+
+        def sync_file(e):
+            &#34;&#34;&#34;Sync single file to all registered sshclients
+
+            Arguments:
+                e {str} -- file path
+            &#34;&#34;&#34;
+            dest_path = self._rewrite_path_for_dest(e)
+            j.logger.debug(f&#34;syncing {e} to machines into {dest_path}&#34;)
+
+            for cl in self._get_sshclients():
+                cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+                cl.sshclient.sftp.put(e, self._rewrite_path_for_dest(e))
+
+        def filter_ignored(e):
+            return True
+
+        ensure_dirs()
+
+        for path in self.paths:
+            for f in j.sals.fs.walk_files(path, sync_file):
+                sync_file(f)
+
+    def start(self, sync=True):
+        &#34;&#34;&#34;Start syncing/watching paths to remote machines
+
+        Keyword Arguments:
+            sync {bool} -- sync dirs/files first (default: {True})
+        &#34;&#34;&#34;
+        if sync:
+            self.sync()
+
+        for path in self.paths.keys():
+            self.observer.schedule(self, path)
+
+        self.observer.start()
+        try:
+            while True:
+                gevent.sleep(0.1)
+        except KeyboardInterrupt:
+            self.observer.unschedule_all()
+            self.observer.stop()
+        self.observer.join()
+
+    def on_moved(self, event):
+        super().on_moved(event)
+
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.info(f&#34;Moved {what}: from {event.src_path} to {event.dest_path}&#34;)
+        dest_path = self._rewrite_path_for_dest(event.dest_path)
+        j.logger.debug(f&#34;will move to {dest_path}&#34;)
+        j.logger.debug(f&#34;will delete original in {self._rewrite_path_for_dest(event.src_path)}&#34;)
+        for cl in self._get_sshclients():
+            if not event.is_directory:
+                try:
+                    # in case file is moved
+                    cl.sshclient.sftp.put(event.dest_path, dest_path)
+                    cl.sshclient.run(f&#34;rm {self._rewrite_path_for_dest(event.src_path)}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during move event&#34;)
+            else:
+                # in case file is directory
+                cl.sshclient.sftp.posix_rename(self._rewrite_path_for_dest(event.src_path), dest_path)
+
+    def on_created(self, event):
+        super().on_created(event)
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Created {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will create in {dest_path}&#34;)
+
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                cl.sshclient.run(f&#34;mkdir -p {dest_path}&#34;)
+                self.observer.schedule(self, event.src_path)
+            else:
+                try:
+                    cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+                    cl.sshclient.run(f&#34;touch {dest_path}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during create event&#34;)
+
+    def on_deleted(self, event):
+        super().on_deleted(event)
+
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Deleted {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will delete in {dest_path}&#34;)
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                cl.sshclient.run(f&#34;rm -rf {dest_path}&#34;)
+            else:
+                try:
+                    cl.sshclient.run(f&#34;rm {dest_path}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during delete event&#34;)
+
+    def on_modified(self, event):
+        super().on_modified(event)
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Modified {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will modify in {dest_path}&#34;)
+
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                j.logger.debug(f&#34;Folder {dest_path} was modified&#34;)
+            else:
+                try:
+                    cl.sshclient.sftp.put(event.src_path, dest_path)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during modify event&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.tools.syncer.Syncer"><code class="flex name class">
+<span>class <span class="ident">Syncer</span></span>
+<span>(</span><span>sshclients_names, paths, patterns=None, ignore_patterns=None, ignore_directories=False, case_sensitive=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Matches given patterns with file paths associated with occurring events.</p>
+<p>Creates new syncer tool</p>
+<h2 id="arguments">Arguments</h2>
+<p>sshclients_names {List[str]} &ndash; list of sshclient names
+paths {Dict[str, str]} &ndash; paths to watch src/dest form of dict {'/tmp/myproj':'/root/proj'}
+Keyword Arguments:
+patterns {Optional[List[str]]} &ndash; optional list of patterns to watch (default: {None})
+ignore_patterns {Optional[List[str]]} &ndash; patterns to ignore, e.g .git, <strong>pycache</strong> (default: {None})
+ignore_directories {Optional[List[str]]} &ndash; directories to ignore (default: {False})
+case_sensitive {bool} &ndash; case sensitive watching
+(default: {True})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><a title="jumpscale.tools.syncer.Syncer" href="#jumpscale.tools.syncer.Syncer"><code>Syncer</code></a> &ndash; <a title="jumpscale.tools.syncer.Syncer" href="#jumpscale.tools.syncer.Syncer"><code>Syncer</code></a> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Syncer(PatternMatchingEventHandler):
+    def __init__(
+        self,
+        sshclients_names: List[str],
+        paths: Dict[str, str],
+        patterns: Optional[List[str]] = None,
+        ignore_patterns: Optional[List[str]] = None,
+        ignore_directories: Optional[List[str]] = False,
+        case_sensitive: bool = True,
+    ):
+        &#34;&#34;&#34;Creates new syncer tool
+
+        Arguments:
+            sshclients_names {List[str]} -- list of sshclient names
+            paths {Dict[str, str]} -- paths to watch src/dest form of dict {&#39;/tmp/myproj&#39;:&#39;/root/proj&#39;}
+
+        Keyword Arguments:
+            patterns {Optional[List[str]]} -- optional list of patterns to watch (default: {None})
+            ignore_patterns {Optional[List[str]]} -- patterns to ignore, e.g .git, __pycache__ (default: {None})
+            ignore_directories {Optional[List[str]]} -- directories to ignore (default: {False})
+            case_sensitive {bool} -- case sensitive watching  (default: {True})
+
+        Returns:
+            Syncer -- Syncer object
+        &#34;&#34;&#34;
+        ignore_patterns = ignore_patterns or DEFAULT_IGNORED_PATTERNS
+        super().__init__(patterns, ignore_patterns, ignore_directories, case_sensitive)
+        self.observer = Observer()
+        self.sshclients_names = sshclients_names
+        self.paths = paths or {}  # src:dst
+
+    def _get_dest_path(self, src_path: str) -&gt; str:
+        &#34;&#34;&#34;returns destination path in remote machine
+
+        Arguments:
+            src_path {str} -- path in source machine
+
+        Returns:
+            str -- path in remote machine
+        &#34;&#34;&#34;
+        j.logger.debug(f&#34;paths: {self.paths} and path: {src_path}&#34;)
+
+        for path in self.paths.keys():
+            if path.startswith(src_path):
+                return self.paths[src_path]
+
+    def _rewrite_path_for_dest(self, src_path: str) -&gt; str:
+        &#34;&#34;&#34;rewrite src_path to remote_path
+        e.g
+            local: /tmp/myproj/file.py
+            remote: /root/myproj/file.py
+
+        Arguments:
+            src_path {str} -- source machine path
+
+        Returns:
+            str -- rewritten path for remote
+        &#34;&#34;&#34;
+        src_path = str(src_path)
+        for path in self.paths.keys():
+            if src_path.startswith(path):
+                return src_path.replace(path, self.paths[path])
+
+    def _get_sshclients(self):
+        &#34;&#34;&#34;Returns list of sshclient objects.
+
+        Returns:
+            List[SSHClient] -- list of ssh clients
+        &#34;&#34;&#34;
+        clients = []
+        for name in self.sshclients_names:
+            clients.append(j.clients.sshclient.get(name))
+        return clients
+
+    def sync(self):
+        &#34;&#34;&#34;Sync directory structure and files
+
+        &#34;&#34;&#34;
+        j.logger.debug(f&#34;paths: {self.paths}&#34;)
+
+        def ensure_dirs():
+            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
+
+            &#34;&#34;&#34;
+            for path in self.paths:
+                for src_dir in j.sals.fs.walk_dirs(path):
+                    dest_dir = str(self._rewrite_path_for_dest(src_dir))
+                    for cl in self._get_sshclients():
+                        j.logger.debug(f&#34;making dir {dest_dir}&#34;)
+                        cl.sshclient.run(f&#34;mkdir -p {dest_dir}&#34;)
+                        self.observer.schedule(self, src_dir)
+
+        def sync_file(e):
+            &#34;&#34;&#34;Sync single file to all registered sshclients
+
+            Arguments:
+                e {str} -- file path
+            &#34;&#34;&#34;
+            dest_path = self._rewrite_path_for_dest(e)
+            j.logger.debug(f&#34;syncing {e} to machines into {dest_path}&#34;)
+
+            for cl in self._get_sshclients():
+                cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+                cl.sshclient.sftp.put(e, self._rewrite_path_for_dest(e))
+
+        def filter_ignored(e):
+            return True
+
+        ensure_dirs()
+
+        for path in self.paths:
+            for f in j.sals.fs.walk_files(path, sync_file):
+                sync_file(f)
+
+    def start(self, sync=True):
+        &#34;&#34;&#34;Start syncing/watching paths to remote machines
+
+        Keyword Arguments:
+            sync {bool} -- sync dirs/files first (default: {True})
+        &#34;&#34;&#34;
+        if sync:
+            self.sync()
+
+        for path in self.paths.keys():
+            self.observer.schedule(self, path)
+
+        self.observer.start()
+        try:
+            while True:
+                gevent.sleep(0.1)
+        except KeyboardInterrupt:
+            self.observer.unschedule_all()
+            self.observer.stop()
+        self.observer.join()
+
+    def on_moved(self, event):
+        super().on_moved(event)
+
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.info(f&#34;Moved {what}: from {event.src_path} to {event.dest_path}&#34;)
+        dest_path = self._rewrite_path_for_dest(event.dest_path)
+        j.logger.debug(f&#34;will move to {dest_path}&#34;)
+        j.logger.debug(f&#34;will delete original in {self._rewrite_path_for_dest(event.src_path)}&#34;)
+        for cl in self._get_sshclients():
+            if not event.is_directory:
+                try:
+                    # in case file is moved
+                    cl.sshclient.sftp.put(event.dest_path, dest_path)
+                    cl.sshclient.run(f&#34;rm {self._rewrite_path_for_dest(event.src_path)}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during move event&#34;)
+            else:
+                # in case file is directory
+                cl.sshclient.sftp.posix_rename(self._rewrite_path_for_dest(event.src_path), dest_path)
+
+    def on_created(self, event):
+        super().on_created(event)
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Created {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will create in {dest_path}&#34;)
+
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                cl.sshclient.run(f&#34;mkdir -p {dest_path}&#34;)
+                self.observer.schedule(self, event.src_path)
+            else:
+                try:
+                    cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+                    cl.sshclient.run(f&#34;touch {dest_path}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during create event&#34;)
+
+    def on_deleted(self, event):
+        super().on_deleted(event)
+
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Deleted {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will delete in {dest_path}&#34;)
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                cl.sshclient.run(f&#34;rm -rf {dest_path}&#34;)
+            else:
+                try:
+                    cl.sshclient.run(f&#34;rm {dest_path}&#34;)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during delete event&#34;)
+
+    def on_modified(self, event):
+        super().on_modified(event)
+        what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+        j.logger.debug(f&#34;Modified {what}: {event.src_path}&#34;)
+
+        dest_path = self._rewrite_path_for_dest(event.src_path)
+        j.logger.debug(f&#34;will modify in {dest_path}&#34;)
+
+        for cl in self._get_sshclients():
+            if what == &#34;directory&#34;:
+                j.logger.debug(f&#34;Folder {dest_path} was modified&#34;)
+            else:
+                try:
+                    cl.sshclient.sftp.put(event.src_path, dest_path)
+                except:
+                    j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during modify event&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>watchdog.events.PatternMatchingEventHandler</li>
+<li>watchdog.events.FileSystemEventHandler</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.tools.syncer.Syncer.on_created"><code class="name flex">
+<span>def <span class="ident">on_created</span></span>(<span>self, event)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Called when a file or directory is created.</p>
+<p>:param event:
+Event representing file/directory creation.
+:type event:
+:class:<code>DirCreatedEvent</code> or :class:<code>FileCreatedEvent</code></p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def on_created(self, event):
+    super().on_created(event)
+    what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+    j.logger.debug(f&#34;Created {what}: {event.src_path}&#34;)
+
+    dest_path = self._rewrite_path_for_dest(event.src_path)
+    j.logger.debug(f&#34;will create in {dest_path}&#34;)
+
+    for cl in self._get_sshclients():
+        if what == &#34;directory&#34;:
+            cl.sshclient.run(f&#34;mkdir -p {dest_path}&#34;)
+            self.observer.schedule(self, event.src_path)
+        else:
+            try:
+                cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+                cl.sshclient.run(f&#34;touch {dest_path}&#34;)
+            except:
+                j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during create event&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.syncer.Syncer.on_deleted"><code class="name flex">
+<span>def <span class="ident">on_deleted</span></span>(<span>self, event)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Called when a file or directory is deleted.</p>
+<p>:param event:
+Event representing file/directory deletion.
+:type event:
+:class:<code>DirDeletedEvent</code> or :class:<code>FileDeletedEvent</code></p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def on_deleted(self, event):
+    super().on_deleted(event)
+
+    what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+    j.logger.debug(f&#34;Deleted {what}: {event.src_path}&#34;)
+
+    dest_path = self._rewrite_path_for_dest(event.src_path)
+    j.logger.debug(f&#34;will delete in {dest_path}&#34;)
+    for cl in self._get_sshclients():
+        if what == &#34;directory&#34;:
+            cl.sshclient.run(f&#34;rm -rf {dest_path}&#34;)
+        else:
+            try:
+                cl.sshclient.run(f&#34;rm {dest_path}&#34;)
+            except:
+                j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during delete event&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.syncer.Syncer.on_modified"><code class="name flex">
+<span>def <span class="ident">on_modified</span></span>(<span>self, event)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Called when a file or directory is modified.</p>
+<p>:param event:
+Event representing file/directory modification.
+:type event:
+:class:<code>DirModifiedEvent</code> or :class:<code>FileModifiedEvent</code></p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def on_modified(self, event):
+    super().on_modified(event)
+    what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+    j.logger.debug(f&#34;Modified {what}: {event.src_path}&#34;)
+
+    dest_path = self._rewrite_path_for_dest(event.src_path)
+    j.logger.debug(f&#34;will modify in {dest_path}&#34;)
+
+    for cl in self._get_sshclients():
+        if what == &#34;directory&#34;:
+            j.logger.debug(f&#34;Folder {dest_path} was modified&#34;)
+        else:
+            try:
+                cl.sshclient.sftp.put(event.src_path, dest_path)
+            except:
+                j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during modify event&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.syncer.Syncer.on_moved"><code class="name flex">
+<span>def <span class="ident">on_moved</span></span>(<span>self, event)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Called when a file or a directory is moved or renamed.</p>
+<p>:param event:
+Event representing file/directory movement.
+:type event:
+:class:<code>DirMovedEvent</code> or :class:<code>FileMovedEvent</code></p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def on_moved(self, event):
+    super().on_moved(event)
+
+    what = &#34;directory&#34; if event.is_directory else &#34;file&#34;
+    j.logger.info(f&#34;Moved {what}: from {event.src_path} to {event.dest_path}&#34;)
+    dest_path = self._rewrite_path_for_dest(event.dest_path)
+    j.logger.debug(f&#34;will move to {dest_path}&#34;)
+    j.logger.debug(f&#34;will delete original in {self._rewrite_path_for_dest(event.src_path)}&#34;)
+    for cl in self._get_sshclients():
+        if not event.is_directory:
+            try:
+                # in case file is moved
+                cl.sshclient.sftp.put(event.dest_path, dest_path)
+                cl.sshclient.run(f&#34;rm {self._rewrite_path_for_dest(event.src_path)}&#34;)
+            except:
+                j.logger.debug(f&#34;Ignoring {dest_path}. Path was not found during move event&#34;)
+        else:
+            # in case file is directory
+            cl.sshclient.sftp.posix_rename(self._rewrite_path_for_dest(event.src_path), dest_path)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.syncer.Syncer.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self, sync=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Start syncing/watching paths to remote machines</p>
+<p>Keyword Arguments:
+sync {bool} &ndash; sync dirs/files first (default: {True})</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def start(self, sync=True):
+    &#34;&#34;&#34;Start syncing/watching paths to remote machines
+
+    Keyword Arguments:
+        sync {bool} -- sync dirs/files first (default: {True})
+    &#34;&#34;&#34;
+    if sync:
+        self.sync()
+
+    for path in self.paths.keys():
+        self.observer.schedule(self, path)
+
+    self.observer.start()
+    try:
+        while True:
+            gevent.sleep(0.1)
+    except KeyboardInterrupt:
+        self.observer.unschedule_all()
+        self.observer.stop()
+    self.observer.join()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.syncer.Syncer.sync"><code class="name flex">
+<span>def <span class="ident">sync</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sync directory structure and files</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sync(self):
+    &#34;&#34;&#34;Sync directory structure and files
+
+    &#34;&#34;&#34;
+    j.logger.debug(f&#34;paths: {self.paths}&#34;)
+
+    def ensure_dirs():
+        &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
+
+        &#34;&#34;&#34;
+        for path in self.paths:
+            for src_dir in j.sals.fs.walk_dirs(path):
+                dest_dir = str(self._rewrite_path_for_dest(src_dir))
+                for cl in self._get_sshclients():
+                    j.logger.debug(f&#34;making dir {dest_dir}&#34;)
+                    cl.sshclient.run(f&#34;mkdir -p {dest_dir}&#34;)
+                    self.observer.schedule(self, src_dir)
+
+    def sync_file(e):
+        &#34;&#34;&#34;Sync single file to all registered sshclients
+
+        Arguments:
+            e {str} -- file path
+        &#34;&#34;&#34;
+        dest_path = self._rewrite_path_for_dest(e)
+        j.logger.debug(f&#34;syncing {e} to machines into {dest_path}&#34;)
+
+        for cl in self._get_sshclients():
+            cl.sshclient.run(f&#34;mkdir -p {j.sals.fs.parent(dest_path)}&#34;)
+            cl.sshclient.sftp.put(e, self._rewrite_path_for_dest(e))
+
+    def filter_ignored(e):
+        return True
+
+    ensure_dirs()
+
+    for path in self.paths:
+        for f in j.sals.fs.walk_files(path, sync_file):
+            sync_file(f)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.tools" href="../index.html">jumpscale.tools</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.tools.syncer.Syncer" href="#jumpscale.tools.syncer.Syncer">Syncer</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.tools.syncer.Syncer.on_created" href="#jumpscale.tools.syncer.Syncer.on_created">on_created</a></code></li>
+<li><code><a title="jumpscale.tools.syncer.Syncer.on_deleted" href="#jumpscale.tools.syncer.Syncer.on_deleted">on_deleted</a></code></li>
+<li><code><a title="jumpscale.tools.syncer.Syncer.on_modified" href="#jumpscale.tools.syncer.Syncer.on_modified">on_modified</a></code></li>
+<li><code><a title="jumpscale.tools.syncer.Syncer.on_moved" href="#jumpscale.tools.syncer.Syncer.on_moved">on_moved</a></code></li>
+<li><code><a title="jumpscale.tools.syncer.Syncer.start" href="#jumpscale.tools.syncer.Syncer.start">start</a></code></li>
+<li><code><a title="jumpscale.tools.syncer.Syncer.sync" href="#jumpscale.tools.syncer.Syncer.sync">sync</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

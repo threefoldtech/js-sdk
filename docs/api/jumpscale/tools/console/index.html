@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.tools.console API documentation</title>
+<meta name="description" content="Console module helps with coloring in the console and asking for input from the user.
+```
+JS-NG&gt; …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.tools.console</code></h1>
+</header>
+<section id="section-intro">
+<p>Console module helps with coloring in the console and asking for input from the user.</p>
+<pre><code>JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{WHITE}OK&quot;)                                                                     
+JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{RESET}{WHITE}OK&quot;)                                                              
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;Console module helps with coloring in the console and asking for input from the user.
+```
+JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{WHITE}OK&#34;)                                                                     
+JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{RESET}{WHITE}OK&#34;)                                                              
+```
+
+&#34;&#34;&#34;
+
+
+import colorama
+import getpass
+import os
+
+
+NAMES_TO_COLORS = {}
+for attrname in dir(colorama.Fore):
+    if attrname.isupper():
+        NAMES_TO_COLORS[attrname] = getattr(colorama.Fore, attrname)
+
+for attrname in dir(colorama.Back):
+    if attrname.isupper():
+        NAMES_TO_COLORS[&#34;BG&#34; + attrname] = getattr(colorama.Back, attrname)
+
+NAMES_TO_COLORS[&#34;RESET&#34;] = colorama.Style.RESET_ALL
+
+
+def format(s):
+    return s.format(**NAMES_TO_COLORS)
+
+
+def printcolors(s):
+    &#34;&#34;&#34;
+        &gt;&gt;&gt; j.tools.console.printcolors(&#34;{RED}Hello world&#34;)
+        Hello world
+        &gt;&gt;&gt; j.tools.console.printcolors(&#34;{GREEN}Hello world&#34;)
+        Hello world
+
+        Arguments:
+        s {[type]} -- [description]
+        &#34;&#34;&#34;
+    print(format(s))
+
+
+def ask_password(prompt=&#34;Password : &#34;, forbiddens=[]):
+    &#34;&#34;&#34;Prompt the user for a password without echoing
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Password : &#34;})
+        forbiddens {list} -- the list of bad passwords (default: {[]})
+    
+    Returns:
+        str -- the appropriate input password
+    &#34;&#34;&#34;
+    password = getpass.getpass(prompt)
+    if password not in forbiddens:
+        return password
+    else:
+        return ask_password(prompt, forbiddens)
+
+
+def ask_yes_no(prompt=&#34;[y/n] :&#34;, default=&#34;y&#34;, valid=[&#34;y&#34;, &#34;n&#34;]):
+    &#34;&#34;&#34;Display a yes/no question and loop until a valid answer is entered
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#39;[y/n] :&#39;})
+        default {str} -- the default answer if there is no answer (default: {&#34;y&#34;})
+        valid {list} -- the list of appropriate answers (default: {[&#34;y&#34;, &#34;n&#34;]})
+    
+    Returns:
+        str -- the answer
+    &#34;&#34;&#34;
+
+    answer = input(prompt)
+    if answer in valid:
+        return answer
+    elif answer == &#34;&#34;:
+        return default
+    else:
+        return ask_yes_no(prompt, default, valid)
+
+
+def ask_int(prompt=&#34;Type int :&#34;):
+    try:
+        return int(input(prompt))
+    except ValueError:
+        return ask_int(prompt)
+
+
+def ask_int_in_range(mini, maxi, prompt=&#34;Type int :&#34;):
+    &#34;&#34;&#34;Get an integer response between two integer on asked question
+    
+    Arguments:
+        mini {int} -- the minimum value for the number
+        maxi {int} -- the maximum value for the number
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type int :&#34;})
+    
+    Returns:
+        int -- the input number on the range provided
+    &#34;&#34;&#34;
+    try:
+        answer = int(input(prompt))
+        if mini &lt;= answer &lt;= maxi:
+            return answer
+        else:
+            return ask_int_in_range(mini, maxi, prompt)
+    except ValueError:
+        return ask_int_in_range(mini, maxi, prompt)
+
+
+def ask_float(prompt=&#34;Type float :&#34;):
+    try:
+        return float(input(prompt))
+    except ValueError:
+        return ask_float(prompt)
+
+
+def ask_float_in_range(mini, maxi, prompt=&#34;Type float :&#34;):
+    &#34;&#34;&#34;Get an float response between two float on asked question
+    
+    Arguments:
+        mini {float} -- the minimum value for the number
+        maxi {float} -- the maximum value for the number
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type float :&#34;})
+    
+    Returns:
+        float -- the input number on the range provided
+    &#34;&#34;&#34;
+    try:
+        answer = float(input(prompt))
+        if mini &lt;= answer &lt;= maxi:
+            return answer
+        else:
+            return ask_float_in_range(mini, maxi, prompt)
+    except ValueError:
+        return ask_float_in_range(mini, maxi, prompt)
+
+
+def _print_choices(choices_list):
+    &#34;&#34;&#34;Helper function : clear screen and print the choices in numbers&#34;&#34;&#34;
+    os.system(&#34;clear&#34;)
+    number = 0
+    for choice in choices_list:
+        number += 1
+        print(f&#34;{number}. &#34; + choice)
+
+
+def ask_choice(prompt=&#34;Type choice number : &#34;, choices_list=[]):
+    &#34;&#34;&#34;Get an option from provided list
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type choice number : &#34;})
+        choices_list {list} -- the available options (default: {[]})
+    
+    Returns:
+        str -- the chosen option
+    &#34;&#34;&#34;
+    _print_choices(choices_list)
+    answer = input(prompt)
+    try:
+        return choices_list[int(answer) - 1]
+    except (IndexError, ValueError):
+        return ask_choice(prompt, choices_list)
+
+
+def ask_multi_choices(prompt=&#34;Add to choices : &#34;, choices_list=[], to_save=&#34;s&#34;, to_quit=&#34;q&#34;):
+    &#34;&#34;&#34;Collect multi choices from list
+    
+    Keyword Arguments:
+        prompt {str} -- the question method (default: {&#34;Add to choices : &#34;})
+        choices_list {list} -- the available options (default: {[]})
+        to_save {str} -- escape and save choices (default: {&#34;s&#34;})
+        to_quit {str} -- escape without saving (default: {&#34;q&#34;})
+    
+    Returns:
+        list -- list of the selected choices
+    &#34;&#34;&#34;
+    selected_choices = []
+    print(f&#34;&#39;{to_save}&#39; to save and &#39;{to_quit}&#39; to quit&#34;)
+    _print_choices(choices_list)
+
+    while True:
+        answer = input(prompt)
+        if answer == to_quit:
+            return []
+        elif answer == to_save or answer == &#34;&#34;:
+            return selected_choices
+        else:
+            try:
+                selected_choices.append(choices_list[int(answer) - 1])
+            except (IndexError, ValueError):
+                return ask_multi_choices(prompt, choices_list, to_save, to_quit)
+
+
+def ask_multi_lines(prompt=&#34;Type :&#34;, escape_string=&#34;.&#34;):
+    &#34;&#34;&#34;Get input from user provided multilines
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type :&#34;})
+        escape_string {str} -- escape character (default: {&#34;.&#34;})
+    
+    Returns:
+        str -- the text seperated by lines
+    &#34;&#34;&#34;
+    text = []
+    user_input = input(prompt)
+    while user_input != escape_string:
+        text.append(user_input)
+        user_input = input(prompt)
+    return &#34;\n&#34;.join(text)
+
+
+def ask_string(prompt=&#34;Type :&#34;):
+    &#34;&#34;&#34;Just input function
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type :&#34;})
+    
+    Returns:
+        str -- the string input
+    &#34;&#34;&#34;
+    return input(prompt)
+
+    print(format(s))
+
+
+def printobj(obj):
+    from pprint import pprint
+
+    pprint(obj)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.tools.console.ask_choice"><code class="name flex">
+<span>def <span class="ident">ask_choice</span></span>(<span>prompt=&#39;Type choice number : &#39;, choices_list=[])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get an option from provided list</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Type choice number : "})
+choices_list {list} &ndash; the available options (default: {[]})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code> &ndash; <code>the</code> <code>chosen</code> <code>option</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_choice(prompt=&#34;Type choice number : &#34;, choices_list=[]):
+    &#34;&#34;&#34;Get an option from provided list
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type choice number : &#34;})
+        choices_list {list} -- the available options (default: {[]})
+    
+    Returns:
+        str -- the chosen option
+    &#34;&#34;&#34;
+    _print_choices(choices_list)
+    answer = input(prompt)
+    try:
+        return choices_list[int(answer) - 1]
+    except (IndexError, ValueError):
+        return ask_choice(prompt, choices_list)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_float"><code class="name flex">
+<span>def <span class="ident">ask_float</span></span>(<span>prompt=&#39;Type float :&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_float(prompt=&#34;Type float :&#34;):
+    try:
+        return float(input(prompt))
+    except ValueError:
+        return ask_float(prompt)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_float_in_range"><code class="name flex">
+<span>def <span class="ident">ask_float_in_range</span></span>(<span>mini, maxi, prompt=&#39;Type float :&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get an float response between two float on asked question</p>
+<h2 id="arguments">Arguments</h2>
+<p>mini {float} &ndash; the minimum value for the number
+maxi {float} &ndash; the maximum value for the number
+Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Type float :"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code> &ndash; <code>the</code> <code>input</code> <code>number</code> <code>on</code> <code>the</code> <code>range</code> <code>provided</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_float_in_range(mini, maxi, prompt=&#34;Type float :&#34;):
+    &#34;&#34;&#34;Get an float response between two float on asked question
+    
+    Arguments:
+        mini {float} -- the minimum value for the number
+        maxi {float} -- the maximum value for the number
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type float :&#34;})
+    
+    Returns:
+        float -- the input number on the range provided
+    &#34;&#34;&#34;
+    try:
+        answer = float(input(prompt))
+        if mini &lt;= answer &lt;= maxi:
+            return answer
+        else:
+            return ask_float_in_range(mini, maxi, prompt)
+    except ValueError:
+        return ask_float_in_range(mini, maxi, prompt)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_int"><code class="name flex">
+<span>def <span class="ident">ask_int</span></span>(<span>prompt=&#39;Type int :&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_int(prompt=&#34;Type int :&#34;):
+    try:
+        return int(input(prompt))
+    except ValueError:
+        return ask_int(prompt)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_int_in_range"><code class="name flex">
+<span>def <span class="ident">ask_int_in_range</span></span>(<span>mini, maxi, prompt=&#39;Type int :&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get an integer response between two integer on asked question</p>
+<h2 id="arguments">Arguments</h2>
+<p>mini {int} &ndash; the minimum value for the number
+maxi {int} &ndash; the maximum value for the number
+Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Type int :"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code> &ndash; <code>the</code> <code>input</code> <code>number</code> <code>on</code> <code>the</code> <code>range</code> <code>provided</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_int_in_range(mini, maxi, prompt=&#34;Type int :&#34;):
+    &#34;&#34;&#34;Get an integer response between two integer on asked question
+    
+    Arguments:
+        mini {int} -- the minimum value for the number
+        maxi {int} -- the maximum value for the number
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type int :&#34;})
+    
+    Returns:
+        int -- the input number on the range provided
+    &#34;&#34;&#34;
+    try:
+        answer = int(input(prompt))
+        if mini &lt;= answer &lt;= maxi:
+            return answer
+        else:
+            return ask_int_in_range(mini, maxi, prompt)
+    except ValueError:
+        return ask_int_in_range(mini, maxi, prompt)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_multi_choices"><code class="name flex">
+<span>def <span class="ident">ask_multi_choices</span></span>(<span>prompt=&#39;Add to choices : &#39;, choices_list=[], to_save=&#39;s&#39;, to_quit=&#39;q&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Collect multi choices from list</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question method (default: {"Add to choices : "})
+choices_list {list} &ndash; the available options (default: {[]})
+to_save {str} &ndash; escape and save choices (default: {"s"})
+to_quit {str} &ndash; escape without saving (default: {"q"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code> &ndash; <code>list</code> of <code>the</code> <code>selected</code> <code>choices</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_multi_choices(prompt=&#34;Add to choices : &#34;, choices_list=[], to_save=&#34;s&#34;, to_quit=&#34;q&#34;):
+    &#34;&#34;&#34;Collect multi choices from list
+    
+    Keyword Arguments:
+        prompt {str} -- the question method (default: {&#34;Add to choices : &#34;})
+        choices_list {list} -- the available options (default: {[]})
+        to_save {str} -- escape and save choices (default: {&#34;s&#34;})
+        to_quit {str} -- escape without saving (default: {&#34;q&#34;})
+    
+    Returns:
+        list -- list of the selected choices
+    &#34;&#34;&#34;
+    selected_choices = []
+    print(f&#34;&#39;{to_save}&#39; to save and &#39;{to_quit}&#39; to quit&#34;)
+    _print_choices(choices_list)
+
+    while True:
+        answer = input(prompt)
+        if answer == to_quit:
+            return []
+        elif answer == to_save or answer == &#34;&#34;:
+            return selected_choices
+        else:
+            try:
+                selected_choices.append(choices_list[int(answer) - 1])
+            except (IndexError, ValueError):
+                return ask_multi_choices(prompt, choices_list, to_save, to_quit)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_multi_lines"><code class="name flex">
+<span>def <span class="ident">ask_multi_lines</span></span>(<span>prompt=&#39;Type :&#39;, escape_string=&#39;.&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get input from user provided multilines</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Type :"})
+escape_string {str} &ndash; escape character (default: {"."})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code> &ndash; <code>the</code> <code>text</code> <code>seperated</code> <code>by</code> <code>lines</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_multi_lines(prompt=&#34;Type :&#34;, escape_string=&#34;.&#34;):
+    &#34;&#34;&#34;Get input from user provided multilines
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type :&#34;})
+        escape_string {str} -- escape character (default: {&#34;.&#34;})
+    
+    Returns:
+        str -- the text seperated by lines
+    &#34;&#34;&#34;
+    text = []
+    user_input = input(prompt)
+    while user_input != escape_string:
+        text.append(user_input)
+        user_input = input(prompt)
+    return &#34;\n&#34;.join(text)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_password"><code class="name flex">
+<span>def <span class="ident">ask_password</span></span>(<span>prompt=&#39;Password : &#39;, forbiddens=[])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Prompt the user for a password without echoing</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Password : "})
+forbiddens {list} &ndash; the list of bad passwords (default: {[]})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code> &ndash; <code>the</code> <code>appropriate</code> <code>input</code> <code>password</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_password(prompt=&#34;Password : &#34;, forbiddens=[]):
+    &#34;&#34;&#34;Prompt the user for a password without echoing
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Password : &#34;})
+        forbiddens {list} -- the list of bad passwords (default: {[]})
+    
+    Returns:
+        str -- the appropriate input password
+    &#34;&#34;&#34;
+    password = getpass.getpass(prompt)
+    if password not in forbiddens:
+        return password
+    else:
+        return ask_password(prompt, forbiddens)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_string"><code class="name flex">
+<span>def <span class="ident">ask_string</span></span>(<span>prompt=&#39;Type :&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Just input function</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question message (default: {"Type :"})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code> &ndash; <code>the</code> <code>string</code> <code>input</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_string(prompt=&#34;Type :&#34;):
+    &#34;&#34;&#34;Just input function
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#34;Type :&#34;})
+    
+    Returns:
+        str -- the string input
+    &#34;&#34;&#34;
+    return input(prompt)
+
+    print(format(s))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.ask_yes_no"><code class="name flex">
+<span>def <span class="ident">ask_yes_no</span></span>(<span>prompt=&#39;[y/n] :&#39;, default=&#39;y&#39;, valid=[&#39;y&#39;, &#39;n&#39;])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Display a yes/no question and loop until a valid answer is entered</p>
+<p>Keyword Arguments:
+prompt {str} &ndash; the question message (default: {'[y/n] :'})
+default {str} &ndash; the default answer if there is no answer (default: {"y"})
+valid {list} &ndash; the list of appropriate answers (default: {["y", "n"]})</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code> &ndash; <code>the</code> <code>answer</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask_yes_no(prompt=&#34;[y/n] :&#34;, default=&#34;y&#34;, valid=[&#34;y&#34;, &#34;n&#34;]):
+    &#34;&#34;&#34;Display a yes/no question and loop until a valid answer is entered
+    
+    Keyword Arguments:
+        prompt {str} -- the question message (default: {&#39;[y/n] :&#39;})
+        default {str} -- the default answer if there is no answer (default: {&#34;y&#34;})
+        valid {list} -- the list of appropriate answers (default: {[&#34;y&#34;, &#34;n&#34;]})
+    
+    Returns:
+        str -- the answer
+    &#34;&#34;&#34;
+
+    answer = input(prompt)
+    if answer in valid:
+        return answer
+    elif answer == &#34;&#34;:
+        return default
+    else:
+        return ask_yes_no(prompt, default, valid)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.format"><code class="name flex">
+<span>def <span class="ident">format</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def format(s):
+    return s.format(**NAMES_TO_COLORS)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.printcolors"><code class="name flex">
+<span>def <span class="ident">printcolors</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<section class="desc"><pre><code>&gt;&gt;&gt; j.tools.console.printcolors("{RED}Hello world")
+Hello world
+&gt;&gt;&gt; j.tools.console.printcolors("{GREEN}Hello world")
+Hello world
+</code></pre>
+<p>Arguments:
+s {[type]} &ndash; [description]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def printcolors(s):
+    &#34;&#34;&#34;
+        &gt;&gt;&gt; j.tools.console.printcolors(&#34;{RED}Hello world&#34;)
+        Hello world
+        &gt;&gt;&gt; j.tools.console.printcolors(&#34;{GREEN}Hello world&#34;)
+        Hello world
+
+        Arguments:
+        s {[type]} -- [description]
+        &#34;&#34;&#34;
+    print(format(s))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.console.printobj"><code class="name flex">
+<span>def <span class="ident">printobj</span></span>(<span>obj)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def printobj(obj):
+    from pprint import pprint
+
+    pprint(obj)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.tools" href="../index.html">jumpscale.tools</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="jumpscale.tools.console.ask_choice" href="#jumpscale.tools.console.ask_choice">ask_choice</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_float" href="#jumpscale.tools.console.ask_float">ask_float</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_float_in_range" href="#jumpscale.tools.console.ask_float_in_range">ask_float_in_range</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_int" href="#jumpscale.tools.console.ask_int">ask_int</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_int_in_range" href="#jumpscale.tools.console.ask_int_in_range">ask_int_in_range</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_multi_choices" href="#jumpscale.tools.console.ask_multi_choices">ask_multi_choices</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_multi_lines" href="#jumpscale.tools.console.ask_multi_lines">ask_multi_lines</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_password" href="#jumpscale.tools.console.ask_password">ask_password</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_string" href="#jumpscale.tools.console.ask_string">ask_string</a></code></li>
+<li><code><a title="jumpscale.tools.console.ask_yes_no" href="#jumpscale.tools.console.ask_yes_no">ask_yes_no</a></code></li>
+<li><code><a title="jumpscale.tools.console.format" href="#jumpscale.tools.console.format">format</a></code></li>
+<li><code><a title="jumpscale.tools.console.printcolors" href="#jumpscale.tools.console.printcolors">printcolors</a></code></li>
+<li><code><a title="jumpscale.tools.console.printobj" href="#jumpscale.tools.console.printobj">printobj</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
