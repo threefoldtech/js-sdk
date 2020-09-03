@@ -107,7 +107,7 @@ class NetworkDeploy(GedisChatBot):
             if not success:
                 raise StopChatFlow(f"Failed to deploy workload {wid}")
 
-    @chatflow_step(title="Network Information", disable_previous=True)
+    @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
     def network_info(self):
         message = """
 ### Use the following template to configure your wireguard connection. This will give you access to your network.

@@ -151,7 +151,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
-    @chatflow_step(title="Success", disable_previous=True)
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def ubuntu_access(self):
         if self.wgconf:
             self.download_file(msg=f"<pre>{self.wgconf}</pre>", data=self.wgconf, filename="apps.conf", html=True)

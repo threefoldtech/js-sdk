@@ -61,7 +61,7 @@ to download your configuration
         """
         self.md_show(res)
 
-    @chatflow_step(title="Wireguard configuration", disable_previous=True)
+    @chatflow_step(title="Wireguard configuration", disable_previous=True, final_step=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = """\
