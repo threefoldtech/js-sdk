@@ -168,7 +168,7 @@ class GedisChatBot:
                 else:
                     self.send_error(
                         f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
-                        "<br>Please use the refresh button on the upper right to restart the chatflow"
+                        "Please use the refresh button on the upper right to restart the chatflow"
                     )
                 self.send_data({"category": "end"})
 
