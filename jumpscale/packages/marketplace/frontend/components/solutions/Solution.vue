@@ -42,20 +42,51 @@
 
             <v-divider class="my-5"></v-divider>
 
-            <v-chip
-              class="ma-2"
-              color="primary"
-              min-width="100"
-              v-for="(s, i) in deployedSolutions"
-              :key="i"
-              @click="showInfo(s)"
-              outlined
-            >{{ s["Pool id"] === undefined ? s.Name : s["Pool id"] }}</v-chip>
+            <v-data-table
+              :loading="loading"
+              :headers="headers"
+              :items="deployedSolutions"
+              class="elevation-1"
+            >
+              <template v-slot:item.domain="{ item }">
+                <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
+              </template>
+              <template v-slot:item.Expiration="{ item }">
+                <div>{{ new Date(item.Expiration * 1000).toLocaleString() }}</div>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon :href="`https://${item.Domain}/`">
+                      <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Open in browser</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click.stop="deleteSolution(item)">
+                      <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Delete</span>
+                </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click.stop="showInfo(item)">
+                      <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Show Information</span>
+                </v-tooltip>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
+    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :wids="selected.wids"></cancel-solution>
   </div>
 </template>
 
@@ -64,15 +95,23 @@ module.exports = {
   props: { type: String },
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
+    "cancel-solution": httpVueLoader("./Delete.vue"),
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
       dialogs: {
         info: false,
+        cancelSolution:false,
       },
-      deployedSolutions: {},
+      headers: [
+        { text: "Name", value: "Name" },
+        { text: "URL", value: "domain" },
+        { text: "Expiration", value: "expiration" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      deployedSolutions: [],
       solutions: [...Object.values(APPS)],
     };
   },
@@ -101,30 +140,15 @@ module.exports = {
       this.selected = data;
       this.dialogs.info = true;
     },
+    deleteSolution(data){
+      this.selected = data;
+      this.dialogs.cancelSolution = true;
+    },
     getDeployedSolutions(solution_type) {
       this.$api.solutions.getDeployed(solution_type).then((response) => {
-        if (solution_type === "pools") {
-          const data = response.data.data;
-          let parsedData = [];
-          for (i in data) {
-            let obj = {
-              "Pool id": data[i].pool_id,
-              "Customer id": data[i].customer_tid,
-              "Available cloud units": data[i].cus,
-              "Available storge units": data[i].sus,
-              "Active cloud units": data[i].active_cu,
-              "Active storge units": data[i].active_su,
-              "Last updated": new Date(data[i].last_updated * 1000),
-              "Empty at": isNaN(new Date(data[i].empty_at * 1000))
-                ? "-"
-                : new Date(data[i].empty_at * 1000),
-              "Node ids": data[i].node_ids,
-              "Active workload ids": data[i].active_workload_ids,
-            };
-            parsedData.push(obj);
-          }
-          this.deployedSolutions = parsedData;
-        } else this.deployedSolutions = response.data.data;
+        this.deployedSolutions = response.data.data;
+      }).finally(()=>{
+        this.loading = false;
       });
     },
   },
