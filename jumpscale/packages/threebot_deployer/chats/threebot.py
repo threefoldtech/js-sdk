@@ -36,7 +36,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         valid = False
         while not valid:
             self.solution_name = self.string_ask(
-                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime.",
+                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your living 3Bot anytime.",
                 required=True,
                 field="name",
                 is_identifier=True,
@@ -46,7 +46,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -61,18 +61,18 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="The recovery secret")
+    @chatflow_step(title="Add a Recovery Secret Key")
     def set_backup_password(self):
         messege = (
-            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+            "Please add a recovery secret key. (By Using this recovery secret key, you will be able to recover your online deployed 3Bot.)"
         )
         self.backup_password = self.secret_ask(messege, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+            error = messege + f"<br><br><code>Incorrect recovery secret key for the 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title="Select payment currency")
+    @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
             "Please select the currency you would like to pay your 3Bot deployment with.",
@@ -176,7 +176,7 @@ You will be automatically redirected to the next step once succeeded.
 
     @chatflow_step(title="Expiration Date and Time")
     def solution_expiration(self):
-        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
+        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
         self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=msg)
 
     @chatflow_step(title="Initializing", disable_previous=True)
@@ -185,7 +185,7 @@ You will be automatically redirected to the next step once succeeded.
         if not j.sals.reservation_chatflow.wait_http_test(
             self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.stop("Failed to initialize 3Bot, please contact support")
+            self.stop("Failed to initialize your 3Bot, please contact TF customer support.")
         self.domain = f"{self.domain}/admin"
 
 

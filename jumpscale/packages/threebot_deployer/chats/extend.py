@@ -12,14 +12,14 @@ class ExtendThreebot(MarketPlaceChatflow):
     @chatflow_step(title="Select 3Bot")
     def select_threebot(self):
         self._validate_user()
-        self.query = {"cru": 2, "mru": 2, "sru": 2}
+        self.query = {"CRU": 2, "MRU": 2, "SRU": 2}
         self.threebot_name = self.user_info()["username"]
         self.explorer = j.core.identity.me.explorer
         self.threebot_workloads = solutions.list_solutions(self.threebot_name, "threebot")
         self.threebot_names = [s["Name"] for s in self.threebot_workloads]
         self._threebots_dict = dict(zip(self.threebot_names, self.threebot_workloads))
         self.threebot_selected = self.single_choice(
-            "Choose your 3Bot you want to extend?", self.threebot_names, required=True
+            "Choose the 3Bot you would like to extend:", self.threebot_names, required=True
         )
 
     @chatflow_step(title="New Expiration")
@@ -39,7 +39,7 @@ class ExtendThreebot(MarketPlaceChatflow):
                 if not node.free_to_use:
                     assets.remove("FreeTFT")
                     break
-        currency = self.single_choice("Please choose the currency", assets, required=True)
+        currency = self.single_choice("Please choose your preferred payment currency", assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
@@ -49,11 +49,11 @@ class ExtendThreebot(MarketPlaceChatflow):
             self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
         )
         if not result:
-            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+            raise StopChatFlow(f"Your payment session has expired. pool_id: {self.pool_id}")
 
     @chatflow_step(title="Success", final_step=True)
     def success(self):
-        self.md_show("Your 3Bot has been extended successfully")
+        self.md_show("Congratulations! Your 3Bot has been extended successfully.")
 
 
 chat = ExtendThreebot
