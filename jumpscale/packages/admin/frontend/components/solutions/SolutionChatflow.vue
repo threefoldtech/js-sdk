@@ -20,17 +20,19 @@
       if(window.admin_chatflow_end_listener_set === undefined) { // avoid setting multiple listeners
         window.admin_chatflow_end_listener_set = true
         window.addEventListener("message", event => {
-          let message = "chat ended"
-          if(event.origin != location.origin || event.data != message)
+          let message = "chat ended: "
+          let len = message.length
+          if(event.origin != location.origin || event.data.slice(0, len) != message)
             return;
-          if(this.topic == "pools"){
+          let topic = event.data.slice(len)
+          if(topic == "pools"){
             this.$router.push({
               name: "Capacity Pools"
             })
           }else{
             this.$router.push({
               name: "Solution",
-              params: {type: this.topic}
+              params: {type: topic}
             })
           }
         })

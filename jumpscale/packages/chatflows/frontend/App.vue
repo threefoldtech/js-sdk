@@ -130,7 +130,7 @@
           case 'end':
             end = true
             localStorage.removeItem(this.chatUID)
-            window.parent.postMessage("chat ended", location.origin)
+            window.parent.postMessage("chat ended: " + this.chat, location.origin)
             break
           case 'user_info':
             this.sendUserInfo()
