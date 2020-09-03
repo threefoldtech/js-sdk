@@ -573,6 +573,10 @@ class ChatflowSolutions:
                 "Name": sol_name,
                 "Domain": subdomain_dict["domain"],
             }
+            if chatflow == "threebot":
+                solution_dict.update(
+                    {"Owner": owner,}
+                )
             if len(container_workloads[name]) != containers_len:
                 continue
             for c_dict in container_workloads[name]:
