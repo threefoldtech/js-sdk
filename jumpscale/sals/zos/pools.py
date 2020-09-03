@@ -75,8 +75,8 @@ class Pools:
 
         pool = self._pools.new()
         pool.data_reservation.pool_id = p.pool_id
-        pool.data_reservation.cus = int(p.cus + cu)
-        pool.data_reservation.sus = int(p.sus + su)
+        pool.data_reservation.cus = cu
+        pool.data_reservation.sus = su
         pool.data_reservation.node_ids = p.node_ids
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
