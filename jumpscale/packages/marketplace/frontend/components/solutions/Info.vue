@@ -4,7 +4,7 @@
       <template #default>
         <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
           <v-tab :key="title">{{ title }}</v-tab>
-          <v-tab :key="'moredetails'">More details</v-tab>
+          <v-tab :key="'moredetails'">More Details</v-tab>
 
           <v-tab-item :key="title">
             <v-simple-table>
@@ -70,8 +70,8 @@ module.exports = {
     },
     title() {
       return this.data.Name === undefined
-        ? "Workload details"
-        : "Solution details";
+        ? "Workload Details"
+        : "Solution Details";
     },
     KeysWithTypeList() {
       return ["Node ids", "wids", "Active workload ids"];

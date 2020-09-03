@@ -108,18 +108,18 @@ module.exports = {
           let parsedData = [];
           for (i in data) {
             let obj = {
-              "Pool id": data[i].pool_id,
-              "Customer id": data[i].customer_tid,
-              "Available cloud units": data[i].cus,
-              "Available storge units": data[i].sus,
-              "Active cloud units": data[i].active_cu,
-              "Active storge units": data[i].active_su,
-              "Last updated": new Date(data[i].last_updated * 1000),
+              "Pool ID": data[i].pool_id,
+              "Customer ID": data[i].customer_tid,
+              "Available Cloud Units": data[i].cus,
+              "Available Storage Units": data[i].sus,
+              "Active Cloud Units": data[i].active_cu,
+              "Active Storage Units": data[i].active_su,
+              "Last Updated": new Date(data[i].last_updated * 1000),
               "Empty at": isNaN(new Date(data[i].empty_at * 1000))
                 ? "-"
                 : new Date(data[i].empty_at * 1000),
-              "Node ids": data[i].node_ids,
-              "Active workload ids": data[i].active_workload_ids,
+              "Node IDs": data[i].node_ids,
+              "Active Workload IDs": data[i].active_workload_ids,
             };
             parsedData.push(obj);
           }

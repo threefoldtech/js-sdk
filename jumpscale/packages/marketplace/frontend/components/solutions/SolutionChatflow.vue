@@ -14,7 +14,7 @@
       if(window.marketplace_chatflow_end_listener_set === undefined) { // avoid setting multiple listeners
         window.marketplace_chatflow_end_listener_set = true
         window.addEventListener("message", event => {
-          let message = "chat ended"
+          let message = "The Configuration Process has Ended"
           if(event.origin != location.origin || event.data != message)
             return;
           this.$router.push({

@@ -1,18 +1,19 @@
 <template>
   <div>
     <v-card flat height="100%" class="pa-5" outlined>
-      <v-card-title class="justify-center">Terms and Conditions for using TF Grid Marketplace</v-card-title>
+      <v-card-title class="justify-center">TF Grid Usage's Terms and Conditions</v-card-title>
       <v-card-text>
-        It's required that you as TF Grid user you agree to the
+        Before using 3Bot Deployer and the TF Grid, you are obligated to agree to Threefold's
         <a
           target="_blank"
           href="https://wiki.threefold.io/#/terms_conditions"
-        >Terms and Conditions.</a>
-        After that, to get started quickly, please check
+        >Terms and Conditions.</a>. 
+        Once agreed, please check
         <a
           target="_blank"
           href="https://manual-testnet.threefold.io/#/getting_started"
         >pre-requisites</a>
+        to get started quickly.
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -23,8 +24,8 @@
     </v-card>
     <v-dialog v-model="showConfirmation" persistent max-width="290">
       <v-card>
-        <v-card-title class="headline">Confirmirmation</v-card-title>
-        <v-card-text>You choose not to agree to the terms and conditions, You will be logged out. Are you sure?</v-card-text>
+        <v-card-title class="headline">Confirmation</v-card-title>
+        <v-card-text>You have chosen to disagree to Threefold's Terms and Conditions. You will be logged out. Are you sure?</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="green darken-4" text @click="showConfirmation = false">No</v-btn>

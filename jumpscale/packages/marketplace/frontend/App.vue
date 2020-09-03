@@ -46,7 +46,7 @@
                   color="blue"
                   href="https://manual-testnet.threefold.io/#/"
                   target="_blank"
-                >Manual</v-btn>
+                >Manuals</v-btn>
               </v-list-item-content>
             </v-list-item>
           </v-list>

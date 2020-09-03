@@ -1,5 +1,5 @@
 <template>
-  <base-dialog title="Cancel workload" v-model="dialog" :error="error" :loading="loading">
+  <base-dialog title="Cancel Workload" v-model="dialog" :error="error" :loading="loading">
     <template #default>
       Are you sure you want to cancel?
     </template>

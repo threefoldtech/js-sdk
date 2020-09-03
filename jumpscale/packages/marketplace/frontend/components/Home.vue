@@ -24,7 +24,7 @@
           <template v-slot:activator="{ on, attrs }">
             <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Apps</span>
           </template>
-          <span>Threefold demo applications</span>
+          <span>Threefold Demo Applications</span>
         </v-tooltip>
         <v-row class="mt-2" align="start" justify="start">
           <v-card
@@ -63,7 +63,7 @@
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn text medium @click.stop="openChatflow(app.type)">New</v-btn>
-              <v-btn text medium @click.stop="viewWorkloads(app.type)">My workloads</v-btn>
+              <v-btn text medium @click.stop="viewWorkloads(app.type)">My Workloads</v-btn>
             </v-card-actions>
           </v-card>
         </v-row>
