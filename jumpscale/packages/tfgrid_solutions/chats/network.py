@@ -36,7 +36,9 @@ class NetworkDeploy(GedisChatBot):
         if self.action == "Create":
             valid = False
             while not valid:
-                self.solution_name = deployer.ask_name(self)
+                self.solution_name = deployer.ask_name(
+                    self, "Please enter a name for you workload (Needed to track your solution on the grid)"
+                )
                 network_solutions = solutions.list_network_solutions(sync=False)
                 valid = True
                 for sol in network_solutions:
