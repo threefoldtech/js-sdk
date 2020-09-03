@@ -105,11 +105,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 \n<br />\n
 - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-- This domain maps to your container with ip: `{self.ip_address}`
-\n<br />\n
 - After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
-\n<br />\n
-- Your database password is {self.database_password}
 \n<br />\n
                 """
         self.md_show(message, md=True)
