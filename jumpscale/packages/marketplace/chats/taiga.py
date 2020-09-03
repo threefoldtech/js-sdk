@@ -18,7 +18,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "solution_expiration",
         "payment_currency",
         "infrastructure_setup",
-        "overview",
         "reservation",
         "initializing",
         "success",
@@ -43,18 +42,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.SECRET_KEY = SECRET_KEY.value
         self.user_email = self.user_info()["email"]
         self.username = self.user_info()["username"]
-
-    @chatflow_step(title="Confirmation")
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_id,
-            "IP Address": self.ip_address,
-            "Domain": self.domain,
-        }
-        self.md_show_confirm(self.metadata)
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
