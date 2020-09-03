@@ -12,7 +12,7 @@ ssh_server2 = j.clients.sshclient.get("backup_server2")
 
 @app.route("/backup/destroy", method="POST")
 @login_required
-def destroy(self):
+def destroy():
     """This method will delete username/backups from the backupservers
     --------------------------------------------------------------------------
     * WARNINING: THIS IS A DISTRUCTIVE ACTION. WON'T BE ABLE TO RECOVER FROM *
