@@ -46,14 +46,14 @@
                   color="blue"
                   href="https://manual-testnet.threefold.io/#/"
                   target="_blank"
-                >Manual</v-btn>
+                >Manuals</v-btn>
               </v-list-item-content>
             </v-list-item>
           </v-list>
           <v-divider></v-divider>
           <v-card-actions>
             <v-btn block text href="/auth/logout">
-              <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon>Logout
+              <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon>Log Out
             </v-btn>
           </v-card-actions>
         </v-card>

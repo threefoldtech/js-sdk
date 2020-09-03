@@ -30,7 +30,7 @@
                   <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
                 </v-btn>
               </template>
-              <span>Open in browser</span>
+              <span>Open on Browser</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
