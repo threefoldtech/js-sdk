@@ -96,6 +96,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         raise StopChatFlow(
                             f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}"
                         )
+                    self.pool_id = pool.pool_id
                 else:
                     self.md_show_update(
                         f"Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment..."
