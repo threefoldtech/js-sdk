@@ -6,13 +6,7 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class FourToSixGateway(GedisChatBot):
-    steps = [
-        "select_pool",
-        "gateway_start",
-        "wireguard_public_get",
-        "wg_reservation",
-        "wg_config",
-    ]
+    steps = ["select_pool", "gateway_start", "wireguard_public_get", "wg_reservation", "wg_config", "success"]
     title = "4to6 GW"
 
     @chatflow_step(title="Pool")
@@ -81,13 +75,15 @@ Endpoint = {{peer.endpoint}}
             template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
         )
         config = config
+        self.filename = "wg-{}.conf".format(self.resv_id)
+        self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=self.filename, html=True)
 
-        filename = "wg-{}.conf".format(self.resv_id)
-        self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=filename, html=True)
+    @chatflow_step(title="Success", final_step=True, disable_previous=True)
+    def success(self):
         res = f"""
 # In order to connect to the 4 to 6 gateway execute this command:
 \n<br/>\n
-## ```wg-quick up ./{filename}```
+## ```wg-quick up ./{self.filename}```
                     """
         self.md_show(res, md=True)
 

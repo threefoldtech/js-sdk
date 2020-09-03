@@ -7,13 +7,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 
 
 class NetworkDeploy(GedisChatBot):
-    steps = [
-        "welcome",
-        "start",
-        "ip_config",
-        "network_reservation",
-        "network_info",
-    ]
+    steps = ["welcome", "start", "ip_config", "network_reservation", "network_info", "success"]
     title = "Network"
 
     @chatflow_step(title="Welcome")
@@ -120,15 +114,18 @@ to download your configuration
 
         self.md_show(message, md=True, html=True)
 
-        filename = "wg-{}.conf".format(self.config["rid"])
-        self.download_file(msg=f'<pre>{self.config["wg"]}</pre>', data=self.config["wg"], filename=filename, html=True)
+        self.filename = "wg-{}.conf".format(self.config["rid"])
+        self.download_file(
+            msg=f'<pre>{self.config["wg"]}</pre>', data=self.config["wg"], filename=self.filename, html=True
+        )
 
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
         message = f"""
 ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
 \n<br />\n
-#### ```wg-quick up /etc/wireguard/{filename}```
+#### ```wg-quick up /etc/wireguard/{self.filename}```
 \n<br />\n
-# Click next
             """
 
         self.md_show(message, md=True)
