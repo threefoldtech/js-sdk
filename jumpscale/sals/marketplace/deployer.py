@@ -58,9 +58,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-        thecurrency = escrow_asset.split(':')[0]
+        thecurrency = escrow_asset.split(":")[0]
         total_amount = "{0:f}".format(total_amount_dec)
-        qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
         <h3>Make a Payment</h3>
         Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.

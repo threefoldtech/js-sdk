@@ -162,13 +162,13 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
-                    if f"{name}" in result:
+                    if name in result:
                         if len(workload.master_ips) != 0:
-                            result[f"{name}"]["wids"].append(workload.id)
-                            result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
-                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
+                            result[name]["wids"].append(workload.id)
+                            result[name]["Slave IPs"].append(workload.ipaddress)
+                            result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
-                    result[f"{name}"] = {
+                    result[name] = {
                         "wids": [workload.id],
                         "Name": name[len(username) + 1 :],
                         "Network": workload.network_id,
@@ -179,7 +179,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
-                        result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+                        result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
     def list_4to6gw_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
@@ -257,7 +257,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "Domain": proxy.domain,
                     }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
-                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
+                    name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
         # link subdomains to proxy_reservations
@@ -277,7 +277,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if not solution_name:
                     continue
                 domain = workload.domain
-                if name_to_proxy.get(f"{solution_name}"):
+                if name_to_proxy.get(solution_name):
                     result[name_to_proxy[solution_name]]["wids"].append(workload.id)
 
         # link tcp router containers to proxy reservations
@@ -303,9 +303,9 @@ class MarketplaceSolutions(ChatflowSolutions):
                 )
                 if not solution_name:
                     continue
-                if name_to_proxy.get(f"{solution_name}"):
-                    domain = name_to_proxy.get(f"{solution_name}")
-                    result[f"{domain}"]["wids"].append(container_workload.id)
+                if name_to_proxy.get(solution_name):
+                    domain = name_to_proxy.get(solution_name)
+                    result[domain]["wids"].append(container_workload.id)
         return list(result.values())
 
     def count_solutions(self, username, next_action=NextAction.DEPLOY):

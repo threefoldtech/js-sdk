@@ -29,7 +29,7 @@ class NetworkView:
         self.network_workloads = []
         self._fill_used_ips(self.workloads)
         self._init_network_workloads(self.workloads)
-        if len(self.network_workloads) > 0:
+        if self.network_workloads:
             self.iprange = self.network_workloads[0].network_iprange
         else:
             self.iprange = "can't be retrieved"
@@ -261,7 +261,10 @@ class ChatflowDeployer:
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0,)
         currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
-        form.ask("""Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""", html=True)
+        form.ask(
+            """Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""",
+            html=True,
+        )
         ttl = ttl.value
         time_unit = time_unit.value
         if time_unit == "Day":
@@ -308,7 +311,11 @@ class ChatflowDeployer:
             ] = farm
         if not farm_messages:
             raise StopChatFlow("There are no farms avaialble that the selected currency")
-        selected_farm = bot.single_choice("Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ", list(farm_messages.keys()), required=True)
+        selected_farm = bot.single_choice(
+            "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
+            list(farm_messages.keys()),
+            required=True,
+        )
         farm = farm_messages[selected_farm]
         try:
             pool_info = j.sals.zos.pools.create(cu, su, farm, currencies)
@@ -318,7 +325,8 @@ class ChatflowDeployer:
         self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=[], sru=None, cru=None, mru=None, hru=None):
+    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
+        currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
         available_sru = 0
@@ -361,7 +369,7 @@ class ChatflowDeployer:
         for w in wallets.keys():
             wallet_names.append(w)
         wallet_names.append("3Bot app (QR code)")
-        thecurrency = escrow_asset.split(':')[0]
+        thecurrency = escrow_asset.split(":")[0]
         message = f"""
         <h3>Billing details:</h3><br>
         <b> Wallet address:</b>  {escrow_address}<br>
@@ -1080,7 +1088,7 @@ class ChatflowDeployer:
         pool_factory = StoredFactory(PoolConfig)
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
-                if len(gateway.dns_nameserver) < 1:
+                if not gateway.dns_nameserver:
                     continue
                 pool = available_node_ids[gateway.node_id]
                 hidden = False
