@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Setting" icon="mdi-tune">
+    <base-component title="Settings" icon="mdi-tune">
       <template #actions></template>
 
       <template #default>
@@ -51,13 +51,25 @@
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="3">
             <base-section
-            class="ma-0 pa-0"
+              class="ma-0 pa-0"
               title="Developer options"
               icon="mdi-settings"
               :loading="loading.developerOptions"
             >
-              <v-switch hide-details class="my-2 pl-2" v-model="testCert" :label="`Allow staging ssl certificate`" @click.stop="setDeveloperOptions()"></v-switch>
-              <v-switch hide-details class="my-2 pl-2" v-model="overProvision" :label="`Allow over provisioning`" @click.stop="setDeveloperOptions()"></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="testCert"
+                :label="`Allow staging ssl certificate`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="overProvision"
+                :label="`Allow over provisioning`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
             </base-section>
           </v-col>
         </v-row>
@@ -162,23 +174,27 @@ module.exports = {
     },
     getDeveloperOptions() {
       this.loading.developerOptions = true;
-      this.$api.admins.getDeveloperOptions().then((response) => {
+      this.$api.admins
+        .getDeveloperOptions()
+        .then((response) => {
           let developerOptions = JSON.parse(response.data).data;
           this.testCert = developerOptions["test_cert"];
-          this.overProvision = developerOptions["over_provision"]
+          this.overProvision = developerOptions["over_provision"];
         })
         .finally(() => {
           this.loading.developerOptions = false;
         });
     },
     setDeveloperOptions() {
-      this.$api.admins.setDeveloperOptions(this.testCert, this.overProvision).then((response) => {
-        this.alert("Developer options updated", "success");
+      this.$api.admins
+        .setDeveloperOptions(this.testCert, this.overProvision)
+        .then((response) => {
+          this.alert("Developer options updated", "success");
         })
         .catch((error) => {
           this.alert("Failed to update developer options", "error");
         });
-    }
+    },
   },
   mounted() {
     this.listAdmins();

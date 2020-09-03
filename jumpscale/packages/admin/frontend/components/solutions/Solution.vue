@@ -25,7 +25,7 @@
                   >mdi-information-outline</v-icon>
                 </a>
               </template>
-              <span>Chatflow Information</span>
+              <span>Go to How-to Manual</span>
             </v-tooltip>
           </v-card-title>
 
@@ -41,18 +41,21 @@
             >Continue</v-btn>
 
             <v-divider class="my-5"></v-divider>
-
-            <v-chip
-              class="ma-2"
-              color="primary"
-              min-width="100"
-              v-for="(s, i) in deployedSolutions"
-              :key="i"
-              @click="showInfo(s)"
-              outlined
-            >{{ s.Name }}</v-chip>
-          </v-card-text>
-        </v-card>
+<v-data-table :loading="loading" :headers="headers" :items="deployedSolutions" class="elevation-1"> 
+         
+          <template v-slot:item.actions="{ item }">
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="showInfo(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
+                </v-btn>
+              </template>
+              <span>Show Information</span>
+            </v-tooltip>
+          </template> 
+        </v-data-table>
+        </v-card-text>
+      </v-card>
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
@@ -72,7 +75,11 @@ module.exports = {
       dialogs: {
         info: false,
       },
-      deployedSolutions: {},
+      headers: [
+        { text: "Name", value: "Name" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      deployedSolutions: [],
       solutions: [...Object.values(SOLUTIONS)],
     };
   },

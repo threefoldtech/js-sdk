@@ -257,6 +257,7 @@ class NginxConfig(Base):
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()
         group = j.sals.unix.get_current_grp()
+        def_index_dir = j.sals.fs.join_paths(DIR_PATH, "static")
 
         configtext = j.tools.jinja2.render_template(
             template_path=j.sals.fs.join_paths(DIR_PATH, "templates", "nginx.conf"),
@@ -264,6 +265,7 @@ class NginxConfig(Base):
             cfg_dir=self.cfg_dir,
             user=user,
             group=group,
+            def_index_dir=def_index_dir,
         )
 
         j.sals.fs.write_file(self.cfg_file, configtext)

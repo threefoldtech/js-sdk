@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.core.config.config API documentation</title>
+<meta name="description" content="Config module is the single entry of configurations across the framework …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.core.config.config</code></h1>
+</header>
+<section id="section-intro">
+<p>Config module is the single entry of configurations across the framework.</p>
+<p>It allows
+- resolving configurations paths for configuration directory<code>config_root</code>, or configuration file path <code>config_path</code>
+- rebuildling default configurations or retrieving them (using <a title="jumpscale.core.config.config.get_default_config" href="#jumpscale.core.config.config.get_default_config"><code>get_default_config()</code></a>)
+- Getting configurations using <a title="jumpscale.core.config.config.get_default_config" href="#jumpscale.core.config.config.get_default_config"><code>get_default_config()</code></a>
+- Updating configuration using <a title="jumpscale.core.config.config.update_config" href="#jumpscale.core.config.config.update_config"><code>update_config()</code></a></p>
+<p>JS-NG&gt; j.core.config
+<module 'jumpscale.core.config' from '/home/ahmed/wspace/js/js-ng/jumpscale/core/config/__init__.py'></p>
+<h2 id="getting-where-is-the-configtoml-path">Getting where is the config.toml path</h2>
+<pre><code>JS-NG&gt; j.core.config.config_path
+'/home/ahmed/.config/jumpscale/config.toml'
+</code></pre>
+<h2 id="getting-configuration-directory">Getting configuration directory</h2>
+<pre><code>JS-NG&gt; j.core.config.config_root
+'/home/ahmed/.config/jumpscale'
+</code></pre>
+<h2 id="getting-default-configurations-of-js-ng-used-in-case-of-no-configuration-found">Getting default configurations of js-ng (used in case of no configuration found)</h2>
+<pre><code>JS-NG&gt; j.core.config.get_default_config()
+{'debug': True, 'logging': {'redis': {'enabled': True, 'level': 15, 'max_size': 1000, 'dump': True, 'dump_dir': '/home/ahmed/.config/jumpscale/logs/redis'}, 'filesystem': {'enabled': True, 'level': 15, 'log_dir': '/home/ahmed/.config/jumpscale/logs/fs/log.txt', 'rotation': '5 MB'}}, 'alerts': {'enabled': True, 'level': 40}, 'ssh_key_path': '', 'private_key_path': '', 'stores': {'redis': {'hostname': 'localhost', 'port': 6379}, 'filesystem': {'path': '/home/ahmed/.config/jumpscale/secureconfig'}}, 'store': 'filesystem', 'threebot': {'default': ''}, 'explorer': {'default_url': 'https://explorer.testnet.grid.tf/explorer'}}
+</code></pre>
+<h2 id="getting-the-current-configurations">Getting the current configurations</h2>
+<pre><code>JS-NG&gt; j.core.config.get_config()
+{'debug': True, 'ssh_key_path': '', 'log_to_redis': False, 'log_to_files': True, 'log_level': 15, 'private_key_path': '/home/ahmed/.config/jumpscale/mykey.priv', 'secure_config_path': '/home/ahmed/.config/jumpscale/secureconfig', 'store': 'filesystem', 'logging': {'handlers': [{'sink': 'sys.stdout', 'format': '{time} - {message}', 'colorize': True, 'enqueue': True}, {'sink': '/home/ahmed/.config/jumpscale/logs/file_jumpscale.log', 'serialize': True, 'enqueue': True}], 'redis': {'enabled': True, 'level': 15, 'max_size': 1000, 'dump': True, 'dump_dir': '/home/ahmed/.config/jumpscale/logs/redis'}, 'filesystem': {'enabled': True, 'level': 15, 'log_dir': '/home/ahmed/.config/jumpscale/logs/fs/log.txt', 'rotation': '5 MB'}}, 'stores': {'redis': {'hostname': 'localhost', 'port': 6379}, 'filesystem': {'path': '/home/ahmed/.config/jumpscale/secureconfig'}}, 'alerts': {'enabled': True, 'level': 40}, 'threebot': {'default': ''}, 'explorer': {'default_url': 'https://explorer.testnet.grid.tf/explorer'}}
+</code></pre>
+<h2 id="updating-configurations">Updating configurations</h2>
+<pre><code>JS-NG&gt; conf = j.core.config.get_default_config()
+JS-NG&gt; conf
+{'debug': True, 'ssh_key_path': '', 'log_to_redis': False, 'log_to_files': True, 'log_level': 15, 'private_key_path': '/home/ahmed/.config/jumpscale/mykey.priv', 'secure_config_path': '/home/ahmed/.config/jumpscale/secureconfig', 'store': 'filesystem', 'logging': {'handlers': [{'sink': 'sys.stdout', 'format': '{time} - {message}', 'colorize': True, 'enqueue': True}, {'sink': '/home/ahmed/.config/jumpscale/logs/file_jumpscale.log', 'serialize': True, 'enqueue': True}], 'redis': {'enabled': True, 'level': 15, 'max_size': 1000, 'dump': True, 'dump_dir': '/home/ahmed/.config/jumpscale/logs/redis'}, 'filesystem': {'enabled': True, 'level': 15, 'log_dir': '/home/ahmed/.config/jumpscale/logs/fs/log.txt', 'rotation': '5 MB'}}, 'stores': {'redis': {'hostname': 'localhost', 'port': 6379}, 'filesystem': {'path': '/home/ahmed/.config/jumpscale/secureconfig'}}, 'alerts': {'enabled': True, 'level': 40}, 'threebot': {'default': ''}, 'explorer': {'default_url': 'https://explorer.testnet.grid.tf/explorer'}}
+
+JS-NG&gt; conf['favcolor'] = 'blue'
+JS-NG&gt; j.core.config.update_config(conf)
+JS-NG&gt; j.core.config.get_config()
+{'debug': True, 'ssh_key_path': '', 'log_to_redis': False, 'log_to_files': True, 'log_level': 15, 'private_key_path': '/home/ahmed/.config/jumpscale/mykey.priv', 'secure_config_path': '/home/ahmed/.config/jumpscale/secureconfig', 'store': 'filesystem', 'favcolor': 'blue', 'logging': {'handlers': [{'sink': 'sys.stdout', 'format': '{time} - {message}', 'colorize': True, 'enqueue': True}, {'sink': '/home/ahmed/.config/jumpscale/logs/file_jumpscale.log', 'serialize': True, 'enqueue': True}], 'redis': {'enabled': True, 'level': 15, 'max_size': 1000, 'dump': True, 'dump_dir': '/home/ahmed/.config/jumpscale/logs/redis'}, 'filesystem': {'enabled': True, 'level': 15, 'log_dir': '/home/ahmed/.config/jumpscale/logs/fs/log.txt', 'rotation': '5 MB'}}, 'stores': {'redis': {'hostname': 'localhost', 'port': 6379}, 'filesystem': {'path': '/home/ahmed/.config/jumpscale/secureconfig'}}, 'alerts': {'enabled': True, 'level': 40}, 'threebot': {'default': ''}, 'explorer': {'default_url': 'https://explorer.testnet.grid.tf/explorer'}}
+</code></pre>
+<h2 id="getset">Get/Set</h2>
+<p>you can use <code>j.core.config.get</code> and <code>j.core.config.set</code> to retrive values of keys or set the value of a key respectively.</p>
+<p>e.g</p>
+<pre><code>JS-NG&gt; j.core.config.get(&quot;favcolor&quot;)
+'blue'
+
+JS-NG&gt; j.core.config.set(&quot;favcolor&quot;, &quot;grey&quot;)
+JS-NG&gt; j.core.config.get(&quot;favcolor&quot;)
+'grey'
+</code></pre>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;Config module is the single entry of configurations across the framework.
+
+It allows
+- resolving configurations paths for configuration directory`config_root`, or configuration file path `config_path`
+- rebuildling default configurations or retrieving them (using `get_default_config`)
+- Getting configurations using `get_default_config`
+- Updating configuration using `update_config`
+
+
+
+JS-NG&gt; j.core.config
+&lt;module &#39;jumpscale.core.config&#39; from &#39;/home/ahmed/wspace/js/js-ng/jumpscale/core/config/__init__.py&#39;&gt;
+
+## Getting where is the config.toml path
+```
+JS-NG&gt; j.core.config.config_path
+&#39;/home/ahmed/.config/jumpscale/config.toml&#39;
+```
+
+## Getting configuration directory
+```
+JS-NG&gt; j.core.config.config_root
+&#39;/home/ahmed/.config/jumpscale&#39;
+```
+
+## Getting default configurations of js-ng (used in case of no configuration found)
+```
+JS-NG&gt; j.core.config.get_default_config()
+{&#39;debug&#39;: True, &#39;logging&#39;: {&#39;redis&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;max_size&#39;: 1000, &#39;dump&#39;: True, &#39;dump_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/redis&#39;}, &#39;filesystem&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;log_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/fs/log.txt&#39;, &#39;rotation&#39;: &#39;5 MB&#39;}}, &#39;alerts&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 40}, &#39;ssh_key_path&#39;: &#39;&#39;, &#39;private_key_path&#39;: &#39;&#39;, &#39;stores&#39;: {&#39;redis&#39;: {&#39;hostname&#39;: &#39;localhost&#39;, &#39;port&#39;: 6379}, &#39;filesystem&#39;: {&#39;path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;}}, &#39;store&#39;: &#39;filesystem&#39;, &#39;threebot&#39;: {&#39;default&#39;: &#39;&#39;}, &#39;explorer&#39;: {&#39;default_url&#39;: &#39;https://explorer.testnet.grid.tf/explorer&#39;}}
+```
+
+## Getting the current configurations
+```
+JS-NG&gt; j.core.config.get_config()
+{&#39;debug&#39;: True, &#39;ssh_key_path&#39;: &#39;&#39;, &#39;log_to_redis&#39;: False, &#39;log_to_files&#39;: True, &#39;log_level&#39;: 15, &#39;private_key_path&#39;: &#39;/home/ahmed/.config/jumpscale/mykey.priv&#39;, &#39;secure_config_path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;, &#39;store&#39;: &#39;filesystem&#39;, &#39;logging&#39;: {&#39;handlers&#39;: [{&#39;sink&#39;: &#39;sys.stdout&#39;, &#39;format&#39;: &#39;{time} - {message}&#39;, &#39;colorize&#39;: True, &#39;enqueue&#39;: True}, {&#39;sink&#39;: &#39;/home/ahmed/.config/jumpscale/logs/file_jumpscale.log&#39;, &#39;serialize&#39;: True, &#39;enqueue&#39;: True}], &#39;redis&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;max_size&#39;: 1000, &#39;dump&#39;: True, &#39;dump_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/redis&#39;}, &#39;filesystem&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;log_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/fs/log.txt&#39;, &#39;rotation&#39;: &#39;5 MB&#39;}}, &#39;stores&#39;: {&#39;redis&#39;: {&#39;hostname&#39;: &#39;localhost&#39;, &#39;port&#39;: 6379}, &#39;filesystem&#39;: {&#39;path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;}}, &#39;alerts&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 40}, &#39;threebot&#39;: {&#39;default&#39;: &#39;&#39;}, &#39;explorer&#39;: {&#39;default_url&#39;: &#39;https://explorer.testnet.grid.tf/explorer&#39;}}
+```
+
+## Updating configurations
+
+```
+JS-NG&gt; conf = j.core.config.get_default_config()
+JS-NG&gt; conf
+{&#39;debug&#39;: True, &#39;ssh_key_path&#39;: &#39;&#39;, &#39;log_to_redis&#39;: False, &#39;log_to_files&#39;: True, &#39;log_level&#39;: 15, &#39;private_key_path&#39;: &#39;/home/ahmed/.config/jumpscale/mykey.priv&#39;, &#39;secure_config_path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;, &#39;store&#39;: &#39;filesystem&#39;, &#39;logging&#39;: {&#39;handlers&#39;: [{&#39;sink&#39;: &#39;sys.stdout&#39;, &#39;format&#39;: &#39;{time} - {message}&#39;, &#39;colorize&#39;: True, &#39;enqueue&#39;: True}, {&#39;sink&#39;: &#39;/home/ahmed/.config/jumpscale/logs/file_jumpscale.log&#39;, &#39;serialize&#39;: True, &#39;enqueue&#39;: True}], &#39;redis&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;max_size&#39;: 1000, &#39;dump&#39;: True, &#39;dump_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/redis&#39;}, &#39;filesystem&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;log_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/fs/log.txt&#39;, &#39;rotation&#39;: &#39;5 MB&#39;}}, &#39;stores&#39;: {&#39;redis&#39;: {&#39;hostname&#39;: &#39;localhost&#39;, &#39;port&#39;: 6379}, &#39;filesystem&#39;: {&#39;path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;}}, &#39;alerts&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 40}, &#39;threebot&#39;: {&#39;default&#39;: &#39;&#39;}, &#39;explorer&#39;: {&#39;default_url&#39;: &#39;https://explorer.testnet.grid.tf/explorer&#39;}}
+
+JS-NG&gt; conf[&#39;favcolor&#39;] = &#39;blue&#39;
+JS-NG&gt; j.core.config.update_config(conf)
+JS-NG&gt; j.core.config.get_config()
+{&#39;debug&#39;: True, &#39;ssh_key_path&#39;: &#39;&#39;, &#39;log_to_redis&#39;: False, &#39;log_to_files&#39;: True, &#39;log_level&#39;: 15, &#39;private_key_path&#39;: &#39;/home/ahmed/.config/jumpscale/mykey.priv&#39;, &#39;secure_config_path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;, &#39;store&#39;: &#39;filesystem&#39;, &#39;favcolor&#39;: &#39;blue&#39;, &#39;logging&#39;: {&#39;handlers&#39;: [{&#39;sink&#39;: &#39;sys.stdout&#39;, &#39;format&#39;: &#39;{time} - {message}&#39;, &#39;colorize&#39;: True, &#39;enqueue&#39;: True}, {&#39;sink&#39;: &#39;/home/ahmed/.config/jumpscale/logs/file_jumpscale.log&#39;, &#39;serialize&#39;: True, &#39;enqueue&#39;: True}], &#39;redis&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;max_size&#39;: 1000, &#39;dump&#39;: True, &#39;dump_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/redis&#39;}, &#39;filesystem&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 15, &#39;log_dir&#39;: &#39;/home/ahmed/.config/jumpscale/logs/fs/log.txt&#39;, &#39;rotation&#39;: &#39;5 MB&#39;}}, &#39;stores&#39;: {&#39;redis&#39;: {&#39;hostname&#39;: &#39;localhost&#39;, &#39;port&#39;: 6379}, &#39;filesystem&#39;: {&#39;path&#39;: &#39;/home/ahmed/.config/jumpscale/secureconfig&#39;}}, &#39;alerts&#39;: {&#39;enabled&#39;: True, &#39;level&#39;: 40}, &#39;threebot&#39;: {&#39;default&#39;: &#39;&#39;}, &#39;explorer&#39;: {&#39;default_url&#39;: &#39;https://explorer.testnet.grid.tf/explorer&#39;}}
+```
+
+## Get/Set
+you can use `j.core.config.get` and `j.core.config.set` to retrive values of keys or set the value of a key respectively.
+
+e.g
+
+```
+JS-NG&gt; j.core.config.get(&#34;favcolor&#34;)
+&#39;blue&#39;
+
+JS-NG&gt; j.core.config.set(&#34;favcolor&#34;, &#34;grey&#34;)
+JS-NG&gt; j.core.config.get(&#34;favcolor&#34;)
+&#39;grey&#39;
+```
+
+
+&#34;&#34;&#34;
+
+import os
+
+import nacl.utils
+import nacl.encoding
+import pytoml as toml
+from nacl.public import PrivateKey
+
+
+__all__ = [
+    &#34;config_path&#34;,
+    &#34;config_root&#34;,
+    &#34;get_default_config&#34;,
+    &#34;get_config&#34;,
+    &#34;update_config&#34;,
+    &#34;Environment&#34;,
+    &#34;get&#34;,
+    &#34;set&#34;,
+    &#34;get_current_version&#34;,
+]
+
+__version__ = &#34;11.0.0-a2&#34;
+
+
+config_root = os.path.expanduser(os.path.join(&#34;~/.config&#34;, &#34;jumpscale&#34;))
+config_path = os.path.join(config_root, &#34;config.toml&#34;)
+
+
+def get_current_version():
+    return __version__
+
+
+def get_default_config():
+    &#34;&#34;&#34;retrieves default configurations for plain jumpscale
+
+    Returns:
+        dict: default configuration
+    &#34;&#34;&#34;
+    return {
+        &#34;debug&#34;: True,
+        &#34;shell&#34;: &#34;ptpython&#34;,
+        &#34;logging&#34;: {
+            &#34;redis&#34;: {
+                &#34;enabled&#34;: True,
+                &#34;level&#34;: 15,
+                &#34;max_size&#34;: 1000,
+                &#34;dump&#34;: True,
+                &#34;dump_dir&#34;: os.path.join(config_root, &#34;logs/redis&#34;),
+            },
+            &#34;filesystem&#34;: {
+                &#34;enabled&#34;: True,
+                &#34;level&#34;: 15,
+                &#34;log_dir&#34;: os.path.join(config_root, &#34;logs/fs/log.txt&#34;),
+                &#34;rotation&#34;: &#34;5 MB&#34;,
+            },
+        },
+        &#34;alerts&#34;: {&#34;enabled&#34;: True, &#34;level&#34;: 40},
+        &#34;ssh_key_path&#34;: &#34;&#34;,
+        &#34;private_key_path&#34;: &#34;&#34;,
+        &#34;stores&#34;: {
+            &#34;redis&#34;: {&#34;hostname&#34;: &#34;localhost&#34;, &#34;port&#34;: 6379},
+            &#34;filesystem&#34;: {&#34;path&#34;: os.path.expanduser(os.path.join(config_root, &#34;secureconfig&#34;))},
+            &#34;whoosh&#34;: {&#34;path&#34;: os.path.expanduser(os.path.join(config_root, &#34;whoosh_indexes&#34;))},
+        },
+        &#34;factory&#34;: {&#34;always_reload&#34;: False},
+        &#34;store&#34;: &#34;filesystem&#34;,
+        &#34;threebot&#34;: {&#34;default&#34;: &#34;&#34;,},
+        &#34;explorer&#34;: {&#34;default_url&#34;: &#34;https://explorer.testnet.grid.tf/explorer&#34;,},
+    }
+
+
+def get_config():
+    &#34;&#34;&#34;Gets jumpscale configurations
+
+    Returns:
+        [dict] - toml loaded config of CONFIG_DIR/config.toml
+    &#34;&#34;&#34;
+    with open(config_path, &#34;r&#34;) as f:
+        return toml.load(f)
+
+
+def update_config(data):
+    &#34;&#34;&#34;Update jumpscale config with new data
+
+    Arguments:
+        data {dict} -- dict to update the config with.
+    &#34;&#34;&#34;
+    with open(config_path, &#34;w&#34;) as f:
+        toml.dump(data, f)
+
+
+def get(key):
+    &#34;&#34;&#34; Retrives value from jumpscale config
+
+    Arguments:
+        key (str): the key you wish to retrieve
+    &#34;&#34;&#34;
+    conf = get_config()
+    return conf.get(key)
+
+
+def set(key, val):
+    &#34;&#34;&#34; Sets value in jumpscale config
+
+    Arguments:
+        key (str): the key you wish to update
+        val: value to update with
+    &#34;&#34;&#34;
+    conf = get_config()
+    conf[key] = val
+    update_config(conf)
+
+
+def migrate_config():
+    &#34;&#34;&#34;add missing keys to current config from default&#34;&#34;&#34;
+
+    default_config = get_default_config()
+    current_config = get_config()
+
+    def copy_missing(default, current):
+        for key, value in default.items():
+            if key not in current:
+                current[key] = value
+            elif isinstance(value, dict):
+                copy_missing(value, current[key])
+
+    copy_missing(default_config, current_config)
+    update_config(current_config)
+
+
+# Create default configurations file on loading.
+if not os.path.exists(config_path):
+    os.makedirs(os.path.dirname(config_path), exist_ok=True)
+    with open(config_path, &#34;w&#34;) as f:
+        # don&#39;t ues mknod https://github.com/threefoldtech/js-ng/issues/182
+        f.close()
+
+
+def generate_key(basepath):
+    hsk = PrivateKey.generate()
+    hpk = hsk.public_key
+    skpath = basepath + &#34;.priv&#34;
+    pkpath = basepath + &#34;.pub&#34;
+    with open(skpath, &#34;wb&#34;) as f:
+        f.write(hsk.encode(nacl.encoding.Base64Encoder()))
+    with open(pkpath, &#34;wb&#34;) as f:
+        f.write(hpk.encode(nacl.encoding.Base64Encoder()))
+    return skpath
+
+
+class StoreTypeNotFound(Exception):
+    pass
+
+
+class Environment:
+    def get_private_key_path(self):
+        config = get_config()
+        private_key_path = config[&#34;private_key_path&#34;]
+        return private_key_path
+
+    def get_threebot_data(self):
+        config = get_config()
+        return config.get(&#34;threebot&#34;, {})
+
+    def get_private_key(self):
+        private_key_path = self.get_private_key_path()
+        if not private_key_path:
+            keypath = os.path.join(config_root, &#34;privatekey&#34;)
+            private_key_path = generate_key(keypath)
+            config = get_config()
+            config[&#34;private_key_path&#34;] = private_key_path
+            update_config(config)
+        return open(private_key_path, &#34;rb&#34;).read()
+
+    def get_store_config(self, name):
+        config = get_config()
+        stores = config[&#34;stores&#34;]
+        if name not in stores:
+            raise StoreTypeNotFound(f&#34;&#39;{name}&#39; store is not found&#34;)
+        return stores[name]
+
+    def get_logging_config(self):
+        return get_config()[&#34;logging&#34;]
+
+
+migrate_config()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.core.config.config.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>key)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Retrives value from jumpscale config</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>key</code></strong> :&ensp;<code>str</code></dt>
+<dd>the key you wish to retrieve</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get(key):
+    &#34;&#34;&#34; Retrives value from jumpscale config
+
+    Arguments:
+        key (str): the key you wish to retrieve
+    &#34;&#34;&#34;
+    conf = get_config()
+    return conf.get(key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.get_config"><code class="name flex">
+<span>def <span class="ident">get_config</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets jumpscale configurations</p>
+<h2 id="returns">Returns</h2>
+<p>[dict] - toml loaded config of CONFIG_DIR/config.toml</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_config():
+    &#34;&#34;&#34;Gets jumpscale configurations
+
+    Returns:
+        [dict] - toml loaded config of CONFIG_DIR/config.toml
+    &#34;&#34;&#34;
+    with open(config_path, &#34;r&#34;) as f:
+        return toml.load(f)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.get_current_version"><code class="name flex">
+<span>def <span class="ident">get_current_version</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_current_version():
+    return __version__</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.get_default_config"><code class="name flex">
+<span>def <span class="ident">get_default_config</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>retrieves default configurations for plain jumpscale</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>default configuration</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_default_config():
+    &#34;&#34;&#34;retrieves default configurations for plain jumpscale
+
+    Returns:
+        dict: default configuration
+    &#34;&#34;&#34;
+    return {
+        &#34;debug&#34;: True,
+        &#34;shell&#34;: &#34;ptpython&#34;,
+        &#34;logging&#34;: {
+            &#34;redis&#34;: {
+                &#34;enabled&#34;: True,
+                &#34;level&#34;: 15,
+                &#34;max_size&#34;: 1000,
+                &#34;dump&#34;: True,
+                &#34;dump_dir&#34;: os.path.join(config_root, &#34;logs/redis&#34;),
+            },
+            &#34;filesystem&#34;: {
+                &#34;enabled&#34;: True,
+                &#34;level&#34;: 15,
+                &#34;log_dir&#34;: os.path.join(config_root, &#34;logs/fs/log.txt&#34;),
+                &#34;rotation&#34;: &#34;5 MB&#34;,
+            },
+        },
+        &#34;alerts&#34;: {&#34;enabled&#34;: True, &#34;level&#34;: 40},
+        &#34;ssh_key_path&#34;: &#34;&#34;,
+        &#34;private_key_path&#34;: &#34;&#34;,
+        &#34;stores&#34;: {
+            &#34;redis&#34;: {&#34;hostname&#34;: &#34;localhost&#34;, &#34;port&#34;: 6379},
+            &#34;filesystem&#34;: {&#34;path&#34;: os.path.expanduser(os.path.join(config_root, &#34;secureconfig&#34;))},
+            &#34;whoosh&#34;: {&#34;path&#34;: os.path.expanduser(os.path.join(config_root, &#34;whoosh_indexes&#34;))},
+        },
+        &#34;factory&#34;: {&#34;always_reload&#34;: False},
+        &#34;store&#34;: &#34;filesystem&#34;,
+        &#34;threebot&#34;: {&#34;default&#34;: &#34;&#34;,},
+        &#34;explorer&#34;: {&#34;default_url&#34;: &#34;https://explorer.testnet.grid.tf/explorer&#34;,},
+    }</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>key, val)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sets value in jumpscale config</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>key</code></strong> :&ensp;<code>str</code></dt>
+<dd>the key you wish to update</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>value to update with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set(key, val):
+    &#34;&#34;&#34; Sets value in jumpscale config
+
+    Arguments:
+        key (str): the key you wish to update
+        val: value to update with
+    &#34;&#34;&#34;
+    conf = get_config()
+    conf[key] = val
+    update_config(conf)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.update_config"><code class="name flex">
+<span>def <span class="ident">update_config</span></span>(<span>data)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Update jumpscale config with new data</p>
+<h2 id="arguments">Arguments</h2>
+<p>data {dict} &ndash; dict to update the config with.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def update_config(data):
+    &#34;&#34;&#34;Update jumpscale config with new data
+
+    Arguments:
+        data {dict} -- dict to update the config with.
+    &#34;&#34;&#34;
+    with open(config_path, &#34;w&#34;) as f:
+        toml.dump(data, f)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.core.config.config.Environment"><code class="flex name class">
+<span>class <span class="ident">Environment</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Environment:
+    def get_private_key_path(self):
+        config = get_config()
+        private_key_path = config[&#34;private_key_path&#34;]
+        return private_key_path
+
+    def get_threebot_data(self):
+        config = get_config()
+        return config.get(&#34;threebot&#34;, {})
+
+    def get_private_key(self):
+        private_key_path = self.get_private_key_path()
+        if not private_key_path:
+            keypath = os.path.join(config_root, &#34;privatekey&#34;)
+            private_key_path = generate_key(keypath)
+            config = get_config()
+            config[&#34;private_key_path&#34;] = private_key_path
+            update_config(config)
+        return open(private_key_path, &#34;rb&#34;).read()
+
+    def get_store_config(self, name):
+        config = get_config()
+        stores = config[&#34;stores&#34;]
+        if name not in stores:
+            raise StoreTypeNotFound(f&#34;&#39;{name}&#39; store is not found&#34;)
+        return stores[name]
+
+    def get_logging_config(self):
+        return get_config()[&#34;logging&#34;]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.core.config.config.Environment.get_logging_config"><code class="name flex">
+<span>def <span class="ident">get_logging_config</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_logging_config(self):
+    return get_config()[&#34;logging&#34;]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.Environment.get_private_key"><code class="name flex">
+<span>def <span class="ident">get_private_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_private_key(self):
+    private_key_path = self.get_private_key_path()
+    if not private_key_path:
+        keypath = os.path.join(config_root, &#34;privatekey&#34;)
+        private_key_path = generate_key(keypath)
+        config = get_config()
+        config[&#34;private_key_path&#34;] = private_key_path
+        update_config(config)
+    return open(private_key_path, &#34;rb&#34;).read()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.Environment.get_private_key_path"><code class="name flex">
+<span>def <span class="ident">get_private_key_path</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_private_key_path(self):
+    config = get_config()
+    private_key_path = config[&#34;private_key_path&#34;]
+    return private_key_path</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.Environment.get_store_config"><code class="name flex">
+<span>def <span class="ident">get_store_config</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_store_config(self, name):
+    config = get_config()
+    stores = config[&#34;stores&#34;]
+    if name not in stores:
+        raise StoreTypeNotFound(f&#34;&#39;{name}&#39; store is not found&#34;)
+    return stores[name]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.Environment.get_threebot_data"><code class="name flex">
+<span>def <span class="ident">get_threebot_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_threebot_data(self):
+    config = get_config()
+    return config.get(&#34;threebot&#34;, {})</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#getting-where-is-the-configtoml-path">Getting where is the config.toml path</a></li>
+<li><a href="#getting-configuration-directory">Getting configuration directory</a></li>
+<li><a href="#getting-default-configurations-of-js-ng-used-in-case-of-no-configuration-found">Getting default configurations of js-ng (used in case of no configuration found)</a></li>
+<li><a href="#getting-the-current-configurations">Getting the current configurations</a></li>
+<li><a href="#updating-configurations">Updating configurations</a></li>
+<li><a href="#getset">Get/Set</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.core.config" href="index.html">jumpscale.core.config</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="jumpscale.core.config.config.get" href="#jumpscale.core.config.config.get">get</a></code></li>
+<li><code><a title="jumpscale.core.config.config.get_config" href="#jumpscale.core.config.config.get_config">get_config</a></code></li>
+<li><code><a title="jumpscale.core.config.config.get_current_version" href="#jumpscale.core.config.config.get_current_version">get_current_version</a></code></li>
+<li><code><a title="jumpscale.core.config.config.get_default_config" href="#jumpscale.core.config.config.get_default_config">get_default_config</a></code></li>
+<li><code><a title="jumpscale.core.config.config.set" href="#jumpscale.core.config.config.set">set</a></code></li>
+<li><code><a title="jumpscale.core.config.config.update_config" href="#jumpscale.core.config.config.update_config">update_config</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.core.config.config.Environment" href="#jumpscale.core.config.config.Environment">Environment</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.core.config.config.Environment.get_logging_config" href="#jumpscale.core.config.config.Environment.get_logging_config">get_logging_config</a></code></li>
+<li><code><a title="jumpscale.core.config.config.Environment.get_private_key" href="#jumpscale.core.config.config.Environment.get_private_key">get_private_key</a></code></li>
+<li><code><a title="jumpscale.core.config.config.Environment.get_private_key_path" href="#jumpscale.core.config.config.Environment.get_private_key_path">get_private_key_path</a></code></li>
+<li><code><a title="jumpscale.core.config.config.Environment.get_store_config" href="#jumpscale.core.config.config.Environment.get_store_config">get_store_config</a></code></li>
+<li><code><a title="jumpscale.core.config.config.Environment.get_threebot_data" href="#jumpscale.core.config.config.Environment.get_threebot_data">get_threebot_data</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

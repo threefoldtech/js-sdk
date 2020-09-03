@@ -1,0 +1,1519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.currencylayer API documentation</title>
+<meta name="description" content="JS-NG&gt; fake = j.clients.currencylayer.new(&#39;fake&#39;)
+JS-NG&gt; fake.cur2id_print() …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.currencylayer</code></h1>
+</header>
+<section id="section-intro">
+<dl>
+<dt>JS-NG&gt; fake = j.clients.currencylayer.new('fake')</dt>
+<dt>JS-NG&gt; fake.cur2id_print()</dt>
+<dt>{'aed': 1,</dt>
+<dt>'afn': 2,</dt>
+<dt>'all': 3,</dt>
+<dt>'amd': 4,</dt>
+<dt>'ang': 5,</dt>
+<dt>'aoa': 6,</dt>
+<dt>'ars': 7,</dt>
+<dt>'aud': 8,</dt>
+<dt>'awg': 9,</dt>
+<dt>'azn': 10,</dt>
+<dt>'bam': 11,</dt>
+<dt>'bbd': 12,</dt>
+<dt>'bdt': 13,</dt>
+<dt>'bgn': 14,</dt>
+<dt>'bhd': 15,</dt>
+<dt>'bif': 16,</dt>
+<dt>'bmd': 17,</dt>
+<dt>'bnd': 18,</dt>
+<dt>'bob': 19,</dt>
+<dt>'brl': 20,</dt>
+<dt>'bsd': 21,</dt>
+<dt>'btc': 22,</dt>
+<dt>'btn': 23,</dt>
+<dt>'bwp': 24,</dt>
+<dt>'byn': 25,</dt>
+<dt>'byr': 26,</dt>
+<dt>'bzd': 27,</dt>
+<dt>'cad': 28,</dt>
+<dt>'cdf': 29,</dt>
+<dt>'chf': 30,</dt>
+<dt>'clf': 31,</dt>
+<dt>'clp': 32,</dt>
+<dt>'cny': 33,</dt>
+<dt>'cop': 34,</dt>
+<dt>'crc': 35,</dt>
+<dt>'cuc': 36,</dt>
+<dt>'cup': 37,</dt>
+<dt>'cve': 38,</dt>
+<dt>'czk': 39,</dt>
+<dt>'djf': 40,</dt>
+<dt>'dkk': 41,</dt>
+<dt>'dop': 42,</dt>
+<dt>'dzd': 43,</dt>
+<dt>'egp': 44,</dt>
+<dt>'ern': 45,</dt>
+<dt>'etb': 46,</dt>
+<dt>'eth': 47,</dt>
+<dt>'eur': 48,</dt>
+<dt>'fjd': 49,</dt>
+<dt>'fkp': 50,</dt>
+<dt>'gbp': 51,</dt>
+<dt>'gel': 52,</dt>
+<dt>'ggp': 53,</dt>
+<dt>'ghs': 54,</dt>
+<dt>'gip': 55,</dt>
+<dt>'gmd': 56,</dt>
+<dt>'gnf': 57,</dt>
+<dt>'gtq': 58,</dt>
+<dt>'gyd': 59,</dt>
+<dt>'hkd': 60,</dt>
+<dt>'hnl': 61,</dt>
+<dt>'hrk': 62,</dt>
+<dt>'htg': 63,</dt>
+<dt>'huf': 64,</dt>
+<dt>'idr': 65,</dt>
+<dt>'ils': 66,</dt>
+<dt>'imp': 67,</dt>
+<dt>'inr': 68,</dt>
+<dt>'iqd': 69,</dt>
+<dt>'irr': 70,</dt>
+<dt>'isk': 71,</dt>
+<dt>'jep': 72,</dt>
+<dt>'jmd': 73,</dt>
+<dt>'jod': 74,</dt>
+<dt>'jpy': 75,</dt>
+<dt>'kes': 76,</dt>
+<dt>'kgs': 77,</dt>
+<dt>'khr': 78,</dt>
+<dt>'kmf': 79,</dt>
+<dt>'kpw': 80,</dt>
+<dt>'krw': 81,</dt>
+<dt>'kwd': 82,</dt>
+<dt>'kyd': 83,</dt>
+<dt>'kzt': 84,</dt>
+<dt>'lak': 85,</dt>
+<dt>'lbp': 86,</dt>
+<dt>'lkr': 87,</dt>
+<dt>'lrd': 88,</dt>
+<dt>'lsl': 89,</dt>
+<dt>'ltl': 90,</dt>
+<dt>'lvl': 91,</dt>
+<dt>'lyd': 92,</dt>
+<dt>'mad': 93,</dt>
+<dt>'mdl': 94,</dt>
+<dt>'mga': 95,</dt>
+<dt>'mkd': 96,</dt>
+<dt>'mmk': 97,</dt>
+<dt>'mnt': 98,</dt>
+<dt>'mop': 99,</dt>
+<dt>'mro': 100,</dt>
+<dt>'mur': 101,</dt>
+<dt>'mvr': 102,</dt>
+<dt>'mwk': 103,</dt>
+<dt>'mxn': 104,</dt>
+<dt>'myr': 105,</dt>
+<dt>'mzn': 106,</dt>
+<dt>'nad': 107,</dt>
+<dt>'ngn': 108,</dt>
+<dt>'nio': 109,</dt>
+<dt>'nok': 110,</dt>
+<dt>'npr': 111,</dt>
+<dt>'nzd': 112,</dt>
+<dt>'omr': 113,</dt>
+<dt>'pab': 114,</dt>
+<dt>'pen': 115,</dt>
+<dt>'pgk': 116,</dt>
+<dt>'php': 117,</dt>
+<dt>'pkr': 118,</dt>
+<dt>'pln': 119,</dt>
+<dt>'pyg': 120,</dt>
+<dt>'qar': 121,</dt>
+<dt>'ron': 122,</dt>
+<dt>'rsd': 123,</dt>
+<dt>'rub': 124,</dt>
+<dt>'rwf': 125,</dt>
+<dt>'sar': 126,</dt>
+<dt>'sbd': 127,</dt>
+<dt>'scr': 128,</dt>
+<dt>'sdg': 129,</dt>
+<dt>'sek': 130,</dt>
+<dt>'sgd': 131,</dt>
+<dt>'shp': 132,</dt>
+<dt>'sll': 133,</dt>
+<dt>'sos': 134,</dt>
+<dt>'srd': 135,</dt>
+<dt>'std': 136,</dt>
+<dt>'svc': 137,</dt>
+<dt>'syp': 138,</dt>
+<dt>'szl': 139,</dt>
+<dt>'thb': 140,</dt>
+<dt>'tjs': 141,</dt>
+<dt>'tmt': 142,</dt>
+<dt>'tnd': 143,</dt>
+<dt>'top': 144,</dt>
+<dt>'try': 145,</dt>
+<dt>'ttd': 146,</dt>
+<dt>'twd': 147,</dt>
+<dt>'tzs': 148,</dt>
+<dt>'uah': 149,</dt>
+<dt>'ugx': 150,</dt>
+<dt>'usd': 151,</dt>
+<dt>'uyu': 152,</dt>
+<dt>'uzs': 153,</dt>
+<dt>'vef': 154,</dt>
+<dt>'vnd': 155,</dt>
+<dt>'vuv': 156,</dt>
+<dt>'wst': 157,</dt>
+<dt>'xaf': 158,</dt>
+<dt>'xag': 159,</dt>
+<dt>'xau': 160,</dt>
+<dt>'xcd': 161,</dt>
+<dt>'xdr': 162,</dt>
+<dt>'xof': 163,</dt>
+<dt>'xpf': 164,</dt>
+<dt>'xrp': 165,</dt>
+<dt>'yer': 166,</dt>
+<dt>'zar': 167,</dt>
+<dt>'zmk': 168,</dt>
+<dt>'zmw': 169,</dt>
+<dt>'zwl': 170}</dt>
+<dt>JS-NG&gt; fake.id2cur_print()</dt>
+<dt>{1: 'aed',</dt>
+<dt>2: 'afn',</dt>
+<dt>3: 'all',</dt>
+<dt>4: 'amd',</dt>
+<dt>5: 'ang',</dt>
+<dt>6: 'aoa',</dt>
+<dt>7: 'ars',</dt>
+<dt>8: 'aud',</dt>
+<dt>9: 'awg',</dt>
+<dt>10: 'azn',</dt>
+<dt>11: 'bam',</dt>
+<dt>12: 'bbd',</dt>
+<dt>13: 'bdt',</dt>
+<dt>14: 'bgn',</dt>
+<dt>15: 'bhd',</dt>
+<dt>16: 'bif',</dt>
+<dt>17: 'bmd',</dt>
+<dt>18: 'bnd',</dt>
+<dt>19: 'bob',</dt>
+<dt>20: 'brl',</dt>
+<dt>21: 'bsd',</dt>
+<dt>22: 'btc',</dt>
+<dt>23: 'btn',</dt>
+<dt>24: 'bwp',</dt>
+<dt>25: 'byn',</dt>
+<dt>26: 'byr',</dt>
+<dt>27: 'bzd',</dt>
+<dt>28: 'cad',</dt>
+<dt>29: 'cdf',</dt>
+<dt>30: 'chf',</dt>
+<dt>31: 'clf',</dt>
+<dt>32: 'clp',</dt>
+<dt>33: 'cny',</dt>
+<dt>34: 'cop',</dt>
+<dt>35: 'crc',</dt>
+<dt>36: 'cuc',</dt>
+<dt>37: 'cup',</dt>
+<dt>38: 'cve',</dt>
+<dt>39: 'czk',</dt>
+<dt>40: 'djf',</dt>
+<dt>41: 'dkk',</dt>
+<dt>42: 'dop',</dt>
+<dt>43: 'dzd',</dt>
+<dt>44: 'egp',</dt>
+<dt>45: 'ern',</dt>
+<dt>46: 'etb',</dt>
+<dt>47: 'eth',</dt>
+<dt>48: 'eur',</dt>
+<dt>49: 'fjd',</dt>
+<dt>50: 'fkp',</dt>
+<dt>51: 'gbp',</dt>
+<dt>52: 'gel',</dt>
+<dt>53: 'ggp',</dt>
+<dt>54: 'ghs',</dt>
+<dt>55: 'gip',</dt>
+<dt>56: 'gmd',</dt>
+<dt>57: 'gnf',</dt>
+<dt>58: 'gtq',</dt>
+<dt>59: 'gyd',</dt>
+<dt>60: 'hkd',</dt>
+<dt>61: 'hnl',</dt>
+<dt>62: 'hrk',</dt>
+<dt>63: 'htg',</dt>
+<dt>64: 'huf',</dt>
+<dt>65: 'idr',</dt>
+<dt>66: 'ils',</dt>
+<dt>67: 'imp',</dt>
+<dt>68: 'inr',</dt>
+<dt>69: 'iqd',</dt>
+<dt>70: 'irr',</dt>
+<dt>71: 'isk',</dt>
+<dt>72: 'jep',</dt>
+<dt>73: 'jmd',</dt>
+<dt>74: 'jod',</dt>
+<dt>75: 'jpy',</dt>
+<dt>76: 'kes',</dt>
+<dt>77: 'kgs',</dt>
+<dt>78: 'khr',</dt>
+<dt>79: 'kmf',</dt>
+<dt>80: 'kpw',</dt>
+<dt>81: 'krw',</dt>
+<dt>82: 'kwd',</dt>
+<dt>83: 'kyd',</dt>
+<dt>84: 'kzt',</dt>
+<dt>85: 'lak',</dt>
+<dt>86: 'lbp',</dt>
+<dt>87: 'lkr',</dt>
+<dt>88: 'lrd',</dt>
+<dt>89: 'lsl',</dt>
+<dt>90: 'ltl',</dt>
+<dt>91: 'lvl',</dt>
+<dt>92: 'lyd',</dt>
+<dt>93: 'mad',</dt>
+<dt>94: 'mdl',</dt>
+<dt>95: 'mga',</dt>
+<dt>96: 'mkd',</dt>
+<dt>97: 'mmk',</dt>
+<dt>98: 'mnt',</dt>
+<dt>99: 'mop',</dt>
+<dt>100: 'mro',</dt>
+<dt>101: 'mur',</dt>
+<dt>102: 'mvr',</dt>
+<dt>103: 'mwk',</dt>
+<dt>104: 'mxn',</dt>
+<dt>105: 'myr',</dt>
+<dt>106: 'mzn',</dt>
+<dt>107: 'nad',</dt>
+<dt>108: 'ngn',</dt>
+<dt>109: 'nio',</dt>
+<dt>110: 'nok',</dt>
+<dt>111: 'npr',</dt>
+<dt>112: 'nzd',</dt>
+<dt>113: 'omr',</dt>
+<dt>114: 'pab',</dt>
+<dt>115: 'pen',</dt>
+<dt>116: 'pgk',</dt>
+<dt>117: 'php',</dt>
+<dt>118: 'pkr',</dt>
+<dt>119: 'pln',</dt>
+<dt>120: 'pyg',</dt>
+<dt>121: 'qar',</dt>
+<dt>122: 'ron',</dt>
+<dt>123: 'rsd',</dt>
+<dt>124: 'rub',</dt>
+<dt>125: 'rwf',</dt>
+<dt>126: 'sar',</dt>
+<dt>127: 'sbd',</dt>
+<dt>128: 'scr',</dt>
+<dt>129: 'sdg',</dt>
+<dt>130: 'sek',</dt>
+<dt>131: 'sgd',</dt>
+<dt>132: 'shp',</dt>
+<dt>133: 'sll',</dt>
+<dt>134: 'sos',</dt>
+<dt>135: 'srd',</dt>
+<dt>136: 'std',</dt>
+<dt>137: 'svc',</dt>
+<dt>138: 'syp',</dt>
+<dt>139: 'szl',</dt>
+<dt>140: 'thb',</dt>
+<dt>141: 'tjs',</dt>
+<dt>142: 'tmt',</dt>
+<dt>143: 'tnd',</dt>
+<dt>144: 'top',</dt>
+<dt>145: 'try',</dt>
+<dt>146: 'ttd',</dt>
+<dt>147: 'twd',</dt>
+<dt>148: 'tzs',</dt>
+<dt>149: 'uah',</dt>
+<dt>150: 'ugx',</dt>
+<dt>151: 'usd',</dt>
+<dt>152: 'uyu',</dt>
+<dt>153: 'uzs',</dt>
+<dt>154: 'vef',</dt>
+<dt>155: 'vnd',</dt>
+<dt>156: 'vuv',</dt>
+<dt>157: 'wst',</dt>
+<dt>158: 'xaf',</dt>
+<dt>159: 'xag',</dt>
+<dt>160: 'xau',</dt>
+<dt>161: 'xcd',</dt>
+<dt>162: 'xdr',</dt>
+<dt>163: 'xof',</dt>
+<dt>164: 'xpf',</dt>
+<dt>165: 'xrp',</dt>
+<dt>166: 'yer',</dt>
+<dt>167: 'zar',</dt>
+<dt>168: 'zmk',</dt>
+<dt>169: 'zmw',</dt>
+<dt>170: 'zwl'}</dt>
+<dt>JS-NG&gt; fake.id2cur</dt>
+<dt>{1: 'aed', 2: 'afn', 3: 'all', 4: 'amd', 5: 'ang', 6: 'aoa', 7: 'ars', 8: 'aud', 9: 'awg', 10: 'azn', 11: 'bam', 12: 'b</dt>
+<dt>bd', 13: 'bdt', 14: 'bgn', 15: 'bhd', 16: 'bif', 17: 'bmd', 18: 'bnd', 19: 'bob', 20: 'brl', 21: 'bsd', 22: 'btc', 23:</dt>
+<dt>'btn', 24: 'bwp', 25: 'byn', 26: 'byr', 27: 'bzd', 28: 'cad', 29: 'cdf', 30: 'chf', 31: 'clf', 32: 'clp', 33: 'cny', 34</dt>
+<dd>'cop', 35: 'crc', 36: 'cuc', 37: 'cup', 38: 'cve', 39: 'czk', 40: 'djf', 41: 'dkk', 42: 'dop', 43: 'dzd', 44: 'egp',
+45: 'ern', 46: 'etb', 47: 'eth', 48: 'eur', 49: 'fjd', 50: 'fkp', 51: 'gbp', 52: 'gel', 53: 'ggp', 54: 'ghs', 55: 'gip'
+, 56: 'gmd', 57: 'gnf', 58: 'gtq', 59: 'gyd', 60: 'hkd', 61: 'hnl', 62: 'hrk', 63: 'htg', 64: 'huf', 65: 'idr', 66: 'ils', 67: 'imp', 68: 'inr', 69: 'iqd', 70: 'irr', 71: 'isk', 72: 'jep', 73: 'jmd', 74: 'jod', 75: 'jpy', 76: 'kes', 77: 'kgs', 78: 'khr', 79: 'kmf', 80: 'kpw', 81: 'krw', 82: 'kwd', 83: 'kyd', 84: 'kzt', 85: 'lak', 86: 'lbp', 87: 'lkr', 88: 'lrd', 89: 'lsl', 90: 'ltl', 91: 'lvl', 92: 'lyd', 93: 'mad', 94: 'mdl', 95: 'mga', 96: 'mkd', 97: 'mmk', 98: 'mnt', 99: 'mop', 100: 'mro', 101: 'mur', 102: 'mvr', 103: 'mwk', 104: 'mxn', 105: 'myr', 106: 'mzn', 107: 'nad', 108: 'ngn', 109: 'nio', 110: 'nok', 111: 'npr', 112: 'nzd', 113: 'omr', 114: 'pab', 115: 'pen', 116: 'pgk', 117: 'php', 118: 'pkr', 119: 'pln', 120: 'pyg', 121: 'qar', 122: 'ron', 123: 'rsd', 124: 'rub', 125: 'rwf', 126: 'sar', 127: 'sbd', 128: 'scr', 129: 'sdg', 130: 'sek', 131: 'sgd', 132: 'shp', 133: 'sll', 134: 'sos', 135: 'srd', 136: 'std', 137: 'svc', 138: 'syp', 139: 'szl', 140: 'thb', 141: 'tjs', 142: 'tmt', 143: 'tnd', 144: 'top', 145: 'try', 146: 'ttd', 147: 'twd', 148: 'tzs', 149: 'uah', 150: 'ugx', 151: 'usd', 152: 'uyu', 153: 'uzs', 154: 'vef', 155: 'vnd', 156: 'vuv', 157: 'wst', 158: 'xaf', 159: 'xag', 160: 'xau', 161: 'xcd', 162: 'xdr', 163: 'xof', 164: 'xpf', 165: 'xrp', 166: 'yer', 167: 'zar', 168: 'zmk', 169: 'zmw', 170: 'zwl'}</dd>
+</dl>
+<p>JS-NG&gt; fake.cur2id
+<br>
+{'aed': 1, 'afn': 2, 'all': 3, 'amd': 4, 'ang': 5, 'aoa': 6, 'ars': 7, 'aud': 8, 'awg': 9, 'azn': 10, 'bam': 11, 'bbd':
+12, 'bdt': 13, 'bgn': 14, 'bhd': 15, 'bif': 16, 'bmd': 17, 'bnd': 18, 'bob': 19, 'brl': 20, 'bsd': 21, 'btc': 22, 'btn
+': 23, 'bwp': 24, 'byn': 25, 'byr': 26, 'bzd': 27, 'cad': 28, 'cdf': 29, 'chf': 30, 'clf': 31, 'clp': 32, 'cny': 33, 'c
+op': 34, 'crc': 35, 'cuc': 36, 'cup': 37, 'cve': 38, 'czk': 39, 'djf': 40, 'dkk': 41, 'dop': 42, 'dzd': 43, 'egp': 44,
+'ern': 45, 'etb': 46, 'eth': 47, 'eur': 48, 'fjd': 49, 'fkp': 50, 'gbp': 51, 'gel': 52, 'ggp': 53, 'ghs': 54, 'gip': 55
+, 'gmd': 56, 'gnf': 57, 'gtq': 58, 'gyd': 59, 'hkd': 60, 'hnl': 61, 'hrk': 62, 'htg': 63, 'huf': 64, 'idr': 65, 'ils': 66, 'imp': 67, 'inr': 68, 'iqd': 69, 'irr': 70, 'isk': 71, 'jep': 72, 'jmd': 73, 'jod': 74, 'jpy': 75, 'kes': 76, 'kgs': 77, 'khr': 78, 'kmf': 79, 'kpw': 80, 'krw': 81, 'kwd': 82, 'kyd': 83, 'kzt': 84, 'lak': 85, 'lbp': 86, 'lkr': 87, 'lrd': 88, 'lsl': 89, 'ltl': 90, 'lvl': 91, 'lyd': 92, 'mad': 93, 'mdl': 94, 'mga': 95, 'mkd': 96, 'mmk': 97, 'mnt': 98, 'mop': 99, 'mro': 100, 'mur': 101, 'mvr': 102, 'mwk': 103, 'mxn': 104, 'myr': 105, 'mzn': 106, 'nad': 107, 'ngn': 108, 'nio': 109, 'nok': 110, 'npr': 111, 'nzd': 112, 'omr': 113, 'pab': 114, 'pen': 115, 'pgk': 116, 'php': 117, 'pkr': 118, 'pln': 119, 'pyg': 120, 'qar': 121, 'ron': 122, 'rsd': 123, 'rub': 124, 'rwf': 125, 'sar': 126, 'sbd': 127, 'scr': 128, 'sdg': 129, 'sek': 130, 'sgd': 131, 'shp': 132, 'sll': 133, 'sos': 134, 'srd': 135, 'std': 136, 'svc': 137, 'syp': 138, 'szl': 139, 'thb': 140, 'tjs': 141, 'tmt': 142, 'tnd': 143, 'top': 144, 'try': 145, 'ttd': 146, 'twd': 147, 'tzs': 148, 'uah': 149, 'ugx': 150, 'usd': 151, 'uyu': 152, 'uzs': 153, 'vef': 154, 'vnd': 155, 'vuv': 156, 'wst': 157, 'xaf': 158, 'xag': 159, 'xau': 160, 'xcd': 161, 'xdr': 162, 'xof': 163, 'xpf': 164, 'xrp': 165, 'yer': 166, 'zar': 167, 'zmk': 168, 'zmw': 169, 'zwl': 170}</p>
+<p>JS-NG&gt;
+<br>
+JS-NG&gt; fake.api_key="VALID KEY"
+<br>
+JS-NG&gt; j.clients.currencylayer.fake.load()
+<br>
+JS-NG&gt; j.clients.currencylayer.fake.id2cur_print()
+<br>
+{1: 'aed',
+2: 'afn',
+3: 'all',
+4: 'amd',
+5: 'ang',
+6: 'aoa',
+7: 'ars',
+8: 'aud',
+9: 'awg',
+10: 'azn',
+11: 'bam',
+12: 'bbd',
+13: 'bdt',
+14: 'bgn',
+15: 'bhd',
+16: 'bif',
+17: 'bmd',
+18: 'bnd',
+19: 'bob',
+20: 'brl',
+21: 'bsd',
+22: 'btc',
+23: 'btn',
+24: 'bwp',
+25: 'byn',
+26: 'byr',
+27: 'bzd',
+28: 'cad',
+29: 'cdf',
+30: 'chf',
+31: 'clf',
+32: 'clp',
+33: 'cny',
+34: 'cop',
+35: 'crc',
+36: 'cuc',
+37: 'cup',
+38: 'cve',
+39: 'czk',
+40: 'djf',
+41: 'dkk',
+42: 'dop',
+43: 'dzd',
+44: 'egp',
+45: 'ern',
+46: 'etb',
+47: 'eth',
+48: 'eur',
+49: 'fjd',
+50: 'fkp',
+51: 'gbp',
+52: 'gel',
+53: 'ggp',
+54: 'ghs',
+55: 'gip',
+56: 'gmd',
+57: 'gnf',
+58: 'gtq',
+59: 'gyd',
+60: 'hkd',
+61: 'hnl',
+62: 'hrk',
+63: 'htg',
+64: 'huf',
+65: 'idr',
+66: 'ils',
+67: 'imp',
+68: 'inr',
+69: 'iqd',
+70: 'irr',
+71: 'isk',
+72: 'jep',
+73: 'jmd',
+74: 'jod',
+75: 'jpy',
+76: 'kes',
+77: 'kgs',
+78: 'khr',
+79: 'kmf',
+80: 'kpw',
+81: 'krw',
+82: 'kwd',
+83: 'kyd',
+84: 'kzt',
+85: 'lak',
+86: 'lbp',
+87: 'lkr',
+88: 'lrd',
+89: 'lsl',
+90: 'ltl',
+91: 'lvl',
+92: 'lyd',
+93: 'mad',
+94: 'mdl',
+95: 'mga',
+96: 'mkd',
+97: 'mmk',
+98: 'mnt',
+99: 'mop',
+100: 'mro',
+101: 'mur',
+102: 'mvr',
+103: 'mwk',
+104: 'mxn',
+105: 'myr',
+106: 'mzn',
+107: 'nad',
+108: 'ngn',
+109: 'nio',
+110: 'nok',
+111: 'npr',
+112: 'nzd',
+113: 'omr',
+114: 'pab',
+115: 'pen',
+116: 'pgk',
+117: 'php',
+118: 'pkr',
+119: 'pln',
+120: 'pyg',
+121: 'qar',
+122: 'ron',
+123: 'rsd',
+124: 'rub',
+125: 'rwf',
+126: 'sar',
+127: 'sbd',
+128: 'scr',
+129: 'sdg',
+130: 'sek',
+131: 'sgd',
+132: 'shp',
+133: 'sll',
+134: 'sos',
+135: 'srd',
+136: 'std',
+137: 'svc',
+138: 'syp',
+139: 'szl',
+140: 'thb',
+141: 'tjs',
+142: 'tmt',
+143: 'tnd',
+144: 'top',
+145: 'try',
+146: 'ttd',
+147: 'twd',
+148: 'tzs',
+149: 'uah',
+150: 'ugx',
+151: 'usd',
+152: 'uyu',
+153: 'uzs',
+154: 'vef',
+155: 'vnd',
+156: 'vuv',
+157: 'wst',
+158: 'xaf',
+159: 'xag',
+160: 'xau',
+161: 'xcd',
+162: 'xdr',
+163: 'xof',
+164: 'xpf',
+165: 'xrp',
+166: 'yer',
+167: 'zar',
+168: 'zmk',
+169: 'zmw',
+170: 'zwl'}
+JS-NG&gt; j.clients.currencylayer.fake.cur2usd_print()
+<br>
+{'': 1,
+'aed': 3.672979,
+'afn': 78.296617,
+'ah': 24.914996,
+'all': 109.150047,
+'amd': 476.210221,
+'ang': 1.78525,
+'aoa': 362.0025,
+'ar': 3.75045,
+'ars': 55.394992,
+'aud': 1.474703,
+'awg': 1.8,
+'azn': 1.704964,
+'bam': 1.758993,
+'bbd': 2.0194,
+'bd': 8.221403,
+'bdt': 83.745499,
+'bgn': 1.760801,
+'bhd': 0.375961,
+'bif': 1855,
+'bmd': 1,
+'bnd': 1.350696,
+'bob': 6.86065,
+'brl': 4.152695,
+'bsd': 0.99205,
+'btc': 9.948852946999476e-05,
+'btn': 71.884502,
+'bwp': 10.961999,
+'byn': 2.060501,
+'byr': 19600,
+'bzd': 2.01595,
+'cad': 1.32733,
+'cdf': 1659.99946,
+'chf': 0.978545,
+'clf': 0.026094,
+'clp': 720.00501,
+'cny': 7.151304,
+'cop': 3431.55,
+'cr': 13.669974,
+'crc': 567.080062,
+'cuc': 1,
+'cup': 26.5,
+'cve': 98.749501,
+'czk': 23.208988,
+'egp': 16.53602,
+'ek': 9.67235,
+'ern': 14.999484,
+'etb': 29.000284,
+'eth': 0.005395489370885939,
+'eur': 0.900035,
+'fjd': 2.17495,
+'fkp': 0.81691,
+'g': 45.119039,
+'gbp': 0.81752,
+'gd': 1.38792,
+'gel': 2.925034,
+'ggp': 0.81764,
+'ghs': 5.402501,
+'gip': 0.81691,
+'gmd': 50.415037,
+'gnf': 9239.999966,
+'gtq': 7.680957,
+'gx': 3685.496424,
+'gyd': 209.244968,
+'hkd': 7.84595,
+'hnl': 24.674984,
+'hp': 1.320898,
+'hrk': 6.653399,
+'htg': 95.361503,
+'huf': 296.280997,
+'idr': 14258.25,
+'ils': 3.52095,
+'imp': 0.81764,
+'inr': 71.792403,
+'iqd': 1190,
+'irr': 42104.999481,
+'isk': 124.829491,
+'jep': 0.81764,
+'jf': 177.720165,
+'jmd': 134.559965,
+'jod': 0.7084,
+'jpy': 106.015996,
+'kes': 103.389937,
+'kgs': 69.8159,
+'khr': 4140.000279,
+'kk': 6.71151,
+'kmf': 443.249767,
+'kpw': 900.052015,
+'krw': 1214.824979,
+'kwd': 0.303901,
+'kyd': 0.83355,
+'kzt': 383.110385,
+'lak': 8735.000017,
+'lbp': 1507.949729,
+'lkr': 179.605474,
+'ll': 9299.999946,
+'lrd': 205.000232,
+'lsl': 15.250149,
+'ltl': 2.95274,
+'lvl': 0.60489,
+'lyd': 1.40503,
+'mad': 9.5685,
+'mdl': 17.887498,
+'mga': 3674.999563,
+'mkd': 55.324023,
+'mmk': 1516.702673,
+'mnt': 2669.391245,
+'mop': 8.080496,
+'mro': 357.000024,
+'mur': 36.043506,
+'mvr': 15.410297,
+'mwk': 731.210149,
+'mxn': 19.92145,
+'myr': 4.198897,
+'mzn': 61.020166,
+'nad': 15.270055,
+'ngn': 362.000148,
+'nio': 33.602406,
+'nok': 8.988065,
+'npr': 115.010199,
+'nzd': 1.56365,
+'omr': 0.384976,
+'op': 51.294983,
+'os': 579.999893,
+'pab': 0.99205,
+'pen': 3.37635,
+'pgk': 3.397801,
+'php': 52.438012,
+'pkr': 157.249855,
+'pln': 3.92254,
+'pyg': 6217.103241,
+'qar': 3.64175,
+'rd': 7.457963,
+'ron': 4.256202,
+'rsd': 106.069758,
+'rub': 66.06102,
+'rwf': 910,
+'td': 21560.79,
+'thb': 30.589849,
+'tjs': 9.696302,
+'tmt': 3.5,
+'tnd': 2.857701,
+'top': 2.320597,
+'try': 5.81132,
+'ttd': 6.71695,
+'twd': 31.400972,
+'tzs': 2298.149889,
+'vc': 8.75195,
+'vef': 9.987501,
+'vnd': 23199,
+'vuv': 117.90362,
+'wst': 2.675215,
+'xaf': 589.959986,
+'xag': 0.056555,
+'xau': 0.000653,
+'xcd': 2.70245,
+'xdr': 0.729108,
+'xof': 584.499865,
+'xpf': 106.950279,
+'xrp': 3.771,
+'yer': 250.349819,
+'yp': 515.000236,
+'yu': 36.34003,
+'zar': 15.26498,
+'zd': 119.879946,
+'zl': 15.269489,
+'zmk': 9001.202171,
+'zmw': 13.112024,
+'zs': 9376.306597,
+'zwl': 322.000001}</p>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;
+JS-NG&gt; fake = j.clients.currencylayer.new(&#39;fake&#39;)                                                                      
+JS-NG&gt; fake.cur2id_print()                                                                                             
+{&#39;aed&#39;: 1,
+ &#39;afn&#39;: 2,
+ &#39;all&#39;: 3,
+ &#39;amd&#39;: 4,
+ &#39;ang&#39;: 5,
+ &#39;aoa&#39;: 6,
+ &#39;ars&#39;: 7,
+ &#39;aud&#39;: 8,
+ &#39;awg&#39;: 9,
+ &#39;azn&#39;: 10,
+ &#39;bam&#39;: 11,
+ &#39;bbd&#39;: 12,
+ &#39;bdt&#39;: 13,
+ &#39;bgn&#39;: 14,
+ &#39;bhd&#39;: 15,
+ &#39;bif&#39;: 16,
+ &#39;bmd&#39;: 17,
+ &#39;bnd&#39;: 18,
+ &#39;bob&#39;: 19,
+ &#39;brl&#39;: 20,
+ &#39;bsd&#39;: 21,
+ &#39;btc&#39;: 22,
+ &#39;btn&#39;: 23,
+ &#39;bwp&#39;: 24,
+ &#39;byn&#39;: 25,
+ &#39;byr&#39;: 26,
+ &#39;bzd&#39;: 27,
+ &#39;cad&#39;: 28,
+ &#39;cdf&#39;: 29,
+ &#39;chf&#39;: 30,
+ &#39;clf&#39;: 31,
+ &#39;clp&#39;: 32,
+ &#39;cny&#39;: 33,
+ &#39;cop&#39;: 34,
+ &#39;crc&#39;: 35,
+ &#39;cuc&#39;: 36,
+ &#39;cup&#39;: 37,
+ &#39;cve&#39;: 38,
+ &#39;czk&#39;: 39,
+ &#39;djf&#39;: 40,
+ &#39;dkk&#39;: 41,
+ &#39;dop&#39;: 42,
+ &#39;dzd&#39;: 43,
+ &#39;egp&#39;: 44,
+ &#39;ern&#39;: 45,
+ &#39;etb&#39;: 46,
+ &#39;eth&#39;: 47,
+ &#39;eur&#39;: 48,
+ &#39;fjd&#39;: 49,
+ &#39;fkp&#39;: 50,
+ &#39;gbp&#39;: 51,
+ &#39;gel&#39;: 52,
+ &#39;ggp&#39;: 53,
+ &#39;ghs&#39;: 54,
+ &#39;gip&#39;: 55,
+ &#39;gmd&#39;: 56,
+ &#39;gnf&#39;: 57,
+ &#39;gtq&#39;: 58,
+ &#39;gyd&#39;: 59,
+ &#39;hkd&#39;: 60,
+ &#39;hnl&#39;: 61,
+ &#39;hrk&#39;: 62,
+ &#39;htg&#39;: 63,
+ &#39;huf&#39;: 64,
+ &#39;idr&#39;: 65,
+ &#39;ils&#39;: 66,
+ &#39;imp&#39;: 67,
+ &#39;inr&#39;: 68,
+ &#39;iqd&#39;: 69,
+ &#39;irr&#39;: 70,
+ &#39;isk&#39;: 71,
+ &#39;jep&#39;: 72,
+ &#39;jmd&#39;: 73,
+ &#39;jod&#39;: 74,
+ &#39;jpy&#39;: 75,
+ &#39;kes&#39;: 76,
+ &#39;kgs&#39;: 77,
+ &#39;khr&#39;: 78,
+ &#39;kmf&#39;: 79,
+ &#39;kpw&#39;: 80,
+ &#39;krw&#39;: 81,
+ &#39;kwd&#39;: 82,
+ &#39;kyd&#39;: 83,
+ &#39;kzt&#39;: 84,
+ &#39;lak&#39;: 85,
+ &#39;lbp&#39;: 86,
+ &#39;lkr&#39;: 87,
+ &#39;lrd&#39;: 88,
+ &#39;lsl&#39;: 89,
+ &#39;ltl&#39;: 90,
+ &#39;lvl&#39;: 91,
+ &#39;lyd&#39;: 92,
+ &#39;mad&#39;: 93,
+ &#39;mdl&#39;: 94,
+ &#39;mga&#39;: 95,
+ &#39;mkd&#39;: 96,
+ &#39;mmk&#39;: 97,
+ &#39;mnt&#39;: 98,
+ &#39;mop&#39;: 99,
+ &#39;mro&#39;: 100,
+ &#39;mur&#39;: 101,
+ &#39;mvr&#39;: 102,
+ &#39;mwk&#39;: 103,
+ &#39;mxn&#39;: 104,
+ &#39;myr&#39;: 105,
+ &#39;mzn&#39;: 106,
+ &#39;nad&#39;: 107,
+ &#39;ngn&#39;: 108,
+ &#39;nio&#39;: 109,
+ &#39;nok&#39;: 110,
+ &#39;npr&#39;: 111,
+ &#39;nzd&#39;: 112,
+ &#39;omr&#39;: 113,
+ &#39;pab&#39;: 114,
+ &#39;pen&#39;: 115,
+ &#39;pgk&#39;: 116,
+ &#39;php&#39;: 117,
+ &#39;pkr&#39;: 118,
+ &#39;pln&#39;: 119,
+ &#39;pyg&#39;: 120,
+ &#39;qar&#39;: 121,
+ &#39;ron&#39;: 122,
+ &#39;rsd&#39;: 123,
+ &#39;rub&#39;: 124,
+ &#39;rwf&#39;: 125,
+ &#39;sar&#39;: 126,
+ &#39;sbd&#39;: 127,
+ &#39;scr&#39;: 128,
+ &#39;sdg&#39;: 129,
+ &#39;sek&#39;: 130,
+ &#39;sgd&#39;: 131,
+ &#39;shp&#39;: 132,
+ &#39;sll&#39;: 133,
+ &#39;sos&#39;: 134,
+ &#39;srd&#39;: 135,
+ &#39;std&#39;: 136,
+ &#39;svc&#39;: 137,
+ &#39;syp&#39;: 138,
+ &#39;szl&#39;: 139,
+ &#39;thb&#39;: 140,
+ &#39;tjs&#39;: 141,
+ &#39;tmt&#39;: 142,
+ &#39;tnd&#39;: 143,
+ &#39;top&#39;: 144,
+ &#39;try&#39;: 145,
+ &#39;ttd&#39;: 146,
+ &#39;twd&#39;: 147,
+ &#39;tzs&#39;: 148,
+ &#39;uah&#39;: 149,
+ &#39;ugx&#39;: 150,
+ &#39;usd&#39;: 151,
+ &#39;uyu&#39;: 152,
+ &#39;uzs&#39;: 153,
+ &#39;vef&#39;: 154,
+ &#39;vnd&#39;: 155,
+ &#39;vuv&#39;: 156,
+ &#39;wst&#39;: 157,
+ &#39;xaf&#39;: 158,
+ &#39;xag&#39;: 159,
+ &#39;xau&#39;: 160,
+ &#39;xcd&#39;: 161,
+ &#39;xdr&#39;: 162,
+ &#39;xof&#39;: 163,
+ &#39;xpf&#39;: 164,
+ &#39;xrp&#39;: 165,
+ &#39;yer&#39;: 166,
+ &#39;zar&#39;: 167,
+ &#39;zmk&#39;: 168,
+ &#39;zmw&#39;: 169,
+ &#39;zwl&#39;: 170}
+JS-NG&gt; fake.id2cur_print()                                                                                             
+{1: &#39;aed&#39;,
+ 2: &#39;afn&#39;,
+ 3: &#39;all&#39;,
+ 4: &#39;amd&#39;,
+ 5: &#39;ang&#39;,
+ 6: &#39;aoa&#39;,
+ 7: &#39;ars&#39;,
+ 8: &#39;aud&#39;,
+ 9: &#39;awg&#39;,
+ 10: &#39;azn&#39;,
+ 11: &#39;bam&#39;,
+ 12: &#39;bbd&#39;,
+ 13: &#39;bdt&#39;,
+ 14: &#39;bgn&#39;,
+ 15: &#39;bhd&#39;,
+ 16: &#39;bif&#39;,
+ 17: &#39;bmd&#39;,
+ 18: &#39;bnd&#39;,
+ 19: &#39;bob&#39;,
+ 20: &#39;brl&#39;,
+ 21: &#39;bsd&#39;,
+ 22: &#39;btc&#39;,
+ 23: &#39;btn&#39;,
+ 24: &#39;bwp&#39;,
+ 25: &#39;byn&#39;,
+ 26: &#39;byr&#39;,
+ 27: &#39;bzd&#39;,
+ 28: &#39;cad&#39;,
+ 29: &#39;cdf&#39;,
+ 30: &#39;chf&#39;,
+ 31: &#39;clf&#39;,
+ 32: &#39;clp&#39;,
+ 33: &#39;cny&#39;,
+ 34: &#39;cop&#39;,
+ 35: &#39;crc&#39;,
+ 36: &#39;cuc&#39;,
+ 37: &#39;cup&#39;,
+ 38: &#39;cve&#39;,
+ 39: &#39;czk&#39;,
+ 40: &#39;djf&#39;,
+ 41: &#39;dkk&#39;,
+ 42: &#39;dop&#39;,
+ 43: &#39;dzd&#39;,
+ 44: &#39;egp&#39;,
+ 45: &#39;ern&#39;,
+ 46: &#39;etb&#39;,
+ 47: &#39;eth&#39;,
+ 48: &#39;eur&#39;,
+ 49: &#39;fjd&#39;,
+ 50: &#39;fkp&#39;,
+ 51: &#39;gbp&#39;,
+ 52: &#39;gel&#39;,
+ 53: &#39;ggp&#39;,
+ 54: &#39;ghs&#39;,
+ 55: &#39;gip&#39;,
+ 56: &#39;gmd&#39;,
+ 57: &#39;gnf&#39;,
+ 58: &#39;gtq&#39;,
+ 59: &#39;gyd&#39;,
+ 60: &#39;hkd&#39;,
+ 61: &#39;hnl&#39;,
+ 62: &#39;hrk&#39;,
+ 63: &#39;htg&#39;,
+ 64: &#39;huf&#39;,
+ 65: &#39;idr&#39;,
+ 66: &#39;ils&#39;,
+ 67: &#39;imp&#39;,
+ 68: &#39;inr&#39;,
+ 69: &#39;iqd&#39;,
+ 70: &#39;irr&#39;,
+ 71: &#39;isk&#39;,
+ 72: &#39;jep&#39;,
+ 73: &#39;jmd&#39;,
+ 74: &#39;jod&#39;,
+ 75: &#39;jpy&#39;,
+ 76: &#39;kes&#39;,
+ 77: &#39;kgs&#39;,
+ 78: &#39;khr&#39;,
+ 79: &#39;kmf&#39;,
+ 80: &#39;kpw&#39;,
+ 81: &#39;krw&#39;,
+ 82: &#39;kwd&#39;,
+ 83: &#39;kyd&#39;,
+ 84: &#39;kzt&#39;,
+ 85: &#39;lak&#39;,
+ 86: &#39;lbp&#39;,
+ 87: &#39;lkr&#39;,
+ 88: &#39;lrd&#39;,
+ 89: &#39;lsl&#39;,
+ 90: &#39;ltl&#39;,
+ 91: &#39;lvl&#39;,
+ 92: &#39;lyd&#39;,
+ 93: &#39;mad&#39;,
+ 94: &#39;mdl&#39;,
+ 95: &#39;mga&#39;,
+ 96: &#39;mkd&#39;,
+ 97: &#39;mmk&#39;,
+ 98: &#39;mnt&#39;,
+ 99: &#39;mop&#39;,
+ 100: &#39;mro&#39;,
+ 101: &#39;mur&#39;,
+ 102: &#39;mvr&#39;,
+ 103: &#39;mwk&#39;,
+ 104: &#39;mxn&#39;,
+ 105: &#39;myr&#39;,
+ 106: &#39;mzn&#39;,
+ 107: &#39;nad&#39;,
+ 108: &#39;ngn&#39;,
+ 109: &#39;nio&#39;,
+ 110: &#39;nok&#39;,
+ 111: &#39;npr&#39;,
+ 112: &#39;nzd&#39;,
+ 113: &#39;omr&#39;,
+ 114: &#39;pab&#39;,
+ 115: &#39;pen&#39;,
+ 116: &#39;pgk&#39;,
+ 117: &#39;php&#39;,
+ 118: &#39;pkr&#39;,
+ 119: &#39;pln&#39;,
+ 120: &#39;pyg&#39;,
+ 121: &#39;qar&#39;,
+ 122: &#39;ron&#39;,
+ 123: &#39;rsd&#39;,
+ 124: &#39;rub&#39;,
+ 125: &#39;rwf&#39;,
+ 126: &#39;sar&#39;,
+ 127: &#39;sbd&#39;,
+ 128: &#39;scr&#39;,
+ 129: &#39;sdg&#39;,
+ 130: &#39;sek&#39;,
+ 131: &#39;sgd&#39;,
+ 132: &#39;shp&#39;,
+ 133: &#39;sll&#39;,
+ 134: &#39;sos&#39;,
+ 135: &#39;srd&#39;,
+ 136: &#39;std&#39;,
+ 137: &#39;svc&#39;,
+ 138: &#39;syp&#39;,
+ 139: &#39;szl&#39;,
+ 140: &#39;thb&#39;,
+ 141: &#39;tjs&#39;,
+ 142: &#39;tmt&#39;,
+ 143: &#39;tnd&#39;,
+ 144: &#39;top&#39;,
+ 145: &#39;try&#39;,
+ 146: &#39;ttd&#39;,
+ 147: &#39;twd&#39;,
+ 148: &#39;tzs&#39;,
+ 149: &#39;uah&#39;,
+ 150: &#39;ugx&#39;,
+ 151: &#39;usd&#39;,
+ 152: &#39;uyu&#39;,
+ 153: &#39;uzs&#39;,
+ 154: &#39;vef&#39;,
+ 155: &#39;vnd&#39;,
+ 156: &#39;vuv&#39;,
+ 157: &#39;wst&#39;,
+ 158: &#39;xaf&#39;,
+ 159: &#39;xag&#39;,
+ 160: &#39;xau&#39;,
+ 161: &#39;xcd&#39;,
+ 162: &#39;xdr&#39;,
+ 163: &#39;xof&#39;,
+ 164: &#39;xpf&#39;,
+ 165: &#39;xrp&#39;,
+ 166: &#39;yer&#39;,
+ 167: &#39;zar&#39;,
+ 168: &#39;zmk&#39;,
+ 169: &#39;zmw&#39;,
+ 170: &#39;zwl&#39;}
+JS-NG&gt; fake.id2cur                                                                                                     
+{1: &#39;aed&#39;, 2: &#39;afn&#39;, 3: &#39;all&#39;, 4: &#39;amd&#39;, 5: &#39;ang&#39;, 6: &#39;aoa&#39;, 7: &#39;ars&#39;, 8: &#39;aud&#39;, 9: &#39;awg&#39;, 10: &#39;azn&#39;, 11: &#39;bam&#39;, 12: &#39;b
+bd&#39;, 13: &#39;bdt&#39;, 14: &#39;bgn&#39;, 15: &#39;bhd&#39;, 16: &#39;bif&#39;, 17: &#39;bmd&#39;, 18: &#39;bnd&#39;, 19: &#39;bob&#39;, 20: &#39;brl&#39;, 21: &#39;bsd&#39;, 22: &#39;btc&#39;, 23: 
+&#39;btn&#39;, 24: &#39;bwp&#39;, 25: &#39;byn&#39;, 26: &#39;byr&#39;, 27: &#39;bzd&#39;, 28: &#39;cad&#39;, 29: &#39;cdf&#39;, 30: &#39;chf&#39;, 31: &#39;clf&#39;, 32: &#39;clp&#39;, 33: &#39;cny&#39;, 34
+: &#39;cop&#39;, 35: &#39;crc&#39;, 36: &#39;cuc&#39;, 37: &#39;cup&#39;, 38: &#39;cve&#39;, 39: &#39;czk&#39;, 40: &#39;djf&#39;, 41: &#39;dkk&#39;, 42: &#39;dop&#39;, 43: &#39;dzd&#39;, 44: &#39;egp&#39;, 
+45: &#39;ern&#39;, 46: &#39;etb&#39;, 47: &#39;eth&#39;, 48: &#39;eur&#39;, 49: &#39;fjd&#39;, 50: &#39;fkp&#39;, 51: &#39;gbp&#39;, 52: &#39;gel&#39;, 53: &#39;ggp&#39;, 54: &#39;ghs&#39;, 55: &#39;gip&#39;
+, 56: &#39;gmd&#39;, 57: &#39;gnf&#39;, 58: &#39;gtq&#39;, 59: &#39;gyd&#39;, 60: &#39;hkd&#39;, 61: &#39;hnl&#39;, 62: &#39;hrk&#39;, 63: &#39;htg&#39;, 64: &#39;huf&#39;, 65: &#39;idr&#39;, 66: &#39;ils&#39;, 67: &#39;imp&#39;, 68: &#39;inr&#39;, 69: &#39;iqd&#39;, 70: &#39;irr&#39;, 71: &#39;isk&#39;, 72: &#39;jep&#39;, 73: &#39;jmd&#39;, 74: &#39;jod&#39;, 75: &#39;jpy&#39;, 76: &#39;kes&#39;, 77: &#39;kgs&#39;, 78: &#39;khr&#39;, 79: &#39;kmf&#39;, 80: &#39;kpw&#39;, 81: &#39;krw&#39;, 82: &#39;kwd&#39;, 83: &#39;kyd&#39;, 84: &#39;kzt&#39;, 85: &#39;lak&#39;, 86: &#39;lbp&#39;, 87: &#39;lkr&#39;, 88: &#39;lrd&#39;, 89: &#39;lsl&#39;, 90: &#39;ltl&#39;, 91: &#39;lvl&#39;, 92: &#39;lyd&#39;, 93: &#39;mad&#39;, 94: &#39;mdl&#39;, 95: &#39;mga&#39;, 96: &#39;mkd&#39;, 97: &#39;mmk&#39;, 98: &#39;mnt&#39;, 99: &#39;mop&#39;, 100: &#39;mro&#39;, 101: &#39;mur&#39;, 102: &#39;mvr&#39;, 103: &#39;mwk&#39;, 104: &#39;mxn&#39;, 105: &#39;myr&#39;, 106: &#39;mzn&#39;, 107: &#39;nad&#39;, 108: &#39;ngn&#39;, 109: &#39;nio&#39;, 110: &#39;nok&#39;, 111: &#39;npr&#39;, 112: &#39;nzd&#39;, 113: &#39;omr&#39;, 114: &#39;pab&#39;, 115: &#39;pen&#39;, 116: &#39;pgk&#39;, 117: &#39;php&#39;, 118: &#39;pkr&#39;, 119: &#39;pln&#39;, 120: &#39;pyg&#39;, 121: &#39;qar&#39;, 122: &#39;ron&#39;, 123: &#39;rsd&#39;, 124: &#39;rub&#39;, 125: &#39;rwf&#39;, 126: &#39;sar&#39;, 127: &#39;sbd&#39;, 128: &#39;scr&#39;, 129: &#39;sdg&#39;, 130: &#39;sek&#39;, 131: &#39;sgd&#39;, 132: &#39;shp&#39;, 133: &#39;sll&#39;, 134: &#39;sos&#39;, 135: &#39;srd&#39;, 136: &#39;std&#39;, 137: &#39;svc&#39;, 138: &#39;syp&#39;, 139: &#39;szl&#39;, 140: &#39;thb&#39;, 141: &#39;tjs&#39;, 142: &#39;tmt&#39;, 143: &#39;tnd&#39;, 144: &#39;top&#39;, 145: &#39;try&#39;, 146: &#39;ttd&#39;, 147: &#39;twd&#39;, 148: &#39;tzs&#39;, 149: &#39;uah&#39;, 150: &#39;ugx&#39;, 151: &#39;usd&#39;, 152: &#39;uyu&#39;, 153: &#39;uzs&#39;, 154: &#39;vef&#39;, 155: &#39;vnd&#39;, 156: &#39;vuv&#39;, 157: &#39;wst&#39;, 158: &#39;xaf&#39;, 159: &#39;xag&#39;, 160: &#39;xau&#39;, 161: &#39;xcd&#39;, 162: &#39;xdr&#39;, 163: &#39;xof&#39;, 164: &#39;xpf&#39;, 165: &#39;xrp&#39;, 166: &#39;yer&#39;, 167: &#39;zar&#39;, 168: &#39;zmk&#39;, 169: &#39;zmw&#39;, 170: &#39;zwl&#39;}
+
+JS-NG&gt; fake.cur2id                                                                                                     
+{&#39;aed&#39;: 1, &#39;afn&#39;: 2, &#39;all&#39;: 3, &#39;amd&#39;: 4, &#39;ang&#39;: 5, &#39;aoa&#39;: 6, &#39;ars&#39;: 7, &#39;aud&#39;: 8, &#39;awg&#39;: 9, &#39;azn&#39;: 10, &#39;bam&#39;: 11, &#39;bbd&#39;:
+ 12, &#39;bdt&#39;: 13, &#39;bgn&#39;: 14, &#39;bhd&#39;: 15, &#39;bif&#39;: 16, &#39;bmd&#39;: 17, &#39;bnd&#39;: 18, &#39;bob&#39;: 19, &#39;brl&#39;: 20, &#39;bsd&#39;: 21, &#39;btc&#39;: 22, &#39;btn
+&#39;: 23, &#39;bwp&#39;: 24, &#39;byn&#39;: 25, &#39;byr&#39;: 26, &#39;bzd&#39;: 27, &#39;cad&#39;: 28, &#39;cdf&#39;: 29, &#39;chf&#39;: 30, &#39;clf&#39;: 31, &#39;clp&#39;: 32, &#39;cny&#39;: 33, &#39;c
+op&#39;: 34, &#39;crc&#39;: 35, &#39;cuc&#39;: 36, &#39;cup&#39;: 37, &#39;cve&#39;: 38, &#39;czk&#39;: 39, &#39;djf&#39;: 40, &#39;dkk&#39;: 41, &#39;dop&#39;: 42, &#39;dzd&#39;: 43, &#39;egp&#39;: 44, 
+&#39;ern&#39;: 45, &#39;etb&#39;: 46, &#39;eth&#39;: 47, &#39;eur&#39;: 48, &#39;fjd&#39;: 49, &#39;fkp&#39;: 50, &#39;gbp&#39;: 51, &#39;gel&#39;: 52, &#39;ggp&#39;: 53, &#39;ghs&#39;: 54, &#39;gip&#39;: 55
+, &#39;gmd&#39;: 56, &#39;gnf&#39;: 57, &#39;gtq&#39;: 58, &#39;gyd&#39;: 59, &#39;hkd&#39;: 60, &#39;hnl&#39;: 61, &#39;hrk&#39;: 62, &#39;htg&#39;: 63, &#39;huf&#39;: 64, &#39;idr&#39;: 65, &#39;ils&#39;: 66, &#39;imp&#39;: 67, &#39;inr&#39;: 68, &#39;iqd&#39;: 69, &#39;irr&#39;: 70, &#39;isk&#39;: 71, &#39;jep&#39;: 72, &#39;jmd&#39;: 73, &#39;jod&#39;: 74, &#39;jpy&#39;: 75, &#39;kes&#39;: 76, &#39;kgs&#39;: 77, &#39;khr&#39;: 78, &#39;kmf&#39;: 79, &#39;kpw&#39;: 80, &#39;krw&#39;: 81, &#39;kwd&#39;: 82, &#39;kyd&#39;: 83, &#39;kzt&#39;: 84, &#39;lak&#39;: 85, &#39;lbp&#39;: 86, &#39;lkr&#39;: 87, &#39;lrd&#39;: 88, &#39;lsl&#39;: 89, &#39;ltl&#39;: 90, &#39;lvl&#39;: 91, &#39;lyd&#39;: 92, &#39;mad&#39;: 93, &#39;mdl&#39;: 94, &#39;mga&#39;: 95, &#39;mkd&#39;: 96, &#39;mmk&#39;: 97, &#39;mnt&#39;: 98, &#39;mop&#39;: 99, &#39;mro&#39;: 100, &#39;mur&#39;: 101, &#39;mvr&#39;: 102, &#39;mwk&#39;: 103, &#39;mxn&#39;: 104, &#39;myr&#39;: 105, &#39;mzn&#39;: 106, &#39;nad&#39;: 107, &#39;ngn&#39;: 108, &#39;nio&#39;: 109, &#39;nok&#39;: 110, &#39;npr&#39;: 111, &#39;nzd&#39;: 112, &#39;omr&#39;: 113, &#39;pab&#39;: 114, &#39;pen&#39;: 115, &#39;pgk&#39;: 116, &#39;php&#39;: 117, &#39;pkr&#39;: 118, &#39;pln&#39;: 119, &#39;pyg&#39;: 120, &#39;qar&#39;: 121, &#39;ron&#39;: 122, &#39;rsd&#39;: 123, &#39;rub&#39;: 124, &#39;rwf&#39;: 125, &#39;sar&#39;: 126, &#39;sbd&#39;: 127, &#39;scr&#39;: 128, &#39;sdg&#39;: 129, &#39;sek&#39;: 130, &#39;sgd&#39;: 131, &#39;shp&#39;: 132, &#39;sll&#39;: 133, &#39;sos&#39;: 134, &#39;srd&#39;: 135, &#39;std&#39;: 136, &#39;svc&#39;: 137, &#39;syp&#39;: 138, &#39;szl&#39;: 139, &#39;thb&#39;: 140, &#39;tjs&#39;: 141, &#39;tmt&#39;: 142, &#39;tnd&#39;: 143, &#39;top&#39;: 144, &#39;try&#39;: 145, &#39;ttd&#39;: 146, &#39;twd&#39;: 147, &#39;tzs&#39;: 148, &#39;uah&#39;: 149, &#39;ugx&#39;: 150, &#39;usd&#39;: 151, &#39;uyu&#39;: 152, &#39;uzs&#39;: 153, &#39;vef&#39;: 154, &#39;vnd&#39;: 155, &#39;vuv&#39;: 156, &#39;wst&#39;: 157, &#39;xaf&#39;: 158, &#39;xag&#39;: 159, &#39;xau&#39;: 160, &#39;xcd&#39;: 161, &#39;xdr&#39;: 162, &#39;xof&#39;: 163, &#39;xpf&#39;: 164, &#39;xrp&#39;: 165, &#39;yer&#39;: 166, &#39;zar&#39;: 167, &#39;zmk&#39;: 168, &#39;zmw&#39;: 169, &#39;zwl&#39;: 170}
+
+JS-NG&gt;                                                                                                                 
+JS-NG&gt; fake.api_key=&#34;VALID KEY&#34;                                                                 
+JS-NG&gt; j.clients.currencylayer.fake.load()                                                                             
+JS-NG&gt; j.clients.currencylayer.fake.id2cur_print()                                                                     
+{1: &#39;aed&#39;,
+ 2: &#39;afn&#39;,
+ 3: &#39;all&#39;,
+ 4: &#39;amd&#39;,
+ 5: &#39;ang&#39;,
+ 6: &#39;aoa&#39;,
+ 7: &#39;ars&#39;,
+ 8: &#39;aud&#39;,
+ 9: &#39;awg&#39;,
+ 10: &#39;azn&#39;,
+ 11: &#39;bam&#39;,
+ 12: &#39;bbd&#39;,
+ 13: &#39;bdt&#39;,
+ 14: &#39;bgn&#39;,
+ 15: &#39;bhd&#39;,
+ 16: &#39;bif&#39;,
+ 17: &#39;bmd&#39;,
+ 18: &#39;bnd&#39;,
+ 19: &#39;bob&#39;,
+ 20: &#39;brl&#39;,
+ 21: &#39;bsd&#39;,
+ 22: &#39;btc&#39;,
+ 23: &#39;btn&#39;,
+ 24: &#39;bwp&#39;,
+ 25: &#39;byn&#39;,
+ 26: &#39;byr&#39;,
+ 27: &#39;bzd&#39;,
+ 28: &#39;cad&#39;,
+ 29: &#39;cdf&#39;,
+ 30: &#39;chf&#39;,
+ 31: &#39;clf&#39;,
+ 32: &#39;clp&#39;,
+ 33: &#39;cny&#39;,
+ 34: &#39;cop&#39;,
+ 35: &#39;crc&#39;,
+ 36: &#39;cuc&#39;,
+ 37: &#39;cup&#39;,
+ 38: &#39;cve&#39;,
+ 39: &#39;czk&#39;,
+ 40: &#39;djf&#39;,
+ 41: &#39;dkk&#39;,
+ 42: &#39;dop&#39;,
+ 43: &#39;dzd&#39;,
+ 44: &#39;egp&#39;,
+ 45: &#39;ern&#39;,
+ 46: &#39;etb&#39;,
+ 47: &#39;eth&#39;,
+ 48: &#39;eur&#39;,
+ 49: &#39;fjd&#39;,
+ 50: &#39;fkp&#39;,
+ 51: &#39;gbp&#39;,
+ 52: &#39;gel&#39;,
+ 53: &#39;ggp&#39;,
+ 54: &#39;ghs&#39;,
+ 55: &#39;gip&#39;,
+ 56: &#39;gmd&#39;,
+ 57: &#39;gnf&#39;,
+ 58: &#39;gtq&#39;,
+ 59: &#39;gyd&#39;,
+ 60: &#39;hkd&#39;,
+ 61: &#39;hnl&#39;,
+ 62: &#39;hrk&#39;,
+ 63: &#39;htg&#39;,
+ 64: &#39;huf&#39;,
+ 65: &#39;idr&#39;,
+ 66: &#39;ils&#39;,
+ 67: &#39;imp&#39;,
+ 68: &#39;inr&#39;,
+ 69: &#39;iqd&#39;,
+ 70: &#39;irr&#39;,
+ 71: &#39;isk&#39;,
+ 72: &#39;jep&#39;,
+ 73: &#39;jmd&#39;,
+ 74: &#39;jod&#39;,
+ 75: &#39;jpy&#39;,
+ 76: &#39;kes&#39;,
+ 77: &#39;kgs&#39;,
+ 78: &#39;khr&#39;,
+ 79: &#39;kmf&#39;,
+ 80: &#39;kpw&#39;,
+ 81: &#39;krw&#39;,
+ 82: &#39;kwd&#39;,
+ 83: &#39;kyd&#39;,
+ 84: &#39;kzt&#39;,
+ 85: &#39;lak&#39;,
+ 86: &#39;lbp&#39;,
+ 87: &#39;lkr&#39;,
+ 88: &#39;lrd&#39;,
+ 89: &#39;lsl&#39;,
+ 90: &#39;ltl&#39;,
+ 91: &#39;lvl&#39;,
+ 92: &#39;lyd&#39;,
+ 93: &#39;mad&#39;,
+ 94: &#39;mdl&#39;,
+ 95: &#39;mga&#39;,
+ 96: &#39;mkd&#39;,
+ 97: &#39;mmk&#39;,
+ 98: &#39;mnt&#39;,
+ 99: &#39;mop&#39;,
+ 100: &#39;mro&#39;,
+ 101: &#39;mur&#39;,
+ 102: &#39;mvr&#39;,
+ 103: &#39;mwk&#39;,
+ 104: &#39;mxn&#39;,
+ 105: &#39;myr&#39;,
+ 106: &#39;mzn&#39;,
+ 107: &#39;nad&#39;,
+ 108: &#39;ngn&#39;,
+ 109: &#39;nio&#39;,
+ 110: &#39;nok&#39;,
+ 111: &#39;npr&#39;,
+ 112: &#39;nzd&#39;,
+ 113: &#39;omr&#39;,
+ 114: &#39;pab&#39;,
+ 115: &#39;pen&#39;,
+ 116: &#39;pgk&#39;,
+ 117: &#39;php&#39;,
+ 118: &#39;pkr&#39;,
+ 119: &#39;pln&#39;,
+ 120: &#39;pyg&#39;,
+ 121: &#39;qar&#39;,
+ 122: &#39;ron&#39;,
+ 123: &#39;rsd&#39;,
+ 124: &#39;rub&#39;,
+ 125: &#39;rwf&#39;,
+ 126: &#39;sar&#39;,
+ 127: &#39;sbd&#39;,
+ 128: &#39;scr&#39;,
+ 129: &#39;sdg&#39;,
+ 130: &#39;sek&#39;,
+ 131: &#39;sgd&#39;,
+ 132: &#39;shp&#39;,
+ 133: &#39;sll&#39;,
+ 134: &#39;sos&#39;,
+ 135: &#39;srd&#39;,
+ 136: &#39;std&#39;,
+ 137: &#39;svc&#39;,
+ 138: &#39;syp&#39;,
+ 139: &#39;szl&#39;,
+ 140: &#39;thb&#39;,
+ 141: &#39;tjs&#39;,
+ 142: &#39;tmt&#39;,
+ 143: &#39;tnd&#39;,
+ 144: &#39;top&#39;,
+ 145: &#39;try&#39;,
+ 146: &#39;ttd&#39;,
+ 147: &#39;twd&#39;,
+ 148: &#39;tzs&#39;,
+ 149: &#39;uah&#39;,
+ 150: &#39;ugx&#39;,
+ 151: &#39;usd&#39;,
+ 152: &#39;uyu&#39;,
+ 153: &#39;uzs&#39;,
+ 154: &#39;vef&#39;,
+ 155: &#39;vnd&#39;,
+ 156: &#39;vuv&#39;,
+ 157: &#39;wst&#39;,
+ 158: &#39;xaf&#39;,
+ 159: &#39;xag&#39;,
+ 160: &#39;xau&#39;,
+ 161: &#39;xcd&#39;,
+ 162: &#39;xdr&#39;,
+ 163: &#39;xof&#39;,
+ 164: &#39;xpf&#39;,
+ 165: &#39;xrp&#39;,
+ 166: &#39;yer&#39;,
+ 167: &#39;zar&#39;,
+ 168: &#39;zmk&#39;,
+ 169: &#39;zmw&#39;,
+ 170: &#39;zwl&#39;}
+JS-NG&gt; j.clients.currencylayer.fake.cur2usd_print()                                                                    
+{&#39;&#39;: 1,
+ &#39;aed&#39;: 3.672979,
+ &#39;afn&#39;: 78.296617,
+ &#39;ah&#39;: 24.914996,
+ &#39;all&#39;: 109.150047,
+ &#39;amd&#39;: 476.210221,
+ &#39;ang&#39;: 1.78525,
+ &#39;aoa&#39;: 362.0025,
+ &#39;ar&#39;: 3.75045,
+ &#39;ars&#39;: 55.394992,
+ &#39;aud&#39;: 1.474703,
+ &#39;awg&#39;: 1.8,
+ &#39;azn&#39;: 1.704964,
+ &#39;bam&#39;: 1.758993,
+ &#39;bbd&#39;: 2.0194,
+ &#39;bd&#39;: 8.221403,
+ &#39;bdt&#39;: 83.745499,
+ &#39;bgn&#39;: 1.760801,
+ &#39;bhd&#39;: 0.375961,
+ &#39;bif&#39;: 1855,
+ &#39;bmd&#39;: 1,
+ &#39;bnd&#39;: 1.350696,
+ &#39;bob&#39;: 6.86065,
+ &#39;brl&#39;: 4.152695,
+ &#39;bsd&#39;: 0.99205,
+ &#39;btc&#39;: 9.948852946999476e-05,
+ &#39;btn&#39;: 71.884502,
+ &#39;bwp&#39;: 10.961999,
+ &#39;byn&#39;: 2.060501,
+ &#39;byr&#39;: 19600,
+ &#39;bzd&#39;: 2.01595,
+ &#39;cad&#39;: 1.32733,
+ &#39;cdf&#39;: 1659.99946,
+ &#39;chf&#39;: 0.978545,
+ &#39;clf&#39;: 0.026094,
+ &#39;clp&#39;: 720.00501,
+ &#39;cny&#39;: 7.151304,
+ &#39;cop&#39;: 3431.55,
+ &#39;cr&#39;: 13.669974,
+ &#39;crc&#39;: 567.080062,
+ &#39;cuc&#39;: 1,
+ &#39;cup&#39;: 26.5,
+ &#39;cve&#39;: 98.749501,
+ &#39;czk&#39;: 23.208988,
+ &#39;egp&#39;: 16.53602,
+ &#39;ek&#39;: 9.67235,
+ &#39;ern&#39;: 14.999484,
+ &#39;etb&#39;: 29.000284,
+ &#39;eth&#39;: 0.005395489370885939,
+ &#39;eur&#39;: 0.900035,
+ &#39;fjd&#39;: 2.17495,
+ &#39;fkp&#39;: 0.81691,
+ &#39;g&#39;: 45.119039,
+ &#39;gbp&#39;: 0.81752,
+ &#39;gd&#39;: 1.38792,
+ &#39;gel&#39;: 2.925034,
+ &#39;ggp&#39;: 0.81764,
+ &#39;ghs&#39;: 5.402501,
+ &#39;gip&#39;: 0.81691,
+ &#39;gmd&#39;: 50.415037,
+ &#39;gnf&#39;: 9239.999966,
+ &#39;gtq&#39;: 7.680957,
+ &#39;gx&#39;: 3685.496424,
+ &#39;gyd&#39;: 209.244968,
+ &#39;hkd&#39;: 7.84595,
+ &#39;hnl&#39;: 24.674984,
+ &#39;hp&#39;: 1.320898,
+ &#39;hrk&#39;: 6.653399,
+ &#39;htg&#39;: 95.361503,
+ &#39;huf&#39;: 296.280997,
+ &#39;idr&#39;: 14258.25,
+ &#39;ils&#39;: 3.52095,
+ &#39;imp&#39;: 0.81764,
+ &#39;inr&#39;: 71.792403,
+ &#39;iqd&#39;: 1190,
+ &#39;irr&#39;: 42104.999481,
+ &#39;isk&#39;: 124.829491,
+ &#39;jep&#39;: 0.81764,
+ &#39;jf&#39;: 177.720165,
+ &#39;jmd&#39;: 134.559965,
+ &#39;jod&#39;: 0.7084,
+ &#39;jpy&#39;: 106.015996,
+ &#39;kes&#39;: 103.389937,
+ &#39;kgs&#39;: 69.8159,
+ &#39;khr&#39;: 4140.000279,
+ &#39;kk&#39;: 6.71151,
+ &#39;kmf&#39;: 443.249767,
+ &#39;kpw&#39;: 900.052015,
+ &#39;krw&#39;: 1214.824979,
+ &#39;kwd&#39;: 0.303901,
+ &#39;kyd&#39;: 0.83355,
+ &#39;kzt&#39;: 383.110385,
+ &#39;lak&#39;: 8735.000017,
+ &#39;lbp&#39;: 1507.949729,
+ &#39;lkr&#39;: 179.605474,
+ &#39;ll&#39;: 9299.999946,
+ &#39;lrd&#39;: 205.000232,
+ &#39;lsl&#39;: 15.250149,
+ &#39;ltl&#39;: 2.95274,
+ &#39;lvl&#39;: 0.60489,
+ &#39;lyd&#39;: 1.40503,
+ &#39;mad&#39;: 9.5685,
+ &#39;mdl&#39;: 17.887498,
+ &#39;mga&#39;: 3674.999563,
+ &#39;mkd&#39;: 55.324023,
+ &#39;mmk&#39;: 1516.702673,
+ &#39;mnt&#39;: 2669.391245,
+ &#39;mop&#39;: 8.080496,
+ &#39;mro&#39;: 357.000024,
+ &#39;mur&#39;: 36.043506,
+ &#39;mvr&#39;: 15.410297,
+ &#39;mwk&#39;: 731.210149,
+ &#39;mxn&#39;: 19.92145,
+ &#39;myr&#39;: 4.198897,
+ &#39;mzn&#39;: 61.020166,
+ &#39;nad&#39;: 15.270055,
+ &#39;ngn&#39;: 362.000148,
+ &#39;nio&#39;: 33.602406,
+ &#39;nok&#39;: 8.988065,
+ &#39;npr&#39;: 115.010199,
+ &#39;nzd&#39;: 1.56365,
+ &#39;omr&#39;: 0.384976,
+ &#39;op&#39;: 51.294983,
+ &#39;os&#39;: 579.999893,
+ &#39;pab&#39;: 0.99205,
+ &#39;pen&#39;: 3.37635,
+ &#39;pgk&#39;: 3.397801,
+ &#39;php&#39;: 52.438012,
+ &#39;pkr&#39;: 157.249855,
+ &#39;pln&#39;: 3.92254,
+ &#39;pyg&#39;: 6217.103241,
+ &#39;qar&#39;: 3.64175,
+ &#39;rd&#39;: 7.457963,
+ &#39;ron&#39;: 4.256202,
+ &#39;rsd&#39;: 106.069758,
+ &#39;rub&#39;: 66.06102,
+ &#39;rwf&#39;: 910,
+ &#39;td&#39;: 21560.79,
+ &#39;thb&#39;: 30.589849,
+ &#39;tjs&#39;: 9.696302,
+ &#39;tmt&#39;: 3.5,
+ &#39;tnd&#39;: 2.857701,
+ &#39;top&#39;: 2.320597,
+ &#39;try&#39;: 5.81132,
+ &#39;ttd&#39;: 6.71695,
+ &#39;twd&#39;: 31.400972,
+ &#39;tzs&#39;: 2298.149889,
+ &#39;vc&#39;: 8.75195,
+ &#39;vef&#39;: 9.987501,
+ &#39;vnd&#39;: 23199,
+ &#39;vuv&#39;: 117.90362,
+ &#39;wst&#39;: 2.675215,
+ &#39;xaf&#39;: 589.959986,
+ &#39;xag&#39;: 0.056555,
+ &#39;xau&#39;: 0.000653,
+ &#39;xcd&#39;: 2.70245,
+ &#39;xdr&#39;: 0.729108,
+ &#39;xof&#39;: 584.499865,
+ &#39;xpf&#39;: 106.950279,
+ &#39;xrp&#39;: 3.771,
+ &#39;yer&#39;: 250.349819,
+ &#39;yp&#39;: 515.000236,
+ &#39;yu&#39;: 36.34003,
+ &#39;zar&#39;: 15.26498,
+ &#39;zd&#39;: 119.879946,
+ &#39;zl&#39;: 15.269489,
+ &#39;zmk&#39;: 9001.202171,
+ &#39;zmw&#39;: 13.112024,
+ &#39;zs&#39;: 9376.306597,
+ &#39;zwl&#39;: 322.000001}
+
+
+&#34;&#34;&#34;
+
+
+def export_module_as():
+    from jumpscale.core.base import StoredFactory
+    from .currencylayer import CurrencyLayerClient
+    return StoredFactory(CurrencyLayerClient)</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="jumpscale.clients.currencylayer.currencies" href="currencies.html">jumpscale.clients.currencylayer.currencies</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="jumpscale.clients.currencylayer.currencylayer" href="currencylayer.html">jumpscale.clients.currencylayer.currencylayer</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.clients.currencylayer.export_module_as"><code class="name flex">
+<span>def <span class="ident">export_module_as</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_module_as():
+    from jumpscale.core.base import StoredFactory
+    from .currencylayer import CurrencyLayerClient
+    return StoredFactory(CurrencyLayerClient)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients" href="../index.html">jumpscale.clients</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="jumpscale.clients.currencylayer.currencies" href="currencies.html">jumpscale.clients.currencylayer.currencies</a></code></li>
+<li><code><a title="jumpscale.clients.currencylayer.currencylayer" href="currencylayer.html">jumpscale.clients.currencylayer.currencylayer</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jumpscale.clients.currencylayer.export_module_as" href="#jumpscale.clients.currencylayer.export_module_as">export_module_as</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

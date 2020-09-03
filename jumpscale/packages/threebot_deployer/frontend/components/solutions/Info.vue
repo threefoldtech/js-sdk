@@ -66,6 +66,7 @@ module.exports = {
   mixins: [dialog],
   computed: {
     json() {
+      delete this.data["class"];
       return this.data;
     },
     title() {

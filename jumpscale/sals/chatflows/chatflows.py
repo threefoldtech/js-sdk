@@ -84,10 +84,9 @@ class GedisChatBot:
 
     def __init__(self, **kwargs):
         """
-        :param session_id: user session id created by ChatBotFactory session_new method
-        :param topic_method: the bot topic (chatflow)
-        :param kwargs: any extra kwargs that is passed while creating the session
-                       (i.e. can be used for passing any query parameters)
+        Keyword Args
+            any extra kwargs that is passed while creating the session
+            (i.e. can be used for passing any query parameters)
         """
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
@@ -162,14 +161,14 @@ class GedisChatBot:
                 if self.user_info()["username"] in j.core.identity.me.admins:
                     self.send_error(
                         f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>"""
-                        "<br>Please use the refresh button on the upper right to restart the chatflow",
+                        "Please use the refresh button on the upper right to restart the chatflow",
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
-                        "<br>Please use the refresh button on the upper right to restart the chatflow"
+                        "Please use the refresh button on the upper right to restart the chatflow"
                     )
                 self.send_data({"category": "end"})
 

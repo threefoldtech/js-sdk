@@ -37,18 +37,7 @@
       <div class="chat-container text-center">
           <h1 class="display-2 font-weight-light">{{title}}</h1><br><br>
 
-          <v-card v-if="end" class="mx-auto px-5 py-10" width="50%" raised shaped>
-            <v-card-text>
-              <span class="display-1 font-regular primary--text">
-                Chat has ended
-              </span><br><br>
-              <v-btn color="primary" class="px-5" width="250" outlined large @click="restart">
-                <v-icon left>mdi-refresh</v-icon> Restart
-              </v-btn>
-            </v-card-text>
-          </v-card>
-
-          <v-card v-if="work && !end" :disabled="loading" :loading="loading" class="mx-auto" width="70%" min-height="350" raised shaped>
+          <v-card v-if="work" :disabled="loading" :loading="loading" class="mx-auto" width="70%" min-height="350" raised shaped>
             <div class="chat">
               <v-toolbar flat>
                 <v-toolbar-title v-if="work.info.title" class="headline font-regular primary--text">
@@ -81,7 +70,7 @@
                   {{work.info.first_slide ? 'Previous step' : 'Back'}}
                 </v-btn>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" raised x-large class="px-5" min-width="120" @click="next" :loading="loading" :disabled="nextButtonDisable">Next</v-btn>
+                <v-btn color="primary" raised x-large class="px-5" min-width="120" @click="next" :loading="loading" :disabled="nextButtonDisable">{{nextButtonText}}</v-btn>
               </v-card-actions>
             </div>
           </v-card>
@@ -103,7 +92,6 @@
         validSession: null,
         work: null,
         loading: true,
-        end: false,
         menu: false,
         chat: CHAT,
         title: null,
@@ -124,6 +112,9 @@
       backButtonDisable () {
         return !this.work.info.previous || ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)
       },
+      nextButtonText () {
+        return this.work.info.final_step ? "Finish" : "Next"
+      },
       stepId () {
         return `${this.work.info.step}_${this.work.info.slide}`
       }
@@ -134,10 +125,12 @@
       },
       handleResponse (response) {
         let payload = response.payload
+        let end = false
         switch (payload.category) {
           case 'end':
-            this.end = true
+            end = true
             localStorage.removeItem(this.chatUID)
+            window.parent.postMessage("chat ended", location.origin)
             break
           case 'user_info':
             this.sendUserInfo()
@@ -147,7 +140,7 @@
           default:
             this.handlerWork(response)
         }
-        if (this.end === false) this.getWork()
+        if (end === false) this.getWork()
       },
       handlerWork (work) {
         this.work = work
@@ -213,7 +206,8 @@
           data: {
             package: this.package,
             chat: this.chat,
-            client_ip: CLIENT_IP
+            client_ip: CLIENT_IP,
+            query_params: this.$route.query
           }
         }).then((response) => {
             this.sessionId = response.data.sessionId

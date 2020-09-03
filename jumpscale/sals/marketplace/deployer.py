@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from decimal import Decimal
 from .models import UserPool
-import gevent
+import random
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -58,16 +58,19 @@ class MarketPlaceDeployer(ChatflowDeployer):
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+        thecurrency = escrow_asset.split(":")[0]
         total_amount = "{0:f}".format(total_amount_dec)
-        qr_code = f"{escrow_asset.split(':')[0]}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
-        <h3> Please make your payment </h3>
+        <h3>Make a Payment</h3>
         Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
 
         <h4> Wallet Address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {escrow_asset.split(':')[0]} \n
+        <h4> Currency: </h4>  {thecurrency} \n
         <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
-        <h4> Total Amount: </h4> {total_amount} \n
+        <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
         """
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
@@ -241,6 +244,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
+    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
+        cu, su = self.calculate_capacity_units(**resources)
+        cu = int(cu * expiration)
+        su = int(su * expiration)
+        if not isinstance(currency, list):
+            currency = [currency]
+        pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
+        qr_code = self.show_payment(pool_info, bot)
+        return pool_info, qr_code
+
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
@@ -252,21 +265,68 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info, qr_code
 
-    def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None):
-        expiration = j.data.time.now().timestamp + exp * 60
-        msg = "### Waiting for payment...\n\n"
-        if qr_code:
-            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
-            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
-        while j.data.time.get().timestamp < expiration:
-            bot.md_show_update(msg, md=True)
-            pool = j.sals.zos.pools.get(pool_id)
-            if pool.cus > 0 or pool.sus > 0:
-                bot.md_show_update("Preparing app resources")
-                return True
-            gevent.sleep(2)
+    def get_free_pools(self, username, workload_types=None):
+        user_pools = self.list_user_pools(username)
+        j.sals.reservation_chatflow.deployer.load_user_workloads()
+        free_pools = []
+        workload_types = workload_types or [WorkloadType.Container]
+        for pool in user_pools:
+            valid = True
+            for wokrkload_type in workload_types:
+                if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][wokrkload_type][pool.pool_id]:
+                    valid = False
+                    break
+            if not valid:
+                continue
+            if pool.cus == 0 and pool.sus == 0:
+                continue
+            free_pools.append(pool)
+        return free_pools
 
-        return False
+    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, free_to_use=False):
+        def is_pool_free(pool, nodes_dict):
+            for node_id in pool.node_ids:
+                node = nodes_dict.get(node_id)
+                if node and not node.free_to_use:
+                    return False
+            return True
+
+        cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
+        required_cu = cu * expiration
+        required_su = su * expiration
+        exact_fit_pools = []  # contains pools that are exact match of the required resources
+        over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
+        under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
+        nodes = {}
+        if free_to_use:
+            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
+        for pool in pools:
+            if free_to_use and not is_pool_free(pool, nodes):
+                continue
+            if pool.cus == required_cu and pool.sus == required_su:
+                exact_fit_pools.append(pool)
+            else:
+                if pool.cus < required_cu or pool.sus < required_su:
+                    under_fit_pools.append(pool)
+                else:
+                    over_fit_pools.append(pool)
+        if exact_fit_pools:
+            return random.choice(exact_fit_pools), 0, 0
+
+        if over_fit_pools:
+            # sort overfit_pools ascending according to the sum of extra cus and sus
+            for pool in over_fit_pools:
+                pool.unit_diff = pool.cus + pool.sus - required_cu - required_su
+            sorted_result = sorted(over_fit_pools, key=lambda x: x.unit_diff)
+            result_pool = sorted_result[0]
+            return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
+        else:
+            # sort underfit pools descending according to the sum of diff cus and sus
+            for pool in under_fit_pools:
+                pool.unit_diff = pool.cus + pool.sus - required_cu - required_su
+            sorted_result = sorted(under_fit_pools, key=lambda x: x.unit_diff, reverse=True)
+            result_pool = sorted_result[0]
+            return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
@@ -294,10 +354,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         wgcfg = result["wg"]
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None):
+    def ask_expiration(self, bot, default=None, msg=""):
         default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
-            "Please enter solution expiration time.",
+            "Please enter solution expiration time." if not msg else msg,
             required=True,
             min_time=[3600, "Date/time should be at least 1 hour from now"],
             default=default,

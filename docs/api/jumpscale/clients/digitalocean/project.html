@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.digitalocean.project API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.digitalocean.project</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from digitalocean import Droplet
+from digitalocean.baseapi import BaseAPI, Error, GET, POST, DELETE, PUT
+
+
+class ProjectManagement(BaseAPI):
+    &#34;&#34;&#34;Project management
+
+    Attributes accepted at creation time:
+
+    Args:
+        name (str): project name
+        description (str): project size
+        purpose (str): purpose of the project
+        environemnt (str): environment of the project&#39;s resources
+
+    Attributes returned by API:
+        * id (int): project id
+        * owner_uuid (str): uuid of the project owner
+        * owner_id (str): id of the project owner
+        * name (str): project name
+        * description (str): project description
+        * purpose (str): project purpose
+        * environment (str): environment of the project&#39;s resources
+        * is_default (bool): If true, all resources will be added to this project if no project is specified.
+        * created_at (str): creation date in format u&#39;2014-11-06T10:42:09Z&#39;
+        * updated_at (str): update date in format u&#39;2014-11-06T10:42:09Z&#39;
+
+    &#34;&#34;&#34;
+
+    def __init__(self, *args, **kwargs):
+        # Defining default values
+        self.id = None
+        self.name = None
+        self.owner_uuid = None
+        self.owner_id = None
+        self.description = None
+        self.purpose = None
+        self.environment = None
+        self.is_default = False
+        self.updated_at = None
+        self.created_at = None
+
+        # This will load also the values passed
+        super(ProjectManagement, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def get_object(cls, api_token, project_id):
+        &#34;&#34;&#34;Class method that will return a Project object by ID.
+
+        Args:
+            api_token (str): token
+            project_id (int): project id
+        &#34;&#34;&#34;
+        project = cls(token=api_token, id=project_id)
+        project.load()
+        return project
+
+    @classmethod
+    def list(cls, client):
+
+        data = client.get_data(&#34;projects&#34;)
+
+        projects = list()
+        for jsoned in data[&#34;projects&#34;]:
+            project = cls(**jsoned)
+            project.token = client.token
+
+            projects.append(project)
+
+        return projects
+
+    def load(self):
+        &#34;&#34;&#34;
+        Fetch data about project - use this instead of get_data()
+        &#34;&#34;&#34;
+        projects = self.get_data(&#34;projects/%s&#34; % self.id)
+        project = projects[&#34;project&#34;]
+
+        for attr in project.keys():
+            setattr(self, attr, project[attr])
+
+        return self
+
+    def _update_data(self, project):
+        self.id = project[&#34;id&#34;]
+        self.owner_uuid = project[&#34;owner_uuid&#34;]
+        self.owner_id = project[&#34;owner_id&#34;]
+        self.name = project[&#34;name&#34;]
+        self.description = project[&#34;description&#34;]
+        self.purpose = project[&#34;purpose&#34;]
+        self.environment = project[&#34;environment&#34;]
+        self.is_default = project[&#34;is_default&#34;]
+        self.created_at = project[&#34;created_at&#34;]
+        self.updated_at = project[&#34;updated_at&#34;]
+
+    def create(self, *args, **kwargs):
+        &#34;&#34;&#34;
+        Create the project with object properties.
+
+        Note: Every argument and parameter given to this method will be
+        assigned to the object.
+        &#34;&#34;&#34;
+        for attr in kwargs.keys():
+            setattr(self, attr, kwargs[attr])
+
+        data = {
+            &#34;name&#34;: self.name,
+            &#34;description&#34;: self.description,
+            &#34;purpose&#34;: self.purpose,
+            &#34;environment&#34;: self.environment,
+        }
+
+        data = self.get_data(&#34;projects&#34;, type=POST, params=data)
+        self._update_data(data[&#34;project&#34;])
+
+    def update(self, *args, **kwargs):
+        &#34;&#34;&#34;
+        Update the project with object properties.
+
+        Note: Every argument and parameter given to this method will be
+        assigned to the object.
+        &#34;&#34;&#34;
+        for attr in kwargs.keys():
+            setattr(self, attr, kwargs[attr])
+
+        data = {
+            &#34;name&#34;: self.name,
+            &#34;description&#34;: self.description,
+            &#34;purpose&#34;: self.purpose,
+            &#34;environment&#34;: self.environment,
+            &#34;is_default&#34;: self.is_default,
+        }
+
+        data = self.get_data(&#34;projects/%s&#34; % self.id, type=PUT, params=data)
+        self._update_data(data[&#34;project&#34;])
+
+    def delete(self):
+        &#34;&#34;&#34;
+        Delete the project.
+        To be deleted, a project must not have any resources assigned to it. Any existing resources must first be reassigned or destroyed.
+        &#34;&#34;&#34;
+        self.get_data(&#34;projects/%s&#34; % self.id, type=DELETE)
+
+    def list_resources(self):
+        &#34;&#34;&#34;
+        List all resources in the project
+        &#34;&#34;&#34;
+        return self.get_data(&#34;projects/%s/resources&#34; % self.id)[&#34;resources&#34;]
+
+    def list_droplets(self):
+        &#34;&#34;&#34;
+        List all droplets in the project
+        &#34;&#34;&#34;
+        resources = self.list_resources()
+        droplets = []
+        for resource in resources:
+            if not resource[&#34;urn&#34;].startswith(&#34;do:droplet:&#34;):
+                continue
+            droplet_id = resource[&#34;urn&#34;].replace(&#34;do:droplet:&#34;, &#34;&#34;)
+            droplet = Droplet.get_object(api_token=self.token, droplet_id=droplet_id)
+            droplets.append(droplet)
+
+        return droplets
+
+    def assign_resources(self, resources):
+        &#34;&#34;&#34;Assign resources to the project.
+
+        :param resources: A list of uniform resource names (URNs) to be added to a project.
+        :type resources: [str]
+        &#34;&#34;&#34;
+        self.get_data(&#34;projects/%s/resources&#34; % self.id, type=POST, params={&#34;resources&#34;: resources})
+
+    def __str__(self):
+        return &#34;&lt;Project: %s %s&gt;&#34; % (self.id, self.name)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement"><code class="flex name class">
+<span>class <span class="ident">ProjectManagement</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Project management</p>
+<p>Attributes accepted at creation time:</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>project name</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code></dt>
+<dd>project size</dd>
+<dt><strong><code>purpose</code></strong> :&ensp;<code>str</code></dt>
+<dd>purpose of the project</dd>
+<dt><strong><code>environemnt</code></strong> :&ensp;<code>str</code></dt>
+<dd>environment of the project's resources</dd>
+</dl>
+<p>Attributes returned by API:
+* id (int): project id
+* owner_uuid (str): uuid of the project owner
+* owner_id (str): id of the project owner
+* name (str): project name
+* description (str): project description
+* purpose (str): project purpose
+* environment (str): environment of the project's resources
+* is_default (bool): If true, all resources will be added to this project if no project is specified.
+* created_at (str): creation date in format u'2014-11-06T10:42:09Z'
+* updated_at (str): update date in format u'2014-11-06T10:42:09Z'</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ProjectManagement(BaseAPI):
+    &#34;&#34;&#34;Project management
+
+    Attributes accepted at creation time:
+
+    Args:
+        name (str): project name
+        description (str): project size
+        purpose (str): purpose of the project
+        environemnt (str): environment of the project&#39;s resources
+
+    Attributes returned by API:
+        * id (int): project id
+        * owner_uuid (str): uuid of the project owner
+        * owner_id (str): id of the project owner
+        * name (str): project name
+        * description (str): project description
+        * purpose (str): project purpose
+        * environment (str): environment of the project&#39;s resources
+        * is_default (bool): If true, all resources will be added to this project if no project is specified.
+        * created_at (str): creation date in format u&#39;2014-11-06T10:42:09Z&#39;
+        * updated_at (str): update date in format u&#39;2014-11-06T10:42:09Z&#39;
+
+    &#34;&#34;&#34;
+
+    def __init__(self, *args, **kwargs):
+        # Defining default values
+        self.id = None
+        self.name = None
+        self.owner_uuid = None
+        self.owner_id = None
+        self.description = None
+        self.purpose = None
+        self.environment = None
+        self.is_default = False
+        self.updated_at = None
+        self.created_at = None
+
+        # This will load also the values passed
+        super(ProjectManagement, self).__init__(*args, **kwargs)
+
+    @classmethod
+    def get_object(cls, api_token, project_id):
+        &#34;&#34;&#34;Class method that will return a Project object by ID.
+
+        Args:
+            api_token (str): token
+            project_id (int): project id
+        &#34;&#34;&#34;
+        project = cls(token=api_token, id=project_id)
+        project.load()
+        return project
+
+    @classmethod
+    def list(cls, client):
+
+        data = client.get_data(&#34;projects&#34;)
+
+        projects = list()
+        for jsoned in data[&#34;projects&#34;]:
+            project = cls(**jsoned)
+            project.token = client.token
+
+            projects.append(project)
+
+        return projects
+
+    def load(self):
+        &#34;&#34;&#34;
+        Fetch data about project - use this instead of get_data()
+        &#34;&#34;&#34;
+        projects = self.get_data(&#34;projects/%s&#34; % self.id)
+        project = projects[&#34;project&#34;]
+
+        for attr in project.keys():
+            setattr(self, attr, project[attr])
+
+        return self
+
+    def _update_data(self, project):
+        self.id = project[&#34;id&#34;]
+        self.owner_uuid = project[&#34;owner_uuid&#34;]
+        self.owner_id = project[&#34;owner_id&#34;]
+        self.name = project[&#34;name&#34;]
+        self.description = project[&#34;description&#34;]
+        self.purpose = project[&#34;purpose&#34;]
+        self.environment = project[&#34;environment&#34;]
+        self.is_default = project[&#34;is_default&#34;]
+        self.created_at = project[&#34;created_at&#34;]
+        self.updated_at = project[&#34;updated_at&#34;]
+
+    def create(self, *args, **kwargs):
+        &#34;&#34;&#34;
+        Create the project with object properties.
+
+        Note: Every argument and parameter given to this method will be
+        assigned to the object.
+        &#34;&#34;&#34;
+        for attr in kwargs.keys():
+            setattr(self, attr, kwargs[attr])
+
+        data = {
+            &#34;name&#34;: self.name,
+            &#34;description&#34;: self.description,
+            &#34;purpose&#34;: self.purpose,
+            &#34;environment&#34;: self.environment,
+        }
+
+        data = self.get_data(&#34;projects&#34;, type=POST, params=data)
+        self._update_data(data[&#34;project&#34;])
+
+    def update(self, *args, **kwargs):
+        &#34;&#34;&#34;
+        Update the project with object properties.
+
+        Note: Every argument and parameter given to this method will be
+        assigned to the object.
+        &#34;&#34;&#34;
+        for attr in kwargs.keys():
+            setattr(self, attr, kwargs[attr])
+
+        data = {
+            &#34;name&#34;: self.name,
+            &#34;description&#34;: self.description,
+            &#34;purpose&#34;: self.purpose,
+            &#34;environment&#34;: self.environment,
+            &#34;is_default&#34;: self.is_default,
+        }
+
+        data = self.get_data(&#34;projects/%s&#34; % self.id, type=PUT, params=data)
+        self._update_data(data[&#34;project&#34;])
+
+    def delete(self):
+        &#34;&#34;&#34;
+        Delete the project.
+        To be deleted, a project must not have any resources assigned to it. Any existing resources must first be reassigned or destroyed.
+        &#34;&#34;&#34;
+        self.get_data(&#34;projects/%s&#34; % self.id, type=DELETE)
+
+    def list_resources(self):
+        &#34;&#34;&#34;
+        List all resources in the project
+        &#34;&#34;&#34;
+        return self.get_data(&#34;projects/%s/resources&#34; % self.id)[&#34;resources&#34;]
+
+    def list_droplets(self):
+        &#34;&#34;&#34;
+        List all droplets in the project
+        &#34;&#34;&#34;
+        resources = self.list_resources()
+        droplets = []
+        for resource in resources:
+            if not resource[&#34;urn&#34;].startswith(&#34;do:droplet:&#34;):
+                continue
+            droplet_id = resource[&#34;urn&#34;].replace(&#34;do:droplet:&#34;, &#34;&#34;)
+            droplet = Droplet.get_object(api_token=self.token, droplet_id=droplet_id)
+            droplets.append(droplet)
+
+        return droplets
+
+    def assign_resources(self, resources):
+        &#34;&#34;&#34;Assign resources to the project.
+
+        :param resources: A list of uniform resource names (URNs) to be added to a project.
+        :type resources: [str]
+        &#34;&#34;&#34;
+        self.get_data(&#34;projects/%s/resources&#34; % self.id, type=POST, params={&#34;resources&#34;: resources})
+
+    def __str__(self):
+        return &#34;&lt;Project: %s %s&gt;&#34; % (self.id, self.name)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>digitalocean.BaseAPI</li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.get_object"><code class="name flex">
+<span>def <span class="ident">get_object</span></span>(<span>api_token, project_id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Class method that will return a Project object by ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>api_token</code></strong> :&ensp;<code>str</code></dt>
+<dd>token</dd>
+<dt><strong><code>project_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>project id</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def get_object(cls, api_token, project_id):
+    &#34;&#34;&#34;Class method that will return a Project object by ID.
+
+    Args:
+        api_token (str): token
+        project_id (int): project id
+    &#34;&#34;&#34;
+    project = cls(token=api_token, id=project_id)
+    project.load()
+    return project</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.list"><code class="name flex">
+<span>def <span class="ident">list</span></span>(<span>client)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@classmethod
+def list(cls, client):
+
+    data = client.get_data(&#34;projects&#34;)
+
+    projects = list()
+    for jsoned in data[&#34;projects&#34;]:
+        project = cls(**jsoned)
+        project.token = client.token
+
+        projects.append(project)
+
+    return projects</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.assign_resources"><code class="name flex">
+<span>def <span class="ident">assign_resources</span></span>(<span>self, resources)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Assign resources to the project.</p>
+<p>:param resources: A list of uniform resource names (URNs) to be added to a project.
+:type resources: [str]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def assign_resources(self, resources):
+    &#34;&#34;&#34;Assign resources to the project.
+
+    :param resources: A list of uniform resource names (URNs) to be added to a project.
+    :type resources: [str]
+    &#34;&#34;&#34;
+    self.get_data(&#34;projects/%s/resources&#34; % self.id, type=POST, params={&#34;resources&#34;: resources})</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create the project with object properties.</p>
+<p>Note: Every argument and parameter given to this method will be
+assigned to the object.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create(self, *args, **kwargs):
+    &#34;&#34;&#34;
+    Create the project with object properties.
+
+    Note: Every argument and parameter given to this method will be
+    assigned to the object.
+    &#34;&#34;&#34;
+    for attr in kwargs.keys():
+        setattr(self, attr, kwargs[attr])
+
+    data = {
+        &#34;name&#34;: self.name,
+        &#34;description&#34;: self.description,
+        &#34;purpose&#34;: self.purpose,
+        &#34;environment&#34;: self.environment,
+    }
+
+    data = self.get_data(&#34;projects&#34;, type=POST, params=data)
+    self._update_data(data[&#34;project&#34;])</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Delete the project.
+To be deleted, a project must not have any resources assigned to it. Any existing resources must first be reassigned or destroyed.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def delete(self):
+    &#34;&#34;&#34;
+    Delete the project.
+    To be deleted, a project must not have any resources assigned to it. Any existing resources must first be reassigned or destroyed.
+    &#34;&#34;&#34;
+    self.get_data(&#34;projects/%s&#34; % self.id, type=DELETE)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.list_droplets"><code class="name flex">
+<span>def <span class="ident">list_droplets</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all droplets in the project</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_droplets(self):
+    &#34;&#34;&#34;
+    List all droplets in the project
+    &#34;&#34;&#34;
+    resources = self.list_resources()
+    droplets = []
+    for resource in resources:
+        if not resource[&#34;urn&#34;].startswith(&#34;do:droplet:&#34;):
+            continue
+        droplet_id = resource[&#34;urn&#34;].replace(&#34;do:droplet:&#34;, &#34;&#34;)
+        droplet = Droplet.get_object(api_token=self.token, droplet_id=droplet_id)
+        droplets.append(droplet)
+
+    return droplets</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.list_resources"><code class="name flex">
+<span>def <span class="ident">list_resources</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all resources in the project</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_resources(self):
+    &#34;&#34;&#34;
+    List all resources in the project
+    &#34;&#34;&#34;
+    return self.get_data(&#34;projects/%s/resources&#34; % self.id)[&#34;resources&#34;]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Fetch data about project - use this instead of get_data()</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def load(self):
+    &#34;&#34;&#34;
+    Fetch data about project - use this instead of get_data()
+    &#34;&#34;&#34;
+    projects = self.get_data(&#34;projects/%s&#34; % self.id)
+    project = projects[&#34;project&#34;]
+
+    for attr in project.keys():
+        setattr(self, attr, project[attr])
+
+    return self</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.digitalocean.project.ProjectManagement.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Update the project with object properties.</p>
+<p>Note: Every argument and parameter given to this method will be
+assigned to the object.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def update(self, *args, **kwargs):
+    &#34;&#34;&#34;
+    Update the project with object properties.
+
+    Note: Every argument and parameter given to this method will be
+    assigned to the object.
+    &#34;&#34;&#34;
+    for attr in kwargs.keys():
+        setattr(self, attr, kwargs[attr])
+
+    data = {
+        &#34;name&#34;: self.name,
+        &#34;description&#34;: self.description,
+        &#34;purpose&#34;: self.purpose,
+        &#34;environment&#34;: self.environment,
+        &#34;is_default&#34;: self.is_default,
+    }
+
+    data = self.get_data(&#34;projects/%s&#34; % self.id, type=PUT, params=data)
+    self._update_data(data[&#34;project&#34;])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients.digitalocean" href="index.html">jumpscale.clients.digitalocean</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement" href="#jumpscale.clients.digitalocean.project.ProjectManagement">ProjectManagement</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.assign_resources" href="#jumpscale.clients.digitalocean.project.ProjectManagement.assign_resources">assign_resources</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.create" href="#jumpscale.clients.digitalocean.project.ProjectManagement.create">create</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.delete" href="#jumpscale.clients.digitalocean.project.ProjectManagement.delete">delete</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.get_object" href="#jumpscale.clients.digitalocean.project.ProjectManagement.get_object">get_object</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.list" href="#jumpscale.clients.digitalocean.project.ProjectManagement.list">list</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.list_droplets" href="#jumpscale.clients.digitalocean.project.ProjectManagement.list_droplets">list_droplets</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.list_resources" href="#jumpscale.clients.digitalocean.project.ProjectManagement.list_resources">list_resources</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.load" href="#jumpscale.clients.digitalocean.project.ProjectManagement.load">load</a></code></li>
+<li><code><a title="jumpscale.clients.digitalocean.project.ProjectManagement.update" href="#jumpscale.clients.digitalocean.project.ProjectManagement.update">update</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

@@ -1,93 +1,35 @@
 <template>
   <div>
-    <base-component :loading="loading">
-      <template #actions>
-        <v-btn color="primary" text @click.stop="restart(solution.type)">
-          <v-icon left>mdi-package-variant-closed</v-icon> New 3bot
-        </v-btn>
-
-      </template>
-      <template #default>
-        <v-card class="pa-3 ml-3">
-          <v-card-title class="headline">
-            <v-avatar size="50px" class="mr-5" tile>
-              <v-img v-if="solution.image" :src="solution.image"></v-img>
-              <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
-            </v-avatar>
-            <span>{{solution.name}}</span>
-          </v-card-title>
-
-          <v-card-text style="font-size:1.1em">
-            <span>{{solution.description}}</span>
-            <br />
-            <br />
-            <v-btn
-              color="primary"
-              v-if="started(solution.type)"
-              @click.stop="open(solution.type)"
-            >Continue</v-btn>
-
-            <v-divider class="my-5"></v-divider>
-            <v-chip
-              class="ma-2"
-              color="primary"
-              min-width="100"
-              v-for="(s, i) in deployedSolutions"
-              :key="i"
-              @click="showInfo(s)"
-              outlined
-            >{{ s["Pool id"] === undefined ? s.Name : s["Pool id"] }}</v-chip>
-          </v-card-text>
-        </v-card>
-      </template>
-    </base-component>
-    <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
+    <v-parallax :src="threebot_data.bg" height="100%">
+      <v-row align="center" justify="center">
+        <v-col class="text-center" cols="12">
+          <h1 style="font-size: 60;" class="mb-2">{{threebot_data.header}}</h1>
+          <h3 class="subheading">{{threebot_data.subheader}}</h3>
+          <v-btn color="#7DB78D" class="mt-8 mx-2" dark large @click.stop="openChatflow()">Deploy my 3Bot instance</v-btn>
+          <v-btn color="#4472B5" class="mt-8 mx-2" dark large @click.stop="viewWorkloads()">View my 3Bot instances</v-btn>
+        </v-col>
+      </v-row>
+    </v-parallax>
   </div>
 </template>
 
 <script>
 module.exports = {
-  props: { type: String },
-  components: {
-    "solution-info": httpVueLoader("./Info.vue")
-  },
   data() {
     return {
-      loading: false,
-      selected: null,
-      dialogs: {
-        info: false
-      },
-      deployedSolutions: {},
-      solution: APPS["threebot"]
+      threebot_data: APPS["threebot"],
     };
   },
   methods: {
-    open(solutionId) {
+    openChatflow() {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId }
+        params: { topic: this.threebot_data.type },
       });
     },
-    restart(solutionId) {
-      localStorage.removeItem(solutionId);
-      this.open(solutionId);
-    },
-    started(solution_type) {
-      return localStorage.hasOwnProperty(solution_type);
-    },
-    showInfo(data) {
-      this.selected = data;
-      this.dialogs.info = true;
-    },
-    getDeployedSolutions() {
-      this.$api.solutions.getDeployed().then(response => {
-        this.deployedSolutions = response.data.data;
-      });
-    }
+    viewWorkloads() {
+        this.$router.push({name: "Workloads"});
+      },
   },
-  mounted() {
-    this.getDeployedSolutions();
-  }
 };
 </script>

@@ -8,8 +8,8 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class PoolReservation(GedisChatBot):
-    steps = ["pool_start", "choose_pool_name", "reserve_pool", "pool_success"]
-    title = "Pool"
+    steps = ["pool_start", "reserve_pool", "pool_success"]
+    title = "Capacity Pool"
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
@@ -21,30 +21,26 @@ class PoolReservation(GedisChatBot):
                 "Do you want to create a new pool or extend one?", ["create", "extend"], required=True, default="create"
             )
 
-    @chatflow_step(title="Pool Name")
-    def choose_pool_name(self):
+    @chatflow_step(title="Capacity Pool")
+    def reserve_pool(self):
         if self.action == "create":
             valid = False
             pool_factory = StoredFactory(PoolConfig)
             while not valid:
                 self.pool_name = self.string_ask(
-                    "Please choose a name to identify your pool locally", required=True, is_identifier=True
+                    "Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.", required=True, is_identifier=True
                 )
                 _, _, result = pool_factory.find_many(name=self.pool_name)
                 if list(result):
                     self.md_show("the name is already used. please choose a different one")
                     continue
                 valid = True
-
-    @chatflow_step(title="Pool Capacity")
-    def reserve_pool(self):
-        if self.action == "create":
             self.pool_data = deployer.create_pool(self)
         else:
             pool_id = deployer.select_pool(self)
             self.pool_data = deployer.extend_pool(self, pool_id)
 
-    @chatflow_step(title="Pool Info")
+    @chatflow_step(title="Capacity Pool Info", final_step=True)
     def pool_success(self):
         if self.action == "create":
             pool_id = self.pool_data.reservation_id
@@ -53,7 +49,7 @@ class PoolReservation(GedisChatBot):
             p.name = self.pool_name
             p.pool_id = pool_id
             p.save()
-        self.md_show("Transaction successful. it may take a few minutes to reflect.")
+        self.md_show(f"Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.")
 
 
 chat = PoolReservation

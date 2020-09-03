@@ -1,0 +1,2813 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.sals.chatflows.chatflows API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.sals.chatflows.chatflows</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">import base64
+import sys
+import uuid
+from captcha.image import ImageCaptcha
+from importlib import import_module
+import inspect
+import json
+import gevent
+import gevent.queue
+import html
+from jumpscale.loader import j
+
+
+class Result:
+    def __init__(self, loader=str):
+        self._value = None
+        self._loader = loader
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = self._loader(value)
+
+
+class Form:
+    def __init__(self, session):
+        self._session = session
+        self.fields = []
+        self.results = []
+
+    def ask(self, msg=None, **kwargs):
+        self._session.send_data(
+            {&#34;category&#34;: &#34;form&#34;, &#34;msg&#34;: msg, &#34;fields&#34;: self.fields, &#34;kwargs&#34;: kwargs}, is_slide=True
+        )
+        results = j.data.serializers.json.loads(self._session._queue_in.get())
+        for result, resobject in zip(results, self.results):
+            resobject.value = result
+
+    def _append(self, msg, loader=str):
+        self.fields.append(msg)
+        result = Result(loader)
+        self.results.append(result)
+        return result
+
+    def string_ask(self, msg, **kwargs):
+        return self._append(self._session.string_msg(msg, **kwargs))
+
+    def int_ask(self, msg, **kwargs):
+        return self._append(self._session.int_msg(msg, **kwargs), int)
+
+    def secret_ask(self, msg, **kwargs):
+        return self._append(self._session.secret_msg(msg, **kwargs))
+
+    def datetime_picker(self, msg, **kwargs):
+        return self._append(self._session.datetime_picker_msg(msg, **kwargs))
+
+    def multi_list_choice(self, msg, options, **kwargs):
+        return self._append(self._session.multi_list_choice_msg(msg, options, **kwargs))
+
+    def upload_file(self, msg, **kwargs):
+        return self._append(self._session.upload_file_msg(msg, **kwargs))
+
+    def multi_choice(self, msg, options, **kwargs):
+        return self._append(self._session.multi_choice_msg(msg, options, **kwargs), j.data.serializers.json.loads)
+
+    def single_choice(self, msg, options, **kwargs):
+        return self._append(self._session.single_choice_msg(msg, options, **kwargs))
+
+    def drop_down_choice(self, msg, options, **kwargs):
+        return self._append(self._session.drop_down_choice_msg(msg, options, **kwargs))
+
+
+class GedisChatBot:
+    &#34;&#34;&#34;
+    Contains the basic helper methods for asking questions
+    It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server
+    &#34;&#34;&#34;
+
+    steps = []
+    title = &#34;Zero Chat Bot&#34;
+
+    def __init__(self, **kwargs):
+        &#34;&#34;&#34;
+        Keyword Args
+            any extra kwargs that is passed while creating the session
+            (i.e. can be used for passing any query parameters)
+        &#34;&#34;&#34;
+        self.session_id = str(uuid.uuid4())
+        self.kwargs = kwargs
+        self._state = {}
+        self._current_step = 0
+        self._steps_info = {}
+        self._last_output = None
+        self._fetch_greenlet = None
+        self._greenlet = None
+        self._queue_out = gevent.queue.Queue()
+        self._queue_in = gevent.queue.Queue()
+        self._start()
+
+    @property
+    def step_info(self):
+        return self._steps_info.setdefault(self._current_step, {&#34;slide&#34;: 0})
+
+    @property
+    def is_first_slide(self):
+        return self.step_info.get(&#34;slide&#34;, 1) == 1
+
+    @property
+    def is_first_step(self):
+        return self._current_step == 0
+
+    @property
+    def is_last_step(self):
+        return self._current_step &gt;= len(self.steps) - 1
+
+    @property
+    def info(self):
+        previous = True
+        if self.is_first_slide:
+            if self.is_first_step or not self.step_info.get(&#34;previous&#34;):
+                previous = False
+
+        return {
+            &#34;step&#34;: self._current_step + 1,
+            &#34;steps&#34;: len(self.steps),
+            &#34;title&#34;: self.step_info.get(&#34;title&#34;),
+            &#34;previous&#34;: previous,
+            &#34;last_step&#34;: self.is_last_step,
+            &#34;first_step&#34;: self.is_first_step,
+            &#34;first_slide&#34;: self.is_first_slide,
+            &#34;slide&#34;: self.step_info.get(&#34;slide&#34;, 1),
+            &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
+        }
+
+    def _execute_current_step(self, spawn=True):
+        def wrapper(step_name):
+            internal_error = False
+            try:
+                getattr(self, step_name)()
+            except StopChatFlow as e:
+                internal_error = True
+                j.logger.exception(&#34;error&#34;, exception=e)
+                j.tools.alerthandler.alert_raise(
+                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                )
+                if e.msg:
+                    self.send_error(
+                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                    )
+                self.send_data({&#34;category&#34;: &#34;end&#34;})
+
+            except Exception as e:
+                internal_error = True
+                j.logger.exception(&#34;error&#34;, exception=e)
+                alert = j.tools.alerthandler.alert_raise(
+                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                )
+                if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
+                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        md=True,
+                        html=True,
+                    )
+                else:
+                    self.send_error(
+                        f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
+                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;
+                    )
+                self.send_data({&#34;category&#34;: &#34;end&#34;})
+
+            if not internal_error:
+                if self.is_last_step:
+                    self.send_data({&#34;category&#34;: &#34;end&#34;})
+                else:
+                    self._current_step += 1
+                    self._execute_current_step(spawn=False)
+
+        step_name = self.steps[self._current_step]
+        self.step_info[&#34;slide&#34;] = 0
+
+        if spawn:
+            self._greenlet = gevent.spawn(wrapper, step_name)
+        else:
+            wrapper(step_name)
+
+    def _start(self):
+        self._execute_current_step()
+
+    def go_next(self):
+        self._current_step += 1
+        self._execute_current_step()
+
+    def go_back(self):
+        if self.is_first_slide:
+            if self.is_first_step:
+                return
+            else:
+                self._current_step -= 1
+
+        self._greenlet.kill()
+        return self._execute_current_step()
+
+    def get_work(self, restore=False):
+        if self._fetch_greenlet:
+            if not self._fetch_greenlet.ready():
+                self._fetch_greenlet.kill()
+
+        if restore and self._last_output:
+            return self._last_output
+
+        self._fetch_greenlet = gevent.spawn(self._queue_out.get)
+        result = self._fetch_greenlet.get()
+
+        if not isinstance(result, gevent.GreenletExit):
+            return result
+
+    def set_work(self, data):
+        return self._queue_in.put(data)
+
+    def send_data(self, data, is_slide=False):
+        data.setdefault(&#34;kwargs&#34;, {})
+        retry = data[&#34;kwargs&#34;].pop(&#34;retry&#34;, False)
+
+        if is_slide and not retry:
+            self.step_info[&#34;slide&#34;] += 1
+
+        output = {&#34;info&#34;: self.info, &#34;payload&#34;: data}
+        self._last_output = output
+        self._queue_out.put(output)
+
+    def send_error(self, message, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;error&#34;, &#34;msg&#34;: message, &#34;kwargs&#34;: kwargs})
+        self._queue_in.get()
+
+    def ask(self, data):
+        self.send_data(data, is_slide=True)
+        return self._queue_in.get()
+
+    def user_info(self, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;user_info&#34;, &#34;kwargs&#34;: kwargs})
+        result = j.data.serializers.json.loads(self._queue_in.get())
+        return result
+
+    def string_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;string_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def string_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a string value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_length (int): min length
+            max_length (int): max length
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.string_msg(msg, **kwargs))
+
+    def secret_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;secret_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def secret_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a secret value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_length (int): min length
+            max_length (int): max length
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.secret_msg(msg, **kwargs))
+
+    def int_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;int_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def int_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a inegert value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min (int): min value
+            max (int): max value
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.int_msg(msg, **kwargs))
+        if result:
+            return int(result)
+
+    def text_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;text_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def text_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a multi line string value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.text_msg(msg, **kwargs))
+
+    def single_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;single_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def single_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single option
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.single_choice_msg(msg, options, **kwargs))
+
+    def multi_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;multi_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def multi_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a multiple options
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_options (int): min number of selected options
+            max_options (int): max number selected options
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.multi_choice_msg(msg, options, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def multi_list_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;multi_list_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def multi_list_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a multiple options
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_options (int): min number of selected options
+            max_options (int): max number selected options
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.multi_list_choice_msg(msg, options, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def drop_down_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;drop_down_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def drop_down_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single options using dropdown
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.drop_down_choice_msg(msg, options, **kwargs))
+
+    def autocomplete_drop_down(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single options using dropdown with auto completion
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)
+
+    def datetime_picker_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;datetime_picker&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def datetime_picker(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a datetime
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            int: timestamp
+        &#34;&#34;&#34;
+        result = self.ask(self.datetime_picker_msg(msg, **kwargs))
+        if result:
+            return int(result)
+
+    def time_delta_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;time_delta&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def time_delta_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a time delta example: 1Y 1M 1w 2d 1h
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            datetime.datetime: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
+        return j.data.time.get(result).humanize()
+
+    def location_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;location_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def location_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a location [lng, lat]
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            list: list([lat, lng])
+        &#34;&#34;&#34;
+        result = self.ask(self.location_msg(msg, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def download_file(self, msg, data, filename, **kwargs):
+        &#34;&#34;&#34;Add a download button to download data as a file
+
+        Args:
+            msg (str): message text
+            data (str): the data to be in the file
+            filename (str): file name
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        &#34;&#34;&#34;
+        self.ask({&#34;category&#34;: &#34;download_file&#34;, &#34;msg&#34;: msg, &#34;data&#34;: data, &#34;filename&#34;: filename, &#34;kwargs&#34;: kwargs})
+
+    def upload_file_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;upload_file&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def upload_file(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a file to be uploaded
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            max_size (int): file max size
+            allowed_types: list of allowed types example : [&#39;text/plain&#39;]
+
+        Returns:
+            str: file content
+        &#34;&#34;&#34;
+        return self.ask(self.upload_file_msg(msg, **kwargs))
+
+    def qrcode_show(self, msg, data, scale=10, **kwargs):
+        &#34;&#34;&#34;Show QR code as an image
+
+        Args:
+            msg (str): message
+            data (str): data to be encoded
+            scale (int, optional): qrcode scale. Defaults to 10.
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+        &#34;&#34;&#34;
+        qrcode = j.tools.qrcode.base64_get(data, scale=scale)
+        self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
+        self._queue_in.get()
+
+    def captcha_msg(self, **kwargs):
+        image = ImageCaptcha()
+        captcha = j.data.idgenerator.generateXCharID(4)
+        data = image.generate(captcha)
+        kwargs[&#34;value&#34;] = captcha
+        return (
+            captcha,
+            {
+                &#34;category&#34;: &#34;captcha_ask&#34;,
+                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
+                &#34;value&#34;: captcha,
+                &#34;msg&#34;: &#34;Are you human?&#34;,
+                &#34;kwargs&#34;: kwargs,
+            },
+        )
+
+    def captcha_ask(self, **kwargs):
+        captcha, message = self.captcha_msg(required=True, **kwargs)
+        return self.ask(message) == captcha
+
+    def md_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def md_show(self, msg, **kwargs):
+        &#34;&#34;&#34;Show markdown
+
+        Args:
+            msg (str): markdown string
+        &#34;&#34;&#34;
+        self.send_data(self.md_msg(msg, **kwargs), is_slide=True)
+        self._queue_in.get()
+
+    def md_show_confirm(self, data, **kwargs):
+        &#34;&#34;&#34;Show a table contains the keys and values of the data dict
+
+        Args:
+            data (dict): the data to be shown in the table
+        &#34;&#34;&#34;
+        if &#34;msg&#34; in kwargs:
+            msg = kwargs[&#34;msg&#34;]
+        else:
+            msg = &#34;Please make sure of the entered values before starting deployment&#34;
+
+        self.send_data({&#34;category&#34;: &#34;confirm&#34;, &#34;data&#34;: data, &#34;kwargs&#34;: kwargs, &#34;msg&#34;: msg}, is_slide=True)
+        self._queue_in.get()
+
+    def loading_show(self, msg, wait, **kwargs):
+        &#34;&#34;&#34;Show a progress bar
+
+        Args:
+            msg (str): message
+            wait (int): the duration (in seconds) of the progress bar
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+        &#34;&#34;&#34;
+        data = {&#34;category&#34;: &#34;loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+        for i in range(wait):
+            data[&#34;value&#34;] = (i / wait) * 100
+            self.send_data(data)
+            gevent.sleep(1)
+
+    def md_show_update(self, msg, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;infinite_loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}, is_slide=False)
+
+    def multi_values_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for multiple values
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            dict: the result as a dict
+        &#34;&#34;&#34;
+        result = self.ask({&#34;category&#34;: &#34;ask_multi_values&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs})
+        return j.data.serializers.json.loads(result)
+
+    def new_form(self):
+        &#34;&#34;&#34;Create a new form
+
+        Returns:
+            Form: form object
+        &#34;&#34;&#34;
+        return Form(self)
+
+    def stop(self, msg=None, **kwargs):
+        raise StopChatFlow(msg=msg, **kwargs)
+
+    def end(self):
+        self.send_data({&#34;category&#34;: &#34;end&#34;})
+
+
+def chatflow_step(title=None, final_step=False, disable_previous=False):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            self_ = args[0]
+            self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+class StopChatFlow(Exception):
+    def __init__(self, msg=None, **kwargs):
+        super().__init__(self, msg)
+        self.msg = msg
+        self.kwargs = kwargs</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.chatflow_step"><code class="name flex">
+<span>def <span class="ident">chatflow_step</span></span>(<span>title=None, final_step=False, disable_previous=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def chatflow_step(title=None, final_step=False, disable_previous=False):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            self_ = args[0]
+            self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.Form"><code class="flex name class">
+<span>class <span class="ident">Form</span></span>
+<span>(</span><span>session)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Form:
+    def __init__(self, session):
+        self._session = session
+        self.fields = []
+        self.results = []
+
+    def ask(self, msg=None, **kwargs):
+        self._session.send_data(
+            {&#34;category&#34;: &#34;form&#34;, &#34;msg&#34;: msg, &#34;fields&#34;: self.fields, &#34;kwargs&#34;: kwargs}, is_slide=True
+        )
+        results = j.data.serializers.json.loads(self._session._queue_in.get())
+        for result, resobject in zip(results, self.results):
+            resobject.value = result
+
+    def _append(self, msg, loader=str):
+        self.fields.append(msg)
+        result = Result(loader)
+        self.results.append(result)
+        return result
+
+    def string_ask(self, msg, **kwargs):
+        return self._append(self._session.string_msg(msg, **kwargs))
+
+    def int_ask(self, msg, **kwargs):
+        return self._append(self._session.int_msg(msg, **kwargs), int)
+
+    def secret_ask(self, msg, **kwargs):
+        return self._append(self._session.secret_msg(msg, **kwargs))
+
+    def datetime_picker(self, msg, **kwargs):
+        return self._append(self._session.datetime_picker_msg(msg, **kwargs))
+
+    def multi_list_choice(self, msg, options, **kwargs):
+        return self._append(self._session.multi_list_choice_msg(msg, options, **kwargs))
+
+    def upload_file(self, msg, **kwargs):
+        return self._append(self._session.upload_file_msg(msg, **kwargs))
+
+    def multi_choice(self, msg, options, **kwargs):
+        return self._append(self._session.multi_choice_msg(msg, options, **kwargs), j.data.serializers.json.loads)
+
+    def single_choice(self, msg, options, **kwargs):
+        return self._append(self._session.single_choice_msg(msg, options, **kwargs))
+
+    def drop_down_choice(self, msg, options, **kwargs):
+        return self._append(self._session.drop_down_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.ask"><code class="name flex">
+<span>def <span class="ident">ask</span></span>(<span>self, msg=None, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask(self, msg=None, **kwargs):
+    self._session.send_data(
+        {&#34;category&#34;: &#34;form&#34;, &#34;msg&#34;: msg, &#34;fields&#34;: self.fields, &#34;kwargs&#34;: kwargs}, is_slide=True
+    )
+    results = j.data.serializers.json.loads(self._session._queue_in.get())
+    for result, resobject in zip(results, self.results):
+        resobject.value = result</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.datetime_picker"><code class="name flex">
+<span>def <span class="ident">datetime_picker</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def datetime_picker(self, msg, **kwargs):
+    return self._append(self._session.datetime_picker_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.drop_down_choice"><code class="name flex">
+<span>def <span class="ident">drop_down_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def drop_down_choice(self, msg, options, **kwargs):
+    return self._append(self._session.drop_down_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.int_ask"><code class="name flex">
+<span>def <span class="ident">int_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def int_ask(self, msg, **kwargs):
+    return self._append(self._session.int_msg(msg, **kwargs), int)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.multi_choice"><code class="name flex">
+<span>def <span class="ident">multi_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_choice(self, msg, options, **kwargs):
+    return self._append(self._session.multi_choice_msg(msg, options, **kwargs), j.data.serializers.json.loads)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.multi_list_choice"><code class="name flex">
+<span>def <span class="ident">multi_list_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_list_choice(self, msg, options, **kwargs):
+    return self._append(self._session.multi_list_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.secret_ask"><code class="name flex">
+<span>def <span class="ident">secret_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def secret_ask(self, msg, **kwargs):
+    return self._append(self._session.secret_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.single_choice"><code class="name flex">
+<span>def <span class="ident">single_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def single_choice(self, msg, options, **kwargs):
+    return self._append(self._session.single_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.string_ask"><code class="name flex">
+<span>def <span class="ident">string_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def string_ask(self, msg, **kwargs):
+    return self._append(self._session.string_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Form.upload_file"><code class="name flex">
+<span>def <span class="ident">upload_file</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def upload_file(self, msg, **kwargs):
+    return self._append(self._session.upload_file_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot"><code class="flex name class">
+<span>class <span class="ident">GedisChatBot</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Contains the basic helper methods for asking questions
+It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server</p>
+<p>Keyword Args
+any extra kwargs that is passed while creating the session
+(i.e. can be used for passing any query parameters)</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class GedisChatBot:
+    &#34;&#34;&#34;
+    Contains the basic helper methods for asking questions
+    It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server
+    &#34;&#34;&#34;
+
+    steps = []
+    title = &#34;Zero Chat Bot&#34;
+
+    def __init__(self, **kwargs):
+        &#34;&#34;&#34;
+        Keyword Args
+            any extra kwargs that is passed while creating the session
+            (i.e. can be used for passing any query parameters)
+        &#34;&#34;&#34;
+        self.session_id = str(uuid.uuid4())
+        self.kwargs = kwargs
+        self._state = {}
+        self._current_step = 0
+        self._steps_info = {}
+        self._last_output = None
+        self._fetch_greenlet = None
+        self._greenlet = None
+        self._queue_out = gevent.queue.Queue()
+        self._queue_in = gevent.queue.Queue()
+        self._start()
+
+    @property
+    def step_info(self):
+        return self._steps_info.setdefault(self._current_step, {&#34;slide&#34;: 0})
+
+    @property
+    def is_first_slide(self):
+        return self.step_info.get(&#34;slide&#34;, 1) == 1
+
+    @property
+    def is_first_step(self):
+        return self._current_step == 0
+
+    @property
+    def is_last_step(self):
+        return self._current_step &gt;= len(self.steps) - 1
+
+    @property
+    def info(self):
+        previous = True
+        if self.is_first_slide:
+            if self.is_first_step or not self.step_info.get(&#34;previous&#34;):
+                previous = False
+
+        return {
+            &#34;step&#34;: self._current_step + 1,
+            &#34;steps&#34;: len(self.steps),
+            &#34;title&#34;: self.step_info.get(&#34;title&#34;),
+            &#34;previous&#34;: previous,
+            &#34;last_step&#34;: self.is_last_step,
+            &#34;first_step&#34;: self.is_first_step,
+            &#34;first_slide&#34;: self.is_first_slide,
+            &#34;slide&#34;: self.step_info.get(&#34;slide&#34;, 1),
+            &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
+        }
+
+    def _execute_current_step(self, spawn=True):
+        def wrapper(step_name):
+            internal_error = False
+            try:
+                getattr(self, step_name)()
+            except StopChatFlow as e:
+                internal_error = True
+                j.logger.exception(&#34;error&#34;, exception=e)
+                j.tools.alerthandler.alert_raise(
+                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                )
+                if e.msg:
+                    self.send_error(
+                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                    )
+                self.send_data({&#34;category&#34;: &#34;end&#34;})
+
+            except Exception as e:
+                internal_error = True
+                j.logger.exception(&#34;error&#34;, exception=e)
+                alert = j.tools.alerthandler.alert_raise(
+                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                )
+                if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
+                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        md=True,
+                        html=True,
+                    )
+                else:
+                    self.send_error(
+                        f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
+                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;
+                    )
+                self.send_data({&#34;category&#34;: &#34;end&#34;})
+
+            if not internal_error:
+                if self.is_last_step:
+                    self.send_data({&#34;category&#34;: &#34;end&#34;})
+                else:
+                    self._current_step += 1
+                    self._execute_current_step(spawn=False)
+
+        step_name = self.steps[self._current_step]
+        self.step_info[&#34;slide&#34;] = 0
+
+        if spawn:
+            self._greenlet = gevent.spawn(wrapper, step_name)
+        else:
+            wrapper(step_name)
+
+    def _start(self):
+        self._execute_current_step()
+
+    def go_next(self):
+        self._current_step += 1
+        self._execute_current_step()
+
+    def go_back(self):
+        if self.is_first_slide:
+            if self.is_first_step:
+                return
+            else:
+                self._current_step -= 1
+
+        self._greenlet.kill()
+        return self._execute_current_step()
+
+    def get_work(self, restore=False):
+        if self._fetch_greenlet:
+            if not self._fetch_greenlet.ready():
+                self._fetch_greenlet.kill()
+
+        if restore and self._last_output:
+            return self._last_output
+
+        self._fetch_greenlet = gevent.spawn(self._queue_out.get)
+        result = self._fetch_greenlet.get()
+
+        if not isinstance(result, gevent.GreenletExit):
+            return result
+
+    def set_work(self, data):
+        return self._queue_in.put(data)
+
+    def send_data(self, data, is_slide=False):
+        data.setdefault(&#34;kwargs&#34;, {})
+        retry = data[&#34;kwargs&#34;].pop(&#34;retry&#34;, False)
+
+        if is_slide and not retry:
+            self.step_info[&#34;slide&#34;] += 1
+
+        output = {&#34;info&#34;: self.info, &#34;payload&#34;: data}
+        self._last_output = output
+        self._queue_out.put(output)
+
+    def send_error(self, message, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;error&#34;, &#34;msg&#34;: message, &#34;kwargs&#34;: kwargs})
+        self._queue_in.get()
+
+    def ask(self, data):
+        self.send_data(data, is_slide=True)
+        return self._queue_in.get()
+
+    def user_info(self, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;user_info&#34;, &#34;kwargs&#34;: kwargs})
+        result = j.data.serializers.json.loads(self._queue_in.get())
+        return result
+
+    def string_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;string_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def string_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a string value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_length (int): min length
+            max_length (int): max length
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.string_msg(msg, **kwargs))
+
+    def secret_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;secret_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def secret_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a secret value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_length (int): min length
+            max_length (int): max length
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.secret_msg(msg, **kwargs))
+
+    def int_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;int_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def int_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a inegert value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min (int): min value
+            max (int): max value
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.int_msg(msg, **kwargs))
+        if result:
+            return int(result)
+
+    def text_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;text_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def text_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a multi line string value
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.text_msg(msg, **kwargs))
+
+    def single_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;single_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def single_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single option
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.single_choice_msg(msg, options, **kwargs))
+
+    def multi_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;multi_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def multi_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a multiple options
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_options (int): min number of selected options
+            max_options (int): max number selected options
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.multi_choice_msg(msg, options, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def multi_list_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;multi_list_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def multi_list_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a multiple options
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            min_options (int): min number of selected options
+            max_options (int): max number selected options
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.multi_list_choice_msg(msg, options, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def drop_down_choice_msg(self, msg, options, **kwargs):
+        return {&#34;category&#34;: &#34;drop_down_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}
+
+    def drop_down_choice(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single options using dropdown
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.ask(self.drop_down_choice_msg(msg, options, **kwargs))
+
+    def autocomplete_drop_down(self, msg, options, **kwargs):
+        &#34;&#34;&#34;Ask for a single options using dropdown with auto completion
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            str: user input
+        &#34;&#34;&#34;
+        return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)
+
+    def datetime_picker_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;datetime_picker&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def datetime_picker(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a datetime
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            int: timestamp
+        &#34;&#34;&#34;
+        result = self.ask(self.datetime_picker_msg(msg, **kwargs))
+        if result:
+            return int(result)
+
+    def time_delta_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;time_delta&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def time_delta_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a time delta example: 1Y 1M 1w 2d 1h
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            datetime.datetime: user input
+        &#34;&#34;&#34;
+        result = self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
+        return j.data.time.get(result).humanize()
+
+    def location_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;location_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def location_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a location [lng, lat]
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            list: list([lat, lng])
+        &#34;&#34;&#34;
+        result = self.ask(self.location_msg(msg, **kwargs))
+        return j.data.serializers.json.loads(result)
+
+    def download_file(self, msg, data, filename, **kwargs):
+        &#34;&#34;&#34;Add a download button to download data as a file
+
+        Args:
+            msg (str): message text
+            data (str): the data to be in the file
+            filename (str): file name
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        &#34;&#34;&#34;
+        self.ask({&#34;category&#34;: &#34;download_file&#34;, &#34;msg&#34;: msg, &#34;data&#34;: data, &#34;filename&#34;: filename, &#34;kwargs&#34;: kwargs})
+
+    def upload_file_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;upload_file&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def upload_file(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for a file to be uploaded
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+            max_size (int): file max size
+            allowed_types: list of allowed types example : [&#39;text/plain&#39;]
+
+        Returns:
+            str: file content
+        &#34;&#34;&#34;
+        return self.ask(self.upload_file_msg(msg, **kwargs))
+
+    def qrcode_show(self, msg, data, scale=10, **kwargs):
+        &#34;&#34;&#34;Show QR code as an image
+
+        Args:
+            msg (str): message
+            data (str): data to be encoded
+            scale (int, optional): qrcode scale. Defaults to 10.
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+        &#34;&#34;&#34;
+        qrcode = j.tools.qrcode.base64_get(data, scale=scale)
+        self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
+        self._queue_in.get()
+
+    def captcha_msg(self, **kwargs):
+        image = ImageCaptcha()
+        captcha = j.data.idgenerator.generateXCharID(4)
+        data = image.generate(captcha)
+        kwargs[&#34;value&#34;] = captcha
+        return (
+            captcha,
+            {
+                &#34;category&#34;: &#34;captcha_ask&#34;,
+                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
+                &#34;value&#34;: captcha,
+                &#34;msg&#34;: &#34;Are you human?&#34;,
+                &#34;kwargs&#34;: kwargs,
+            },
+        )
+
+    def captcha_ask(self, **kwargs):
+        captcha, message = self.captcha_msg(required=True, **kwargs)
+        return self.ask(message) == captcha
+
+    def md_msg(self, msg, **kwargs):
+        return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+
+    def md_show(self, msg, **kwargs):
+        &#34;&#34;&#34;Show markdown
+
+        Args:
+            msg (str): markdown string
+        &#34;&#34;&#34;
+        self.send_data(self.md_msg(msg, **kwargs), is_slide=True)
+        self._queue_in.get()
+
+    def md_show_confirm(self, data, **kwargs):
+        &#34;&#34;&#34;Show a table contains the keys and values of the data dict
+
+        Args:
+            data (dict): the data to be shown in the table
+        &#34;&#34;&#34;
+        if &#34;msg&#34; in kwargs:
+            msg = kwargs[&#34;msg&#34;]
+        else:
+            msg = &#34;Please make sure of the entered values before starting deployment&#34;
+
+        self.send_data({&#34;category&#34;: &#34;confirm&#34;, &#34;data&#34;: data, &#34;kwargs&#34;: kwargs, &#34;msg&#34;: msg}, is_slide=True)
+        self._queue_in.get()
+
+    def loading_show(self, msg, wait, **kwargs):
+        &#34;&#34;&#34;Show a progress bar
+
+        Args:
+            msg (str): message
+            wait (int): the duration (in seconds) of the progress bar
+
+        Keyword Arguments:
+            md (bool): render message as markdown
+            html (bool): render message as html
+        &#34;&#34;&#34;
+        data = {&#34;category&#34;: &#34;loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+        for i in range(wait):
+            data[&#34;value&#34;] = (i / wait) * 100
+            self.send_data(data)
+            gevent.sleep(1)
+
+    def md_show_update(self, msg, **kwargs):
+        self.send_data({&#34;category&#34;: &#34;infinite_loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}, is_slide=False)
+
+    def multi_values_ask(self, msg, **kwargs):
+        &#34;&#34;&#34;Ask for multiple values
+
+        Args:
+            msg (str): message text
+
+        Keyword Arguments:
+            required (bool): flag to make this field required
+            md (bool): render message as markdown
+            html (bool): render message as html
+
+        Returns:
+            dict: the result as a dict
+        &#34;&#34;&#34;
+        result = self.ask({&#34;category&#34;: &#34;ask_multi_values&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs})
+        return j.data.serializers.json.loads(result)
+
+    def new_form(self):
+        &#34;&#34;&#34;Create a new form
+
+        Returns:
+            Form: form object
+        &#34;&#34;&#34;
+        return Form(self)
+
+    def stop(self, msg=None, **kwargs):
+        raise StopChatFlow(msg=msg, **kwargs)
+
+    def end(self):
+        self.send_data({&#34;category&#34;: &#34;end&#34;})</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.chatflows.polls.Poll" href="polls.html#jumpscale.sals.chatflows.polls.Poll">Poll</a></li>
+<li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose" href="../../packages/tfgrid_solutions/chats/exposed.html#jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose">SolutionExpose</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy" href="../../packages/tfgrid_solutions/chats/flist.html#jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy">FlistDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy" href="../../packages/tfgrid_solutions/chats/kubernetes.html#jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy" href="../../packages/tfgrid_solutions/chats/minio.html#jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy">MinioDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy" href="../../packages/tfgrid_solutions/chats/monitoring.html#jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy" href="../../packages/tfgrid_solutions/chats/network.html#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy">NetworkDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.threebot.ThreebotDeploy" href="../../packages/tfgrid_solutions/chats/threebot.html#jumpscale.packages.tfgrid_solutions.chats.threebot.ThreebotDeploy">ThreebotDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy" href="../../packages/tfgrid_solutions/chats/ubuntu.html#jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.mattermost.MattermostDeploy" href="../../packages/tfgrid_solutions/chats/mattermost.html#jumpscale.packages.tfgrid_solutions.chats.mattermost.MattermostDeploy">MattermostDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.publisher.Publisher" href="../../packages/tfgrid_solutions/chats/publisher.html#jumpscale.packages.tfgrid_solutions.chats.publisher.Publisher">Publisher</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.cryptpad.CryptpadDeploy" href="../../packages/tfgrid_solutions/chats/cryptpad.html#jumpscale.packages.tfgrid_solutions.chats.cryptpad.CryptpadDeploy">CryptpadDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.discourse.Discourse" href="../../packages/tfgrid_solutions/chats/discourse.html#jumpscale.packages.tfgrid_solutions.chats.discourse.Discourse">Discourse</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.peertube.Peertube" href="../../packages/tfgrid_solutions/chats/peertube.html#jumpscale.packages.tfgrid_solutions.chats.peertube.Peertube">Peertube</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.taiga.TaigaDeploy" href="../../packages/tfgrid_solutions/chats/taiga.html#jumpscale.packages.tfgrid_solutions.chats.taiga.TaigaDeploy">TaigaDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.gitea.GiteaDeploy" href="../../packages/tfgrid_solutions/chats/gitea.html#jumpscale.packages.tfgrid_solutions.chats.gitea.GiteaDeploy">GiteaDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.steps"><code class="name">var <span class="ident">steps</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.title"><code class="name">var <span class="ident">title</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.info"><code class="name">var <span class="ident">info</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def info(self):
+    previous = True
+    if self.is_first_slide:
+        if self.is_first_step or not self.step_info.get(&#34;previous&#34;):
+            previous = False
+
+    return {
+        &#34;step&#34;: self._current_step + 1,
+        &#34;steps&#34;: len(self.steps),
+        &#34;title&#34;: self.step_info.get(&#34;title&#34;),
+        &#34;previous&#34;: previous,
+        &#34;last_step&#34;: self.is_last_step,
+        &#34;first_step&#34;: self.is_first_step,
+        &#34;first_slide&#34;: self.is_first_slide,
+        &#34;slide&#34;: self.step_info.get(&#34;slide&#34;, 1),
+        &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
+    }</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_slide"><code class="name">var <span class="ident">is_first_slide</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def is_first_slide(self):
+    return self.step_info.get(&#34;slide&#34;, 1) == 1</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_step"><code class="name">var <span class="ident">is_first_step</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def is_first_step(self):
+    return self._current_step == 0</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_last_step"><code class="name">var <span class="ident">is_last_step</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def is_last_step(self):
+    return self._current_step &gt;= len(self.steps) - 1</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.step_info"><code class="name">var <span class="ident">step_info</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def step_info(self):
+    return self._steps_info.setdefault(self._current_step, {&#34;slide&#34;: 0})</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.ask"><code class="name flex">
+<span>def <span class="ident">ask</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask(self, data):
+    self.send_data(data, is_slide=True)
+    return self._queue_in.get()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down"><code class="name flex">
+<span>def <span class="ident">autocomplete_drop_down</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a single options using dropdown with auto completion</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def autocomplete_drop_down(self, msg, options, **kwargs):
+    &#34;&#34;&#34;Ask for a single options using dropdown with auto completion
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask"><code class="name flex">
+<span>def <span class="ident">captcha_ask</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def captcha_ask(self, **kwargs):
+    captcha, message = self.captcha_msg(required=True, **kwargs)
+    return self.ask(message) == captcha</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg"><code class="name flex">
+<span>def <span class="ident">captcha_msg</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def captcha_msg(self, **kwargs):
+    image = ImageCaptcha()
+    captcha = j.data.idgenerator.generateXCharID(4)
+    data = image.generate(captcha)
+    kwargs[&#34;value&#34;] = captcha
+    return (
+        captcha,
+        {
+            &#34;category&#34;: &#34;captcha_ask&#34;,
+            &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
+            &#34;value&#34;: captcha,
+            &#34;msg&#34;: &#34;Are you human?&#34;,
+            &#34;kwargs&#34;: kwargs,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker"><code class="name flex">
+<span>def <span class="ident">datetime_picker</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a datetime</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>timestamp</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def datetime_picker(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a datetime
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        int: timestamp
+    &#34;&#34;&#34;
+    result = self.ask(self.datetime_picker_msg(msg, **kwargs))
+    if result:
+        return int(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg"><code class="name flex">
+<span>def <span class="ident">datetime_picker_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def datetime_picker_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;datetime_picker&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file"><code class="name flex">
+<span>def <span class="ident">download_file</span></span>(<span>self, msg, data, filename, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Add a download button to download data as a file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>the data to be in the file</dd>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
+<dd>file name</dd>
+</dl>
+<p>Keyword Arguments:
+md (bool): render message as markdown
+html (bool): render message as html</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def download_file(self, msg, data, filename, **kwargs):
+    &#34;&#34;&#34;Add a download button to download data as a file
+
+    Args:
+        msg (str): message text
+        data (str): the data to be in the file
+        filename (str): file name
+
+    Keyword Arguments:
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    &#34;&#34;&#34;
+    self.ask({&#34;category&#34;: &#34;download_file&#34;, &#34;msg&#34;: msg, &#34;data&#34;: data, &#34;filename&#34;: filename, &#34;kwargs&#34;: kwargs})</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice"><code class="name flex">
+<span>def <span class="ident">drop_down_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a single options using dropdown</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def drop_down_choice(self, msg, options, **kwargs):
+    &#34;&#34;&#34;Ask for a single options using dropdown
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.ask(self.drop_down_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice_msg"><code class="name flex">
+<span>def <span class="ident">drop_down_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def drop_down_choice_msg(self, msg, options, **kwargs):
+    return {&#34;category&#34;: &#34;drop_down_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.end"><code class="name flex">
+<span>def <span class="ident">end</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def end(self):
+    self.send_data({&#34;category&#34;: &#34;end&#34;})</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.get_work"><code class="name flex">
+<span>def <span class="ident">get_work</span></span>(<span>self, restore=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_work(self, restore=False):
+    if self._fetch_greenlet:
+        if not self._fetch_greenlet.ready():
+            self._fetch_greenlet.kill()
+
+    if restore and self._last_output:
+        return self._last_output
+
+    self._fetch_greenlet = gevent.spawn(self._queue_out.get)
+    result = self._fetch_greenlet.get()
+
+    if not isinstance(result, gevent.GreenletExit):
+        return result</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.go_back"><code class="name flex">
+<span>def <span class="ident">go_back</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def go_back(self):
+    if self.is_first_slide:
+        if self.is_first_step:
+            return
+        else:
+            self._current_step -= 1
+
+    self._greenlet.kill()
+    return self._execute_current_step()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.go_next"><code class="name flex">
+<span>def <span class="ident">go_next</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def go_next(self):
+    self._current_step += 1
+    self._execute_current_step()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask"><code class="name flex">
+<span>def <span class="ident">int_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a inegert value</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+min (int): min value
+max (int): max value</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def int_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a inegert value
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        min (int): min value
+        max (int): max value
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    result = self.ask(self.int_msg(msg, **kwargs))
+    if result:
+        return int(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.int_msg"><code class="name flex">
+<span>def <span class="ident">int_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def int_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;int_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show"><code class="name flex">
+<span>def <span class="ident">loading_show</span></span>(<span>self, msg, wait, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Show a progress bar</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message</dd>
+<dt><strong><code>wait</code></strong> :&ensp;<code>int</code></dt>
+<dd>the duration (in seconds) of the progress bar</dd>
+</dl>
+<p>Keyword Arguments:
+md (bool): render message as markdown
+html (bool): render message as html</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def loading_show(self, msg, wait, **kwargs):
+    &#34;&#34;&#34;Show a progress bar
+
+    Args:
+        msg (str): message
+        wait (int): the duration (in seconds) of the progress bar
+
+    Keyword Arguments:
+        md (bool): render message as markdown
+        html (bool): render message as html
+    &#34;&#34;&#34;
+    data = {&#34;category&#34;: &#34;loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
+    for i in range(wait):
+        data[&#34;value&#34;] = (i / wait) * 100
+        self.send_data(data)
+        gevent.sleep(1)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask"><code class="name flex">
+<span>def <span class="ident">location_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a location [lng, lat]</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>list</code></strong></dt>
+<dd>list([lat, lng])</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def location_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a location [lng, lat]
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        list: list([lat, lng])
+    &#34;&#34;&#34;
+    result = self.ask(self.location_msg(msg, **kwargs))
+    return j.data.serializers.json.loads(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.location_msg"><code class="name flex">
+<span>def <span class="ident">location_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def location_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;location_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_msg"><code class="name flex">
+<span>def <span class="ident">md_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def md_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show"><code class="name flex">
+<span>def <span class="ident">md_show</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Show markdown</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>markdown string</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def md_show(self, msg, **kwargs):
+    &#34;&#34;&#34;Show markdown
+
+    Args:
+        msg (str): markdown string
+    &#34;&#34;&#34;
+    self.send_data(self.md_msg(msg, **kwargs), is_slide=True)
+    self._queue_in.get()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm"><code class="name flex">
+<span>def <span class="ident">md_show_confirm</span></span>(<span>self, data, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Show a table contains the keys and values of the data dict</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
+<dd>the data to be shown in the table</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def md_show_confirm(self, data, **kwargs):
+    &#34;&#34;&#34;Show a table contains the keys and values of the data dict
+
+    Args:
+        data (dict): the data to be shown in the table
+    &#34;&#34;&#34;
+    if &#34;msg&#34; in kwargs:
+        msg = kwargs[&#34;msg&#34;]
+    else:
+        msg = &#34;Please make sure of the entered values before starting deployment&#34;
+
+    self.send_data({&#34;category&#34;: &#34;confirm&#34;, &#34;data&#34;: data, &#34;kwargs&#34;: kwargs, &#34;msg&#34;: msg}, is_slide=True)
+    self._queue_in.get()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_update"><code class="name flex">
+<span>def <span class="ident">md_show_update</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def md_show_update(self, msg, **kwargs):
+    self.send_data({&#34;category&#34;: &#34;infinite_loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}, is_slide=False)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice"><code class="name flex">
+<span>def <span class="ident">multi_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a multiple options</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+min_options (int): min number of selected options
+max_options (int): max number selected options</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_choice(self, msg, options, **kwargs):
+    &#34;&#34;&#34;Ask for a multiple options
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        min_options (int): min number of selected options
+        max_options (int): max number selected options
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    result = self.ask(self.multi_choice_msg(msg, options, **kwargs))
+    return j.data.serializers.json.loads(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice_msg"><code class="name flex">
+<span>def <span class="ident">multi_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_choice_msg(self, msg, options, **kwargs):
+    return {&#34;category&#34;: &#34;multi_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice"><code class="name flex">
+<span>def <span class="ident">multi_list_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a multiple options</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+min_options (int): min number of selected options
+max_options (int): max number selected options</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_list_choice(self, msg, options, **kwargs):
+    &#34;&#34;&#34;Ask for a multiple options
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        min_options (int): min number of selected options
+        max_options (int): max number selected options
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    result = self.ask(self.multi_list_choice_msg(msg, options, **kwargs))
+    return j.data.serializers.json.loads(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice_msg"><code class="name flex">
+<span>def <span class="ident">multi_list_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_list_choice_msg(self, msg, options, **kwargs):
+    return {&#34;category&#34;: &#34;multi_list_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask"><code class="name flex">
+<span>def <span class="ident">multi_values_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for multiple values</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>dict</code></strong></dt>
+<dd>the result as a dict</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def multi_values_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for multiple values
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        dict: the result as a dict
+    &#34;&#34;&#34;
+    result = self.ask({&#34;category&#34;: &#34;ask_multi_values&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs})
+    return j.data.serializers.json.loads(result)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form"><code class="name flex">
+<span>def <span class="ident">new_form</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create a new form</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><a title="jumpscale.sals.chatflows.chatflows.Form" href="#jumpscale.sals.chatflows.chatflows.Form"><code>Form</code></a></strong></dt>
+<dd>form object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def new_form(self):
+    &#34;&#34;&#34;Create a new form
+
+    Returns:
+        Form: form object
+    &#34;&#34;&#34;
+    return Form(self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show"><code class="name flex">
+<span>def <span class="ident">qrcode_show</span></span>(<span>self, msg, data, scale=10, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Show QR code as an image</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message</dd>
+<dt><strong><code>data</code></strong> :&ensp;<code>str</code></dt>
+<dd>data to be encoded</dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>qrcode scale. Defaults to 10.</dd>
+</dl>
+<p>Keyword Arguments:
+md (bool): render message as markdown
+html (bool): render message as html</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def qrcode_show(self, msg, data, scale=10, **kwargs):
+    &#34;&#34;&#34;Show QR code as an image
+
+    Args:
+        msg (str): message
+        data (str): data to be encoded
+        scale (int, optional): qrcode scale. Defaults to 10.
+
+    Keyword Arguments:
+        md (bool): render message as markdown
+        html (bool): render message as html
+    &#34;&#34;&#34;
+    qrcode = j.tools.qrcode.base64_get(data, scale=scale)
+    self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
+    self._queue_in.get()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask"><code class="name flex">
+<span>def <span class="ident">secret_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a secret value</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+min_length (int): min length
+max_length (int): max length</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def secret_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a secret value
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        min_length (int): min length
+        max_length (int): max length
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.ask(self.secret_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_msg"><code class="name flex">
+<span>def <span class="ident">secret_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def secret_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;secret_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.send_data"><code class="name flex">
+<span>def <span class="ident">send_data</span></span>(<span>self, data, is_slide=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def send_data(self, data, is_slide=False):
+    data.setdefault(&#34;kwargs&#34;, {})
+    retry = data[&#34;kwargs&#34;].pop(&#34;retry&#34;, False)
+
+    if is_slide and not retry:
+        self.step_info[&#34;slide&#34;] += 1
+
+    output = {&#34;info&#34;: self.info, &#34;payload&#34;: data}
+    self._last_output = output
+    self._queue_out.put(output)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.send_error"><code class="name flex">
+<span>def <span class="ident">send_error</span></span>(<span>self, message, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def send_error(self, message, **kwargs):
+    self.send_data({&#34;category&#34;: &#34;error&#34;, &#34;msg&#34;: message, &#34;kwargs&#34;: kwargs})
+    self._queue_in.get()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.set_work"><code class="name flex">
+<span>def <span class="ident">set_work</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_work(self, data):
+    return self._queue_in.put(data)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice"><code class="name flex">
+<span>def <span class="ident">single_choice</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a single option</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def single_choice(self, msg, options, **kwargs):
+    &#34;&#34;&#34;Ask for a single option
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.ask(self.single_choice_msg(msg, options, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice_msg"><code class="name flex">
+<span>def <span class="ident">single_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def single_choice_msg(self, msg, options, **kwargs):
+    return {&#34;category&#34;: &#34;single_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self, msg=None, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def stop(self, msg=None, **kwargs):
+    raise StopChatFlow(msg=msg, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask"><code class="name flex">
+<span>def <span class="ident">string_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a string value</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+min_length (int): min length
+max_length (int): max length</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def string_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a string value
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        min_length (int): min length
+        max_length (int): max length
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.ask(self.string_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.string_msg"><code class="name flex">
+<span>def <span class="ident">string_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def string_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;string_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask"><code class="name flex">
+<span>def <span class="ident">text_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a multi line string value</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>user input</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def text_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a multi line string value
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        str: user input
+    &#34;&#34;&#34;
+    return self.ask(self.text_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.text_msg"><code class="name flex">
+<span>def <span class="ident">text_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def text_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;text_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask"><code class="name flex">
+<span>def <span class="ident">time_delta_ask</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a time delta example: 1Y 1M 1w 2d 1h</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>datetime.datetime</code>: <code>user</code> <code>input</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def time_delta_ask(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a time delta example: 1Y 1M 1w 2d 1h
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+
+    Returns:
+        datetime.datetime: user input
+    &#34;&#34;&#34;
+    result = self.ask(self.time_delta_msg(msg, timedelta=True, **kwargs))
+    return j.data.time.get(result).humanize()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_msg"><code class="name flex">
+<span>def <span class="ident">time_delta_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def time_delta_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;time_delta&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file"><code class="name flex">
+<span>def <span class="ident">upload_file</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Ask for a file to be uploaded</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
+<dd>message text</dd>
+</dl>
+<p>Keyword Arguments:
+required (bool): flag to make this field required
+md (bool): render message as markdown
+html (bool): render message as html
+max_size (int): file max size
+allowed_types: list of allowed types example : ['text/plain']</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>file content</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def upload_file(self, msg, **kwargs):
+    &#34;&#34;&#34;Ask for a file to be uploaded
+
+    Args:
+        msg (str): message text
+
+    Keyword Arguments:
+        required (bool): flag to make this field required
+        md (bool): render message as markdown
+        html (bool): render message as html
+        max_size (int): file max size
+        allowed_types: list of allowed types example : [&#39;text/plain&#39;]
+
+    Returns:
+        str: file content
+    &#34;&#34;&#34;
+    return self.ask(self.upload_file_msg(msg, **kwargs))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file_msg"><code class="name flex">
+<span>def <span class="ident">upload_file_msg</span></span>(<span>self, msg, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def upload_file_msg(self, msg, **kwargs):
+    return {&#34;category&#34;: &#34;upload_file&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.user_info"><code class="name flex">
+<span>def <span class="ident">user_info</span></span>(<span>self, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def user_info(self, **kwargs):
+    self.send_data({&#34;category&#34;: &#34;user_info&#34;, &#34;kwargs&#34;: kwargs})
+    result = j.data.serializers.json.loads(self._queue_in.get())
+    return result</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.Result"><code class="flex name class">
+<span>class <span class="ident">Result</span></span>
+<span>(</span><span>loader=builtins.str)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Result:
+    def __init__(self, loader=str):
+        self._value = None
+        self._loader = loader
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = self._loader(value)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.chatflows.Result.value"><code class="name">var <span class="ident">value</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def value(self):
+    return self._value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.sals.chatflows.chatflows.StopChatFlow"><code class="flex name class">
+<span>class <span class="ident">StopChatFlow</span></span>
+<span>(</span><span>msg=None, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class StopChatFlow(Exception):
+    def __init__(self, msg=None, **kwargs):
+        super().__init__(self, msg)
+        self.msg = msg
+        self.kwargs = kwargs</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.sals.chatflows" href="index.html">jumpscale.sals.chatflows</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.chatflow_step" href="#jumpscale.sals.chatflows.chatflows.chatflow_step">chatflow_step</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.sals.chatflows.chatflows.Form" href="#jumpscale.sals.chatflows.chatflows.Form">Form</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.ask" href="#jumpscale.sals.chatflows.chatflows.Form.ask">ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.datetime_picker" href="#jumpscale.sals.chatflows.chatflows.Form.datetime_picker">datetime_picker</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.drop_down_choice" href="#jumpscale.sals.chatflows.chatflows.Form.drop_down_choice">drop_down_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.int_ask" href="#jumpscale.sals.chatflows.chatflows.Form.int_ask">int_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.multi_choice" href="#jumpscale.sals.chatflows.chatflows.Form.multi_choice">multi_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.multi_list_choice" href="#jumpscale.sals.chatflows.chatflows.Form.multi_list_choice">multi_list_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.secret_ask" href="#jumpscale.sals.chatflows.chatflows.Form.secret_ask">secret_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.single_choice" href="#jumpscale.sals.chatflows.chatflows.Form.single_choice">single_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.string_ask" href="#jumpscale.sals.chatflows.chatflows.Form.string_ask">string_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Form.upload_file" href="#jumpscale.sals.chatflows.chatflows.Form.upload_file">upload_file</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.ask">ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask">captcha_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg">captcha_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg">datetime_picker_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice">drop_down_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice_msg">drop_down_choice_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.end" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.end">end</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.get_work" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.get_work">get_work</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.go_back" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.go_back">go_back</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.go_next" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.go_next">go_next</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.info" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.info">info</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask">int_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.int_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.int_msg">int_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_slide" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_slide">is_first_slide</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_step" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_step">is_first_step</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_last_step" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.is_last_step">is_last_step</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show">loading_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask">location_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.location_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.location_msg">location_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_msg">md_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show">md_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm">md_show_confirm</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_update" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_update">md_show_update</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice">multi_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice_msg">multi_choice_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice">multi_list_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice_msg">multi_list_choice_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask">multi_values_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form">new_form</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show">qrcode_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask">secret_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_msg">secret_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.send_data" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.send_data">send_data</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.send_error" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.send_error">send_error</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.set_work" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.set_work">set_work</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice">single_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice_msg">single_choice_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.step_info" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.step_info">step_info</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.steps" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.steps">steps</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.stop" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.stop">stop</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask">string_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.string_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.string_msg">string_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask">text_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.text_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.text_msg">text_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask">time_delta_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_msg">time_delta_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.title" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.title">title</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file">upload_file</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file_msg">upload_file_msg</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.user_info" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.user_info">user_info</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.chatflows.chatflows.Result" href="#jumpscale.sals.chatflows.chatflows.Result">Result</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.Result.value" href="#jumpscale.sals.chatflows.chatflows.Result.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.chatflows.chatflows.StopChatFlow" href="#jumpscale.sals.chatflows.chatflows.StopChatFlow">StopChatFlow</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

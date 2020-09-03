@@ -15,6 +15,7 @@ official extenions to js framework
 ## Development environment
 
 - clone repo
+- `poetry update` if you already had an install before
 - `poetry install`
 - `poetry shell`
 
