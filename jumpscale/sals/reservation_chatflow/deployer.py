@@ -368,7 +368,7 @@ class ChatflowDeployer:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app (QR code)")
+        wallet_names.append("External Wallet (QR Code)")
         thecurrency = escrow_asset.split(":")[0]
         message = f"""
         <h3>Billing details:</h3><br>
@@ -377,11 +377,11 @@ class ChatflowDeployer:
         <b> Total Amount: </b> {total_amount} {thecurrency}<br>
         <b> Transaction Fees:</b> 0.1 {thecurrency}<br>
         <br><hr><br>
-        <h3> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h3>
+        <h3> Choose a wallet name to use for payment or proceed with payment through External wallet (QR Code) </h3>
         """
         result = bot.single_choice(message, wallet_names, html=True)
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
-        if result == "3Bot app (QR code)":
+        if result == "External Wallet (QR Code)":
             msg_text = f"""
             <h3>Make a Payment</h3>
             Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
