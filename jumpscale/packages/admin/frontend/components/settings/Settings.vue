@@ -96,6 +96,7 @@ module.exports = {
       loading: {
         admins: false,
         identities: false,
+        developerOptions: false,
       },
       selectedAdmin: null,
       dialogs: {
