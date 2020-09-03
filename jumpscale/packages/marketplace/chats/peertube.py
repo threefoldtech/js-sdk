@@ -1,8 +1,5 @@
-from textwrap import dedent
-
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.loader import j
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 
 
 class Peertube(MarketPlaceAppsChatflow):

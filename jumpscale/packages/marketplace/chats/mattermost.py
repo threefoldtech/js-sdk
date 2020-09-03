@@ -1,4 +1,3 @@
-from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
