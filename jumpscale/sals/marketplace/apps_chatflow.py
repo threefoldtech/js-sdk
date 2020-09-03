@@ -89,9 +89,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     qr_Code = deployer.show_payment(pool_info, self)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    deployer.wait_pool_payment(
+                    result = deployer.wait_pool_payment(
                         self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_Code
                     )
+                    if not result:
+                        raise StopChatFlow(
+                            f"Waiting for pool payment timedout. reservation_id: {self.pool_info.reservation_id}"
+                        )
                 else:
                     self.md_show_update(
                         f"Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment..."
