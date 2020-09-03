@@ -1,8 +1,7 @@
-from textwrap import dedent
-
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class Publisher(MarketPlaceAppsChatflow):
@@ -42,8 +41,8 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_email,
         }
 
-
     @chatflow_step(title="Reservation", disable_previous=True)
+    @deployment_context()
     def deploy(self):
         metadata = {
             "name": self.solution_name,
@@ -64,7 +63,7 @@ class Publisher(MarketPlaceAppsChatflow):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}")
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -81,7 +80,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
             )
 
@@ -99,8 +98,9 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}"
+            raise DeploymentFailed(
+                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}",
+                solution_uuid=self.solution_id,
             )
 
         # 4- deploy container
@@ -130,8 +130,9 @@ class Publisher(MarketPlaceAppsChatflow):
         self.resv_id = self.workload_ids[-1]
         if not success:
             solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}"
+            raise DeploymentFailed(
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                solution_uuid=self.solution_id,
             )
 
 

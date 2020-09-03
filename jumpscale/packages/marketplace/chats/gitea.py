@@ -1,6 +1,7 @@
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 import uuid
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -20,6 +21,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     query = {"cru": 2, "mru": 1, "sru": 6}
 
     @chatflow_step(title="Reservation", disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.database_name = "gitea"
         self.database_user = "root"
@@ -52,7 +54,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}"
             )
 
@@ -76,7 +78,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.resv_id])
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise DeploymentFailed(f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id)
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -96,7 +98,10 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.reverse_proxy_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}")
+            raise DeploymentFailed(
+                f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}",
+                solution_uuid=self.solution_id,
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
