@@ -68,7 +68,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
     def ubuntu_info(self):
         form = self.new_form()
         self.currency = form.single_choice(
-            &#34;Please select the currency you want to pay with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
+            &#34;Please select the currency you want to pay the solution with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
         )
         form.ask()
         self.currency = self.currency.value
@@ -112,7 +112,7 @@ class UbuntuDeploy(MarketPlaceChatflow):
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
             self.wgconf = None
             if not result:
-                raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}&#34;)
+                raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_info.reservation_id}&#34;)
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -249,7 +249,7 @@ any extra kwargs that is passed while creating the session
     def ubuntu_info(self):
         form = self.new_form()
         self.currency = form.single_choice(
-            &#34;Please select the currency you want to pay with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
+            &#34;Please select the currency you want to pay the solution with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
         )
         form.ask()
         self.currency = self.currency.value
@@ -293,7 +293,7 @@ any extra kwargs that is passed while creating the session
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
             self.wgconf = None
             if not result:
-                raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}&#34;)
+                raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_info.reservation_id}&#34;)
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(
@@ -524,7 +524,7 @@ any extra kwargs that is passed while creating the session
     def ubuntu_info(self):
         form = self.new_form()
         self.currency = form.single_choice(
-            &#34;Please select the currency you want to pay with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
+            &#34;Please select the currency you want to pay the solution with.&#34;, [&#34;TFT&#34;, &#34;TFTA&#34;], required=True
         )
         form.ask()
         self.currency = self.currency.value
@@ -568,7 +568,7 @@ any extra kwargs that is passed while creating the session
             result = deployer.wait_pool_payment(self, self.pool_info.reservation_id)
             self.wgconf = None
             if not result:
-                raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}&#34;)
+                raise StopChatFlow(f&#34;Your payment session has expired. pool_id: {self.pool_info.reservation_id}&#34;)
         else:
             # new user
             self.pool_info, self.wgconf = deployer.init_new_user(

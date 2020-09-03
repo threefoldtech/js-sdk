@@ -61,7 +61,7 @@ class SolutionExpose(BaseSolutionExpose, MarketPlaceChatflow):
 
         gateways = deployer.list_all_gateways(self.solution_metadata[&#34;owner&#34;])
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools&#34;)
 
         # add managed domains
         gateway_id_dict = {}
@@ -170,7 +170,7 @@ any extra kwargs that is passed while creating the session
 
         gateways = deployer.list_all_gateways(self.solution_metadata[&#34;owner&#34;])
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools&#34;)
 
         # add managed domains
         gateway_id_dict = {}
@@ -302,7 +302,7 @@ any extra kwargs that is passed while creating the session
 
         gateways = deployer.list_all_gateways(self.solution_metadata[&#34;owner&#34;])
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools&#34;)
 
         # add managed domains
         gateway_id_dict = {}

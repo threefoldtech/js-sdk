@@ -118,7 +118,7 @@ class Discourse(GedisChatBot):
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -343,7 +343,7 @@ any extra kwargs that is passed while creating the session
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -595,7 +595,7 @@ any extra kwargs that is passed while creating the session
 <pre><code class="python">def select_domain(self):
     gateways = deployer.list_all_gateways()
     if not gateways:
-        raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+        raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
     domains = dict()
     for gw_dict in gateways.values():
@@ -740,7 +740,7 @@ any extra kwargs that is passed while creating the session
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -992,7 +992,7 @@ any extra kwargs that is passed while creating the session
 <pre><code class="python">def select_domain(self):
     gateways = deployer.list_all_gateways()
     if not gateways:
-        raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+        raise StopChatFlow(&#34;There is no available gateway in the farms bound to your capacity pools.&#34;)
 
     domains = dict()
     for gw_dict in gateways.values():
