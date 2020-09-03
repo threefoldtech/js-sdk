@@ -497,12 +497,10 @@ class ChatflowDeployer:
             if not nodes:
                 continue
 
-            msg = f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"
+            pool_msg = f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"
             if len(available_pools[pool]) > 2:
-                msg = f"Name: {available_pools[pool][2]} " + msg
-            else:
-                msg = "Name: None " + msg
-            pool_messages[msg] = pool
+                pool_msg += f" Name: {available_pools[pool][2]}"
+            pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
         msg = "Please select a pool"
