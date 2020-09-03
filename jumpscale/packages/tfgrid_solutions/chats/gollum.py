@@ -45,7 +45,7 @@ class GollumDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -132,7 +132,7 @@ class GollumDeploy(GedisChatBot):
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():

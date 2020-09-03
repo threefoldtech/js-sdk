@@ -44,7 +44,7 @@ class Publisher(GedisChatBot):
             for sol in publisher_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name name.")
                     break
                 valid = True
 
@@ -69,9 +69,9 @@ class Publisher(GedisChatBot):
             "Please enter a name for your solution", required=True, is_identifier=True,
         )
         disk_sizes = [2, 5, 10]
-        self.vol_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
+        self.vol_size = form.single_choice("Choose the Disk Size", disk_sizes, required=True, default=disk_sizes[0])
         self.currency = form.single_choice(
-            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
+            "Please select the currency you would like to pay the solution with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
         form.ask()
         self.currency = self.currency.value
@@ -80,11 +80,11 @@ class Publisher(GedisChatBot):
     @chatflow_step(title="Solution Settings")
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice("Choose the type", options=["wiki", "www", "blog"], default="wiki", required=True)
+        ttype = form.single_choice("Choose Your Publicattion Type", options=["Wiki", "www", "Blog"], default="Wiki", required=True)
         title = form.string_ask("Title", required=True)
-        url = form.string_ask("Repository url", required=True)
+        url = form.string_ask("Repository URL", required=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask("Set configuration")
+        form.ask("Set Configuration")
 
         self.envars = {
             "TYPE": ttype.value,
@@ -100,15 +100,15 @@ class Publisher(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.md_show_update("Preparing a node to deploy on ...")
+        self.md_show_update("Preparing a node to deploy on...")
         self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="Domain")
     def domain_select(self):
-        self.md_show_update("Preparing gateways ...")
+        self.md_show_update("Preparing gateways...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -234,11 +234,11 @@ class Publisher(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own {self.publishing_chatflow}  deployed successfully:
+# Congratulations! Your own {self.publishing_chatflow} has been deployed successfully:
 \n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it via the browser at: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-- This domain maps to your container with ip: `{self.ip_address}`
+- This domain maps to your container with the IP Address: `{self.ip_address}`
                 """
         self.md_show(dedent(message), md=True)
 

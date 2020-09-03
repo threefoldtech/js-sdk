@@ -83,7 +83,7 @@ class Peertube(GedisChatBot):
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():

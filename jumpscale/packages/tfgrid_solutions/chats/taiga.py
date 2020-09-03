@@ -47,7 +47,7 @@ class TaigaDeploy(GedisChatBot):
             for sol in taiga_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -60,16 +60,16 @@ class TaigaDeploy(GedisChatBot):
     def taiga_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Taiga Setup")
+    @chatflow_step(title="Taiga Set Up")
     def taiga_credentials(self):
         form = self.new_form()
-        EMAIL_HOST_USER = form.string_ask("Please add the host email name for your solution.", required=True)
+        EMAIL_HOST_USER = form.string_ask("Please add the host e-mail address for your solution.", required=True)
         EMAIL_HOST = form.string_ask(
             "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", required=True, md=True
         )
-        EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host email password", required=True)
+        EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
 
-        SECRET_KEY = form.secret_ask("Please add the secret for your solution", required=True)
+        SECRET_KEY = form.secret_ask("Please add the secret key for your solution", required=True)
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
@@ -102,7 +102,7 @@ class TaigaDeploy(GedisChatBot):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -225,11 +225,11 @@ class TaigaDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from taiga deployed successfully:
+# Congratulations! You have successfully deployed a Taiga:
 \n<br />\n
-- Open it from browser: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it via the browser at: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-- your container ip is: `{self.ip_address}`
+- This domain maps to your container with the IP Address: `{self.ip_address}`
                 """
         self.md_show(dedent(message), md=True)
 

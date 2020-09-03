@@ -17,7 +17,7 @@ class DomainDelegation(GedisChatBot):
         self.pool_id = pool.pool_id
         self.solution_metadata = {}
 
-    @chatflow_step(title="Domain delegation name")
+    @chatflow_step(title="Domain Delegation Name")
     def domain_name(self):
         self.domain = self.string_ask("Please enter a domain name to delegate", required=True)
         self.gateway_id = self.gateway.node_id
@@ -35,9 +35,9 @@ class DomainDelegation(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True)
     def success(self):
         res = """\
-# Delegated your domain successfully:
+# Domain is delegated successfully:
 \n<br />\n
-- Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
+- Please create an `NS` record in your DNS manager for domain: `{{domain}}` pointing to:
     {% for dns in gateway.dns_nameserver -%}
     - {{dns}}
     {% endfor %}

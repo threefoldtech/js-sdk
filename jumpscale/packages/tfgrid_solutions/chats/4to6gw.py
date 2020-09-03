@@ -29,13 +29,13 @@ class FourToSixGateway(GedisChatBot):
     @chatflow_step(title="Wireguard public key")
     def wireguard_public_get(self):
         self.publickey = self.string_ask(
-            "Please enter wireguard public key or leave empty if you want us to generate one for you."
+            "Please enter a Wireguard public key, or leave it blank if you want us to generate one for you."
         )
-        self.privatekey = "enter private key here"
-        res = "### Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
+        self.privatekey = "Enter private key here"
+        res = "### Click 'Next' to continue with the Wireguard deployment. Once proceeded, you will not be able to go back to this step"
         self.md_show(res, md=True)
 
-    @chatflow_step(title="Create your Wireguard ", disable_previous=True)
+    @chatflow_step(title="Create Your Wireguard ", disable_previous=True)
     def wg_reservation(self):
         if not self.publickey:
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
@@ -53,15 +53,15 @@ class FourToSixGateway(GedisChatBot):
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
         res = """
-## Use the following template to configure your wireguard connection. This will give you access to your network.
+## Use the following template to configure your Wireguard connection. This will give you access to your network.
 \n<br/>\n
-Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
-Click next
+Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">Wireguard</a> installed locally.
+Click 'Next'
 to download your configuration
         """
         self.md_show(res)
 
-    @chatflow_step(title="Wireguard configuration", disable_previous=True)
+    @chatflow_step(title="Wireguard Configuration", disable_previous=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = """\
@@ -85,7 +85,7 @@ Endpoint = {{peer.endpoint}}
         filename = "wg-{}.conf".format(self.resv_id)
         self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=filename, html=True)
         res = f"""
-# In order to connect to the 4 to 6 gateway execute this command:
+# In order to connect to the 4 to 6 Gateway, please execute this command:
 \n<br/>\n
 ## ```wg-quick up ./{filename}```
                     """

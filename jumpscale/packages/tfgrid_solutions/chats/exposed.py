@@ -87,7 +87,7 @@ class SolutionExpose(GedisChatBot):
 
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools")
 
         # add managed domains
         gateway_id_dict = {}

@@ -7,10 +7,10 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 class WebsiteDeploy(Publisher):
 
-    title = "Deploy Website"
-    publishing_chatflow = "website"  # chatflow used to deploy the solution
+    title = "Deploy a Website"
+    publishing_chatflow = "Website"  # chatflow used to deploy the solution
 
-    @chatflow_step(title="Website Setup")
+    @chatflow_step(title="Website Set Up")
     def configuration(self):
         form = self.new_form()
         title = form.string_ask("Title", required=True)

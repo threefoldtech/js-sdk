@@ -32,7 +32,7 @@ class CryptpadDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def cryptpad_name(self):
         self._cryptpad_start()
         valid = False
@@ -43,7 +43,7 @@ class CryptpadDeploy(GedisChatBot):
             for sol in cryptpad_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name name.")
                     break
                 valid = True
 
@@ -58,7 +58,7 @@ class CryptpadDeploy(GedisChatBot):
 
         form = self.new_form()
         vol_disk_size = form.single_choice(
-            "Please specify the cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
+            "Please specify the Cryptpad storage size in GBs", ["5", "10", "15"], default="10", required=True,
         )
         form.ask()
         self.vol_size = int(vol_disk_size.value)
@@ -78,17 +78,17 @@ class CryptpadDeploy(GedisChatBot):
     def cryptpad_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Configuring your cryptpad")
+    @chatflow_step(title="Configuring your Cryptpad")
     def configuring_node(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": self.resources["disk_size"],
         }
-        self.md_show_update("Preparing a node to deploy on ...")
+        self.md_show_update("Preparing a node to deploy on...")
         self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
-        self.md_show_update("Configuring node ip ...")
+        self.md_show_update("Configuring node IP...")
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
             self.network_view.name,
@@ -110,7 +110,7 @@ class CryptpadDeploy(GedisChatBot):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your pools.")
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -223,11 +223,11 @@ class CryptpadDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from cryptpad deployed successfully:
+# Congratulations! You have successfully deployed a Cryptpad:
 \n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+- You can access it via the browser at: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
 \n<br />\n
-- This domain maps to your container with ip: `{self.ip_address}`
+- This domain maps to your container with the IP Address: `{self.ip_address}`
                 """
         self.md_show(dedent(message), md=True)
 

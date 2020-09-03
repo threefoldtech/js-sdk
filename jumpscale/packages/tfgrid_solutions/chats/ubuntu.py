@@ -50,15 +50,15 @@ class UbuntuDeploy(GedisChatBot):
             for sol in ubuntu_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
-    @chatflow_step(title="Ubuntu version")
+    @chatflow_step(title="Ubuntu Version")
     def ubuntu_version(self):
-        self.version = self.single_choice("Please choose ubuntu version", self.IMAGES, required=True)
+        self.version = self.single_choice("Please choose an Ubuntu version", self.IMAGES, required=True)
 
-    @chatflow_step(title="Container resources")
+    @chatflow_step(title="Container Resources")
     def container_resources(self):
         self.resources = deployer.ask_container_resources(self)
 
@@ -79,12 +79,12 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Container logs")
     def container_logs(self):
         self.container_logs_option = self.single_choice(
-            "Do you want to push the container logs (stdout and stderr) onto an external redis channel",
-            ["YES", "NO"],
-            default="NO",
+            "Do you want to push the container logs (stdout and stderr) onto an external Redis channel?",
+            ["Yes", "No"],
+            default="No",
             required=True,
         )
-        if self.container_logs_option == "YES":
+        if self.container_logs_option == "Yes":
             self.log_config = deployer.ask_container_logs(self, self.solution_name)
         else:
             self.log_config = {}
@@ -92,8 +92,8 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Access keys")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
+            """Please add your public SSH Key, this will allow you to access the deployed container using SSH.
+                    By uploading the Key file.""",
             required=True,
         ).split("\n")[0]
 
@@ -120,7 +120,7 @@ class UbuntuDeploy(GedisChatBot):
             owner=self.solution_metadata.get("owner"),
         )
         if result:
-            self.md_show_update("Deploying Network on Nodes....")
+            self.md_show_update("Deploying Network on nodes....")
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
@@ -128,7 +128,7 @@ class UbuntuDeploy(GedisChatBot):
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
+            "Please choose an IP Address for your solution", free_ips, default=free_ips[0], required=True,
         )
 
     @chatflow_step(title="Global IPv6 Address")
@@ -167,7 +167,7 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance deployed successfully:
+# Congratulations! Your new Ubuntu has been deployed successfully:
 \n<br />\n
 - To connect: `ssh root@{self.ip_address}`
                 """

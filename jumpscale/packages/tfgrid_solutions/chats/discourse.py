@@ -37,12 +37,12 @@ class Discourse(GedisChatBot):
         self._discourse_start()
         self.solution_name = deployer.ask_name(self)
 
-    @chatflow_step(title="SMTP information")
+    @chatflow_step(title="SMTP Information")
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask("SMTP server address", required=True)
-        self.smtp_username = form.string_ask("SMTP server username", required=True)
-        self.smtp_password = form.secret_ask("SMTP server password", required=True)
+        self.smtp_server = form.string_ask("SMTP Server Address", required=True)
+        self.smtp_username = form.string_ask("SMTP Server Username", required=True)
+        self.smtp_password = form.secret_ask("SMTP Server Password", required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -83,7 +83,7 @@ class Discourse(GedisChatBot):
             self.network_view.name, self.selected_node, self.pool_id, self.network_view_copy, bot=self
         )
         if result:
-            self.md_show_update("Deploying Network on Nodes....")
+            self.md_show_update("Deploying Network on nodes....")
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
@@ -94,7 +94,7 @@ class Discourse(GedisChatBot):
     def select_domain(self):
         gateways = deployer.list_all_gateways()
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow("There is no available gateway in the farms bound to your capacity pools.")
 
         domains = dict()
         for gw_dict in gateways.values():
