@@ -540,7 +540,7 @@ class ChatflowDeployer:
 =======
     def ask_name(self, bot):
         name = bot.string_ask(
-            "Please enter a name for your workload(Can be used to prepare domain for you and needed to track your solution on the grid )",
+            "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)",
             required=True,
             field="name",
             is_identifier=True,
