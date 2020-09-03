@@ -52,12 +52,12 @@
           <v-col cols="6" class="py-0">
 
             <v-icon small color="white" left>fa-server</v-icon>
-            Nodes in farm
+            Nodes in Farm
           </v-col>
         </v-row>
       </v-card-title>
       <v-card-text>
-        <p class="text-center">please select a farm to view the nodes.</p>
+        <p class="text-center">Please Select a Farm to View the Nodes</p>
       </v-card-text>
     </v-card>
     <nodesTable style="height: 100%; width:100%;" :farmselected="farmSelected" v-if="farmSelected && farmSelected.name">
@@ -129,7 +129,7 @@
               </v-row>
               <v-row>
                 <v-col>
-                  <v-btn @click="addWallet(farmToEdit)" dark small color="success">Add a wallet address</v-btn>
+                  <v-btn @click="addWallet(farmToEdit)" dark small color="success">Add a Wallet Address</v-btn>
                 </v-col>
               </v-row>
             </v-container>
@@ -152,7 +152,7 @@
     <v-card style="width: 100%;">
       <v-card-title primary-title class="primary py-3 mb-5 white--text">
         <v-icon color="white" left>fa-server</v-icon>
-        Add a farm
+        Add a Farm
         <v-spacer />
 
       </v-card-title>
@@ -179,7 +179,7 @@
           </v-row>
           <v-row>
             <v-col>
-              <v-btn @click="addWallet(newFarm)" dark small color="success">Add a wallet address</v-btn>
+              <v-btn @click="addWallet(newFarm)" dark small color="success">Add a Wallet Address</v-btn>
             </v-col>
           </v-row>
         </v-container>
@@ -201,4 +201,4 @@
     </v-card>
   </v-dialog>
 </section>
-<section v-else>Not logged in with 3Bot or in dev mode.</section>
+<section v-else>Not Logged in with 3Bot, or in Dev Mode.</section>

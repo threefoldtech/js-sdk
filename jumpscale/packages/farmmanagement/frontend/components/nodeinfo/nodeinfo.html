@@ -12,7 +12,7 @@
         </v-flex>
       </v-row>
       <v-row>
-        <v-flex xs3 class="text-left pr-2">Node version</v-flex>
+        <v-flex xs3 class="text-left pr-2">Node Version</v-flex>
         <v-flex class="text-truncate font-weight-bold">
           <span>{{node.version}}</span>
         </v-flex>
@@ -48,7 +48,7 @@
         </v-flex>
       </v-row>
       <v-row>
-        <v-flex xs3 class="text-left pr-2">Free to use</v-flex>
+        <v-flex xs3 class="text-left pr-2">Free to Use</v-flex>
         <v-flex>
           <v-switch class="free-toggle pr-2" v-model="node.free_to_use" @change="setFree()"></v-switch>
           <v-alert class="pr-2" :type="freeSwitchAlert.type" v-if="freeSwitchAlert" border="right" colored-border
@@ -56,7 +56,7 @@
             {{freeSwitchAlert.message}}
           </v-alert>
           <p>
-            When free to use is enabled, you can paid for this node capacity using <a id='asd'
+            When free to use is enabled, you can pay for this node capacity by using <a id='asd'
               href="https://github.com/threefoldfoundation/tft-stellar/#testnet">FreeTFT</a>
           </p>
         </v-flex>
@@ -73,20 +73,20 @@
             Your network is configured properly!<a id='asd'></a>
           </span>
           <span v-else>
-            Your network is not configured properly, check the network config.<a id='asd'></a>
+            Your network is not configured properly, please check the network configuration.<a id='asd'></a>
           </span>
         </v-tooltip>
       </v-row>
       <v-row>
         <v-dialog v-model="dialog" persistent max-width="800">
           <template v-slot:activator="{ on }">
-            <v-btn color="primary" dark v-on="on">Check network config</v-btn>
+            <v-btn color="primary" dark v-on="on">Check Network Configuration</v-btn>
           </template>
           <v-card>
-            <v-card-title class="headline">You node's network configuration</v-card-title>
+            <v-card-title class="headline">Your Node's Network Configuration</v-card-title>
             <v-card-text>
               <ul>
-                <li v-if="!node.npub6HealthError">NDMZ ipv6 config: <strong>{{ node.npub6Value }}</strong></li>
+                <li v-if="!node.npub6HealthError">NDMZ IPv6 Configuration: <strong>{{ node.npub6Value }}</strong></li>
                 <li v-else>
                   {{node.npub6HealthError}}
                   <ul v-if="node.npub6Configs.length > 0">
@@ -94,14 +94,14 @@
                   </ul>
                 </li>
 
-                <li v-if="!node.npub4HealthError">NDMZ ipv4 config: <strong>{{ node.npub4Value }}</strong></li>
+                <li v-if="!node.npub4HealthError">NDMZ IPV4 Configuration: <strong>{{ node.npub4Value }}</strong></li>
                 <li v-else>{{node.npub4HealthError}}</li>
 
-                <li v-if="!node.publicConfig6Error && !node.publicConfig6Value">No ipv6 public config</li>
+                <li v-if="!node.publicConfig6Error && !node.publicConfig6Value">No IPv6 Public Configuration</li>
                 <li v-else-if="node.publicConfig6Error">{{node.publicConfig6Error}}</li>
-                <li v-else>Public config ipv6: <strong>{{ node.publicConfig6Value }}</strong></li>
+                <li v-else>Public Configuration IPv6: <strong>{{ node.publicConfig6Value }}</strong></li>
               </ul>
-              <a href="https://github.com/threefoldtech/zos/blob/master/docs/network/Deploy_Network-V2.md" target="blank">Network documentation</a>
+              <a href="https://github.com/threefoldtech/zos/blob/master/docs/network/Deploy_Network-V2.md" target="blank">Network Documentation</a>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
@@ -114,7 +114,7 @@
   </v-col>
   <v-col v-if="node.workloads">
     <div class="title">
-      <v-icon small left>fa-chart-bar</v-icon>Provisioned workloads
+      <v-icon small left>fa-chart-bar</v-icon>Provisioned Workloads
     </div>
     <v-container fluid>
       <v-row>
@@ -124,7 +124,7 @@
             <v-col><span class="font-weight-bold text-right">{{node.workloads.network}}</span></v-col>
           </v-row>
           <v-row>
-            <v-col>0-DB namespace:</v-col>
+            <v-col>0-DB Namespace:</v-col>
             <v-col><span class="font-weight-bold text-right">{{node.workloads.zdb_namespace}}</span></v-col>
           </v-row>
         </v-col>
@@ -151,7 +151,7 @@
 
   <v-col>
     <div class="title">
-      <v-icon small left>fa-chart-pie</v-icon>Resource units reserved
+      <v-icon small left>fa-chart-pie</v-icon>Resource Units Reserved
     </div>
 
     <v-row>
