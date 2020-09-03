@@ -48,7 +48,10 @@ class NetworkDeploy(GedisChatBot):
     def ip_config(self):
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
-            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4", ips, required=True
+            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4",
+            ips,
+            required=True,
+            default="IPv4",
         )
         self.md_show_update("searching for access node...")
         pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
