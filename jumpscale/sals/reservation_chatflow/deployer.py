@@ -532,13 +532,12 @@ class ChatflowDeployer:
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def ask_name(self, bot):
-        name = bot.string_ask(
-            "Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )",
-            required=True,
-            field="name",
-            is_identifier=True,
+    def ask_name(self, bot, msg=None):
+        msg = (
+            msg
+            or "Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )"
         )
+        name = bot.string_ask(msg, required=True, field="name", is_identifier=True,)
 
         return name
 
