@@ -21,7 +21,7 @@ class ChatflowSolutions:
             nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
             farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
         for n in networks.values():
-            if len(n.network_workloads) == 0:
+            if not n.network_workloads:
                 continue
             result.append(
                 {
@@ -134,22 +134,22 @@ class ChatflowSolutions:
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
                     if name in result:
-                        if len(workload.master_ips) != 0:
+                        if workload.master_ips:
                             result[name]["wids"].append(workload.id)
                             result[name]["Slave IPs"].append(workload.ipaddress)
                             result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
-                    result[f"{name}"] = {
+                    result[name] = {
                         "wids": [workload.id],
                         "Name": name,
                         "Network": workload.network_id,
-                        "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
+                        "Master IP": workload.ipaddress if not workload.master_ips else workload.master_ips[0],
                         "Slave IPs": [],
                         "Slave Pools": [],
                         "Master Pool": workload.info.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
-                    if len(workload.master_ips) != 0:
+                    if workload.master_ips:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
