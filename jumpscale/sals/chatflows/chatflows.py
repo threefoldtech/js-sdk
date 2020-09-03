@@ -161,7 +161,7 @@ class GedisChatBot:
                 if self.user_info()["username"] in j.core.identity.me.admins:
                     self.send_error(
                         f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>"""
-                        "<br>Please use the refresh button on the upper right to restart the chatflow",
+                        "Please use the refresh button on the upper right to restart the chatflow",
                         md=True,
                         html=True,
                     )
