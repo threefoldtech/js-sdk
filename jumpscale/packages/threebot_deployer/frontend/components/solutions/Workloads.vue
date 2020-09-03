@@ -34,7 +34,7 @@
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
-                <v-btn icon @click.stop="delete3Bot(item.wids)">
+                <v-btn icon @click.stop="delete3Bot(item)">
                   <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
                 </v-btn>
               </template>
@@ -53,7 +53,7 @@
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
-    <cancel-workload v-model="dialogs.cancelWorkload" :wids="wids"></cancel-workload>
+    <cancel-workload v-if="selected" v-model="dialogs.cancelWorkload" :data="selected"></cancel-workload>
   </div>
 </template>
 
@@ -79,7 +79,6 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
-      wids : [],
     };
   },
   methods: {
@@ -87,8 +86,8 @@ module.exports = {
       this.selected = record;
       this.dialogs.info = true;
     },
-    delete3Bot(wids) {
-      this.wids = wids;
+    delete3Bot(record) {
+      this.selected = record;
       this.dialogs.cancelWorkload = true;
     },
     openChatflow(type) {

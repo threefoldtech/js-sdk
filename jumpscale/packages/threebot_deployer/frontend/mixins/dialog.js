@@ -33,6 +33,7 @@ dialog = {
       this.info = null
       this.warning = null
       this.dialog = false
+      this.loading = false
       this.reset()
     }
   }
