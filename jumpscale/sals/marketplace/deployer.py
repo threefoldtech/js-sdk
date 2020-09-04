@@ -63,7 +63,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
         <h3>Make a Payment</h3>
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+        Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
 
         <h4> Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {thecurrency} \n
@@ -192,7 +192,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         self, username, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None
     ):
         """
-        Choose multiple pools and to distribute workload automatically
+        Choose multiple pools to distribute workload automatically
 
         Args:
             bot: chatflow object
@@ -216,7 +216,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         messages = {f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}": p for p in pools}
         while True:
             pool_choices = bot.multi_list_choice(
-                f"Please seclect the pools you wish to distribute you {workload_name} on",
+                f"Please select the pools you wish to distribute your {workload_name} on",
                 options=list(messages.keys()),
                 required=True,
             )
@@ -360,7 +360,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         timestamp_now = j.data.time.get().timestamp
         min_message = f"Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now"
         self.expiration = bot.datetime_picker(
-            "Please enter solution expiration time." if not msg else msg,
+            "Please enter the solution's expiration time" if not msg else msg,
             required=True,
             min_time=[min, min_message],
             default=default,

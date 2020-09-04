@@ -39,7 +39,7 @@ class UbuntuDeploy(GedisChatBot):
         self.user_form_data["chatflow"] = "ubuntu"
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def ubuntu_name(self):
         self._ubuntu_start()
         valid = False
@@ -50,7 +50,7 @@ class UbuntuDeploy(GedisChatBot):
             for sol in ubuntu_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 

@@ -34,7 +34,7 @@ class GollumDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -45,7 +45,7 @@ class GollumDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -208,7 +208,7 @@ class GollumDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
         self.container_url = f"https://{self.domain}/"
 

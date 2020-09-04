@@ -19,7 +19,7 @@ class ExtendThreebot(MarketPlaceChatflow):
         self.threebot_names = [s["Name"] for s in self.threebot_workloads]
         self._threebots_dict = dict(zip(self.threebot_names, self.threebot_workloads))
         self.threebot_selected = self.single_choice(
-            "Choose your 3Bot you want to extend?", self.threebot_names, required=True
+            "Choose the 3Bot you would like to extend", self.threebot_names, required=True
         )
         self.pool_id = self._threebots_dict[self.threebot_selected]["Pool"]
         self.pool = j.sals.zos.pools.get(self.pool_id)
@@ -49,7 +49,7 @@ class ExtendThreebot(MarketPlaceChatflow):
                 if not node.free_to_use:
                     assets.remove("FreeTFT")
                     break
-        currency = self.single_choice("Please choose the currency", assets, required=True)
+        currency = self.single_choice("Please choose your preferred payment currency", assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
@@ -63,7 +63,7 @@ class ExtendThreebot(MarketPlaceChatflow):
 
     @chatflow_step(title="Success", final_step=True)
     def success(self):
-        self.md_show("Your 3Bot has been extended successfully")
+        self.md_show("Your 3Bot has been extended successfully.")
 
 
 chat = ExtendThreebot

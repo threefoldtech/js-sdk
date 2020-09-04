@@ -104,7 +104,7 @@ class Peertube(MarketPlaceAppsChatflow):
         if not success:
             # FIXME
             # solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+            raise StopChatFlow(f"Failed to create TRC container on node {self.selected_node.node_id} {_id}")
 
 
 chat = Peertube

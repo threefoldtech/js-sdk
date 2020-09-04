@@ -1,7 +1,7 @@
 <template>
   <base-dialog
     v-if="data"
-    title="Cancel workload"
+    title="Cancel Workload"
     v-model="dialog"
     :error="error"
     :info="info"
@@ -59,7 +59,7 @@ module.exports = {
         })
         .catch((err) => {
           this.alert("Failed to cancel 3Bot", "error");
-          this.close()
+          this.close();
         });
     },
     warningShow() {

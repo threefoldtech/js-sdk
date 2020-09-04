@@ -16,7 +16,7 @@ class NetworkDeploy(GedisChatBot):
         deployer.chatflow_pools_check()
         if solutions.list_network_solutions():
             self.action = self.single_choice(
-                "Do you want to create a new network or add access to an existing one?",
+                "Would you like to create a new network, or add access to an existing one?",
                 options=["Create", "Add Access"],
                 required=True,
                 default="Create",
@@ -38,7 +38,7 @@ class NetworkDeploy(GedisChatBot):
                 for sol in network_solutions:
                     if sol["Name"] == self.solution_name:
                         valid = False
-                        self.md_show("The specified solution name already exists. please choose another.")
+                        self.md_show("The specified solution name already exists. please choose another name.")
                         break
                     valid = True
         elif self.action == "Add Access":
@@ -48,7 +48,7 @@ class NetworkDeploy(GedisChatBot):
     def ip_config(self):
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
-            "How would you like to connect to your network? IPv4 or IPv6? If unsure, choose IPv4",
+            "How would you like to connect to your network? If unsure, choose IPv4",
             ips,
             required=True,
             default="IPv4",

@@ -45,7 +45,7 @@ class Backup(BaseActor):
                     f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
             except:
-                raise j.exceptions.Value(f"3Bot name or password are incorrect")
+                raise j.exceptions.Value(f"3Bot name or password is incorrect")
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 

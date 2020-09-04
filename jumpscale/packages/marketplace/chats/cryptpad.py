@@ -118,7 +118,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}",
                 solution_uuid=self.solution_id,
             )
 
