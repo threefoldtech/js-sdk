@@ -146,7 +146,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )

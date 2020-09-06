@@ -98,9 +98,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[1],
+                wid=self.workload_ids[-1],
             )
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
