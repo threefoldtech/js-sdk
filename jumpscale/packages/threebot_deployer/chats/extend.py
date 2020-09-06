@@ -51,7 +51,7 @@ class ExtendThreebot(MarketPlaceChatflow):
                     break
         currency = self.single_choice("Please choose the currency", assets, required=True)
         self.currencies = [currency]
-        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+        self.pool_info, self.qr_code = deployer.extend_solution_pool_to_fit(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
 
