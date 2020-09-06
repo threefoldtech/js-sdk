@@ -104,7 +104,7 @@ class NetworkDeploy(GedisChatBot):
             if not success:
                 raise DeploymentFailed(f"Failed to deploy workload {wid}", wid=wid)
 
-    @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
+    @chatflow_step(title="Network Information", disable_previous=True)
     def network_info(self):
         self.filename = "wg-{}.conf".format(self.config["rid"])
         self.wgconf = self.config["wg"]
