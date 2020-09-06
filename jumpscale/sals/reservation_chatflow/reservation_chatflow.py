@@ -13,7 +13,6 @@ import netaddr
 import random
 import requests
 import time
-from redis import Redis
 
 NODES_DISALLOW_KEY = "ZOS:DISALLOWED_NODES"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
@@ -1401,8 +1400,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
 
         disallowed_dict = {}
         if filter_blocked:
-            client = Redis()
-            disallowed_dict = client.hgetall(NODES_DISALLOW_KEY)
+            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0

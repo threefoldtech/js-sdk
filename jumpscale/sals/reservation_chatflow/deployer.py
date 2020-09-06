@@ -10,7 +10,6 @@ import netaddr
 import uuid
 from collections import defaultdict
 from decimal import Decimal
-from redis import Redis
 import gevent
 import re
 
@@ -1545,8 +1544,8 @@ Workload ID: {workload_id}
         return False
 
     def block_node(self, node_id):
-        client = Redis()
-        client.hset(NODES_DISALLOW_KEY, node_id, j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION)
+        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
+        j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
 
 
 deployer = ChatflowDeployer()
