@@ -101,7 +101,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     if not result:
                         raise StopChatFlow(
-                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}"
+                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
                         )
                     self.pool_id = pool.pool_id
                 else:
