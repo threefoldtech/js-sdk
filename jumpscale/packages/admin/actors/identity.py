@@ -7,7 +7,9 @@ from jumpscale.packages.backup.actors.marketplace import Backup
 
 BACKUP_ACTOR = Backup()
 
-explorers = {"explorer.grid.tf": "main", "explorer.testnet.grid.tf": "testnet"}
+# TODO: edit naming
+explorer_url_to_name = {"explorer.grid.tf": "main", "explorer.testnet.grid.tf": "testnet"}
+explorer_url_from_name = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
 
 class Identity(BaseActor):
@@ -19,15 +21,17 @@ class Identity(BaseActor):
         """
 
         identity_names = j.core.identity.list_all()
-        if not identity_names or (identity_instance_name and identity_instance_name not in identity_names):
-            return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
+        if not identity_names:
+            return j.data.serializers.json.dumps({"data": f"You have to configure an identity"})
 
         if not identity_instance_name:
             identity = j.core.identity.me
         else:
+            if identity_instance_name not in identity_names:
+                return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
             identity = j.core.identity.get(identity_instance_name)
 
-        network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknown")
+        network = explorer_url_to_name.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknown")
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -62,14 +66,18 @@ class Identity(BaseActor):
 
     @actor_method
     def add_identity(self, identity_instance_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
-        explorer_url = f"https://{explorers[explorer_type]}/api/v1"
+        explorer_url = f"https://{explorer_url_from_name[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
