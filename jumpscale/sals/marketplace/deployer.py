@@ -6,6 +6,7 @@ from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, Netwo
 from decimal import Decimal
 from .models import UserPool
 import random
+import math
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -246,13 +247,22 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = int(cu * expiration)
-        su = int(su * expiration)
+        cu = cu * expiration
+        su = su * expiration
+        pool = j.sals.zos.pools.get(pool_id)
+        old_cu, old_su = pool.cus, pool.sus
+        cu = math.ceil(cu - old_cu)
+        su = math.ceil(su - old_su)
+        cu = max(cu, 0)
+        su = max(su, 0)
         if not isinstance(currency, list):
             currency = [currency]
-        pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
-        qr_code = self.show_payment(pool_info, bot)
-        return pool_info, qr_code
+        if cu > 0 or su > 0:
+            pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
+            qr_code = self.show_payment(pool_info, bot)
+            return pool_info, qr_code
+        else:
+            return None, None
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
