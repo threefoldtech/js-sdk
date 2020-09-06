@@ -41,7 +41,7 @@ class deployment_context(ContextDecorator):
 
 import jumpscale.tools.http
 from jumpscale.core.exceptions import Input
-import time
+import gevent
 
 
 def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -> bool:
@@ -58,12 +58,12 @@ def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -> bool:
     """
     for _ in range(timeout):
         try:
-            if check_url_reachable(url, verify=verify):
+            if check_url_reachable(url, timeout=1, verify=verify):
                 return True
         except:
             pass
 
-        time.sleep(1)
+        gevent.sleep(1)
     else:
         return False
 
