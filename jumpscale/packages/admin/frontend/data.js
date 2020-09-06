@@ -31,14 +31,14 @@ const SOLUTIONS = {
     type: "kubernetes",
     image: "./assets/kubernetes.png",
     url: "/solutions/kubernetes",
-    description: "Deploy a Kubernetes cluster using a chatflow. In this guide we will walk you through the provisioning of a full-blown kubernetes cluster on the TF grid. We will then see how to connect to it and interact using kubectl on our local machine. Finally we will go through some examples use cases to grasp the features offered by the cluster."
+    description: "Deploy a Kubernetes cluster on the TF grid using a chatflow. This cluster can then be interacted with using kubectl on the user's local machine."
   },
   minio: {
     name: "S3 Storage",
     type: "minio",
     image: "./assets/minio.png",
     url: "/solutions/minio",
-    description: "S3 Storage solution is using MinIO a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with the number of zdbs needed for storage."
+    description: "S3 Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
   },
   expose: {
     name: "Solution Expose",
@@ -52,14 +52,14 @@ const SOLUTIONS = {
     type: "flist",
     image: "./assets/flist.png",
     url: "/solutions/flist",
-    description: "Spawn a container using specific flist provided by the user in the chatflow."
+    description: "Spawn a container using a specific flist provided by the user in the chatflow."
   },
   monitoring: {
     name: "Monitoring",
     type: "monitoring",
     image: "./assets/monitoring.png",
     url: "/solutions/monitoring",
-    description: "Deploy basic monitoring stack (Prometheus, Grafana, Redis)"
+    description: "Deploy a basic monitoring stack (Prometheus, Grafana, Redis)"
   },
   domain: {
     name: "Domain Delegation",
