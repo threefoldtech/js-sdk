@@ -133,7 +133,7 @@ You will be automatically redirected to the next step once succeeded.
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
         }
         self.network_view = self.network_view.copy()
-        # entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
+        entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -145,9 +145,9 @@ You will be automatically redirected to the next step once succeeded.
                 cpu=self.query["cru"],
                 memory=self.query["mru"] * 1024,
                 disk_size=self.query["sru"] * 1024,
-                # entrypoint=entry_point,
+                entrypoint=entry_point,
                 secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
-                interactive=True,
+                interactive=False,
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )
