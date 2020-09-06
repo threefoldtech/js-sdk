@@ -95,7 +95,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             )
         )
         self.resv_id = self.workload_ids[-1]
-        success = deployer.wait_workload(self.workload_ids[1], self)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
@@ -123,7 +123,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             raise DeploymentFailed(
                 f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[1],
+                wid=self.workload_ids[-1],
             )
 
 
