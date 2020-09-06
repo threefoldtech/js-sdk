@@ -1,15 +1,12 @@
-import binascii
-
-import nacl.encoding
+from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
+from jumpscale.loader import j
 import nacl.secret
-import nacl.signing
 import nacl.utils
 import requests
+import nacl.signing
+import binascii
 from nacl.public import Box
-
-from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
+import nacl.encoding
 
 BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
@@ -26,25 +23,11 @@ class Backup(BaseActor):
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def init(self, threebot_name: str, passwd: str, new=True, token: str = "") -> list:
+    def init(self, threebot_name: str, passwd: str, new=True) -> list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f"3Bot name {threebot_name} is not found")
-
-        # check the user token is valid for new users
-        if new:
-            verified = False
-            for solution_name in BACKUP_MODEL_FACTORY.list_all():
-                backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
-                if backup_data.token == token and backup_data.tname == threebot_name:
-                    verified = True
-                    BACKUP_MODEL_FACTORY.delete(solution_name)
-
-            if not verified:
-                raise j.exceptions.Permission(
-                    f"Invalid token, Unauthorized attempt to create a backup user from {threebot_name}."
-                )
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())

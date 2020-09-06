@@ -6,6 +6,9 @@ from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, ge
 
 app = Bottle()
 
+ssh_server1 = j.clients.sshclient.get("backup_server1")
+ssh_server2 = j.clients.sshclient.get("backup_server2")
+
 
 @app.route("/backup/destroy", method="POST")
 @login_required
@@ -15,8 +18,6 @@ def destroy():
     * WARNINING: THIS IS A DISTRUCTIVE ACTION. WON'T BE ABLE TO RECOVER FROM *
     --------------------------------------------------------------------------
     """
-    ssh_server1 = j.clients.sshclient.get("backup_server1")
-    ssh_server2 = j.clients.sshclient.get("backup_server2")
     # validiate user
     data = j.data.serializers.json.loads(request.body.read())
     threebot_name = data.get("threebot_name", "")
