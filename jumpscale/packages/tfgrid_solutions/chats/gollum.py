@@ -34,7 +34,7 @@ class GollumDeploy(GedisChatBot):
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -45,7 +45,7 @@ class GollumDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -67,11 +67,10 @@ class GollumDeploy(GedisChatBot):
     def gollum_network(self):
         self.network_view = deployer.select_network(self)
 
-    @chatflow_step(title="Access keys")
+    @chatflow_step(title="Access Key")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key""",
+            """Please upload your public SSH key to be able to access the depolyed container via ssh""",
             required=True,
         ).split("\n")[0]
 
@@ -79,15 +78,21 @@ class GollumDeploy(GedisChatBot):
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask("Please enter an email to get ssl certificate updates of your container",)
+        self.email = form.string_ask(
+            "Please enter an email to get ssl certificate updates of your container",
+        )
         form.ask()
 
     @chatflow_step(title="Github repo setup")
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask("Please enter your github username",)
+        self.github_user = form.string_ask(
+            "Please enter your github username",
+        )
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask("Please enter your github email",)
+        self.github_email = form.string_ask(
+            "Please enter your github email",
+        )
         self.github_repo = form.string_ask(
             "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists",
         )
@@ -203,7 +208,7 @@ class GollumDeploy(GedisChatBot):
         if not success:
             solutions.cancel_solution(self.workload_ids)
             raise StopChatFlow(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[1]}"
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[1]}"
             )
         self.container_url = f"https://{self.domain}/"
 

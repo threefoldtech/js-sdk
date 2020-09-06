@@ -211,8 +211,7 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
-        """This class is responsible for managing, creating, cancelling reservations
-        """
+        """This class is responsible for managing, creating, cancelling reservations"""
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
@@ -489,8 +488,7 @@ class ReservationChatflow:
         return reservations_data
 
     def update_local_reservations(self):
-        """update local reserfvations with new ones
-        """
+        """update local reserfvations with new ones"""
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
         reservations = self.get_solutions_explorer()
@@ -532,13 +530,13 @@ class ReservationChatflow:
 
         message_text = f"""
         <h3>Make a Payment</h3>
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
+        Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         <p>If no payment is made {remaning_time} the reservation will be canceled</p>
 
-        <h4> Wallet address: </h4>  {escrow_address} \n
+        <h4> Destination Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
-        <h4> Reservation id: </h4>  {reservationid} \n
-        <h4> Payment details: </h4> {payment_details} \n
+        <h4> Reservation ID: </h4>  {reservationid} \n
+        <h4> Payment Details: </h4> {payment_details} \n
         """
 
         bot.qrcode_show(data=qrcode, msg=message_text, scale=4, update=True, html=True)
@@ -635,10 +633,10 @@ class ReservationChatflow:
 
         message = f"""
         Billing details:
-        <h4> Wallet address: </h4>  {escrow_address} \n
+        <h4> Destination Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
-        <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) </h4>
+        <h4> Payment Details: </h4> {payment_details} \n
+        <h4> Choose a wallet name to use for payment or proceed with the payment through an external wallet (QR Code) </h4>
         """
         retry = False
         while True:
@@ -1127,7 +1125,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        """ add the encrypted metadata to reservation object
+        """add the encrypted metadata to reservation object
 
         Args:
             reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
@@ -1359,7 +1357,15 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency="TFT", ip_version=None, pool_ids=None,
+        self,
+        number_of_nodes,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        currency="TFT",
+        ip_version=None,
+        pool_ids=None,
     ):
         """get available nodes to deploy solutions on
 

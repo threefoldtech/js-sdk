@@ -1,4 +1,3 @@
-from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
@@ -123,7 +122,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}",
                 solution_uuid=self.solution_id,
             )
 

@@ -43,7 +43,7 @@ class MonitoringDeploy(GedisChatBot):
         self.ip_addresses = {"Prometheus": "", "Grafana": "", "Redis": ""}
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def choose_name(self):
         self._deployment_start()
         valid = False
@@ -54,7 +54,7 @@ class MonitoringDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -148,7 +148,10 @@ class MonitoringDeploy(GedisChatBot):
     def reservation(self):
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "monitoring", "Solution name": self.solution_name,},
+            "form_info": {
+                "chatflow": "monitoring",
+                "Solution name": self.solution_name,
+            },
         }
         self.solution_metadata.update(metadata)
         self.md_show_update("Deploying Volume....")

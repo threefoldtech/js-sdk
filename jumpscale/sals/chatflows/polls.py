@@ -91,7 +91,7 @@ class Poll(GedisChatBot):
 
             message_text = f"""
 <h3>Make a Payment</h3>
-Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment.
+Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
 Make sure to add the message (user code) as memo_text
 Please make the transaction and press Next
 <h4> Wallet address: </h4>  {self.wallet.address} \n
@@ -143,8 +143,7 @@ Please make the transaction and press Next
                 self.stop("Error adding the wallet, Please make sure you transaction is completed.\n Please try again")
 
     def _check_payment(self, timeout):
-        """Returns True if user has paid already, False if not
-        """
+        """Returns True if user has paid already, False if not"""
         now = j.data.time.get().timestamp
         remaning_time = j.data.time.get(now + timeout).timestamp
         while remaning_time > now:

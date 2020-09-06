@@ -1,5 +1,3 @@
-from textwrap import dedent
-
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
@@ -24,12 +22,12 @@ class Discourse(MarketPlaceAppsChatflow):
     title = "Discourse"
     query = {"cru": 1, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="SMTP information")
+    @chatflow_step(title="SMTP Information")
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask("SMTP server address", required=True)
-        self.smtp_username = form.string_ask("SMTP server username", required=True)
-        self.smtp_password = form.secret_ask("SMTP server password", required=True)
+        self.smtp_server = form.string_ask("SMTP Server Address", required=True)
+        self.smtp_username = form.string_ask("SMTP Server Username", required=True)
+        self.smtp_password = form.secret_ask("SMTP Server Password", required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -126,7 +124,7 @@ class Discourse(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.username, self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create trc container on node {self.selected_node.node_id} {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {_id}",
                 solution_uuid=self.solution_id,
             )
 

@@ -22,7 +22,7 @@ class KubernetesDeploy(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def kubernetes_name(self):
         self._deployment_start()
         valid = False
@@ -33,7 +33,7 @@ class KubernetesDeploy(GedisChatBot):
             for sol in k8s_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -69,9 +69,8 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            """Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                Just upload the file with the key.
-                Note: please use keys compatible with Dropbear server eg: rsa """,
+            """Please upload your public SSH key to be able to access the depolyed container via ssh
+                Note: please use keys compatible with Dropbear server eg: RSA""",
             required=True,
         ).split("\n")
 

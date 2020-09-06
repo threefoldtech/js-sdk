@@ -1,8 +1,5 @@
-from textwrap import dedent
-
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.loader import j
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 
 
 class Peertube(MarketPlaceAppsChatflow):
@@ -89,7 +86,7 @@ class Peertube(MarketPlaceAppsChatflow):
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
 
         _id = deployer.expose_and_create_certificate(
-            pool_id=self.pool_info.reservation_id,
+            pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
             trc_secret=self.secret,
@@ -107,7 +104,7 @@ class Peertube(MarketPlaceAppsChatflow):
         if not success:
             # FIXME
             # solutions.cancel_solution(self.user_info()["username"], self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id} {_id}")
+            raise StopChatFlow(f"Failed to create TRC container on node {self.selected_node.node_id} {_id}")
 
 
 chat = Peertube

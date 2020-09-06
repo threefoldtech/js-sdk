@@ -15,8 +15,10 @@
       if(window.threebot_deployer_chatflow_end_listener_set === undefined) { // avoid setting multiple listeners
         window.threebot_deployer_chatflow_end_listener_set = true
         window.addEventListener("message", event => {
-          let message = "chat ended"
-          if(event.origin != location.origin || event.data != message)
+
+          let message = "chat ended: "
+          let len = message.length
+          if(event.origin != location.origin || event.data.slice(0, len) != message)
             return;
           this.$router.push({
             name: "Workloads",

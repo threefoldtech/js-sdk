@@ -10,7 +10,17 @@ from .chatflow import MarketPlaceChatflow
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
-FLAVORS = {"Silver": {"sru": 2,}, "Gold": {"sru": 5,}, "Platinum": {"sru": 10,}}
+FLAVORS = {
+    "Silver": {
+        "sru": 2,
+    },
+    "Gold": {
+        "sru": 5,
+    },
+    "Platinum": {
+        "sru": 10,
+    },
+}
 
 RESOURCE_VALUE_KEYS = {
     "cru": "CPU {}",
@@ -217,7 +227,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             for sol in solutions_list:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
@@ -265,9 +275,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 f"""\
 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 Node: {self.selected_node.node_id},
-Ip Address: {self.ip_address},
-Reservation Id: {self.resv_id},
-Pool Id: {self.pool_id},
+IP Address: {self.ip_address},
+Reservation ID: {self.resv_id},
+Pool ID: {self.pool_id},
 Domain: {self.domain}
                 """
             )

@@ -29,6 +29,15 @@
 
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-if="pkg.installed" @click="reload(pkg.name)">
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-reload</v-icon>
+          </v-btn>
+        </template>
+        <span>Reload</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-if="!pkg.installed" :href="pkg.frontend" :loading="loading" @click="install">
             <v-icon v-bind="attrs" v-on="on" color="primary">mdi-archive-arrow-down-outline</v-icon>
           </v-btn>
@@ -57,6 +66,21 @@ module.exports = {
         .add(this.pkg.path)
         .then((response) => {
           this.alert("Package is added", "success");
+          this.$emit("update", this.pkg.name);
+        })
+        .catch((error) => {
+          this.alert(error.response.data.message, "error");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    reload() {
+      this.loading = true;
+      this.$api.packages
+        .add(this.pkg.path)
+        .then((response) => {
+          this.alert("Package is reloaded", "success");
           this.$emit("update", this.pkg.name);
         })
         .catch((error) => {
