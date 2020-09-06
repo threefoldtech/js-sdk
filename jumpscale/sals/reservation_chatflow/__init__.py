@@ -3,13 +3,17 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from contextlib import ContextDecorator
-from redis import Redis
 from jumpscale.sals.zos.zos import Zosv2
 from jumpscale.clients.explorer.models import WorkloadType
-from jumpscale.data import time as jstime
+from jumpscale.loader import j
 
 
-NODE_BLOCKING_WORKLOAD_TYPES = [WorkloadType.Container, WorkloadType.Network_resource, WorkloadType.Volume]
+NODE_BLOCKING_WORKLOAD_TYPES = [
+    WorkloadType.Container,
+    WorkloadType.Network_resource,
+    WorkloadType.Volume,
+    WorkloadType.Zdb,
+]
 
 
 class DeploymentFailed(StopChatFlow):
@@ -28,12 +32,14 @@ class deployment_context(ContextDecorator):
             return
         if exc.solution_uuid:
             # cancel related workloads
+            j.logger.info(f"canceling workload ids of solution_uuid: {exc.solution_uuid}")
             solutions.cancel_solution_by_uuid(exc.solution_uuid)
         if exc.wid:
             # block the failed node if the workload is network or container
             zos = Zosv2()
             workload = zos.workloads.get(exc.wid)
             if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                j.logger.info(f"blocking node {workload.info.node_id} for failed workload {workload.id}")
                 deployer.block_node(workload.info.node_id)
 
 
