@@ -1,3 +1,4 @@
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 import uuid
 import random
 import requests
@@ -11,15 +12,9 @@ from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
 FLAVORS = {
-    "Silver": {
-        "sru": 2,
-    },
-    "Gold": {
-        "sru": 5,
-    },
-    "Platinum": {
-        "sru": 10,
-    },
+    "Silver": {"sru": 2,},
+    "Gold": {"sru": 5,},
+    "Platinum": {"sru": 10,},
 }
 
 RESOURCE_VALUE_KEYS = {
@@ -77,7 +72,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         if "apps" in networks_names:
             # old user
             self.md_show_update(
-                "Checking if you have free resources (If you deleted an old solution before expiration or if an old deployment failed after payment)...."
+                "Checking if you have free resources (If you have an old deployment that failed after payment)...."
             )
             free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
             if free_pools:
@@ -141,6 +136,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         return self.pool_id
 
+    @deployment_context()
     def _deploy_network(self):
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
@@ -160,7 +156,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 for wid in result["ids"]:
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
-                        raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                        raise DeploymentFailed(
+                            f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid
+                        )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
         return self.ip_address

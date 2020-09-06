@@ -108,7 +108,11 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
-            raise DeploymentFailed(f"Failed to deploy workload {self.workload_ids[-1]}", solution_uuid=self.solution_id)
+            raise DeploymentFailed(
+                f"Failed to deploy workload {self.workload_ids[-1]}",
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
         # expose threebot container
         self.workload_ids.append(
@@ -133,6 +137,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             raise DeploymentFailed(
                 f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
                 solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
 

@@ -5,7 +5,7 @@ from textwrap import dedent
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import solutions, deployer
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context, solutions, deployer
 
 
 class MinioDeploy(GedisChatBot):
@@ -113,10 +113,7 @@ class MinioDeploy(GedisChatBot):
         if self.mode == "Master/Slave":
             workload_names.append("Secondary")
         self.minio_nodes, self.minio_pool_ids = deployer.ask_multi_pool_placement(
-            self,
-            len(queries),
-            queries,
-            workload_names=workload_names,
+            self, len(queries), queries, workload_names=workload_names,
         )
 
     @chatflow_step(title="Network")
@@ -171,6 +168,7 @@ class MinioDeploy(GedisChatBot):
             self.public_ssh_key = ""
 
     @chatflow_step(title="Minio container IP")
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update("Deploying Network on Nodes....")
         for i in range(len(self.minio_nodes)):
@@ -189,7 +187,7 @@ class MinioDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {node.node_id} to network {wid}", wid=wid)
             self.network_view = self.network_view.copy()
 
         self.ip_addresses = []
@@ -221,6 +219,7 @@ class MinioDeploy(GedisChatBot):
         self.solution_metadata.update(self.metadata)
 
     @chatflow_step(title="Reserve zdb", disable_previous=True)
+    @deployment_context()
     def zdb_reservation(self):
 
         self.password = uuid.uuid4().hex
@@ -236,10 +235,12 @@ class MinioDeploy(GedisChatBot):
         for resv_id in self.zdb_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f"failed to deploy zdb workload {resv_id}")
+                raise DeploymentFailed(
+                    f"failed to deploy zdb workload {resv_id}", solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title="Reserve minio container", disable_previous=True)
+    @deployment_context()
     def minio_reservation(self):
         zdb_configs = []
         for zid in self.zdb_result:
@@ -247,11 +248,7 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {
-                "chatflow": "minio",
-                "Solution name": self.solution_name,
-                "Master IP": self.ip_addresses[0],
-            },
+            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0],},
         }
         self.solution_metadata.update(metadata)
 
@@ -283,8 +280,9 @@ class MinioDeploy(GedisChatBot):
         for resv_id in self.minio_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f"Failed to deploy Minio container workload {resv_id}")
+                raise DeploymentFailed(
+                    f"Failed to deploy Minio container workload {resv_id}", solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

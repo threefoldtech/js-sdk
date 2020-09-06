@@ -3,12 +3,20 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from contextlib import ContextDecorator
+from redis import Redis
+from jumpscale.sals.zos.zos import Zosv2
+from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.data import time as jstime
+
+
+NODE_BLOCKING_WORKLOAD_TYPES = [WorkloadType.Container, WorkloadType.Network_resource, WorkloadType.Volume]
 
 
 class DeploymentFailed(StopChatFlow):
-    def __init__(self, msg=None, solution_uuid=None, **kwargs):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
         super().__init__(msg, **kwargs)
         self.solution_uuid = solution_uuid
+        self.wid = wid
 
 
 class deployment_context(ContextDecorator):
@@ -16,8 +24,17 @@ class deployment_context(ContextDecorator):
         return self
 
     def __exit__(self, exc_type, exc, exc_tb):
-        if exc_type == DeploymentFailed and exc.solution_uuid:
+        if exc_type != DeploymentFailed:
+            return
+        if exc.solution_uuid:
+            # cancel related workloads
             solutions.cancel_solution_by_uuid(exc.solution_uuid)
+        if exc.wid:
+            # block the failed node if the workload is network or container
+            zos = Zosv2()
+            workload = zos.workloads.get(exc.wid)
+            if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                deployer.block_node(workload.info.node_id)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3

@@ -1,5 +1,5 @@
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 import uuid
 
 
@@ -77,6 +77,7 @@ class KubernetesDeploy(GedisChatBot):
         self.cluster_secret = self.string_ask("Please add the cluster secret", default="secret", required=True)
 
     @chatflow_step(title="IP selection")
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update("Deploying Network on Nodes....")
         # deploy network on nodes
@@ -96,7 +97,7 @@ class KubernetesDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {node.node_id} to network {wid}", wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -118,6 +119,7 @@ class KubernetesDeploy(GedisChatBot):
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title="Cluster reservations", disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             "name": self.solution_name,
@@ -140,8 +142,11 @@ class KubernetesDeploy(GedisChatBot):
         for resv in self.reservations:
             success = deployer.wait_workload(resv["reservation_id"], self)
             if not success:
-                solutions.cancel_solution([resv["reservation_id"]])
-                raise StopChatFlow(f"Failed to deploy workload {resv['reservation_id']}")
+                raise DeploymentFailed(
+                    f"Failed to deploy workload {resv['reservation_id']}",
+                    solution_uuid=self.solution_id,
+                    wid=resv["reservation_id"],
+                )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

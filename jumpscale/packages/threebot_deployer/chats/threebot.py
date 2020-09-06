@@ -148,6 +148,7 @@ You will be automatically redirected to the next step once succeeded.
             raise DeploymentFailed(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}",
                 solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- expose threebot container
@@ -173,6 +174,7 @@ You will be automatically redirected to the next step once succeeded.
             raise DeploymentFailed(
                 f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}",
                 solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         self.threebot_url = f"https://{self.domain}/admin"
 
