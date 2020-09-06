@@ -245,7 +245,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
-    def extend_solution_pool_to_fit(self, bot, pool_id, expiration, currency, **resources):
+    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         cu = cu * expiration
         su = su * expiration
@@ -263,16 +263,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
             return pool_info, qr_code
         else:
             return None, None
-
-    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
-        cu, su = self.calculate_capacity_units(**resources)
-        cu = int(cu * expiration)
-        su = int(su * expiration)
-        if not isinstance(currency, list):
-            currency = [currency]
-        pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
-        qr_code = self.show_payment(pool_info, bot)
-        return pool_info, qr_code
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
