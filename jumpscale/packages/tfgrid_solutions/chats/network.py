@@ -53,7 +53,7 @@ class NetworkDeploy(GedisChatBot):
             required=True,
             default="IPv4",
         )
-        self.md_show_update("searching for access node...")
+        self.md_show_update("Searching for access node...")
         pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         self.access_node = None
         for pool in pools:
@@ -108,19 +108,17 @@ class NetworkDeploy(GedisChatBot):
 
     @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
     def network_info(self):
-        message = """
-### Use the following template to configure your wireguard connection. This will give you access to your network.
-#### Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
-Click next
-to download your configuration
-            """
-
-        self.md_show(message, md=True, html=True)
-
         self.filename = "wg-{}.conf".format(self.config["rid"])
-        self.download_file(
-            msg=f'<pre>{self.config["wg"]}</pre>', data=self.config["wg"], filename=self.filename, html=True
-        )
+        self.wgconf = self.config["wg"]
+
+        msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+<br>
+<pre style="text-align:center">{self.wgconf}</pre>
+<br>
+<h3>navigate to where the config is downloaded and start your connection using "wg-quick up {self.filename}"</h3>
+"""
+        self.download_file(msg=msg, data=self.wgconf, filename=self.filename, html=True)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
