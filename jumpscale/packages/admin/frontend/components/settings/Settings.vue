@@ -132,7 +132,7 @@ module.exports = {
     listIdentities() {
       this.getCurrentIdentity();
       this.loading.identities = true;
-      this.$api.identities
+      this.$api.identity
         .list()
         .then((response) => {
           this.identities = JSON.parse(response.data).data;
@@ -157,8 +157,8 @@ module.exports = {
         });
     },
     setIdentity(identityInstanceName) {
-      this.$api.identities
-        .setIdentity(identityInstanceName)
+      this.$api.identity
+        .setDefault(identityInstanceName)
         .then((response) => {
           this.alert("Identity Updated", "success");
         })

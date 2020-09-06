@@ -14,7 +14,7 @@ module.exports = {
     getCurrentExplorer () {
       this.loading = true
       this.$api.explorers.get().then((response) => {
-        this.explorer = JSON.parse(response.data).data
+        this.explorer = JSON.parse(response.data).url
       }).finally(() => {
         this.loading = false
       })

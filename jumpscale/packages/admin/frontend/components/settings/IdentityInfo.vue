@@ -60,14 +60,14 @@ module.exports = {
   methods: {
     getIdentityInfo () {
       this.loading = true
-      this.$api.identities.getIdentity(this.name).then((response) => {
+      this.$api.identity.get(this.name).then((response) => {
         this.identity = JSON.parse(response.data).data
       }).finally(() => {
         this.loading = false
       })
     },
     setDefault(){
-        this.$api.identities.setIdentity(this.name).then((response) => {
+        this.$api.identity.setDefault(this.name).then((response) => {
           this.$parent.$parent.$parent.$parent.getIdentity()
           this.done("Identity Updated", "success")
           window.location.reload()
@@ -80,7 +80,7 @@ module.exports = {
 
       },
     deleteIdentity(){
-      this.$api.identities.deleteIdentity(this.name).then((response) => {
+      this.$api.identity.delete(this.name).then((response) => {
         responseMessage = JSON.parse(response.data).data
         if(responseMessage == "Cannot delete current default identity"){
           this.alert(responseMessage, "error")

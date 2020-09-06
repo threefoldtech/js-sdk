@@ -38,7 +38,7 @@ module.exports = {
                 this.loading = false
             }
             else{
-                this.$api.identities.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.form.explorer_type].type).then((response) => {
+                this.$api.identity.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.form.explorer_type].type).then((response) => {
                     responseMessage = JSON.parse(response.data).data
                     if(responseMessage == "Identity with the same instance name already exists"){
                         this.error = responseMessage

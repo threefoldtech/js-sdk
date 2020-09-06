@@ -173,7 +173,7 @@ const apiClient = {
   explorers: {
     get: () => {
       return axios({
-        url: `${baseURL}/admin/get_explorer`
+        url: `${baseURL}/identity/get_explorer_url`
       })
     },
     list: () => {
@@ -182,46 +182,6 @@ const apiClient = {
       })
     },
   },
-  identities: {
-    list: () => {
-      return axios({
-        url: `${baseURL}/admin/list_identities`
-      })
-    },
-    add: (identity_instance_name, tname, email, words, explorer_type) => {
-      return axios({
-        url: `${baseURL}/admin/add_identity`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { identity_instance_name: identity_instance_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
-      })
-    },
-    setIdentity: (identity_instance_name) => {
-      return axios({
-        url: `${baseURL}/admin/set_identity`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { identity_instance_name: identity_instance_name }
-      })
-    },
-    getIdentity: (identity_instance_name) => {
-      return axios({
-        url: `${baseURL}/admin/get_identity`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { identity_instance_name: identity_instance_name }
-      })
-    },
-    deleteIdentity: (identity_instance_name) => {
-      return axios({
-        url: `${baseURL}/admin/delete_identity`,
-        method: "post",
-        headers: { 'Content-Type': 'application/json' },
-        data: { identity_instance_name: identity_instance_name }
-      })
-    }
-  },
-
   solutions: {
     getCount: () => {
       return axios({
@@ -418,14 +378,17 @@ const apiClient = {
     },
   },
   identity: {
-    get: () => {
+    get: (identity_instance_name) => {
       return axios({
-        url: `${baseURL}/identity/get_identity`
+        url: `${baseURL}/identity/get_identity`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { identity_instance_name: identity_instance_name }
       })
     },
-    list: () => {
+    getDefault: () => {
       return axios({
-        url: `${baseURL}/identity/list_identities`
+        url: `${baseURL}/identity/get_identity`
       })
     },
     set: (label, tname, email, words, backup_password) => {
@@ -435,7 +398,36 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         data: { label: label, tname: tname, email: email, words: words, backup_password: backup_password }
       })
-    }
+    },
+    setDefault: (identity_instance_name) => {
+      return axios({
+        url: `${baseURL}/identity/set_default_identity`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { identity_instance_name: identity_instance_name }
+      })
+    },
+    add: (identity_instance_name, tname, email, words, explorer_type) => {
+      return axios({
+        url: `${baseURL}/identity/add_identity`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { identity_instance_name: identity_instance_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+      })
+    },
+    delete: (identity_instance_name) => {
+      return axios({
+        url: `${baseURL}/identity/delete_identity`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { identity_instance_name: identity_instance_name }
+      })
+    },
+    list: () => {
+      return axios({
+        url: `${baseURL}/identity/list_identities`
+      })
+    },
   },
   user: {
     currentUser: () => {

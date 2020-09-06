@@ -15,13 +15,6 @@ const apiClient = {
       })
     },
   },
-  explorers: {
-    get: () => {
-      return axios({
-        url: "/actors/admin/get_explorer/"
-      })
-    },
-  },
   solutions: {
     getDeployed: () => {
       return axios({
