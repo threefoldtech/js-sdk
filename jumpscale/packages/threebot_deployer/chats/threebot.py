@@ -52,7 +52,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
-        self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
+        self.backup_model = BACKUP_MODEL_FACTORY.get(self.solution_name)
 
     def _verify_password(self, password):
         try:
