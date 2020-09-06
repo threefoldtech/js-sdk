@@ -90,6 +90,7 @@ class GedisChatBot:
         """
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get("spwan", False)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -135,7 +136,10 @@ class GedisChatBot:
             "final_step": self.step_info.get("final_step"),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:

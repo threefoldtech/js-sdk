@@ -73,7 +73,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
         """
-        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
+        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True, pool=pool)
         return qr_code
 
     def list_pools(self, username=None, cu=None, su=None):
