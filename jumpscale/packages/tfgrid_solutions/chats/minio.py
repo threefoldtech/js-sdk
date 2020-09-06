@@ -37,7 +37,7 @@ class MinioDeploy(GedisChatBot):
         self.user_form_data["chatflow"] = "minio"
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def minio_name(self):
         self._deployment_start()
         valid = False
@@ -48,7 +48,7 @@ class MinioDeploy(GedisChatBot):
             for sol in minio_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -113,7 +113,10 @@ class MinioDeploy(GedisChatBot):
         if self.mode == "Master/Slave":
             workload_names.append("Secondary")
         self.minio_nodes, self.minio_pool_ids = deployer.ask_multi_pool_placement(
-            self, len(queries), queries, workload_names=workload_names,
+            self,
+            len(queries),
+            queries,
+            workload_names=workload_names,
         )
 
     @chatflow_step(title="Network")
@@ -244,7 +247,11 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0],},
+            "form_info": {
+                "chatflow": "minio",
+                "Solution name": self.solution_name,
+                "Master IP": self.ip_addresses[0],
+            },
         }
         self.solution_metadata.update(metadata)
 

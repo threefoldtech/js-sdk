@@ -37,7 +37,7 @@ class FlistDeploy(GedisChatBot):
         self.env = dict()
         self.solution_metadata = {}
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def flist_name(self):
         self._flist_start()
         valid = False
@@ -48,7 +48,7 @@ class FlistDeploy(GedisChatBot):
             for sol in flist_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 

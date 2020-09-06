@@ -39,7 +39,10 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         }
         metadata = {
             "name": self.solution_name,
-            "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
+            "form_info": {
+                "Solution name": self.solution_name,
+                "chatflow": "gitea",
+            },
         }
         self.solution_metadata.update(metadata)
         # reserve subdomain
@@ -99,7 +102,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f"Failed to reserve tcprouter container workload {self.reverse_proxy_id}",
+                f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}",
                 solution_uuid=self.solution_id,
             )
 

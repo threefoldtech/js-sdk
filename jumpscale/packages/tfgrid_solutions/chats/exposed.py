@@ -136,12 +136,12 @@ class SolutionExpose(GedisChatBot):
                 domain = j.sals.zos.gateway.correct_domain(domain)
                 if "." in domain:
                     retry = True
-                    self.md_show("You can't nest domains. please click next to try again")
+                    self.md_show("You can't nest domains. please click next to try again.")
                 else:
                     if j.tools.dnstool.is_free(domain + "." + self.domain):
                         break
                     else:
-                        self.md_show(f"domain {domain + '.' + self.domain} is not available")
+                        self.md_show(f"domain {domain + '.' + self.domain} is not available.")
 
             self.domain = domain + "." + self.domain
         else:
@@ -150,7 +150,7 @@ class SolutionExpose(GedisChatBot):
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = "Custom Domain"
             res = """\
-            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            Please create a `CNAME` record in your DNS manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
             - {{dns}}
             {% endfor %}
@@ -159,7 +159,6 @@ class SolutionExpose(GedisChatBot):
             self.md_show(res)
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
-
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
@@ -170,7 +169,11 @@ class SolutionExpose(GedisChatBot):
         self.network_name = self.solution["Network"]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner"),
+            self.network_name,
+            self.selected_node,
+            self.pool_id,
+            bot=self,
+            owner=self.solution_metadata.get("owner"),
         )
         if result:
             for wid in result["ids"]:
@@ -226,7 +229,7 @@ class SolutionExpose(GedisChatBot):
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
             solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f"Failed to reserve tcprouter container workload {self.tcprouter_id}")
+            raise StopChatFlow(f"Failed to reserve TCP Router container workload {self.tcprouter_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

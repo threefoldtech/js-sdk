@@ -1,7 +1,7 @@
 <template>
   <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
     <v-tab :key="title">{{ title }}</v-tab>
-    <v-tab :key="'moredetails'">More details</v-tab>
+    <v-tab :key="'moredetails'">More Details</v-tab>
 
     <v-tab-item :key="title">
       <v-simple-table>
@@ -47,16 +47,16 @@ module.exports = {
       type: Object,
       default: () => ({}),
     },
-    ignored: { type: Array, default: () => ([]) },
-    typelist: { type: Array, default: () => ([]) },
-    typedict: { type: Array, default: () => ([]) },
+    ignored: { type: Array, default: () => [] },
+    typelist: { type: Array, default: () => [] },
+    typedict: { type: Array, default: () => [] },
   },
   updated() {
     if (this.jsonobj !== this.lastObj) this.tab = 0;
     this.lastObj = this.jsonobj;
   },
-  mounted(){
+  mounted() {
     this.lastObj = this.jsonobj;
-  }
+  },
 };
 </script>

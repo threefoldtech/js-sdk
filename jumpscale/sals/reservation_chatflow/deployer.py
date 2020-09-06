@@ -374,7 +374,7 @@ class ChatflowDeployer:
         if result == "External Wallet (QR Code)":
             msg_text = f"""
             <h3>Make a Payment</h3>
-            Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
 
             <h4> Destination Wallet Address: </h4>  {escrow_address} \n
             <h4> Currency: </h4>  {thecurrency} \n
@@ -1447,7 +1447,7 @@ Workload ID: {workload_id}
 
     def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
         """
-        Choose multiple pools and to distribute workload automatically
+        Choose multiple pools to distribute workload automatically
 
         Args:
             bot: chatflow object

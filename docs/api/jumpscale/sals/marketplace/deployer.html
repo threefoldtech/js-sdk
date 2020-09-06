@@ -87,7 +87,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
         msg_text = f&#34;&#34;&#34;
         &lt;h3&gt;Make a Payment&lt;/h3&gt;
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+        Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
 
         &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n
@@ -216,7 +216,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         self, username, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None
     ):
         &#34;&#34;&#34;
-        Choose multiple pools and to distribute workload automatically
+        Choose multiple pools to distribute workload automatically
 
         Args:
             bot: chatflow object
@@ -240,7 +240,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         messages = {f&#34;Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}&#34;: p for p in pools}
         while True:
             pool_choices = bot.multi_list_choice(
-                f&#34;Please seclect the pools you wish to distribute you {workload_name} on&#34;,
+                f&#34;Please select the pools you wish to distribute your{workload_name} on&#34;,
                 options=list(messages.keys()),
                 required=True,
             )
@@ -377,7 +377,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def ask_expiration(self, bot, default=None, msg=&#34;&#34;):
         default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
-            &#34;Please enter solution expiration time.&#34; if not msg else msg,
+            &#34;Please enter the solution's expiration time&#34; if not msg else msg,
             required=True,
             min_time=[3600, &#34;Date/time should be at least 1 hour from now&#34;],
             default=default,
@@ -459,7 +459,7 @@ deployer = MarketPlaceDeployer()</code></pre>
         qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
         msg_text = f&#34;&#34;&#34;
         &lt;h3&gt;Make a Payment&lt;/h3&gt;
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+        Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
 
         &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n
@@ -588,7 +588,7 @@ deployer = MarketPlaceDeployer()</code></pre>
         self, username, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None
     ):
         &#34;&#34;&#34;
-        Choose multiple pools and to distribute workload automatically
+        Choose multiple pools to distribute workload automatically
 
         Args:
             bot: chatflow object
@@ -612,7 +612,7 @@ deployer = MarketPlaceDeployer()</code></pre>
         messages = {f&#34;Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}&#34;: p for p in pools}
         while True:
             pool_choices = bot.multi_list_choice(
-                f&#34;Please seclect the pools you wish to distribute you {workload_name} on&#34;,
+                f&#34;Please select the pools you wish to distribute your{workload_name} on&#34;,
                 options=list(messages.keys()),
                 required=True,
             )
@@ -749,7 +749,7 @@ deployer = MarketPlaceDeployer()</code></pre>
     def ask_expiration(self, bot, default=None, msg=&#34;&#34;):
         default = default or j.data.time.get().timestamp + 3900
         self.expiration = bot.datetime_picker(
-            &#34;Please enter solution expiration time.&#34; if not msg else msg,
+            &#34;Please enter the solution's expiration time&#34; if not msg else msg,
             required=True,
             min_time=[3600, &#34;Date/time should be at least 1 hour from now&#34;],
             default=default,
@@ -772,7 +772,7 @@ deployer = MarketPlaceDeployer()</code></pre>
 <pre><code class="python">def ask_expiration(self, bot, default=None, msg=&#34;&#34;):
     default = default or j.data.time.get().timestamp + 3900
     self.expiration = bot.datetime_picker(
-        &#34;Please enter solution expiration time.&#34; if not msg else msg,
+        &#34;Please enter the solution's expiration time&#34; if not msg else msg,
         required=True,
         min_time=[3600, &#34;Date/time should be at least 1 hour from now&#34;],
         default=default,
@@ -1088,7 +1088,7 @@ deployer = MarketPlaceDeployer()</code></pre>
     qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
     msg_text = f&#34;&#34;&#34;
     &lt;h3&gt;Make a Payment&lt;/h3&gt;
-    Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to use p-{resv_id} as memo_text value.
+    Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
 
     &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
     &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n

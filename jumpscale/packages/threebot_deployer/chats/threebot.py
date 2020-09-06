@@ -47,7 +47,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
 
@@ -62,18 +62,18 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title="The recovery secret")
+    @chatflow_step(title="Recovery Secret Key")
     def set_backup_password(self):
-        messege = (
+        message = (
             "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
         )
-        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+        self.backup_password = self.secret_ask(message, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+            error = message + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title="Select payment currency")
+    @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
             "Please select the currency you would like to pay your 3Bot deployment with.",
@@ -171,7 +171,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}",
                 solution_uuid=self.solution_id,
             )
         self.threebot_url = f"https://{self.domain}/admin"

@@ -75,7 +75,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn text medium @click.stop="openChatflow(solution.type)">New</v-btn>
-                <v-btn text medium @click.stop="viewWorkloads(solution.type)">My workloads</v-btn>
+                <v-btn text medium @click.stop="viewWorkloads(solution.type)">My Workloads</v-btn>
               </v-card-actions>
             </v-card>
           </v-row>
