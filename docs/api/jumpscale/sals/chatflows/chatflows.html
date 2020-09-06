@@ -185,14 +185,14 @@ class GedisChatBot:
                 if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
                     self.send_error(
                         f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -986,14 +986,14 @@ any extra kwargs that is passed while creating the session
                 if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
                     self.send_error(
                         f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;&lt;br&gt;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -1466,25 +1466,17 @@ any extra kwargs that is passed while creating the session
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.polls.Poll" href="polls.html#jumpscale.sals.chatflows.polls.Poll">Poll</a></li>
 <li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose" href="../../packages/tfgrid_solutions/chats/exposed.html#jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose">SolutionExpose</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy" href="../../packages/tfgrid_solutions/chats/flist.html#jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy">FlistDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy" href="../../packages/tfgrid_solutions/chats/kubernetes.html#jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy" href="../../packages/tfgrid_solutions/chats/minio.html#jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy">MinioDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy" href="../../packages/tfgrid_solutions/chats/monitoring.html#jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy" href="../../packages/tfgrid_solutions/chats/network.html#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy">NetworkDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.threebot.ThreebotDeploy" href="../../packages/tfgrid_solutions/chats/threebot.html#jumpscale.packages.tfgrid_solutions.chats.threebot.ThreebotDeploy">ThreebotDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy" href="../../packages/tfgrid_solutions/chats/ubuntu.html#jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.mattermost.MattermostDeploy" href="../../packages/tfgrid_solutions/chats/mattermost.html#jumpscale.packages.tfgrid_solutions.chats.mattermost.MattermostDeploy">MattermostDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.publisher.Publisher" href="../../packages/tfgrid_solutions/chats/publisher.html#jumpscale.packages.tfgrid_solutions.chats.publisher.Publisher">Publisher</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.cryptpad.CryptpadDeploy" href="../../packages/tfgrid_solutions/chats/cryptpad.html#jumpscale.packages.tfgrid_solutions.chats.cryptpad.CryptpadDeploy">CryptpadDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.discourse.Discourse" href="../../packages/tfgrid_solutions/chats/discourse.html#jumpscale.packages.tfgrid_solutions.chats.discourse.Discourse">Discourse</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.peertube.Peertube" href="../../packages/tfgrid_solutions/chats/peertube.html#jumpscale.packages.tfgrid_solutions.chats.peertube.Peertube">Peertube</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.taiga.TaigaDeploy" href="../../packages/tfgrid_solutions/chats/taiga.html#jumpscale.packages.tfgrid_solutions.chats.taiga.TaigaDeploy">TaigaDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.gitea.GiteaDeploy" href="../../packages/tfgrid_solutions/chats/gitea.html#jumpscale.packages.tfgrid_solutions.chats.gitea.GiteaDeploy">GiteaDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -2694,6 +2686,10 @@ def value(self):
 <ul class="hlist">
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.reservation_chatflow.DeploymentFailed" href="../reservation_chatflow/index.html#jumpscale.sals.reservation_chatflow.DeploymentFailed">DeploymentFailed</a></li>
 </ul>
 </dd>
 </dl>

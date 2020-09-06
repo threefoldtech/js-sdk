@@ -72,7 +72,7 @@ def get_window(session_name, window_name):
 
 
 @cmd_from_args
-def execute_in_window(cmd, window_name):
+def execute_in_window(cmd, window_name, session_name=None):
     &#34;&#34;&#34;
     execute a command in a new tmux window
 
@@ -80,7 +80,10 @@ def execute_in_window(cmd, window_name):
         cmd (str or list): command as a string or an argument list, e.g. `&#34;ls -la&#34;` or `[&#34;ls&#34;, &#34;la&#34;]`
         window_name (str): window name
     &#34;&#34;&#34;
-    window = get_js_window(window_name)
+    if session_name:
+        window = get_window(session_name, window_name)
+    else:
+        window = get_js_window(window_name)
     window.attached_pane.send_keys(cmd)</code></pre>
 </details>
 </section>
@@ -92,7 +95,7 @@ def execute_in_window(cmd, window_name):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.core.executors.tmux.execute_in_window"><code class="name flex">
-<span>def <span class="ident">execute_in_window</span></span>(<span>cmd, window_name)</span>
+<span>def <span class="ident">execute_in_window</span></span>(<span>cmd, window_name, session_name=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>execute a command in a new tmux window</p>
@@ -106,7 +109,7 @@ def execute_in_window(cmd, window_name):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@cmd_from_args
-def execute_in_window(cmd, window_name):
+def execute_in_window(cmd, window_name, session_name=None):
     &#34;&#34;&#34;
     execute a command in a new tmux window
 
@@ -114,7 +117,10 @@ def execute_in_window(cmd, window_name):
         cmd (str or list): command as a string or an argument list, e.g. `&#34;ls -la&#34;` or `[&#34;ls&#34;, &#34;la&#34;]`
         window_name (str): window name
     &#34;&#34;&#34;
-    window = get_js_window(window_name)
+    if session_name:
+        window = get_window(session_name, window_name)
+    else:
+        window = get_js_window(window_name)
     window.attached_pane.send_keys(cmd)</code></pre>
 </details>
 </dd>

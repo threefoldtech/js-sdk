@@ -26,7 +26,7 @@
 from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployer, solutions, deployment_context, DeploymentFailed
 
 kinds = {
     &#34;minio&#34;: solutions.list_minio_solutions,
@@ -160,12 +160,12 @@ class SolutionExpose(GedisChatBot):
                 domain = j.sals.zos.gateway.correct_domain(domain)
                 if &#34;.&#34; in domain:
                     retry = True
-                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again&#34;)
+                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again.&#34;)
                 else:
                     if j.tools.dnstool.is_free(domain + &#34;.&#34; + self.domain):
                         break
                     else:
-                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available&#34;)
+                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available.&#34;)
 
             self.domain = domain + &#34;.&#34; + self.domain
         else:
@@ -174,7 +174,7 @@ class SolutionExpose(GedisChatBot):
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
-            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            Please create a `CNAME` record in your DNS manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
             - {{dns}}
             {% endfor %}
@@ -184,8 +184,8 @@ class SolutionExpose(GedisChatBot):
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {&#34;name&#34;: self.domain, &#34;form_info&#34;: {&#34;Solution name&#34;: self.domain, &#34;chatflow&#34;: &#34;exposed&#34;}}
         self.solution_metadata.update(metadata)
@@ -200,7 +200,7 @@ class SolutionExpose(GedisChatBot):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node to network {wid}&#34;, wid=wid)
 
         self.network_view = deployer.get_network_view(self.network_name)
         self.tcprouter_ip = self.network_view.get_free_ip(self.selected_node)
@@ -219,8 +219,9 @@ class SolutionExpose(GedisChatBot):
             )
             success = deployer.wait_workload(self.dom_id, self)
             if not success:
-                solutions.cancel_solution([self.dom_id])
-                raise StopChatFlow(f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;, solution_uuid=self.solution_id
+                )
 
         self.proxy_id = deployer.create_proxy(
             pool_id=self.domain_pool.pool_id,
@@ -232,8 +233,9 @@ class SolutionExpose(GedisChatBot):
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;, solution_uuid=self.solution_id
+            )
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -249,8 +251,11 @@ class SolutionExpose(GedisChatBot):
         )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.tcprouter_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.tcprouter_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.tcprouter_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -407,12 +412,12 @@ any extra kwargs that is passed while creating the session
                 domain = j.sals.zos.gateway.correct_domain(domain)
                 if &#34;.&#34; in domain:
                     retry = True
-                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again&#34;)
+                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again.&#34;)
                 else:
                     if j.tools.dnstool.is_free(domain + &#34;.&#34; + self.domain):
                         break
                     else:
-                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available&#34;)
+                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available.&#34;)
 
             self.domain = domain + &#34;.&#34; + self.domain
         else:
@@ -421,7 +426,7 @@ any extra kwargs that is passed while creating the session
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
-            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            Please create a `CNAME` record in your DNS manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
             - {{dns}}
             {% endfor %}
@@ -431,8 +436,8 @@ any extra kwargs that is passed while creating the session
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {&#34;name&#34;: self.domain, &#34;form_info&#34;: {&#34;Solution name&#34;: self.domain, &#34;chatflow&#34;: &#34;exposed&#34;}}
         self.solution_metadata.update(metadata)
@@ -447,7 +452,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node to network {wid}&#34;, wid=wid)
 
         self.network_view = deployer.get_network_view(self.network_name)
         self.tcprouter_ip = self.network_view.get_free_ip(self.selected_node)
@@ -466,8 +471,9 @@ any extra kwargs that is passed while creating the session
             )
             success = deployer.wait_workload(self.dom_id, self)
             if not success:
-                solutions.cancel_solution([self.dom_id])
-                raise StopChatFlow(f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;, solution_uuid=self.solution_id
+                )
 
         self.proxy_id = deployer.create_proxy(
             pool_id=self.domain_pool.pool_id,
@@ -479,8 +485,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;, solution_uuid=self.solution_id
+            )
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -496,8 +503,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.tcprouter_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.tcprouter_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.tcprouter_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -511,10 +521,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.exposed.SolutionExpose" href="../../marketplace/chats/exposed.html#jumpscale.packages.marketplace.chats.exposed.SolutionExpose">SolutionExpose</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -742,12 +748,12 @@ any extra kwargs that is passed while creating the session
                 domain = j.sals.zos.gateway.correct_domain(domain)
                 if &#34;.&#34; in domain:
                     retry = True
-                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again&#34;)
+                    self.md_show(&#34;You can&#39;t nest domains. please click next to try again.&#34;)
                 else:
                     if j.tools.dnstool.is_free(domain + &#34;.&#34; + self.domain):
                         break
                     else:
-                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available&#34;)
+                        self.md_show(f&#34;domain {domain + &#39;.&#39; + self.domain} is not available.&#34;)
 
             self.domain = domain + &#34;.&#34; + self.domain
         else:
@@ -756,7 +762,7 @@ any extra kwargs that is passed while creating the session
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
-            Please create a `CNAME` record in your dns manager for domain: `{{domain}}` pointing to:
+            Please create a `CNAME` record in your DNS manager for domain: `{{domain}}` pointing to:
             {% for dns in gateway.dns_nameserver -%}
             - {{dns}}
             {% endfor %}
@@ -766,8 +772,8 @@ any extra kwargs that is passed while creating the session
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {&#34;name&#34;: self.domain, &#34;form_info&#34;: {&#34;Solution name&#34;: self.domain, &#34;chatflow&#34;: &#34;exposed&#34;}}
         self.solution_metadata.update(metadata)
@@ -782,7 +788,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node to network {wid}&#34;, wid=wid)
 
         self.network_view = deployer.get_network_view(self.network_name)
         self.tcprouter_ip = self.network_view.get_free_ip(self.selected_node)
@@ -801,8 +807,9 @@ any extra kwargs that is passed while creating the session
             )
             success = deployer.wait_workload(self.dom_id, self)
             if not success:
-                solutions.cancel_solution([self.dom_id])
-                raise StopChatFlow(f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to reserve sub-domain workload {self.dom_id}&#34;, solution_uuid=self.solution_id
+                )
 
         self.proxy_id = deployer.create_proxy(
             pool_id=self.domain_pool.pool_id,
@@ -814,8 +821,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.proxy_id, self)
         if not success:
-            solutions.cancel_solution([self.proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve reverse proxy workload {self.proxy_id}&#34;, solution_uuid=self.solution_id
+            )
 
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
@@ -831,8 +839,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
-            solutions.cancel_solution([self.tcprouter_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.tcprouter_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.tcprouter_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.tcprouter_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -846,10 +857,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.exposed.SolutionExpose" href="../../marketplace/chats/exposed.html#jumpscale.packages.marketplace.chats.exposed.SolutionExpose">SolutionExpose</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

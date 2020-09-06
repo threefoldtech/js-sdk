@@ -30,7 +30,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 import uuid
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
 class UbuntuDeploy(GedisChatBot):
@@ -63,7 +63,7 @@ class UbuntuDeploy(GedisChatBot):
         self.user_form_data[&#34;chatflow&#34;] = &#34;ubuntu&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def ubuntu_name(self):
         self._ubuntu_start()
         valid = False
@@ -74,7 +74,7 @@ class UbuntuDeploy(GedisChatBot):
             for sol in ubuntu_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -113,12 +113,10 @@ class UbuntuDeploy(GedisChatBot):
         else:
             self.log_config = {}
 
-    @chatflow_step(title=&#34;Access keys&#34;)
+    @chatflow_step(title=&#34;Access key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True,
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Container node id&#34;)
@@ -133,6 +131,7 @@ class UbuntuDeploy(GedisChatBot):
             self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title=&#34;Container IP&#34;)
+    @deployment_context()
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -148,7 +147,7 @@ class UbuntuDeploy(GedisChatBot):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
@@ -160,6 +159,7 @@ class UbuntuDeploy(GedisChatBot):
         self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         container_flist = f&#34;{self.HUB_URL}/3bot-{self.version}.flist&#34;
         metadata = {
@@ -186,7 +186,7 @@ class UbuntuDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy workload {self.resv_id}&#34;, wid=self.resv_id)
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -252,7 +252,7 @@ any extra kwargs that is passed while creating the session
         self.user_form_data[&#34;chatflow&#34;] = &#34;ubuntu&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def ubuntu_name(self):
         self._ubuntu_start()
         valid = False
@@ -263,7 +263,7 @@ any extra kwargs that is passed while creating the session
             for sol in ubuntu_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -302,12 +302,10 @@ any extra kwargs that is passed while creating the session
         else:
             self.log_config = {}
 
-    @chatflow_step(title=&#34;Access keys&#34;)
+    @chatflow_step(title=&#34;Access key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True,
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Container node id&#34;)
@@ -322,6 +320,7 @@ any extra kwargs that is passed while creating the session
             self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title=&#34;Container IP&#34;)
+    @deployment_context()
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -337,7 +336,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
@@ -349,6 +348,7 @@ any extra kwargs that is passed while creating the session
         self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         container_flist = f&#34;{self.HUB_URL}/3bot-{self.version}.flist&#34;
         metadata = {
@@ -375,7 +375,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy workload {self.resv_id}&#34;, wid=self.resv_id)
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -389,10 +389,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.ubuntu.UbuntuDeploy" href="../../marketplace/chats/ubuntu.html#jumpscale.packages.marketplace.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -615,7 +611,7 @@ any extra kwargs that is passed while creating the session
         self.user_form_data[&#34;chatflow&#34;] = &#34;ubuntu&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def ubuntu_name(self):
         self._ubuntu_start()
         valid = False
@@ -626,7 +622,7 @@ any extra kwargs that is passed while creating the session
             for sol in ubuntu_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -665,12 +661,10 @@ any extra kwargs that is passed while creating the session
         else:
             self.log_config = {}
 
-    @chatflow_step(title=&#34;Access keys&#34;)
+    @chatflow_step(title=&#34;Access key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed container using ssh.
-                    Just upload the file with the key&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True,
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Container node id&#34;)
@@ -685,6 +679,7 @@ any extra kwargs that is passed while creating the session
             self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title=&#34;Container IP&#34;)
+    @deployment_context()
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -700,7 +695,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
@@ -712,6 +707,7 @@ any extra kwargs that is passed while creating the session
         self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         container_flist = f&#34;{self.HUB_URL}/3bot-{self.version}.flist&#34;
         metadata = {
@@ -738,7 +734,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy workload {self.resv_id}&#34;, wid=self.resv_id)
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -752,10 +748,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.ubuntu.UbuntuDeploy" href="../../marketplace/chats/ubuntu.html#jumpscale.packages.marketplace.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

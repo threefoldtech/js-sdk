@@ -22,11 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+<pre><code class="python">from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class Publisher(MarketPlaceAppsChatflow):
@@ -50,9 +49,11 @@ class Publisher(MarketPlaceAppsChatflow):
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice(&#34;Choose the type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True)
+        ttype = form.single_choice(
+            &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
+        )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
         form.ask(&#34;Set configuration&#34;)
         self.username = self.user_info()[&#34;username&#34;]
@@ -66,8 +67,8 @@ class Publisher(MarketPlaceAppsChatflow):
             &#34;EMAIL&#34;: self.user_email,
         }
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -88,7 +89,7 @@ class Publisher(MarketPlaceAppsChatflow):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -105,7 +106,7 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -122,9 +123,10 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- deploy container
@@ -153,9 +155,10 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
 
@@ -204,9 +207,11 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice(&#34;Choose the type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True)
+        ttype = form.single_choice(
+            &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
+        )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
         form.ask(&#34;Set configuration&#34;)
         self.username = self.user_info()[&#34;username&#34;]
@@ -220,8 +225,8 @@ any extra kwargs that is passed while creating the session
             &#34;EMAIL&#34;: self.user_email,
         }
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -242,7 +247,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -259,7 +264,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -276,9 +281,10 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- deploy container
@@ -307,9 +313,10 @@ any extra kwargs that is passed while creating the session
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -414,9 +421,11 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
         form = self.new_form()
-        ttype = form.single_choice(&#34;Choose the type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True)
+        ttype = form.single_choice(
+            &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
+        )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
         form.ask(&#34;Set configuration&#34;)
         self.username = self.user_info()[&#34;username&#34;]
@@ -430,8 +439,8 @@ any extra kwargs that is passed while creating the session
             &#34;EMAIL&#34;: self.user_email,
         }
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -452,7 +461,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -469,7 +478,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -486,9 +495,10 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- deploy container
@@ -517,9 +527,10 @@ any extra kwargs that is passed while creating the session
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )</code></pre>
 </details>
 <h3>Ancestors</h3>

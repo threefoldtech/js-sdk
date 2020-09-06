@@ -120,19 +120,21 @@ def wait_connection_test(ipaddr: str, port: int, timeout=5):
             return True
 
 
-def wait_http_test(url: str, timeout: int = 60) -&gt; bool:
+def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
     &#34;&#34;&#34;Will wait until url is reachable
 
     Args:
         url (str): url
         timeout (int, optional): how long to wait for the connection. Defaults to 60.
+        verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+
 
     Returns:
         bool: true if the test succeeds
     &#34;&#34;&#34;
     for _ in range(timeout):
         try:
-            if check_url_reachabel(url):
+            if check_url_reachable(url, timeout, verify):
                 return True
         except:
             pass
@@ -142,12 +144,13 @@ def wait_http_test(url: str, timeout: int = 60) -&gt; bool:
         return False
 
 
-def check_url_reachabel(url: str, timeout=5):
+def check_url_reachable(url: str, timeout=5, verify=True):
     &#34;&#34;&#34;Check that given url is reachable
 
     Args:
         url (str): url to test
         timeout (int, optional): timeout of test. Defaults to 5.
+        verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
 
     Raises:
         Input: raises if not correct url
@@ -156,7 +159,7 @@ def check_url_reachabel(url: str, timeout=5):
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
     try:
-        code = jumpscale.tools.http.get(url, timeout=timeout).status_code
+        code = jumpscale.tools.http.get(url, timeout=timeout, verify=verify).status_code
         return code == 200
     except jumpscale.tools.http.exceptions.MissingSchema:
         raise Input(&#34;Please specify correct url with correct scheme&#34;)
@@ -501,8 +504,8 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="jumpscale.sals.nettools.check_url_reachabel"><code class="name flex">
-<span>def <span class="ident">check_url_reachabel</span></span>(<span>url, timeout=5)</span>
+<dt id="jumpscale.sals.nettools.check_url_reachable"><code class="name flex">
+<span>def <span class="ident">check_url_reachable</span></span>(<span>url, timeout=5, verify=True)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Check that given url is reachable</p>
@@ -512,6 +515,8 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <dd>url to test</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>timeout of test. Defaults to 5.</dd>
+<dt><strong><code>verify</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>boolean indication to verify the servers TLS certificate or not.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -525,12 +530,13 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def check_url_reachabel(url: str, timeout=5):
+<pre><code class="python">def check_url_reachable(url: str, timeout=5, verify=True):
     &#34;&#34;&#34;Check that given url is reachable
 
     Args:
         url (str): url to test
         timeout (int, optional): timeout of test. Defaults to 5.
+        verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
 
     Raises:
         Input: raises if not correct url
@@ -539,7 +545,7 @@ def netrange_get(device, skip_begin=10, skip_end=10):
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
     try:
-        code = jumpscale.tools.http.get(url, timeout=timeout).status_code
+        code = jumpscale.tools.http.get(url, timeout=timeout, verify=verify).status_code
         return code == 200
     except jumpscale.tools.http.exceptions.MissingSchema:
         raise Input(&#34;Please specify correct url with correct scheme&#34;)
@@ -1212,7 +1218,7 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.wait_http_test"><code class="name flex">
-<span>def <span class="ident">wait_http_test</span></span>(<span>url, timeout=60)</span>
+<span>def <span class="ident">wait_http_test</span></span>(<span>url, timeout=60, verify=True)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Will wait until url is reachable</p>
@@ -1222,6 +1228,8 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <dd>url</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>how long to wait for the connection. Defaults to 60.</dd>
+<dt><strong><code>verify</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>boolean indication to verify the servers TLS certificate or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1230,19 +1238,21 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def wait_http_test(url: str, timeout: int = 60) -&gt; bool:
+<pre><code class="python">def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
     &#34;&#34;&#34;Will wait until url is reachable
 
     Args:
         url (str): url
         timeout (int, optional): how long to wait for the connection. Defaults to 60.
+        verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+
 
     Returns:
         bool: true if the test succeeds
     &#34;&#34;&#34;
     for _ in range(timeout):
         try:
-            if check_url_reachabel(url):
+            if check_url_reachable(url, timeout, verify):
                 return True
         except:
             pass
@@ -1270,7 +1280,7 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="jumpscale.sals.nettools.check_url_reachabel" href="#jumpscale.sals.nettools.check_url_reachabel">check_url_reachabel</a></code></li>
+<li><code><a title="jumpscale.sals.nettools.check_url_reachable" href="#jumpscale.sals.nettools.check_url_reachable">check_url_reachable</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.download" href="#jumpscale.sals.nettools.download">download</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_default_ip_config" href="#jumpscale.sals.nettools.get_default_ip_config">get_default_ip_config</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_host_by_name" href="#jumpscale.sals.nettools.get_host_by_name">get_host_by_name</a></code></li>

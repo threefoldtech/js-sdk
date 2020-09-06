@@ -30,13 +30,7 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class FourToSixGateway(GedisChatBot):
-    steps = [
-        &#34;select_pool&#34;,
-        &#34;gateway_start&#34;,
-        &#34;wireguard_public_get&#34;,
-        &#34;wg_reservation&#34;,
-        &#34;wg_config&#34;,
-    ]
+    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
 
     @chatflow_step(title=&#34;Pool&#34;)
@@ -85,7 +79,7 @@ to download your configuration
         &#34;&#34;&#34;
         self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard configuration&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
@@ -105,13 +99,15 @@ Endpoint = {{peer.endpoint}}
             template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
         )
         config = config
+        self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
+        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-        filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=filename, html=True)
+    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
+    def success(self):
         res = f&#34;&#34;&#34;
 # In order to connect to the 4 to 6 gateway execute this command:
 \n&lt;br/&gt;\n
-## ```wg-quick up ./{filename}```
+## ```wg-quick up ./{self.filename}```
                     &#34;&#34;&#34;
         self.md_show(res, md=True)
 
@@ -141,13 +137,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class FourToSixGateway(GedisChatBot):
-    steps = [
-        &#34;select_pool&#34;,
-        &#34;gateway_start&#34;,
-        &#34;wireguard_public_get&#34;,
-        &#34;wg_reservation&#34;,
-        &#34;wg_config&#34;,
-    ]
+    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
 
     @chatflow_step(title=&#34;Pool&#34;)
@@ -196,7 +186,7 @@ to download your configuration
         &#34;&#34;&#34;
         self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard configuration&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
@@ -216,13 +206,15 @@ Endpoint = {{peer.endpoint}}
             template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
         )
         config = config
+        self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
+        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-        filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=filename, html=True)
+    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
+    def success(self):
         res = f&#34;&#34;&#34;
 # In order to connect to the 4 to 6 gateway execute this command:
 \n&lt;br/&gt;\n
-## ```wg-quick up ./{filename}```
+## ```wg-quick up ./{self.filename}```
                     &#34;&#34;&#34;
         self.md_show(res, md=True)</code></pre>
 </details>
@@ -258,6 +250,19 @@ Endpoint = {{peer.endpoint}}
 </dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool"><code class="name flex">
 <span>def <span class="ident">select_pool</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success"><code class="name flex">
+<span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -323,13 +328,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class FourToSixGateway(GedisChatBot):
-    steps = [
-        &#34;select_pool&#34;,
-        &#34;gateway_start&#34;,
-        &#34;wireguard_public_get&#34;,
-        &#34;wg_reservation&#34;,
-        &#34;wg_config&#34;,
-    ]
+    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
 
     @chatflow_step(title=&#34;Pool&#34;)
@@ -378,7 +377,7 @@ to download your configuration
         &#34;&#34;&#34;
         self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard configuration&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
@@ -398,13 +397,15 @@ Endpoint = {{peer.endpoint}}
             template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
         )
         config = config
+        self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
+        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-        filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=filename, html=True)
+    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
+    def success(self):
         res = f&#34;&#34;&#34;
 # In order to connect to the 4 to 6 gateway execute this command:
 \n&lt;br/&gt;\n
-## ```wg-quick up ./{filename}```
+## ```wg-quick up ./{self.filename}```
                     &#34;&#34;&#34;
         self.md_show(res, md=True)</code></pre>
 </details>
@@ -440,6 +441,19 @@ Endpoint = {{peer.endpoint}}
 </dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool"><code class="name flex">
 <span>def <span class="ident">select_pool</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success"><code class="name flex">
+<span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -541,6 +555,7 @@ Endpoint = {{peer.endpoint}}
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start">gateway_start</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool">select_pool</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps">steps</a></code></li>
+<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title">title</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config">wg_config</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation">wg_reservation</a></code></li>
@@ -553,6 +568,7 @@ Endpoint = {{peer.endpoint}}
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start">gateway_start</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool">select_pool</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps">steps</a></code></li>
+<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title">title</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config">wg_config</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation">wg_reservation</a></code></li>

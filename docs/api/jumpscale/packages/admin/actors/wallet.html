@@ -108,7 +108,11 @@ class Wallet(BaseActor):
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
         network = network or &#34;TEST&#34;
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        try:
+            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        except Exception as e:
+            j.clients.stellar.delete(name)
+            return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
         try:
             wallet.get_balance()
         except:
@@ -225,7 +229,11 @@ Actor = Wallet</code></pre>
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
         network = network or &#34;TEST&#34;
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        try:
+            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        except Exception as e:
+            j.clients.stellar.delete(name)
+            return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
         try:
             wallet.get_balance()
         except:
@@ -355,7 +363,11 @@ def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
     if name in j.clients.stellar.list_all():
         return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
     network = network or &#34;TEST&#34;
-    wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+    try:
+        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+    except Exception as e:
+        j.clients.stellar.delete(name)
+        return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
     try:
         wallet.get_balance()
     except:
@@ -481,7 +493,11 @@ def update_trustlines(self, name: str) -&gt; str:
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
         network = network or &#34;TEST&#34;
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        try:
+            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        except Exception as e:
+            j.clients.stellar.delete(name)
+            return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
         try:
             wallet.get_balance()
         except:
@@ -611,7 +627,11 @@ def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
     if name in j.clients.stellar.list_all():
         return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
     network = network or &#34;TEST&#34;
-    wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+    try:
+        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+    except Exception as e:
+        j.clients.stellar.delete(name)
+        return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
     try:
         wallet.get_balance()
     except:

@@ -22,25 +22,22 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import math
-from jumpscale.sals.marketplace import deployer
-
-from jumpscale.packages.marketplace.chats.publisher import Publisher
+<pre><code class="python">from jumpscale.packages.marketplace.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 
 class WebsiteDeploy(Publisher):
 
-    title = &#34;Deploy Website&#34;
+    title = &#34;Deploy a Website&#34;
     SOLUTION_TYPE = &#34;website&#34;  # chatflow used to deploy the solution
 
     @chatflow_step(title=&#34;Website Setup&#34;)
     def configuration(self):
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
+        form.ask(&#34;Set Configuration&#34;)
         self.user_email = self.user_info()[&#34;email&#34;]
         self.envars = {
             &#34;TYPE&#34;: &#34;www&#34;,
@@ -78,16 +75,16 @@ any extra kwargs that is passed while creating the session
 <summary>Source code</summary>
 <pre><code class="python">class WebsiteDeploy(Publisher):
 
-    title = &#34;Deploy Website&#34;
+    title = &#34;Deploy a Website&#34;
     SOLUTION_TYPE = &#34;website&#34;  # chatflow used to deploy the solution
 
     @chatflow_step(title=&#34;Website Setup&#34;)
     def configuration(self):
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
+        form.ask(&#34;Set Configuration&#34;)
         self.user_email = self.user_info()[&#34;email&#34;]
         self.envars = {
             &#34;TYPE&#34;: &#34;www&#34;,
@@ -147,16 +144,16 @@ any extra kwargs that is passed while creating the session
 <summary>Source code</summary>
 <pre><code class="python">class WebsiteDeploy(Publisher):
 
-    title = &#34;Deploy Website&#34;
+    title = &#34;Deploy a Website&#34;
     SOLUTION_TYPE = &#34;website&#34;  # chatflow used to deploy the solution
 
     @chatflow_step(title=&#34;Website Setup&#34;)
     def configuration(self):
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository url&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
+        form.ask(&#34;Set Configuration&#34;)
         self.user_email = self.user_info()[&#34;email&#34;]
         self.envars = {
             &#34;TYPE&#34;: &#34;www&#34;,

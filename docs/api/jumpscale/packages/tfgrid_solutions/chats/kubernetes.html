@@ -22,8 +22,8 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 import uuid
 
 
@@ -46,7 +46,7 @@ class KubernetesDeploy(GedisChatBot):
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def kubernetes_name(self):
         self._deployment_start()
         valid = False
@@ -57,7 +57,7 @@ class KubernetesDeploy(GedisChatBot):
             for sol in k8s_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -93,15 +93,15 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title=&#34;Access keys and secret&#34;)
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                Just upload the file with the key.
-                Note: please use keys compatible with Dropbear server eg: rsa &#34;&#34;&#34;,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh
+                Note: please use keys compatible with Dropbear server eg: RSA&#34;&#34;&#34;,
             required=True,
         ).split(&#34;\n&#34;)
 
         self.cluster_secret = self.string_ask(&#34;Please add the cluster secret&#34;, default=&#34;secret&#34;, required=True)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -121,7 +121,7 @@ class KubernetesDeploy(GedisChatBot):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -143,6 +143,7 @@ class KubernetesDeploy(GedisChatBot):
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Cluster reservations&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -165,8 +166,11 @@ class KubernetesDeploy(GedisChatBot):
         for resv in self.reservations:
             success = deployer.wait_workload(resv[&#34;reservation_id&#34;], self)
             if not success:
-                solutions.cancel_solution([resv[&#34;reservation_id&#34;]])
-                raise StopChatFlow(f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=resv[&#34;reservation_id&#34;],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -228,7 +232,7 @@ any extra kwargs that is passed while creating the session
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def kubernetes_name(self):
         self._deployment_start()
         valid = False
@@ -239,7 +243,7 @@ any extra kwargs that is passed while creating the session
             for sol in k8s_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -275,15 +279,15 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Access keys and secret&#34;)
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                Just upload the file with the key.
-                Note: please use keys compatible with Dropbear server eg: rsa &#34;&#34;&#34;,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh
+                Note: please use keys compatible with Dropbear server eg: RSA&#34;&#34;&#34;,
             required=True,
         ).split(&#34;\n&#34;)
 
         self.cluster_secret = self.string_ask(&#34;Please add the cluster secret&#34;, default=&#34;secret&#34;, required=True)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -303,7 +307,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -325,6 +329,7 @@ any extra kwargs that is passed while creating the session
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Cluster reservations&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -347,8 +352,11 @@ any extra kwargs that is passed while creating the session
         for resv in self.reservations:
             success = deployer.wait_workload(resv[&#34;reservation_id&#34;], self)
             if not success:
-                solutions.cancel_solution([resv[&#34;reservation_id&#34;]])
-                raise StopChatFlow(f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=resv[&#34;reservation_id&#34;],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -369,10 +377,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.kubernetes.KubernetesDeploy" href="../../marketplace/chats/kubernetes.html#jumpscale.packages.marketplace.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -524,7 +528,7 @@ any extra kwargs that is passed while creating the session
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def kubernetes_name(self):
         self._deployment_start()
         valid = False
@@ -535,7 +539,7 @@ any extra kwargs that is passed while creating the session
             for sol in k8s_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -571,15 +575,15 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Access keys and secret&#34;)
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            &#34;&#34;&#34;Please add your public ssh key, this will allow you to access the deployed containers using ssh.
-                Just upload the file with the key.
-                Note: please use keys compatible with Dropbear server eg: rsa &#34;&#34;&#34;,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh
+                Note: please use keys compatible with Dropbear server eg: RSA&#34;&#34;&#34;,
             required=True,
         ).split(&#34;\n&#34;)
 
         self.cluster_secret = self.string_ask(&#34;Please add the cluster secret&#34;, default=&#34;secret&#34;, required=True)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -599,7 +603,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -621,6 +625,7 @@ any extra kwargs that is passed while creating the session
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Cluster reservations&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -643,8 +648,11 @@ any extra kwargs that is passed while creating the session
         for resv in self.reservations:
             success = deployer.wait_workload(resv[&#34;reservation_id&#34;], self)
             if not success:
-                solutions.cancel_solution([resv[&#34;reservation_id&#34;]])
-                raise StopChatFlow(f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy workload {resv[&#39;reservation_id&#39;]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=resv[&#34;reservation_id&#34;],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -665,10 +673,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.kubernetes.KubernetesDeploy" href="../../marketplace/chats/kubernetes.html#jumpscale.packages.marketplace.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

@@ -23,10 +23,11 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 import uuid
 from jumpscale.data.nacl.jsnacl import NACL
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
@@ -70,7 +71,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             for sol in threebot_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -85,18 +86,18 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title=&#34;The recovery secret&#34;)
+    @chatflow_step(title=&#34;Recovery Secret Key&#34;)
     def set_backup_password(self):
-        messege = (
+        message = (
             &#34;Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)&#34;
         )
-        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+        self.backup_password = self.secret_ask(message, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
+            error = message + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title=&#34;Select payment currency&#34;)
+    @chatflow_step(title=&#34;Select your preferred payment currency&#34;)
     def payment_currency(self):
         self.currency = self.single_choice(
             &#34;Please select the currency you would like to pay your 3Bot deployment with.&#34;,
@@ -105,6 +106,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         # 1- add node to network
         metadata = {&#34;form_info&#34;: {&#34;Solution name&#34;: self.solution_name, &#34;chatflow&#34;: &#34;threebot&#34;}}
@@ -131,7 +133,7 @@ You will be automatically redirected to the next step once succeeded.
 
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
         test_cert = j.config.get(&#34;TEST_CERT&#34;)
@@ -167,9 +169,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- expose threebot container
@@ -192,9 +195,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         self.threebot_url = f&#34;https://{self.domain}/admin&#34;
 
@@ -209,7 +213,7 @@ You will be automatically redirected to the next step once succeeded.
         if not j.sals.reservation_chatflow.wait_http_test(
             self.threebot_url, timeout=600, verify=not j.config.get(&#34;TEST_CERT&#34;)
         ):
-            self.stop(&#34;Failed to initialize 3Bot, please contact support&#34;)
+            self.stop(f&#34;Failed to initialize 3Bot on {self.threebot_url} , please contact support&#34;)
         self.domain = f&#34;{self.domain}/admin&#34;
 
 
@@ -278,7 +282,7 @@ any extra kwargs that is passed while creating the session
             for sol in threebot_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -293,18 +297,18 @@ any extra kwargs that is passed while creating the session
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title=&#34;The recovery secret&#34;)
+    @chatflow_step(title=&#34;Recovery Secret Key&#34;)
     def set_backup_password(self):
-        messege = (
+        message = (
             &#34;Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)&#34;
         )
-        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+        self.backup_password = self.secret_ask(message, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
+            error = message + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title=&#34;Select payment currency&#34;)
+    @chatflow_step(title=&#34;Select your preferred payment currency&#34;)
     def payment_currency(self):
         self.currency = self.single_choice(
             &#34;Please select the currency you would like to pay your 3Bot deployment with.&#34;,
@@ -313,6 +317,7 @@ any extra kwargs that is passed while creating the session
         )
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         # 1- add node to network
         metadata = {&#34;form_info&#34;: {&#34;Solution name&#34;: self.solution_name, &#34;chatflow&#34;: &#34;threebot&#34;}}
@@ -339,7 +344,7 @@ You will be automatically redirected to the next step once succeeded.
 
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
         test_cert = j.config.get(&#34;TEST_CERT&#34;)
@@ -375,9 +380,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- expose threebot container
@@ -400,9 +406,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         self.threebot_url = f&#34;https://{self.domain}/admin&#34;
 
@@ -417,7 +424,7 @@ You will be automatically redirected to the next step once succeeded.
         if not j.sals.reservation_chatflow.wait_http_test(
             self.threebot_url, timeout=600, verify=not j.config.get(&#34;TEST_CERT&#34;)
         ):
-            self.stop(&#34;Failed to initialize 3Bot, please contact support&#34;)
+            self.stop(f&#34;Failed to initialize 3Bot on {self.threebot_url} , please contact support&#34;)
         self.domain = f&#34;{self.domain}/admin&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -580,7 +587,7 @@ any extra kwargs that is passed while creating the session
             for sol in threebot_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -595,18 +602,18 @@ any extra kwargs that is passed while creating the session
         except j.exceptions.NotFound:
             return True
 
-    @chatflow_step(title=&#34;The recovery secret&#34;)
+    @chatflow_step(title=&#34;Recovery Secret Key&#34;)
     def set_backup_password(self):
-        messege = (
+        message = (
             &#34;Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)&#34;
         )
-        self.backup_password = self.secret_ask(messege, required=True, max_length=32)
+        self.backup_password = self.secret_ask(message, required=True, max_length=32)
 
         while not self._verify_password(self.backup_password):
-            error = messege + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
+            error = message + f&#34;&lt;br&gt;&lt;br&gt;&lt;code&gt;Incorrect recovery secret for 3Bot name {self.solution_name}&lt;/code&gt;&#34;
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title=&#34;Select payment currency&#34;)
+    @chatflow_step(title=&#34;Select your preferred payment currency&#34;)
     def payment_currency(self):
         self.currency = self.single_choice(
             &#34;Please select the currency you would like to pay your 3Bot deployment with.&#34;,
@@ -615,6 +622,7 @@ any extra kwargs that is passed while creating the session
         )
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def deploy(self):
         # 1- add node to network
         metadata = {&#34;form_info&#34;: {&#34;Solution name&#34;: self.solution_name, &#34;chatflow&#34;: &#34;threebot&#34;}}
@@ -641,7 +649,7 @@ You will be automatically redirected to the next step once succeeded.
 
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
         test_cert = j.config.get(&#34;TEST_CERT&#34;)
@@ -677,9 +685,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- expose threebot container
@@ -702,9 +711,10 @@ You will be automatically redirected to the next step once succeeded.
         )
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], self.workload_ids)
-            raise StopChatFlow(
-                f&#34;Failed to create trc container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         self.threebot_url = f&#34;https://{self.domain}/admin&#34;
 
@@ -719,7 +729,7 @@ You will be automatically redirected to the next step once succeeded.
         if not j.sals.reservation_chatflow.wait_http_test(
             self.threebot_url, timeout=600, verify=not j.config.get(&#34;TEST_CERT&#34;)
         ):
-            self.stop(&#34;Failed to initialize 3Bot, please contact support&#34;)
+            self.stop(f&#34;Failed to initialize 3Bot on {self.threebot_url} , please contact support&#34;)
         self.domain = f&#34;{self.domain}/admin&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>

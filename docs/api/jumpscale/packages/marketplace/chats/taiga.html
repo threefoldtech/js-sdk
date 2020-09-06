@@ -22,14 +22,13 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from nacl.encoding import Base64Encoder
+<pre><code class="python">from nacl.encoding import Base64Encoder
 from nacl.public import PrivateKey
 
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class TaigaDeploy(MarketPlaceAppsChatflow):
@@ -42,7 +41,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         &#34;solution_expiration&#34;,
         &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
-        &#34;overview&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
         &#34;success&#34;,
@@ -53,13 +51,13 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title=&#34;Taiga Setup&#34;)
     def taiga_credentials(self):
         form = self.new_form()
-        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host email name for your solution.&#34;, required=True)
+        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host e-mail address for your solution.&#34;, required=True)
         EMAIL_HOST = form.string_ask(
             &#34;Please add the smtp host example: `smtp.gmail.com`&#34;, default=&#34;smtp.gmail.com&#34;, required=True, md=True
         )
-        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host email password&#34;, required=True)
+        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host e-mail password&#34;, required=True)
 
-        SECRET_KEY = form.secret_ask(&#34;Please add the secret for your solution&#34;, required=True)
+        SECRET_KEY = form.secret_ask(&#34;Please add a secret key for your solution&#34;, required=True)
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
@@ -68,19 +66,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-    @chatflow_step(title=&#34;Confirmation&#34;)
-    def overview(self):
-        self.metadata = {
-            &#34;Solution Name&#34;: self.solution_name,
-            &#34;Network&#34;: self.network_view.name,
-            &#34;Node ID&#34;: self.selected_node.node_id,
-            &#34;Pool&#34;: self.pool_id,
-            &#34;IP Address&#34;: self.ip_address,
-            &#34;Domain&#34;: self.domain,
-        }
-        self.md_show_confirm(self.metadata)
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -104,7 +91,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -143,10 +130,13 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_id,
             )
         )
-        self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
-        if not self.resv_id:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
         # expose threebot container
         self.workload_ids.append(
@@ -166,10 +156,13 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
-        if not nginx_wid:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}&#34;)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
 
 chat = TaigaDeploy</code></pre>
@@ -206,7 +199,6 @@ any extra kwargs that is passed while creating the session
         &#34;solution_expiration&#34;,
         &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
-        &#34;overview&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
         &#34;success&#34;,
@@ -217,13 +209,13 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Taiga Setup&#34;)
     def taiga_credentials(self):
         form = self.new_form()
-        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host email name for your solution.&#34;, required=True)
+        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host e-mail address for your solution.&#34;, required=True)
         EMAIL_HOST = form.string_ask(
             &#34;Please add the smtp host example: `smtp.gmail.com`&#34;, default=&#34;smtp.gmail.com&#34;, required=True, md=True
         )
-        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host email password&#34;, required=True)
+        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host e-mail password&#34;, required=True)
 
-        SECRET_KEY = form.secret_ask(&#34;Please add the secret for your solution&#34;, required=True)
+        SECRET_KEY = form.secret_ask(&#34;Please add a secret key for your solution&#34;, required=True)
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
@@ -232,19 +224,8 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-    @chatflow_step(title=&#34;Confirmation&#34;)
-    def overview(self):
-        self.metadata = {
-            &#34;Solution Name&#34;: self.solution_name,
-            &#34;Network&#34;: self.network_view.name,
-            &#34;Node ID&#34;: self.selected_node.node_id,
-            &#34;Pool&#34;: self.pool_id,
-            &#34;IP Address&#34;: self.ip_address,
-            &#34;Domain&#34;: self.domain,
-        }
-        self.md_show_confirm(self.metadata)
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -268,7 +249,7 @@ any extra kwargs that is passed while creating the session
         subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -307,10 +288,13 @@ any extra kwargs that is passed while creating the session
                 solution_uuid=self.solution_id,
             )
         )
-        self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
-        if not self.resv_id:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
         # expose threebot container
         self.workload_ids.append(
@@ -330,10 +314,13 @@ any extra kwargs that is passed while creating the session
                 **self.solution_metadata,
             )
         )
-        nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
-        if not nginx_wid:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}&#34;)</code></pre>
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -366,19 +353,6 @@ any extra kwargs that is passed while creating the session
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview"><code class="name flex">
-<span>def <span class="ident">overview</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation"><code class="name flex">
 <span>def <span class="ident">reservation</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
@@ -429,7 +403,6 @@ any extra kwargs that is passed while creating the session
         &#34;solution_expiration&#34;,
         &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
-        &#34;overview&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
         &#34;success&#34;,
@@ -440,13 +413,13 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Taiga Setup&#34;)
     def taiga_credentials(self):
         form = self.new_form()
-        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host email name for your solution.&#34;, required=True)
+        EMAIL_HOST_USER = form.string_ask(&#34;Please add the host e-mail address for your solution.&#34;, required=True)
         EMAIL_HOST = form.string_ask(
             &#34;Please add the smtp host example: `smtp.gmail.com`&#34;, default=&#34;smtp.gmail.com&#34;, required=True, md=True
         )
-        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host email password&#34;, required=True)
+        EMAIL_HOST_PASSWORD = form.secret_ask(&#34;Please add the host e-mail password&#34;, required=True)
 
-        SECRET_KEY = form.secret_ask(&#34;Please add the secret for your solution&#34;, required=True)
+        SECRET_KEY = form.secret_ask(&#34;Please add a secret key for your solution&#34;, required=True)
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
@@ -455,19 +428,8 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-    @chatflow_step(title=&#34;Confirmation&#34;)
-    def overview(self):
-        self.metadata = {
-            &#34;Solution Name&#34;: self.solution_name,
-            &#34;Network&#34;: self.network_view.name,
-            &#34;Node ID&#34;: self.selected_node.node_id,
-            &#34;Pool&#34;: self.pool_id,
-            &#34;IP Address&#34;: self.ip_address,
-            &#34;Domain&#34;: self.domain,
-        }
-        self.md_show_confirm(self.metadata)
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -491,7 +453,7 @@ any extra kwargs that is passed while creating the session
         subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
             )
 
@@ -530,10 +492,13 @@ any extra kwargs that is passed while creating the session
                 solution_uuid=self.solution_id,
             )
         )
-        self.resv_id = deployer.wait_workload(self.workload_ids[1], self)
-        if not self.resv_id:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
         # expose threebot container
         self.workload_ids.append(
@@ -553,10 +518,13 @@ any extra kwargs that is passed while creating the session
                 **self.solution_metadata,
             )
         )
-        nginx_wid = deployer.wait_workload(self.workload_ids[2], self)
-        if not nginx_wid:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {nginx_wid}&#34;)</code></pre>
+        success = deployer.wait_workload(self.workload_ids[-1], self)
+        if not success:
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -589,19 +557,6 @@ any extra kwargs that is passed while creating the session
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview"><code class="name flex">
-<span>def <span class="ident">overview</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation"><code class="name flex">
 <span>def <span class="ident">reservation</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
@@ -678,7 +633,6 @@ any extra kwargs that is passed while creating the session
 <ul class="two-column">
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.FLIST_URL" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.FLIST_URL">FLIST_URL</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.SOLUTION_TYPE" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.SOLUTION_TYPE">SOLUTION_TYPE</a></code></li>
-<li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview">overview</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.query" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.query">query</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation">reservation</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.steps" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.steps">steps</a></code></li>
@@ -691,7 +645,6 @@ any extra kwargs that is passed while creating the session
 <ul class="two-column">
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.FLIST_URL" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.FLIST_URL">FLIST_URL</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.SOLUTION_TYPE" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.SOLUTION_TYPE">SOLUTION_TYPE</a></code></li>
-<li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.overview">overview</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.query" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.query">query</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.reservation">reservation</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.steps" href="#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy.steps">steps</a></code></li>

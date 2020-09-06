@@ -69,7 +69,7 @@ class Backup(BaseActor):
                     f&#34;cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}&#34;
                 )
             except:
-                raise j.exceptions.Value(f&#34;3Bot name or password are incorrect&#34;)
+                raise j.exceptions.Value(f&#34;3Bot name or password is incorrect&#34;)
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 
@@ -133,7 +133,7 @@ Actor = Backup</code></pre>
                     f&#34;cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}&#34;
                 )
             except:
-                raise j.exceptions.Value(f&#34;3Bot name or password are incorrect&#34;)
+                raise j.exceptions.Value(f&#34;3Bot name or password is incorrect&#34;)
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 
@@ -180,7 +180,7 @@ def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
                 f&#34;cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}&#34;
             )
         except:
-            raise j.exceptions.Value(f&#34;3Bot name or password are incorrect&#34;)
+            raise j.exceptions.Value(f&#34;3Bot name or password is incorrect&#34;)
 
     return [self.ssh_server1.host, self.ssh_server2.host]</code></pre>
 </details>
@@ -239,7 +239,7 @@ def public_key(self) -&gt; str:
                     f&#34;cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}&#34;
                 )
             except:
-                raise j.exceptions.Value(f&#34;3Bot name or password are incorrect&#34;)
+                raise j.exceptions.Value(f&#34;3Bot name or password is incorrect&#34;)
 
         return [self.ssh_server1.host, self.ssh_server2.host]
 
@@ -286,7 +286,7 @@ def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
                 f&#34;cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}&#34;
             )
         except:
-            raise j.exceptions.Value(f&#34;3Bot name or password are incorrect&#34;)
+            raise j.exceptions.Value(f&#34;3Bot name or password is incorrect&#34;)
 
     return [self.ssh_server1.host, self.ssh_server2.host]</code></pre>
 </details>
