@@ -300,7 +300,7 @@ class ChatflowDeployer:
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow("There are no farms avaialble that the selected currency")
+            raise StopChatFlow("There are no farms available that support the selected currency")
         selected_farm = bot.single_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -325,7 +325,7 @@ class ChatflowDeployer:
         running_nodes = 0
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
-                continue
+                return False, 0, 0, 0, 0
             if not j.sals.zos.nodes_finder.filter_is_up(node):
                 continue
             running_nodes += 1
