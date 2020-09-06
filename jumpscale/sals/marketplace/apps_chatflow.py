@@ -275,9 +275,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 f"""\
 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 Node: {self.selected_node.node_id},
-Ip Address: {self.ip_address},
-Reservation Id: {self.resv_id},
-Pool Id: {self.pool_id},
+IP Address: {self.ip_address},
+Reservation ID: {self.resv_id},
+Pool ID: {self.pool_id},
 Domain: {self.domain}
                 """
             )

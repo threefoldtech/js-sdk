@@ -187,7 +187,7 @@ You will be automatically redirected to the next step once succeeded.
         if not j.sals.reservation_chatflow.wait_http_test(
             self.threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.stop("Failed to initialize 3Bot, please contact support")
+            self.stop(f"Failed to initialize 3Bot on {self.threebot_url} , please contact support")
         self.domain = f"{self.domain}/admin"
 
 
