@@ -3,12 +3,24 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from contextlib import ContextDecorator
+from jumpscale.sals.zos.zos import Zosv2
+from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.loader import j
+
+
+NODE_BLOCKING_WORKLOAD_TYPES = [
+    WorkloadType.Container,
+    WorkloadType.Network_resource,
+    WorkloadType.Volume,
+    WorkloadType.Zdb,
+]
 
 
 class DeploymentFailed(StopChatFlow):
-    def __init__(self, msg=None, solution_uuid=None, **kwargs):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
         super().__init__(msg, **kwargs)
         self.solution_uuid = solution_uuid
+        self.wid = wid
 
 
 class deployment_context(ContextDecorator):
@@ -16,15 +28,26 @@ class deployment_context(ContextDecorator):
         return self
 
     def __exit__(self, exc_type, exc, exc_tb):
-        if exc_type == DeploymentFailed and exc.solution_uuid:
+        if exc_type != DeploymentFailed:
+            return
+        if exc.solution_uuid:
+            # cancel related workloads
+            j.logger.info(f"canceling workload ids of solution_uuid: {exc.solution_uuid}")
             solutions.cancel_solution_by_uuid(exc.solution_uuid)
+        if exc.wid:
+            # block the failed node if the workload is network or container
+            zos = Zosv2()
+            workload = zos.workloads.get(exc.wid)
+            if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                j.logger.info(f"blocking node {workload.info.node_id} for failed workload {workload.id}")
+                deployer.block_node(workload.info.node_id)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3
 
 import jumpscale.tools.http
 from jumpscale.core.exceptions import Input
-import time
+import gevent
 
 
 def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -> bool:
@@ -41,12 +64,12 @@ def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -> bool:
     """
     for _ in range(timeout):
         try:
-            if check_url_reachable(url, verify=verify):
+            if check_url_reachable(url, timeout=1, verify=verify):
                 return True
         except:
             pass
 
-        time.sleep(1)
+        gevent.sleep(1)
     else:
         return False
 

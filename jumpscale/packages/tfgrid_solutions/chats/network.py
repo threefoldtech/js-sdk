@@ -3,7 +3,7 @@ import time
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
 class NetworkDeploy(GedisChatBot):
@@ -48,10 +48,7 @@ class NetworkDeploy(GedisChatBot):
     def ip_config(self):
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
-            "How would you like to connect to your network? If unsure, choose IPv4",
-            ips,
-            required=True,
-            default="IPv4",
+            "How would you like to connect to your network? If unsure, choose IPv4", ips, required=True, default="IPv4",
         )
         self.md_show_update("Searching for access node...")
         pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
@@ -73,6 +70,7 @@ class NetworkDeploy(GedisChatBot):
             self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
 
     @chatflow_step(title="Reservation")
+    @deployment_context()
     def network_reservation(self):
         if self.action == "Create":
             try:
@@ -104,7 +102,7 @@ class NetworkDeploy(GedisChatBot):
                     solutions.cancel_solution(self.config["ids"])
                 raise e
             if not success:
-                raise StopChatFlow(f"Failed to deploy workload {wid}")
+                raise DeploymentFailed(f"Failed to deploy workload {wid}", wid=wid)
 
     @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
     def network_info(self):
