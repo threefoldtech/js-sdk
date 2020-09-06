@@ -56,7 +56,7 @@ class DomainDelegation(GedisChatBot):
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
 
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
 # Delegated your domain successfully:
@@ -122,7 +122,7 @@ any extra kwargs that is passed while creating the session
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
 
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
 # Delegated your domain successfully:
@@ -140,10 +140,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.delegated_domain.DomainDelegation" href="../../marketplace/chats/delegated_domain.html#jumpscale.packages.marketplace.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -250,7 +246,7 @@ any extra kwargs that is passed while creating the session
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
 
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
 # Delegated your domain successfully:
@@ -268,10 +264,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.delegated_domain.DomainDelegation" href="../../marketplace/chats/delegated_domain.html#jumpscale.packages.marketplace.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

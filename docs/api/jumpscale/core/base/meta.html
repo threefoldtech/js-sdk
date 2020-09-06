@@ -537,7 +537,51 @@ class Base(SimpleNamespace, metaclass=BaseMeta):
         Returns:
             bool: `True` if equal, `False` otherwise
         &#34;&#34;&#34;
-        return type(self) == type(other) and self.to_dict() == other.to_dict()</code></pre>
+        return type(self) == type(other) and self.to_dict() == other.to_dict()
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        construct a readable string of base objects as  key-value list
+
+        example:
+
+        ```python
+        print(j.servers.openresty.tttt.websites.test.locations.l)
+        ```
+
+        output:
+
+        ```
+        Location(
+            instance_name=&#39;l&#39;,
+            parent=Website(instance_name_=&#39;test&#39;),
+            name=None,
+            path_url=&#39;/&#39;,
+            is_auth=False,
+            force_https=False,
+            ...
+        )
+        ```
+
+        Returns:
+            str: readable string
+        &#34;&#34;&#34;
+        data = {}
+
+        if self.instance_name:
+            data[&#34;instance_name&#34;] = self.instance_name.__repr__()
+
+        if self.parent and self.parent.instance_name:
+            parent_instance_name = self.parent.instance_name.__repr__()
+            data[&#34;parent&#34;] = f&#34;{self.parent.__class__.__name__}(instance_name_={parent_instance_name})&#34;
+
+        for name, field in self._get_fields().items():
+            data[name] = self._get_value(name, field).__repr__()
+
+        values = &#34;,\n&#34;.join([f&#34;  {name}={value}&#34; for name, value in data.items()])
+        return f&#34;{self.__class__.__name__}(\n{values}\n)&#34;
+
+    __repr__ = __str__</code></pre>
 </details>
 </section>
 <section>
@@ -945,7 +989,51 @@ print(p.name, p.age)
         Returns:
             bool: `True` if equal, `False` otherwise
         &#34;&#34;&#34;
-        return type(self) == type(other) and self.to_dict() == other.to_dict()</code></pre>
+        return type(self) == type(other) and self.to_dict() == other.to_dict()
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        construct a readable string of base objects as  key-value list
+
+        example:
+
+        ```python
+        print(j.servers.openresty.tttt.websites.test.locations.l)
+        ```
+
+        output:
+
+        ```
+        Location(
+            instance_name=&#39;l&#39;,
+            parent=Website(instance_name_=&#39;test&#39;),
+            name=None,
+            path_url=&#39;/&#39;,
+            is_auth=False,
+            force_https=False,
+            ...
+        )
+        ```
+
+        Returns:
+            str: readable string
+        &#34;&#34;&#34;
+        data = {}
+
+        if self.instance_name:
+            data[&#34;instance_name&#34;] = self.instance_name.__repr__()
+
+        if self.parent and self.parent.instance_name:
+            parent_instance_name = self.parent.instance_name.__repr__()
+            data[&#34;parent&#34;] = f&#34;{self.parent.__class__.__name__}(instance_name_={parent_instance_name})&#34;
+
+        for name, field in self._get_fields().items():
+            data[name] = self._get_value(name, field).__repr__()
+
+        values = &#34;,\n&#34;.join([f&#34;  {name}={value}&#34; for name, value in data.items()])
+        return f&#34;{self.__class__.__name__}(\n{values}\n)&#34;
+
+    __repr__ = __str__</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

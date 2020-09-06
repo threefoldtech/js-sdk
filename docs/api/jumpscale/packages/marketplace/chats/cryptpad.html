@@ -22,11 +22,9 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
@@ -55,6 +53,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.query[&#34;sru&#34;] += self.vol_size
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -76,8 +75,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
             )
 
         # deploy volume
@@ -90,7 +89,11 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
@@ -116,10 +119,12 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             )
         )
         self.resv_id = self.workload_ids[-1]
-        success = deployer.wait_workload(self.workload_ids[1], self)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
@@ -139,7 +144,11 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
 
 
 chat = CryptpadDeploy</code></pre>
@@ -192,6 +201,7 @@ any extra kwargs that is passed while creating the session
         self.query[&#34;sru&#34;] += self.vol_size
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -213,8 +223,8 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
             )
 
         # deploy volume
@@ -227,7 +237,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
@@ -253,10 +267,12 @@ any extra kwargs that is passed while creating the session
             )
         )
         self.resv_id = self.workload_ids[-1]
-        success = deployer.wait_workload(self.workload_ids[1], self)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
@@ -276,7 +292,11 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -375,6 +395,7 @@ any extra kwargs that is passed while creating the session
         self.query[&#34;sru&#34;] += self.vol_size
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.workload_ids = []
         metadata = {
@@ -396,8 +417,8 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
             )
 
         # deploy volume
@@ -410,7 +431,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
@@ -436,10 +461,12 @@ any extra kwargs that is passed while creating the session
             )
         )
         self.resv_id = self.workload_ids[-1]
-        success = deployer.wait_workload(self.workload_ids[1], self)
+        success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
-            raise StopChatFlow(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[1]}&#34;
+            raise DeploymentFailed(
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
         # expose solution on nginx container
         _id = deployer.expose_and_create_certificate(
@@ -459,7 +486,11 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

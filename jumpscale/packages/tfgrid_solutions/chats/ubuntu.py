@@ -6,7 +6,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
 import uuid
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
 class UbuntuDeploy(GedisChatBot):
@@ -92,8 +92,7 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Access key")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please upload your public SSH key to be able to access the depolyed container via ssh""",
-            required=True,
+            """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True,
         ).split("\n")[0]
 
     @chatflow_step(title="Container node id")
@@ -108,6 +107,7 @@ class UbuntuDeploy(GedisChatBot):
             self.selected_node = deployer.schedule_container(self.pool_id, **query)
 
     @chatflow_step(title="Container IP")
+    @deployment_context()
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -123,14 +123,11 @@ class UbuntuDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid)
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
-            "Please choose IP Address for your solution",
-            free_ips,
-            default=free_ips[0],
-            required=True,
+            "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
         )
 
     @chatflow_step(title="Global IPv6 Address")
@@ -138,6 +135,7 @@ class UbuntuDeploy(GedisChatBot):
         self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title="Reservation")
+    @deployment_context()
     def reservation(self):
         container_flist = f"{self.HUB_URL}/3bot-{self.version}.flist"
         metadata = {
@@ -164,7 +162,7 @@ class UbuntuDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise DeploymentFailed(f"Failed to deploy workload {self.resv_id}", wid=self.resv_id)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

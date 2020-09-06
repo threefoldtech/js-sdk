@@ -3,6 +3,7 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
+from jumpscale.sals.reservation_chatflow import DeploymentFailed
 from decimal import Decimal
 from .models import UserPool
 import random
@@ -358,9 +359,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         for wid in result["ids"]:
             success = self.wait_workload(wid, bot=bot)
             if not success:
-                for wid in result["ids"]:
-                    j.sals.zos.workloads.decomession(wid)
-                return None, None
+                for sol_wid in result["ids"]:
+                    j.sals.zos.workloads.decomession(sol_wid)
+                raise DeploymentFailed(f"Failed to deploy apps network in workload {wid}", wid=wid)
         wgcfg = result["wg"]
         return pool_info, wgcfg
 

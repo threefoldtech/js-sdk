@@ -29,7 +29,7 @@ from textwrap import dedent
 from jumpscale.clients.explorer.models import Category, DiskType, ZDBMode
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow import solutions, deployer
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context, solutions, deployer
 
 
 class MinioDeploy(GedisChatBot):
@@ -61,7 +61,7 @@ class MinioDeploy(GedisChatBot):
         self.user_form_data[&#34;chatflow&#34;] = &#34;minio&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def minio_name(self):
         self._deployment_start()
         valid = False
@@ -72,7 +72,7 @@ class MinioDeploy(GedisChatBot):
             for sol in minio_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -192,6 +192,7 @@ class MinioDeploy(GedisChatBot):
             self.public_ssh_key = &#34;&#34;
 
     @chatflow_step(title=&#34;Minio container IP&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         for i in range(len(self.minio_nodes)):
@@ -210,7 +211,7 @@ class MinioDeploy(GedisChatBot):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         self.ip_addresses = []
@@ -242,6 +243,7 @@ class MinioDeploy(GedisChatBot):
         self.solution_metadata.update(self.metadata)
 
     @chatflow_step(title=&#34;Reserve zdb&#34;, disable_previous=True)
+    @deployment_context()
     def zdb_reservation(self):
 
         self.password = uuid.uuid4().hex
@@ -257,10 +259,12 @@ class MinioDeploy(GedisChatBot):
         for resv_id in self.zdb_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;failed to deploy zdb workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;failed to deploy zdb workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Reserve minio container&#34;, disable_previous=True)
+    @deployment_context()
     def minio_reservation(self):
         zdb_configs = []
         for zid in self.zdb_result:
@@ -300,8 +304,9 @@ class MinioDeploy(GedisChatBot):
         for resv_id in self.minio_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;Failed to deploy Minio container workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy Minio container workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -370,7 +375,7 @@ any extra kwargs that is passed while creating the session
         self.user_form_data[&#34;chatflow&#34;] = &#34;minio&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def minio_name(self):
         self._deployment_start()
         valid = False
@@ -381,7 +386,7 @@ any extra kwargs that is passed while creating the session
             for sol in minio_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -501,6 +506,7 @@ any extra kwargs that is passed while creating the session
             self.public_ssh_key = &#34;&#34;
 
     @chatflow_step(title=&#34;Minio container IP&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         for i in range(len(self.minio_nodes)):
@@ -519,7 +525,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         self.ip_addresses = []
@@ -551,6 +557,7 @@ any extra kwargs that is passed while creating the session
         self.solution_metadata.update(self.metadata)
 
     @chatflow_step(title=&#34;Reserve zdb&#34;, disable_previous=True)
+    @deployment_context()
     def zdb_reservation(self):
 
         self.password = uuid.uuid4().hex
@@ -566,10 +573,12 @@ any extra kwargs that is passed while creating the session
         for resv_id in self.zdb_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;failed to deploy zdb workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;failed to deploy zdb workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Reserve minio container&#34;, disable_previous=True)
+    @deployment_context()
     def minio_reservation(self):
         zdb_configs = []
         for zid in self.zdb_result:
@@ -609,8 +618,9 @@ any extra kwargs that is passed while creating the session
         for resv_id in self.minio_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;Failed to deploy Minio container workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy Minio container workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -628,10 +638,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.minio.MinioDeploy" href="../../marketplace/chats/minio.html#jumpscale.packages.marketplace.chats.minio.MinioDeploy">MinioDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -897,7 +903,7 @@ any extra kwargs that is passed while creating the session
         self.user_form_data[&#34;chatflow&#34;] = &#34;minio&#34;
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def minio_name(self):
         self._deployment_start()
         valid = False
@@ -908,7 +914,7 @@ any extra kwargs that is passed while creating the session
             for sol in minio_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -1028,6 +1034,7 @@ any extra kwargs that is passed while creating the session
             self.public_ssh_key = &#34;&#34;
 
     @chatflow_step(title=&#34;Minio container IP&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         for i in range(len(self.minio_nodes)):
@@ -1046,7 +1053,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, bot=self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         self.ip_addresses = []
@@ -1078,6 +1085,7 @@ any extra kwargs that is passed while creating the session
         self.solution_metadata.update(self.metadata)
 
     @chatflow_step(title=&#34;Reserve zdb&#34;, disable_previous=True)
+    @deployment_context()
     def zdb_reservation(self):
 
         self.password = uuid.uuid4().hex
@@ -1093,10 +1101,12 @@ any extra kwargs that is passed while creating the session
         for resv_id in self.zdb_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;failed to deploy zdb workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;failed to deploy zdb workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Reserve minio container&#34;, disable_previous=True)
+    @deployment_context()
     def minio_reservation(self):
         zdb_configs = []
         for zid in self.zdb_result:
@@ -1136,8 +1146,9 @@ any extra kwargs that is passed while creating the session
         for resv_id in self.minio_result:
             success = deployer.wait_workload(resv_id, self)
             if not success:
-                solutions.cancel_solution([resv_id])
-                raise StopChatFlow(f&#34;Failed to deploy Minio container workload {resv_id}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy Minio container workload {resv_id}&#34;, solution_uuid=self.solution_id, wid=resv_id
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -1155,10 +1166,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.minio.MinioDeploy" href="../../marketplace/chats/minio.html#jumpscale.packages.marketplace.chats.minio.MinioDeploy">MinioDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

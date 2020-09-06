@@ -544,12 +544,10 @@ class StoredFactory(events.Handler, Factory):
         &#34;&#34;&#34;
         lazy-load all instance configuration
 
-        it will a new class for this factory with property descriptors for all instances listed by the store
+        it will create a new class for this factory with property descriptors for all instances listed by the store
         &#34;&#34;&#34;
-        # get a class name
-        cls_name = self.location.name.replace(&#34;.&#34;, &#34;&#34;)
         # get a new class based on self.__class__
-        new_cls = type(cls_name, (self.__class__,), {})
+        new_cls = type(self.__class__.__name__, (self.__class__,), {})
 
         # list all instance names in the store and set a property descriptor as an attribute
         for name in self.store.list_all():
@@ -622,7 +620,18 @@ class StoredFactory(events.Handler, Factory):
         return self.location == other.location
 
     def __hash__(self):
-        return hash(self.location)</code></pre>
+        return hash(self.location)
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        readale string for this factory
+
+        Returns:
+            str
+        &#34;&#34;&#34;
+        return f&#34;{self.__class__.__name__}({self.type.__name__})&#34;
+
+    __repr__ = __str__</code></pre>
 </details>
 </section>
 <section>
@@ -1391,12 +1400,10 @@ to store all instance configurations.</p>
         &#34;&#34;&#34;
         lazy-load all instance configuration
 
-        it will a new class for this factory with property descriptors for all instances listed by the store
+        it will create a new class for this factory with property descriptors for all instances listed by the store
         &#34;&#34;&#34;
-        # get a class name
-        cls_name = self.location.name.replace(&#34;.&#34;, &#34;&#34;)
         # get a new class based on self.__class__
-        new_cls = type(cls_name, (self.__class__,), {})
+        new_cls = type(self.__class__.__name__, (self.__class__,), {})
 
         # list all instance names in the store and set a property descriptor as an attribute
         for name in self.store.list_all():
@@ -1469,7 +1476,18 @@ to store all instance configurations.</p>
         return self.location == other.location
 
     def __hash__(self):
-        return hash(self.location)</code></pre>
+        return hash(self.location)
+
+    def __str__(self):
+        &#34;&#34;&#34;
+        readale string for this factory
+
+        Returns:
+            str
+        &#34;&#34;&#34;
+        return f&#34;{self.__class__.__name__}({self.type.__name__})&#34;
+
+    __repr__ = __str__</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1485,17 +1503,18 @@ to store all instance configurations.</p>
 <li><a title="jumpscale.clients.explorer.ExplorerFactory" href="../../clients/explorer/index.html#jumpscale.clients.explorer.ExplorerFactory">ExplorerFactory</a></li>
 <li><a title="jumpscale.clients.stellar.StellarFactory" href="../../clients/stellar/index.html#jumpscale.clients.stellar.StellarFactory">StellarFactory</a></li>
 <li><a title="jumpscale.servers.threebot.ThreebotServerFactory" href="../../servers/threebot/index.html#jumpscale.servers.threebot.ThreebotServerFactory">ThreebotServerFactory</a></li>
-<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServer</li>
-<li>jumpscale.core.base.factory.jumpscaleserversgedisserverGedisServer</li>
-<li>jumpscale.core.base.factory.jumpscaleserversgedis_httpGedisHTTPServer</li>
-<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServerdefault_package_managerjumpscaleserversthreebotthreebotPackageManager</li>
-<li>jumpscale.core.base.factory.jumpscaleserversthreebotthreebotThreebotServerdefault_package_managerjumpscaleserversthreebotthreebotPackageManager</li>
-<li>jumpscale.core.base.factory.jumpscalesalsnginxnginxNginxConfig</li>
-<li>jumpscale.core.base.factory.jumpscalesalsnginxnginxNginxConfigmainwebsitesjumpscalesalsnginxnginxWebsite</li>
-<li>jumpscale.core.base.factory.jumpscalesalschatflowsmodelsvoter_modelUser</li>
-<li>jumpscale.core.base.factory.jumpscalesalsreservation_chatflowmodelsTfgridSolution1</li>
-<li>jumpscale.core.base.factory.jumpscalesalsreservation_chatflowmodelsTfgridSolutionsPayment1</li>
-<li>jumpscale.core.base.factory.jumpscaleclientsexplorermodelsDeployedReservation</li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

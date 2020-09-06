@@ -30,7 +30,7 @@ from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
 class MonitoringDeploy(GedisChatBot):
@@ -67,7 +67,7 @@ class MonitoringDeploy(GedisChatBot):
         self.ip_addresses = {&#34;Prometheus&#34;: &#34;&#34;, &#34;Grafana&#34;: &#34;&#34;, &#34;Redis&#34;: &#34;&#34;}
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def choose_name(self):
         self._deployment_start()
         valid = False
@@ -78,7 +78,7 @@ class MonitoringDeploy(GedisChatBot):
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -135,6 +135,7 @@ class MonitoringDeploy(GedisChatBot):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -154,7 +155,7 @@ class MonitoringDeploy(GedisChatBot):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -169,6 +170,7 @@ class MonitoringDeploy(GedisChatBot):
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -186,7 +188,9 @@ class MonitoringDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;, wid=vol_id
+            )
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
@@ -236,8 +240,11 @@ class MonitoringDeploy(GedisChatBot):
             )
             success = deployer.wait_workload(self.reservation_ids[i], self)
             if not success:
-                solutions.cancel_solution(self.reservation_ids)
-                raise StopChatFlow(f&#34;Failed to deploy {self.tools_names[i]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy {self.tools_names[i]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=self.reservation_ids[i],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -315,7 +322,7 @@ any extra kwargs that is passed while creating the session
         self.ip_addresses = {&#34;Prometheus&#34;: &#34;&#34;, &#34;Grafana&#34;: &#34;&#34;, &#34;Redis&#34;: &#34;&#34;}
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def choose_name(self):
         self._deployment_start()
         valid = False
@@ -326,7 +333,7 @@ any extra kwargs that is passed while creating the session
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -383,6 +390,7 @@ any extra kwargs that is passed while creating the session
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -402,7 +410,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -417,6 +425,7 @@ any extra kwargs that is passed while creating the session
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -434,7 +443,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;, wid=vol_id
+            )
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
@@ -484,8 +495,11 @@ any extra kwargs that is passed while creating the session
             )
             success = deployer.wait_workload(self.reservation_ids[i], self)
             if not success:
-                solutions.cancel_solution(self.reservation_ids)
-                raise StopChatFlow(f&#34;Failed to deploy {self.tools_names[i]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy {self.tools_names[i]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=self.reservation_ids[i],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -507,10 +521,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.monitoring.MonitoringDeploy" href="../../marketplace/chats/monitoring.html#jumpscale.packages.marketplace.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -716,7 +726,7 @@ any extra kwargs that is passed while creating the session
         self.ip_addresses = {&#34;Prometheus&#34;: &#34;&#34;, &#34;Grafana&#34;: &#34;&#34;, &#34;Redis&#34;: &#34;&#34;}
         self.solution_metadata = {}
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def choose_name(self):
         self._deployment_start()
         valid = False
@@ -727,7 +737,7 @@ any extra kwargs that is passed while creating the session
             for sol in monitoring_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
 
@@ -784,6 +794,7 @@ any extra kwargs that is passed while creating the session
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title=&#34;IP selection&#34;)
+    @deployment_context()
     def ip_selection(self):
         self.md_show_update(&#34;Deploying Network on Nodes....&#34;)
         # deploy network on nodes
@@ -803,7 +814,7 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
                 if not success:
-                    raise StopChatFlow(f&#34;Failed to add node {node.node_id} to network {wid}&#34;)
+                    raise DeploymentFailed(f&#34;Failed to add node {node.node_id} to network {wid}&#34;, wid=wid)
             self.network_view = self.network_view.copy()
 
         # get ip addresses
@@ -818,6 +829,7 @@ any extra kwargs that is passed while creating the session
             self.network_view.used_ips.append(self.ip_addresses[i])
 
     @chatflow_step(title=&#34;Reservation&#34;)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -835,7 +847,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_nodes[1].node_id} {vol_id}&#34;, wid=vol_id
+            )
         volume_configs = [{}, {self.vol_mount_point: vol_id}, {}]
 
         log_configs = [
@@ -885,8 +899,11 @@ any extra kwargs that is passed while creating the session
             )
             success = deployer.wait_workload(self.reservation_ids[i], self)
             if not success:
-                solutions.cancel_solution(self.reservation_ids)
-                raise StopChatFlow(f&#34;Failed to deploy {self.tools_names[i]}&#34;)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy {self.tools_names[i]}&#34;,
+                    solution_uuid=self.solution_id,
+                    wid=self.reservation_ids[i],
+                )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -908,10 +925,6 @@ any extra kwargs that is passed while creating the session
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.monitoring.MonitoringDeploy" href="../../marketplace/chats/monitoring.html#jumpscale.packages.marketplace.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

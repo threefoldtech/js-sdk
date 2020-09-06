@@ -26,14 +26,9 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from .reservation_chatflow import NODES_DISALLOW_EXPIRATION, NODES_DISALLOW_KEY
 from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import (
-    NextAction,
-    WorkloadType,
-    DiskType,
-    ZDBMode,
-    State,
-)
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
 from nacl.public import Box
 import netaddr
 import uuid
@@ -215,6 +210,7 @@ class NetworkView:
                     continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
+                deployer.block_node(network.network_resources[idx].info.node_id)
                 raise StopChatFlow(
                     &#34;Network nodes dry run failed on node&#34; f&#34; {network.network_resources[idx].info.node_id}&#34;
                 )
@@ -283,7 +279,7 @@ class ChatflowDeployer:
             required=True,
             default=&#34;Month&#34;,
         )
-        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
         currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
         form.ask(
             &#34;&#34;&#34;Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check &lt;a href=&#34;https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4&#34; target=&#34;_blank&#34;&gt;cloud units&lt;/a&gt;&#34;&#34;&#34;,
@@ -322,11 +318,7 @@ class ChatflowDeployer:
                 continue
             resources = available_farms[farm]
             farm_obj = farms_by_name[farm]
-            location_list = [
-                farm_obj.location.continent,
-                farm_obj.location.country,
-                farm_obj.location.city,
-            ]
+            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
             location = &#34;-&#34;.join([info for info in location_list if info])
             if location:
                 location = f&#34; location: {location}&#34;
@@ -423,8 +415,9 @@ class ChatflowDeployer:
         else:
             wallet = wallets[result]
             wallet.transfer(
-                destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;,
+                destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;
             )
+            return None
         return qr_code
 
     def extend_pool(self, bot, pool_id):
@@ -446,7 +439,7 @@ class ChatflowDeployer:
             required=True,
             default=&#34;Month&#34;,
         )
-        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
         currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
         form.ask()
         time_unit = time_unit.value
@@ -468,9 +461,9 @@ class ChatflowDeployer:
             raise StopChatFlow(f&#34;failed to extend pool.\n{str(e)}&#34;)
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.pools.get(pool_id)
-        self.wait_pool_payment(
-            bot, pool_id, 10, qr_code, trigger_cus=pool.cus + (cu * 0.75), trigger_sus=pool.sus + (su * 0.75)
-        )
+        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+        trigger_sus = pool.sus + (su * 0.75) if su else 0
+        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
     def list_pools(self, cu=None, su=None):
@@ -507,7 +500,7 @@ class ChatflowDeployer:
         return True, available_cu, available_su
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
+        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
     ):
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
@@ -521,13 +514,10 @@ class ChatflowDeployer:
             if not nodes:
                 continue
 
+            pool_msg = f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;
             if len(available_pools[pool]) &gt; 2:
-                pool_messages[
-                    f&#34;Name: {available_pools[pool][2]} Pool: {pool} cu: {available_pools[pool][0]} su:&#34;
-                    f&#34; {available_pools[pool][1]}&#34;
-                ] = pool
-            else:
-                pool_messages[f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;] = pool
+                pool_msg += f&#34; Name: {available_pools[pool][2]}&#34;
+            pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow(&#34;no available resources in the farms bound to your pools&#34;)
         msg = &#34;Please select a pool&#34;
@@ -559,13 +549,12 @@ class ChatflowDeployer:
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def ask_name(self, bot):
-        name = bot.string_ask(
-            &#34;Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )&#34;,
-            required=True,
-            field=&#34;name&#34;,
-            is_identifier=True,
+    def ask_name(self, bot, msg=None):
+        msg = (
+            msg
+            or &#34;Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)&#34;
         )
+        name = bot.string_ask(msg, required=True, field=&#34;name&#34;, is_identifier=True)
 
         return name
 
@@ -625,7 +614,7 @@ class ChatflowDeployer:
         return network_config
 
     def add_access(
-        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata,
+        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata
     ):
         network_view = network_view or NetworkView(network_name)
         network, wg = network_view.add_access(node_id, use_ipv4, pool_id)
@@ -652,9 +641,7 @@ class ChatflowDeployer:
         result[&#34;rid&#34;] = result[&#34;ids&#34;][0]
         return result
 
-    def delete_access(
-        self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata,
-    ):
+    def delete_access(self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata):
         network_view = network_view or NetworkView(network_name)
         network = network_view.delete_access(iprange, node_id)
 
@@ -687,10 +674,10 @@ class ChatflowDeployer:
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=[&#34;minute&#34;, &#34;second&#34;])
             if bot:
                 deploying_message = f&#34;&#34;&#34;
-# Deploying...\n\n
+# Deploying...&lt;br&gt;&lt;br&gt;
 
-\n\nWorkload ID: {workload_id} \n
-\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in {remaning_time}
+Workload ID: {workload_id}
+\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
                 &#34;&#34;&#34;
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:
@@ -704,6 +691,7 @@ class ChatflowDeployer:
                     )
                 return success
             if expiration_provisioning &lt; j.data.time.get().timestamp:
+                self.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
@@ -819,18 +807,18 @@ class ChatflowDeployer:
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1,)
+            cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1)
         if memory:
             memory_answer = form.int_ask(
-                &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024,
+                &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024
             )
         if disk_size:
             disk_size_answer = form.int_ask(
-                &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True,
+                &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True
             )
         if disk_type:
             disk_type_answer = form.single_choice(
-                &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True,
+                &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True
             )
         form.ask()
         resources = {}
@@ -849,7 +837,7 @@ class ChatflowDeployer:
         form = bot.new_form()
         channel_type = form.string_ask(&#34;Please add the channel type&#34;, default=&#34;redis&#34;, required=True)
         channel_host = form.string_ask(&#34;Please add the IP address where the logs will be output to&#34;, required=True)
-        channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True,)
+        channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True)
         channel_name = form.string_ask(
             &#34;Please add the channel name to be used. The channels will be in the form&#34; &#34; NAME-stdout and NAME-stderr&#34;,
             default=solution_name,
@@ -863,13 +851,7 @@ class ChatflowDeployer:
         return logs_config
 
     def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        query = {
-            &#34;cru&#34;: cru,
-            &#34;sru&#34;: sru,
-            &#34;mru&#34;: mru,
-            &#34;hru&#34;: hru,
-            &#34;ip_version&#34;: ip_version,
-        }
+        query = {&#34;cru&#34;: cru, &#34;sru&#34;: sru, &#34;mru&#34;: mru, &#34;hru&#34;: hru, &#34;ip_version&#34;: ip_version}
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
@@ -905,7 +887,7 @@ class ChatflowDeployer:
             raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
         node_messages = {node.node_id: node for node in nodes}
         node_id = bot.drop_down_choice(
-            f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True,
+            f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True
         )
         return node_messages[node_id]
 
@@ -931,7 +913,7 @@ class ChatflowDeployer:
         return j.sals.zos.workloads.deploy(domain_delegate)
 
     def deploy_kubernetes_master(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata,
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
     ):
         master = j.sals.zos.kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
@@ -942,10 +924,10 @@ class ChatflowDeployer:
         return j.sals.zos.workloads.deploy(master)
 
     def deploy_kubernetes_worker(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata,
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
     ):
         worker = j.sals.zos.kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id,
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
         )
         worker.info.description = j.data.serializers.json.dumps({&#34;role&#34;: &#34;worker&#34;})
         if metadata:
@@ -1004,25 +986,21 @@ class ChatflowDeployer:
         # deploy_master
         master_ip = ip_addresses[0]
         master_resv_id = self.deploy_kubernetes_master(
-            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata,
+            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
         )
-        result.append(
-            {&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id,}
-        )
+        result.append({&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id})
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
             ip_address = ip_addresses[i]
             resv_id = self.deploy_kubernetes_worker(
-                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata,
+                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
             )
-            result.append(
-                {&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id,}
-            )
+            result.append({&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id})
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None,
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
     ):
         &#34;&#34;&#34;
         Ask and schedule workloads accross multiple pools
@@ -1063,9 +1041,7 @@ class ChatflowDeployer:
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
-            pool_id = self.select_pool(
-                bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su,
-            )
+            pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
             if not node:
                 node = self.schedule_container(pool_id, **resource_query_list[i])
@@ -1161,9 +1137,7 @@ class ChatflowDeployer:
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
-    def deploy_zdb(
-        self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata,
-    ):
+    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata):
         workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
@@ -1230,7 +1204,7 @@ class ChatflowDeployer:
         gateway = self._explorer.gateway.get(gateway_id)
 
         self.create_proxy(
-            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata,
+            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
         )
 
         tf_gateway = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -1298,11 +1272,7 @@ class ChatflowDeployer:
             if not domain_name:
                 raise StopChatFlow(&#34;you must pass domain_name when you ise reserv_proxy&#34;)
             resv_id = self.create_proxy(
-                pool_id=proxy_pool_id,
-                gateway_id=gateway_id,
-                domain_name=domain_name,
-                trc_secret=trc_secret,
-                **metadata,
+                pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata
             )
 
         remote = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -1502,9 +1472,7 @@ class ChatflowDeployer:
         url = f&#34;{namespace}:{password}@[{ip}]:{port}&#34;
         return url
 
-    def ask_multi_pool_distribution(
-        self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None,
-    ):
+    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
         &#34;&#34;&#34;
         Choose multiple pools to distribute workload automatically
 
@@ -1599,6 +1567,10 @@ class ChatflowDeployer:
 
         return False
 
+    def block_node(self, node_id):
+        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
+        j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
+
 
 deployer = ChatflowDeployer()</code></pre>
 </details>
@@ -1680,7 +1652,7 @@ deployer = ChatflowDeployer()</code></pre>
             required=True,
             default=&#34;Month&#34;,
         )
-        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
         currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
         form.ask(
             &#34;&#34;&#34;Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check &lt;a href=&#34;https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4&#34; target=&#34;_blank&#34;&gt;cloud units&lt;/a&gt;&#34;&#34;&#34;,
@@ -1719,11 +1691,7 @@ deployer = ChatflowDeployer()</code></pre>
                 continue
             resources = available_farms[farm]
             farm_obj = farms_by_name[farm]
-            location_list = [
-                farm_obj.location.continent,
-                farm_obj.location.country,
-                farm_obj.location.city,
-            ]
+            location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
             location = &#34;-&#34;.join([info for info in location_list if info])
             if location:
                 location = f&#34; location: {location}&#34;
@@ -1820,8 +1788,9 @@ deployer = ChatflowDeployer()</code></pre>
         else:
             wallet = wallets[result]
             wallet.transfer(
-                destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;,
+                destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;
             )
+            return None
         return qr_code
 
     def extend_pool(self, bot, pool_id):
@@ -1843,7 +1812,7 @@ deployer = ChatflowDeployer()</code></pre>
             required=True,
             default=&#34;Month&#34;,
         )
-        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+        ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
         currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
         form.ask()
         time_unit = time_unit.value
@@ -1865,9 +1834,9 @@ deployer = ChatflowDeployer()</code></pre>
             raise StopChatFlow(f&#34;failed to extend pool.\n{str(e)}&#34;)
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.pools.get(pool_id)
-        self.wait_pool_payment(
-            bot, pool_id, 10, qr_code, trigger_cus=pool.cus + (cu * 0.75), trigger_sus=pool.sus + (su * 0.75)
-        )
+        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+        trigger_sus = pool.sus + (su * 0.75) if su else 0
+        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
     def list_pools(self, cu=None, su=None):
@@ -1904,7 +1873,7 @@ deployer = ChatflowDeployer()</code></pre>
         return True, available_cu, available_su
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
+        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
     ):
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
@@ -1918,13 +1887,10 @@ deployer = ChatflowDeployer()</code></pre>
             if not nodes:
                 continue
 
+            pool_msg = f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;
             if len(available_pools[pool]) &gt; 2:
-                pool_messages[
-                    f&#34;Name: {available_pools[pool][2]} Pool: {pool} cu: {available_pools[pool][0]} su:&#34;
-                    f&#34; {available_pools[pool][1]}&#34;
-                ] = pool
-            else:
-                pool_messages[f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;] = pool
+                pool_msg += f&#34; Name: {available_pools[pool][2]}&#34;
+            pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow(&#34;no available resources in the farms bound to your pools&#34;)
         msg = &#34;Please select a pool&#34;
@@ -1956,13 +1922,12 @@ deployer = ChatflowDeployer()</code></pre>
             return False, available_cu, available_su
         return True, available_cu, available_su
 
-    def ask_name(self, bot):
-        name = bot.string_ask(
-            &#34;Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )&#34;,
-            required=True,
-            field=&#34;name&#34;,
-            is_identifier=True,
+    def ask_name(self, bot, msg=None):
+        msg = (
+            msg
+            or &#34;Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)&#34;
         )
+        name = bot.string_ask(msg, required=True, field=&#34;name&#34;, is_identifier=True)
 
         return name
 
@@ -2022,7 +1987,7 @@ deployer = ChatflowDeployer()</code></pre>
         return network_config
 
     def add_access(
-        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata,
+        self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata
     ):
         network_view = network_view or NetworkView(network_name)
         network, wg = network_view.add_access(node_id, use_ipv4, pool_id)
@@ -2049,9 +2014,7 @@ deployer = ChatflowDeployer()</code></pre>
         result[&#34;rid&#34;] = result[&#34;ids&#34;][0]
         return result
 
-    def delete_access(
-        self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata,
-    ):
+    def delete_access(self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata):
         network_view = network_view or NetworkView(network_name)
         network = network_view.delete_access(iprange, node_id)
 
@@ -2084,10 +2047,10 @@ deployer = ChatflowDeployer()</code></pre>
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=[&#34;minute&#34;, &#34;second&#34;])
             if bot:
                 deploying_message = f&#34;&#34;&#34;
-# Deploying...\n\n
+# Deploying...&lt;br&gt;&lt;br&gt;
 
-\n\nWorkload ID: {workload_id} \n
-\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in {remaning_time}
+Workload ID: {workload_id}
+\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
                 &#34;&#34;&#34;
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:
@@ -2101,6 +2064,7 @@ deployer = ChatflowDeployer()</code></pre>
                     )
                 return success
             if expiration_provisioning &lt; j.data.time.get().timestamp:
+                self.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
@@ -2216,18 +2180,18 @@ deployer = ChatflowDeployer()</code></pre>
     ):
         form = bot.new_form()
         if cpu:
-            cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1,)
+            cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1)
         if memory:
             memory_answer = form.int_ask(
-                &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024,
+                &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024
             )
         if disk_size:
             disk_size_answer = form.int_ask(
-                &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True,
+                &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True
             )
         if disk_type:
             disk_type_answer = form.single_choice(
-                &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True,
+                &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True
             )
         form.ask()
         resources = {}
@@ -2246,7 +2210,7 @@ deployer = ChatflowDeployer()</code></pre>
         form = bot.new_form()
         channel_type = form.string_ask(&#34;Please add the channel type&#34;, default=&#34;redis&#34;, required=True)
         channel_host = form.string_ask(&#34;Please add the IP address where the logs will be output to&#34;, required=True)
-        channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True,)
+        channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True)
         channel_name = form.string_ask(
             &#34;Please add the channel name to be used. The channels will be in the form&#34; &#34; NAME-stdout and NAME-stderr&#34;,
             default=solution_name,
@@ -2260,13 +2224,7 @@ deployer = ChatflowDeployer()</code></pre>
         return logs_config
 
     def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        query = {
-            &#34;cru&#34;: cru,
-            &#34;sru&#34;: sru,
-            &#34;mru&#34;: mru,
-            &#34;hru&#34;: hru,
-            &#34;ip_version&#34;: ip_version,
-        }
+        query = {&#34;cru&#34;: cru, &#34;sru&#34;: sru, &#34;mru&#34;: mru, &#34;hru&#34;: hru, &#34;ip_version&#34;: ip_version}
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
@@ -2302,7 +2260,7 @@ deployer = ChatflowDeployer()</code></pre>
             raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
         node_messages = {node.node_id: node for node in nodes}
         node_id = bot.drop_down_choice(
-            f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True,
+            f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True
         )
         return node_messages[node_id]
 
@@ -2328,7 +2286,7 @@ deployer = ChatflowDeployer()</code></pre>
         return j.sals.zos.workloads.deploy(domain_delegate)
 
     def deploy_kubernetes_master(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata,
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
     ):
         master = j.sals.zos.kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
@@ -2339,10 +2297,10 @@ deployer = ChatflowDeployer()</code></pre>
         return j.sals.zos.workloads.deploy(master)
 
     def deploy_kubernetes_worker(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata,
+        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
     ):
         worker = j.sals.zos.kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id,
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
         )
         worker.info.description = j.data.serializers.json.dumps({&#34;role&#34;: &#34;worker&#34;})
         if metadata:
@@ -2401,25 +2359,21 @@ deployer = ChatflowDeployer()</code></pre>
         # deploy_master
         master_ip = ip_addresses[0]
         master_resv_id = self.deploy_kubernetes_master(
-            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata,
+            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
         )
-        result.append(
-            {&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id,}
-        )
+        result.append({&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id})
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
             ip_address = ip_addresses[i]
             resv_id = self.deploy_kubernetes_worker(
-                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata,
+                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
             )
-            result.append(
-                {&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id,}
-            )
+            result.append({&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id})
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None,
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
     ):
         &#34;&#34;&#34;
         Ask and schedule workloads accross multiple pools
@@ -2460,9 +2414,7 @@ deployer = ChatflowDeployer()</code></pre>
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
-            pool_id = self.select_pool(
-                bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su,
-            )
+            pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
             if not node:
                 node = self.schedule_container(pool_id, **resource_query_list[i])
@@ -2558,9 +2510,7 @@ deployer = ChatflowDeployer()</code></pre>
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.workloads.deploy(workload)
 
-    def deploy_zdb(
-        self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata,
-    ):
+    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata):
         workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
@@ -2627,7 +2577,7 @@ deployer = ChatflowDeployer()</code></pre>
         gateway = self._explorer.gateway.get(gateway_id)
 
         self.create_proxy(
-            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata,
+            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
         )
 
         tf_gateway = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -2695,11 +2645,7 @@ deployer = ChatflowDeployer()</code></pre>
             if not domain_name:
                 raise StopChatFlow(&#34;you must pass domain_name when you ise reserv_proxy&#34;)
             resv_id = self.create_proxy(
-                pool_id=proxy_pool_id,
-                gateway_id=gateway_id,
-                domain_name=domain_name,
-                trc_secret=trc_secret,
-                **metadata,
+                pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata
             )
 
         remote = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -2899,9 +2845,7 @@ deployer = ChatflowDeployer()</code></pre>
         url = f&#34;{namespace}:{password}@[{ip}]:{port}&#34;
         return url
 
-    def ask_multi_pool_distribution(
-        self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None,
-    ):
+    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
         &#34;&#34;&#34;
         Choose multiple pools to distribute workload automatically
 
@@ -2994,7 +2938,11 @@ deployer = ChatflowDeployer()</code></pre>
                 return True
             gevent.sleep(2)
 
-        return False</code></pre>
+        return False
+
+    def block_node(self, node_id):
+        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
+        j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -3010,7 +2958,7 @@ deployer = ChatflowDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_access(
-    self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata,
+    self, network_name, network_view=None, node_id=None, pool_id=None, use_ipv4=True, bot=None, **metadata
 ):
     network_view = network_view or NetworkView(network_name)
     network, wg = network_view.add_access(node_id, use_ipv4, pool_id)
@@ -3086,7 +3034,7 @@ deployer = ChatflowDeployer()</code></pre>
     form = bot.new_form()
     channel_type = form.string_ask(&#34;Please add the channel type&#34;, default=&#34;redis&#34;, required=True)
     channel_host = form.string_ask(&#34;Please add the IP address where the logs will be output to&#34;, required=True)
-    channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True,)
+    channel_port = form.int_ask(&#34;Please add the port available where the logs will be output to&#34;, required=True)
     channel_name = form.string_ask(
         &#34;Please add the channel name to be used. The channels will be in the form&#34; &#34; NAME-stdout and NAME-stderr&#34;,
         default=solution_name,
@@ -3140,7 +3088,7 @@ deployer = ChatflowDeployer()</code></pre>
         raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
     node_messages = {node.node_id: node for node in nodes}
     node_id = bot.drop_down_choice(
-        f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True,
+        f&#34;Please choose the node you want to deploy {workload_name} on&#34;, list(node_messages.keys()), required=True
     )
     return node_messages[node_id]</code></pre>
 </details>
@@ -3166,18 +3114,18 @@ deployer = ChatflowDeployer()</code></pre>
 ):
     form = bot.new_form()
     if cpu:
-        cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1,)
+        cpu_answer = form.int_ask(&#34;Please specify how many CPUs&#34;, default=default_cpu, required=True, min=1)
     if memory:
         memory_answer = form.int_ask(
-            &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024,
+            &#34;Please specify how much memory (in MB)&#34;, default=default_memory, required=True, min=1024
         )
     if disk_size:
         disk_size_answer = form.int_ask(
-            &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True,
+            &#34;Please specify the size of root filesystem (in MB)&#34;, default=default_disk_size, required=True
         )
     if disk_type:
         disk_type_answer = form.single_choice(
-            &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True,
+            &#34;Please choose the root filesystem disktype&#34;, [&#34;SSD&#34;, &#34;HDD&#34;], default=default_disk_type, required=True
         )
     form.ask()
     resources = {}
@@ -3249,9 +3197,7 @@ deployer = ChatflowDeployer()</code></pre>
 <p>([], []): first list contains the selected node objects. second list contains selected pool ids</p></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def ask_multi_pool_distribution(
-    self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None,
-):
+<pre><code class="python">def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
     &#34;&#34;&#34;
     Choose multiple pools to distribute workload automatically
 
@@ -3344,7 +3290,7 @@ deployer = ChatflowDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def ask_multi_pool_placement(
-    self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None,
+    self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
 ):
     &#34;&#34;&#34;
     Ask and schedule workloads accross multiple pools
@@ -3385,9 +3331,7 @@ deployer = ChatflowDeployer()</code></pre>
             if not nodes:
                 continue
             pool_choices[p] = pools[p]
-        pool_id = self.select_pool(
-            bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su,
-        )
+        pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
         node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
         if not node:
             node = self.schedule_container(pool_id, **resource_query_list[i])
@@ -3397,21 +3341,32 @@ deployer = ChatflowDeployer()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_name"><code class="name flex">
-<span>def <span class="ident">ask_name</span></span>(<span>self, bot)</span>
+<span>def <span class="ident">ask_name</span></span>(<span>self, bot, msg=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def ask_name(self, bot):
-    name = bot.string_ask(
-        &#34;Please enter a name for you workload (Can be used to prepare domain for you and needed to track your solution on the grid )&#34;,
-        required=True,
-        field=&#34;name&#34;,
-        is_identifier=True,
+<pre><code class="python">def ask_name(self, bot, msg=None):
+    msg = (
+        msg
+        or &#34;Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)&#34;
     )
+    name = bot.string_ask(msg, required=True, field=&#34;name&#34;, is_identifier=True)
 
     return name</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.block_node"><code class="name flex">
+<span>def <span class="ident">block_node</span></span>(<span>self, node_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def block_node(self, node_id):
+    expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
+    j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.calculate_capacity_units"><code class="name flex">
@@ -3553,7 +3508,7 @@ deployer = ChatflowDeployer()</code></pre>
         required=True,
         default=&#34;Month&#34;,
     )
-    ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+    ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
     currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
     form.ask(
         &#34;&#34;&#34;Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check &lt;a href=&#34;https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4&#34; target=&#34;_blank&#34;&gt;cloud units&lt;/a&gt;&#34;&#34;&#34;,
@@ -3592,11 +3547,7 @@ deployer = ChatflowDeployer()</code></pre>
             continue
         resources = available_farms[farm]
         farm_obj = farms_by_name[farm]
-        location_list = [
-            farm_obj.location.continent,
-            farm_obj.location.country,
-            farm_obj.location.city,
-        ]
+        location_list = [farm_obj.location.continent, farm_obj.location.country, farm_obj.location.city]
         location = &#34;-&#34;.join([info for info in location_list if info])
         if location:
             location = f&#34; location: {location}&#34;
@@ -3697,9 +3648,7 @@ if no addresses are specified, the record will point the gateway IP address (use
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def delete_access(
-    self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata,
-):
+<pre><code class="python">def delete_access(self, network_name, iprange, network_view=None, node_id=None, bot=None, **metadata):
     network_view = network_view or NetworkView(network_name)
     network = network_view.delete_access(iprange, node_id)
 
@@ -3862,21 +3811,17 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
     # deploy_master
     master_ip = ip_addresses[0]
     master_resv_id = self.deploy_kubernetes_master(
-        pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata,
+        pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
     )
-    result.append(
-        {&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id,}
-    )
+    result.append({&#34;node_id&#34;: node_ids[0], &#34;ip_address&#34;: master_ip, &#34;reservation_id&#34;: master_resv_id})
     for i in range(1, len(node_ids)):
         node_id = node_ids[i]
         pool_id = pool_ids[i]
         ip_address = ip_addresses[i]
         resv_id = self.deploy_kubernetes_worker(
-            pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata,
+            pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
         )
-        result.append(
-            {&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id,}
-        )
+        result.append({&#34;node_id&#34;: node_id, &#34;ip_address&#34;: ip_address, &#34;reservation_id&#34;: resv_id})
     return result</code></pre>
 </details>
 </dd>
@@ -3888,7 +3833,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def deploy_kubernetes_master(
-    self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata,
+    self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
 ):
     master = j.sals.zos.kubernetes.add_master(
         node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
@@ -3907,10 +3852,10 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def deploy_kubernetes_worker(
-    self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata,
+    self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
 ):
     worker = j.sals.zos.kubernetes.add_worker(
-        node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id,
+        node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
     )
     worker.info.description = j.data.serializers.json.dumps({&#34;role&#34;: &#34;worker&#34;})
     if metadata:
@@ -4150,9 +4095,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def deploy_zdb(
-    self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata,
-):
+<pre><code class="python">def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type=&#34;SSD&#34;, public=False, **metadata):
     workload = j.sals.zos.zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
     if metadata:
         workload.info.metadata = self.encrypt_metadata(metadata)
@@ -4206,11 +4149,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
         if not domain_name:
             raise StopChatFlow(&#34;you must pass domain_name when you ise reserv_proxy&#34;)
         resv_id = self.create_proxy(
-            pool_id=proxy_pool_id,
-            gateway_id=gateway_id,
-            domain_name=domain_name,
-            trc_secret=trc_secret,
-            **metadata,
+            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata
         )
 
     remote = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -4323,7 +4262,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
     gateway = self._explorer.gateway.get(gateway_id)
 
     self.create_proxy(
-        pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata,
+        pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
     )
 
     tf_gateway = f&#34;{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}&#34;
@@ -4395,7 +4334,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
         required=True,
         default=&#34;Month&#34;,
     )
-    ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0,)
+    ttl = form.int_ask(&#34;Please specify the pools time-to-live&#34;, required=True, min=1, default=0)
     currencies = form.single_choice(&#34;Please choose the currency&#34;, [&#34;TFT&#34;, &#34;FreeTFT&#34;, &#34;TFTA&#34;], required=True)
     form.ask()
     time_unit = time_unit.value
@@ -4417,9 +4356,9 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
         raise StopChatFlow(f&#34;failed to extend pool.\n{str(e)}&#34;)
     qr_code = self.show_payment(pool_info, bot)
     pool = j.sals.zos.pools.get(pool_id)
-    self.wait_pool_payment(
-        bot, pool_id, 10, qr_code, trigger_cus=pool.cus + (cu * 0.75), trigger_sus=pool.sus + (su * 0.75)
-    )
+    trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+    trigger_sus = pool.sus + (su * 0.75) if su else 0
+    self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
     return pool_info</code></pre>
 </details>
 </dd>
@@ -4649,13 +4588,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-    query = {
-        &#34;cru&#34;: cru,
-        &#34;sru&#34;: sru,
-        &#34;mru&#34;: mru,
-        &#34;hru&#34;: hru,
-        &#34;ip_version&#34;: ip_version,
-    }
+    query = {&#34;cru&#34;: cru, &#34;sru&#34;: sru, &#34;mru&#34;: mru, &#34;hru&#34;: hru, &#34;ip_version&#34;: ip_version}
     return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]</code></pre>
 </details>
 </dd>
@@ -4712,7 +4645,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def select_pool(
-    self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None,
+    self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
 ):
     if j.config.get(&#34;OVER_PROVISIONING&#34;):
         cru = 0
@@ -4726,13 +4659,10 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
         if not nodes:
             continue
 
+        pool_msg = f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;
         if len(available_pools[pool]) &gt; 2:
-            pool_messages[
-                f&#34;Name: {available_pools[pool][2]} Pool: {pool} cu: {available_pools[pool][0]} su:&#34;
-                f&#34; {available_pools[pool][1]}&#34;
-            ] = pool
-        else:
-            pool_messages[f&#34;Pool: {pool} cu: {available_pools[pool][0]} su:&#34; f&#34; {available_pools[pool][1]}&#34;] = pool
+            pool_msg += f&#34; Name: {available_pools[pool][2]}&#34;
+        pool_messages[pool_msg] = pool
     if not pool_messages:
         raise StopChatFlow(&#34;no available resources in the farms bound to your pools&#34;)
     msg = &#34;Please select a pool&#34;
@@ -4793,8 +4723,9 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
     else:
         wallet = wallets[result]
         wallet.transfer(
-            destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;,
+            destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f&#34;p-{resv_id}&#34;
         )
+        return None
     return qr_code</code></pre>
 </details>
 </dd>
@@ -4837,10 +4768,10 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=[&#34;minute&#34;, &#34;second&#34;])
             if bot:
                 deploying_message = f&#34;&#34;&#34;
-# Deploying...\n\n
+# Deploying...&lt;br&gt;&lt;br&gt;
 
-\n\nWorkload ID: {workload_id} \n
-\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in {remaning_time}
+Workload ID: {workload_id}
+\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
                 &#34;&#34;&#34;
                 bot.md_show_update(deploying_message, md=True)
             if workload.info.result.workload_id:
@@ -4854,6 +4785,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
                     )
                 return success
             if expiration_provisioning &lt; j.data.time.get().timestamp:
+                self.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
@@ -5044,6 +4976,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
                     continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
+                deployer.block_node(network.network_resources[idx].info.node_id)
                 raise StopChatFlow(
                     &#34;Network nodes dry run failed on node&#34; f&#34; {network.network_resources[idx].info.node_id}&#34;
                 )
@@ -5200,6 +5133,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
                 continue
             for wid in result:
                 j.sals.zos.workloads.decomission(wid)
+            deployer.block_node(network.network_resources[idx].info.node_id)
             raise StopChatFlow(
                 &#34;Network nodes dry run failed on node&#34; f&#34; {network.network_resources[idx].info.node_id}&#34;
             )
@@ -5292,6 +5226,7 @@ log_Config: dict. keys ("channel_type", "channel_host", "channel_port", "channel
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_distribution" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_distribution">ask_multi_pool_distribution</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_placement" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_placement">ask_multi_pool_placement</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_name" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_name">ask_name</a></code></li>
+<li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.block_node" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.block_node">block_node</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.calculate_capacity_units" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.calculate_capacity_units">calculate_capacity_units</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.chatflow_network_check" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.chatflow_network_check">chatflow_network_check</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.chatflow_pools_check" href="#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.chatflow_pools_check">chatflow_pools_check</a></code></li>

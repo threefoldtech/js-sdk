@@ -22,12 +22,11 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.loader import j
 import nacl
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class Discourse(MarketPlaceAppsChatflow):
@@ -47,12 +46,12 @@ class Discourse(MarketPlaceAppsChatflow):
     title = &#34;Discourse&#34;
     query = {&#34;cru&#34;: 1, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
 
-    @chatflow_step(title=&#34;SMTP information&#34;)
+    @chatflow_step(title=&#34;SMTP Information&#34;)
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask(&#34;SMTP server address&#34;, required=True)
-        self.smtp_username = form.string_ask(&#34;SMTP server username&#34;, required=True)
-        self.smtp_password = form.secret_ask(&#34;SMTP server password&#34;, required=True)
+        self.smtp_server = form.string_ask(&#34;SMTP Server Address&#34;, required=True)
+        self.smtp_username = form.string_ask(&#34;SMTP Server Username&#34;, required=True)
+        self.smtp_password = form.secret_ask(&#34;SMTP Server Password&#34;, required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -60,8 +59,8 @@ class Discourse(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -102,7 +101,9 @@ class Discourse(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.threebot_url = f&#34;https://{self.domain}&#34;
 
         entrypoint = f&#34;/.start_discourse.sh&#34;
@@ -126,7 +127,9 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -145,8 +148,11 @@ class Discourse(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )
 
 
 chat = Discourse</code></pre>
@@ -190,12 +196,12 @@ any extra kwargs that is passed while creating the session
     title = &#34;Discourse&#34;
     query = {&#34;cru&#34;: 1, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
 
-    @chatflow_step(title=&#34;SMTP information&#34;)
+    @chatflow_step(title=&#34;SMTP Information&#34;)
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask(&#34;SMTP server address&#34;, required=True)
-        self.smtp_username = form.string_ask(&#34;SMTP server username&#34;, required=True)
-        self.smtp_password = form.secret_ask(&#34;SMTP server password&#34;, required=True)
+        self.smtp_server = form.string_ask(&#34;SMTP Server Address&#34;, required=True)
+        self.smtp_username = form.string_ask(&#34;SMTP Server Username&#34;, required=True)
+        self.smtp_password = form.secret_ask(&#34;SMTP Server Password&#34;, required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -203,8 +209,8 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -245,7 +251,9 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.threebot_url = f&#34;https://{self.domain}&#34;
 
         entrypoint = f&#34;/.start_discourse.sh&#34;
@@ -269,7 +277,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -288,8 +298,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -379,12 +392,12 @@ any extra kwargs that is passed while creating the session
     title = &#34;Discourse&#34;
     query = {&#34;cru&#34;: 1, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
 
-    @chatflow_step(title=&#34;SMTP information&#34;)
+    @chatflow_step(title=&#34;SMTP Information&#34;)
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask(&#34;SMTP server address&#34;, required=True)
-        self.smtp_username = form.string_ask(&#34;SMTP server username&#34;, required=True)
-        self.smtp_password = form.secret_ask(&#34;SMTP server password&#34;, required=True)
+        self.smtp_server = form.string_ask(&#34;SMTP Server Address&#34;, required=True)
+        self.smtp_username = form.string_ask(&#34;SMTP Server Username&#34;, required=True)
+        self.smtp_password = form.secret_ask(&#34;SMTP Server Password&#34;, required=True)
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
@@ -392,8 +405,8 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
         self.username = self.user_info()[&#34;username&#34;]
 
-
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -434,7 +447,9 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.threebot_url = f&#34;https://{self.domain}&#34;
 
         entrypoint = f&#34;/.start_discourse.sh&#34;
@@ -458,7 +473,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -477,8 +494,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

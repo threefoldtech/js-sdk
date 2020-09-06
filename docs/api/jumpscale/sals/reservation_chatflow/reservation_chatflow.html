@@ -38,6 +38,9 @@ import random
 import requests
 import time
 
+NODES_DISALLOW_KEY = &#34;ZOS:DISALLOWED_NODES&#34;
+NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+
 
 class Network:
     def __init__(self, network, expiration, bot, reservations, currency, resv_id):
@@ -235,8 +238,7 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
-        &#34;&#34;&#34;This class is responsible for managing, creating, cancelling reservations
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;This class is responsible for managing, creating, cancelling reservations&#34;&#34;&#34;
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
@@ -513,8 +515,7 @@ class ReservationChatflow:
         return reservations_data
 
     def update_local_reservations(self):
-        &#34;&#34;&#34;update local reserfvations with new ones
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;update local reserfvations with new ones&#34;&#34;&#34;
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
         reservations = self.get_solutions_explorer()
@@ -559,10 +560,10 @@ class ReservationChatflow:
         Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         &lt;p&gt;If no payment is made {remaning_time} the reservation will be canceled&lt;/p&gt;
 
-        &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+        &lt;h4&gt; Destination Wallet Address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-        &lt;h4&gt; Reservation id: &lt;/h4&gt;  {reservationid} \n
-        &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
+        &lt;h4&gt; Reservation ID: &lt;/h4&gt;  {reservationid} \n
+        &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
         &#34;&#34;&#34;
 
         bot.qrcode_show(data=qrcode, msg=message_text, scale=4, update=True, html=True)
@@ -659,10 +660,10 @@ class ReservationChatflow:
 
         message = f&#34;&#34;&#34;
         Billing details:
-        &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+        &lt;h4&gt; Destination Wallet address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-        &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
-        &lt;h4&gt; Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) &lt;/h4&gt;
+        &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
+        &lt;h4&gt; Choose a wallet name to use for payment or proceed with the payment through an external wallet (QR Code) &lt;/h4&gt;
         &#34;&#34;&#34;
         retry = False
         while True:
@@ -1151,7 +1152,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        &#34;&#34;&#34; add the encrypted metadata to reservation object
+        &#34;&#34;&#34;add the encrypted metadata to reservation object
 
         Args:
             reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
@@ -1383,7 +1384,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency=&#34;TFT&#34;, ip_version=None, pool_ids=None,
+        self,
+        number_of_nodes,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        currency=&#34;TFT&#34;,
+        ip_version=None,
+        pool_ids=None,
+        filter_blocked=True,
     ):
         &#34;&#34;&#34;get available nodes to deploy solutions on
 
@@ -1403,6 +1413,18 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         &#34;&#34;&#34;
+
+        def filter_disallowed_nodes(disallowed_dict, nodes):
+            result = []
+            for node in nodes:
+                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
+                if node_blocking_time &lt; j.data.time.now().timestamp:
+                    result.append(node)
+            return result
+
+        disallowed_dict = {}
+        if filter_blocked:
+            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
             mru = 0
@@ -1417,6 +1439,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
+            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
             nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -2085,8 +2108,7 @@ you can add, update, list, get, filter nodes</p>
 <summary>Source code</summary>
 <pre><code class="python">class ReservationChatflow:
     def __init__(self, **kwargs):
-        &#34;&#34;&#34;This class is responsible for managing, creating, cancelling reservations
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;This class is responsible for managing, creating, cancelling reservations&#34;&#34;&#34;
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
@@ -2363,8 +2385,7 @@ you can add, update, list, get, filter nodes</p>
         return reservations_data
 
     def update_local_reservations(self):
-        &#34;&#34;&#34;update local reserfvations with new ones
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;update local reserfvations with new ones&#34;&#34;&#34;
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
         reservations = self.get_solutions_explorer()
@@ -2409,10 +2430,10 @@ you can add, update, list, get, filter nodes</p>
         Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         &lt;p&gt;If no payment is made {remaning_time} the reservation will be canceled&lt;/p&gt;
 
-        &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+        &lt;h4&gt; Destination Wallet Address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-        &lt;h4&gt; Reservation id: &lt;/h4&gt;  {reservationid} \n
-        &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
+        &lt;h4&gt; Reservation ID: &lt;/h4&gt;  {reservationid} \n
+        &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
         &#34;&#34;&#34;
 
         bot.qrcode_show(data=qrcode, msg=message_text, scale=4, update=True, html=True)
@@ -2509,10 +2530,10 @@ you can add, update, list, get, filter nodes</p>
 
         message = f&#34;&#34;&#34;
         Billing details:
-        &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+        &lt;h4&gt; Destination Wallet address: &lt;/h4&gt;  {escrow_address} \n
         &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-        &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
-        &lt;h4&gt; Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) &lt;/h4&gt;
+        &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
+        &lt;h4&gt; Choose a wallet name to use for payment or proceed with the payment through an external wallet (QR Code) &lt;/h4&gt;
         &#34;&#34;&#34;
         retry = False
         while True:
@@ -3001,7 +3022,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        &#34;&#34;&#34; add the encrypted metadata to reservation object
+        &#34;&#34;&#34;add the encrypted metadata to reservation object
 
         Args:
             reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
@@ -3233,7 +3254,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency=&#34;TFT&#34;, ip_version=None, pool_ids=None,
+        self,
+        number_of_nodes,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        currency=&#34;TFT&#34;,
+        ip_version=None,
+        pool_ids=None,
+        filter_blocked=True,
     ):
         &#34;&#34;&#34;get available nodes to deploy solutions on
 
@@ -3253,6 +3283,18 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         &#34;&#34;&#34;
+
+        def filter_disallowed_nodes(disallowed_dict, nodes):
+            result = []
+            for node in nodes:
+                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
+                if node_blocking_time &lt; j.data.time.now().timestamp:
+                    result.append(node)
+            return result
+
+        disallowed_dict = {}
+        if filter_blocked:
+            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
             mru = 0
@@ -3267,6 +3309,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
+            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
             nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -3473,7 +3516,7 @@ def me(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_reservation_metadata(self, reservation, metadata):
-    &#34;&#34;&#34; add the encrypted metadata to reservation object
+    &#34;&#34;&#34;add the encrypted metadata to reservation object
 
     Args:
         reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
@@ -4135,7 +4178,7 @@ free_to_use (bool)</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_nodes"><code class="name flex">
-<span>def <span class="ident">get_nodes</span></span>(<span>self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency=&#39;TFT&#39;, ip_version=None, pool_ids=None)</span>
+<span>def <span class="ident">get_nodes</span></span>(<span>self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency=&#39;TFT&#39;, ip_version=None, pool_ids=None, filter_blocked=True)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>get available nodes to deploy solutions on</p>
@@ -4171,7 +4214,16 @@ free_to_use (bool)</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def get_nodes(
-    self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency=&#34;TFT&#34;, ip_version=None, pool_ids=None,
+    self,
+    number_of_nodes,
+    cru=None,
+    sru=None,
+    mru=None,
+    hru=None,
+    currency=&#34;TFT&#34;,
+    ip_version=None,
+    pool_ids=None,
+    filter_blocked=True,
 ):
     &#34;&#34;&#34;get available nodes to deploy solutions on
 
@@ -4191,6 +4243,18 @@ free_to_use (bool)</p>
     Returns:
         list of available nodes
     &#34;&#34;&#34;
+
+    def filter_disallowed_nodes(disallowed_dict, nodes):
+        result = []
+        for node in nodes:
+            node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
+            if node_blocking_time &lt; j.data.time.now().timestamp:
+                result.append(node)
+        return result
+
+    disallowed_dict = {}
+    if filter_blocked:
+        disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
     if j.config.get(&#34;OVER_PROVISIONING&#34;):
         cru = 0
         mru = 0
@@ -4205,6 +4269,7 @@ free_to_use (bool)</p>
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
             cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
         )
+        nodes = filter_disallowed_nodes(disallowed_dict, nodes)
         nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
         for i in range(nodes_number):
             try:
@@ -5136,10 +5201,10 @@ It returns the reservation id of the registered reservation.</p>
     Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
     &lt;p&gt;If no payment is made {remaning_time} the reservation will be canceled&lt;/p&gt;
 
-    &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+    &lt;h4&gt; Destination Wallet Address: &lt;/h4&gt;  {escrow_address} \n
     &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-    &lt;h4&gt; Reservation id: &lt;/h4&gt;  {reservationid} \n
-    &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
+    &lt;h4&gt; Reservation ID: &lt;/h4&gt;  {reservationid} \n
+    &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
     &#34;&#34;&#34;
 
     bot.qrcode_show(data=qrcode, msg=message_text, scale=4, update=True, html=True)</code></pre>
@@ -5197,10 +5262,10 @@ where a QR code is viewed for the user to scan and continue with their payment</
 
     message = f&#34;&#34;&#34;
     Billing details:
-    &lt;h4&gt; Wallet address: &lt;/h4&gt;  {escrow_address} \n
+    &lt;h4&gt; Destination Wallet address: &lt;/h4&gt;  {escrow_address} \n
     &lt;h4&gt; Currency: &lt;/h4&gt;  {escrow_asset} \n
-    &lt;h4&gt; Payment details: &lt;/h4&gt; {payment_details} \n
-    &lt;h4&gt; Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) &lt;/h4&gt;
+    &lt;h4&gt; Payment Details: &lt;/h4&gt; {payment_details} \n
+    &lt;h4&gt; Choose a wallet name to use for payment or proceed with the payment through an external wallet (QR Code) &lt;/h4&gt;
     &#34;&#34;&#34;
     retry = False
     while True:
@@ -5260,8 +5325,7 @@ where a QR code is viewed for the user to scan and continue with their payment</
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def update_local_reservations(self):
-    &#34;&#34;&#34;update local reserfvations with new ones
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;update local reserfvations with new ones&#34;&#34;&#34;
     for obj in self.solutions.list_all():
         self.solutions.delete(obj)
     reservations = self.get_solutions_explorer()

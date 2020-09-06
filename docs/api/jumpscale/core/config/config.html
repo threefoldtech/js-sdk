@@ -150,10 +150,11 @@ __all__ = [
     &#34;Environment&#34;,
     &#34;get&#34;,
     &#34;set&#34;,
+    &#34;set_default&#34;,
     &#34;get_current_version&#34;,
 ]
 
-__version__ = &#34;11.0.0-a2&#34;
+__version__ = &#34;11.0.0-a3&#34;
 
 
 config_root = os.path.expanduser(os.path.join(&#34;~/.config&#34;, &#34;jumpscale&#34;))
@@ -223,14 +224,15 @@ def update_config(data):
         toml.dump(data, f)
 
 
-def get(key):
+def get(key, default=None):
     &#34;&#34;&#34; Retrives value from jumpscale config
 
     Arguments:
         key (str): the key you wish to retrieve
+        default (object): return value if key doesn&#39;t exist in configurations
     &#34;&#34;&#34;
     conf = get_config()
-    return conf.get(key)
+    return conf.get(key, default)
 
 
 def set(key, val):
@@ -243,6 +245,26 @@ def set(key, val):
     conf = get_config()
     conf[key] = val
     update_config(conf)
+
+
+def set_default(key, val):
+    &#34;&#34;&#34; Sets key to value in jumpscale config and returns 
+
+    Arguments:
+        key (str): the key you wish to update
+        val: value to update with and to return if key doesn&#39;t exist in configurations
+    
+    Returns:
+        val (str): returned if key doesn&#39;t exist in configuration or the value of key in configurations
+    &#34;&#34;&#34;
+    conf = get_config()
+    if key in conf:
+        return conf[key]
+    else:
+        set(key, val)
+        return val
+
+
 
 
 def migrate_config():
@@ -328,7 +350,7 @@ migrate_config()</code></pre>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.core.config.config.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>key)</span>
+<span>def <span class="ident">get</span></span>(<span>key, default=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Retrives value from jumpscale config</p>
@@ -336,17 +358,20 @@ migrate_config()</code></pre>
 <dl>
 <dt><strong><code>key</code></strong> :&ensp;<code>str</code></dt>
 <dd>the key you wish to retrieve</dd>
+<dt><strong><code>default</code></strong> :&ensp;<code>object</code></dt>
+<dd>return value if key doesn't exist in configurations</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def get(key):
+<pre><code class="python">def get(key, default=None):
     &#34;&#34;&#34; Retrives value from jumpscale config
 
     Arguments:
         key (str): the key you wish to retrieve
+        default (object): return value if key doesn&#39;t exist in configurations
     &#34;&#34;&#34;
     conf = get_config()
-    return conf.get(key)</code></pre>
+    return conf.get(key, default)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.config.config.get_config"><code class="name flex">
@@ -454,6 +479,43 @@ migrate_config()</code></pre>
     conf = get_config()
     conf[key] = val
     update_config(conf)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.config.config.set_default"><code class="name flex">
+<span>def <span class="ident">set_default</span></span>(<span>key, val)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sets key to value in jumpscale config and returns </p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>key</code></strong> :&ensp;<code>str</code></dt>
+<dd>the key you wish to update</dd>
+<dt><strong><code>val</code></strong></dt>
+<dd>value to update with and to return if key doesn't exist in configurations</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>val</code></strong> :&ensp;<code>str</code></dt>
+<dd>returned if key doesn't exist in configuration or the value of key in configurations</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_default(key, val):
+    &#34;&#34;&#34; Sets key to value in jumpscale config and returns 
+
+    Arguments:
+        key (str): the key you wish to update
+        val: value to update with and to return if key doesn&#39;t exist in configurations
+    
+    Returns:
+        val (str): returned if key doesn&#39;t exist in configuration or the value of key in configurations
+    &#34;&#34;&#34;
+    conf = get_config()
+    if key in conf:
+        return conf[key]
+    else:
+        set(key, val)
+        return val</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.config.config.update_config"><code class="name flex">
@@ -619,6 +681,7 @@ migrate_config()</code></pre>
 <li><code><a title="jumpscale.core.config.config.get_current_version" href="#jumpscale.core.config.config.get_current_version">get_current_version</a></code></li>
 <li><code><a title="jumpscale.core.config.config.get_default_config" href="#jumpscale.core.config.config.get_default_config">get_default_config</a></code></li>
 <li><code><a title="jumpscale.core.config.config.set" href="#jumpscale.core.config.config.set">set</a></code></li>
+<li><code><a title="jumpscale.core.config.config.set_default" href="#jumpscale.core.config.config.set_default">set_default</a></code></li>
 <li><code><a title="jumpscale.core.config.config.update_config" href="#jumpscale.core.config.config.update_config">update_config</a></code></li>
 </ul>
 </li>

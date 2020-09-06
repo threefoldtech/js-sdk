@@ -65,7 +65,7 @@ class Publisher(MarketPlaceAppsChatflow):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid)
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -99,10 +99,10 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[1]}",
+                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}",
                 solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
         # 4- deploy container
@@ -131,10 +131,10 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
             raise DeploymentFailed(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
                 solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
             )
 
 

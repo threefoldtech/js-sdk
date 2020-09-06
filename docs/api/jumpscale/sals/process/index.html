@@ -602,8 +602,9 @@ def kill_process_by_port(port):
         port (int) -- port number
     &#34;&#34;&#34;
     port = int(port)
-    for pid in get_pid_by_port(port):
-        kill(pid)
+    pid = get_pid_by_port(port)
+    if pid:
+        return kill(pid)
 
 
 def is_port_listening(port):
@@ -616,7 +617,7 @@ def is_port_listening(port):
         Bool: True if port is used else False
     &#34;&#34;&#34;
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        result = s.connect_ex((&#39;127.0.0.1&#39;, port))
+        result = s.connect_ex((&#34;127.0.0.1&#34;, port))
     return result == 0
 
 
@@ -1792,7 +1793,7 @@ Checks if a specific command is available on system e.g. curl</p>
         Bool: True if port is used else False
     &#34;&#34;&#34;
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        result = s.connect_ex((&#39;127.0.0.1&#39;, port))
+        result = s.connect_ex((&#34;127.0.0.1&#34;, port))
     return result == 0</code></pre>
 </details>
 </dd>
@@ -1913,8 +1914,9 @@ two arguments and return a boolean (default: {None})</p></section>
         port (int) -- port number
     &#34;&#34;&#34;
     port = int(port)
-    for pid in get_pid_by_port(port):
-        kill(pid)</code></pre>
+    pid = get_pid_by_port(port)
+    if pid:
+        return kill(pid)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_user_processes"><code class="name flex">

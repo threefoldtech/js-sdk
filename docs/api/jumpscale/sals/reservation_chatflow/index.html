@@ -25,13 +25,53 @@
 <pre><code class="python">from .reservation_chatflow import reservation_chatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from contextlib import ContextDecorator
+from jumpscale.sals.zos.zos import Zosv2
+from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.loader import j
+
+
+NODE_BLOCKING_WORKLOAD_TYPES = [
+    WorkloadType.Container,
+    WorkloadType.Network_resource,
+    WorkloadType.Volume,
+    WorkloadType.Zdb,
+]
+
+
+class DeploymentFailed(StopChatFlow):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
+        super().__init__(msg, **kwargs)
+        self.solution_uuid = solution_uuid
+        self.wid = wid
+
+
+class deployment_context(ContextDecorator):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb):
+        if exc_type != DeploymentFailed:
+            return
+        if exc.solution_uuid:
+            # cancel related workloads
+            j.logger.info(f&#34;canceling workload ids of solution_uuid: {exc.solution_uuid}&#34;)
+            solutions.cancel_solution_by_uuid(exc.solution_uuid)
+        if exc.wid:
+            # block the failed node if the workload is network or container
+            zos = Zosv2()
+            workload = zos.workloads.get(exc.wid)
+            if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                j.logger.info(f&#34;blocking node {workload.info.node_id} for failed workload {workload.id}&#34;)
+                deployer.block_node(workload.info.node_id)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3
 
 import jumpscale.tools.http
 from jumpscale.core.exceptions import Input
-import time
+import gevent
 
 
 def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
@@ -48,12 +88,12 @@ def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
     &#34;&#34;&#34;
     for _ in range(timeout):
         try:
-            if check_url_reachable(url, verify=verify):
+            if check_url_reachable(url, timeout=1, verify=verify):
                 return True
         except:
             pass
 
-        time.sleep(1)
+        gevent.sleep(1)
     else:
         return False
 
@@ -191,12 +231,12 @@ def check_url_reachable(url: str, timeout=5, verify=True):
     &#34;&#34;&#34;
     for _ in range(timeout):
         try:
-            if check_url_reachable(url, verify=verify):
+            if check_url_reachable(url, timeout=1, verify=verify):
                 return True
         except:
             pass
 
-        time.sleep(1)
+        gevent.sleep(1)
     else:
         return False</code></pre>
 </details>
@@ -204,6 +244,62 @@ def check_url_reachable(url: str, timeout=5, verify=True):
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.sals.reservation_chatflow.DeploymentFailed"><code class="flex name class">
+<span>class <span class="ident">DeploymentFailed</span></span>
+<span>(</span><span>msg=None, solution_uuid=None, wid=None, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class DeploymentFailed(StopChatFlow):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
+        super().__init__(msg, **kwargs)
+        self.solution_uuid = solution_uuid
+        self.wid = wid</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.chatflows.chatflows.StopChatFlow" href="../chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.StopChatFlow">StopChatFlow</a></li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.reservation_chatflow.deployment_context"><code class="flex name class">
+<span>class <span class="ident">deployment_context</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A base class or mixin that enables context managers to work as decorators.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class deployment_context(ContextDecorator):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb):
+        if exc_type != DeploymentFailed:
+            return
+        if exc.solution_uuid:
+            # cancel related workloads
+            j.logger.info(f&#34;canceling workload ids of solution_uuid: {exc.solution_uuid}&#34;)
+            solutions.cancel_solution_by_uuid(exc.solution_uuid)
+        if exc.wid:
+            # block the failed node if the workload is network or container
+            zos = Zosv2()
+            workload = zos.workloads.get(exc.wid)
+            if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                j.logger.info(f&#34;blocking node {workload.info.node_id} for failed workload {workload.id}&#34;)
+                deployer.block_node(workload.info.node_id)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>contextlib.ContextDecorator</li>
+</ul>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -229,6 +325,16 @@ def check_url_reachable(url: str, timeout=5, verify=True):
 <ul class="">
 <li><code><a title="jumpscale.sals.reservation_chatflow.check_url_reachable" href="#jumpscale.sals.reservation_chatflow.check_url_reachable">check_url_reachable</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.wait_http_test" href="#jumpscale.sals.reservation_chatflow.wait_http_test">wait_http_test</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.sals.reservation_chatflow.DeploymentFailed" href="#jumpscale.sals.reservation_chatflow.DeploymentFailed">DeploymentFailed</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.reservation_chatflow.deployment_context" href="#jumpscale.sals.reservation_chatflow.deployment_context">deployment_context</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>

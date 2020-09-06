@@ -22,12 +22,12 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import uuid
+<pre><code class="python">from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+import uuid
 import random
 import requests
 from textwrap import dedent
-
-from jumpscale.core.base import StoredFactory
+import math
 from jumpscale.loader import j
 from .solutions import solutions
 from .deployer import deployer
@@ -35,7 +35,11 @@ from .chatflow import MarketPlaceChatflow
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 
-FLAVORS = {&#34;Silver&#34;: {&#34;sru&#34;: 2,}, &#34;Gold&#34;: {&#34;sru&#34;: 5,}, &#34;Platinum&#34;: {&#34;sru&#34;: 10,}}
+FLAVORS = {
+    &#34;Silver&#34;: {&#34;sru&#34;: 2,},
+    &#34;Gold&#34;: {&#34;sru&#34;: 5,},
+    &#34;Platinum&#34;: {&#34;sru&#34;: 10,},
+}
 
 RESOURCE_VALUE_KEYS = {
     &#34;cru&#34;: &#34;CPU {}&#34;,
@@ -92,7 +96,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         if &#34;apps&#34; in networks_names:
             # old user
             self.md_show_update(
-                &#34;Checking if you have free resources (If you deleted an old solution before expiration or if an old deployment failed after payment)....&#34;
+                &#34;Checking if you have free resources (If you have an old deployment that failed after payment)....&#34;
             )
             free_pools = deployer.get_free_pools(self.solution_metadata[&#34;owner&#34;])
             if free_pools:
@@ -110,14 +114,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     cu_diff = abs(cu_diff) if cu_diff &lt; 0 else 0
                     su_diff = abs(su_diff) if su_diff &lt; 0 else 0
-                    pool_info = j.sals.zos.pools.extend(pool.pool_id, cu_diff, su_diff)
-                    deployer.show_payment(pool_info, self)
-                    deployer.wait_pool_payment(
-                        pool.pool_id,
-                        self,
-                        trigger_cus=pool.cus + (cu_diff * 0.9),
-                        trigger_sus=pool.sus + (su_diff * 0.9),
+                    pool_info = j.sals.zos.pools.extend(
+                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
+                    qr_code = deployer.show_payment(pool_info, self)
+                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
+                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
+                    result = deployer.wait_pool_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    )
+                    if not result:
+                        raise StopChatFlow(
+                            f&#34;Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
+                        )
+                    self.pool_id = pool.pool_id
                 else:
                     self.md_show_update(
                         f&#34;Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment...&#34;
@@ -150,6 +160,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         return self.pool_id
 
+    @deployment_context()
     def _deploy_network(self):
         # get ip address
         self.network_view = deployer.get_network_view(f&#34;{self.solution_metadata[&#39;owner&#39;]}_apps&#34;)
@@ -169,7 +180,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 for wid in result[&#34;ids&#34;]:
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
-                        raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                        raise DeploymentFailed(
+                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid
+                        )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
         return self.ip_address
@@ -236,7 +249,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             for sol in solutions_list:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}-{self.solution_name}&#34;
@@ -284,9 +297,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 f&#34;&#34;&#34;\
 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 Node: {self.selected_node.node_id},
-Ip Address: {self.ip_address},
-Reservation Id: {self.resv_id},
-Pool Id: {self.pool_id},
+IP Address: {self.ip_address},
+Reservation ID: {self.resv_id},
+Pool ID: {self.pool_id},
 Domain: {self.domain}
                 &#34;&#34;&#34;
             )
@@ -370,7 +383,7 @@ any extra kwargs that is passed while creating the session
         if &#34;apps&#34; in networks_names:
             # old user
             self.md_show_update(
-                &#34;Checking if you have free resources (If you deleted an old solution before expiration or if an old deployment failed after payment)....&#34;
+                &#34;Checking if you have free resources (If you have an old deployment that failed after payment)....&#34;
             )
             free_pools = deployer.get_free_pools(self.solution_metadata[&#34;owner&#34;])
             if free_pools:
@@ -388,14 +401,20 @@ any extra kwargs that is passed while creating the session
                     )
                     cu_diff = abs(cu_diff) if cu_diff &lt; 0 else 0
                     su_diff = abs(su_diff) if su_diff &lt; 0 else 0
-                    pool_info = j.sals.zos.pools.extend(pool.pool_id, cu_diff, su_diff)
-                    deployer.show_payment(pool_info, self)
-                    deployer.wait_pool_payment(
-                        pool.pool_id,
-                        self,
-                        trigger_cus=pool.cus + (cu_diff * 0.9),
-                        trigger_sus=pool.sus + (su_diff * 0.9),
+                    pool_info = j.sals.zos.pools.extend(
+                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
+                    qr_code = deployer.show_payment(pool_info, self)
+                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
+                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
+                    result = deployer.wait_pool_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    )
+                    if not result:
+                        raise StopChatFlow(
+                            f&#34;Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
+                        )
+                    self.pool_id = pool.pool_id
                 else:
                     self.md_show_update(
                         f&#34;Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment...&#34;
@@ -428,6 +447,7 @@ any extra kwargs that is passed while creating the session
 
         return self.pool_id
 
+    @deployment_context()
     def _deploy_network(self):
         # get ip address
         self.network_view = deployer.get_network_view(f&#34;{self.solution_metadata[&#39;owner&#39;]}_apps&#34;)
@@ -447,7 +467,9 @@ any extra kwargs that is passed while creating the session
                 for wid in result[&#34;ids&#34;]:
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
-                        raise StopChatFlow(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;)
+                        raise DeploymentFailed(
+                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid
+                        )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
         return self.ip_address
@@ -514,7 +536,7 @@ any extra kwargs that is passed while creating the session
             for sol in solutions_list:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}-{self.solution_name}&#34;
@@ -562,9 +584,9 @@ any extra kwargs that is passed while creating the session
                 f&#34;&#34;&#34;\
 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 Node: {self.selected_node.node_id},
-Ip Address: {self.ip_address},
-Reservation Id: {self.resv_id},
-Pool Id: {self.pool_id},
+IP Address: {self.ip_address},
+Reservation ID: {self.resv_id},
+Pool ID: {self.pool_id},
 Domain: {self.domain}
                 &#34;&#34;&#34;
             )
@@ -587,13 +609,12 @@ Domain: {self.domain}
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="jumpscale.packages.marketplace.chats.publisher.Publisher" href="../../packages/marketplace/chats/publisher.html#jumpscale.packages.marketplace.chats.publisher.Publisher">Publisher</a></li>
-<li><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy" href="../../packages/marketplace/chats/taiga.html#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy">TaigaDeploy</a></li>
-<li><a title="jumpscale.packages.marketplace.chats.discourse.Discourse" href="../../packages/marketplace/chats/discourse.html#jumpscale.packages.marketplace.chats.discourse.Discourse">Discourse</a></li>
-<li><a title="jumpscale.packages.marketplace.chats.threebot.ThreebotDeploy" href="../../packages/marketplace/chats/threebot.html#jumpscale.packages.marketplace.chats.threebot.ThreebotDeploy">ThreebotDeploy</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.cryptpad.CryptpadDeploy" href="../../packages/marketplace/chats/cryptpad.html#jumpscale.packages.marketplace.chats.cryptpad.CryptpadDeploy">CryptpadDeploy</a></li>
+<li><a title="jumpscale.packages.marketplace.chats.discourse.Discourse" href="../../packages/marketplace/chats/discourse.html#jumpscale.packages.marketplace.chats.discourse.Discourse">Discourse</a></li>
+<li><a title="jumpscale.packages.marketplace.chats.gitea.GiteaDeploy" href="../../packages/marketplace/chats/gitea.html#jumpscale.packages.marketplace.chats.gitea.GiteaDeploy">GiteaDeploy</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.mattermost.MattermostDeploy" href="../../packages/marketplace/chats/mattermost.html#jumpscale.packages.marketplace.chats.mattermost.MattermostDeploy">MattermostDeploy</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.peertube.Peertube" href="../../packages/marketplace/chats/peertube.html#jumpscale.packages.marketplace.chats.peertube.Peertube">Peertube</a></li>
-<li><a title="jumpscale.packages.marketplace.chats.gitea.GiteaDeploy" href="../../packages/marketplace/chats/gitea.html#jumpscale.packages.marketplace.chats.gitea.GiteaDeploy">GiteaDeploy</a></li>
+<li><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy" href="../../packages/marketplace/chats/taiga.html#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy">TaigaDeploy</a></li>
 <li><a title="jumpscale.packages.threebot_deployer.chats.threebot.ThreebotDeploy" href="../../packages/threebot_deployer/chats/threebot.html#jumpscale.packages.threebot_deployer.chats.threebot.ThreebotDeploy">ThreebotDeploy</a></li>
 </ul>
 <h3>Methods</h3>

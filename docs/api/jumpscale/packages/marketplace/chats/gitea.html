@@ -22,9 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 import uuid
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -44,6 +45,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     query = {&#34;cru&#34;: 2, &#34;mru&#34;: 1, &#34;sru&#34;: 6}
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.database_name = &#34;gitea&#34;
         self.database_user = &#34;root&#34;
@@ -76,7 +78,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
             )
 
@@ -100,7 +102,9 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -120,7 +124,11 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.reverse_proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.reverse_proxy_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -129,11 +137,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 \n&lt;br /&gt;\n
 - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
 \n&lt;br /&gt;\n
-- This domain maps to your container with ip: `{self.ip_address}`
-\n&lt;br /&gt;\n
 - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-- Your database password is {self.database_password}
 \n&lt;br /&gt;\n
                 &#34;&#34;&#34;
         self.md_show(message, md=True)
@@ -180,6 +184,7 @@ any extra kwargs that is passed while creating the session
     query = {&#34;cru&#34;: 2, &#34;mru&#34;: 1, &#34;sru&#34;: 6}
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.database_name = &#34;gitea&#34;
         self.database_user = &#34;root&#34;
@@ -212,7 +217,7 @@ any extra kwargs that is passed while creating the session
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
             )
 
@@ -236,7 +241,9 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -256,7 +263,11 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.reverse_proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.reverse_proxy_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -265,11 +276,7 @@ any extra kwargs that is passed while creating the session
 \n&lt;br /&gt;\n
 - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
 \n&lt;br /&gt;\n
-- This domain maps to your container with ip: `{self.ip_address}`
-\n&lt;br /&gt;\n
 - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-- Your database password is {self.database_password}
 \n&lt;br /&gt;\n
                 &#34;&#34;&#34;
         self.md_show(message, md=True)</code></pre>
@@ -362,6 +369,7 @@ any extra kwargs that is passed while creating the session
     query = {&#34;cru&#34;: 2, &#34;mru&#34;: 1, &#34;sru&#34;: 6}
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         self.database_name = &#34;gitea&#34;
         self.database_user = &#34;root&#34;
@@ -394,7 +402,7 @@ any extra kwargs that is passed while creating the session
         subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
-            raise StopChatFlow(
+            raise DeploymentFailed(
                 f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
             )
 
@@ -418,7 +426,9 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
@@ -438,7 +448,11 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.reverse_proxy_id)
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
-            raise StopChatFlow(f&#34;Failed to reserve tcprouter container workload {self.reverse_proxy_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.reverse_proxy_id,
+            )
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
@@ -447,11 +461,7 @@ any extra kwargs that is passed while creating the session
 \n&lt;br /&gt;\n
 - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
 \n&lt;br /&gt;\n
-- This domain maps to your container with ip: `{self.ip_address}`
-\n&lt;br /&gt;\n
 - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-- Your database password is {self.database_password}
 \n&lt;br /&gt;\n
                 &#34;&#34;&#34;
         self.md_show(message, md=True)</code></pre>

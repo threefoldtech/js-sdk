@@ -22,12 +22,9 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy as BaseMattermostDeploy
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class MattermostDeploy(MarketPlaceAppsChatflow):
@@ -55,6 +52,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         var_dict = {
             &#34;MYSQL_ROOT_PASSWORD&#34;: &#34;mostest&#34;,
@@ -84,7 +82,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.solution_url = f&#34;https://{self.domain}&#34;
 
         # create volume
@@ -99,7 +99,11 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config[vol_mount_point] = vol_id
 
         # Create container
@@ -122,8 +126,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         # expose threebot container
         _id = deployer.expose_and_create_certificate(
@@ -142,8 +147,11 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )
 
 
 chat = MattermostDeploy</code></pre>
@@ -195,6 +203,7 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         var_dict = {
             &#34;MYSQL_ROOT_PASSWORD&#34;: &#34;mostest&#34;,
@@ -224,7 +233,9 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.solution_url = f&#34;https://{self.domain}&#34;
 
         # create volume
@@ -239,7 +250,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config[vol_mount_point] = vol_id
 
         # Create container
@@ -262,8 +277,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         # expose threebot container
         _id = deployer.expose_and_create_certificate(
@@ -282,8 +298,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -381,6 +400,7 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         var_dict = {
             &#34;MYSQL_ROOT_PASSWORD&#34;: &#34;mostest&#34;,
@@ -410,7 +430,9 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;
+            )
         self.solution_url = f&#34;https://{self.domain}&#34;
 
         # create volume
@@ -425,7 +447,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config[vol_mount_point] = vol_id
 
         # Create container
@@ -448,8 +474,9 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         # expose threebot container
         _id = deployer.expose_and_create_certificate(
@@ -468,8 +495,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

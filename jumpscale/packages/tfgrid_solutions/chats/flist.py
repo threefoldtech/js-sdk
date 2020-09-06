@@ -7,7 +7,7 @@ from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, solutions, deployment_context
 
 
 class FlistDeploy(GedisChatBot):
@@ -158,6 +158,7 @@ class FlistDeploy(GedisChatBot):
             self.log_config = {}
 
     @chatflow_step(title="Container IP")
+    @deployment_context()
     def container_ip(self):
         self.network_view_copy = self.network_view.copy()
         result = deployer.add_network_node(
@@ -172,7 +173,7 @@ class FlistDeploy(GedisChatBot):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise StopChatFlow(f"Failed to add node {self.selected_node.node_id} to network {wid}")
+                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid)
             self.network_view_copy = self.network_view_copy.copy()
         free_ips = self.network_view_copy.get_node_free_ips(self.selected_node)
         self.ip_address = self.drop_down_choice(
@@ -184,6 +185,7 @@ class FlistDeploy(GedisChatBot):
         self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title="Reservation")
+    @deployment_context()
     def reservation(self):
         metadata = {
             "name": self.solution_name,
@@ -201,7 +203,9 @@ class FlistDeploy(GedisChatBot):
             )
             success = deployer.wait_workload(vol_id, self)
             if not success:
-                raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+                raise DeploymentFailed(
+                    f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}", wid=vol_id
+                )
             volume_config[self.vol_mount_point] = vol_id
 
         self.resv_id = deployer.deploy_container(
@@ -224,8 +228,9 @@ class FlistDeploy(GedisChatBot):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise DeploymentFailed(
+                f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

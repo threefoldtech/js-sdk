@@ -22,11 +22,9 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from textwrap import dedent
-
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.loader import j
+<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class Peertube(MarketPlaceAppsChatflow):
@@ -55,6 +53,7 @@ class Peertube(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -72,7 +71,7 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -87,7 +86,10 @@ class Peertube(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+            )
         self.threebot_url = f&#34;http://{self.domain}&#34;
 
         entrypoint = f&#39;/usr/local/bin/startup.sh &#34;{self.domain}&#34;&#39;
@@ -110,10 +112,12 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
-            pool_id=self.pool_info.reservation_id,
+            pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
             trc_secret=self.secret,
@@ -129,9 +133,11 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # FIXME
-            # solutions.cancel_solution(self.user_info()[&#34;username&#34;], self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )
 
 
 chat = Peertube</code></pre>
@@ -184,6 +190,7 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -201,7 +208,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -216,7 +223,10 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+            )
         self.threebot_url = f&#34;http://{self.domain}&#34;
 
         entrypoint = f&#39;/usr/local/bin/startup.sh &#34;{self.domain}&#34;&#39;
@@ -239,10 +249,12 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
-            pool_id=self.pool_info.reservation_id,
+            pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
             trc_secret=self.secret,
@@ -258,9 +270,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # FIXME
-            # solutions.cancel_solution(self.user_info()[&#34;username&#34;], self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -359,6 +373,7 @@ any extra kwargs that is passed while creating the session
         self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
+    @deployment_context()
     def reservation(self):
         metadata = {
             &#34;name&#34;: self.solution_name,
@@ -376,7 +391,7 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;)
+            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -391,7 +406,10 @@ any extra kwargs that is passed while creating the session
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+            )
         self.threebot_url = f&#34;http://{self.domain}&#34;
 
         entrypoint = f&#39;/usr/local/bin/startup.sh &#34;{self.domain}&#34;&#39;
@@ -414,10 +432,12 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+            )
 
         _id = deployer.expose_and_create_certificate(
-            pool_id=self.pool_info.reservation_id,
+            pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
             trc_secret=self.secret,
@@ -433,9 +453,11 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # FIXME
-            # solutions.cancel_solution(self.user_info()[&#34;username&#34;], self.workload_ids)
-            raise StopChatFlow(f&#34;Failed to create trc container on node {self.selected_node.node_id} {_id}&#34;)</code></pre>
+            raise DeploymentFailed(
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

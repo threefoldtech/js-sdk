@@ -167,8 +167,7 @@ Please make the transaction and press Next
                 self.stop(&#34;Error adding the wallet, Please make sure you transaction is completed.\n Please try again&#34;)
 
     def _check_payment(self, timeout):
-        &#34;&#34;&#34;Returns True if user has paid already, False if not
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Returns True if user has paid already, False if not&#34;&#34;&#34;
         now = j.data.time.get().timestamp
         remaning_time = j.data.time.get(now + timeout).timestamp
         while remaning_time &gt; now:
@@ -502,8 +501,7 @@ Please make the transaction and press Next
                 self.stop(&#34;Error adding the wallet, Please make sure you transaction is completed.\n Please try again&#34;)
 
     def _check_payment(self, timeout):
-        &#34;&#34;&#34;Returns True if user has paid already, False if not
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Returns True if user has paid already, False if not&#34;&#34;&#34;
         now = j.data.time.get().timestamp
         remaning_time = j.data.time.get(now + timeout).timestamp
         while remaning_time &gt; now:

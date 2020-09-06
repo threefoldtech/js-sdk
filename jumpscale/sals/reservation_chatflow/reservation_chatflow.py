@@ -14,6 +14,9 @@ import random
 import requests
 import time
 
+NODES_DISALLOW_KEY = "ZOS:DISALLOWED_NODES"
+NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+
 
 class Network:
     def __init__(self, network, expiration, bot, reservations, currency, resv_id):
@@ -1366,6 +1369,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         currency="TFT",
         ip_version=None,
         pool_ids=None,
+        filter_blocked=True,
     ):
         """get available nodes to deploy solutions on
 
@@ -1385,6 +1389,18 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         """
+
+        def filter_disallowed_nodes(disallowed_dict, nodes):
+            result = []
+            for node in nodes:
+                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
+                if node_blocking_time < j.data.time.now().timestamp:
+                    result.append(node)
+            return result
+
+        disallowed_dict = {}
+        if filter_blocked:
+            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
@@ -1399,6 +1415,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
+            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
                 try:

@@ -43,17 +43,27 @@ class ExtendThreebot(MarketPlaceChatflow):
         self.threebot_names = [s[&#34;Name&#34;] for s in self.threebot_workloads]
         self._threebots_dict = dict(zip(self.threebot_names, self.threebot_workloads))
         self.threebot_selected = self.single_choice(
-            &#34;Choose your 3Bot you want to extend?&#34;, self.threebot_names, required=True
+            &#34;Choose the 3Bot you would like to extend&#34;, self.threebot_names, required=True
         )
+        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
+        self.pool = j.sals.zos.pools.get(self.pool_id)
 
     @chatflow_step(title=&#34;New Expiration&#34;)
     def new_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000)
+        DURATION_MAX = 9223372036854775807
+        if self.pool.empty_at &lt; DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.get().timestamp + 15552000
+        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
 
     @chatflow_step(title=&#34;Payment&#34;)
     def solution_extension(self):
-        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
-        pool = j.sals.zos.pools.get(self.pool_id)
+
         farm_id = deployer.get_pool_farm_id(self.pool_id)
         farm = deployer._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
@@ -63,21 +73,21 @@ class ExtendThreebot(MarketPlaceChatflow):
                 if not node.free_to_use:
                     assets.remove(&#34;FreeTFT&#34;)
                     break
-        currency = self.single_choice(&#34;Please choose the currency&#34;, assets, required=True)
+        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
 
         result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
+            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
         )
         if not result:
             raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
-        self.md_show(&#34;Your 3Bot has been extended successfully&#34;)
+        self.md_show(&#34;Your 3Bot has been extended successfully.&#34;)
 
 
 chat = ExtendThreebot</code></pre>
@@ -119,17 +129,27 @@ any extra kwargs that is passed while creating the session
         self.threebot_names = [s[&#34;Name&#34;] for s in self.threebot_workloads]
         self._threebots_dict = dict(zip(self.threebot_names, self.threebot_workloads))
         self.threebot_selected = self.single_choice(
-            &#34;Choose your 3Bot you want to extend?&#34;, self.threebot_names, required=True
+            &#34;Choose the 3Bot you would like to extend&#34;, self.threebot_names, required=True
         )
+        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
+        self.pool = j.sals.zos.pools.get(self.pool_id)
 
     @chatflow_step(title=&#34;New Expiration&#34;)
     def new_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000)
+        DURATION_MAX = 9223372036854775807
+        if self.pool.empty_at &lt; DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.get().timestamp + 15552000
+        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
 
     @chatflow_step(title=&#34;Payment&#34;)
     def solution_extension(self):
-        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
-        pool = j.sals.zos.pools.get(self.pool_id)
+
         farm_id = deployer.get_pool_farm_id(self.pool_id)
         farm = deployer._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
@@ -139,21 +159,21 @@ any extra kwargs that is passed while creating the session
                 if not node.free_to_use:
                     assets.remove(&#34;FreeTFT&#34;)
                     break
-        currency = self.single_choice(&#34;Please choose the currency&#34;, assets, required=True)
+        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
 
         result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
+            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
         )
         if not result:
             raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
-        self.md_show(&#34;Your 3Bot has been extended successfully&#34;)</code></pre>
+        self.md_show(&#34;Your 3Bot has been extended successfully.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -254,17 +274,27 @@ any extra kwargs that is passed while creating the session
         self.threebot_names = [s[&#34;Name&#34;] for s in self.threebot_workloads]
         self._threebots_dict = dict(zip(self.threebot_names, self.threebot_workloads))
         self.threebot_selected = self.single_choice(
-            &#34;Choose your 3Bot you want to extend?&#34;, self.threebot_names, required=True
+            &#34;Choose the 3Bot you would like to extend&#34;, self.threebot_names, required=True
         )
+        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
+        self.pool = j.sals.zos.pools.get(self.pool_id)
 
     @chatflow_step(title=&#34;New Expiration&#34;)
     def new_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000)
+        DURATION_MAX = 9223372036854775807
+        if self.pool.empty_at &lt; DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.get().timestamp + 15552000
+        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
 
     @chatflow_step(title=&#34;Payment&#34;)
     def solution_extension(self):
-        self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
-        pool = j.sals.zos.pools.get(self.pool_id)
+
         farm_id = deployer.get_pool_farm_id(self.pool_id)
         farm = deployer._explorer.farms.get(farm_id)
         assets = [w.asset for w in farm.wallet_addresses]
@@ -274,21 +304,21 @@ any extra kwargs that is passed while creating the session
                 if not node.free_to_use:
                     assets.remove(&#34;FreeTFT&#34;)
                     break
-        currency = self.single_choice(&#34;Please choose the currency&#34;, assets, required=True)
+        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
         self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
 
         result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=pool.cus + 1, trigger_sus=pool.sus + 1
+            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
         )
         if not result:
             raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
-        self.md_show(&#34;Your 3Bot has been extended successfully&#34;)</code></pre>
+        self.md_show(&#34;Your 3Bot has been extended successfully.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

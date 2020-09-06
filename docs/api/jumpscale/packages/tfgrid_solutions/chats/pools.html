@@ -42,7 +42,10 @@ class PoolReservation(GedisChatBot):
             self.action = &#34;create&#34;
         else:
             self.action = self.single_choice(
-                &#34;Do you want to create a new pool or extend one?&#34;, [&#34;create&#34;, &#34;extend&#34;], required=True, default=&#34;create&#34;
+                &#34;Would you like to create a new capacity pool, or extend an existing one?&#34;,
+                [&#34;create&#34;, &#34;extend&#34;],
+                required=True,
+                default=&#34;create&#34;,
             )
 
     @chatflow_step(title=&#34;Capacity Pool&#34;)
@@ -52,7 +55,9 @@ class PoolReservation(GedisChatBot):
             pool_factory = StoredFactory(PoolConfig)
             while not valid:
                 self.pool_name = self.string_ask(
-                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;, required=True, is_identifier=True
+                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;,
+                    required=True,
+                    is_identifier=True,
                 )
                 _, _, result = pool_factory.find_many(name=self.pool_name)
                 if list(result):
@@ -73,7 +78,9 @@ class PoolReservation(GedisChatBot):
             p.name = self.pool_name
             p.pool_id = pool_id
             p.save()
-        self.md_show(f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;)
+        self.md_show(
+            f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;
+        )
 
 
 chat = PoolReservation</code></pre>
@@ -111,7 +118,10 @@ any extra kwargs that is passed while creating the session
             self.action = &#34;create&#34;
         else:
             self.action = self.single_choice(
-                &#34;Do you want to create a new pool or extend one?&#34;, [&#34;create&#34;, &#34;extend&#34;], required=True, default=&#34;create&#34;
+                &#34;Would you like to create a new capacity pool, or extend an existing one?&#34;,
+                [&#34;create&#34;, &#34;extend&#34;],
+                required=True,
+                default=&#34;create&#34;,
             )
 
     @chatflow_step(title=&#34;Capacity Pool&#34;)
@@ -121,7 +131,9 @@ any extra kwargs that is passed while creating the session
             pool_factory = StoredFactory(PoolConfig)
             while not valid:
                 self.pool_name = self.string_ask(
-                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;, required=True, is_identifier=True
+                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;,
+                    required=True,
+                    is_identifier=True,
                 )
                 _, _, result = pool_factory.find_many(name=self.pool_name)
                 if list(result):
@@ -142,7 +154,9 @@ any extra kwargs that is passed while creating the session
             p.name = self.pool_name
             p.pool_id = pool_id
             p.save()
-        self.md_show(f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;)</code></pre>
+        self.md_show(
+            f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -225,7 +239,10 @@ any extra kwargs that is passed while creating the session
             self.action = &#34;create&#34;
         else:
             self.action = self.single_choice(
-                &#34;Do you want to create a new pool or extend one?&#34;, [&#34;create&#34;, &#34;extend&#34;], required=True, default=&#34;create&#34;
+                &#34;Would you like to create a new capacity pool, or extend an existing one?&#34;,
+                [&#34;create&#34;, &#34;extend&#34;],
+                required=True,
+                default=&#34;create&#34;,
             )
 
     @chatflow_step(title=&#34;Capacity Pool&#34;)
@@ -235,7 +252,9 @@ any extra kwargs that is passed while creating the session
             pool_factory = StoredFactory(PoolConfig)
             while not valid:
                 self.pool_name = self.string_ask(
-                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;, required=True, is_identifier=True
+                    &#34;Please choose a name for your new capacity pool. This name will only be used by you to identify the pool for later usage and management.&#34;,
+                    required=True,
+                    is_identifier=True,
                 )
                 _, _, result = pool_factory.find_many(name=self.pool_name)
                 if list(result):
@@ -256,7 +275,9 @@ any extra kwargs that is passed while creating the session
             p.name = self.pool_name
             p.pool_id = pool_id
             p.save()
-        self.md_show(f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;)</code></pre>
+        self.md_show(
+            f&#34;Transaction Succeeded! You just created a new capacity pool. It may take few minutes to reflect.&#34;
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

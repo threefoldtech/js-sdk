@@ -36,7 +36,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
         self.username = self.user_info()[&#34;username&#34;]
         self.solution_metadata[&#34;owner&#34;] = self.username
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -47,7 +47,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
             for sol in gollum_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}_{self.solution_name}&#34;
@@ -98,7 +98,7 @@ any extra kwargs that is passed while creating the session
         self.username = self.user_info()[&#34;username&#34;]
         self.solution_metadata[&#34;owner&#34;] = self.username
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -109,7 +109,7 @@ any extra kwargs that is passed while creating the session
             for sol in gollum_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}_{self.solution_name}&#34;
@@ -196,7 +196,7 @@ any extra kwargs that is passed while creating the session
         self.username = self.user_info()[&#34;username&#34;]
         self.solution_metadata[&#34;owner&#34;] = self.username
 
-    @chatflow_step(title=&#34;Solution name&#34;)
+    @chatflow_step(title=&#34;Solution Name&#34;)
     def gollum_name(self):
         self._gollum_start()
         valid = False
@@ -207,7 +207,7 @@ any extra kwargs that is passed while creating the session
             for sol in gollum_solutions:
                 if sol[&#34;Name&#34;] == self.solution_name:
                     valid = False
-                    self.md_show(&#34;The specified solution name already exists. please choose another.&#34;)
+                    self.md_show(&#34;The specified solution name already exists. please choose another name.&#34;)
                     break
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}_{self.solution_name}&#34;
