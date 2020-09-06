@@ -131,7 +131,6 @@ class Publisher(MarketPlaceAppsChatflow):
         )
         self.resv_id = self.workload_ids[-1]
         if not success:
-            solutions.cancel_solution(self.username, self.workload_ids)
             raise DeploymentFailed(
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
                 solution_uuid=self.solution_id,
