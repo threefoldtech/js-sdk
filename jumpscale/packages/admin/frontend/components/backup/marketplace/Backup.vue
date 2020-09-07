@@ -17,7 +17,7 @@
 
       <template #default>
         <v-alert v-if="!inited" text prominent class="ma-5" border="right" type="info">
-          <span>Your repo is not inited, plesaed init it first</span>
+          <span>Your repo is not inited, please init it first</span>
           <v-btn
             text
             class="ml-5"
@@ -130,7 +130,7 @@ module.exports = {
         this.$api.mrktbackup
           .disable()
           .then((response) => {
-            this.done("Auto backup is disbaled");
+            this.done("Auto backup is disabled");
           })
           .catch((error) => {
             this.error = error.response.data.message;
