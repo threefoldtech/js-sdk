@@ -1556,6 +1556,9 @@ Workload ID: {workload_id}
 
     def list_blocked_nodes(self):
         blocked_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+        # keys in this dict are node ids and count for each node where count key is {COUNT}:{node_id}
+        # node ids correspond to the expiration of the node and count keys correspond to how many times this node has failed to be used in new expiration calculation
+        # end result looks something like this if it contains one node {"3BwDVNRigau8Zk6BQkJt5PLxrHQnJ5NTfNvAtuubC1eS": 1599423362, "COUNT:3BwDVNRigau8Zk6BQkJt5PLxrHQnJ5NTfNvAtuubC1eS": 3}
         result = {}
         for key, val in blocked_dict.items():
             node_id = key.decode()
