@@ -38,7 +38,7 @@ module.exports = {
       }
       if (wids.length === 0) {
         this.loading = false;
-        this.warning = "All workloads are already deleted";
+        this.warning = "All selected workloads are already deleted";
         setTimeout(() => this.close(), 3000);
       }
       else {
