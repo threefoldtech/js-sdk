@@ -1544,7 +1544,11 @@ Workload ID: {workload_id}
         return False
 
     def block_node(self, node_id):
-        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
+        old_count = j.core.db.hget(NODES_DISALLOW_KEY, f"COUNT:{node_id}")
+        old_count = old_count or 0
+        count = int(old_count) + 1
+        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION * count
+        j.core.db.hset(NODES_DISALLOW_KEY, f"COUNT:{node_id}", count)
         j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
 
 
