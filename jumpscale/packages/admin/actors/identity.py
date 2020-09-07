@@ -31,7 +31,7 @@ class Identity(BaseActor):
                 return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
             identity = j.core.identity.get(identity_instance_name)
 
-        network = explorer_url_to_name.get(urlparse(j.core.identity.me.explorer.url).netloc, "Unknown")
+        network = explorer_url_to_name.get(urlparse(identity.explorer.url).netloc, "Unknown")
         return j.data.serializers.json.dumps(
             {
                 "data": {
