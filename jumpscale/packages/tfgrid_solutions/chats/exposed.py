@@ -146,7 +146,7 @@ class SolutionExpose(GedisChatBot):
             self.domain = domain + "." + self.domain
         else:
             self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
-            domain = j.sals.zos.gateway.correct_domain(domain)
+            self.domain = j.sals.zos.gateway.correct_domain(self.domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = "Custom Domain"
             res = """\
