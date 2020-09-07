@@ -21,3 +21,10 @@ in string_ask validation we add new section
         },
 ```
 
+## Step 3
+Use the validator in your chatflow
+
+```
+        url = form.string_ask("Repository URL", required=True, is_git_url=True)
+
+```
