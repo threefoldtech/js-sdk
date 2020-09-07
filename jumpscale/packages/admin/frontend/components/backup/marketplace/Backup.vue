@@ -87,7 +87,7 @@ module.exports = {
       this.$api.mrktbackup
         .enable()
         .then((response) => {
-          this.autoBackup = JSON.parse(response.data).data;
+          this.autoBackup = true;
         })
         .catch((error) => {
           this.error = error.response.data.message;
@@ -99,8 +99,8 @@ module.exports = {
         .then((response) => {
           this.inited = response.data;
           if (this.inited) {
-            this.enableAutoBackup();
             this.checkAutoBackup();
+            this.enableAutoBackup();
             this.listSnapshots();
           }
         })
