@@ -32,7 +32,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
-        self.query = {"cru": 2, "mru": 2, "sru": 2}
+        self.query = {"cru": 1, "mru": 1, "sru": 2}
 
     @chatflow_step(title="Get a 3Bot Name")
     def get_solution_name(self):
