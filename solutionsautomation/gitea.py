@@ -7,4 +7,4 @@ class GiteaAutomated(MarketPlaceAppsChatflowPatch, GiteaDeploy):
     pass
 
 
-test = GiteaAutomated(solution_name="test_automated", currency="TFT", expiration=time() + 5 * 60)
+test = GiteaAutomated(solution_name="are", currency="TFT", expiration=time() + 60 * 15)

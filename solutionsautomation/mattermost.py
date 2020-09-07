@@ -7,4 +7,6 @@ class MattermostAutomated(MarketPlaceAppsChatflowPatch, MattermostDeploy):
     pass
 
 
-test = MattermostAutomated(solution_name="test_automated1", currency="TFT", expiration=time() + 5 * 60, flavor="Silver")
+test = MattermostAutomated(
+    solution_name="mattermostautomated", currency="TFT", expiration=time() + 60 * 15, flavor="Silver"
+)
