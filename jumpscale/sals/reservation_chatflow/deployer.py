@@ -665,6 +665,8 @@ Workload ID: {workload_id}
                     j.tools.alerthandler.alert_raise(
                         appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
                     )
+                else:
+                    self.unblock_node(workload.info.node_id)
                 return success
             if expiration_provisioning < j.data.time.get().timestamp:
                 self.block_node(workload.info.node_id)
