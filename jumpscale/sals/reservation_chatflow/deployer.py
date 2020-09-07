@@ -860,9 +860,10 @@ Workload ID: {workload_id}
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)
         nodes = list(nodes)
         nodes = j.sals.reservation_chatflow.reservation_chatflow.filter_nodes(nodes, free_to_use, ip_version)
+        blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
         if not nodes:
             raise StopChatFlow("Failed to find resources for this reservation")
-        node_messages = {node.node_id: node for node in nodes}
+        node_messages = {node.node_id: node for node in nodes if node.node_id not in blocked_nodes}
         node_id = bot.drop_down_choice(
             f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys()), required=True
         )
