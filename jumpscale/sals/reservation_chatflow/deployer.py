@@ -2,7 +2,7 @@ import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from .reservation_chatflow import NODES_DISALLOW_EXPIRATION, NODES_DISALLOW_KEY
+from .reservation_chatflow import NODES_DISALLOW_EXPIRATION, NODES_DISALLOW_KEY, NODES_COUNT_PREFIX
 from jumpscale.core.base import StoredFactory
 from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
 from nacl.public import Box
@@ -1544,12 +1544,29 @@ Workload ID: {workload_id}
         return False
 
     def block_node(self, node_id):
-        old_count = j.core.db.hget(NODES_DISALLOW_KEY, f"COUNT:{node_id}")
+        old_count = j.core.db.hget(NODES_DISALLOW_KEY, f"{NODES_COUNT_PREFIX}:{node_id}")
         old_count = old_count or 0
         count = int(old_count) + 1
         expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION * count
-        j.core.db.hset(NODES_DISALLOW_KEY, f"COUNT:{node_id}", count)
+        j.core.db.hset(NODES_DISALLOW_KEY, f"{NODES_COUNT_PREFIX}:{node_id}", count)
         j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
+
+    def unblock_node(self, node_id):
+        j.core.db.hdel(NODES_DISALLOW_KEY, node_id, f"{NODES_COUNT_PREFIX}:{node_id}")
+
+    def list_blocked_nodes(self):
+        blocked_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+        result = {}
+        for key, val in blocked_dict.items():
+            node_id = key.decode()
+            expiration = int(val)
+            if NODES_COUNT_PREFIX in node_id:
+                continue
+            result[node_id] = {"expiration": expiration, "fail_count": result.get(f"{NODES_COUNT_PREFIX}:{node_id}", 1)}
+        return result
+
+    def clear_blocked_nodes(self):
+        j.core.db.delete(NODES_DISALLOW_KEY)
 
 
 deployer = ChatflowDeployer()
