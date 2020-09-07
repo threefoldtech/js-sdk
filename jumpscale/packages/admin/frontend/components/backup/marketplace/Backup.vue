@@ -17,7 +17,7 @@
 
       <template #default>
         <v-alert v-if="!inited" text prominent class="ma-5" border="right" type="info">
-          <span>Your repo is not inited, plesaed init it first</span>
+          <span>Your repo is not inited, please init it first</span>
           <v-btn
             text
             class="ml-5"
@@ -88,6 +88,10 @@ module.exports = {
         .inited()
         .then((response) => {
           this.inited = response.data;
+          if(this.inited){
+              this.checkAutoBackup();
+              this.listSnapshots();
+          }
         })
         .catch((error) => {
           this.error = error.message;
@@ -143,8 +147,6 @@ module.exports = {
   },
   mounted() {
     this.checkReposInit();
-    this.checkAutoBackup();
-    this.listSnapshots();
   },
 };
 </script>
