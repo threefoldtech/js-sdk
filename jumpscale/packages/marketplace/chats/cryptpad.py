@@ -52,7 +52,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}",
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. Your paid resources will be resued for your next deployment.",
             )
 
         # deploy volume
@@ -66,7 +66,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}",
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. Your paid resources will be resued for your next deployment.",
                 solution_uuid=self.solution_id,
                 wid=vol_id,
             )
@@ -98,7 +98,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. Your paid resources will be resued for your next deployment.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -121,7 +121,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id}"
+                f" {_id}. Your paid resources will be resued for your next deployment.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )

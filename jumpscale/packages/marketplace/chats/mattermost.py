@@ -59,7 +59,8 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}"
+                f"Failed to create subdomain {self.domain} on gateway"
+                f" {self.gateway.node_id} {_id}. Your paid resources will be resued for your next deployment."
             )
         self.solution_url = f"https://{self.domain}"
 
@@ -76,7 +77,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}",
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. Your paid resources will be resued for your next deployment.",
                 solution_uuid=self.solution_id,
                 wid=vol_id,
             )
@@ -103,7 +104,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id, wid=self.resv_id
+                f"Failed to deploy workload {self.resv_id}. Your paid resources will be resued for your next deployment.",
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         # expose threebot container
@@ -124,7 +127,8 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id}" f" {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id}"
+                f" {_id}. Your paid resources will be resued for your next deployment.",
                 solution_uuid=self.solution_id,
                 wid=_id,
             )
