@@ -1,3 +1,4 @@
+from jumpscale.sals.marketplace import solutions
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -357,7 +358,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
             owner=username,
         )
         for wid in result["ids"]:
-            success = self.wait_workload(wid, bot=bot)
+            try:
+                success = self.wait_workload(wid, bot=bot)
+            except StopChatFlow as e:
+                for sol_wid in result["ids"]:
+                    j.sals.zos.workloads.decomession(sol_wid)
+                raise e
             if not success:
                 for sol_wid in result["ids"]:
                     j.sals.zos.workloads.decomession(sol_wid)
