@@ -4,6 +4,7 @@
     v-model="dialog"
     :error="error"
     :info="info"
+    :warning="warning"
     :loading="loading"
   >
     <template #default>Are you sure you want to cancel all {{ selected.length }} selected workloads?</template>
@@ -23,6 +24,7 @@ module.exports = {
       this.loading = true;
       this.error = null;
       this.info = null;
+      this.warning = null;
 
       let wids = [];
       for (i = 0; i < this.selected.length; i++) {
@@ -34,8 +36,13 @@ module.exports = {
         }
         wids.push(this.selected[i].id);
       }
-
-      this.$api.solutions
+      if (wids.length === 0) {
+        this.loading = false;
+        this.warning = "All workloads are already deleted";
+        setTimeout(() => this.close(), 3000);
+      }
+      else {
+        this.$api.solutions
         .patchCancelWorkload(wids)
         .then((response) => {
           for (let i = 0; i < this.selected.length; i++) {
@@ -44,13 +51,14 @@ module.exports = {
 
           this.loading = false;
           this.info = "workloads successfully deleted";
-          setTimeout(() => this.close(), 2000);
+          setTimeout(() => this.close(), 3000);
         })
         .catch((err) => {
           console.log(err);
           this.loading = false;
           this.error = err.response.data["error"];
         });
+      }
     },
     cancel() {
       this.close();
