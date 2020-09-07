@@ -17,7 +17,7 @@ validators = {
     string_ask: {
         is_git_url: (field) => {
             let str = field.val
-            let regex = /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/;
+            let regex = /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$/;
             if (!regex.test(str)) {
                 return "Invalid URL. should be a valid git repository URL";
             }
