@@ -2,9 +2,8 @@ import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from .reservation_chatflow import NODES_DISALLOW_EXPIRATION, NODES_DISALLOW_KEY, NODES_COUNT_PREFIX
 from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode
 from nacl.public import Box
 import netaddr
 import uuid
@@ -186,7 +185,7 @@ class NetworkView:
                     continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
-                deployer.block_node(network.network_resources[idx].info.node_id)
+                j.sals.reservation_chatflow.reservation_chatflow.block_node(network.network_resources[idx].info.node_id)
                 raise StopChatFlow(
                     "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
                 )
@@ -666,10 +665,10 @@ Workload ID: {workload_id}
                         appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
                     )
                 else:
-                    self.unblock_node(workload.info.node_id)
+                    j.sals.reservation_chatflow.reservation_chatflow.unblock_node(workload.info.node_id)
                 return success
             if expiration_provisioning < j.data.time.get().timestamp:
-                self.block_node(workload.info.node_id)
+                j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
@@ -1544,34 +1543,6 @@ Workload ID: {workload_id}
             gevent.sleep(2)
 
         return False
-
-    def block_node(self, node_id):
-        old_count = j.core.db.hget(NODES_DISALLOW_KEY, f"{NODES_COUNT_PREFIX}:{node_id}")
-        old_count = old_count or 0
-        count = int(old_count) + 1
-        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION * count
-        mapping = {f"{NODES_COUNT_PREFIX}:{node_id}": count, node_id: expiration}
-        j.core.db.hset(NODES_DISALLOW_KEY, mapping=mapping)
-
-    def unblock_node(self, node_id):
-        j.core.db.hdel(NODES_DISALLOW_KEY, node_id, f"{NODES_COUNT_PREFIX}:{node_id}")
-
-    def list_blocked_nodes(self):
-        blocked_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
-        # keys in this dict are node ids and count for each node where count key is {COUNT}:{node_id}
-        # node ids correspond to the expiration of the node and count keys correspond to how many times this node has failed to be used in new expiration calculation
-        # end result looks something like this if it contains one node {"3BwDVNRigau8Zk6BQkJt5PLxrHQnJ5NTfNvAtuubC1eS": 1599423362, "COUNT:3BwDVNRigau8Zk6BQkJt5PLxrHQnJ5NTfNvAtuubC1eS": 3}
-        result = {}
-        for key, val in blocked_dict.items():
-            node_id = key.decode()
-            expiration = int(val)
-            if NODES_COUNT_PREFIX in node_id:
-                continue
-            result[node_id] = {"expiration": expiration, "fail_count": result.get(f"{NODES_COUNT_PREFIX}:{node_id}", 1)}
-        return result
-
-    def clear_blocked_nodes(self):
-        j.core.db.delete(NODES_DISALLOW_KEY)
 
 
 deployer = ChatflowDeployer()
