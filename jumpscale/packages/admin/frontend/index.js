@@ -55,6 +55,7 @@ const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.
 const backup = httpVueLoader('./components/backup/Backup.vue')
 const terms = httpVueLoader('./components/legal/Terms.vue')
 const disclaimer = httpVueLoader('./components/legal/Disclaimer.vue')
+const license = httpVueLoader('./components/legal/License.vue')
 
 Vue.use(VueCodemirror)
 
@@ -100,8 +101,20 @@ const router = new VueRouter({
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
         { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
         { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
+        { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     ]
 })
+router.beforeEach((to, from, next) => {
+    const AllowedEndPoint = "api/allowed";
+    axios.get(AllowedEndPoint).then(results => {
+      let agreed = results.data.allowed;
+      if (to.name !== "License" && !agreed) {
+        next("/license");
+      }
+    })
+    next();
+  })
+  
 
 new Vue({
     el: '#app',
