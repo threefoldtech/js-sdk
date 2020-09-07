@@ -1548,8 +1548,8 @@ Workload ID: {workload_id}
         old_count = old_count or 0
         count = int(old_count) + 1
         expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION * count
-        j.core.db.hset(NODES_DISALLOW_KEY, f"{NODES_COUNT_PREFIX}:{node_id}", count)
-        j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
+        mapping = {f"{NODES_COUNT_PREFIX}:{node_id}": count, node_id: expiration}
+        j.core.db.hset(NODES_DISALLOW_KEY, mapping=mapping)
 
     def unblock_node(self, node_id):
         j.core.db.hdel(NODES_DISALLOW_KEY, node_id, f"{NODES_COUNT_PREFIX}:{node_id}")
