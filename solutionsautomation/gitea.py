@@ -7,4 +7,4 @@ class GiteaAutomated(GedisChatBotPatch, GiteaDeploy):
     pass
 
 
-test = GiteaAutomated(solution_name="are", currency="TFT", expiration=time() + 60 * 15)
+test = GiteaAutomated(solution_name="are", currency="TFT", expiration=time() + 60 * 15, wg_config="NO", debug=True)

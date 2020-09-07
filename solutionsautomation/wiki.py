@@ -4,9 +4,7 @@ from time import time
 
 
 class WikiAutomated(GedisChatBotPatch, WikiDeploy):
-    EXPECT = set(["title", "repo", "branch"])
-
-    QS_STR = {"Title": "title", "Repository URL": "repo", "Branch": "branch"}
+    QS = {"Title": "title", "Repository URL": "repo", "Branch": "branch"}
 
 
 test = WikiAutomated(
@@ -16,4 +14,6 @@ test = WikiAutomated(
     title="Threefold",
     repo="https://github.com/threefoldfoundation/info_gridmanual",
     branch="master",
+    wg_config="NO",
+    debug=True,
 )

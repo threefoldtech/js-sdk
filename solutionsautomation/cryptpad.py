@@ -7,4 +7,11 @@ class CryptpadAutomated(GedisChatBotPatch, CryptpadDeploy):
     pass
 
 
-test = CryptpadAutomated(solution_name="cryptautomation", currency="TFT", expiration=time() + 60 * 15, flavor="Silver")
+test = CryptpadAutomated(
+    solution_name="cryptautomation",
+    currency="TFT",
+    expiration=time() + 60 * 15,
+    flavor="Silver",
+    wg_config="NO",
+    debug=True,
+)

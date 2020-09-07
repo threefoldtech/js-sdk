@@ -8,5 +8,10 @@ class MattermostAutomated(GedisChatBotPatch, MattermostDeploy):
 
 
 test = MattermostAutomated(
-    solution_name="mattermostautomated", currency="TFT", expiration=time() + 60 * 15, flavor="Silver"
+    solution_name="mattermostautomated",
+    currency="TFT",
+    expiration=time() + 60 * 15,
+    flavor="Silver",
+    wg_config="NO",
+    debug=True,
 )
