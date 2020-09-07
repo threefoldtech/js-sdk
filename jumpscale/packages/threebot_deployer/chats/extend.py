@@ -32,7 +32,7 @@ class ExtendThreebot(MarketPlaceChatflow):
             min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
             default_time = self.pool.empty_at + 3900
         else:
-            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*14 = 1209600)
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
             min_timestamp_fromnow = None
             default_time = j.data.time.get().timestamp + 1209600
         self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
