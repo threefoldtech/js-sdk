@@ -134,7 +134,7 @@ module.exports = {
         this.$api.mrktbackup
           .disable()
           .then((response) => {
-            this.done("Auto backup is disbaled");
+            this.done("Auto backup is disabled");
           })
           .catch((error) => {
             this.error = error.response.data.message;

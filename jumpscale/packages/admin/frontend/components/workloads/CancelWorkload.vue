@@ -30,7 +30,7 @@ module.exports = {
           this.loading = false;
           this.workload.next_action = "DELETE";
           this.info = "workload successfully deleted";
-          setTimeout(() => this.close(), 2000);
+          setTimeout(() => this.close(), 3000);
         })
         .catch((err) => {
           console.log(err);
