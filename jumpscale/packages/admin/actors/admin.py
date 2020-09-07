@@ -113,8 +113,8 @@ class Admin(BaseActor):
 
     @actor_method
     def get_developer_options(self) -> str:
-        test_cert = j.core.config.get("TEST_CERT")
-        over_provision = j.core.config.get("OVER_PROVISIONING")
+        test_cert = j.core.config.set_default("TEST_CERT", False)
+        over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
 
     @actor_method
