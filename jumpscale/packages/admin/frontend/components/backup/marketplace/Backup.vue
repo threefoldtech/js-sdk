@@ -83,14 +83,25 @@ module.exports = {
     },
   },
   methods: {
+    enableAutoBackup() {
+      this.$api.mrktbackup
+        .enable()
+        .then((response) => {
+          this.autoBackup = true;
+        })
+        .catch((error) => {
+          this.error = error.response.data.message;
+        });
+    },
     checkReposInit() {
       this.$api.mrktbackup
         .inited()
         .then((response) => {
           this.inited = response.data;
-          if(this.inited){
-              this.checkAutoBackup();
-              this.listSnapshots();
+          if (this.inited) {
+            this.checkAutoBackup();
+            this.enableAutoBackup();
+            this.listSnapshots();
           }
         })
         .catch((error) => {

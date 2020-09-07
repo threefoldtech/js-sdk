@@ -32,7 +32,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
-        self.query = {"cru": 2, "mru": 2, "sru": 2}
+        self.query = {"cru": 1, "mru": 1, "sru": 2}
 
     @chatflow_step(title="Get a 3Bot Name")
     def get_solution_name(self):
@@ -198,7 +198,7 @@ You will be automatically redirected to the next step once succeeded.
     @chatflow_step(title="Expiration Date and Time")
     def solution_expiration(self):
         msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=msg)
+        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 1209600, msg=msg)
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
