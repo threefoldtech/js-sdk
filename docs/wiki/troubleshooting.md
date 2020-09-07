@@ -13,8 +13,6 @@ auth_request access auth_basic autoindex browser charset empty_gif fastcgi geo g
 - misconfigured redis
 
 ```
-MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands t...
-
 redis.exceptions.ResponseError: MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data set are disabled, because this instance is configured to report errors during writes if RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs for details about the RDB error.
 ```
 
