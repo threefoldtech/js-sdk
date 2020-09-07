@@ -1,29 +1,42 @@
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from decimal import Decimal
 from jumpscale.loader import j
+from form import Form
+from utils import is_message_matched, read_file
 
 
-class MarketPlaceAppsChatflowPatch(MarketPlaceAppsChatflow):
+class MarketPlaceAppsChatflowPatch(GedisChatBot):
     NAME_MESSAGE = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
     CURRENCY_MESSAGE = "Please select the currency you want to pay with."
     FLAVOR_MESSAGE = (
         "Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)"
     )
 
-    QS_STR = {
-        NAME_MESSAGE: "get_name",
+    QS_STR_BASE = {
+        NAME_MESSAGE: "solution_name",
     }
 
-    QS_CHOICE = {CURRENCY_MESSAGE: "get_currency", FLAVOR_MESSAGE: "get_flavor"}
+    QS_INT_BASE = {}
 
-    EXPECT = [
-        "solution_name",
-        "currency",
-        "expiration",
-    ]
+    QS_CHOICE_BASE = {CURRENCY_MESSAGE: "currency", FLAVOR_MESSAGE: "flavor"}
+
+    EXPECT_BASE = set(["solution_name", "currency", "expiration",])
+
+    # To be overridden by child classes
+
+    QS_STR = {}
+
+    QS_INT = {}
+
+    QS_CHOICE = {}
+
+    EXPECT = set([])
 
     def __init__(self, **kwargs):
+        self.EXPECT = self.EXPECT | self.EXPECT_BASE
+        self.QS_CHOICE = {**self.QS_CHOICE, **self.QS_CHOICE_BASE}
+        self.QS_STR = {**self.QS_STR, **self.QS_STR_BASE}
+        self.QS_INT = {**self.QS_INT, **self.QS_INT_BASE}
         for k in self.EXPECT:
             if k not in kwargs:
                 raise Exception(f"{k} not provided.")
@@ -32,20 +45,16 @@ class MarketPlaceAppsChatflowPatch(MarketPlaceAppsChatflow):
             setattr(self, k, v)
 
         self.name_qs = 0
-        super().__init__(spawn=True, **kwargs)
+        super().__init__(spawn=False)
 
     def user_info(self):
-        return {"email": j.core.identity.me.tname, "username": "omar0.3bot"}
-
-    def go(self):
-        for step in self.steps:
-            getattr(self, step)()
+        return {"email": j.core.identity.me.email, "username": j.core.identity.me.tname}
 
     def md_show_update(self, msg, *args, **kwargs):
-        pass
+        print(msg)
 
     def md_show(self, msg, *args, **kwargs):
-        pass
+        print(msg)
 
     def qrcode_show(self, pool, **kwargs):
         escrow_info = pool.escrow_information
@@ -63,28 +72,35 @@ class MarketPlaceAppsChatflowPatch(MarketPlaceAppsChatflow):
             memo_text=f"p-{resv_id}",
         )
 
-    def get_name(self, **kwargs):
-        if self.name_qs == 0:
-            self.name_qs = 1
-            return self.solution_name
-        else:
-            raise StopChatFlow("Name already exists")
-
-    def get_currency(self, **kwargs):
-        return self.currency
-
-    def get_flavor(self, *args, **kwargs):
-        return self.flavor
-
     def string_ask(self, msg, **kwargs):
         for k, v in self.QS_STR.items():
-            if k == msg:
-                return getattr(self, v)(**kwargs)
+            if is_message_matched(msg, k):
+                return getattr(self, v)
+
+    def int_ask(self, msg, **kwargs):
+        for k, v in self.QS_INT.items():
+            if is_message_matched(msg, k):
+                return getattr(self, v)
 
     def single_choice(self, msg, *args, **kwargs):
+        print(msg, args)
         for k, v in self.QS_CHOICE.items():
-            if k == msg:
-                return getattr(self, v)(**kwargs)
+            if is_message_matched(msg, k):
+                attr = getattr(self, v)
+                if callable(attr):
+                    return attr(msg, *args, **kwargs)
+                else:
+                    return attr
+
+    def drop_down_choice(self, msg, *args, **kwargs):
+        return self.single_choice(msg, *args, **kwargs)
+
+    def upload_file(self, msg, *args, **kwargs):
+        val = self.string_ask(msg, *args, **kwargs)
+        return read_file(val)
+
+    def new_form(self):
+        return Form(self)
 
     def datetime_picker(self, *args, **kwargs):
         return self.expiration
