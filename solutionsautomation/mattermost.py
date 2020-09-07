@@ -1,9 +1,9 @@
-from marketplacepatch import MarketPlaceAppsChatflowPatch
+from gedispatch import GedisChatBotPatch
 from jumpscale.packages.marketplace.chats.mattermost import MattermostDeploy
 from time import time
 
 
-class MattermostAutomated(MarketPlaceAppsChatflowPatch, MattermostDeploy):
+class MattermostAutomated(GedisChatBotPatch, MattermostDeploy):
     pass
 
 

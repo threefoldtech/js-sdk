@@ -1,9 +1,9 @@
-from marketplacepatch import MarketPlaceAppsChatflowPatch
+from gedispatch import GedisChatBotPatch
 from jumpscale.packages.marketplace.chats.cryptpad import CryptpadDeploy
 from time import time
 
 
-class CryptpadAutomated(MarketPlaceAppsChatflowPatch, CryptpadDeploy):
+class CryptpadAutomated(GedisChatBotPatch, CryptpadDeploy):
     pass
 
 

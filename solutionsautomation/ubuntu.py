@@ -1,9 +1,9 @@
-from marketplacepatch import MarketPlaceAppsChatflowPatch
+from gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy
 from time import time
 
 
-class UbuntuAutomated(MarketPlaceAppsChatflowPatch, UbuntuDeploy):
+class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     EXPECT = set(["version", "cpu", "memory", "disk_size", "disk_type", "log", "ssh", "ipv6", "node_automatic"])
 
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
@@ -45,7 +45,6 @@ class UbuntuAutomated(MarketPlaceAppsChatflowPatch, UbuntuDeploy):
         return ips[0]
 
     def get_pool(self, msg, pools, *args, **kwargs):
-        print(pools)
         return pools[0]
 
 

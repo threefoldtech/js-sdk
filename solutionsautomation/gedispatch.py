@@ -5,7 +5,7 @@ from form import Form
 from utils import is_message_matched, read_file
 
 
-class MarketPlaceAppsChatflowPatch(GedisChatBot):
+class GedisChatBotPatch(GedisChatBot):
     NAME_MESSAGE = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
     CURRENCY_MESSAGE = "Please select the currency you want to pay with."
     FLAVOR_MESSAGE = (

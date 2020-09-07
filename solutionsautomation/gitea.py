@@ -1,9 +1,9 @@
-from marketplacepatch import MarketPlaceAppsChatflowPatch
+from gedispatch import GedisChatBotPatch
 from jumpscale.packages.marketplace.chats.gitea import GiteaDeploy
 from time import time
 
 
-class GiteaAutomated(MarketPlaceAppsChatflowPatch, GiteaDeploy):
+class GiteaAutomated(GedisChatBotPatch, GiteaDeploy):
     pass
 
 
