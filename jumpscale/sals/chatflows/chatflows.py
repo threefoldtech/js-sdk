@@ -90,7 +90,7 @@ class GedisChatBot:
         """
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
-        self.spawn = kwargs.get("spwan", False)
+        self.spawn = kwargs.get("spawn", True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
