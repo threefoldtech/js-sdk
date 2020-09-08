@@ -253,22 +253,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        if hasattr(self, "wgconf"):
-            user_wgconf_check = self.single_choice(
-                "Do you want to save the wireguard configration, it could help you to connect with your workload using ip address ?",
-                ["YES", "NO"],
-                default="NO",
-            )
-            if user_wgconf_check == "YES":
-                msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
-<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
-<br>
-<pre style="text-align:center">{self.wgconf}</pre>
-<br>
-<h3>navigate to where the config is downloaded and start your connection using "wg-quick up ./apps.conf"</h3>
-"""
-                self.download_file(msg=msg, data=self.wgconf, filename="apps.conf", html=True)
-
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
 
         if not j.sals.reservation_chatflow.wait_http_test(
