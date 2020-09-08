@@ -130,3 +130,6 @@ class GedisChatBotPatch(GedisChatBot):
 
     def multi_list_choice(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
+
+    def multi_values_ask(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
