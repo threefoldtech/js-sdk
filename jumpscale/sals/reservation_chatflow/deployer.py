@@ -16,6 +16,15 @@ from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 
 
+GATEWAY_WORKLOAD_TYPES = [
+    WorkloadType.Domain_delegate,
+    WorkloadType.Gateway4to6,
+    WorkloadType.Subdomain,
+    WorkloadType.Reverse_proxy,
+    WorkloadType.Proxy,
+]
+
+
 class NetworkView:
     def __init__(self, name, workloads=None):
         self.name = name
@@ -649,7 +658,10 @@ class ChatflowDeployer:
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
 
         workload = j.sals.zos.workloads.get(workload_id)
-        node = self._explorer.nodes.get(workload.info.node_id)
+        if workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
+            node = self._explorer.gateway.get(workload.info.node_id)
+        else:
+            node = self._explorer.nodes.get(workload.info.node_id)
         # check if the node is up
         if not j.sals.zos.nodes_finder.filter_is_up(node):
             cancel = True
@@ -1588,7 +1600,7 @@ class ChatflowDeployer:
         total_amount = "{0:f}".format(total_amount_dec)
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
-        
+
         <h4> Destination Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {thecurrency} \n
         <h4> Memo Text (Reservation ID): </h4>  p-{resv_id} \n
