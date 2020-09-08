@@ -366,7 +366,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
             if not success:
                 for sol_wid in result["ids"]:
                     j.sals.zos.workloads.decomission(sol_wid)
-                raise DeploymentFailed(f"Failed to deploy apps network in workload {wid}", wid=wid)
+                raise DeploymentFailed(
+                    f"Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                    wid=wid,
+                )
         wgcfg = result["wg"]
         return pool_info, wgcfg
 

@@ -121,7 +121,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
             )
         test_cert = j.config.get("TEST_CERT")
 
@@ -163,7 +163,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -189,7 +189,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
