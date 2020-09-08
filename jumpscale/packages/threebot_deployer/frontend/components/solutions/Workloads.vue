@@ -17,6 +17,7 @@
           :items="deployed3Bots"
           class="elevation-1"
         >
+          <template slot="no-data">No 3Bot instances available</p></template>
           <template v-slot:item.domain="{ item }">
             <a :href="`https://${item.Domain}/admin`">{{item.Domain}}</a>
           </template>
