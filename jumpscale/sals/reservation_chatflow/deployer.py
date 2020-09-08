@@ -1496,7 +1496,7 @@ class ChatflowDeployer:
 
         while True:
             pool_choices = bot.multi_list_choice(
-                "Please seclect the pools you wish to distribute you" f" {workload_name} on",
+                "Please select the pools you wish to distribute you" f" {workload_name} on",
                 options=list(messages.keys()),
                 required=True,
             )
