@@ -651,7 +651,7 @@ class ChatflowDeployer:
             workload = j.sals.zos.workloads.get(workload_id)
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
             if bot:
-                deploying_message = f"""
+                deploying_message = f"""\
                 # Deploying...
 
                 <br />Workload ID: {workload_id}
