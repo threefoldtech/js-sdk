@@ -1,11 +1,11 @@
 const WIKIS = {
   sdk: {
-    title: "SDK",
+    title: "Threefold Manual",
     path: "/wikis/sdk",
     url: "https://sdk.threefold.io"
   },
   threefold: {
-    title: "Threefold",
+    title: "Threefold Wiki",
     path: "/wikis/threefold",
     url: "https://wiki.threefold.io"
   }

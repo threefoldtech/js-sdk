@@ -1,5 +1,5 @@
 <template>
-  <base-component title="Wikis" icon="mdi-book-open-outline" :loading="loading">
+  <base-component title="Threefold Wikis" icon="mdi-book-open-outline" :loading="loading">
     <template #default>
       <v-row align="start" justify="start">
         <v-card class="ma-4 mt-2" width="300" v-for="wiki in wikis" :key="wiki.title" :to="wiki.path">

@@ -90,7 +90,7 @@ const router = new VueRouter({
         { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
         { name: "Capacity Explorer", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
         { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
-        { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
+        { name: "Threefold Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
         { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
         { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
         { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
