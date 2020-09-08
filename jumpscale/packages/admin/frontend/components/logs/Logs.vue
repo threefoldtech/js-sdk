@@ -9,7 +9,7 @@
 
       <template #default>
         <v-data-table :loading="loading" :search="search" :headers="headers" :items="data" @click:row="open" class="elevation-1">
-          <template slot="no-data">No Logs available</p></template>
+          <template slot="no-data">No logs available</p></template>
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
           </template>

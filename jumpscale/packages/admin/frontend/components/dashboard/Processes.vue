@@ -5,7 +5,7 @@
         <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details solo flat></v-text-field>
       </template>
       <v-data-table :items-per-page="5" :headers="headers" :items="processes" :search="search" @click:row="open" :footer-props="{'disable-items-per-page': true}">
-        <template slot="no-data">No Processes available</p></template>
+        <template slot="no-data">No processes available</p></template>
         <template v-slot:item.rss="{ item }">
           {{Math.round(item.rss)}} MB
         </template>

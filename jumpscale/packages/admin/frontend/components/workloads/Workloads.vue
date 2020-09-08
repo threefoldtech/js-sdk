@@ -14,7 +14,7 @@
           :items="data"
           @click:row="open"
         >
-          <template slot="no-data">No Workloads available</p></template>
+          <template slot="no-data">No workloads available</p></template>
           <template v-slot:item.epoch="{ item }">{{ item.epoch }}</template>
           <template v-slot:body.prepend="{ headers }">
             <tr>
