@@ -1,11 +1,12 @@
+import math
 import time
 import uuid
-import math
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class GollumDeploy(GedisChatBot):
@@ -70,35 +71,28 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title="Access Key")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please upload your public SSH key to be able to access the depolyed container via ssh""",
-            required=True,
+            """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True
         ).split("\n")[0]
 
     @chatflow_step(title="Email")
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask(
-            "Please enter an email to get ssl certificate updates of your container",
-        )
+        self.email = form.string_ask("Please enter an email to get ssl certificate updates of your container")
         form.ask()
 
     @chatflow_step(title="Github repo setup")
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask(
-            "Please enter your github username",
-        )
+        self.github_user = form.string_ask("Please enter your github username")
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask(
-            "Please enter your github email",
-        )
+        self.github_email = form.string_ask("Please enter your github email")
         self.github_repo = form.string_ask(
-            "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists",
+            "Please enter your github repo name that will be used for the wiki.# Make sure the repo exists"
         )
         self.github_token = form.string_ask(
             "Please enter github personal access token."
-            "You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token",
+            "You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token"
         )
         form.ask()
 
@@ -247,13 +241,17 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def container_access(self):
         res = f"""\
-# Gollum has been deployed successfully:\n<br>
-Reservation id: {self.workload_ids[-1]}\n
-To ssh into your container: ```ssh root@{self.ip_address}```\n
-You can access your wiki repo from browser at {self.container_url}\n
-# It may take a few minutes.
+        # Gollum has been deployed successfully:
+        <br />\n
+        Reservation id: {self.workload_ids[-1]}
+
+        To ssh into your container: ```ssh root@{self.ip_address}```
+
+        You can access your wiki repo from browser at {self.container_url}
+
+        ## It may take a few minutes...
         """
-        self.md_show(res, md=True)
+        self.md_show(dedent(res), md=True)
 
 
 chat = GollumDeploy
