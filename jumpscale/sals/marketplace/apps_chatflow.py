@@ -157,7 +157,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
                         raise DeploymentFailed(
-                            f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid
+                            f"Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                            wid=wid,
                         )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
@@ -168,7 +169,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.md_show_update("Preparing gateways ...")
         gateways = deployer.list_all_gateways(self.user_info()["username"])
         if not gateways:
-            raise StopChatFlow("There are no available gateways in the farms bound to your pools.")
+            raise StopChatFlow(
+                "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
+            )
 
         domains = dict()
         for gw_dict in gateways.values():
@@ -182,7 +185,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow("Letsencrypt limit has been reached on all gateways")
+            raise StopChatFlow(
+                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+            )
 
         self.domain = random.choice(list(domains.keys()))
 

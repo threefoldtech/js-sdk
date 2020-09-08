@@ -87,11 +87,15 @@ class Admin(BaseActor):
         explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
@@ -109,8 +113,8 @@ class Admin(BaseActor):
 
     @actor_method
     def get_developer_options(self) -> str:
-        test_cert = j.core.config.get("TEST_CERT")
-        over_provision = j.core.config.get("OVER_PROVISIONING")
+        test_cert = j.core.config.set_default("TEST_CERT", False)
+        over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
 
     @actor_method

@@ -40,7 +40,7 @@ class deployment_context(ContextDecorator):
             workload = zos.workloads.get(exc.wid)
             if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
                 j.logger.info(f"blocking node {workload.info.node_id} for failed workload {workload.id}")
-                deployer.block_node(workload.info.node_id)
+                reservation_chatflow.block_node(workload.info.node_id)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3

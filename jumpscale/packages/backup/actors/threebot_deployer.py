@@ -8,6 +8,7 @@ from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
 MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.grid.tf/")
+BACKUP_TOKEN = os.environ.get("BACKUP_TOKEN", "")
 CREATE_USER_ENDPOINT = "threebot_deployer/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "threebot_deployer/actors/backup/public_key"
 REPO_NAMES = ["config_backup_1", "config_backup_2"]
@@ -35,7 +36,7 @@ class Backup(BaseActor):
         priv_key = j.core.identity.me.nacl.private_key
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-        data = {"threebot_name": tname, "passwd": password_encrypted, "new": new}
+        data = {"threebot_name": tname, "passwd": password_encrypted, "new": new, "token": BACKUP_TOKEN}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:

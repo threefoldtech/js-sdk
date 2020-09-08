@@ -443,5 +443,13 @@ const apiClient = {
         url: "/auth/authenticated"
       })
     }
+  },
+  license: {
+    accept: () => {
+      return axios({
+        url: `/admin/api/accept/`,
+        method: "get"
+      })
+    },
   }
 }

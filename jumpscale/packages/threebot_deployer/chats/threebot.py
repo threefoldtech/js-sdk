@@ -1,9 +1,11 @@
+import uuid
+
+from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-import uuid
-from jumpscale.data.nacl.jsnacl import NACL
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
@@ -12,6 +14,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     title = "3Bot"
     steps = [
         "get_solution_name",
+        # "upload_public_key",
         "set_backup_password",
         "solution_expiration",
         "payment_currency",
@@ -29,7 +32,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
-        self.query = {"cru": 2, "mru": 2, "sru": 2}
+        self.query = {"cru": 1, "mru": 1, "sru": 2}
 
     @chatflow_step(title="Get a 3Bot Name")
     def get_solution_name(self):
@@ -50,6 +53,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
+        self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
+
+    # @chatflow_step(title="SSH key")
+    # def upload_public_key(self):
+    #     self.public_key = self.upload_file(
+    #         "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+    #         required=True,
+    #     ).strip()
 
     def _verify_password(self, password):
         try:
@@ -110,9 +121,15 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
             )
         test_cert = j.config.get("TEST_CERT")
+
+        # Generate a one-time token to create a user for backup
+        backup_token = str(j.data.idgenerator.idgenerator.uuid.uuid4())
+        self.backup_model.token = backup_token
+        self.backup_model.tname = self.solution_metadata["owner"]
+        self.backup_model.save()
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -137,7 +154,7 @@ You will be automatically redirected to the next step once succeeded.
                 memory=self.query["mru"] * 1024,
                 disk_size=self.query["sru"] * 1024,
                 entrypoint=entry_point,
-                secret_env={"BACKUP_PASSWORD": self.backup_password},
+                secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
                 interactive=False,
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
@@ -146,7 +163,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[1])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -172,7 +189,7 @@ You will be automatically redirected to the next step once succeeded.
         success = deployer.wait_workload(self.workload_ids[2])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[2]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -181,7 +198,7 @@ You will be automatically redirected to the next step once succeeded.
     @chatflow_step(title="Expiration Date and Time")
     def solution_expiration(self):
         msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=msg)
+        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 1209600, msg=msg)
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

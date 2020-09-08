@@ -68,7 +68,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
@@ -109,7 +109,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.workload_ids[-1]}",
+                f"Failed to deploy workload {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -135,7 +135,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )

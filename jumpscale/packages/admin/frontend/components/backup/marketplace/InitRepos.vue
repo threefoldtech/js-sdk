@@ -28,7 +28,7 @@ module.exports = {
           location.reload();
         })
         .catch(error => {
-          this.error = error.message;
+          this.error = `${error.message}. Backup service is only available through online deployed 3Bots`;
         })
         .finally(() => {
           this.loading = false;

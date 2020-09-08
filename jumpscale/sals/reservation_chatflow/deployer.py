@@ -2,9 +2,8 @@ import base64
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from .reservation_chatflow import NODES_DISALLOW_EXPIRATION, NODES_DISALLOW_KEY
 from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode, State
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode
 from nacl.public import Box
 import netaddr
 import uuid
@@ -186,7 +185,7 @@ class NetworkView:
                     continue
                 for wid in result:
                     j.sals.zos.workloads.decomission(wid)
-                deployer.block_node(network.network_resources[idx].info.node_id)
+                j.sals.reservation_chatflow.reservation_chatflow.block_node(network.network_resources[idx].info.node_id)
                 raise StopChatFlow(
                     "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
                 )
@@ -665,9 +664,11 @@ Workload ID: {workload_id}
                     j.tools.alerthandler.alert_raise(
                         appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
                     )
+                else:
+                    j.sals.reservation_chatflow.reservation_chatflow.unblock_node(workload.info.node_id)
                 return success
             if expiration_provisioning < j.data.time.get().timestamp:
-                self.block_node(workload.info.node_id)
+                j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
@@ -859,9 +860,10 @@ Workload ID: {workload_id}
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)
         nodes = list(nodes)
         nodes = j.sals.reservation_chatflow.reservation_chatflow.filter_nodes(nodes, free_to_use, ip_version)
-        if not nodes:
+        blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
+        node_messages = {node.node_id: node for node in nodes if node.node_id not in blocked_nodes}
+        if not node_messages:
             raise StopChatFlow("Failed to find resources for this reservation")
-        node_messages = {node.node_id: node for node in nodes}
         node_id = bot.drop_down_choice(
             f"Please choose the node you want to deploy {workload_name} on", list(node_messages.keys()), required=True
         )
@@ -1542,10 +1544,6 @@ Workload ID: {workload_id}
             gevent.sleep(2)
 
         return False
-
-    def block_node(self, node_id):
-        expiration = j.data.time.now().timestamp + NODES_DISALLOW_EXPIRATION
-        j.core.db.hset(NODES_DISALLOW_KEY, node_id, expiration)
 
 
 deployer = ChatflowDeployer()

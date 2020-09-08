@@ -14,8 +14,9 @@ import random
 import requests
 import time
 
-NODES_DISALLOW_KEY = "ZOS:DISALLOWED_NODES"
+NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+NODES_COUNT_KEY = "ZOS:NODES:FAILURE_COUNT"
 
 
 class Network:
@@ -1390,17 +1391,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
             list of available nodes
         """
 
-        def filter_disallowed_nodes(disallowed_dict, nodes):
+        def filter_disallowed_nodes(disallowed_node_ids, nodes):
             result = []
             for node in nodes:
-                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
-                if node_blocking_time < j.data.time.now().timestamp:
+                if node.node_id not in disallowed_node_ids:
                     result.append(node)
             return result
 
-        disallowed_dict = {}
+        disallowed_node_ids = []
         if filter_blocked:
-            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+            disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
@@ -1415,7 +1415,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
-            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
+            nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -1586,6 +1586,42 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
         return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
+
+    def block_node(self, node_id):
+        count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
+        expiration = count * NODES_DISALLOW_EXPIRATION
+        node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
+        j.core.db.set(node_key, expiration, ex=expiration)
+
+    def unblock_node(self, node_id, reset=True):
+        node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
+        j.core.db.delete(node_key)
+        j.core.db.hdel(NODES_COUNT_KEY, node_id)
+
+    def list_blocked_nodes(self):
+        """
+        each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+        number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked
+
+        returns
+            dict: {node_id: {expiration: .., failure_count: ...}}
+        """
+        blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
+        failure_count_dict = j.core.db.hgetall(NODES_COUNT_KEY)
+        blocked_node_values = j.core.db.mget(blocked_node_keys)
+        result = {}
+        for idx, key in enumerate(blocked_node_keys):
+            key = key[len(NODES_DISALLOW_PREFIX) + 1 :]
+            node_id = key.decode()
+            expiration = int(blocked_node_values[idx])
+            failure_count = int(failure_count_dict[key])
+            result[node_id] = {"expiration": expiration, "failure_count": failure_count}
+        return result
+
+    def clear_blocked_nodes(self):
+        blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
+        j.core.db.delete(blocked_node_keys)
+        j.core.db.delete(NODES_COUNT_KEY)
 
 
 reservation_chatflow = ReservationChatflow()
