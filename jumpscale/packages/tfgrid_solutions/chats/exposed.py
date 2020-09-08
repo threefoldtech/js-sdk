@@ -156,7 +156,7 @@ class SolutionExpose(GedisChatBot):
             {% endfor %}
             """
             res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
-            self.md_show(res)
+            self.md_show(dedent(res), md=True)
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
