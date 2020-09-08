@@ -16,14 +16,7 @@ ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
 
 class SolutionExpose(GedisChatBot):
-    steps = [
-        "solution_type",
-        "exposed_solution",
-        "exposed_ports",
-        "domain_selection",
-        "reservation",
-        "success",
-    ]
+    steps = ["solution_type", "exposed_solution", "exposed_ports", "domain_selection", "reservation", "success"]
     title = "Solution Expose"
 
     def _deployment_start(self):
@@ -170,7 +163,7 @@ class SolutionExpose(GedisChatBot):
         self.network_name = self.solution["Network"]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner"),
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get("owner")
         )
         if result:
             for wid in result["ids"]:
@@ -236,9 +229,9 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your solution has been exposed successfully:
-\n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        # Congratulations! Your solution has been exposed successfully:
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
         """
         self.md_show(dedent(message), md=True)
 

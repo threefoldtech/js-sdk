@@ -1,15 +1,17 @@
-from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
-import uuid
-import random
-import requests
-from textwrap import dedent
 import math
+import random
+import uuid
+from textwrap import dedent
+
+import requests
+
 from jumpscale.loader import j
-from .solutions import solutions
-from .deployer import deployer
-from .chatflow import MarketPlaceChatflow
-from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+
+from .chatflow import MarketPlaceChatflow
+from .deployer import deployer
+from .solutions import solutions
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -258,23 +260,22 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         if not j.sals.reservation_chatflow.wait_http_test(
             f"https://{self.domain}", timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.stop(
-                f"""\
-Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
-Node: {self.selected_node.node_id},
-IP Address: {self.ip_address},
-Reservation ID: {self.resv_id},
-Pool ID: {self.pool_id},
-Domain: {self.domain}
+            stop_message = f"""\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+                Node: {self.selected_node.node_id},
+                IP Address: {self.ip_address},
+                Reservation ID: {self.resv_id},
+                Pool ID: {self.pool_id},
+                Domain: {self.domain}
                 """
-            )
+            self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
         message = f"""\
-# You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
-\n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-                """
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
         self.md_show(dedent(message), md=True)
