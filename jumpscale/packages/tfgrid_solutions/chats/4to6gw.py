@@ -1,4 +1,5 @@
 import uuid
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -46,46 +47,45 @@ class FourToSixGateway(GedisChatBot):
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
-        res = """
-## Use the following template to configure your wireguard connection. This will give you access to your network.
-\n<br/>\n
-Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
-Click next
-to download your configuration
+        res = """\
+        ## Use the following template to configure your wireguard connection. This will give you access to your network.
+
+        Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed
+        Click next
+        to download your configuration
         """
-        self.md_show(res)
+        self.md_show(dedent(res), md=True)
 
     @chatflow_step(title="Wireguard Configuration", disable_previous=True)
     def wg_config(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = """\
-[Interface]
-Address = {{cfg.ips[0]}}
-PrivateKey = {{privatekey}}
-{% for peer in cfg.peers %}
-[Peer]
-PublicKey = {{peer.public_key}}
-AllowedIPs = {{",".join(peer.allowed_ips)}}
-{% if peer.endpoint -%}
-Endpoint = {{peer.endpoint}}
-{% endif %}
-{% endfor %}
+        [Interface]
+        Address = {{cfg.ips[0]}}
+        PrivateKey = {{privatekey}}
+        {% for peer in cfg.peers %}
+        [Peer]
+        PublicKey = {{peer.public_key}}
+        AllowedIPs = {{",".join(peer.allowed_ips)}}
+        {% if peer.endpoint -%}
+        Endpoint = {{peer.endpoint}}
+        {% endif %}
+        {% endfor %}
             """
         config = j.tools.jinja2.render_template(
-            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+            template_text=dedent(wgconfigtemplate), cfg=cfg, privatekey=self.privatekey.decode()
         )
-        config = config
         self.filename = "wg-{}.conf".format(self.resv_id)
         self.download_file(msg=f"<pre>{config}</pre>", data=config, filename=self.filename, html=True)
 
     @chatflow_step(title="Success", final_step=True, disable_previous=True)
     def success(self):
-        res = f"""
-# In order to connect to the 4 to 6 gateway execute this command:
-\n<br/>\n
-## ```wg-quick up ./{self.filename}```
-                    """
-        self.md_show(res, md=True)
+        res = f"""\
+        # In order to connect to the 4 to 6 gateway execute this command:
+        <br />\n
+        ## ```wg-quick up ./{self.filename}```
+        """
+        self.md_show(dedent(res), md=True)
 
 
 chat = FourToSixGateway
