@@ -168,7 +168,6 @@ def stop():
             if pid != mypid:
                 j.sals.process.kill(pid)
     else:
-
         threebot_cmd = j.tools.startupcmd.get("threebot_default")
         threebot_cmd.stop()
         j.servers.threebot.get().redis.stop()
