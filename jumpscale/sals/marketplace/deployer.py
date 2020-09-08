@@ -1,13 +1,15 @@
+import math
+import random
+from decimal import Decimal
+
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
-from decimal import Decimal
+from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
+
 from .models import UserPool
-import random
-import math
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
