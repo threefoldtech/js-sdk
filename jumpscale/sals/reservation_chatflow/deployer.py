@@ -1564,12 +1564,12 @@ Workload ID: {workload_id}
         qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
         msg_text = f"""
         
-        <h4> Wallet Address: </h4>  {escrow_address} \n
+        <h4> Destination Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {thecurrency} \n
-        <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
+        <h4> Memo Text (Reservation ID): </h4>  p-{resv_id} \n
         <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {thecurrency} will automatically occurs per transaction.</h5>
         """
 
         return msg_text, qr_code
