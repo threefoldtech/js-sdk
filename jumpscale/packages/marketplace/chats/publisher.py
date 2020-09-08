@@ -75,7 +75,7 @@ for more information on the publishingtools please check the [manual](https://ma
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
                     raise DeploymentFailed(
-                        f"Failed to add node {self.selected_node.node_id} to network {wid}. Your paid resources will be resued for your next deployment.",
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.",
                         wid=wid,
                     )
         self.network_view_copy = self.network_view.copy()
@@ -95,7 +95,7 @@ for more information on the publishingtools please check the [manual](https://ma
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. Your paid resources will be resued for your next deployment."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         # 3- reserve tcp proxy
@@ -112,7 +112,7 @@ for more information on the publishingtools please check the [manual](https://ma
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. Your paid resources will be resued for your next deployment.",
+                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -144,7 +144,7 @@ for more information on the publishingtools please check the [manual](https://ma
         self.resv_id = self.workload_ids[-1]
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. Your paid resources will be resued for your next deployment.",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )

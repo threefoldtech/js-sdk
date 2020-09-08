@@ -55,7 +55,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. Your paid resources will be resued for your next deployment."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         self.resv_id = deployer.deploy_container(
@@ -79,7 +79,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.resv_id])
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.resv_id}. Your paid resources will be resued for your next deployment.",
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.resv_id,
             )
@@ -103,7 +103,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}. Your paid resources will be resued for your next deployment.",
+                f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
