@@ -1,7 +1,9 @@
+import uuid
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-import uuid
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -111,14 +113,14 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
-\n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
-\n<br />\n
-                """
-        self.md_show(message, md=True)
+        # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+        <br />\n
+
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+        - After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = GiteaDeploy
