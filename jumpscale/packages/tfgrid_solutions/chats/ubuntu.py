@@ -167,10 +167,10 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance deployed successfully:
-\n<br />\n
-- To connect: `ssh root@{self.ip_address}`
-                """
+        # Congratulations! Your own instance deployed successfully:
+
+        <br />To connect: `ssh root@{self.ip_address}`
+        """
         self.md_show(dedent(message), md=True)
 
 
