@@ -271,7 +271,7 @@ module.exports = new Promise(async (resolve, reject) => {
             await this.getUser();
             this.getFarms();
             this.initialiseRefresh()
-            this.newFarm.threebot_id = this.user.tid;
+            this.newFarm.threebot_id = this.user.id;
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
@@ -289,7 +289,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 }, 60000)
             },
             isLoggedIn() {
-                return Boolean(this.user.tid)
+                return Boolean(this.user.id)
             },
             refreshFarms() {
                 clearInterval(this.refreshInterval);
