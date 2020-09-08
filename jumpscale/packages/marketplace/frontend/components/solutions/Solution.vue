@@ -48,7 +48,7 @@
               :items="deployedSolutions"
               class="elevation-1"
             >
-              <template slot="no-data">No {{solution.type.toLowerCase()}} instances available</p></template>
+              <template slot="no-data">No {{solution.name.toLowerCase()}} instances available</p></template>
               <template v-slot:item.domain="{ item }">
                 <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
               </template>
