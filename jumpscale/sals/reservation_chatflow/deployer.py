@@ -653,7 +653,7 @@ class ChatflowDeployer:
             if breaking_node_id and breaking_node_id == node.node_id:
                 # if the node is down and it is the same as breaking_node_id
                 if workload.info.workload_type == WorkloadType.Network_resource:
-                    # if the workload is not a newtork then cancel the solution
+                    # if the workload is a newtork we don't cancel it
                     cancel = False
             # the node is down but it is not a breaking node_id
             elif workload.info.workload_type == WorkloadType.Network_resource:
