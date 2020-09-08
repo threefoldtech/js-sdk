@@ -647,6 +647,26 @@ class ChatflowDeployer:
     def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None):
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
+
+        workload = j.sals.zos.workloads.get(workload_id)
+        node = self._explorer.nodes.get(workload.info.node_id)
+        # check if the node is up
+        if not j.sals.zos.nodes_finder.filter_is_up(node):
+            cancel = True
+            if breaking_node_id and breaking_node_id == node.node_id:
+                # if the node is down and it is the same as breaking_node_id
+                if workload.info.workload_type == WorkloadType.Network_resource:
+                    # if the workload is a newtork we don't cancel it
+                    cancel = False
+            # the node is down but it is not a breaking node_id
+            elif workload.info.workload_type == WorkloadType.Network_resource:
+                # if the workload is network we can overlook it
+                return True
+            if cancel:
+                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
+            raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
+
+        # wait for workload
         while True:
             workload = j.sals.zos.workloads.get(workload_id)
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
