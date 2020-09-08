@@ -59,14 +59,22 @@ class GedisChatBotPatch(GedisChatBot):
 
     def md_show_update(self, msg, *args, **kwargs):
         if self.debug:
-            print(msg)
+            j.logger.info(msg)
 
     def md_show(self, msg, *args, **kwargs):
         if self.debug:
-            print(msg)
+            j.logger.info(msg)
 
     def choose_random(self, msg, options, *args, **kwargs):
         return random.choice(options)
+
+    def multi_choice(self, msg, options, *args, **kwargs):
+        values = []
+        values.append(random.choice(options))
+        options.remove(values[0])
+        if options:
+            values.append(random.choice(options))
+        return values
 
     def qrcode_show(self, pool, **kwargs):
         escrow_info = pool.escrow_information
@@ -118,4 +126,7 @@ class GedisChatBotPatch(GedisChatBot):
         return Form(self)
 
     def datetime_picker(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
+
+    def multi_list_choice(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)

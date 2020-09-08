@@ -44,7 +44,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
 test = UbuntuAutomated(
     solution_name="ubnutu",
     currency="TFT",
-    expiration=time() + 60 * 15,
     version="ubuntu-18.04",
     cpu=1,
     memory=1024,
