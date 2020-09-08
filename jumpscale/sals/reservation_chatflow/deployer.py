@@ -1,16 +1,19 @@
 import base64
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode
-from nacl.public import Box
-import netaddr
+import re
 import uuid
 from collections import defaultdict
 from decimal import Decimal
+from textwrap import dedent
+
 import gevent
-import re
+import netaddr
+from nacl.public import Box
+
+from jumpscale.clients.explorer.models import DiskType, NextAction, WorkloadType, ZDBMode
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
 
 
 class NetworkView:
@@ -649,12 +652,14 @@ class ChatflowDeployer:
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
             if bot:
                 deploying_message = f"""
-# Deploying...<br><br>
+                # Deploying...
 
-Workload ID: {workload_id}
-\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
+                <br />Workload ID: {workload_id}
+
+
+                Deployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
                 """
-                bot.md_show_update(deploying_message, md=True)
+                bot.md_show_update(dedent(deploying_message), md=True)
             if workload.info.result.workload_id:
                 success = workload.info.result.state.value == 1
                 if not success:
