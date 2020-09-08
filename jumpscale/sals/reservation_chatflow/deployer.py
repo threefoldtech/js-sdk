@@ -1531,12 +1531,19 @@ Workload ID: {workload_id}
 
     def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
-        msg = "### Waiting for payment...\n\n"
+        msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
-            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
-            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
+            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            qr_code_msg = f"""
+            <div class="text-center">
+                <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
+            </div>
+            """
+            pool = j.sals.zos.pools.get(pool_id)
+            msg = msg + self.msg_payment_info + qr_code_msg
         while j.data.time.get().timestamp < expiration:
-            bot.md_show_update(msg, md=True)
+            bot.md_show_update(msg, html=True)
             pool = j.sals.zos.pools.get(pool_id)
             if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
@@ -1544,6 +1551,28 @@ Workload ID: {workload_id}
             gevent.sleep(2)
 
         return False
+
+    def get_qr_code_payment_info(self, pool):
+        escrow_info = pool.escrow_information
+        resv_id = pool.reservation_id
+        escrow_address = escrow_info.address
+        escrow_asset = escrow_info.asset
+        total_amount = escrow_info.amount
+        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+        thecurrency = escrow_asset.split(":")[0]
+        total_amount = "{0:f}".format(total_amount_dec)
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        msg_text = f"""
+        
+        <h4> Wallet Address: </h4>  {escrow_address} \n
+        <h4> Currency: </h4>  {thecurrency} \n
+        <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
+        <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
+        """
+
+        return msg_text, qr_code
 
 
 deployer = ChatflowDeployer()
