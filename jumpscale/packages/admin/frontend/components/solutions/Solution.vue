@@ -47,6 +47,7 @@
               :items="deployedSolutions"
               class="elevation-1"
             >
+              <template slot="no-data">No {{solution.name.toLowerCase()}} workloads available</p></template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">

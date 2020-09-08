@@ -160,7 +160,6 @@ def start(identity=None, background=False, local=False, development=False, domai
 def stop():
     """stops threebot server
     """
-
     threebot_pids = j.sals.process.get_pids("threebot")
     if len(threebot_pids) > 1:  # Check if threebot was started in foreground
         # Kill all other processes other than `threebot stop`
@@ -169,10 +168,11 @@ def stop():
             if pid != mypid:
                 j.sals.process.kill(pid)
     else:
-        j.tools.nginx.get("default").stop()
+
         threebot_cmd = j.tools.startupcmd.get("threebot_default")
         threebot_cmd.stop()
         j.servers.threebot.get().redis.stop()
+        j.tools.nginx.get("default").stop()
     print("Threebot server Stopped")
 
 

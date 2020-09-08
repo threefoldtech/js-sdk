@@ -1,18 +1,20 @@
 import base64
 import copy
 import json
-from jumpscale.loader import j
-from jumpscale.core.base import StoredFactory
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
+import random
+import time
+from textwrap import dedent
+
+import netaddr
+import requests
+from nacl.public import Box
+
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
-
-from nacl.public import Box
-import netaddr
-import random
-import requests
-import time
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
 
 NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
@@ -710,11 +712,12 @@ class ReservationChatflow:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=["minute", "second"]
             )
-            deploying_message = f"""
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
+            deploying_message = f"""\
+            # Payment being processed...
+
+            <br />Deployment will be cancelled if payment is not successful {remaning_time}
+            """
+            bot.md_show_update(dedent(deploying_message), md=True)
             if reservation.next_action != "PAY":
                 return
             if is_expired(reservation):
@@ -785,10 +788,11 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                 granularity=["minute", "second"]
             )
             deploying_message = f"""
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
+            # Deploying...
+
+            <br />Deployment will be cancelled if it is not successful in {remaning_time}
+            """
+            bot.md_show_update(dedent(deploying_message), md=True)
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):

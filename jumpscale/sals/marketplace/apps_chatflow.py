@@ -1,15 +1,17 @@
-from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
-import uuid
-import random
-import requests
-from textwrap import dedent
 import math
+import random
+import uuid
+from textwrap import dedent
+
+import requests
+
 from jumpscale.loader import j
-from .solutions import solutions
-from .deployer import deployer
-from .chatflow import MarketPlaceChatflow
-from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+
+from .chatflow import MarketPlaceChatflow
+from .deployer import deployer
+from .solutions import solutions
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -253,44 +255,27 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        if hasattr(self, "wgconf"):
-            user_wgconf_check = self.single_choice(
-                "Do you want to save the wireguard configration, it could help you to connect with your workload using ip address ?",
-                ["YES", "NO"],
-                default="NO",
-            )
-            if user_wgconf_check == "YES":
-                msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
-<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
-<br>
-<pre style="text-align:center">{self.wgconf}</pre>
-<br>
-<h3>navigate to where the config is downloaded and start your connection using "wg-quick up ./apps.conf"</h3>
-"""
-                self.download_file(msg=msg, data=self.wgconf, filename="apps.conf", html=True)
-
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
 
         if not j.sals.reservation_chatflow.wait_http_test(
             f"https://{self.domain}", timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.stop(
-                f"""\
-Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
-Node: {self.selected_node.node_id},
-IP Address: {self.ip_address},
-Reservation ID: {self.resv_id},
-Pool ID: {self.pool_id},
-Domain: {self.domain}
+            stop_message = f"""\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+                Node: {self.selected_node.node_id},
+                IP Address: {self.ip_address},
+                Reservation ID: {self.resv_id},
+                Pool ID: {self.pool_id},
+                Domain: {self.domain}
                 """
-            )
+            self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
         message = f"""\
-# You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
-\n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-                """
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
         self.md_show(dedent(message), md=True)

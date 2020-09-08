@@ -2,6 +2,7 @@
   <div>
     <base-section title="Pools" icon="mdi-cloud" :loading="loading">
       <v-data-table :items-per-page="5" :headers="headers" :items="pools" :footer-props="{'disable-items-per-page': true}" @click:row="open" class="row-pointer">
+          <template slot="no-data">No pools available</p></template>
           <template v-slot:item.node_ids="{ item }">
             {{ item.node_ids.length }}
           </template>
