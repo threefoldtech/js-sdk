@@ -14,6 +14,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
+        "create_or_recover",
         "get_solution_name",
         # "upload_public_key",
         "set_backup_password",
@@ -25,6 +26,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
+    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to recover"
+    CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
+
     def _threebot_start(self):
         self._validate_user()
         self.branch = "development"
@@ -35,25 +39,38 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.query = {"cru": 1, "mru": 1, "sru": 2}
 
-    @chatflow_step(title="Get a 3Bot Name")
+    @chatflow_step(title="Welcome")
+    def create_or_recover(self):
+        self.action = self.single_choice(
+            "Would you like to create a new 3Bot instance, or recover an existing one?",
+            ["Create", "Recover"],
+            required=True,
+        )
+
+    @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
+        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Recover" else self.CREATE_NAME_MESSAGE
         while not valid:
-            self.solution_name = self.string_ask(
-                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime.",
-                required=True,
-                field="name",
-                is_identifier=True,
-            )
+            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True,)
             threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another name.")
+                    self.md_show("The specified 3Bot name already exists. please choose another name.")
                     break
                 valid = True
+            if valid and self.action == "Create" and self._existing_3bot():
+                valid = False
+                self.md_show(
+                    "The specified 3Bot name was deployed before. Please go to the previous step choose recover or enter a new name."
+                )
+
+            if valid and self.action == "Recover" and not self._existing_3bot():
+                valid = False
+                self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
     # @chatflow_step(title="SSH key")
@@ -63,26 +80,32 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     #         required=True,
     #     ).strip()
 
-    def _verify_password(self, password):
+    def _existing_3bot(self):
         try:
             name = f"{self.threebot_name}_{self.solution_name}"
-            user = self.explorer.users.get(name=name)
-            words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
-            seed = j.data.encryption.mnemonic_to_key(words)
-            pubkey = NACL(seed).get_verify_key_hex()
-            return pubkey == user.pubkey
-        except j.exceptions.NotFound:
+            self.explorer.users.get(name=name)
             return True
+        except j.exceptions.NotFound:
+            return False
 
-    @chatflow_step(title="Recovery Secret Key")
+    def _verify_password(self, password):
+        name = f"{self.threebot_name}_{self.solution_name}"
+        user = self.explorer.users.get(name=name)
+        words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
+        seed = j.data.encryption.mnemonic_to_key(words)
+        pubkey = NACL(seed).get_verify_key_hex()
+        return pubkey == user.pubkey
+
+    @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
         message = (
-            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+            "Please enter the recovery password"
+            if self.action == "Recover"
+            else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-
-        while not self._verify_password(self.backup_password):
-            error = message + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+        while self.action == "Recover" and not self._verify_password(self.backup_password):
+            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Select your preferred payment currency")
