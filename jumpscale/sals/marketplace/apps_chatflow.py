@@ -34,6 +34,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.expiration = 60 * 60 * 3 #expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -87,24 +88,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     free_pools, self.expiration, free_to_use=self.currency == "FreeTFT", **self.query
                 )
                 if cu_diff < 0 or su_diff < 0:
-                    # extend pool
-                    self.md_show_update(
-                        "Found pool that requires extension. payment screen will be shown in a moment..."
-                    )
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    qr_code = deployer.show_payment(pool_info, self)
+                    deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_pool_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    result = deployer.wait_demo_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
                     )
                     if not result:
                         raise StopChatFlow(
-                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
+                            f"can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
                         )
                     self.pool_id = pool.pool_id
                 else:
@@ -123,7 +120,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 )
                 result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
                 if not result:
-                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                    raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user
@@ -237,10 +234,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
-
-    @chatflow_step(title="Expiration Date and Time")
-    def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg="")
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):

@@ -10,7 +10,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "cryptpad_info",
-        "solution_expiration",
         "infrastructure_setup",
         "reservation",
         "initializing",
