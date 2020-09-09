@@ -98,6 +98,8 @@ class GedisChatBotPatch(GedisChatBot):
             if is_message_matched(msg, k):
                 try:
                     attr = getattr(self, v)
+                    if attr is None:
+                        raise AttributeError
                 except AttributeError:
                     raise MissingValueException(f"{v} was not provided.")
                 if callable(attr):

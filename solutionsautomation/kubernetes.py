@@ -1,6 +1,5 @@
 from gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.kubernetes import KubernetesDeploy
-from time import time
 
 
 class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):

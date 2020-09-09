@@ -1,6 +1,5 @@
 from gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy
-from time import time
 
 
 class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
@@ -38,19 +37,3 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
         NODE_ID_MESSAGE: "node_automatic",
         NODE_SELECTION_MESSAGE: "choose_random",
     }
-
-
-test = UbuntuAutomated(
-    solution_name="ubnutu",
-    currency="TFT",
-    version="ubuntu-18.04",
-    cpu=1,
-    memory=1024,
-    disk_size=256,
-    disk_type="SSD",
-    log="NO",
-    ssh="~/.ssh/id_rsa.pub",
-    ipv6="NO",
-    node_automatic="NO",
-    debug=True,
-)
