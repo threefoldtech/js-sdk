@@ -89,23 +89,25 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 )
                 if cu_diff < 0 or su_diff < 0:
                     # extend pool
-                    self.md_show_update(
-                        "Found pool that requires extension. payment screen will be shown in a moment..."
-                    )
+                    # Auto payment
+                    # self.md_show_update(
+                    #     "Found pool that requires extension. payment screen will be shown in a moment..."
+                    # )
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    qr_code = deployer.show_payment(pool_info, self)
+                    # qr_code = deployer.show_payment(pool_info, self)
+                    deployer.demo_pay(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_pool_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    result = deployer.wait_demo_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
                     )
                     if not result:
                         raise StopChatFlow(
-                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
+                            f"can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
                         )
                     self.pool_id = pool.pool_id
                 else:
@@ -124,7 +126,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 )
                 result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
                 if not result:
-                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                    raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user

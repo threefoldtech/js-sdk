@@ -68,6 +68,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
 
+    def demo_pay(self, pool):
+        info = self.get_payment_info(pool)
+        wallet = j.clients.stellar.get(name="demos_wallet")
+        issuer = wallet.get_asset("TFT").issuer
+        wallet.transfer(
+            info["escrow_address"], info['total_amount'] , f"TFT:{issuer}", memo_text=f"p-{info['resv_id']}")
+            
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
         available_pools = {}
