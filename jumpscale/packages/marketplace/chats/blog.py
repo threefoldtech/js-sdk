@@ -11,9 +11,9 @@ class BlogDeploy(Publisher):
     def configuration(self):
         form = self.new_form()
         title = form.string_ask("Title", required=True)
-        url = form.string_ask("Repository URL", required=True)
+        url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask("Set Configuration")
+        form.ask(Publisher.MD_CONFIG_MSG, md=True)
         self.user_email = self.user_info()["email"]
         self.envars = {
             "TYPE": "blog",

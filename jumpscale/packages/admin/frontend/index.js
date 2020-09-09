@@ -55,6 +55,7 @@ const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.
 const backup = httpVueLoader('./components/backup/Backup.vue')
 const terms = httpVueLoader('./components/legal/Terms.vue')
 const disclaimer = httpVueLoader('./components/legal/Disclaimer.vue')
+const license = httpVueLoader('./components/legal/License.vue')
 
 Vue.use(VueCodemirror)
 
@@ -87,9 +88,9 @@ const router = new VueRouter({
         { name: "Deployed Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-clipboard-list-outline", listed: true } },
         { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
         { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
-        { name: "Capacity", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
+        { name: "Capacity Explorer", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
         { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
-        { name: "Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
+        { name: "Threefold Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
         { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
         { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
         { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
@@ -100,8 +101,20 @@ const router = new VueRouter({
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
         { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
         { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
+        { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     ]
 })
+router.beforeEach((to, from, next) => {
+    const AllowedEndPoint = "api/allowed";
+    axios.get(AllowedEndPoint).then(results => {
+        let agreed = results.data.allowed;
+        if (to.name !== "License" && !agreed) {
+            next("/license");
+        }
+    })
+    next();
+})
+
 
 new Vue({
     el: '#app',

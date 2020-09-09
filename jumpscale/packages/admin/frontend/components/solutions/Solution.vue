@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Solutions" icon="mdi-apps" :loading="loading">
+    <base-component title="Solutions" icon="mdi-apps" >
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
@@ -47,6 +47,7 @@
               :items="deployedSolutions"
               class="elevation-1"
             >
+              <template slot="no-data">No {{solution.name.toLowerCase()}} workloads available</p></template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
@@ -74,7 +75,7 @@ module.exports = {
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
       dialogs: {
         info: false,
@@ -113,9 +114,14 @@ module.exports = {
       this.dialogs.info = true;
     },
     getDeployedSolutions(solutionType) {
-      this.$api.solutions.getDeployed(solutionType).then((response) => {
-        this.deployedSolutions = JSON.parse(response.data).data;
-      });
+      this.$api.solutions
+        .getDeployed(solutionType)
+        .then((response) => {
+          this.deployedSolutions = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
   mounted() {

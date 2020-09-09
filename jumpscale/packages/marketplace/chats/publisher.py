@@ -1,12 +1,24 @@
+from textwrap import dedent
+
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
+    MD_CONFIG_MSG = dedent(
+        """\
+    Few parameters are needed to be able to publish your content online
+    - Title  is the title shown up on your published content
+    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
+    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+
+    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
+    """
+    )
     title = "Publisher"
     steps = [
         "get_solution_name",
@@ -29,9 +41,9 @@ class Publisher(MarketPlaceAppsChatflow):
             "Choose the publication type", options=["wiki", "www", "blog"], default="wiki", required=True
         )
         title = form.string_ask("Title", required=True)
-        url = form.string_ask("Repository URL", required=True)
+        url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask("Set configuration")
+        form.ask(self.MD_CONFIG_MSG, md=True)
         self.username = self.user_info()["username"]
         self.user_email = self.user_info()["email"]
         self.envars = {
@@ -65,7 +77,10 @@ class Publisher(MarketPlaceAppsChatflow):
             for wid in result["ids"]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid)
+                    raise DeploymentFailed(
+                        f"Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                        wid=wid,
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -83,7 +98,7 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}"
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         # 3- reserve tcp proxy
@@ -100,7 +115,7 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}",
+                f"Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -132,7 +147,7 @@ class Publisher(MarketPlaceAppsChatflow):
         self.resv_id = self.workload_ids[-1]
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}",
+                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )

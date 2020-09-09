@@ -5,6 +5,7 @@ dialog = {
       form: {},
       error: null,
       info: null,
+      warning: null,
       loading: false
     }
   },
@@ -30,6 +31,7 @@ dialog = {
     close () {
       this.error = null
       this.info = null
+      this.warning = null
       this.dialog = false
       this.reset()
     }

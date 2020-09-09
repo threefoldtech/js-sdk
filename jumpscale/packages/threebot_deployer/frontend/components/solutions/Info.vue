@@ -45,7 +45,7 @@
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
-    <cancel-solution v-model="dialogs.cancelSolution" :wids="data.wids"></cancel-solution>
+    <cancel-solution v-model="dialogs.cancelSolution" :data="data"></cancel-solution>
   </div>
 </template>
 

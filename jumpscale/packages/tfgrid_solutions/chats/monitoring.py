@@ -2,10 +2,8 @@ import math
 import uuid
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
@@ -225,18 +223,21 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-## Your containers have been deployed successfully:
-\n<br/>\n
-### Prometheus
-- Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
-- Access Prometheus UI through <a href="http://{self.ip_addresses[1]}:9090/graph" target="_blank">http://{self.ip_addresses[1]}:9090/graph</a> which is accessed through your browser
-\n<br />\n
-### Grafana
-- Access Grafana UI through <a href="http://{self.ip_addresses[2]}:3000" target="_blank">http://{self.ip_addresses[2]}:3000</a> which is accessed through your browser where you can manually configure to use prometheus
-\n<br />\n
-### Redis
-- Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-            """
+        ## Your containers have been deployed successfully
+        <br />\n
+        ### Prometheus
+
+        - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
+        - Access Prometheus UI through <a href="http://{self.ip_addresses[1]}:9090/graph" target="_blank">http://{self.ip_addresses[1]}:9090/graph</a> which is accessed through your browser
+
+        ### Grafana
+
+        - Access Grafana UI through <a href="http://{self.ip_addresses[2]}:3000" target="_blank">http://{self.ip_addresses[2]}:3000</a> which is accessed through your browser where you can manually configure to use prometheus
+
+        ### Redis
+
+        - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
+        """
         self.md_show(dedent(message), md=True)
 
 

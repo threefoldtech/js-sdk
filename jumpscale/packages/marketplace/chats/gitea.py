@@ -1,7 +1,9 @@
+import uuid
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-import uuid
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -55,7 +57,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}"
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         self.resv_id = deployer.deploy_container(
@@ -79,7 +81,9 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.resv_id])
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id, wid=self.resv_id
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
@@ -101,7 +105,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata["owner"], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}",
+                f"Failed to reserve TCP Router container workload {self.reverse_proxy_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
@@ -109,14 +113,14 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
-\n<br />\n
-- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
-\n<br />\n
-                """
-        self.md_show(message, md=True)
+        # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+        <br />\n
+
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+        - After installation you can access your admin account at <a href="https://{self.domain}/user/admin" target="_blank">https://{self.domain}/user/admin</a>
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = GiteaDeploy

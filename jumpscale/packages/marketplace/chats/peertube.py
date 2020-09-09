@@ -47,7 +47,10 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise DeploymentFailed(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}", wid=vol_id)
+            raise DeploymentFailed(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -63,7 +66,8 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}",
+                f"Failed to create subdomain {self.domain} on gateway"
+                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
             )
         self.threebot_url = f"http://{self.domain}"
@@ -89,7 +93,9 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.resv_id}", solution_uuid=self.solution_id, wid=self.resv_id
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         _id = deployer.expose_and_create_certificate(
@@ -110,7 +116,7 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {_id}",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=_id,
             )

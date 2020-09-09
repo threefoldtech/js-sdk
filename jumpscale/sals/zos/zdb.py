@@ -36,6 +36,9 @@ class ZDBGenerator:
         if isinstance(disk_type, str):
             disk_type = getattr(DiskType, disk_type)
 
+        if isinstance(mode, str):
+            mode = getattr(ZDBMode, mode.title())
+
         zdb = ZdbNamespace()
         zdb.info.node_id = node_id
         zdb.info.pool_id = pool_id

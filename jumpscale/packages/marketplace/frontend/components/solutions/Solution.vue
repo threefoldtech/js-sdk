@@ -48,6 +48,7 @@
               :items="deployedSolutions"
               class="elevation-1"
             >
+              <template slot="no-data">No {{solution.name.toLowerCase()}} instances available</p></template>
               <template v-slot:item.domain="{ item }">
                 <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
               </template>
@@ -57,7 +58,7 @@
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn icon :href="`https://${item.Domain}/`">
+                    <v-btn icon :href="`https://${item.Domain}/`" target="_blank">
                       <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
                     </v-btn>
                   </template>
@@ -95,7 +96,7 @@ module.exports = {
   props: { type: String },
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
-    "cancel-solution": httpVueLoader("./Delete.vue"),
+    "cancel-solution": httpVueLoader("./Delete.vue")
   },
   data() {
     return {
@@ -103,30 +104,30 @@ module.exports = {
       selected: null,
       dialogs: {
         info: false,
-        cancelSolution:false,
+        cancelSolution: false
       },
       headers: [
         { text: "Name", value: "Name" },
         { text: "URL", value: "domain" },
         { text: "Expiration", value: "expiration" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "Actions", value: "actions", sortable: false }
       ],
       deployedSolutions: [],
-      solutions: [...Object.values(APPS)],
+      solutions: [...Object.values(APPS)]
     };
   },
   computed: {
     solution() {
-      return this.solutions.find((obj) => {
+      return this.solutions.find(obj => {
         return obj.type === this.type;
       });
-    },
+    }
   },
   methods: {
     open(solutionId) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId },
+        params: { topic: solutionId }
       });
     },
     restart(solutionId) {
@@ -140,21 +141,24 @@ module.exports = {
       this.selected = data;
       this.dialogs.info = true;
     },
-    deleteSolution(data){
+    deleteSolution(data) {
       this.selected = data;
       this.dialogs.cancelSolution = true;
     },
     getDeployedSolutions(solution_type) {
-      this.$api.solutions.getDeployed(solution_type).then((response) => {
-        this.deployedSolutions = response.data.data;
-      }).finally(()=>{
-        this.loading = false;
-      });
-    },
+      this.$api.solutions
+        .getDeployed(solution_type)
+        .then(response => {
+          this.deployedSolutions = response.data.data;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    }
   },
   mounted() {
     this.getDeployedSolutions(this.type);
-  },
+  }
 };
 </script>
 

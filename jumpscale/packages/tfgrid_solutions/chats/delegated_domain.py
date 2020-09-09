@@ -35,15 +35,15 @@ class DomainDelegation(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         res = """\
-# Delegated your domain successfully:
-\n<br />\n
-- Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
-    {% for dns in gateway.dns_nameserver -%}
-    - {{dns}}
-    {% endfor %}
+        # Delegated your domain successfully:
+        <br />\n
+        - Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
+            {% for dns in gateway.dns_nameserver -%}
+            - {{dns}}
+            {% endfor %}
             """
         res = j.tools.jinja2.render_template(
-            template_text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
+            template_text=dedent(res), gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
         )
         self.md_show(dedent(res), md=True)
 

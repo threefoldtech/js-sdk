@@ -1,6 +1,8 @@
+import uuid
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
-import uuid
 
 
 class KubernetesDeploy(GedisChatBot):
@@ -150,19 +152,26 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        res = f"""# Kubernetes cluster has been deployed successfully:
-\n<br />\n
-- Master
-    - IP: {self.reservations[0]["ip_address"]}
-    - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
-"""
+        res = f"""\
+        # Kubernetes cluster has been deployed successfully:
+        <br />\n
+        - Master
+            - IP: {self.reservations[0]["ip_address"]}
+            - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
+        <br />\n
+
+        """
+        res = dedent(res)
+        worker_res = ""
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f"""
-- Worker {idx + 1}
-    - IP: {resv["ip_address"]}
-    - To connect: `ssh rancher@{resv["ip_address"]}`
-"""
-        self.md_show(res)
+            worker_res += f"""\
+            \n
+            - Worker {idx + 1}
+                - IP: {resv["ip_address"]}
+                - To connect: `ssh rancher@{resv["ip_address"]}`
+            <br />\n
+            """
+        self.md_show(res + dedent(worker_res))
 
 
 chat = KubernetesDeploy
