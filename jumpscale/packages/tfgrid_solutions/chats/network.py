@@ -114,7 +114,7 @@ class NetworkDeploy(GedisChatBot):
         <br />
         <p style="text-align:center">{self.wgconf.replace(chr(10), "<br />")}</p>
         <br />
-        <h3>navigate to where the config is downloaded and start your connection using `wg-quick up "&lt;your_download_dir&gt;/{self.filename}"`</h3>
+        <h3>navigate to where the config is downloaded and start your connection using `wg-quick up &lt;your_download_dir&gt;/{self.filename}`</h3>
         """
         self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
 
@@ -123,7 +123,7 @@ class NetworkDeploy(GedisChatBot):
         message = f"""\
         ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
 
-        <br />`wg-quick up <your_download_dir>/{self.filename}`
+        <br />`wg-quick up &lt;your_download_dir&gt;/{self.filename}`
         """
 
         self.md_show(dedent(message), md=True)
