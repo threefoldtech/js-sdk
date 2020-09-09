@@ -123,7 +123,7 @@ class NetworkDeploy(GedisChatBot):
         message = f"""\
         ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
 
-        <br />`wg-quick up &lt;your_download_dir&gt;/{self.filename}`
+        <br />`wg-quick up <your_download_dir>/{self.filename}`
         """
 
         self.md_show(dedent(message), md=True)
