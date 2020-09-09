@@ -112,9 +112,9 @@ class NetworkDeploy(GedisChatBot):
         <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
         <h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
         <br />
-        <pre style="text-align:center">{self.wgconf}</pre>
+        <p style="text-align:center">{self.wgconf.replace(chr(10), "<br />")}</p>
         <br />
-        <h3>navigate to where the config is downloaded and start your connection using "wg-quick up {self.filename}"</h3>
+        <h3>navigate to where the config is downloaded and start your connection using `wg-quick up &lt;your_download_dir&gt;/{self.filename}`</h3>
         """
         self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
 
@@ -123,7 +123,7 @@ class NetworkDeploy(GedisChatBot):
         message = f"""\
         ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
 
-        <br />`wg-quick up /etc/wireguard/{self.filename}`
+        <br />`wg-quick up &lt;your_download_dir&gt;/{self.filename}`
         """
 
         self.md_show(dedent(message), md=True)
