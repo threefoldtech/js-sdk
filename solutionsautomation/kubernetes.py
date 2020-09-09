@@ -22,20 +22,9 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
         WORKERS_NUM_MESSAGE: "workernodes",
         # single choice
         NODE_SIZE_MESSAGE: "size",
-        NETWORK_MESSAGE: "choose_random",
+        NETWORK_MESSAGE: "network",
         IP_MASTER_MESSAGE: "choose_random",
         IP_SLAVE_MESSAGE: "choose_random",
         # multi choice
-        POOL_MESSAGE: "multi_choice",
+        POOL_MESSAGE: "pools",
     }
-
-
-KubernetesAutomated(
-    solution_name="kube",
-    currency="TFT",
-    size="1 vCPU 2 GiB ram 50GiB disk space",
-    secret="test",
-    workernodes=1,
-    ssh="~/.ssh/id_rsa.pub",
-    debug=True,
-)

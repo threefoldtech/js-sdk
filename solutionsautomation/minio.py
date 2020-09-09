@@ -20,7 +20,7 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
     SSH_MESSAGE = (
         "Please add your public ssh key, this will allow you to access the deployed minio container using ssh."
     )
-    IP_MESSAGE = r"^Please choose IP Address for (.*) container$"
+    IPV4_MESSAGE = r"^Please choose IP Address for (.*) container$"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
@@ -40,32 +40,13 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
         # single choice
         SETUP_MESSAGE: "setup",
         ZDB_DISK_TYPE_MESSAGE: "zdb_disk_type",
-        NETWORK_MESSAGE: "choose_random",
+        NETWORK_MESSAGE: "network",
         LOG_MESSAGE: "log",
-        IP_MESSAGE: "choose_random",
+        IPV4_MESSAGE: "ipv4",
         IPV6_MESSAGE: "ipv6",
-        POOL_MESSAGE: "choose_random",
+        POOL_MESSAGE: "container_pool",
         NODE_ID_MESSAGE: "node_automatic",
-        NODE_SELECTION_MESSAGE: "choose_random",
+        NODE_SELECTION_MESSAGE: "node",
         # multi choice
-        ZDB_POOLS_MESSAGE: "multi_choice",
+        ZDB_POOLS_MESSAGE: "zdb_pools",
     }
-
-
-test = MinioAutomated(
-    solution_name="minio",
-    currency="TFT",
-    setup="single",
-    zdb_disk_type="SSD",
-    cpu=1,
-    memory=1024,
-    data_shards=2,
-    parity_shards=1,
-    username="test",
-    password="test12345",
-    log="NO",
-    ssh="~/.ssh/id_rsa.pub",
-    ipv6="NO",
-    node_automatic="NO",
-    debug=True,
-)

@@ -12,7 +12,7 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     NETWORK_MESSAGE = "Please select a network"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
     SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
-    IP_MESSAGE = "Please choose IP Address for your solution"
+    IPV4_MESSAGE = "Please choose IP Address for your solution"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
@@ -29,11 +29,11 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
         # single choice
         VERSION_MESSAGE: "version",
         DISK_TYPE_MESSAGE: "disk_type",
-        NETWORK_MESSAGE: "choose_random",
+        NETWORK_MESSAGE: "network",
         LOG_MESSAGE: "log",
-        IP_MESSAGE: "choose_random",
+        IPV4_MESSAGE: "ipv4",
         IPV6_MESSAGE: "ipv6",
-        POOL_MESSAGE: "choose_random",
+        POOL_MESSAGE: "pool",
         NODE_ID_MESSAGE: "node_automatic",
-        NODE_SELECTION_MESSAGE: "choose_random",
+        NODE_SELECTION_MESSAGE: "node",
     }

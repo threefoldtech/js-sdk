@@ -7,6 +7,8 @@ from ubuntu import UbuntuAutomated
 from mattermost import MattermostAutomated
 from discourse import DiscourseAutomated
 from peertube import PeertubeAutomated
+from kubernetes import KubernetesAutomated
+from minio import MinioAutomated
 
 
 def deploy_gitea(solution_name, currency, expiration, wg_config="NO", debug=True):
@@ -145,5 +147,72 @@ def deploy_ubuntu(
         ipv4=ipv4,
         network=network,
         pool=pool,
+        debug=debug,
+    )
+
+
+def deploy_kubernetes(
+    solution_name,
+    secret,
+    size="1 vCPU 2 GiB ram 50GiB disk space",
+    workernodes=1,
+    network="choose_random",
+    pools="multi_choice",
+    ssh="~/.ssh/id_rsa.pub",
+    debug=True,
+):
+    return KubernetesAutomated(
+        solution_name=solution_name,
+        secret=secret,
+        size=size,
+        workernodes=workernodes,
+        network=network,
+        pools=pools,
+        ssh=ssh,
+        debug=debug,
+    )
+
+
+def deploy_minio(
+    solution_name,
+    username,
+    password,
+    setup="single",
+    zdb_disk_type="SSD",
+    cpu=1,
+    memory=1024,
+    data_shards=2,
+    parity_shards=1,
+    network="choose_random",
+    ipv4="choose_random",
+    container_pool="choose_random",
+    zdb_pools="multi_choice",
+    log="NO",
+    ssh="~/.ssh/id_rsa.pub",
+    ipv6="NO",
+    node_automatic="YES",
+    node="choose_random",
+    debug=True,
+):
+
+    return MinioAutomated(
+        solution_name=solution_name,
+        username=username,
+        password=password,
+        setup=setup,
+        zdb_disk_type=zdb_disk_type,
+        cpu=cpu,
+        memory=memory,
+        data_shards=data_shards,
+        parity_shards=parity_shards,
+        network=network,
+        ipv4=ipv4,
+        container_pool=container_pool,
+        zdb_pools=zdb_pools,
+        log=log,
+        ssh=ssh,
+        ipv6=ipv6,
+        node_automatic=node_automatic,
+        node=node,
         debug=debug,
     )
