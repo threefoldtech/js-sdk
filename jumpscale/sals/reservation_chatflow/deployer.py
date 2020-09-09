@@ -268,7 +268,7 @@ class ChatflowDeployer:
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
-            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- When  you deploy a container that consume 1CU, you would need 3600 CU to run the container for an hour.  To help you with calculations you only need to specify the CU, SU in seconds and use the duration units provided (day, month, year) and the duration of the pool.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
+            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- When  you deploy a container that consumes 1CU, you would need 3600 CU to run the container for an hour.  To help you with calculations you only need to specify the CU, SU in seconds and use the duration units provided (day, month, year) and the duration of the pool.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
             html=True,
         )
         ttl = ttl.value
