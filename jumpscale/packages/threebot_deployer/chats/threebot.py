@@ -65,7 +65,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             if valid and self.action == "Create" and self._existing_3bot():
                 valid = False
                 self.md_show(
-                    "The specified 3Bot name was deployed before. Please go to the previous step choose recover or enter a new name."
+                    "The specified 3Bot name was deployed before. Please go to the previous step and choose recover or enter a new name."
                 )
 
             if valid and self.action == "Recover" and not self._existing_3bot():
