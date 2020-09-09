@@ -1588,7 +1588,6 @@ class ChatflowDeployer:
         total_amount = escrow_info.amount
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
         thecurrency = escrow_asset.split(":")[0]
-        total_amount = "{0:f}".format(total_amount_dec)
         return {
             "escrow_info": escrow_info,
             "resv_id": resv_id, 
@@ -1600,13 +1599,14 @@ class ChatflowDeployer:
         }
     def get_qr_code_payment_info(self, pool):
         info = self.get_payment_info(pool)
-        qr_code = f"{info['thecurrency']}:{info['escrow_address']}?amount={info['total_amount']}&message=p-{info['resv_id']}&sender=me"
+        total_amount = "{0:f}".format(info["total_amount_dec"])
+        qr_code = f"{info['thecurrency']}:{info['escrow_address']}?amount={total_amount}&message=p-{info['resv_id']}&sender=me"
         msg_text = f"""
 
         <h4> Destination Wallet Address: </h4>  {info['escrow_address']} \n
         <h4> Currency: </h4>  {info['thecurrency']} \n
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
-        <h4> Total Amount: </h4> {info['total_amount']} {info['thecurrency']} \n
+        <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
         <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {thecurrency} will automatically occurs per transaction.</h5>
         """

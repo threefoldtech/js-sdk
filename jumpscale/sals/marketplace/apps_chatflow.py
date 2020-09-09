@@ -34,7 +34,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.expiration = j.data.time.get().timestamp + (60 * 60 * 3) #expiration 3 hours
+        self.expiration = 60 * 60 * 3 #expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -88,18 +88,12 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     free_pools, self.expiration, free_to_use=self.currency == "FreeTFT", **self.query
                 )
                 if cu_diff < 0 or su_diff < 0:
-                    # extend pool
-                    # Auto payment
-                    # self.md_show_update(
-                    #     "Found pool that requires extension. payment screen will be shown in a moment..."
-                    # )
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    # qr_code = deployer.show_payment(pool_info, self)
-                    deployer.demo_pay(pool_info)
+                    deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
                     result = deployer.wait_demo_payment(
