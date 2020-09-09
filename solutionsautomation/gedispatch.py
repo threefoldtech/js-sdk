@@ -1,3 +1,4 @@
+import os
 from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from decimal import Decimal
 from jumpscale.loader import j
@@ -44,19 +45,36 @@ class GedisChatBotPatch(GedisChatBot):
         else:
             raise DuplicateSolutionNameException("Solution name already exists")
 
+    def get_wallet(self):
+        WALLET_NAME = os.environ.get("WALLET_NAME")
+        WALLET_SECRET = os.environ.get("WALLET_SECRET")
+        if WALLET_NAME and WALLET_SECRET:
+            wallet = j.clients.stellar.get(WALLET_NAME, network="TEST", secret=WALLET_SECRET)
+            return wallet
+        else:
+            raise ValueError("Please provide add Values to the environment variables WALLET_NAME and WALLET_SECRET")
+
     def user_info(self):
         return {"email": j.core.identity.me.email, "username": j.core.identity.me.tname}
 
     def md_show_update(self, msg, *args, **kwargs):
         if self.debug:
-            print(msg)
+            j.logger.info(msg)
 
     def md_show(self, msg, *args, **kwargs):
         if self.debug:
-            print(msg)
+            j.logger.info(msg)
 
     def choose_random(self, msg, options, *args, **kwargs):
         return random.choice(options)
+
+    def multi_choice(self, msg, options, *args, **kwargs):
+        values = []
+        values.append(random.choice(options))
+        options.remove(values[0])
+        if options:
+            values.append(random.choice(options))
+        return values
 
     def qrcode_show(self, pool, **kwargs):
         escrow_info = pool.escrow_information
@@ -67,10 +85,11 @@ class GedisChatBotPatch(GedisChatBot):
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
         thecurrency = escrow_asset.split(":")[0]
         total_amount = "{0:f}".format(total_amount_dec)
-        j.clients.stellar.wallet.transfer(
+        wallet = self.get_wallet()
+        wallet.transfer(
             escrow_address,
             f"{total_amount_dec}",
-            asset=thecurrency + ":" + j.clients.stellar.wallet.get_asset(thecurrency).issuer,
+            asset=thecurrency + ":" + wallet.get_asset(thecurrency).issuer,
             memo_text=f"p-{resv_id}",
         )
 
@@ -107,4 +126,10 @@ class GedisChatBotPatch(GedisChatBot):
         return Form(self)
 
     def datetime_picker(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
+
+    def multi_list_choice(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
+
+    def multi_values_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)

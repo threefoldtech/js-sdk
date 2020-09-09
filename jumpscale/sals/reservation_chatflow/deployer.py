@@ -1,16 +1,28 @@
 import base64
-from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from jumpscale.core.base import StoredFactory
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, DiskType, ZDBMode
-from nacl.public import Box
-import netaddr
+import re
 import uuid
 from collections import defaultdict
 from decimal import Decimal
+from textwrap import dedent
+
 import gevent
-import re
+import netaddr
+from nacl.public import Box
+
+from jumpscale.clients.explorer.models import DiskType, NextAction, WorkloadType, ZDBMode
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+
+
+GATEWAY_WORKLOAD_TYPES = [
+    WorkloadType.Domain_delegate,
+    WorkloadType.Gateway4to6,
+    WorkloadType.Subdomain,
+    WorkloadType.Reverse_proxy,
+    WorkloadType.Proxy,
+]
 
 
 class NetworkView:
@@ -644,17 +656,42 @@ class ChatflowDeployer:
     def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None):
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
+
+        workload = j.sals.zos.workloads.get(workload_id)
+        if workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
+            node = self._explorer.gateway.get(workload.info.node_id)
+        else:
+            node = self._explorer.nodes.get(workload.info.node_id)
+        # check if the node is up
+        if not j.sals.zos.nodes_finder.filter_is_up(node):
+            cancel = True
+            if breaking_node_id and breaking_node_id == node.node_id:
+                # if the node is down and it is the same as breaking_node_id
+                if workload.info.workload_type == WorkloadType.Network_resource:
+                    # if the workload is a newtork we don't cancel it
+                    cancel = False
+            # the node is down but it is not a breaking node_id
+            elif workload.info.workload_type == WorkloadType.Network_resource:
+                # if the workload is network we can overlook it
+                return True
+            if cancel:
+                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
+            raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
+
+        # wait for workload
         while True:
             workload = j.sals.zos.workloads.get(workload_id)
             remaning_time = j.data.time.get(expiration_provisioning).humanize(granularity=["minute", "second"])
             if bot:
-                deploying_message = f"""
-# Deploying...<br><br>
+                deploying_message = f"""\
+                # Deploying...
 
-Workload ID: {workload_id}
-\n\nDeployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
+                <br />Workload ID: {workload_id}
+
+
+                Deployment should take around 2 to 3 minutes, but might take longer and will be cancelled if it is not successful in 10 mins
                 """
-                bot.md_show_update(deploying_message, md=True)
+                bot.md_show_update(dedent(deploying_message), md=True)
             if workload.info.result.workload_id:
                 success = workload.info.result.state.value == 1
                 if not success:
@@ -1491,7 +1528,7 @@ Workload ID: {workload_id}
 
         while True:
             pool_choices = bot.multi_list_choice(
-                "Please seclect the pools you wish to distribute you" f" {workload_name} on",
+                "Please select the pools you wish to distribute you" f" {workload_name} on",
                 options=list(messages.keys()),
                 required=True,
             )
@@ -1531,12 +1568,19 @@ Workload ID: {workload_id}
 
     def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
-        msg = "### Waiting for payment...\n\n"
+        msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
-            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=4)
-            msg += f"Please scan the below code in case you missed payment screen\n\n\n![Payment](data:image/png;base64,{qr_encoded})"
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
+            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            qr_code_msg = f"""
+            <div class="text-center">
+                <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
+            </div>
+            """
+            pool = j.sals.zos.pools.get(pool_id)
+            msg = msg + self.msg_payment_info + qr_code_msg
         while j.data.time.get().timestamp < expiration:
-            bot.md_show_update(msg, md=True)
+            bot.md_show_update(msg, html=True)
             pool = j.sals.zos.pools.get(pool_id)
             if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
@@ -1544,6 +1588,28 @@ Workload ID: {workload_id}
             gevent.sleep(2)
 
         return False
+
+    def get_qr_code_payment_info(self, pool):
+        escrow_info = pool.escrow_information
+        resv_id = pool.reservation_id
+        escrow_address = escrow_info.address
+        escrow_asset = escrow_info.asset
+        total_amount = escrow_info.amount
+        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+        thecurrency = escrow_asset.split(":")[0]
+        total_amount = "{0:f}".format(total_amount_dec)
+        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
+        msg_text = f"""
+
+        <h4> Destination Wallet Address: </h4>  {escrow_address} \n
+        <h4> Currency: </h4>  {thecurrency} \n
+        <h4> Memo Text (Reservation ID): </h4>  p-{resv_id} \n
+        <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
+
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {thecurrency} will automatically occurs per transaction.</h5>
+        """
+
+        return msg_text, qr_code
 
 
 deployer = ChatflowDeployer()

@@ -1,11 +1,12 @@
 import uuid
+from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
+from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
-from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
@@ -111,12 +112,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
         )
-        deploying_message = f"""
-# Deploying your 3Bot...\n\n
-<br>It will usually take a few minutes to succeed. Please wait patiently.\n
-You will be automatically redirected to the next step once succeeded.
-                """
-        self.md_show_update(deploying_message, md=True)
+        deploying_message = f"""\
+        # Deploying your 3Bot...\n\n
+        <br>It will usually take a few minutes to succeed. Please wait patiently.\n
+        You will be automatically redirected to the next step once succeeded.
+        """
+        self.md_show_update(dedent(deploying_message), md=True)
 
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:

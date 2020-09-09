@@ -236,21 +236,21 @@ class FlistDeploy(GedisChatBot):
     def success(self):
         if self.interactive == "YES":
             message = f"""\
-# Congratulations! Your own container deployed successfully:
-\n<br />\n
-- <a href="https://github.com/threefoldtech/corex" target="_blank">COREX</a> enabled.
-\n<br />\n
-- You can monitor processes from the browser: <a href="http://{self.ip_address}:7681" target="_blank">http://{self.ip_address}:7681</a>
-\n<br />\n
-- And can start `bash` process from here: <a href="http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
-\n<br />\n
-                    """
+            # Congratulations! Your own container deployed successfully:
+            <br />\n
+            - <a href="https://github.com/threefoldtech/corex" target="_blank">COREX</a> enabled.
+            <br />\n
+            - You can monitor processes from the browser: <a href="http://{self.ip_address}:7681" target="_blank">http://{self.ip_address}:7681</a>
+            <br />\n
+            - And can start `bash` process from here: <a href="http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash" target="_blank">http://{self.ip_address}:7681/api/process/start?arg[]=/bin/bash</a>
+            <br />\n
+            """
         else:
             message = f"""\
-# Congratulations! Your own container deployed successfully:
-\n<br />\n
-- Your ip address: `{self.ip_address}`
-                    """
+            # Congratulations! Your own container deployed successfully:
+            <br />\n
+            - Your ip address: `{self.ip_address}`
+            """
         self.md_show(dedent(message), md=True)
 
 

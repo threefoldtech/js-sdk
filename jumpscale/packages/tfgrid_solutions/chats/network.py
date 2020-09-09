@@ -1,8 +1,7 @@
-import time
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
@@ -109,25 +108,25 @@ class NetworkDeploy(GedisChatBot):
         self.filename = "wg-{}.conf".format(self.config["rid"])
         self.wgconf = self.config["wg"]
 
-        msg = f"""<h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
-<h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
-<br>
-<pre style="text-align:center">{self.wgconf}</pre>
-<br>
-<h3>navigate to where the config is downloaded and start your connection using "wg-quick up {self.filename}"</h3>
-"""
-        self.download_file(msg=msg, data=self.wgconf, filename=self.filename, html=True)
+        msg = f"""\
+        <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+        <h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+        <br />
+        <pre style="text-align:center">{self.wgconf}</pre>
+        <br />
+        <h3>navigate to where the config is downloaded and start your connection using "wg-quick up {self.filename}"</h3>
+        """
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        message = f"""
-### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
-\n<br />\n
-#### ```wg-quick up /etc/wireguard/{self.filename}```
-\n<br />\n
+        message = f"""\
+        ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
+
+        <br />`wg-quick up /etc/wireguard/{self.filename}`
         """
 
-        self.md_show(message, md=True)
+        self.md_show(dedent(message), md=True)
 
 
 chat = NetworkDeploy

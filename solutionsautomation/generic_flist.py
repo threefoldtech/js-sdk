@@ -1,18 +1,20 @@
 from gedispatch import GedisChatBotPatch
-from jumpscale.packages.tfgrid_solutions.chats.ubuntu import UbuntuDeploy
+from jumpscale.packages.tfgrid_solutions.chats.flist import FlistDeploy
 from time import time
 
 
-class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
+class FlistAutomated(GedisChatBotPatch, FlistDeploy):
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
-    VERSION_MESSAGE = "Please choose ubuntu version"
     CPU_MESSAGE = "Please specify how many CPUs"
     MEM_MESSAGE = "Please specify how much memory (in MB)"
     DISK_SIZE_MESSAGE = "Please specify the size of root filesystem (in MB)"
-    DISK_TYPE_MESSAGE = "Please choose the root filesystem disktype"
+    VOLUME_MESSAGE = "Would you like to attach an extra volume to the container"
+    FLIST_MESSGAE = "Please add the link to your flist to be deployed."
+    ENV_VARS = "Set Environment Variables"
+    COREX_MESSAGE = "Would you like access to your container through the web browser (coreX)?"
+    ENTRY_POINT = "Please add your entrypoint for your flist"
     NETWORK_MESSAGE = "Please select a network"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
-    SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
     IP_MESSAGE = "Please choose IP Address for your solution"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
@@ -22,14 +24,15 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     QS = {
         # strs
         NAME_MESSAGE: "get_name",
-        SSH_MESSAGE: "ssh",
+        FLIST_MESSGAE: "flist",
+        ENTRY_POINT: "entry_point",
         # ints
         CPU_MESSAGE: "cpu",
         MEM_MESSAGE: "memory",
         DISK_SIZE_MESSAGE: "disk_size",
         # single choice
-        VERSION_MESSAGE: "version",
-        DISK_TYPE_MESSAGE: "disk_type",
+        VOLUME_MESSAGE: "vol",
+        COREX_MESSAGE: "corex",
         NETWORK_MESSAGE: "choose_random",
         LOG_MESSAGE: "log",
         IP_MESSAGE: "choose_random",
@@ -37,19 +40,23 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
         POOL_MESSAGE: "choose_random",
         NODE_ID_MESSAGE: "node_automatic",
         NODE_SELECTION_MESSAGE: "choose_random",
+        # multi value ask
+        ENV_VARS: "env_vars",
     }
 
 
-test = UbuntuAutomated(
+FlistAutomated(
     solution_name="ubnutu",
     currency="TFT",
-    version="ubuntu-18.04",
+    flist="https://hub.grid.tf/tf-bootable/3bot-ubuntu-18.04.flist",
     cpu=1,
     memory=1024,
     disk_size=256,
-    disk_type="SSD",
+    vol="NO",
+    corex="YES",
+    entry_point="",
+    env_vars={"name": "TEST"},
     log="NO",
-    ssh="~/.ssh/id_rsa.pub",
     ipv6="NO",
     node_automatic="NO",
     debug=True,

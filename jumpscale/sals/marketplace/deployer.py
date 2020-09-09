@@ -1,13 +1,15 @@
+import math
+import random
+from decimal import Decimal
+
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
-from decimal import Decimal
+from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
+
 from .models import UserPool
-import random
-import math
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -25,19 +27,22 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return result
 
     def list_networks(self, username, next_action=NextAction.DEPLOY, sync=True):
-        user_pool_ids = self.list_user_pool_ids(username)
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
         for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
-            if pool_id in user_pool_ids:
-                for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if metadata.get("owner") == username:
                     networks[workload.name] = workload
         all_workloads = []
-        for pools_workloads in self.workloads[next_action].values():
+        workload_values = self.workloads[next_action].values()
+        for pools_workloads in workload_values:
             for pool_id, workload_list in pools_workloads.items():
-                if pool_id in user_pool_ids:
-                    all_workloads += workload_list
+                for workload in workload_list:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    if metadata.get("owner") == username:
+                        all_workloads.append(workload)
         network_views = {}
         if all_workloads:
             for network_name in networks:
@@ -54,27 +59,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return pool_info
 
     def show_payment(self, pool, bot):
-        escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
-        escrow_address = escrow_info.address
-        escrow_asset = escrow_info.asset
-        total_amount = escrow_info.amount
-        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-        thecurrency = escrow_asset.split(":")[0]
-        total_amount = "{0:f}".format(total_amount_dec)
-        qr_code = f"{thecurrency}:{escrow_address}?amount={total_amount}&message=p-{resv_id}&sender=me"
-        msg_text = f"""
-        <h3>Make a Payment</h3>
+        resv_id_msg_text = f"""<h3>Make a Payment</h3>
         Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
-
-        <h4> Wallet Address: </h4>  {escrow_address} \n
-        <h4> Currency: </h4>  {thecurrency} \n
-        <h4> Memo Text (Reservation Id): </h4>  p-{resv_id} \n
-        <h4> Total Amount: </h4> {total_amount} {thecurrency} \n
-
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.</h5>
         """
-        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True, pool=pool)
+        self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
+        msg_text = resv_id_msg_text + self.msg_payment_info
+        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
 
     def list_pools(self, username=None, cu=None, su=None):

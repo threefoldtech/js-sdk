@@ -1,21 +1,24 @@
+from textwrap import dedent
+
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
-    MD_CONFIG_MSG = """
+    MD_CONFIG_MSG = dedent(
+        """\
+    Few parameters are needed to be able to publish your content online
+    - Title  is the title shown up on your published content
+    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
+    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
 
-A few parameters are needed to be able to publish your content online
-- Title  is the title shown up on your published content
-- Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
-- Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
-
-for more information on the publishingtools please check the [manual](https://manual2.threefold.io/)
+    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
     """
+    )
     title = "Publisher"
     steps = [
         "get_solution_name",
@@ -40,7 +43,7 @@ for more information on the publishingtools please check the [manual](https://ma
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask(self.MD_CONFIG_MSG)
+        form.ask(self.MD_CONFIG_MSG, md=True)
         self.username = self.user_info()["username"]
         self.user_email = self.user_info()["email"]
         self.envars = {

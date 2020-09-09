@@ -1,11 +1,9 @@
 import math
+import uuid
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-import uuid
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
@@ -167,10 +165,10 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
-# Congratulations! Your own instance deployed successfully:
-\n<br />\n
-- To connect: `ssh root@{self.ip_address}`
-                """
+        # Congratulations! Your own instance deployed successfully:
+
+        <br />To connect: `ssh root@{self.ip_address}`
+        """
         self.md_show(dedent(message), md=True)
 
 

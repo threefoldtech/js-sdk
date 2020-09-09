@@ -1,6 +1,8 @@
-from jumpscale.loader import j
+from textwrap import dedent
+
 from jumpscale.core.base import StoredFactory
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.chatflows.models.voter_model import User
 
 WALLET_NAME = "polls_receive"
@@ -89,17 +91,17 @@ class Poll(GedisChatBot):
                 message=self.user.user_code,
             )
 
-            message_text = f"""
-<h3>Make a Payment</h3>
-Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
-Make sure to add the message (user code) as memo_text
-Please make the transaction and press Next
-<h4> Wallet address: </h4>  {self.wallet.address} \n
-<h4> Currency: </h4>  {currency} \n
-<h4> Amount: </h4>  {amount} \n
-<h4> Message (User code): </h4>  {self.user.user_code} \n
+            message_text = f"""\
+            <h3>Make a Payment</h3>
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            <h4> Wallet address: </h4>  {self.wallet.address}
+            <h4> Currency: </h4>  {currency}
+            <h4> Amount: </h4>  {amount}
+            <h4> Message (User code): </h4>  {self.user.user_code}
             """
-            self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True, md=True)
+            self.qrcode_show(data=qr_code_content, msg=dedent(message_text), scale=4, update=True, html=True, md=True)
             if self._check_payment(timeout=360):
                 return True
             else:
