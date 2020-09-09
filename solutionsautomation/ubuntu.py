@@ -22,7 +22,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     QS = {
         # strs
         NAME_MESSAGE: "get_name",
-        VERSION_MESSAGE: "version",
         SSH_MESSAGE: "ssh",
         # ints
         CPU_MESSAGE: "cpu",

@@ -12,7 +12,7 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
     SECRET_MESSAGE = "Please add the cluster secret"
     IP_MASTER_MESSAGE = "Please choose IP Address for Master node"
     IP_SLAVE_MESSAGE = "Please choose IP Address for Slave node"
-    POOL_MESSAGE = "Please seclect the pools you wish to distribute you Kubernetes nodes on"
+    POOL_MESSAGE = "Please select the pools you wish to distribute you Kubernetes nodes on"
 
     QS = {
         # strs
