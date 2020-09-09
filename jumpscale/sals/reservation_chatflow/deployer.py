@@ -261,14 +261,14 @@ class ChatflowDeployer:
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
-            "Please choose the time unit to use for the pool's duration",
+            "Please choose the duration unit",
             ["Day", "Month", "Year"],
             required=True,
             default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
-            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- If you deploy a container that consume 1 CU/sec and 1 SU/sec, you would need to type in CU field: 1, SU field: 1, choose the time unit: day and the duration of the pool: 1.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
+            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- When  you deploy a container that consume 1CU, you would need 3600 CU to run the container for an hour.  To help you with calculations you only need to specify the CU, SU in seconds and use the duration units provided (day, month, year) and the durantion of the pool.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
             html=True,
         )
         ttl = ttl.value
@@ -280,7 +280,7 @@ class ChatflowDeployer:
         elif time_unit == "Year":
             days = 365
         else:
-            raise j.exceptions.Input("Invalid time unit")
+            raise j.exceptions.Input("Invalid duration unit")
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
         currencies = ["TFT"]
