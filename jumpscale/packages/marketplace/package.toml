@@ -21,7 +21,7 @@ port = 5555
 
 [[servers]]
 name = "marketplace_root_proxy"
-domain = "demo.grid.tf"
+domain = "demo.testnet.grid.tf"
 letsencryptemail = "motaweam@incubaid.com"
 includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplace*"]
 

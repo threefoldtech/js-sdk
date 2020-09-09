@@ -7,7 +7,7 @@ from nacl.public import Box
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
-MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.grid.tf/")
+MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.testnet.grid.tf/")
 BACKUP_TOKEN = os.environ.get("BACKUP_TOKEN", "")
 CREATE_USER_ENDPOINT = "threebot_deployer/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "threebot_deployer/actors/backup/public_key"
