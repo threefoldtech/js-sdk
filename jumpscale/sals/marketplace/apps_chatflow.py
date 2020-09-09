@@ -60,6 +60,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
+        self.currency = "TFT"
         available_farms = []
         farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
         for farm_name in farm_names:
@@ -236,12 +237,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
-
-    @chatflow_step(title="Payment currency")
-    def payment_currency(self):
-        self.currency = self.single_choice(
-            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
-        )
 
     @chatflow_step(title="Expiration Date and Time")
     def solution_expiration(self):
