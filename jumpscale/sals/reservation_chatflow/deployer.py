@@ -267,7 +267,6 @@ class ChatflowDeployer:
             default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask(
             """Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""",
             html=True,
@@ -284,7 +283,7 @@ class ChatflowDeployer:
             raise j.exceptions.Input("Invalid time unit")
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        currencies = [currencies.value]
+        currencies = ["TFT"]
         all_farms = self._explorer.farms.list()
         available_farms = {}
         farms_by_name = {}
@@ -399,15 +398,6 @@ class ChatflowDeployer:
 
     def extend_pool(self, bot, pool_id):
         form = bot.new_form()
-        farm_id = self.get_pool_farm_id(pool_id)
-        farm = self._explorer.farms.get(farm_id)
-        assets = [w.asset for w in farm.wallet_addresses]
-        if "FreeTFT" in assets:
-            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool_id)
-            for node in pool_nodes:
-                if not node.free_to_use:
-                    assets.remove("FreeTFT")
-                    break
         cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
         su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
@@ -417,7 +407,6 @@ class ChatflowDeployer:
             default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
-        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT", "TFTA"], required=True)
         form.ask()
         time_unit = time_unit.value
         ttl = ttl.value
@@ -431,7 +420,7 @@ class ChatflowDeployer:
             raise j.exceptions.Input("Invalid time unit")
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        currencies = [currencies.value]
+        currencies = ["TFT"]
         try:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
         except Exception as e:

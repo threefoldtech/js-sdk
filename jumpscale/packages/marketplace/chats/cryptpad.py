@@ -11,7 +11,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         "cryptpad_info",
         "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",

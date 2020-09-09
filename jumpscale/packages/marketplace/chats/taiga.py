@@ -15,7 +15,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         "taiga_credentials",
         "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",

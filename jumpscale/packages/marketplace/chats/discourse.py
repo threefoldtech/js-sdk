@@ -12,7 +12,6 @@ class Discourse(MarketPlaceAppsChatflow):
         "get_solution_name",
         "discourse_smtp_info",
         "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
