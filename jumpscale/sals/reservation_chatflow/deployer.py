@@ -261,14 +261,14 @@ class ChatflowDeployer:
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
-            "Please choose time unit to use for pool's time-to-live",
+            "Please choose the time unit to use for the pool's duration",
             ["Day", "Month", "Year"],
             required=True,
             default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
-            """Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory), Storage Unit (SU) is the size of data storage capacity. Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a>""",
+            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- If you deploy a container that consume 1 CU/sec and 1 SU/sec, you would need to type in CU field: 1, SU field: 1, choose the time unit: day and the duration of the pool: 1.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
             html=True,
         )
         ttl = ttl.value
@@ -1557,6 +1557,7 @@ class ChatflowDeployer:
             gevent.sleep(2)
 
         return False
+
     def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
         msg = "<h2> Waiting for payment...</h2>"
@@ -1579,8 +1580,9 @@ class ChatflowDeployer:
             gevent.sleep(2)
 
         return False
+
     def get_payment_info(self, pool):
-        
+
         escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
         escrow_address = escrow_info.address
@@ -1590,13 +1592,14 @@ class ChatflowDeployer:
         thecurrency = escrow_asset.split(":")[0]
         return {
             "escrow_info": escrow_info,
-            "resv_id": resv_id, 
+            "resv_id": resv_id,
             "escrow_address": escrow_address,
             "escrow_asset": escrow_asset,
             "total_amount_dec": total_amount_dec,
             "thecurrency": thecurrency,
             "total_amount": total_amount,
         }
+
     def get_qr_code_payment_info(self, pool):
         info = self.get_payment_info(pool)
         total_amount = "{0:f}".format(info["total_amount_dec"])
