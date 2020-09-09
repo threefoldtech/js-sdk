@@ -40,4 +40,25 @@ Just initializing the class begins the work. The debug option specifies whether 
 
 ## Use an existing one
 
-Inside `factory.py` there're methods to deploy the soluions with the parameters specified in them with the default values.
+Inside `factory.py`, there're methods to deploy the soluions with the parameters specified in them with the default values.
+
+Another way is to import the class and instantiate a new object as follows:
+
+```python
+from ubuntu import UbuntuAutomated
+
+test = UbuntuAutomated(
+    solution_name="ubnutu",
+    currency="TFT",
+    version="ubuntu-18.04",
+    cpu=1,
+    memory=1024,
+    disk_size=256,
+    disk_type="SSD",
+    log="NO",
+    ssh="~/.ssh/id_rsa.pub",
+    ipv6="NO",
+    node_automatic="NO",
+    debug=True,
+)
+```
