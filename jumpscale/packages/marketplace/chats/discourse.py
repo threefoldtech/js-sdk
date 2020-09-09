@@ -11,7 +11,6 @@ class Discourse(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "discourse_smtp_info",
-        "solution_expiration",
         "infrastructure_setup",
         "reservation",
         "initializing",

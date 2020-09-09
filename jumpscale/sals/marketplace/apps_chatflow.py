@@ -34,6 +34,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.expiration = j.data.time.get().timestamp + (60 * 60 * 3) #expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -237,10 +238,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
-
-    @chatflow_step(title="Expiration Date and Time")
-    def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg="")
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):

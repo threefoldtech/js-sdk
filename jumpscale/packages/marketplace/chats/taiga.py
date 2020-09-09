@@ -14,7 +14,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "taiga_credentials",
-        "solution_expiration",
         "infrastructure_setup",
         "reservation",
         "initializing",
