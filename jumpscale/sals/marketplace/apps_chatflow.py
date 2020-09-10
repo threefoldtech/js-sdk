@@ -110,7 +110,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     self.pool_id = pool.pool_id
             else:
-                self.pool_info, qr_code = deployer.create_solution_pool(
+                self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata["owner"],
                     farm_name=self.farm_name,
