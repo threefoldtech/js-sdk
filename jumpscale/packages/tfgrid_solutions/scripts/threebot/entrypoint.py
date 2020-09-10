@@ -54,7 +54,7 @@ def main():
             else:
                 j.logger.info("Taking backup ...")
                 # Create a funded wallet to the threebot testnet
-                j.clients.stellar.create_testwallet(f"{threebot_name}_{instance_name}")
+                j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))

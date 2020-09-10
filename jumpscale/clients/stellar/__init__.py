@@ -17,14 +17,12 @@ class StellarFactory(StoredFactory):
 
         return instance
 
-    def create_testwallet(self, name: str):
+    def create_testnet_funded_wallet(self, name: str) -> bool:
         """This method will create a testnet wallet and fund it from the facuet
 
         Args:
             name (str): name of the wallet
 
-        Return:
-            wallet balance
         """
         wallet = self.new(name)
         wallet.network = "TEST"
@@ -39,19 +37,19 @@ class StellarFactory(StoredFactory):
         try:
             response = requests.post(url, json=data, headers=headers)
         except requests.exceptions.HTTPError:
-            j.logger.error(
+            self.delete(name)
+            raise j.exceptions.Runtime(
                 f"Failed to fund wallet can't reach {url} due to connection error. Changes will be reverted."
             )
-            self.delete(name)
-            return
 
         if response.status_code != 200:
-            j.logger.error(f"Failed to fund the wallet due to to facuet server error. Changes will be reverted.")
             self.delete(name)
-            return
+            raise j.exceptions.Runtime(
+                f"Failed to fund the wallet due to to facuet server error. Changes will be reverted."
+            )
 
         j.logger.info("Wallet created successfully")
-        return wallet.get_balance()
+        return True
 
 
 def export_module_as():
