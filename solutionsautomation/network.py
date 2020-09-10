@@ -10,7 +10,7 @@ class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):
 
 
     QS = {
-        CREATE_NETWORK: "create",
+        CREATE_NETWORK: "type",
         WORKLOAD_NAME: "get_name",
         IP_TYPE: "ip_type",
         NETWORK_IP: "network_ip",
@@ -20,14 +20,14 @@ class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):
 
 NetworkDeployAutomated(
     solution_name="network_test12",
-    create="Create",
+    type="Create",
     ip_type="IPv4",
     network_ip= "Choose ip range for me",
     debug=True,
 )
 
 NetworkDeployAutomated(
-    create="Add Access",
+    type="Add Access",
     ip_type="IPv4",
     network_ip= "Choose ip range for me",
     debug=True,
