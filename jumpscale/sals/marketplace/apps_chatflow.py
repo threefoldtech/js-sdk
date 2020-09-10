@@ -75,9 +75,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
             # old user
-            self.md_show_update(
-                "Checking if you have free resources (If you have an old deployment that failed after payment)...."
-            )
+            self.md_show_update("Checking for free resources .....")
             free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
             if free_pools:
                 self.md_show_update(
@@ -110,6 +108,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     self.pool_id = pool.pool_id
             else:
+                self.md_show_update("Reserving new resources....")
                 self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata["owner"],
