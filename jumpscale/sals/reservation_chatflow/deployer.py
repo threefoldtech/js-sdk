@@ -256,20 +256,30 @@ class ChatflowDeployer:
             network_views[network_name] = NetworkView(network_name, all_workloads)
         return network_views
 
-    def create_pool(self, bot):
+    def _pool_form(self, bot):
         form = bot.new_form()
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
-            "Please choose the duration unit",
-            ["Day", "Month", "Year"],
-            required=True,
-            default="Month",
+            "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
-            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).<br>- Storage Unit (SU) is the size of data storage capacity.<br>- When  you deploy a container that consumes 1CU, you would need 3600 CU to run the container for an hour.  To help you with calculations you only need to specify the CU, SU in seconds and use the duration units provided (day, month, year) and the duration of the pool.<br>- Please check <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">cloud units</a> for more information.""",
-            html=True,
+            """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).
+- Storage Unit (SU) is the size of data storage capacity.
+
+You can get more detail information about clout units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
+
+
+The way this form works is you define how much cloud units you want to reserve and define for how long you would like the selected amount of cloud units.
+As an example, if you want to be able to run some workloads that consumes `5CU` and `10SU` worth of capacity for `2 month`, you would specify:
+
+- CU: 5
+- SU: 10
+- Duration unit: Month
+- Duration: 2
+""",
+            md=True,
         )
         ttl = ttl.value
         time_unit = time_unit.value
@@ -281,8 +291,13 @@ class ChatflowDeployer:
             days = 365
         else:
             raise j.exceptions.Input("Invalid duration unit")
+
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
+        return (cu, su, currencies)
+
+    def create_pool(self, bot):
+        cu, su, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         all_farms = self._explorer.farms.list()
         available_farms = {}
@@ -312,7 +327,7 @@ class ChatflowDeployer:
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow("There are no farms avaialble that the selected currency")
+            raise StopChatFlow("There are no farms available that the selected currency")
         selected_farm = bot.single_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -325,6 +340,20 @@ class ChatflowDeployer:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
         self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
+        return pool_info
+
+    def extend_pool(self, bot, pool_id):
+        cu, su, currencies = self._pool_form(bot)
+        currencies = ["TFT"]
+        try:
+            pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
+        except Exception as e:
+            raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
+        qr_code = self.show_payment(pool_info, bot)
+        pool = j.sals.zos.pools.get(pool_id)
+        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
+        trigger_sus = pool.sus + (su * 0.75) if su else 0
+        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
@@ -395,42 +424,6 @@ class ChatflowDeployer:
             )
             return None
         return qr_code
-
-    def extend_pool(self, bot, pool_id):
-        form = bot.new_form()
-        cu = form.int_ask("Please specify the required CU", required=True, min=0, default=0)
-        su = form.int_ask("Please specify the required SU", required=True, min=0, default=0)
-        time_unit = form.drop_down_choice(
-            "Please choose time unit to use for pool's time-to-live",
-            ["Day", "Month", "Year"],
-            required=True,
-            default="Month",
-        )
-        ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
-        form.ask()
-        time_unit = time_unit.value
-        ttl = ttl.value
-        if time_unit == "Day":
-            days = 1
-        elif time_unit == "Month":
-            days = 30
-        elif time_unit == "Year":
-            days = 365
-        else:
-            raise j.exceptions.Input("Invalid time unit")
-        cu = cu.value * 60 * 60 * 24 * days * ttl
-        su = su.value * 60 * 60 * 24 * days * ttl
-        currencies = ["TFT"]
-        try:
-            pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
-        except Exception as e:
-            raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
-        qr_code = self.show_payment(pool_info, bot)
-        pool = j.sals.zos.pools.get(pool_id)
-        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
-        trigger_sus = pool.sus + (su * 0.75) if su else 0
-        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
-        return pool_info
 
     def list_pools(self, cu=None, su=None):
         all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
