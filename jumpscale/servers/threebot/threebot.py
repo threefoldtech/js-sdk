@@ -517,7 +517,8 @@ class PackageManager(Base):
         This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         """
-        for package in self.list_all():
+        all_packages = self.list_all()
+        for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
                 self.install(self.get(package))
