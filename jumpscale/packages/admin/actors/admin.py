@@ -66,6 +66,7 @@ class Admin(BaseActor):
                         "email": identity.email,
                         "tid": identity.tid,
                         "explorer_url": identity.explorer_url,
+                        "words": identity.words,
                     }
                 }
             )
