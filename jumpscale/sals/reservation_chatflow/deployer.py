@@ -4,6 +4,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from textwrap import dedent
+import requests
 
 import gevent
 import netaddr
@@ -294,11 +295,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, currencies)
+        return (cu, su, ["TFT"])
 
     def create_pool(self, bot):
         cu, su, currencies = self._pool_form(bot)
-        currencies = ["TFT"]
         all_farms = self._explorer.farms.list()
         available_farms = {}
         farms_by_name = {}
@@ -489,9 +489,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         pool = j.sals.zos.pools.get(pool_id)
         if not pool.node_ids:
             raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
-        node_id = pool.node_ids[0]
-        node = self._explorer.nodes.get(node_id)
-        farm_id = node.farm_id
+        farm_id = None
+        while not farm_id:
+            for node_id in pool.node_ids:
+                try:
+                    node = self._explorer.nodes.get(node_id)
+                    farm_id = node.farm_id
+                    break
+                except requests.exceptions.HTTPError:
+                    continue
+
         return farm_id
 
     def check_pool_capacity(self, pool, cu=None, su=None):
