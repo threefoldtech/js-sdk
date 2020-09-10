@@ -34,22 +34,29 @@ class NetworkView:
         self.workloads = workloads
         self.used_ips = []
         self.network_workloads = []
-        self._fill_used_ips(self.workloads)
-        self._init_network_workloads(self.workloads)
+        nodes = {node.node_id for node in j.sals.zos._explorer.nodes.list()}
+        self._fill_used_ips(self.workloads, nodes)
+        self._init_network_workloads(self.workloads, nodes)
         if self.network_workloads:
             self.iprange = self.network_workloads[0].network_iprange
         else:
             self.iprange = "can't be retrieved"
 
-    def _init_network_workloads(self, workloads):
+    def _init_network_workloads(self, workloads, nodes=None):
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for workload in workloads:
+            if workload.info.node_id not in nodes:
+                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == WorkloadType.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
 
-    def _fill_used_ips(self, workloads):
+    def _fill_used_ips(self, workloads, nodes=None):
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for workload in workloads:
+            if workload.info.node_id not in nodes:
+                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == WorkloadType.Kubernetes:
