@@ -135,3 +135,7 @@ class GedisChatBotPatch(GedisChatBot):
 
     def multi_values_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
+
+    def ask(self, data):
+        if(data.get("msg")):
+            self.md_show(data.get("msg"))
