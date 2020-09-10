@@ -34,7 +34,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
-        self.expiration = 60 * 60 * 3 #expiration 3 hours
+        self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -110,7 +110,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     self.pool_id = pool.pool_id
             else:
-                self.pool_info, qr_code = deployer.create_solution_pool(
+                self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata["owner"],
                     farm_name=self.farm_name,
@@ -118,20 +118,26 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     currency=self.currency,
                     **self.query,
                 )
-                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+                deployer.pay_for_pool(self.pool_info)
+                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
                 if not result:
                     raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user
-            self.pool_info, self.wgconf = deployer.init_new_user(
-                bot=self,
-                username=self.solution_metadata["owner"],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
+            self.pool_info = deployer.create_solution_pool(
+                self,
+                self.solution_metadata["owner"],
+                self.farm_name,
+                self.expiration,
                 currency=self.currency,
                 **self.query,
             )
+            deployer.pay_for_pool(self.pool_info)
+            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+            deployer.init_new_user_network(self, self.solution_metadata["owner"], self.pool_info.reservation_id)
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
