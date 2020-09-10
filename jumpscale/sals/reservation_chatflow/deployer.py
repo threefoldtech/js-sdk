@@ -505,6 +505,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     break
                 except requests.exceptions.HTTPError:
                     continue
+            farm_id = farm_id or "CANNOT_BE_RETRIEVED"
 
         return farm_id
 
