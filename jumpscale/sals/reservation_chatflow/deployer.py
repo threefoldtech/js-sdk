@@ -1557,6 +1557,7 @@ class ChatflowDeployer:
             gevent.sleep(2)
 
         return False
+
     def wait_pool_payment(self, bot, pool_id, exp=5, qr_code=None, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
         msg = "<h2> Waiting for payment...</h2>"
@@ -1579,8 +1580,9 @@ class ChatflowDeployer:
             gevent.sleep(2)
 
         return False
+
     def get_payment_info(self, pool):
-        
+
         escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
         escrow_address = escrow_info.address
@@ -1590,13 +1592,14 @@ class ChatflowDeployer:
         thecurrency = escrow_asset.split(":")[0]
         return {
             "escrow_info": escrow_info,
-            "resv_id": resv_id, 
+            "resv_id": resv_id,
             "escrow_address": escrow_address,
             "escrow_asset": escrow_asset,
             "total_amount_dec": total_amount_dec,
             "thecurrency": thecurrency,
             "total_amount": total_amount,
         }
+
     def get_qr_code_payment_info(self, pool):
         info = self.get_payment_info(pool)
         total_amount = "{0:f}".format(info["total_amount_dec"])
@@ -1608,7 +1611,7 @@ class ChatflowDeployer:
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
         <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {thecurrency} will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occurs per transaction.</h5>
         """
 
         return msg_text, qr_code
