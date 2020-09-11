@@ -160,7 +160,7 @@
         <v-text-field v-model="newFarm.name" label="Farm name" :rules="namerules" :error-messages="nameError"
           @input="nameError = []"></v-text-field>
         <v-text-field v-model="newFarm.iyo_organization" label="Organization ID"></v-text-field>
-        <v-text-field v-model="newFarm.email" required label="Email addrress" :error-messages="mailError"
+        <v-text-field v-model="newFarm.email" required label="Email address" :error-messages="mailError"
           @input="mailError = []"></v-text-field>
         <v-select v-model="newFarm.location.country" menu-props="auto" :items="countries" label="Country"></v-select>
         <v-container>
