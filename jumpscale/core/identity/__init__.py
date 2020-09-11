@@ -9,6 +9,8 @@ from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
 
+NETWORKS = {"mainnet": "explorer.grid.tf/explorer", "testnet": "explorer.testnet.grid.tf/api/v1", "devnet": "explorer.devnet.grid.tf/api/v1"}
+
 class Identity(Base):
     def _explorer_url_update(self, value):
         if hasattr(self, "_explorer"):
@@ -156,15 +158,23 @@ def get_identity():
 
 class IdentityFactory(StoredFactory):
     _me = None
-
+    
     def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,
+        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,network=None
     ):
-        instance = super().new(
-            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
-        )
-        instance.save()
-        return instance
+    if network is None and explorer_url is None:
+        raise ValueError("network (mainnet, testnet, devnet) or explorer_url is required")
+
+    if explorer_url is None:
+        if network not in ["testnet", "mainnet", "devnet"]:
+            raise ValueError("network should be one of (mainnet, testnet, devnet)")
+        explorer_url = NETWORKS[network]
+    
+    instance = super().new(
+        name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
+    )
+    instance.save()
+    return instance
 
     @property
     def me(self):
