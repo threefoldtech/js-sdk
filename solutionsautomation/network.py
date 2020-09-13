@@ -17,9 +17,13 @@ class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):
         NETWORK: "choose_random",
     }
 
+    def ask(self, data):
+        if(data.get("msg")):
+            self.md_show(data.get("msg"))
+
 
 NetworkDeployAutomated(
-    solution_name="network_test12",
+    solution_name="network_t",
     type="Create",
     ip_type="IPv4",
     network_ip= "Choose ip range for me",
