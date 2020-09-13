@@ -78,11 +78,12 @@ class Solutions(BaseActor):
             pool_dict["hidden"] = hidden
             pool_dict["explorer_url"] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            farm = farm_names.get(farm_id)
-            if not farm:
-                farm = deployer._explorer.farms.get(farm_id)
-                farm_names[farm_id] = farm
-            pool_dict["farm"] = farm.name
+            if farm_id >= 0:
+                farm = farm_names.get(farm_id)
+                if not farm:
+                    farm = deployer._explorer.farms.get(farm_id)
+                    farm_names[farm_id] = farm
+                pool_dict["farm"] = farm.name
             for i, wid in enumerate(pool_dict["active_workload_ids"]):
                 if wid in workloads_dict:
                     pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"

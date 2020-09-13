@@ -92,7 +92,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     )
                     self.pool_id = pool.pool_id
             else:
-                self.pool_info, qr_code = deployer.create_solution_pool(
+                self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata["owner"],
                     farm_name=self.farm_name,
@@ -100,6 +100,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     currency=self.currency,
                     **self.query,
                 )
+                qr_code = deployer.show_payment(self.pool_info, self)
                 result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
                 if not result:
                     raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")

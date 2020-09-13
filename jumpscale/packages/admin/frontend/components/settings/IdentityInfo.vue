@@ -24,6 +24,19 @@
               <td>Explorer URL</td>
               <td>{{ identity.explorer_url }}</td>
             </tr>
+            <tr>
+              <td>Words</td>
+              <td>
+                <v-text-field
+                  hide-details
+                  :value="identity.words"
+                  readonly solo flat
+                  :append-icon="showWords ? 'mdi-eye' : 'mdi-eye-off'"
+                  :type="showWords ? 'text' : 'password'"
+                  @click:append="showWords = !showWords"
+                ></v-text-field>
+              </td>
+            </tr>
           </tbody>
         </template>
       </v-simple-table>
@@ -46,6 +59,7 @@ module.exports = {
   data () {
     return {
       identity: null,
+      showWords: false
     }
   },
   watch: {

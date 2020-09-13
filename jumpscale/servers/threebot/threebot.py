@@ -412,7 +412,6 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
-
         self.save()
 
         # Return updated package info
@@ -426,13 +425,15 @@ class PackageManager(Base):
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in list(self.threebot.rack._servers):
+        rack_servers = list(self.threebot.rack._servers)
+        for bottle_server in rack_servers:
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            for actor in self.threebot.gedis._loaded_actors.keys():
+            gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+            for actor in gedis_actors:
                 if actor.startswith(f"{package_name}_"):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -464,7 +465,6 @@ class PackageManager(Base):
             [dict]: [package info]
         """
         sys.path.append(package.path + "/../")  # TODO to be changed
-        package.install()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
@@ -487,7 +487,6 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
-
         # start servers
         self.threebot.rack.start()
 
@@ -517,7 +516,8 @@ class PackageManager(Base):
         This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         """
-        for package in self.list_all():
+        all_packages = self.list_all()
+        for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
                 self.install(self.get(package))
@@ -662,7 +662,8 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        for package_name in self.packages.list_all():
+        server_packages = self.packages.list_all()
+        for package_name in server_packages:
             package = self.packages.get(package_name)
             package.stop()
         self.nginx.stop()

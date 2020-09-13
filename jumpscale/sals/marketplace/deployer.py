@@ -72,8 +72,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
         info = self.get_payment_info(pool)
         wallet = j.clients.stellar.get(name="demos_wallet")
         wallet.transfer(
-            destination_address=info["escrow_address"], amount=info['total_amount_dec'], asset=info["escrow_asset"], memo_text=f"p-{info['resv_id']}")
-            
+            destination_address=info["escrow_address"],
+            amount=info["total_amount_dec"],
+            asset=info["escrow_asset"],
+            memo_text=f"p-{info['resv_id']}",
+        )
+
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
         available_pools = {}
@@ -265,7 +269,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        self.pay_for_pool(pool_info)
         pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
@@ -336,13 +339,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
-        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
-        result = self.wait_demo_payment(bot, pool_info.reservation_id)
-        if not result:
-            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
+    def init_new_user_network(self, bot, username, pool_id):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_info.reservation_id], ip_version="IPv4"
+            1, pool_ids=[pool_id], ip_version="IPv4"
         )[0]
 
         result = self.deploy_network(
@@ -350,7 +349,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             access_node=access_node,
             ip_range="10.100.0.0/16",
             ip_version="IPv4",
-            pool_id=pool_info.reservation_id,
+            pool_id=pool_id,
             owner=username,
         )
         for wid in result["ids"]:
@@ -368,6 +367,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     wid=wid,
                 )
         wgcfg = result["wg"]
+        return wgcfg
+
+    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
+        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+        qr_code = self.show_payment(pool_info, bot)
+        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        if not result:
+            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
+
+        wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
         return pool_info, wgcfg
 
     def ask_expiration(self, bot, default=None, msg="", min=None):

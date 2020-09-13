@@ -1,3 +1,12 @@
+# For macOS chrome may complain about self-signed certificate. In terminal execute the following
+
+`open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security --ignore-certificate-errors`
+
+# clean up prev installation data
+Data is stored in ~/.config/jumpscale/secureconfig/jumpscale. if you want to start over, you can remove that directory using rm ~/.config/jumpscale/secureconfig/jumpscale
+
+There're also some configurations that gets generated e.g (nginx configurations), logs and binaries when copied in ~/sandbox directory
+
 # nginx
 
 ## unknown directive auth request 
@@ -17,3 +26,5 @@ redis.exceptions.ResponseError: MISCONF Redis is configured to save RDB snapshot
 ```
 
 https://github.com/threefoldtech/js-sdk/issues/1014
+
+
