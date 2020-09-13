@@ -71,7 +71,6 @@ class NetworkDeploy(GedisChatBot):
             raise StopChatFlow("There are no available access nodes in your existing pools")
         if self.action == "Create":
             self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
-        print(self.pool)
 
     @chatflow_step(title="Reservation")
     @deployment_context()
