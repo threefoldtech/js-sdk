@@ -412,7 +412,6 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
-
         self.save()
 
         # Return updated package info
@@ -426,13 +425,15 @@ class PackageManager(Base):
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in list(self.threebot.rack._servers):
+        rack_servers = list(self.threebot.rack._servers)
+        for bottle_server in rack_servers:
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            for actor in self.threebot.gedis._loaded_actors.keys():
+            gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+            for actor in gedis_actors:
                 if actor.startswith(f"{package_name}_"):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -663,7 +664,8 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        for package_name in self.packages.list_all():
+        server_packages = self.packages.list_all()
+        for package_name in server_packages:
             package = self.packages.get(package_name)
             package.stop()
         self.nginx.stop()
