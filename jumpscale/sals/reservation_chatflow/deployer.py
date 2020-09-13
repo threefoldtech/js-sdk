@@ -434,15 +434,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return qr_code
 
     def list_pools(self, cu=None, su=None):
-        all_pools = [
-            p
-            for p in j.sals.zos.pools.list()
-            if p.node_ids
-            and p.cus >= 0
-            and p.sus >= 0
-            and p.empty_at < 9223372036854775807
-            and p.empty_at > j.data.time.now().timestamp
-        ]
+        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         pool_factory = StoredFactory(PoolConfig)
         available_pools = {}
         for pool in all_pools:
@@ -472,6 +464,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cu, available_su
         if su and available_su < su:
             return False, available_cu, available_su
+        if cu or su and pool.empty_at < j.data.time.now().timestamp:
+            return False, 0, 0
         return True, available_cu, available_su
 
     def select_pool(
