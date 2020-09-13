@@ -11,7 +11,7 @@
           v-model="selected_rows"
           show-select
           :headers="headers"
-          :items="data"
+          :items="data.reverse()"
           @click:row="open"
         >
           <template slot="no-data">No workloads available</p></template>
