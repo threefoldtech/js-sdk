@@ -282,6 +282,10 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def preinstall(self):
+        if self.module and hasattr(self.module, "preinstall"):
+            self.module.preinstall()
+
     def install(self, **kwargs):
         if self.module and hasattr(self.module, "install"):
             self.module.install(**kwargs)
@@ -465,6 +469,7 @@ class PackageManager(Base):
             [dict]: [package info]
         """
         sys.path.append(package.path + "/../")  # TODO to be changed
+        package.preinstall()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
