@@ -4,7 +4,7 @@
 [![Actions Status](https://github.com/threefoldtech/js-sdk/workflows/js-sdk/badge.svg?query=branch%3Adevelopment)](https://github.com/threefoldtech/js-sdk/actions?query=branch%3Adevelopment)
 ![[https://codecov.io/gh/threefoldtech/js-sdk]](https://codecov.io/gh/threefoldtech/js-sdk/branch/master/graph/badge.svg)
 
-official extenions to js framework
+Threefold Grid extension based on [js-ng framework](https://github.com/threefoldtech/js-ng)
 
 ## Contribution
 
