@@ -495,6 +495,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+        self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
