@@ -243,6 +243,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
+        self.md_show_update("Preparing Infrastructure...")
         self._get_pool()
         self._deploy_network()
         self._get_domain()
