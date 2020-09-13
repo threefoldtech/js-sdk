@@ -101,7 +101,7 @@ class Identity(Base):
 
             # Backward compitablity (Update mainnet url)
             # Create new config has_migrated = True after mainnet update
-            if js_config.get("has_migrated", False):
+            if js_config.get("has_migrated_explorer_url", False):
                 if urlparse(self.explorer_url).hostname == urlparse(EXPLORER_URLS["mainnet"]).hostname:
                     self.explorer_url = EXPLORER_URLS["mainnet"]
 
