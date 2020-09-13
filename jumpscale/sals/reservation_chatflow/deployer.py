@@ -27,14 +27,14 @@ GATEWAY_WORKLOAD_TYPES = [
 
 
 class NetworkView:
-    def __init__(self, name, workloads=None):
+    def __init__(self, name, workloads=None, nodes=None):
         self.name = name
         if not workloads:
             workloads = j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)
         self.workloads = workloads
         self.used_ips = []
         self.network_workloads = []
-        nodes = {node.node_id for node in j.sals.zos._explorer.nodes.list()}
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         self._fill_used_ips(self.workloads, nodes)
         self._init_network_workloads(self.workloads, nodes)
         if self.network_workloads:
@@ -260,8 +260,9 @@ class ChatflowDeployer:
             for pool_id, workload_list in pools_workloads.items():
                 all_workloads += workload_list
         network_views = {}
+        nodes = {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for network_name in networks:
-            network_views[network_name] = NetworkView(network_name, all_workloads)
+            network_views[network_name] = NetworkView(network_name, all_workloads, nodes)
         return network_views
 
     def _pool_form(self, bot):
