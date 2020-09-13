@@ -505,9 +505,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     break
                 except requests.exceptions.HTTPError:
                     continue
-            farm_id = farm_id or "CANNOT_BE_RETRIEVED"
-
-        return farm_id
+            return farm_id or -1
 
     def check_pool_capacity(self, pool, cu=None, su=None):
         """
@@ -877,11 +875,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         if automatic_choice == "YES":
             return None
-        farm_id = self.get_pool_farm_id(pool_id)
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
-        nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)
+        nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool_id, cru=cru, sru=sru, mru=mru, hru=hru)
         nodes = list(nodes)
         nodes = j.sals.reservation_chatflow.reservation_chatflow.filter_nodes(nodes, free_to_use, ip_version)
         blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
@@ -1055,13 +1052,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return dict of gateways where keys are descriptive string of each gateway
         """
+        pool = j.sals.zos.pools.get(pool_id)
         farm_id = self.get_pool_farm_id(pool_id)
+        if farm_id < 0:
+            raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
         gateways = self._explorer.gateway.list(farm_id=farm_id)
         if not gateways:
             raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
         result = {}
         for g in gateways:
             if not g.dns_nameserver:
+                continue
+            if g.node_id not in pool.node_ids:
                 continue
             result[f"{g.dns_nameserver[0]} {g.location.continent} {g.location.country}" f" {g.node_id}"] = g
         return result
@@ -1354,9 +1356,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             else:
                 query["hru"] = disk_size
             for pool_id in pool_ids:
-                farm_id = self.get_pool_farm_id(pool_id)
                 node = j.sals.reservation_chatflow.reservation_chatflow.nodes_get(
-                    farm_id=farm_id, number_of_nodes=1, **query
+                    pool_ids=[pool_id], number_of_nodes=1, **query
                 )[0]
                 node_ids.append(node.node_id)
 
