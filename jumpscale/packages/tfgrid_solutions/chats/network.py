@@ -53,11 +53,7 @@ class NetworkDeploy(GedisChatBot):
         pools = [
             p
             for p in j.sals.zos.pools.list()
-            if p.node_ids
-            and p.cus >= 0
-            and p.sus >= 0
-            and p.empty_at < 9223372036854775807
-            and p.empty_at > j.data.time.now().timestamp
+            if p.node_ids and p.cus >= 0 and p.sus >= 0 and p.empty_at > j.data.time.now().timestamp
         ]
         self.access_node = None
         for pool in pools:
