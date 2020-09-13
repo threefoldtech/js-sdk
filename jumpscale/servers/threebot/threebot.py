@@ -465,7 +465,6 @@ class PackageManager(Base):
             [dict]: [package info]
         """
         sys.path.append(package.path + "/../")  # TODO to be changed
-        package.install()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
@@ -488,7 +487,6 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
-
         # start servers
         self.threebot.rack.start()
 
