@@ -27,29 +27,36 @@ GATEWAY_WORKLOAD_TYPES = [
 
 
 class NetworkView:
-    def __init__(self, name, workloads=None):
+    def __init__(self, name, workloads=None, nodes=None):
         self.name = name
         if not workloads:
             workloads = j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)
         self.workloads = workloads
         self.used_ips = []
         self.network_workloads = []
-        self._fill_used_ips(self.workloads)
-        self._init_network_workloads(self.workloads)
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
+        self._fill_used_ips(self.workloads, nodes)
+        self._init_network_workloads(self.workloads, nodes)
         if self.network_workloads:
             self.iprange = self.network_workloads[0].network_iprange
         else:
             self.iprange = "can't be retrieved"
 
-    def _init_network_workloads(self, workloads):
+    def _init_network_workloads(self, workloads, nodes=None):
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for workload in workloads:
+            if workload.info.node_id not in nodes:
+                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == WorkloadType.Network_resource and workload.name == self.name:
                 self.network_workloads.append(workload)
 
-    def _fill_used_ips(self, workloads):
+    def _fill_used_ips(self, workloads, nodes=None):
+        nodes = nodes or {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for workload in workloads:
+            if workload.info.node_id not in nodes:
+                continue
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == WorkloadType.Kubernetes:
@@ -253,8 +260,9 @@ class ChatflowDeployer:
             for pool_id, workload_list in pools_workloads.items():
                 all_workloads += workload_list
         network_views = {}
+        nodes = {node.node_id for node in j.sals.zos._explorer.nodes.list()}
         for network_name in networks:
-            network_views[network_name] = NetworkView(network_name, all_workloads)
+            network_views[network_name] = NetworkView(network_name, all_workloads, nodes)
         return network_views
 
     def _pool_form(self, bot):
@@ -498,8 +506,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     break
                 except requests.exceptions.HTTPError:
                     continue
-
-        return farm_id
+            return farm_id or -1
 
     def check_pool_capacity(self, pool, cu=None, su=None):
         """
@@ -869,11 +876,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         if automatic_choice == "YES":
             return None
-        farm_id = self.get_pool_farm_id(pool_id)
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
-        nodes = j.sals.zos.nodes_finder.nodes_by_capacity(farm_id=farm_id, cru=cru, sru=sru, mru=mru, hru=hru)
+        nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=pool_id, cru=cru, sru=sru, mru=mru, hru=hru)
         nodes = list(nodes)
         nodes = j.sals.reservation_chatflow.reservation_chatflow.filter_nodes(nodes, free_to_use, ip_version)
         blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
@@ -1047,13 +1053,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return dict of gateways where keys are descriptive string of each gateway
         """
+        pool = j.sals.zos.pools.get(pool_id)
         farm_id = self.get_pool_farm_id(pool_id)
+        if farm_id < 0:
+            raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
         gateways = self._explorer.gateway.list(farm_id=farm_id)
         if not gateways:
             raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
         result = {}
         for g in gateways:
             if not g.dns_nameserver:
+                continue
+            if g.node_id not in pool.node_ids:
                 continue
             result[f"{g.dns_nameserver[0]} {g.location.continent} {g.location.country}" f" {g.node_id}"] = g
         return result
@@ -1346,9 +1357,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             else:
                 query["hru"] = disk_size
             for pool_id in pool_ids:
-                farm_id = self.get_pool_farm_id(pool_id)
                 node = j.sals.reservation_chatflow.reservation_chatflow.nodes_get(
-                    farm_id=farm_id, number_of_nodes=1, **query
+                    pool_ids=[pool_id], number_of_nodes=1, **query
                 )[0]
                 node_ids.append(node.node_id)
 
