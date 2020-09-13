@@ -4,7 +4,7 @@ from jumpscale.clients.explorer.models import User
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
 from jumpscale.core.exceptions import Input, NotFound, Value
-from jumpscale.data.encryption import mnemonic
+from jumpscale.data.encryption import mnemonic, generate_mnemonic
 from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
@@ -159,22 +159,22 @@ def get_identity():
 class IdentityFactory(StoredFactory):
     _me = None
     
-    def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,network=None
-    ):
-    if network is None and explorer_url is None:
-        raise ValueError("network (mainnet, testnet, devnet) or explorer_url is required")
+    def new(self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,network=None):
+        if not words:
+            words = generate_mnemonic()
+        if network is None and explorer_url is None:
+            raise ValueError("network (mainnet, testnet, devnet) or explorer_url is required")
 
-    if explorer_url is None:
-        if network not in ["testnet", "mainnet", "devnet"]:
-            raise ValueError("network should be one of (mainnet, testnet, devnet)")
-        explorer_url = NETWORKS[network]
-    
-    instance = super().new(
-        name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
-    )
-    instance.save()
-    return instance
+        if explorer_url is None:
+            if network not in ["testnet", "mainnet", "devnet"]:
+                raise ValueError("network should be one of (mainnet, testnet, devnet)")
+            explorer_url = NETWORKS[network]
+        
+        instance = super().new(
+            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
+        )
+        instance.save()
+        return instance
 
     @property
     def me(self):
