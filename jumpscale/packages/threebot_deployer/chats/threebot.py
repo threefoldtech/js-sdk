@@ -34,10 +34,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._validate_user()
         self.branch = "development"
         self.solution_id = uuid.uuid4().hex
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
         self.query = {"cru": 1, "mru": 1, "sru": 2}
 
     def _get_pool(self):

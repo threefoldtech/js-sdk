@@ -32,8 +32,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
@@ -172,7 +173,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.user_info()["username"])
+        gateways = deployer.list_all_gateways(self.username)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
