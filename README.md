@@ -16,29 +16,6 @@ Threefold Grid extension based on [js-ng framework](https://github.com/threefold
 - Documentation
 - Tests
 
-## Development environment
-
-- clone repo
-- `poetry update` if you already had an install before
-- `poetry install`
-- `poetry shell`
-
-## Running tests
-
-- `make tests`
-
-## Generating docs
-
-- `make docs`
-
-
-## building dists
-
-- `poetry build`
-
-## publishing
-
-- `poetry publish`
 
 ## API Docs
 
