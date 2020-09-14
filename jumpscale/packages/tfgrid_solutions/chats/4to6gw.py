@@ -28,14 +28,8 @@ class FourToSixGateway(GedisChatBot):
     def wireguard_public_get(self):
         if self.keypair_type == "Specify":
             form = self.new_form()
-            self.publickey = form.string_ask(
-                "Please enter wireguard public key or leave empty if you want us to generate one for you.",
-                required=True,
-            )
-            self.privatekey = form.string_ask(
-                "Please enter wireguard public key or leave empty if you want us to generate one for you.",
-                required=True,
-            )
+            self.publickey = form.string_ask("Please enter wireguard public key.", required=True,)
+            self.privatekey = form.string_ask("Please enter wireguard private key.", required=True,)
             form.ask()
             self.publickey = self.publickey.value
             self.privatekey = self.privatekey.value
