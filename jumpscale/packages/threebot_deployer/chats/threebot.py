@@ -12,7 +12,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmedelsayed.3bot/threefoldtech-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-js-sdk-latest.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -246,7 +246,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
         }
         self.network_view = self.network_view.copy()
-        entry_point = "/bin/bash jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -258,7 +257,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 cpu=self.query["cru"],
                 memory=self.query["mru"] * 1024,
                 disk_size=self.query["sru"] * 1024,
-                entrypoint=entry_point,
                 secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
                 interactive=False,
                 solution_uuid=self.solution_id,
