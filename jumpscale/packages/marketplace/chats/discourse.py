@@ -20,12 +20,15 @@ class Discourse(MarketPlaceAppsChatflow):
     title = "Discourse"
     query = {"cru": 1, "mru": 2, "sru": 2}
 
-    @chatflow_step(title="SMTP Information")
+    @chatflow_step(title="Discourse Setup")
     def discourse_smtp_info(self):
         form = self.new_form()
-        self.smtp_server = form.string_ask("SMTP Server Address", required=True)
-        self.smtp_username = form.string_ask("SMTP Server Username", required=True)
-        self.smtp_password = form.secret_ask("SMTP Server Password", required=True)
+        self.smtp_server = form.string_ask("Please add the host e-mail address for your solution", required=True)
+        self.smtp_username = form.string_ask(
+            "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", required=True
+        )
+        self.smtp_password = form.secret_ask("Please add the host e-mail password", required=True)
+
         form.ask()
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
