@@ -1,5 +1,5 @@
 execute: jsng "j.servers.threebot.start_default(wait=True, local=False)"
-test: jsng 'j.sals.nettools.wait_connection_test("127.0.0.1", 16000, timeout=1)' | grep True
+test: bash -c "ss -nplt | grep -v grep | grep 16000"
 log: stdout
 after:
   - init
