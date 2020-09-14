@@ -30,7 +30,7 @@ class FourToSixGateway(GedisChatBot):
             form = self.new_form()
             self.publickey = form.string_ask("Please enter wireguard public key.", required=True,)
             self.privatekey = form.string_ask(
-                "Please enter wireguard private key (only used to generate wireguard configuration).", required=True,
+                "Please enter wireguard private key (used only to generate wireguard configuration).", required=True,
             )
             form.ask()
             self.publickey = self.publickey.value
