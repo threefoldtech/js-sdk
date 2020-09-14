@@ -72,7 +72,7 @@
               ></v-switch>
               <v-btn
                 hide-details
-                class="my-2 pl-2"
+                class="my-2 ml-2"
                 small
                 color="success"
                 @click="clearBlockedNodes()"
