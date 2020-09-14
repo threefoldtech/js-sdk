@@ -17,32 +17,22 @@ class FourToSixGateway(GedisChatBot):
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
-        self.keypair_type = self.single_choice(
-            "Would you like to specify wireguard key pair or have it automatically generated?",
-            ["Specify", "Auto Generate"],
-            required=True,
-            default="Auto Generate",
-        )
 
     @chatflow_step(title="Wireguard public key")
     def wireguard_public_get(self):
-        if self.keypair_type == "Specify":
-            form = self.new_form()
-            self.publickey = form.string_ask("Please enter wireguard public key.", required=True,)
-            self.privatekey = form.string_ask(
-                "Please enter wireguard private key (used only to generate wireguard configuration).", required=True,
-            )
-            form.ask()
-            self.publickey = self.publickey.value
-            self.privatekey = self.privatekey.value
-        else:
-            self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
-            self.privatekey = self.privatekey.decode()
+        self.publickey = self.string_ask(
+            "Please enter wireguard public key or leave empty if you want us to generate one for you."
+        )
+        self.privatekey = "enter private key here"
         res = "### Click next to continue with wireguard related deployment. Once you proceed you will not be able to go back to this step"
         self.md_show(res, md=True)
 
     @chatflow_step(title="Create your Wireguard ", disable_previous=True)
     def wg_reservation(self):
+        if not self.publickey:
+            self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
+            self.privatekey = self.privatekey.decode()
+
         self.resv_id = deployer.create_ipv6_gateway(
             self.gateway_id,
             self.pool_id,
