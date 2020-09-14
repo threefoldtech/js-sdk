@@ -289,7 +289,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     break
             if not valid:
                 continue
-            if pool.cus == 0 and pool.sus == 0:
+            if (pool.cus == 0 and pool.sus == 0) or pool.empty_at < j.data.time.now().timestamp:
                 continue
             free_pools.append(pool)
         return free_pools

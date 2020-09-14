@@ -464,6 +464,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cu, available_su
         if su and available_su < su:
             return False, available_cu, available_su
+        if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
+            return False, 0, 0
         return True, available_cu, available_su
 
     def select_pool(
@@ -507,20 +509,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 except requests.exceptions.HTTPError:
                     continue
             return farm_id or -1
-
-    def check_pool_capacity(self, pool, cu=None, su=None):
-        """
-        pool: pool schema object
-        """
-        available_su = pool.sus - pool.active_su
-        available_cu = pool.cus - pool.active_cu
-        if pool.empty_at < 0:
-            return False, 0, 0
-        if cu and available_cu < cu:
-            return False, available_cu, available_su
-        if su and available_su < su:
-            return False, available_cu, available_su
-        return True, available_cu, available_su
 
     def ask_name(self, bot, msg=None):
         msg = (
