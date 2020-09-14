@@ -2,7 +2,7 @@ from jumpscale.loader import j
 from time import sleep
 import random
 import uuid
-
+import os
 
 zos = j.sals.zos
 
@@ -12,8 +12,13 @@ DATA_NODES = 2
 PARITY_NODES = 1
 ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-PASSWORD = "super secure passowrd"
+PASSWORD = "supersecurepassowrd"
 network_name = str(uuid.uuid4())
+BAD_NODES = set(["3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF"])
+
+
+def remove_bad_nodes(nodes):
+    return list(filter(lambda x: x.node_id not in BAD_NODES, nodes))
 
 
 def wait_workload(wid):
@@ -129,7 +134,7 @@ def deploy_minio(node_id, pool, network_name, namespace_config, ip_addr):
             "DATA": str(DATA_NODES),
             "PARITY": str(PARITY_NODES),
             "ACCESS_KEY": ACCESS_KEY,
-            "SSH_KEY": j.sals.fs.read_file("/home/omar/id_rsa.pub"),  # OPTIONAL to provide ssh access
+            "SSH_KEY": j.sals.fs.read_file(os.path.expanduser("~/.ssh/id_rsa.pub")),  # OPTIONAL to provide ssh access
             "MINIO_PROMETHEUS_AUTH_TYPE": "public",
         },
         secret_env=secret_env,
@@ -154,6 +159,7 @@ mazr3a_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos.node
 
 nodes = freefarm_nodes + mazr3a_nodes
 random.shuffle(nodes)
+nodes = remove_bad_nodes(nodes)
 minio_node = nodes[-1]
 nodes = nodes[: (DATA_NODES + PARITY_NODES)]
 pool_to_pay = freefarm_pool if minio_node.farm_id == FREEFARM_ID else mazr3a_pool
@@ -165,5 +171,15 @@ wait_workloads(zdb_wids)
 wait_workload(vol_wid)
 namespace_config = get_namespace_config(zdb_workloads)
 
-minio_container = deploy_minio(minio_node.node_id, pool_to_pay, network_name, namespace_config, "172.19.3.3")
+ip_address = "172.19.3.3"
+minio_container = deploy_minio(minio_node.node_id, pool_to_pay, network_name, namespace_config, ip_address)
 attach_volume(minio_container, vol_wid)
+
+
+print(
+    f"""
+Finished successfully. After adding the network using \
+the wireguard config printed above, minio can be accessed on \
+http://{ip_address}:9000
+"""
+)
