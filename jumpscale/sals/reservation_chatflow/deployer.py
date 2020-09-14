@@ -464,7 +464,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cu, available_su
         if su and available_su < su:
             return False, available_cu, available_su
-        if cu or su and pool.empty_at < j.data.time.now().timestamp:
+        if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
             return False, 0, 0
         return True, available_cu, available_su
 
