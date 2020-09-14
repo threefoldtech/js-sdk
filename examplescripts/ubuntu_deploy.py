@@ -20,7 +20,7 @@ while pool.cus == 0:
 
 if not j.sals.fs.exists("/tmp/.ssh"):
     j.core.executors.run_local(
-        "mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa"
+        'mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" '
     )
 
 ssh_cl = j.clients.sshkey.get("ubuntu_script")
