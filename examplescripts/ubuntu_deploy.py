@@ -7,21 +7,32 @@ zos = j.sals.zos
 payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=["TFT"])
 print(payment_detail)
 
-wallet = j.clients.stellar.get(
-    "demos_wallet"
-)  # change wallet_name depand on your wallet
+if not j.clients.stellar.find("ubuntu_wallet"):
+    j.clients.stellar.create_testnet_funded_wallet("ubuntu_wallet")
+
+wallet = j.clients.stellar.get("ubuntu_wallet")
+
 txs = zos.billing.payout_farmers(wallet, payment_detail)
 pool = zos.pools.get(payment_detail.reservation_id)
 while pool.cus == 0:
     pool = zos.pools.get(payment_detail.reservation_id)
     sleep(1)
 
+if not j.sals.fs.exists("/tmp/.ssh"):
+    j.core.executors.run_local(
+        "mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa"
+    )
+
+ssh_cl = j.clients.sshkey.get("ubuntu_script")
+ssh_cl.private_key_path = "/tmp/.ssh/id_rsa"
+ssh_cl.load_from_file_system()
+ssh_cl.save()
+
 print("compute units available:", pool.cus)
 print("storage units available:", pool.sus)
 
 network_name = "demo_network_script"
 ip_range = "10.110.0.0/16"
-
 ip_container_1 = "10.110.4.12"
 
 ip_container_2 = "10.110.4.15"
@@ -56,7 +67,7 @@ for workload in network.network_resources:
     j.sals.reservation_chatflow.deployer.wait_workload(wid)
     workload = zos.workloads.get(wid)
 
-#Deploy container 1
+# Deploy container 1
 container = zos.container.create(
     node_id=deployment_node.node_id,
     network_name=network_name,
@@ -67,9 +78,7 @@ container = zos.container.create(
     memory=mem,
     disk_size=disk,
     interactive=False,
-    env={
-        "pub_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDL/IvQhp+pxoZKaQ9kHYLwlWNgZOsIgPnTa9ZsTcJk5EF9zui2+gDlbIDnk1xE9L6yn2I593d3/fTiJgcImTfKqhhd9siZNGxIRKyXw+0olMwccEWCY6DIJG/PgSCRsHyw/zPGntLax4+lV0svAp7i+Wa8fjZsHSDTeBMc8xRf9p7ASV53NwyjUum7KUB7bJzCUlZpykNwN9+CAHZv8X+7qgiQ58yHVwlrccaLX8KVU5fhSl5MME8gjvG8naI/PtFMkRxo0xvD/PkTsiV+1ba6PwPrqTGMXWoPpJTs6ICbv4LbzLPdfmOXsYehYlBHPopxxU0IUyQU0Z1GEmGfP6bj /root/.ssh/id_rsa"
-    }, #Change ssh-key depan on your key
+    env={"pub_key": ssh_cl.public_key.rstrip()},
     entrypoint="/bin/bash /start.sh",
     public_ipv6=True,
 )
@@ -81,7 +90,7 @@ workload = zos.workloads.get(result)
 
 print("First container deployed successfully")
 
-#Deploy container 2
+# Deploy container 2
 container2 = zos.container.create(
     node_id=deployment_node.node_id,
     network_name=network_name,
@@ -92,9 +101,7 @@ container2 = zos.container.create(
     memory=mem,
     disk_size=disk,
     interactive=False,
-    env={
-        "pub_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDL/IvQhp+pxoZKaQ9kHYLwlWNgZOsIgPnTa9ZsTcJk5EF9zui2+gDlbIDnk1xE9L6yn2I593d3/fTiJgcImTfKqhhd9siZNGxIRKyXw+0olMwccEWCY6DIJG/PgSCRsHyw/zPGntLax4+lV0svAp7i+Wa8fjZsHSDTeBMc8xRf9p7ASV53NwyjUum7KUB7bJzCUlZpykNwN9+CAHZv8X+7qgiQ58yHVwlrccaLX8KVU5fhSl5MME8gjvG8naI/PtFMkRxo0xvD/PkTsiV+1ba6PwPrqTGMXWoPpJTs6ICbv4LbzLPdfmOXsYehYlBHPopxxU0IUyQU0Z1GEmGfP6bj /root/.ssh/id_rsa"
-    }, #Change ssh-key depan on your key
+    env={"pub_key": ssh_cl.public_key.rstrip()},
     entrypoint="/bin/bash /start.sh",
     public_ipv6=True,
 )
@@ -106,14 +113,15 @@ workload = zos.workloads.get(result)
 
 print("Second container deployed successfully")
 
+_, config, _ = j.core.executors.run_local("wg")
+if "wg_script" in config:
+    j.core.executors.run_local("wg-quick down wg_script")
+
 j.core.executors.run_local(f'echo "{wg_quick}" > /etc/wireguard/wg_script.conf')
 j.core.executors.run_local("wg-quick up wg_script")
 
 sleep(5)
-ssh_cl = j.clients.sshkey.get("ubuntu_script")
-ssh_cl.private_key_path = "/root/.ssh/id_rsa"
-ssh_cl.load_from_file_system()
-ssh_cl.save()
+j.core.executors.run_local("eval `ssh-agent` && ssh-add /tmp/.ssh/id_rsa")
 
 localclient = j.clients.sshclient.get("ubuntu_script")
 localclient.sshkey = "ubuntu_script"
