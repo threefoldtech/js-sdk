@@ -1627,7 +1627,8 @@ class ReservationChatflow:
 
     def clear_blocked_nodes(self):
         blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
-        j.core.db.delete(blocked_node_keys)
+        if blocked_node_keys:
+            j.core.db.delete(*blocked_node_keys)
         j.core.db.delete(NODES_COUNT_KEY)
 
 
