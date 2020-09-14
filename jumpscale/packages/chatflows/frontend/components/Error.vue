@@ -9,8 +9,5 @@
 <script>
   module.exports = {
     props: {payload: Object},
-    mounted () {
-      console.log(this.payload.msg);
-    }
   }
 </script>
