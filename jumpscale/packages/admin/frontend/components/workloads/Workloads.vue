@@ -15,7 +15,7 @@
           @click:row="open"
         >
           <template slot="no-data">No workloads available</p></template>
-          <template v-slot:item.epoch="{ item }">{{ item.epoch }}</template>
+          <template v-slot:item.epoch="{ item }">{{ new Date(item.epoch * 1000).toLocaleString() }}</template>
           <template v-slot:body.prepend="{ headers }">
             <tr>
               <td></td>
@@ -148,9 +148,6 @@ module.exports = {
             // show workload state
             workload.state = Workload_STATE[workload.info.result.state];
             workload.message = workload.info.result.message;
-            // convert date
-            workload["Creation Date"] = new Date(workload.epoch * 1000).toLocaleString();
-            delete workload["epoch"];
             // convert vloume type
             if (workload.workload_type === "Volume")
               workload.type = VOLUMES_TYPE[workload.type];
