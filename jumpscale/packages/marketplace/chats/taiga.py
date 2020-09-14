@@ -32,6 +32,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
 
         SECRET_KEY = form.secret_ask("Please add a secret key for your solution", required=True)
+
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
