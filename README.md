@@ -6,6 +6,10 @@
 
 Threefold Grid extension based on [js-ng framework](https://github.com/threefoldtech/js-ng)
 
+## Getting started
+- Our wiki https://threefoldtech.github.io/js-sdk/wiki
+- quick start https://threefoldtech.github.io/js-sdk/wiki/#/./quick_start
+
 ## Contribution
 
 - Clean code (pep-8)
