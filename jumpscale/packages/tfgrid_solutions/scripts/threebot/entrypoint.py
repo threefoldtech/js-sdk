@@ -61,10 +61,11 @@ def main():
 
     j.logger.info("Starting threebot ...")
 
-    if test_cert == "true":
-        j.servers.threebot.start_default(wait=True, local=False)
-    else:
-        j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
+    server = j.servers.threebot.get("default")
+    if test_cert == "false":
+        server.domain = domain
+        server.email = email
+        server.save()
 
 
 if __name__ == "__main__":
