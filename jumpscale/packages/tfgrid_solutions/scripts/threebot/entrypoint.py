@@ -28,10 +28,10 @@ def main():
         new = False
 
     j.logger.info("Generating guest identity ...")
-    identity_main = j.core.identity.new(
+    identity_main = j.core.identity.get(
         "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/explorer"
     )
-    identity_test = j.core.identity.new(
+    identity_test = j.core.identity.get(
         "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
     )
 
