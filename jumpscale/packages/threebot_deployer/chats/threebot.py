@@ -248,7 +248,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.network_view = self.network_view.copy()
 
         ## Container logs
-        log_config = j.config.get("LOGGING_SINK", {})
+        log_config = j.core.config.get("LOGGING_SINK", {})
         if log_config:
             log_config["channel_name"] = self.solution_name
 
