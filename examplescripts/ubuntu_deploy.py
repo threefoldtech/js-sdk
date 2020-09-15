@@ -131,32 +131,28 @@ j.core.executors.run_local(f'echo "{wg_quick}" > /tmp/wg_script.conf')
 j.core.executors.run_local("wg-quick up /tmp/wg_script.conf")
 
 sleep(5)
-j.core.executors.run_local("eval `ssh-agent` && ssh-add /tmp/.ssh/id_rsa")
-j.core.executors.run_local(f'ssh root@{ip_container_1} ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} ls /')
-j.core.executors.run_local(f'ssh root@{ip_container_2} ssh -o "StrictHostKeyChecking=no" root@{ip_container_1} ls /')
 
-# will use sshclient when fix this issue (https://github.com/threefoldtech/js-sdk/issues/1135)
-#localclient = j.clients.sshclient.get("ubuntu_script")
-#localclient.sshkey = "ubuntu_script"
-#localclient.host = ip_container_1
-#localclient.save()
-#
-#localclient2 = j.clients.sshclient.get("ubuntu_script2")
-#localclient2.sshkey = "ubuntu_script"
-#localclient2.host = ip_container_2
-#localclient2.save()
-#
-#print(
-#    localclient.sshclient.run(
-#        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} -A ls /'
-#    )
-#)
-#
-#
-#print(
-#    localclient2.sshclient.run(
-#        f'ssh -o "StrictHostKeyChecking=no"  root@{ip_container_1} -A ls /'
-#    )
-#)
+localclient = j.clients.sshclient.get("ubuntu_script")
+localclient.sshkey = "ubuntu_script"
+localclient.host = ip_container_1
+localclient.save()
+
+localclient2 = j.clients.sshclient.get("ubuntu_script2")
+localclient2.sshkey = "ubuntu_script"
+localclient2.host = ip_container_2
+localclient2.save()
+
+print(
+    localclient.sshclient.run(
+        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} -A ls /'
+    )
+)
+
+
+print(
+    localclient2.sshclient.run(
+        f'ssh -o "StrictHostKeyChecking=no"  root@{ip_container_1} -A ls /'
+    )
+)
 
 print("Congratulations, SUCCESS")
