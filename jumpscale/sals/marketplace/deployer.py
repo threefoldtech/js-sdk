@@ -68,9 +68,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
 
-    def pay_for_pool(self, pool):
+    def pay_for_pool(self, pool, is_threebot=False):
         info = self.get_payment_info(pool)
-        wallet = j.clients.stellar.get(name="demos_wallet")
+        if is_threebot:
+            wallet = j.clients.stellar.get(name="deploy_starter_wallet")
+        else:
+            wallet = j.clients.stellar.get(name="demos_wallet")
         wallet.transfer(
             destination_address=info["escrow_address"],
             amount=info["total_amount_dec"],
