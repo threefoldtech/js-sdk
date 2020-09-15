@@ -329,7 +329,7 @@ for i, idx in enumerate(to_die):
     zos.workloads.decomission(zdb_workloads[idx].id)
     namespace_config[idx] = new_namespace_config[i]
 
-input("Removed, make sure that the system is still intact, then press enter")
+input("Removed, make sure that the system is still intact (read-only), then press enter")
 
 print("Removing master node")
 zos.workloads.decomission(master_wid)
