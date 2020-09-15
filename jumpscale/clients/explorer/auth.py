@@ -52,6 +52,8 @@ class HeaderSigner(Signer):
         required_headers = self.headers or ["date"]
         created = time.time()
         expires = created + 60
+        dt = datetime.fromtimestamp(created)
+        headers["date"] = formatdate(timeval=time.mktime(dt.timetuple()), localtime=False, usegmt=True)
         signable = generate_message(required_headers, headers, created, expires, host, method, path)
         signature = super().sign(signable)
         headers[self.sign_header] = self.signature_template % (signature, created, expires)

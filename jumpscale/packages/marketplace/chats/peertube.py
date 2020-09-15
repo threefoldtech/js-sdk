@@ -9,8 +9,6 @@ class Peertube(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "volume_details",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
