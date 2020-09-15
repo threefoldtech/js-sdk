@@ -10,8 +10,3 @@ class DomainDelegationAutomated(GedisChatBotPatch, DomainDelegation):
         GATEWAY: "choose_random",
         DOMAIN_NAME: "get_name",
     }
-
-DomainDelegationAutomated(
-    solution_name="domaindelegation1",
-    debug=True,
-)

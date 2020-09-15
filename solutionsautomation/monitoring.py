@@ -1,6 +1,7 @@
 from gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.monitoring import MonitoringDeploy
 
+
 class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
     SSH_MESSAGE = "Please add your public ssh key, this will allow you to access the deployed containers using ssh."
@@ -22,7 +23,6 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
     PROMETHEUS_NODE = "Please choose the node you want to deploy Prometheus on"
     GRAFANA_NODE = "Please choose the node you want to deploy Grafana on"
 
-
     QS = {
         NAME_MESSAGE: "get_name",
         SSH_MESSAGE: "ssh",
@@ -43,20 +43,4 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
         REDIS_NODE: "choose_random",
         PROMETHEUS_NODE: "choose_random",
         GRAFANA_NODE: "choose_random",
-
     }
-
-
-MonitoringAutomated(
-    solution_name="monitoring2",
-    currency="TFT",
-    ssh="~/.ssh/id_rsa.pub",
-    cpu=1,
-    memory=1024,
-    disk_size=256,
-    volume_size= 10,
-    redis_node_select= "yes",
-    prometheus_node_select="yes",
-    grafana_node_select="yes",
-    debug=True,
-)
