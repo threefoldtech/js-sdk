@@ -53,7 +53,7 @@ for workload in network.network_resources:
 for workload in node_workloads.values():
     wid = zos.workloads.deploy(workload)
     if not j.sals.reservation_chatflow.deployer.wait_workload(wid):
-        raise Exception(f"Failed to deploy network for kubernetes, Workload ID: {wid}")
+        raise Exception(f"Failed to deploy network for ubuntu, Workload ID: {wid}")
 
 print(wg_quick)
 
@@ -75,7 +75,7 @@ for workload in network.network_resources:
 for workload in node_workloads.values():
     wid = zos.workloads.deploy(workload)
     if not j.sals.reservation_chatflow.deployer.wait_workload(wid):
-        raise Exception(f"Failed to deploy network for kubernetes, Workload ID: {wid}")
+        raise Exception(f"Failed to deploy network for ubuntu, Workload ID: {wid}")
 
 # Deploy container 1
 container = zos.container.create(
