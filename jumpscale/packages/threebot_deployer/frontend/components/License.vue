@@ -1,13 +1,11 @@
 <template>
   <div>
     <v-card flat height="100%" class="pa-5" outlined>
-      <v-card-title class="justify-center">Terms and Conditions for using 3Bot Deployer</v-card-title>
       <v-card-text>
-        It's required that you as a threebot deployer user you agree to the
-        <a
-          target="_blank"
-          href="https://wiki.threefold.io/#/terms_conditions"
-        >Terms and Conditions</a>
+        <markdown-view
+          base-url="https://legal.threefold.io/#/"
+          url="https://raw.githubusercontent.com/threefoldfoundation/legal/master/src/terms_conditions_all.md"
+        ></markdown-view>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
