@@ -366,7 +366,7 @@ class PackageManager(Base):
         return all_packages
 
     def list_all(self):
-        return self.packages.keys()
+        return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
         # TODO: Check if package already exists
