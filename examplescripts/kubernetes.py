@@ -26,7 +26,7 @@ def reserve_pool():
     """
     payment_detail = zos.pools.create(cu=20000, su=20000, farm="freefarm", currencies=["TFT"])
     print(payment_detail)
-    wallet = j.clients.stellar.get("new_wallet")
+    wallet = j.clients.stellar.get("wallet")
     txs = zos.billing.payout_farmers(wallet, payment_detail)
     pool = zos.pools.get(payment_detail.reservation_id)
     while True:
