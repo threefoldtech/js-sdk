@@ -2,7 +2,18 @@ from jumpscale.loader import j
 
 
 class threebot_deployer:
-    def install(self):
+    def install(self, **kwargs):
+        log_config = {}
+        log_config["channel_type"] = kwargs.get("channel_type")
+        log_config["channel_host"] = kwargs.get("channel_host")
+        log_config["channel_port"] = kwargs.get("channel_port")
+
+        if all([v for v in log_config.values()]):
+            j.core.config.set("LOGGING_SINK", log_config)
+            j.logger.info(
+                f"Added remote redis logs on machine {log_config['channel_host']}:{log_config['channel_port']}"
+            )
+
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name="threebot_deployer_actors")
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
@@ -15,9 +26,6 @@ class threebot_deployer:
 
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
-
-    def start(self):
-        self.install()
 
     def uninstall(self):
         """Called when package is deleted

@@ -1,0 +1,5 @@
+exec: jsng "j.servers.threebot.start_default(wait=True, local=False)"
+test: bash -c "ss -nplt | grep -v grep | grep 16000"
+log: stdout
+after:
+  - init
