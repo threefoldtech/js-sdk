@@ -16,6 +16,7 @@ from monitoring import MonitoringAutomated
 from network import NetworkDeployAutomated
 from taiga import TaigaAutomated
 from exposed import SolutionExposeDeployAutomated
+from pools import PoolAutomated
 
 
 def deploy_gitea(solution_name, currency, expiration, wg_config="NO", debug=True):
@@ -308,4 +309,19 @@ def deploy_exposed(
 ):
     return SolutionExposeDeployAutomated(
         type=type, tls_port=tls_port, port_expose=port_expose, sub_domain=sub_domain, debug=debug
+    )
+
+
+def depoly_pool(
+    type, solution_name, cu=1, su=1, time_unit="Day", time_to_live=1, currency="FreeTFT", debug=True,
+):
+    return PoolAutomated(
+        type=type,
+        solution_name=solution_name,
+        cu=cu,
+        su=su,
+        time_unit=time_unit,
+        time_to_live=time_to_live,
+        currency=currency,
+        debug=debug,
     )
