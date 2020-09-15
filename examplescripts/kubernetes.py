@@ -26,6 +26,9 @@ def reserve_pool():
     """
     payment_detail = zos.pools.create(cu=20000, su=20000, farm="freefarm", currencies=["TFT"])
     print(payment_detail)
+    if not j.clients.stellar.find("wallet"):
+        j.clients.stellar.create_testnet_funded_wallet("wallet")
+
     wallet = j.clients.stellar.get("wallet")
     txs = zos.billing.payout_farmers(wallet, payment_detail)
     pool = zos.pools.get(payment_detail.reservation_id)
@@ -155,13 +158,13 @@ def deploy_k8s_cluster(nodes, pool_id):
     """
     cluster = []
     master = deploy_k8s_master(cluster, nodes[0], pool_id)
-    deploy_k8s_workers(cluster, master, nodes[1:4], pool_id)
+    deploy_k8s_workers(cluster, master, nodes[1:3], pool_id)
 
     for w in cluster:
         wid = zos.workloads.deploy(w)
 
         if not wait_workload(wid):
-            raise Exception("Faild to deploy workload: {wid}")
+            raise Exception(f"Faild to deploy workload: {wid}")
     print(f"you can now ssh to master node using 'ssh rancher@{master.ipaddress}'")
     return master
 
