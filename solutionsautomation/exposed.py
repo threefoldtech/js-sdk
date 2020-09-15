@@ -10,7 +10,7 @@ class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
     PORT_EXPOSE = "Which port you want to expose"
     DOMAIN = "Please choose the domain you wish to use"
     SUB_DOMAIN = r"^Please specify the sub domain name you wish to bind to. will .*"
-    
+
     QS = {
         SOLUTION_TYPE: "type",
         SOLUTION_EXPOSE: "choose_random",
@@ -24,20 +24,3 @@ class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
     def choose_domain_random(self, msg, options, *args, **kwargs):
         options.pop()
         return random.choice(options)
-
-
-SolutionExposeDeployAutomated(
-    type="kubernetes",
-    tls_port=6443 ,
-    port_expose=6443 ,
-    sub_domain= "subdomain3",
-    debug=True,
-)
-
-SolutionExposeDeployAutomated(
-    type="ubuntu",
-    tls_port=6443 ,
-    port_expose=6443 ,
-    sub_domain= "subdomain241",
-    debug=True,
-)

@@ -43,21 +43,3 @@ class FlistAutomated(GedisChatBotPatch, FlistDeploy):
         # multi value ask
         ENV_VARS: "env_vars",
     }
-
-
-FlistAutomated(
-    solution_name="ubnutu",
-    currency="TFT",
-    flist="https://hub.grid.tf/tf-bootable/3bot-ubuntu-18.04.flist",
-    cpu=1,
-    memory=1024,
-    disk_size=256,
-    vol="NO",
-    corex="YES",
-    entry_point="",
-    env_vars={"name": "TEST"},
-    log="NO",
-    ipv6="NO",
-    node_automatic="NO",
-    debug=True,
-)
