@@ -246,6 +246,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
         }
         self.network_view = self.network_view.copy()
+
+        ## Container logs
+        log_config = {}
+        log_config["channel_type"] = "redis"
+        log_config["channel_host"] = "192.241.158.21"
+        log_config["channel_port"] = 6378
+        log_config["channel_name"] = "newoffice2"
+
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -259,6 +267,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 disk_size=self.query["sru"] * 1024,
                 secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
                 interactive=False,
+                log_config=log_config,
                 solution_uuid=self.solution_id,
                 **self.solution_metadata,
             )

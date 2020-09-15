@@ -44,6 +44,12 @@ def main():
     j.core.identity.set_default("test")
 
     if backup_password:
+        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
+        try:
+            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
+        except Exception as e:
+            j.logger.error(str(e))
+
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
             if not new:
@@ -54,7 +60,6 @@ def main():
             else:
                 j.logger.info("Taking backup ...")
                 # Create a funded wallet to the threebot testnet
-                j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))
