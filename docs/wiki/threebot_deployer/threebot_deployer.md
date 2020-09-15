@@ -95,9 +95,19 @@ Threebot Deploy package is installed normally like any other package using the a
 
 ```python
 server = j.servers.threebot.get("default")
-server.packages.add("/root/js-sdk/jumpscale/packages/threebot_deployer/")
+server.packages.add("/root/js-sdk/jumpscale/packages/threebot_deployer/", channel_type="redis", channel_host="<remoteRedisHostIP>", channel_port=<remoteHostRedisPort>)
 server.save()
 server.start()
 ```
 
 Now you can start your `3Bot` server and access threebot deploy dashboard on `/threebot_deployer`
+
+## Notes
+
+- channel_type, channel_host, channel_port are for streaming logs to a redis instance, these are need to be a public machine and run a redis server on it using non-protected mode `redis-server --port 6378 --protected-mode no`
+- You can access that logs further using:
+
+```
+redis-cli -h <remoteRedisHostIP> -p <remoteHostRedisPort>
+SUBSCRIBE <solution_name>-stdout <solution_name>-stderr
+```
