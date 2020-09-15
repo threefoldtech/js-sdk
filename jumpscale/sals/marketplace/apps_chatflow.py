@@ -138,7 +138,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
-            deployer.pay_for_pool(self.pool_info, is_threebot=True)
+            deployer.pay_for_pool(self.pool_info, is_threebot=is_threebot)
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
