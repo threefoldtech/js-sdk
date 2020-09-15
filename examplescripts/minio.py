@@ -76,12 +76,6 @@ def wait_workloads(wids):
 def create_pool(cus=100, sus=100, farm="freefarm", wait=True):
     cus = math.ceil(cus)
     sus = math.ceil(sus)
-    ### FOR TESTING
-    if farm == "freefarm":
-        return zos.pools.get(1255)
-    else:
-        return zos.pools.get(487)
-    ###
     payment_detail = zos.pools.create(cu=cus, su=sus, farm=farm, currencies=["TFT"])
     wallet = j.clients.stellar.get("wallet")
     zos.billing.payout_farmers(wallet, payment_detail)
