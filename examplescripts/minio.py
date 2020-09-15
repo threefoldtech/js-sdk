@@ -3,6 +3,8 @@ from time import sleep
 import random
 import uuid
 import os
+import random
+import math
 
 zos = j.sals.zos
 
@@ -10,17 +12,42 @@ FREEFARM_ID = 71
 MAZR3A_ID = 13619
 DATA_NODES = 7
 PARITY_NODES = 3
+TO_KILL = 3
 ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
 network_name = str(uuid.uuid4())
-BAD_NODES = set(["3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF"])
-UP_FOR = 60 * 30  # number of seconds
-### FOR TESTING
-fp = [2044, 2036, 2031, 2015, 1985, 1982, 1979, 1958, 1957, 195]
-mp = [1966, 1977, 1980, 1983, 1986, 1990, 2016, 2032, 2037, 2045]
-fp.reverse()
-###
+print(f"network name: {network_name}")
+BAD_NODES = set(
+    [
+        "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF",
+        "A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7",
+        "72CP8QPhMSpF7MbSvNR1TYZFbTnbRiuyvq5xwcoRNAib",
+    ]
+)
+UP_FOR = 60 * 20  # number of seconds
+
+
+def wait_site_up(url):
+    up = False
+    while not up:
+        try:
+            code = j.tools.http.get(url, timeout=1).status_code
+            up = code == 200
+        except Exception:
+            pass
+        sleep(1)
+
+
+def wait_site_down(url):
+    down = False
+    while not down:
+        try:
+            code = j.tools.http.get(url, timeout=1).status_code
+            down = code != 200
+        except Exception:
+            down = True
+        sleep(1)
 
 
 def remove_bad_nodes(nodes):
@@ -47,12 +74,14 @@ def wait_workloads(wids):
 
 
 def create_pool(cus=100, sus=100, farm="freefarm", wait=True):
-    # ### FOR TESTING
-    # if farm == "freefarm":
-    #     return zos.pools.get(fp.pop(-1))
-    # else:
-    #     return zos.pools.get(mp.pop(-1))
-    # ###
+    cus = math.ceil(cus)
+    sus = math.ceil(sus)
+    ### FOR TESTING
+    if farm == "freefarm":
+        return zos.pools.get(1255)
+    else:
+        return zos.pools.get(487)
+    ###
     payment_detail = zos.pools.create(cu=cus, su=sus, farm=farm, currencies=["TFT"])
     wallet = j.clients.stellar.get("wallet")
     zos.billing.payout_farmers(wallet, payment_detail)
@@ -108,7 +137,7 @@ def add_node_to_network(network, node_id, pool, iprange):
 def deploy_zdb(node, pool):
     w_zdb = zos.zdb.create(
         node_id=node.node_id,
-        size=10,
+        size=3,
         mode=0,  # seq
         password=PASSWORD,
         pool_id=pool.pool_id,
@@ -176,8 +205,8 @@ def deploy_master_minio(node_id, pool, network_name, namespace_config, tlog_node
         secret_env=secret_env,
     )
 
-    zos.workloads.deploy(minio_container)
-    return minio_container
+    wid = zos.workloads.deploy(minio_container)
+    return wid, minio_container
 
 
 def deploy_backup_minio(node_id, pool, network_name, namespace_config, tlog_node_namespace, ip_addr):
@@ -208,8 +237,8 @@ def deploy_backup_minio(node_id, pool, network_name, namespace_config, tlog_node
         secret_env=secret_env,
     )
 
-    zos.workloads.deploy(minio_container)
-    return minio_container
+    wid = zos.workloads.deploy(minio_container)
+    return wid, minio_container
 
 
 def attach_volume(minio_container, vol_wid):
@@ -224,11 +253,13 @@ random.shuffle(nodes)
 nodes = remove_bad_nodes(nodes)
 minio_master_node = nodes[-1]
 minio_backup_node = nodes[-2]
-tlog_node = nodes[(DATA_NODES + PARITY_NODES)]
 
-if len(nodes) < 10:
-    print("Not enough nodes to deploy the zdbs")
+while len(nodes) < (DATA_NODES + PARITY_NODES + TO_KILL + 1):
+    nodes.append(random.sample(nodes, 1)[0])
 
+tlog_node = nodes[(DATA_NODES + PARITY_NODES + TO_KILL)]
+
+zdb_later_nodes = nodes[DATA_NODES + PARITY_NODES : DATA_NODES + PARITY_NODES + TO_KILL]
 nodes = nodes[: (DATA_NODES + PARITY_NODES)]
 master_pool = (
     create_pool(UP_FOR * 0.25, UP_FOR * 0.043, "freefarm")
@@ -265,10 +296,10 @@ namespace_config = get_namespace_config(zdb_workloads)
 tlog_namespace = get_namespace_config([tlog_workload])[0]
 master_ip_address = "172.19.3.3"
 backup_ip_address = "172.19.4.4"
-minio_master_container = deploy_master_minio(
+master_wid, minio_master_container = deploy_master_minio(
     minio_master_node.node_id, master_pool, network_name, namespace_config, tlog_namespace, master_ip_address
 )
-minio_backup_container = deploy_backup_minio(
+backup_wid, minio_backup_container = deploy_backup_minio(
     minio_backup_node.node_id, backup_pool, network_name, namespace_config, tlog_namespace, backup_ip_address
 )
 attach_volume(minio_master_container, master_vol_id)
@@ -280,7 +311,51 @@ print(
 Finished successfully. After adding the network using
 the wireguard config printed above, minio can be accessed on
 http://{master_ip_address}:9000
-Backed up on:
+Slave up on:
 http://{backup_ip_address}:9000
 """
 )
+
+
+input(
+    """Make sure that the master and slave are accessible and play around with s3fs and restic to make sure they behave as expected,
+maybe add prometheus or grafana to ensure that there's no down time then press enter to continue to the second phase where redunduncy is checked"""
+)
+
+to_die = random.sample(range(0, 10), TO_KILL)
+
+zdb_new_pools = create_zdb_pools(zdb_later_nodes)
+zdb_new_workloads = deploy_zdbs(zdb_later_nodes, zdb_new_pools)
+zdb_new_wids = [x.id for x in zdb_new_workloads]
+wait_workloads(zdb_new_wids)
+new_namespace_config = get_namespace_config(zdb_new_workloads)
+
+print("Removing three backup storages")
+for i, idx in enumerate(to_die):
+    zos.workloads.decomission(zdb_workloads[idx].id)
+    namespace_config[idx] = new_namespace_config[i]
+
+input("Removed, make sure that the system is still intact, then press enter")
+
+print("Removing master node")
+zos.workloads.decomission(master_wid)
+input("Removed the master check that the slave is still accessible and mountable (read only), then press enter")
+
+print(
+    "Removing the slave and redeploying a new master/slave nodes with newly created 3 zdb storages instead of the dead ones"
+)
+
+
+zos.workloads.decomission(backup_wid)
+sleep(4 * 60)
+master_wid, minio_master_container = deploy_master_minio(
+    minio_master_node.node_id, master_pool, network_name, namespace_config, tlog_namespace, master_ip_address
+)
+backup_wid, minio_backup_container = deploy_backup_minio(
+    minio_backup_node.node_id, backup_pool, network_name, namespace_config, tlog_namespace, backup_ip_address
+)
+attach_volume(minio_master_container, master_vol_id)
+attach_volume(minio_backup_container, backup_vol_id)
+
+
+print("Recheck, the master/slave printed urls. All should be deployed successfullly")
