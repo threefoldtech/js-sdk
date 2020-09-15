@@ -252,7 +252,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         log_config["channel_type"] = "redis"
         log_config["channel_host"] = "192.241.158.21"
         log_config["channel_port"] = 6378
-        log_config["channel_name"] = "newoffice2"
+        log_config["channel_name"] = self.solution_name
 
         self.workload_ids.append(
             deployer.deploy_container(
