@@ -18,9 +18,11 @@ class MinioBackup(BaseActor):
         minio.extra_env = {"AWS_ACCESS_KEY_ID": access_key, "AWS_SECRET_ACCESS_KEY": secret_key}
         try:
             minio.init_repo()
-        except Exception:
-            raise j.exceptions.Value("Couldn't create restic repo with given data")
-        minio.save()
+        except Exception as e:
+            j.tools.restic.delete(INSTANCE_NAME)
+            raise j.exceptions.Value(f"Couldn't create restic repo with given data {e}")
+        else:
+            minio.save()
 
         return j.data.serializers.json.dumps({"data": "backup repos inited"})
 

@@ -18,13 +18,7 @@ SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
 network_name = str(uuid.uuid4())
 print(f"network name: {network_name}")
-BAD_NODES = set(
-    [
-        "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF",
-        "A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7",
-        "72CP8QPhMSpF7MbSvNR1TYZFbTnbRiuyvq5xwcoRNAib",
-    ]
-)
+BAD_NODES = set([])
 UP_FOR = 60 * 20  # number of seconds
 
 
@@ -102,7 +96,6 @@ def create_zdb_pools(nodes):
 
 def create_network(network_name, pool, farm_id):
     ip_range = "172.19.0.0/16"
-
     network = zos.network.create(ip_range, network_name)
     nodes = zos.nodes_finder.nodes_search(farm_id)
     access_node = list(filter(zos.nodes_finder.filter_public_ip4, nodes))[0]
@@ -239,14 +232,22 @@ def attach_volume(minio_container, vol_wid):
     zos.volume.attach_existing(container=minio_container, volume_id=f"{vol_wid}-1", mount_point="/data")
 
 
+def pick_minio_nodes(nodes):
+    if nodes[-1].farm_id == MAZR3A_ID:
+        for node in reversed(nodes):
+            if node.farm_id == FREEFARM_ID:
+                return node, nodes[-1]
+    return nodes[-1], nodes[-2]
+
+
 freefarm_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos.nodes_finder.nodes_search(FREEFARM_ID)))
 mazr3a_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos.nodes_finder.nodes_search(MAZR3A_ID)))
 
 nodes = freefarm_nodes + mazr3a_nodes
 random.shuffle(nodes)
 nodes = remove_bad_nodes(nodes)
-minio_master_node = nodes[-1]
-minio_backup_node = nodes[-2]
+minio_master_node, minio_backup_node = pick_minio_nodes(nodes)
+
 
 while len(nodes) < (DATA_NODES + PARITY_NODES + TO_KILL + 1):
     nodes.append(random.sample(nodes, 1)[0])
@@ -260,6 +261,10 @@ master_pool = (
     if minio_master_node.farm_id == FREEFARM_ID
     else create_pool(UP_FOR * 0.25, UP_FOR * 0.043, "ThreeFold_Mazraa")
 )
+
+network, wg_quick = create_network(network_name, master_pool, minio_master_node.farm_id)
+print(wg_quick)
+
 backup_pool = (
     create_pool(UP_FOR * 0.25, UP_FOR * 0.043, "freefarm")
     if minio_backup_node.farm_id == FREEFARM_ID
@@ -271,8 +276,6 @@ tlog_pool = (
     else create_pool(10, UP_FOR * 0.0416, "ThreeFold_Mazraa")
 )
 pools = create_zdb_pools(nodes)
-network, wg_quick = create_network(network_name, master_pool, minio_master_node.farm_id)
-print(wg_quick)
 
 
 add_node_to_network(network, minio_master_node.node_id, master_pool, "172.19.3.0/24")
