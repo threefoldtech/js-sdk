@@ -129,7 +129,6 @@
         this.loading = true
         this.$api.alerts.listAlerts(this.appname).then((response) => {
           this.alerts = JSON.parse(response.data).data
-          console.log(JSON.parse(response.data).data)
           if(this.alertID !== undefined)
             this.navigateToAlertID(this.alertID)
         }).finally(() => {
@@ -139,7 +138,6 @@
       navigateToAlertID(alertID){
         let idx = -1
         let d = this.data
-        console.log(d)
         for(let i in d)
           if(alertID == d[i].id)
             idx = i
