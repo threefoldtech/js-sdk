@@ -8,14 +8,20 @@
       </template>
 
       <template #default>
-        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open">
+        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" :page.sync="page">
           <template slot="no-data">No Alerts available</p></template>
-          <template v-slot:item.message="{ item }">
-            {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
-           </template>
 
-           <template v-slot:item.last_occurrence="{ item }">
-            {{ new Date(item.last_occurrence * 1000).toLocaleString() }}
+          <template v-slot:item="{ item }">
+            <tr @click="open(item)" :name="item.id">
+              <td>{{ item.id }}</td>
+              <td>{{ item.appname }}</td>
+              <td>{{ item.epoch }}</td>
+              <td>{{ item.type }}</td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.count }}</td>
+              <td>{{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}</td>
+            </tr>
           </template>
 
           <template v-slot:body.prepend="{ headers }">
@@ -57,6 +63,7 @@
 
 <script>
   module.exports = {
+    props: ['alertID'],
     components: {
       'show-alert': httpVueLoader("./Alert.vue"),
       'delete-alerts': httpVueLoader("./Delete.vue")
@@ -64,6 +71,7 @@
     data () {
       return {
         appname: "init",
+        page:1,
         apps: [],
         alerts: [],
         selected: null,
@@ -109,7 +117,6 @@
     },
     methods: {
       open (record) {
-        console.log(record)
         this.selected = record
         this.dialogs.show = true
       },
@@ -122,9 +129,23 @@
         this.loading = true
         this.$api.alerts.listAlerts(this.appname).then((response) => {
           this.alerts = JSON.parse(response.data).data
+          console.log(JSON.parse(response.data).data)
+          if(this.alertID !== undefined)
+            this.navigateToAlertID(this.alertID)
         }).finally(() => {
           this.loading = false
         })
+      },
+      navigateToAlertID(alertID){
+        let idx = -1
+        let d = this.data
+        console.log(d)
+        for(let i in d)
+          if(alertID == d[i].id)
+            idx = i
+        this.page = Math.floor(idx / 10) + 1
+        if (idx != -1)
+          this.open(d[idx])
       }
     },
     mounted () {

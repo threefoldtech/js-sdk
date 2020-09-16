@@ -96,6 +96,7 @@ const router = new VueRouter({
         { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
         { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
         { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
+        { name: "Alert", path: '/alerts/:alertID', component: alerts, props: true, meta: { icon: "mdi-alert-outline", listed: false } },
         { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
