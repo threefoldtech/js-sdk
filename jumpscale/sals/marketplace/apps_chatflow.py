@@ -185,20 +185,31 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
 
         domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                is_managed_domains = True
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
+                    is_http_failure = True
                     continue
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
-            )
+            if is_http_failure:
+                raise StopChatFlow(
+                    'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+                )
+            elif not is_managed_domains:
+                raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+            else:
+                raise StopChatFlow(
+                    "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                )
 
         self.domain = random.choice(list(domains.keys()))
 
