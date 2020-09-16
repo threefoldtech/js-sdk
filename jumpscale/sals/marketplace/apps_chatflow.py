@@ -29,7 +29,7 @@ RESOURCE_VALUE_KEYS = {
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
-        self.md_show_update("Chacking payment service...")
+        self.md_show_update("Checking payment service...")
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
