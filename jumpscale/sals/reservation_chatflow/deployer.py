@@ -1106,7 +1106,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
-            raise StopChatFlow(f"no available gateways")
+            raise StopChatFlow(f"no gateways available in your pools")
         return result
 
     def select_gateway(self, bot, pool_ids=None):
