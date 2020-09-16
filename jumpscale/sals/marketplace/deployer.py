@@ -252,14 +252,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = cu * expiration
-        su = su * expiration
-        pool = j.sals.zos.pools.get(pool_id)
-        old_cu, old_su = pool.cus, pool.sus
-        cu = math.ceil(cu - old_cu)
-        su = math.ceil(su - old_su)
-        cu = max(cu, 0)
-        su = max(su, 0)
+        cu = math.ceil(cu * expiration)
+        su = math.ceil(su * expiration)
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
@@ -267,7 +261,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
-            return None, None
+            raise j.exceptions.Runtime(f"Wrong extension values of cu: {cu}, su: {su}")
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
@@ -393,7 +387,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             min_time=[min, min_message],
             default=default,
         )
-        return self.expiration - j.data.time.get().timestamp
+        return self.expiration - j.data.time.utcnow().timestamp
 
 
 deployer = MarketPlaceDeployer()
