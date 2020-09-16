@@ -39,18 +39,7 @@ class ExtendThreebot(MarketPlaceChatflow):
 
     @chatflow_step(title="Payment")
     def solution_extension(self):
-
-        farm_id = deployer.get_pool_farm_id(self.pool_id)
-        farm = deployer._explorer.farms.get(farm_id)
-        assets = [w.asset for w in farm.wallet_addresses]
-        if "FreeTFT" in assets:
-            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=self.pool_id)
-            for node in pool_nodes:
-                if not node.free_to_use:
-                    assets.remove("FreeTFT")
-                    break
-        currency = self.single_choice("Please choose your preferred payment currency", assets, required=True)
-        self.currencies = [currency]
+        self.currencies = ["TFT"]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )

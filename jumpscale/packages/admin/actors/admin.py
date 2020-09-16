@@ -66,6 +66,7 @@ class Admin(BaseActor):
                         "email": identity.email,
                         "tid": identity.tid,
                         "explorer_url": identity.explorer_url,
+                        "words": identity.words,
                     }
                 }
             )
@@ -123,5 +124,9 @@ class Admin(BaseActor):
         j.core.config.set("OVER_PROVISIONING", over_provision)
         return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
 
+    @actor_method
+    def clear_blocked_nodes(self) -> str:
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes() 
+        return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
 Actor = Admin

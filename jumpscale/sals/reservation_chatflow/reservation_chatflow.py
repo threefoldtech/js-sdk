@@ -1427,7 +1427,10 @@ class ReservationChatflow:
                     while node.node_id in selected_ids:
                         node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow("Failed to find resources for this reservation")
+                    raise StopChatFlow(
+                        "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
+                        htmlAlert=True,
+                    )
                 nodes.remove(node)
                 nodes_selected.append(node)
                 selected_ids.append(node.node_id)
@@ -1624,7 +1627,8 @@ class ReservationChatflow:
 
     def clear_blocked_nodes(self):
         blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
-        j.core.db.delete(blocked_node_keys)
+        if blocked_node_keys:
+            j.core.db.delete(*blocked_node_keys)
         j.core.db.delete(NODES_COUNT_KEY)
 
 

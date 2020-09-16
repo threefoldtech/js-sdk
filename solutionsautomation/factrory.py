@@ -16,6 +16,8 @@ from monitoring import MonitoringAutomated
 from network import NetworkDeployAutomated
 from taiga import TaigaAutomated
 from exposed import SolutionExposeDeployAutomated
+from pools import PoolAutomated
+from threebot_deploy import ThreebotDeployAutomated
 
 
 def deploy_gitea(solution_name, currency, expiration, wg_config="NO", debug=True):
@@ -313,4 +315,25 @@ def deploy_exposed(
 ):
     return SolutionExposeDeployAutomated(
         type=type, tls_port=tls_port, port_expose=port_expose, sub_domain=sub_domain, debug=debug
+    )
+
+
+def deploy_pool(
+    type, solution_name, wallet_name, cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
+):
+    return PoolAutomated(
+        type=type,
+        solution_name=solution_name,
+        wallet_name=wallet_name,
+        cu=cu,
+        su=su,
+        time_unit=time_unit,
+        time_to_live=time_to_live,
+        debug=debug,
+    )
+
+
+def deploy_threebot(type, solution_name, secret, expiration, debug=True):
+    return ThreebotDeployAutomated(
+        type=type, solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
     )

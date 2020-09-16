@@ -104,5 +104,10 @@ class Wallet(BaseActor):
         j.clients.stellar.delete(name=name)
         return j.data.serializers.json.dumps({"data": True})
 
+    @actor_method
+    def create_testnet_funded(self, name: str) -> str:
+        j.clients.stellar.create_testnet_funded_wallet(name=name)
+        return j.data.serializers.json.dumps({"data": True})
+
 
 Actor = Wallet

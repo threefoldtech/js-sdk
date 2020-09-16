@@ -2,7 +2,7 @@ from jumpscale.loader import j
 
 
 class marketplace:
-    def install(self):
+    def install(self, **kwargs):
         """Called when package is added
         """
         # http_location = j.sals.nginx.main.websites.default_80.locations.get(name="marketplace_root_proxy")
@@ -29,9 +29,13 @@ class marketplace:
 
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
-
-    def start(self):
-        self.install()
+        if "demos_wallet" not in j.clients.stellar.list_all():
+            secret = kwargs.get("secret", None)
+            wallet = j.clients.stellar.new("demos_wallet", secret=secret, network="TEST")
+            if not secret:
+                wallet.activate_through_friendbot()
+                wallet.add_known_trustline("TFT")
+            wallet.save()
 
     def uninstall(self):
         """Called when package is deleted

@@ -6,7 +6,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, depl
 
 
 class NetworkDeploy(GedisChatBot):
-    steps = ["welcome", "start", "ip_config", "network_reservation", "network_info", "success"]
+    steps = ["welcome", "start", "ip_config", "network_reservation", "network_info"]
     title = "Network"
 
     @chatflow_step(title="Welcome")
@@ -50,7 +50,11 @@ class NetworkDeploy(GedisChatBot):
             "How would you like to connect to your network? If unsure, choose IPv4", ips, required=True, default="IPv4",
         )
         self.md_show_update("Searching for access node...")
-        pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pools = [
+            p
+            for p in j.sals.zos.pools.list()
+            if p.node_ids and p.cus >= 0 and p.sus >= 0 and p.empty_at > j.data.time.now().timestamp
+        ]
         self.access_node = None
         for pool in pools:
             try:
@@ -103,7 +107,7 @@ class NetworkDeploy(GedisChatBot):
             if not success:
                 raise DeploymentFailed(f"Failed to deploy workload {wid}", wid=wid)
 
-    @chatflow_step(title="Network Information", disable_previous=True)
+    @chatflow_step(title="Network Information", disable_previous=True, final_step=True)
     def network_info(self):
         self.filename = "wg-{}.conf".format(self.config["rid"])
         self.wgconf = self.config["wg"]
@@ -112,21 +116,11 @@ class NetworkDeploy(GedisChatBot):
         <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
         <h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
         <br />
-        <pre style="text-align:center">{self.wgconf}</pre>
+        <p style="text-align:center">{self.wgconf.replace(chr(10), "<br />")}</p>
         <br />
-        <h3>navigate to where the config is downloaded and start your connection using "wg-quick up {self.filename}"</h3>
+        <h3>In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &lt;your_download_dir&gt;/{self.filename}`</h3>
         """
         self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        message = f"""\
-        ### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
-
-        <br />`wg-quick up /etc/wireguard/{self.filename}`
-        """
-
-        self.md_show(dedent(message), md=True)
 
 
 chat = NetworkDeploy

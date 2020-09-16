@@ -162,7 +162,8 @@ class GedisChatBot:
                 alert = j.tools.alerthandler.alert_raise(
                     appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
-                if self.user_info()["username"] in j.core.identity.me.admins:
+                username = self.user_info()["username"]
+                if username in j.core.identity.me.admins:
                     self.send_error(
                         f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>"""
                         "Please use the refresh button on the upper right to restart the chatflow",

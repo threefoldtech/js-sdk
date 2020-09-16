@@ -65,7 +65,7 @@ class Form:
 
     @result
     def single_choice(self, msg, options, **kwargs):
-        return self._session.single_choice(self, msg, options, **kwargs)
+        return self._session.single_choice(msg, options, **kwargs)
 
     @result
     def drop_down_choice(self, msg, options, **kwargs):

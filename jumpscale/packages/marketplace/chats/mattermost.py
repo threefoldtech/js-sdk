@@ -10,8 +10,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "mattermost_info",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",

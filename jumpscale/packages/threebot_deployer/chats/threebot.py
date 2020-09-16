@@ -1,10 +1,12 @@
 import uuid
+import math
+import random
 from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
-from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
@@ -14,46 +16,142 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
+        "create_or_recover",
         "get_solution_name",
         # "upload_public_key",
         "set_backup_password",
         "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "deploy",
         "initializing",
         "success",
     ]
 
+    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to recover"
+    CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
+
     def _threebot_start(self):
         self._validate_user()
         self.branch = "development"
         self.solution_id = uuid.uuid4().hex
-        self.threebot_name = j.data.text.removesuffix(self.user_info()["username"], ".3bot")
+        self.username = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
         self.query = {"cru": 1, "mru": 1, "sru": 2}
 
-    @chatflow_step(title="Get a 3Bot Name")
+    def _get_pool(self):
+        available_farms = []
+        self.currency = "TFT"
+        farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+        for farm_name in farm_names:
+            available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
+            if available:
+                available_farms.append(farm_name)
+
+        self.farm_name = random.choice(available_farms)
+
+        user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
+        networks_names = [n["Name"] for n in user_networks]
+        if "apps" in networks_names:
+            # old user
+            self.md_show_update(
+                "Checking if you have free resources (If you have an old deployment that failed after payment)...."
+            )
+            free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
+            if free_pools:
+                self.md_show_update(
+                    "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
+                )
+                # select free pool and extend if required
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
+                if cu_diff < 0 or su_diff < 0:
+                    # extend pool
+                    self.md_show_update(
+                        "Found pool that requires extension. payment screen will be shown in a moment..."
+                    )
+                    cu_diff = abs(cu_diff) if cu_diff < 0 else 0
+                    su_diff = abs(su_diff) if su_diff < 0 else 0
+                    pool_info = j.sals.zos.pools.extend(
+                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
+                    )
+                    qr_code = deployer.show_payment(pool_info, self)
+                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
+                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
+                    result = deployer.wait_pool_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    )
+                    if not result:
+                        raise StopChatFlow(
+                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
+                        )
+                    self.pool_id = pool.pool_id
+                else:
+                    self.md_show_update(
+                        f"Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment..."
+                    )
+                    self.pool_id = pool.pool_id
+            else:
+                self.pool_info = deployer.create_solution_pool(
+                    bot=self,
+                    username=self.solution_metadata["owner"],
+                    farm_name=self.farm_name,
+                    expiration=self.expiration,
+                    currency=self.currency,
+                    **self.query,
+                )
+                qr_code = deployer.show_payment(self.pool_info, self)
+                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+                if not result:
+                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
+                self.pool_id = self.pool_info.reservation_id
+        else:
+            # new user
+            self.pool_info, _ = deployer.init_new_user(
+                bot=self,
+                username=self.solution_metadata["owner"],
+                farm_name=self.farm_name,
+                expiration=self.expiration,
+                currency=self.currency,
+                **self.query,
+            )
+            self.pool_id = self.pool_info.reservation_id
+
+        return self.pool_id
+
+    @chatflow_step(title="Welcome")
+    def create_or_recover(self):
+        self.action = self.single_choice(
+            "Would you like to create a new 3Bot instance, or recover an existing one?",
+            ["Create", "Recover"],
+            required=True,
+        )
+
+    @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
+        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Recover" else self.CREATE_NAME_MESSAGE
         while not valid:
-            self.solution_name = self.string_ask(
-                "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime.",
-                required=True,
-                field="name",
-                is_identifier=True,
-            )
+            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True,)
             threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in threebot_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another name.")
+                    self.md_show("The specified 3Bot name already exists. please choose another name.")
                     break
                 valid = True
+            if valid and self.action == "Create" and self._existing_3bot():
+                valid = False
+                self.md_show(
+                    "The specified 3Bot name was deployed before. Please go to the previous step and choose recover or enter a new name."
+                )
+
+            if valid and self.action == "Recover" and not self._existing_3bot():
+                valid = False
+                self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
     # @chatflow_step(title="SSH key")
@@ -63,26 +161,32 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     #         required=True,
     #     ).strip()
 
-    def _verify_password(self, password):
+    def _existing_3bot(self):
         try:
             name = f"{self.threebot_name}_{self.solution_name}"
-            user = self.explorer.users.get(name=name)
-            words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
-            seed = j.data.encryption.mnemonic_to_key(words)
-            pubkey = NACL(seed).get_verify_key_hex()
-            return pubkey == user.pubkey
-        except j.exceptions.NotFound:
+            self.explorer.users.get(name=name)
             return True
+        except j.exceptions.NotFound:
+            return False
 
-    @chatflow_step(title="Recovery Secret Key")
+    def _verify_password(self, password):
+        name = f"{self.threebot_name}_{self.solution_name}"
+        user = self.explorer.users.get(name=name)
+        words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
+        seed = j.data.encryption.mnemonic_to_key(words)
+        pubkey = NACL(seed).get_verify_key_hex()
+        return pubkey == user.pubkey
+
+    @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
         message = (
-            "Please enter the recovery secret (using this recovery secret, you can recover any 3Bot you deploy online)"
+            "Please enter the recovery password"
+            if self.action == "Recover"
+            else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-
-        while not self._verify_password(self.backup_password):
-            error = message + f"<br><br><code>Incorrect recovery secret for 3Bot name {self.solution_name}</code>"
+        while self.action == "Recover" and not self._verify_password(self.backup_password):
+            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Select your preferred payment currency")
