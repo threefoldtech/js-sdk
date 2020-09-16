@@ -68,7 +68,7 @@ def deploy_overlay_network(pool):
             workload = zos.workloads.get(wid)
 
     nodes = []
-    for i, node in enumerate(pool_nodes):
+    for i, node in enumerate(reversed(pool_nodes)):
         if not zos.nodes_finder.filter_is_up(node) or node.node_id == access_node.node_id:
             continue
         iprange = f"172.21.{i+10}.0/24"
