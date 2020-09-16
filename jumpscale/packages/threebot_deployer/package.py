@@ -1,12 +1,11 @@
 from jumpscale.loader import j
 
-WALLET_NAME = "deploy_starter_wallet"
-
 
 class threebot_deployer:
     def install(self, **kwargs):
 
         # Configure wallet
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         if WALLET_NAME not in j.clients.stellar.list_all():
             wallet_secret = kwargs.get("wallet_secret", None)
             wallet_network = kwargs.get("wallet_network", "TEST")

@@ -1,6 +1,5 @@
 import math
 import random
-from decimal import Decimal
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
@@ -13,6 +12,9 @@ from .models import UserPool
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
+
+    WALLET_NAME = "demos_wallet"
+
     def list_user_pool_ids(self, username):
         user_pools = self.list_user_pools(username)
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -68,12 +70,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
 
-    def pay_for_pool(self, pool, is_threebot=False):
+    def pay_for_pool(self, pool):
         info = self.get_payment_info(pool)
-        if is_threebot:
-            wallet = j.clients.stellar.get(name="deploy_starter_wallet")
-        else:
-            wallet = j.clients.stellar.get(name="demos_wallet")
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        wallet = j.clients.stellar.get(name=WALLET_NAME)
         wallet.transfer(
             destination_address=info["escrow_address"],
             amount=info["total_amount_dec"],

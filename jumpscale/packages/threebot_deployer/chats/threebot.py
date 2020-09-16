@@ -39,9 +39,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
         self.query = {"cru": 1, "mru": 1, "sru": 2}
-
-    def _get_pool(self):
-        super()._get_pool(is_threebot=True)
+        self.expiration = 15 * 60  # 15 minutes for 3bot
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):

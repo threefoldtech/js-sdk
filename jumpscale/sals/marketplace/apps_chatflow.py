@@ -61,14 +61,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor = chosen_flavor.split()[0]
         self.flavor_resources = flavors[self.flavor]
 
-    def _get_pool(self, is_threebot=False):
+    def _get_pool(self):
         self.currency = "TFT"
         available_farms = []
         farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
-
-        # if threebot initialization let's make it 15 mins
-        if is_threebot:
-            self.expiration = 15 * 60
 
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
@@ -97,7 +93,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    deployer.pay_for_pool(pool_info, is_threebot=is_threebot)
+                    deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
                     result = deployer.wait_demo_payment(
@@ -123,7 +119,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     currency=self.currency,
                     **self.query,
                 )
-                deployer.pay_for_pool(self.pool_info, is_threebot=is_threebot)
+                deployer.pay_for_pool(self.pool_info)
                 result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
                 if not result:
                     raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
@@ -138,7 +134,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
-            deployer.pay_for_pool(self.pool_info, is_threebot=is_threebot)
+            deployer.pay_for_pool(self.pool_info)
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
