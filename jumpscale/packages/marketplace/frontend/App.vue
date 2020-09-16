@@ -44,7 +44,7 @@
                   text
                   :link="true"
                   color="blue"
-                  href="https://manual-testnet.threefold.io/#/"
+                  href="https://manual.threefold.io/#/"
                   target="_blank"
                 >Manual</v-btn>
               </v-list-item-content>
