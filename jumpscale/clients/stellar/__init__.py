@@ -1,5 +1,6 @@
 import requests
 
+from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
 from stellar_sdk import Keypair
 from .exceptions import *
@@ -17,6 +18,39 @@ class StellarFactory(StoredFactory):
 
         return instance
 
+    def check_stellar_service(self):
+        """This method will check if stellar and token service is up or not
+        """
+        _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+            "TEST": "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
+            "STD": "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
+        }
+        _HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
+
+        services_status = True
+
+        # urls of services according to identity explorer
+        if "testnet" in j.core.identity.me.explorer_url:
+            stellar_url = _HORIZON_NETWORKS["TEST"]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES["TEST"]
+        else:
+            stellar_url = _HORIZON_NETWORKS["STD"]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES["STD"]
+
+        # check stellar service
+        try:
+            j.tools.http.get(stellar_url)
+        except:
+            services_status = False
+
+        # check token services
+        try:
+            j.tools.http.get(tokenservices_url)
+        except:
+            services_status = False
+
+        return services_status
+
     def create_testnet_funded_wallet(self, name: str) -> bool:
         """This method will create a testnet wallet and fund it from the facuet
 
@@ -25,10 +59,14 @@ class StellarFactory(StoredFactory):
 
         """
         wallet = self.new(name)
-        wallet.network = "TEST"
-        wallet.activate_through_friendbot()
-        wallet.add_known_trustline("TFT")
-        wallet.save()
+        try:
+            wallet.network = "TEST"
+            wallet.activate_through_friendbot()
+            wallet.add_known_trustline("TFT")
+            wallet.save()
+        except Exception as e:
+            self.delete(name)
+            raise j.exceptions.Runtime(f"Failed to create the wallet due to token service")
 
         headers = {"Content-Type": "application/json"}
         url = "https://gettft.testnet.grid.tf/tft_faucet/api/transfer"
