@@ -1,12 +1,10 @@
 import uuid
-import math
-import random
 from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
@@ -20,10 +18,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         # "upload_public_key",
         "set_backup_password",
-        "solution_expiration",
         "infrastructure_setup",
         "deploy",
         "initializing",
+        "solution_expiration",
+        "solution_extension",
         "success",
     ]
 
@@ -40,85 +39,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
         self.query = {"cru": 1, "mru": 1, "sru": 2}
-
-    def _get_pool(self):
-        available_farms = []
-        self.currency = "TFT"
-        farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
-        for farm_name in farm_names:
-            available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
-            if available:
-                available_farms.append(farm_name)
-
-        self.farm_name = random.choice(available_farms)
-
-        user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
-        networks_names = [n["Name"] for n in user_networks]
-        if "apps" in networks_names:
-            # old user
-            self.md_show_update(
-                "Checking if you have free resources (If you have an old deployment that failed after payment)...."
-            )
-            free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
-            if free_pools:
-                self.md_show_update(
-                    "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
-                )
-                # select free pool and extend if required
-                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
-                if cu_diff < 0 or su_diff < 0:
-                    # extend pool
-                    self.md_show_update(
-                        "Found pool that requires extension. payment screen will be shown in a moment..."
-                    )
-                    cu_diff = abs(cu_diff) if cu_diff < 0 else 0
-                    su_diff = abs(su_diff) if su_diff < 0 else 0
-                    pool_info = j.sals.zos.pools.extend(
-                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
-                    )
-                    qr_code = deployer.show_payment(pool_info, self)
-                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
-                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_pool_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
-                    )
-                    if not result:
-                        raise StopChatFlow(
-                            f"Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
-                        )
-                    self.pool_id = pool.pool_id
-                else:
-                    self.md_show_update(
-                        f"Found a pool with enough capacity {pool.pool_id}. Deployment will continue in a moment..."
-                    )
-                    self.pool_id = pool.pool_id
-            else:
-                self.pool_info = deployer.create_solution_pool(
-                    bot=self,
-                    username=self.solution_metadata["owner"],
-                    farm_name=self.farm_name,
-                    expiration=self.expiration,
-                    currency=self.currency,
-                    **self.query,
-                )
-                qr_code = deployer.show_payment(self.pool_info, self)
-                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
-                if not result:
-                    raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}")
-                self.pool_id = self.pool_info.reservation_id
-        else:
-            # new user
-            self.pool_info, _ = deployer.init_new_user(
-                bot=self,
-                username=self.solution_metadata["owner"],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
-                currency=self.currency,
-                **self.query,
-            )
-            self.pool_id = self.pool_info.reservation_id
-
-        return self.pool_id
+        self.expiration = 15 * 60  # 15 minutes for 3bot
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -305,11 +226,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             )
         self.threebot_url = f"https://{self.domain}/admin"
 
-    @chatflow_step(title="Expiration Date and Time")
-    def solution_expiration(self):
-        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on 3Bot Deployer's home screen"""
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 1209600, msg=msg)
-
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
         self.md_show_update("Initializing your 3Bot ...")
@@ -318,6 +234,35 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         ):
             self.stop(f"Failed to initialize 3Bot on {self.threebot_url} , please contact support")
         self.domain = f"{self.domain}/admin"
+
+    @chatflow_step(title="Expiration Date and Time", disable_previous=True)
+    def solution_expiration(self):
+        DURATION_MAX = 9223372036854775807
+        self.pool = j.sals.zos.pools.get(self.pool_id)
+        if self.pool.empty_at < DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.get().timestamp + 1209600
+        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on the 3Bot Deployer's home screen"""
+        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow, msg=msg)
+
+    @chatflow_step(title="Payment")
+    def solution_extension(self):
+        self.currencies = ["TFT"]
+        self.query = {"cru": 2, "mru": 2, "sru": 2}
+        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+            self, self.pool_id, self.expiration, self.currencies, **self.query
+        )
+
+        result = deployer.wait_pool_payment(
+            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
+        )
+        if not result:
+            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 
 
 chat = ThreebotDeploy
