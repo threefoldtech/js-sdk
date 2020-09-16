@@ -1,6 +1,7 @@
 from jumpscale.loader import j
 from time import sleep
 import uuid
+import random
 
 zos = j.sals.zos
 
@@ -45,10 +46,15 @@ wg_quick = zos.network.add_access(
     network, access_node.node_id, "10.110.3.0/24", ipv4=True
 )
 
+node_workloads = {}
 for workload in network.network_resources:
+    node_workloads[workload.info.node_id] = workload
+
+for workload in node_workloads.values():
     wid = zos.workloads.deploy(workload)
-    j.sals.reservation_chatflow.deployer.wait_workload(wid)
-    workload = zos.workloads.get(wid)
+    if not j.sals.reservation_chatflow.deployer.wait_workload(wid):
+        raise Exception(f"Failed to deploy network for ubuntu, Workload ID: {wid}")
+
 print(wg_quick)
 
 cpu = 1
@@ -56,16 +62,20 @@ mem = 1024
 disk = 256
 
 available_nodes = list(
-    zos.nodes_finder.nodes_by_capacity(cru=0, sru=0, mru=0, pool_id=pool.pool_id)
+    zos.nodes_finder.nodes_by_capacity(cru=0, sru=2, mru=2, pool_id=pool.pool_id)
 )
-
-deployment_node = available_nodes[0]
+available_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, available_nodes))
+deployment_node = random.choice(available_nodes)
 zos.network.add_node(network, deployment_node.node_id, "10.110.4.0/24", pool.pool_id)
 
+node_workloads = {}
 for workload in network.network_resources:
+    node_workloads[workload.info.node_id] = workload
+
+for workload in node_workloads.values():
     wid = zos.workloads.deploy(workload)
-    j.sals.reservation_chatflow.deployer.wait_workload(wid)
-    workload = zos.workloads.get(wid)
+    if not j.sals.reservation_chatflow.deployer.wait_workload(wid):
+        raise Exception(f"Failed to deploy network for ubuntu, Workload ID: {wid}")
 
 # Deploy container 1
 container = zos.container.create(
@@ -115,32 +125,33 @@ print("Second container deployed successfully")
 
 _, config, _ = j.core.executors.run_local("wg")
 if "wg_script" in config:
-    j.core.executors.run_local("wg-quick down wg_script")
+    j.core.executors.run_local("wg-quick down /tmp/wg_script.conf")
 
-j.core.executors.run_local(f'echo "{wg_quick}" > /etc/wireguard/wg_script.conf')
-j.core.executors.run_local("wg-quick up wg_script")
+j.core.executors.run_local(f'echo "{wg_quick}" > /tmp/wg_script.conf')
+j.core.executors.run_local("wg-quick up /tmp/wg_script.conf")
 
 sleep(5)
-j.core.executors.run_local("eval `ssh-agent` && ssh-add /tmp/.ssh/id_rsa")
 
 localclient = j.clients.sshclient.get("ubuntu_script")
 localclient.sshkey = "ubuntu_script"
 localclient.host = ip_container_1
+localclient.save()
 
 localclient2 = j.clients.sshclient.get("ubuntu_script2")
 localclient2.sshkey = "ubuntu_script"
 localclient2.host = ip_container_2
+localclient2.save()
 
 print(
     localclient.sshclient.run(
-        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} ls /'
+        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} -A ls /'
     )
 )
 
 
 print(
     localclient2.sshclient.run(
-        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_1} ls /'
+        f'ssh -o "StrictHostKeyChecking=no"  root@{ip_container_1} -A ls /'
     )
 )
 
