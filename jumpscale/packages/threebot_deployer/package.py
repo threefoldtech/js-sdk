@@ -3,21 +3,6 @@ from jumpscale.loader import j
 
 class threebot_deployer:
     def install(self, **kwargs):
-
-        # Configuring 3bot deployer package actors to be public
-        location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name="threebot_deployer_actors")
-        location_actors_443.is_auth = False
-        location_actors_443.is_admin = False
-        location_actors_443.save()
-
-        location_actors_80 = j.sals.nginx.main.websites.default_80.locations.get(name="threebot_deployer_actors")
-        location_actors_80.is_auth = False
-        location_actors_80.is_admin = False
-        location_actors_80.save()
-
-        j.sals.nginx.main.websites.default_443.configure()
-        j.sals.nginx.main.websites.default_80.configure()
-
         # Configure wallet
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         if WALLET_NAME not in j.clients.stellar.list_all():
@@ -49,6 +34,21 @@ class threebot_deployer:
             j.logger.info(
                 f"Added remote redis logs on machine {log_config['channel_host']}:{log_config['channel_port']}"
             )
+
+    def start(self):
+        # Configuring 3bot deployer package actors to be public
+        location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name="threebot_deployer_actors")
+        location_actors_443.is_auth = False
+        location_actors_443.is_admin = False
+        location_actors_443.save()
+
+        location_actors_80 = j.sals.nginx.main.websites.default_80.locations.get(name="threebot_deployer_actors")
+        location_actors_80.is_auth = False
+        location_actors_80.is_admin = False
+        location_actors_80.save()
+
+        j.sals.nginx.main.websites.default_443.configure()
+        j.sals.nginx.main.websites.default_80.configure()
 
     def uninstall(self):
         """Called when package is deleted
