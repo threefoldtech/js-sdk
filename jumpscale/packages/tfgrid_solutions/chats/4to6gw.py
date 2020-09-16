@@ -12,6 +12,7 @@ class FourToSixGateway(GedisChatBot):
 
     @chatflow_step(title="Gateway")
     def gateway_start(self):
+        deployer.chatflow_pools_check()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
         self.gateway, pool = deployer.select_gateway(bot=self)
