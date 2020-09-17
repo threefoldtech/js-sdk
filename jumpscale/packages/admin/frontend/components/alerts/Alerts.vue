@@ -8,7 +8,7 @@
       </template>
 
       <template #default>
-        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open">
+        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open" :page.sync="page">
           <template slot="no-data">No Alerts available</p></template>
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
@@ -57,6 +57,7 @@
 
 <script>
   module.exports = {
+    props: ['alertID'],
     components: {
       'show-alert': httpVueLoader("./Alert.vue"),
       'delete-alerts': httpVueLoader("./Delete.vue")
@@ -67,6 +68,7 @@
         apps: [],
         alerts: [],
         selected: null,
+        page: 1,
         dialogs: {
           show: false,
           delete: false
@@ -109,7 +111,6 @@
     },
     methods: {
       open (record) {
-        console.log(record)
         this.selected = record
         this.dialogs.show = true
       },
@@ -122,9 +123,22 @@
         this.loading = true
         this.$api.alerts.listAlerts(this.appname).then((response) => {
           this.alerts = JSON.parse(response.data).data
+          console.log(this.alertID)
+          if(this.alertID !== undefined)
+            this.navigateToAlertID(this.alertID)
         }).finally(() => {
           this.loading = false
         })
+      },
+      navigateToAlertID(alertID){
+        let idx = -1
+        let d = this.data
+        for(let i in d)
+          if(alertID == d[i].id)
+            idx = i
+        this.page = Math.floor(idx / 10) + 1
+        if (idx != -1)
+          this.open(d[idx])
       }
     },
     mounted () {

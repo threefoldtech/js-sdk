@@ -28,10 +28,10 @@ def main():
         new = False
 
     j.logger.info("Generating guest identity ...")
-    identity_main = j.core.identity.new(
+    identity_main = j.core.identity.get(
         "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/explorer"
     )
-    identity_test = j.core.identity.new(
+    identity_test = j.core.identity.get(
         "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
     )
 
@@ -44,6 +44,12 @@ def main():
     j.core.identity.set_default("test")
 
     if backup_password:
+        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
+        try:
+            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
+        except Exception as e:
+            j.logger.error(str(e))
+
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
             if not new:
@@ -54,17 +60,17 @@ def main():
             else:
                 j.logger.info("Taking backup ...")
                 # Create a funded wallet to the threebot testnet
-                j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))
 
     j.logger.info("Starting threebot ...")
 
-    if test_cert == "true":
-        j.servers.threebot.start_default(wait=True, local=False)
-    else:
-        j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
+    server = j.servers.threebot.get("default")
+    if test_cert == "false":
+        server.domain = domain
+        server.email = email
+        server.save()
 
 
 if __name__ == "__main__":

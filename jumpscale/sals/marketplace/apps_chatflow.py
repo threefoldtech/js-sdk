@@ -29,6 +29,10 @@ RESOURCE_VALUE_KEYS = {
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
+        self.md_show_update("Checking payment service...")
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow("Payment service is currently down, try again later")
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
@@ -65,6 +69,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.currency = "TFT"
         available_farms = []
         farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
@@ -180,20 +185,31 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
 
         domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                is_managed_domains = True
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
+                    is_http_failure = True
                     continue
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
-            )
+            if is_http_failure:
+                raise StopChatFlow(
+                    'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+                )
+            elif not is_managed_domains:
+                raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+            else:
+                raise StopChatFlow(
+                    "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                )
 
         self.domain = random.choice(list(domains.keys()))
 
@@ -264,6 +280,35 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 Domain: {self.domain}
                 """
             self.stop(dedent(stop_message))
+
+    # for threebot
+    @chatflow_step(title="New Expiration")
+    def new_expiration(self):
+        DURATION_MAX = 9223372036854775807
+        self.pool = j.sals.zos.pools.get(self.pool_id)
+        if self.pool.empty_at < DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.utcnow().timestamp + 1209600
+        self.expiration = deployer.ask_expiration(
+            self, default_time, min=min_timestamp_fromnow, pool_empty_at=self.pool.empty_at
+        )
+
+    @chatflow_step(title="Payment")
+    def solution_extension(self):
+        self.currencies = ["TFT"]
+        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+            self, self.pool_id, self.expiration, self.currencies, **self.query
+        )
+        if self.pool_info and self.qr_code:
+            # cru = 1 so cus will be = 0
+            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            if not result:
+                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
