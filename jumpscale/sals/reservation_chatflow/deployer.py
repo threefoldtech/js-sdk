@@ -335,7 +335,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow("There are no farms available that the selected currency")
+            raise StopChatFlow(f"There are no farms available that the support {currencies[0]} currency")
         selected_farm = bot.single_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -1106,7 +1106,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
-            raise StopChatFlow(f"no available gateways")
+            raise StopChatFlow(f"no gateways available in your pools")
         return result
 
     def select_gateway(self, bot, pool_ids=None):

@@ -22,6 +22,9 @@ class Discourse(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Discourse Setup")
     def discourse_smtp_info(self):
+        user_info = self.user_info()
+        self.user_email = user_info["email"]
+        self.username = user_info["username"]
         form = self.new_form()
         self.smtp_server = form.string_ask("Please add the host e-mail address for your solution", required=True)
         self.smtp_username = form.string_ask(
@@ -33,8 +36,6 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_server = self.smtp_server.value
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
-        self.user_email = self.user_info()["email"]
-        self.username = self.user_info()["username"]
 
     @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()

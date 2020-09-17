@@ -29,6 +29,10 @@ RESOURCE_VALUE_KEYS = {
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
+        self.md_show_update("Checking payment service...")
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow("Payment service is currently down, try again later")
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
@@ -65,6 +69,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.currency = "TFT"
         available_farms = []
         farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
@@ -180,20 +185,31 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
 
         domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
         for gw_dict in gateways.values():
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                is_managed_domains = True
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
+                    is_http_failure = True
                     continue
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
-            )
+            if is_http_failure:
+                raise StopChatFlow(
+                    'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+                )
+            elif not is_managed_domains:
+                raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+            else:
+                raise StopChatFlow(
+                    "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                )
 
         self.domain = random.choice(list(domains.keys()))
 
