@@ -883,8 +883,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return cu, su
         """
-        cu = min(cru * 4, (mru - 1) / 4)
-        su = hru / 1000 / 1.2 + sru / 100 / 1.2
+        cu = min((mru - 1) / 4, cru * 4 / 2)
+        su = (hru / 1000 + sru / 100 / 2) / 1.2
         if cu < 0:
             cu = 0
         if su < 0:

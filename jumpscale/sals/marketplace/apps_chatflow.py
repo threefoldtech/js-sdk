@@ -282,8 +282,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         else:
             # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
             min_timestamp_fromnow = None
-            default_time = j.data.time.now().timestamp + 1209600
-        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
+            default_time = j.data.time.utcnow().timestamp + 1209600
+        self.expiration = deployer.ask_expiration(
+            self, default_time, min=min_timestamp_fromnow, pool_empty_at=self.pool.empty_at
+        )
 
     @chatflow_step(title="Payment")
     def solution_extension(self):
@@ -291,11 +293,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
-
-        # cu = 1 so cus will be = 0
-        result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
-        if not result:
-            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+        if self.pool_info and self.qr_code:
+            # cru = 1 so cus will be = 0
+            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            if not result:
+                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
