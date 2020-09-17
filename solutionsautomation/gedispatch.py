@@ -102,6 +102,10 @@ class GedisChatBotPatch(GedisChatBot):
                         raise AttributeError
                 except AttributeError:
                     raise MissingValueException(f"{v} was not provided.")
+                try:
+                    attr = getattr(self, attr)
+                except:
+                    pass
                 if callable(attr):
                     return attr(msg, *args, **kwargs)
                 else:
@@ -135,5 +139,3 @@ class GedisChatBotPatch(GedisChatBot):
 
     def multi_values_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
-
-
