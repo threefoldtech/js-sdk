@@ -8,6 +8,22 @@
         </v-row>
       </router-link>
       <v-spacer></v-spacer>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            v-bind="attrs"
+            v-on="on"
+            class="ma-2 mr-4"
+            color="#ea5455"
+            label
+            text-color="white"
+          ><b>Demo staged on testnet</b></v-chip>
+        </template>
+        <pre>
+This is for demo purposes to showcase grid usage.
+We're running on testnet which means it's always on latest testing code.
+Forgive any instability you might encounter while our developers work out the kinks</pre>
+      </v-tooltip>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
