@@ -11,7 +11,7 @@ class ExtendThreebot(MarketPlaceAppsChatflow):
     @chatflow_step(title="Select 3Bot")
     def select_threebot(self):
         self._validate_user()
-        self.query = {"cru": 1, "mru": 1, "sru": 2}
+        self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.threebot_name = self.user_info()["username"]
         self.explorer = j.core.identity.me.explorer
         self.threebot_workloads = solutions.list_solutions(self.threebot_name, "threebot")

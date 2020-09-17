@@ -38,7 +38,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
-        self.query = {"cru": 1, "mru": 1, "sru": 2}
+        # the main container + the nginx container with 0.25 GB disk
+        self.query = {"cru": 2, "mru": 2, "sru": 2.25}
+        self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 15 * 60  # 15 minutes for 3bot
 
     @chatflow_step(title="Welcome")
@@ -181,9 +183,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL,
                 env=environment_vars,
-                cpu=self.query["cru"],
-                memory=self.query["mru"] * 1024,
-                disk_size=self.query["sru"] * 1024,
+                cpu=self.container_resources["cru"],
+                memory=self.container_resources["mru"] * 1024,
+                disk_size=self.container_resources["sru"] * 1024,
                 secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
                 interactive=False,
                 log_config=log_config,
