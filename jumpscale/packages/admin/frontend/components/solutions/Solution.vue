@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Solutions Menu" icon="mdi-menu-left" url="/solutions" :loading="loading">
+    <base-component title="Solutions Menu" icon="mdi-menu-left" url="/solutions">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
