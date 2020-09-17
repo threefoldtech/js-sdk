@@ -13,7 +13,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <a
                   class="chatflowInfo"
-                  :href="`https://now.threefold.io/#/${solution.type}`"
+                  :href="`https://manual.threefold.io/#/${solution.type}`"
                   target="blank"
                 >
                   <v-icon
