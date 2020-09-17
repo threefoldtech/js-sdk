@@ -252,14 +252,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = cu * expiration
-        su = su * expiration
-        pool = j.sals.zos.pools.get(pool_id)
-        old_cu, old_su = pool.cus, pool.sus
-        cu = math.ceil(cu - old_cu)
-        su = math.ceil(su - old_su)
+        cu = math.ceil(cu * expiration)
+        su = math.ceil(su * expiration)
+
+        # guard in case of negative results
         cu = max(cu, 0)
         su = max(su, 0)
+
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
@@ -382,10 +381,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None, msg="", min=None):
-        default = default or j.data.time.get().timestamp + 3900
+    def ask_expiration(self, bot, default=None, msg="", min=None, pool_empty_at=None):
+        default = default or j.data.time.utcnow().timestamp + 3900
         min = min or 3600
-        timestamp_now = j.data.time.get().timestamp
+        timestamp_now = j.data.time.utcnow().timestamp
         min_message = f"Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now"
         self.expiration = bot.datetime_picker(
             "Please enter the solution's expiration time" if not msg else msg,
@@ -393,7 +392,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             min_time=[min, min_message],
             default=default,
         )
-        return self.expiration - j.data.time.get().timestamp
+        current_pool_expiration = pool_empty_at or j.data.time.utcnow().timestamp
+        return self.expiration - current_pool_expiration
 
 
 deployer = MarketPlaceDeployer()
