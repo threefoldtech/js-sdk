@@ -26,9 +26,14 @@ def deploy_gitea(solution_name, currency, expiration, wg_config="NO", debug=True
     )
 
 
-def deploy_cryptpad(solution_name, currency, expiration, wg_config="NO", debug=True):
+def deploy_cryptpad(solution_name, currency, expiration, flavor="Silver", wg_config="NO", debug=True):
     return CryptpadAutomated(
-        solution_name=solution_name, currency=currency, expiration=expiration, wg_config=wg_config, debug=debug
+        solution_name=solution_name,
+        currency=currency,
+        expiration=expiration,
+        flavor=flavor,
+        wg_config=wg_config,
+        debug=debug,
     )
 
 
