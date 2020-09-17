@@ -21,7 +21,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "infrastructure_setup",
         "deploy",
         "initializing",
-        "solution_expiration",
+        "new_expiration",
         "solution_extension",
         "success",
     ]
@@ -38,7 +38,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
-        self.query = {"cru": 1, "mru": 1, "sru": 2}
+        # the main container + the nginx container with 0.25 GB disk
+        self.query = {"cru": 2, "mru": 2, "sru": 2.25}
+        self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 15 * 60  # 15 minutes for 3bot
 
     @chatflow_step(title="Welcome")
@@ -181,9 +183,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL,
                 env=environment_vars,
-                cpu=self.query["cru"],
-                memory=self.query["mru"] * 1024,
-                disk_size=self.query["sru"] * 1024,
+                cpu=self.container_resources["cru"],
+                memory=self.container_resources["mru"] * 1024,
+                disk_size=self.container_resources["sru"] * 1024,
                 secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
                 interactive=False,
                 log_config=log_config,
@@ -234,35 +236,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         ):
             self.stop(f"Failed to initialize 3Bot on {self.threebot_url} , please contact support")
         self.domain = f"{self.domain}/admin"
-
-    @chatflow_step(title="Expiration Date and Time", disable_previous=True)
-    def solution_expiration(self):
-        DURATION_MAX = 9223372036854775807
-        self.pool = j.sals.zos.pools.get(self.pool_id)
-        if self.pool.empty_at < DURATION_MAX:
-            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
-            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
-            default_time = self.pool.empty_at + 3900
-        else:
-            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
-            min_timestamp_fromnow = None
-            default_time = j.data.time.get().timestamp + 1209600
-        msg = """Please enter the expiration date of your 3Bot. This will be used to calculate the amount of capacity you need to keep your 3Bot alive and build projects on top of the TF Grid. But no worries, you could always extend your 3Bot’s lifetime on the 3Bot Deployer's home screen"""
-        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow, msg=msg)
-
-    @chatflow_step(title="Payment")
-    def solution_extension(self):
-        self.currencies = ["TFT"]
-        self.query = {"cru": 2, "mru": 2, "sru": 2}
-        self.pool_info, self.qr_code = deployer.extend_solution_pool(
-            self, self.pool_id, self.expiration, self.currencies, **self.query
-        )
-
-        result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
-        )
-        if not result:
-            raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 
 
 chat = ThreebotDeploy

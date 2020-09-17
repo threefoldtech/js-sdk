@@ -281,6 +281,35 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 """
             self.stop(dedent(stop_message))
 
+    # for threebot
+    @chatflow_step(title="New Expiration")
+    def new_expiration(self):
+        DURATION_MAX = 9223372036854775807
+        self.pool = j.sals.zos.pools.get(self.pool_id)
+        if self.pool.empty_at < DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.utcnow().timestamp + 1209600
+        self.expiration = deployer.ask_expiration(
+            self, default_time, min=min_timestamp_fromnow, pool_empty_at=self.pool.empty_at
+        )
+
+    @chatflow_step(title="Payment")
+    def solution_extension(self):
+        self.currencies = ["TFT"]
+        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+            self, self.pool_id, self.expiration, self.currencies, **self.query
+        )
+        if self.pool_info and self.qr_code:
+            # cru = 1 so cus will be = 0
+            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            if not result:
+                raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
