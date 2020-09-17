@@ -1,4 +1,7 @@
 <section class="nodestable">
+  <v-alert :type="deleteNodeFarmAlert.type" v-if=deleteNodeFarmAlert>
+    {{deleteNodeFarmAlert.message}}
+  </v-alert>
   <v-card style="width: 100%; height: 100%;">
     <v-card-title primary-title class="primary py-3 mb-5 white--text">
       <v-icon small color="white" left>fas fa-server</v-icon>
@@ -59,9 +62,6 @@
                 <v-card>
                   <v-card-title class="headline">Are you sure you want to delete node: {{ nodeToDelete.id }}?</v-card-title>
                   <v-card-actions>
-                    <v-alert :type="deleteNodeFarmAlert.type" v-if=deleteNodeFarmAlert border="right" colored-border elevation="2">
-                      {{deleteNodeFarmAlert.message}}
-                    </v-alert>
                     <v-spacer></v-spacer>
                     <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
                     <v-btn x-small color="red darken-1" text @click="deleteNode()">Delete</v-btn>
@@ -80,8 +80,5 @@
         </v-layout>
       </v-flex>
     </v-card-text>
-    <v-row>
-
-    </v-row>
   </v-card>
 </section>

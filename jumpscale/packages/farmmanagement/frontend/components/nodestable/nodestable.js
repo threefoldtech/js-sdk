@@ -37,7 +37,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 ],
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
-                nodeToDelete: { id: 0 },
+                nodeToDelete: { id: 0 }
             }
         },
         computed: {
@@ -190,7 +190,9 @@ module.exports = new Promise(async (resolve, reject) => {
                                 type: "error",
                             }
                         }
-                        this.deleteNodeFarmAlert = undefined
+                        setTimeout(() => {
+                            this.deleteNodeFarmAlert = undefined
+                        }, 2000)
                         this.openDeleteModal = false
                         this.getNodes(this.nodeToDelete.farmer.id)
                     }).catch(err => {
@@ -204,6 +206,10 @@ module.exports = new Promise(async (resolve, reject) => {
                             message: msg,
                             type: "error",
                         }
+                        this.openDeleteModal = false
+                        setTimeout(() => {
+                            this.deleteNodeFarmAlert = undefined
+                        }, 2000)
                     })
             }
         }
