@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.6.4" />
-<title>jumpscale.packages.threebot_deployer.bottle.backup API documentation</title>
+<title>jumpscale.packages.threebot_deployer.models.backup_tokens API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,56 +17,18 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>jumpscale.packages.threebot_deployer.bottle.backup</code></h1>
+<h1 class="title">Module <code>jumpscale.packages.threebot_deployer.models.backup_tokens</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort
-
+<pre><code class="python">from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
-
-app = Bottle()
 
 
-@app.route(&#34;/backup/destroy&#34;, method=&#34;POST&#34;)
-@login_required
-def destroy():
-    &#34;&#34;&#34;This method will delete username/backups from the backupservers
-    --------------------------------------------------------------------------
-    * WARNINING: THIS IS A DISTRUCTIVE ACTION. WON&#39;T BE ABLE TO RECOVER FROM *
-    --------------------------------------------------------------------------
-    &#34;&#34;&#34;
-    ssh_server1 = j.clients.sshclient.get(&#34;backup_server1&#34;)
-    ssh_server2 = j.clients.sshclient.get(&#34;backup_server2&#34;)
-    # validiate user
-    data = j.data.serializers.json.loads(request.body.read())
-    threebot_name = data.get(&#34;threebot_name&#34;, &#34;&#34;)
-    user_info = j.data.serializers.json.loads(get_user_info())
-    current_username = threebot_name.split(&#34;_&#34;)[0]
-    logged_in_username = user_info[&#34;username&#34;].split(&#34;.&#34;)[0]
-
-    if current_username != logged_in_username:
-        abort(401, &#34;Unauthorized&#34;)
-
-    status = &#34;Failed to destroy backups, 3Bot name doesn&#39;t exist&#34;
-    try:
-        ssh_server1.sshclient.run(
-            f&#34;cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}&#34;
-        )
-        ssh_server2.sshclient.run(
-            f&#34;cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}&#34;
-        )
-        status = &#34;Destroyed successfully&#34;
-    except:
-        raise j.exceptions.Value(status)
-
-    return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;status&#34;: status}})
-
-
-app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+class BackupTokens(Base):
+    tname = fields.String()
+    token = fields.String()</code></pre>
 </details>
 </section>
 <section>
@@ -74,54 +36,111 @@ app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="jumpscale.packages.threebot_deployer.bottle.backup.destroy"><code class="name flex">
-<span>def <span class="ident">destroy</span></span>(<span>)</span>
+<dt id="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens"><code class="flex name class">
+<span>class <span class="ident">BackupTokens</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><h2 id="this-method-will-delete-usernamebackups-from-the-backupservers">This method will delete username/backups from the backupservers</h2>
-<h2 id="warnining-this-is-a-distructive-action-wont-be-able-to-recover-from">* WARNINING: THIS IS A DISTRUCTIVE ACTION. WON'T BE ABLE TO RECOVER FROM *</h2></section>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">@app.route(&#34;/backup/destroy&#34;, method=&#34;POST&#34;)
-@login_required
-def destroy():
-    &#34;&#34;&#34;This method will delete username/backups from the backupservers
-    --------------------------------------------------------------------------
-    * WARNINING: THIS IS A DISTRUCTIVE ACTION. WON&#39;T BE ABLE TO RECOVER FROM *
-    --------------------------------------------------------------------------
+<pre><code class="python">class BackupTokens(Base):
+    tname = fields.String()
+    token = fields.String()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.tname"><code class="name">var <span class="ident">tname</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
     &#34;&#34;&#34;
-    ssh_server1 = j.clients.sshclient.get(&#34;backup_server1&#34;)
-    ssh_server2 = j.clients.sshclient.get(&#34;backup_server2&#34;)
-    # validiate user
-    data = j.data.serializers.json.loads(request.body.read())
-    threebot_name = data.get(&#34;threebot_name&#34;, &#34;&#34;)
-    user_info = j.data.serializers.json.loads(get_user_info())
-    current_username = threebot_name.split(&#34;_&#34;)[0]
-    logged_in_username = user_info[&#34;username&#34;].split(&#34;.&#34;)[0]
+    getter method this property
 
-    if current_username != logged_in_username:
-        abort(401, &#34;Unauthorized&#34;)
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
 
-    status = &#34;Failed to destroy backups, 3Bot name doesn&#39;t exist&#34;
-    try:
-        ssh_server1.sshclient.run(
-            f&#34;cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}&#34;
-        )
-        ssh_server2.sshclient.run(
-            f&#34;cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}&#34;
-        )
-        status = &#34;Destroyed successfully&#34;
-    except:
-        raise j.exceptions.Value(status)
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.token"><code class="name">var <span class="ident">token</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
 
-    return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;status&#34;: status}})</code></pre>
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
 </details>
 </dd>
 </dl>
-</section>
-<section>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -132,12 +151,18 @@ def destroy():
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="jumpscale.packages.threebot_deployer.bottle" href="index.html">jumpscale.packages.threebot_deployer.bottle</a></code></li>
+<li><code><a title="jumpscale.packages.threebot_deployer.models" href="index.html">jumpscale.packages.threebot_deployer.models</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens" href="#jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens">BackupTokens</a></code></h4>
 <ul class="">
-<li><code><a title="jumpscale.packages.threebot_deployer.bottle.backup.destroy" href="#jumpscale.packages.threebot_deployer.bottle.backup.destroy">destroy</a></code></li>
+<li><code><a title="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.tname" href="#jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.tname">tname</a></code></li>
+<li><code><a title="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.token" href="#jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens.token">token</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

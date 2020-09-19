@@ -22,9 +22,7 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.marketplace import deployer
-
-from jumpscale.packages.marketplace.chats.publisher import Publisher
+<pre><code class="python">from jumpscale.packages.marketplace.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 
@@ -35,12 +33,12 @@ class WikiDeploy(Publisher):
 
     @chatflow_step(title=&#34;Wiki Setup&#34;)
     def configuration(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(Publisher.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: &#34;wiki&#34;,
             &#34;NAME&#34;: &#34;entrypoint&#34;,
@@ -82,12 +80,12 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Wiki Setup&#34;)
     def configuration(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(Publisher.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: &#34;wiki&#34;,
             &#34;NAME&#34;: &#34;entrypoint&#34;,
@@ -151,12 +149,12 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Wiki Setup&#34;)
     def configuration(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         form = self.new_form()
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(Publisher.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: &#34;wiki&#34;,
             &#34;NAME&#34;: &#34;entrypoint&#34;,

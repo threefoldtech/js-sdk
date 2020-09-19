@@ -40,14 +40,7 @@ ports = {&#34;minio&#34;: 9000, &#34;kubernetes&#34;: 6443, &#34;gitea&#34;: 300
 
 
 class SolutionExpose(GedisChatBot):
-    steps = [
-        &#34;solution_type&#34;,
-        &#34;exposed_solution&#34;,
-        &#34;exposed_ports&#34;,
-        &#34;domain_selection&#34;,
-        &#34;reservation&#34;,
-        &#34;success&#34;,
-    ]
+    steps = [&#34;solution_type&#34;, &#34;exposed_solution&#34;, &#34;exposed_ports&#34;, &#34;domain_selection&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Solution Expose&#34;
 
     def _deployment_start(self):
@@ -170,7 +163,7 @@ class SolutionExpose(GedisChatBot):
             self.domain = domain + &#34;.&#34; + self.domain
         else:
             self.domain = self.string_ask(&#34;Please specify the domain name you wish to bind to:&#34;, required=True)
-            domain = j.sals.zos.gateway.correct_domain(domain)
+            self.domain = j.sals.zos.gateway.correct_domain(self.domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
@@ -180,7 +173,7 @@ class SolutionExpose(GedisChatBot):
             {% endfor %}
             &#34;&#34;&#34;
             res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
-            self.md_show(res)
+            self.md_show(dedent(res), md=True)
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
@@ -194,7 +187,7 @@ class SolutionExpose(GedisChatBot):
         self.network_name = self.solution[&#34;Network&#34;]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;),
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;)
         )
         if result:
             for wid in result[&#34;ids&#34;]:
@@ -260,9 +253,9 @@ class SolutionExpose(GedisChatBot):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your solution has been exposed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+        # Congratulations! Your solution has been exposed successfully:
+        &lt;br /&gt;\n
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
         &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)
 
@@ -292,14 +285,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class SolutionExpose(GedisChatBot):
-    steps = [
-        &#34;solution_type&#34;,
-        &#34;exposed_solution&#34;,
-        &#34;exposed_ports&#34;,
-        &#34;domain_selection&#34;,
-        &#34;reservation&#34;,
-        &#34;success&#34;,
-    ]
+    steps = [&#34;solution_type&#34;, &#34;exposed_solution&#34;, &#34;exposed_ports&#34;, &#34;domain_selection&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Solution Expose&#34;
 
     def _deployment_start(self):
@@ -422,7 +408,7 @@ any extra kwargs that is passed while creating the session
             self.domain = domain + &#34;.&#34; + self.domain
         else:
             self.domain = self.string_ask(&#34;Please specify the domain name you wish to bind to:&#34;, required=True)
-            domain = j.sals.zos.gateway.correct_domain(domain)
+            self.domain = j.sals.zos.gateway.correct_domain(self.domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
@@ -432,7 +418,7 @@ any extra kwargs that is passed while creating the session
             {% endfor %}
             &#34;&#34;&#34;
             res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
-            self.md_show(res)
+            self.md_show(dedent(res), md=True)
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
@@ -446,7 +432,7 @@ any extra kwargs that is passed while creating the session
         self.network_name = self.solution[&#34;Network&#34;]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;),
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;)
         )
         if result:
             for wid in result[&#34;ids&#34;]:
@@ -512,9 +498,9 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your solution has been exposed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+        # Congratulations! Your solution has been exposed successfully:
+        &lt;br /&gt;\n
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
         &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
@@ -628,14 +614,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class SolutionExpose(GedisChatBot):
-    steps = [
-        &#34;solution_type&#34;,
-        &#34;exposed_solution&#34;,
-        &#34;exposed_ports&#34;,
-        &#34;domain_selection&#34;,
-        &#34;reservation&#34;,
-        &#34;success&#34;,
-    ]
+    steps = [&#34;solution_type&#34;, &#34;exposed_solution&#34;, &#34;exposed_ports&#34;, &#34;domain_selection&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Solution Expose&#34;
 
     def _deployment_start(self):
@@ -758,7 +737,7 @@ any extra kwargs that is passed while creating the session
             self.domain = domain + &#34;.&#34; + self.domain
         else:
             self.domain = self.string_ask(&#34;Please specify the domain name you wish to bind to:&#34;, required=True)
-            domain = j.sals.zos.gateway.correct_domain(domain)
+            self.domain = j.sals.zos.gateway.correct_domain(self.domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = &#34;Custom Domain&#34;
             res = &#34;&#34;&#34;\
@@ -768,7 +747,7 @@ any extra kwargs that is passed while creating the session
             {% endfor %}
             &#34;&#34;&#34;
             res = j.tools.jinja2.render_template(template_text=res, gateway=self.domain_gateway, domain=self.domain)
-            self.md_show(res)
+            self.md_show(dedent(res), md=True)
         self.name_server = self.domain_gateway.dns_nameserver[0]
         self.secret = f&#34;{j.core.identity.me.tid}:{uuid.uuid4().hex}&#34;
 
@@ -782,7 +761,7 @@ any extra kwargs that is passed while creating the session
         self.network_name = self.solution[&#34;Network&#34;]
 
         result = deployer.add_network_node(
-            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;),
+            self.network_name, self.selected_node, self.pool_id, bot=self, owner=self.solution_metadata.get(&#34;owner&#34;)
         )
         if result:
             for wid in result[&#34;ids&#34;]:
@@ -848,9 +827,9 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your solution has been exposed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+        # Congratulations! Your solution has been exposed successfully:
+        &lt;br /&gt;\n
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
         &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>

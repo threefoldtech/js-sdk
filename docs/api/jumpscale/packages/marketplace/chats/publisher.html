@@ -22,21 +22,31 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.loader import j
+<pre><code class="python">from textwrap import dedent
+
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = &#34;https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist&#34;
     SOLUTION_TYPE = &#34;publisher&#34;  # chatflow used to deploy the solution
+    MD_CONFIG_MSG = dedent(
+        &#34;&#34;&#34;\
+    Few parameters are needed to be able to publish your content online
+    - Title  is the title shown up on your published content
+    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
+    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+
+    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
+    &#34;&#34;&#34;
+    )
     title = &#34;Publisher&#34;
     steps = [
         &#34;get_solution_name&#34;,
         &#34;configuration&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;deploy&#34;,
         &#34;initializing&#34;,
@@ -48,16 +58,17 @@ class Publisher(MarketPlaceAppsChatflow):
 
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
+        user_info = self.user_info()
+        self.username = user_info[&#34;username&#34;]
+        self.user_email = user_info[&#34;email&#34;]
         form = self.new_form()
         ttype = form.single_choice(
             &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
         )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.username = self.user_info()[&#34;username&#34;]
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(self.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: ttype.value,
             &#34;NAME&#34;: &#34;entrypoint&#34;,
@@ -89,7 +100,10 @@ class Publisher(MarketPlaceAppsChatflow):
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
+                    raise DeploymentFailed(
+                        f&#34;Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                        wid=wid,
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -107,7 +121,7 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         # 3- reserve tcp proxy
@@ -124,7 +138,7 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -156,7 +170,7 @@ class Publisher(MarketPlaceAppsChatflow):
         self.resv_id = self.workload_ids[-1]
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -189,12 +203,20 @@ any extra kwargs that is passed while creating the session
 <pre><code class="python">class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = &#34;https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist&#34;
     SOLUTION_TYPE = &#34;publisher&#34;  # chatflow used to deploy the solution
+    MD_CONFIG_MSG = dedent(
+        &#34;&#34;&#34;\
+    Few parameters are needed to be able to publish your content online
+    - Title  is the title shown up on your published content
+    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
+    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+
+    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
+    &#34;&#34;&#34;
+    )
     title = &#34;Publisher&#34;
     steps = [
         &#34;get_solution_name&#34;,
         &#34;configuration&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;deploy&#34;,
         &#34;initializing&#34;,
@@ -206,16 +228,17 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
+        user_info = self.user_info()
+        self.username = user_info[&#34;username&#34;]
+        self.user_email = user_info[&#34;email&#34;]
         form = self.new_form()
         ttype = form.single_choice(
             &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
         )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.username = self.user_info()[&#34;username&#34;]
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(self.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: ttype.value,
             &#34;NAME&#34;: &#34;entrypoint&#34;,
@@ -247,7 +270,10 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
+                    raise DeploymentFailed(
+                        f&#34;Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                        wid=wid,
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -265,7 +291,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         # 3- reserve tcp proxy
@@ -282,7 +308,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -314,7 +340,7 @@ any extra kwargs that is passed while creating the session
         self.resv_id = self.workload_ids[-1]
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )</code></pre>
@@ -334,6 +360,10 @@ any extra kwargs that is passed while creating the session
 <h3>Class variables</h3>
 <dl>
 <dt id="jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL"><code class="name">var <span class="ident">FLIST_URL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG"><code class="name">var <span class="ident">MD_CONFIG_MSG</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -403,12 +433,20 @@ any extra kwargs that is passed while creating the session
 <pre><code class="python">class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = &#34;https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist&#34;
     SOLUTION_TYPE = &#34;publisher&#34;  # chatflow used to deploy the solution
+    MD_CONFIG_MSG = dedent(
+        &#34;&#34;&#34;\
+    Few parameters are needed to be able to publish your content online
+    - Title  is the title shown up on your published content
+    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
+    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+
+    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
+    &#34;&#34;&#34;
+    )
     title = &#34;Publisher&#34;
     steps = [
         &#34;get_solution_name&#34;,
         &#34;configuration&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;deploy&#34;,
         &#34;initializing&#34;,
@@ -420,16 +458,17 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Solution Settings&#34;)
     def configuration(self):
+        user_info = self.user_info()
+        self.username = user_info[&#34;username&#34;]
+        self.user_email = user_info[&#34;email&#34;]
         form = self.new_form()
         ttype = form.single_choice(
             &#34;Choose the publication type&#34;, options=[&#34;wiki&#34;, &#34;www&#34;, &#34;blog&#34;], default=&#34;wiki&#34;, required=True
         )
         title = form.string_ask(&#34;Title&#34;, required=True)
-        url = form.string_ask(&#34;Repository URL&#34;, required=True)
+        url = form.string_ask(&#34;Repository URL&#34;, required=True, is_git_url=True)
         branch = form.string_ask(&#34;Branch&#34;, required=True)
-        form.ask(&#34;Set configuration&#34;)
-        self.username = self.user_info()[&#34;username&#34;]
-        self.user_email = self.user_info()[&#34;email&#34;]
+        form.ask(self.MD_CONFIG_MSG, md=True)
         self.envars = {
             &#34;TYPE&#34;: ttype.value,
             &#34;NAME&#34;: &#34;entrypoint&#34;,
@@ -461,7 +500,10 @@ any extra kwargs that is passed while creating the session
             for wid in result[&#34;ids&#34;]:
                 success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                 if not success:
-                    raise DeploymentFailed(f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid)
+                    raise DeploymentFailed(
+                        f&#34;Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                        wid=wid,
+                    )
         self.network_view_copy = self.network_view.copy()
         self.ip_address = self.network_view_copy.get_free_ip(self.selected_node)
 
@@ -479,7 +521,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         # 3- reserve tcp proxy
@@ -496,7 +538,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create reverse proxy {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -528,7 +570,7 @@ any extra kwargs that is passed while creating the session
         self.resv_id = self.workload_ids[-1]
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[2]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )</code></pre>
@@ -548,6 +590,10 @@ any extra kwargs that is passed while creating the session
 <h3>Class variables</h3>
 <dl>
 <dt id="jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL"><code class="name">var <span class="ident">FLIST_URL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG"><code class="name">var <span class="ident">MD_CONFIG_MSG</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -649,6 +695,7 @@ any extra kwargs that is passed while creating the session
 <h4><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher" href="#jumpscale.packages.marketplace.chats.publisher.Publisher">Publisher</a></code></h4>
 <ul class="two-column">
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL">FLIST_URL</a></code></li>
+<li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG">MD_CONFIG_MSG</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.SOLUTION_TYPE" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.SOLUTION_TYPE">SOLUTION_TYPE</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.configuration" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.configuration">configuration</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.deploy" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.deploy">deploy</a></code></li>
@@ -662,6 +709,7 @@ any extra kwargs that is passed while creating the session
 <h4><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher" href="#jumpscale.packages.marketplace.chats.publisher.Publisher">Publisher</a></code></h4>
 <ul class="two-column">
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.FLIST_URL">FLIST_URL</a></code></li>
+<li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.MD_CONFIG_MSG">MD_CONFIG_MSG</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.SOLUTION_TYPE" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.SOLUTION_TYPE">SOLUTION_TYPE</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.configuration" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.configuration">configuration</a></code></li>
 <li><code><a title="jumpscale.packages.marketplace.chats.publisher.Publisher.deploy" href="#jumpscale.packages.marketplace.chats.publisher.Publisher.deploy">deploy</a></code></li>

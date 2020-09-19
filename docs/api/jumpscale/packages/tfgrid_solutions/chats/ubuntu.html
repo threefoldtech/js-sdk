@@ -23,13 +23,11 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">import math
+import uuid
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
-import uuid
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
@@ -191,10 +189,10 @@ class UbuntuDeploy(GedisChatBot):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance deployed successfully:
-\n&lt;br /&gt;\n
-- To connect: `ssh root@{self.ip_address}`
-                &#34;&#34;&#34;
+        # Your Ubuntu has been deployed successfully:
+
+        &lt;br /&gt;To connect: `ssh root@{self.ip_address}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)
 
 
@@ -380,10 +378,10 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance deployed successfully:
-\n&lt;br /&gt;\n
-- To connect: `ssh root@{self.ip_address}`
-                &#34;&#34;&#34;
+        # Your Ubuntu has been deployed successfully:
+
+        &lt;br /&gt;To connect: `ssh root@{self.ip_address}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -739,10 +737,10 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance deployed successfully:
-\n&lt;br /&gt;\n
-- To connect: `ssh root@{self.ip_address}`
-                &#34;&#34;&#34;
+        # Your Ubuntu has been deployed successfully:
+
+        &lt;br /&gt;To connect: `ssh root@{self.ip_address}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
