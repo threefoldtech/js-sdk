@@ -12,7 +12,6 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
         TYPE: "type",
         MESSAGE_NAME: "get_name",
         SECRET: "secret",
-        EXPIRATION: "expiration",
     }
 
     def ask(self, msg, **kwargs):

@@ -20,80 +20,40 @@ from pools import PoolAutomated
 from threebot_deploy import ThreebotDeployAutomated
 
 
-def deploy_gitea(solution_name, currency, expiration, wg_config="NO", debug=True):
-    return GiteaAutomated(
-        solution_name=solution_name, currency=currency, expiration=expiration, wg_config=wg_config, debug=debug
-    )
+def deploy_gitea(solution_name, wg_config="NO", debug=True):
+    return GiteaAutomated(solution_name=solution_name, wg_config=wg_config, debug=debug)
 
 
-def deploy_cryptpad(solution_name, currency, expiration, flavor="Silver", wg_config="NO", debug=True):
-    return CryptpadAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        flavor=flavor,
-        wg_config=wg_config,
-        debug=debug,
-    )
+def deploy_cryptpad(solution_name, flavor="Silver", wg_config="NO", debug=True):
+    return CryptpadAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_mattermost(solution_name, currency, expiration, flavor="Silver", wg_config="NO", debug=True):
-    return MattermostAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        flavor=flavor,
-        wg_config=wg_config,
-        debug=debug,
-    )
+def deploy_mattermost(solution_name, flavor="Silver", wg_config="NO", debug=True):
+    return MattermostAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_wiki(solution_name, currency, expiration, title, repo, branch, wg_config="NO", debug=True):
+def deploy_wiki(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WikiAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        title=title,
-        repo=repo,
-        branch=branch,
-        wg_config=wg_config,
-        debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
     )
 
 
-def deploy_website(solution_name, currency, expiration, title, repo, branch, wg_config="NO", debug=True):
+def deploy_website(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WebsiteAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        title=title,
-        repo=repo,
-        branch=branch,
-        wg_config=wg_config,
-        debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
     )
 
 
-def deploy_blog(solution_name, currency, expiration, title, repo, branch, wg_config="NO", debug=True):
+def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return BlogAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        title=title,
-        repo=repo,
-        branch=branch,
-        wg_config=wg_config,
-        debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
     )
 
 
-def deploy_discourse(
-    solution_name, currency, expiration, smtp_email, stmp_username, stmp_password, wg_config="NO", debug=True
-):
+def deploy_discourse(host_email, solution_name, smtp_email, stmp_username, stmp_password, wg_config="NO", debug=True):
     return DiscourseAutomated(
+        host_email=host_email,
         solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
         smtp_email=smtp_email,
         stmp_username=stmp_username,
         stmp_password=stmp_password,
@@ -102,26 +62,15 @@ def deploy_discourse(
     )
 
 
-def deploy_peertube(solution_name, currency, expiration, flavor="Silver", wg_config="NO", debug=True):
-    return PeertubeAutomated(
-        solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
-        flavor=flavor,
-        wg_config=wg_config,
-        debug=debug,
-    )
+def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
+    return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_taiga(
-    solution_name, currency, expiration, smtp_email, stmp_username, stmp_password, secret, wg_config="NO", debug=True
-):
+def deploy_taiga(solution_name, host_email, smtp_email, stmp_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
-        currency=currency,
-        expiration=expiration,
+        host_email=host_email,
         smtp_email=smtp_email,
-        stmp_username=stmp_username,
         stmp_password=stmp_password,
         secret=secret,
         wg_config=wg_config,
@@ -242,8 +191,7 @@ def delegated_domain(solution_name, debug=True):
 
 def deploy_generic_flist(
     solution_name,
-    currency="TFT",
-    flist="https://hub.grid.tf/tf-bootable/3bot-ubuntu-18.04.flist",
+    flist,
     cpu=1,
     memory=1024,
     disk_size=256,
@@ -258,7 +206,6 @@ def deploy_generic_flist(
 ):
     return FlistAutomated(
         solution_name=solution_name,
-        currency=currency,
         flist=flist,
         cpu=cpu,
         memory=memory,
@@ -276,7 +223,6 @@ def deploy_generic_flist(
 
 def deploy_monitoring(
     solution_name,
-    currency="TFT",
     ssh="~/.ssh/id_rsa.pub",
     cpu=1,
     memory=1024,
@@ -289,7 +235,6 @@ def deploy_monitoring(
 ):
     return MonitoringAutomated(
         solution_name=solution_name,
-        currency=currency,
         ssh=ssh,
         cpu=cpu,
         memory=memory,
@@ -311,10 +256,14 @@ def deploy_network(
 
 
 def deploy_exposed(
-    type, tls_port=6443, port_expose=6443, sub_domain="subdomain3", debug=True,
+    solution_to_expose, tls_port=6443, port_expose=6443, sub_domain="subdomain3", debug=True,
 ):
     return SolutionExposeDeployAutomated(
-        type=type, tls_port=tls_port, port_expose=port_expose, sub_domain=sub_domain, debug=debug
+        solution_to_expose=solution_to_expose,
+        tls_port=tls_port,
+        port_expose=port_expose,
+        sub_domain=sub_domain,
+        debug=debug,
     )
 
 
@@ -333,7 +282,5 @@ def deploy_pool(
     )
 
 
-def deploy_threebot(type, solution_name, secret, expiration, debug=True):
-    return ThreebotDeployAutomated(
-        type=type, solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
-    )
+def deploy_threebot(type, solution_name, secret, debug=True):
+    return ThreebotDeployAutomated(type=type, solution_name=solution_name, secret=secret, debug=debug)
