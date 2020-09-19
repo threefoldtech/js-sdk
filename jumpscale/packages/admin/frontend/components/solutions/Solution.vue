@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Solutions" icon="mdi-apps" >
+    <base-component title="Solutions Menu" icon="mdi-menu-left" url="/solutions">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
@@ -13,7 +13,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <a
                   class="chatflowInfo"
-                  :href="`https://now.threefold.io/#/${solution.type}`"
+                  :href="`https://manual.threefold.io/#/${solution.type}`"
                   target="blank"
                 >
                   <v-icon
@@ -47,7 +47,9 @@
               :items="deployedSolutions"
               class="elevation-1"
             >
-              <template slot="no-data">No {{solution.name.toLowerCase()}} workloads available</p></template>
+              <template slot="no-data">
+                <p>No {{solution.name.toLowerCase()}} workloads available</p>
+              </template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
