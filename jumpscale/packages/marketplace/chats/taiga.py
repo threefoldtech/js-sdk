@@ -20,7 +20,9 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 1, "mru": 1, "sru": 4}
+    resources = {"cru": 1, "mru": 1, "sru": 4}
+    # main container + nginx container
+    query = {"cru": 2, "mru": 2, "sru": 4.25}
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
@@ -54,21 +56,20 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.workload_ids = []
 
         # reserve subdomain
-        subdomain_wid = self.workload_ids.append(
-            deployer.create_subdomain(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                subdomain=self.domain,
-                addresses=self.addresses,
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
-            )
+        subdomain_wid = deployer.create_subdomain(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            subdomain=self.domain,
+            addresses=self.addresses,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
-        subdomain_wid = deployer.wait_workload(self.workload_ids[0], self)
+
+        subdomain_wid = deployer.wait_workload(subdomain_wid, self)
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
@@ -82,30 +83,29 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
 
-        self.resv_id = self.workload_ids.append(
-            deployer.deploy_container(
-                pool_id=self.pool_id,
-                node_id=self.selected_node.node_id,
-                network_name=self.network_view.name,
-                ip_address=self.ip_address,
-                flist=self.FLIST_URL,
-                cpu=self.query["cru"],
-                memory=self.query["mru"] * 1024,
-                disk_size=self.query["sru"] * 1024,
-                env=var_dict,
-                interactive=False,
-                entrypoint="/start_taiga.sh",
-                public_ipv6=True,
-                secret_env={
-                    "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
-                    "PRIVATE_KEY": private_key,
-                    "SECRET_KEY": self.SECRET_KEY,
-                    "FLASK_SECRET_KEY": flask_secret,
-                },
-                **self.solution_metadata,
-                solution_uuid=self.solution_id,
-            )
+        self.resv_id = deployer.deploy_container(
+            pool_id=self.pool_id,
+            node_id=self.selected_node.node_id,
+            network_name=self.network_view.name,
+            ip_address=self.ip_address,
+            flist=self.FLIST_URL,
+            cpu=self.resources["cru"],
+            memory=self.resources["mru"] * 1024,
+            disk_size=self.resources["sru"] * 1024,
+            env=var_dict,
+            interactive=False,
+            entrypoint="/start_taiga.sh",
+            public_ipv6=True,
+            secret_env={
+                "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
+                "PRIVATE_KEY": private_key,
+                "SECRET_KEY": self.SECRET_KEY,
+                "FLASK_SECRET_KEY": flask_secret,
+            },
+            **self.solution_metadata,
+            solution_uuid=self.solution_id,
         )
+
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
@@ -114,30 +114,29 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 wid=self.resv_id,
             )
 
-        # expose threebot container
-        self.workload_ids.append(
-            deployer.expose_and_create_certificate(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                network_name=self.network_view.name,
-                trc_secret=self.secret,
-                domain=self.domain,
-                email=self.user_email,
-                solution_ip=self.ip_address,
-                solution_port=80,
-                enforce_https=True,
-                node_id=self.selected_node.node_id,
-                solution_uuid=self.solution_id,
-                proxy_pool_id=self.gateway_pool.pool_id,
-                **self.solution_metadata,
-            )
+        # expose taiga container
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_email,
+            solution_ip=self.ip_address,
+            solution_port=80,
+            enforce_https=True,
+            node_id=self.selected_node.node_id,
+            solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            **self.solution_metadata,
         )
-        success = deployer.wait_workload(self.workload_ids[-1], self)
+
+        success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
+                wid=_id,
             )
 
 
