@@ -41,7 +41,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         # the main container + the nginx container with 0.25 GB disk
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
-        self.expiration = 15 * 60  # 15 minutes for 3bot
+        self.expiration = 30 * 60  # 30 minutes for 3bot
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -57,7 +57,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         valid = False
         name_message = self.RECOVER_NAME_MESSAGE if self.action == "Recover" else self.CREATE_NAME_MESSAGE
         while not valid:
-            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True,)
+            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True)
             threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
             valid = True
             for sol in threebot_solutions:
