@@ -1,6 +1,6 @@
 from dashboard_solutions.delegated_domain import DomainDelegationAutomated
 from dashboard_solutions.exposed import SolutionExposeDeployAutomated
-from dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
+
 from dashboard_solutions.generic_flist import FlistAutomated
 from dashboard_solutions.kubernetes import KubernetesAutomated
 from dashboard_solutions.minio import MinioAutomated
