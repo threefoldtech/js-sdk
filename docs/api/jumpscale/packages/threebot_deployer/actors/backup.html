@@ -22,15 +22,18 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.loader import j
+<pre><code class="python">import binascii
+
+import nacl.encoding
 import nacl.secret
+import nacl.signing
 import nacl.utils
 import requests
-import nacl.signing
-import binascii
 from nacl.public import Box
-import nacl.encoding
+
+from jumpscale.loader import j
+from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
+from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
 BACKUP_SERVER1 = &#34;backup_server1&#34;
 BACKUP_SERVER2 = &#34;backup_server2&#34;
@@ -47,11 +50,26 @@ class Backup(BaseActor):
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
+    def init(self, threebot_name: str, passwd: str, new=True, token: str = &#34;&#34;) -&gt; list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f&#34;3Bot name {threebot_name} is not found&#34;)
+
+        # check the user token is valid for new users
+        if new:
+            verified = False
+            for solution_name in BACKUP_MODEL_FACTORY.list_all():
+                backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
+
+                if str(backup_data.token) == str(token):
+                    verified = True
+                    BACKUP_MODEL_FACTORY.delete(solution_name)
+
+            if not verified:
+                raise j.exceptions.Permission(
+                    f&#34;Invalid token, Unauthorized attempt to create a backup user from {threebot_name}.&#34;
+                )
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())
@@ -111,11 +129,26 @@ Actor = Backup</code></pre>
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
+    def init(self, threebot_name: str, passwd: str, new=True, token: str = &#34;&#34;) -&gt; list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f&#34;3Bot name {threebot_name} is not found&#34;)
+
+        # check the user token is valid for new users
+        if new:
+            verified = False
+            for solution_name in BACKUP_MODEL_FACTORY.list_all():
+                backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
+
+                if str(backup_data.token) == str(token):
+                    verified = True
+                    BACKUP_MODEL_FACTORY.delete(solution_name)
+
+            if not verified:
+                raise j.exceptions.Permission(
+                    f&#34;Invalid token, Unauthorized attempt to create a backup user from {threebot_name}.&#34;
+                )
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())
@@ -151,18 +184,33 @@ Actor = Backup</code></pre>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.threebot_deployer.actors.backup.Backup.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>self, threebot_name, passwd, new=True)</span>
+<span>def <span class="ident">init</span></span>(<span>self, threebot_name, passwd, new=True, token=&#39;&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
+def init(self, threebot_name: str, passwd: str, new=True, token: str = &#34;&#34;) -&gt; list:
     try:
         user = self.explorer.users.get(name=threebot_name)
     except requests.exceptions.HTTPError:
         raise j.exceptions.NotFound(f&#34;3Bot name {threebot_name} is not found&#34;)
+
+    # check the user token is valid for new users
+    if new:
+        verified = False
+        for solution_name in BACKUP_MODEL_FACTORY.list_all():
+            backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
+
+            if str(backup_data.token) == str(token):
+                verified = True
+                BACKUP_MODEL_FACTORY.delete(solution_name)
+
+        if not verified:
+            raise j.exceptions.Permission(
+                f&#34;Invalid token, Unauthorized attempt to create a backup user from {threebot_name}.&#34;
+            )
 
     verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
     box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())
@@ -217,11 +265,26 @@ def public_key(self) -&gt; str:
         self.pub_key = j.core.identity.me.nacl.public_key.encode(nacl.encoding.Base64Encoder).decode()
 
     @actor_method
-    def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
+    def init(self, threebot_name: str, passwd: str, new=True, token: str = &#34;&#34;) -&gt; list:
         try:
             user = self.explorer.users.get(name=threebot_name)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f&#34;3Bot name {threebot_name} is not found&#34;)
+
+        # check the user token is valid for new users
+        if new:
+            verified = False
+            for solution_name in BACKUP_MODEL_FACTORY.list_all():
+                backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
+
+                if str(backup_data.token) == str(token):
+                    verified = True
+                    BACKUP_MODEL_FACTORY.delete(solution_name)
+
+            if not verified:
+                raise j.exceptions.Permission(
+                    f&#34;Invalid token, Unauthorized attempt to create a backup user from {threebot_name}.&#34;
+                )
 
         verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
         box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())
@@ -257,18 +320,33 @@ def public_key(self) -&gt; str:
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.threebot_deployer.actors.backup.Backup.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>self, threebot_name, passwd, new=True)</span>
+<span>def <span class="ident">init</span></span>(<span>self, threebot_name, passwd, new=True, token=&#39;&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def init(self, threebot_name: str, passwd: str, new=True) -&gt; list:
+def init(self, threebot_name: str, passwd: str, new=True, token: str = &#34;&#34;) -&gt; list:
     try:
         user = self.explorer.users.get(name=threebot_name)
     except requests.exceptions.HTTPError:
         raise j.exceptions.NotFound(f&#34;3Bot name {threebot_name} is not found&#34;)
+
+    # check the user token is valid for new users
+    if new:
+        verified = False
+        for solution_name in BACKUP_MODEL_FACTORY.list_all():
+            backup_data = BACKUP_MODEL_FACTORY.get(solution_name)
+
+            if str(backup_data.token) == str(token):
+                verified = True
+                BACKUP_MODEL_FACTORY.delete(solution_name)
+
+        if not verified:
+            raise j.exceptions.Permission(
+                f&#34;Invalid token, Unauthorized attempt to create a backup user from {threebot_name}.&#34;
+            )
 
     verify_key = nacl.signing.VerifyKey(binascii.unhexlify(user.pubkey))
     box = Box(self.PRIVATE_KEY, verify_key.to_curve25519_public_key())

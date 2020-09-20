@@ -42,9 +42,11 @@ class MinioBackup(BaseActor):
         minio.extra_env = {&#34;AWS_ACCESS_KEY_ID&#34;: access_key, &#34;AWS_SECRET_ACCESS_KEY&#34;: secret_key}
         try:
             minio.init_repo()
-        except Exception:
-            raise j.exceptions.Value(&#34;Couldn&#39;t create restic repo with given data&#34;)
-        minio.save()
+        except Exception as e:
+            j.tools.restic.delete(INSTANCE_NAME)
+            raise j.exceptions.Value(f&#34;Couldn&#39;t create restic repo with given data {e}&#34;)
+        else:
+            minio.save()
 
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;backup repos inited&#34;})
 
@@ -129,9 +131,11 @@ Actor = MinioBackup</code></pre>
         minio.extra_env = {&#34;AWS_ACCESS_KEY_ID&#34;: access_key, &#34;AWS_SECRET_ACCESS_KEY&#34;: secret_key}
         try:
             minio.init_repo()
-        except Exception:
-            raise j.exceptions.Value(&#34;Couldn&#39;t create restic repo with given data&#34;)
-        minio.save()
+        except Exception as e:
+            j.tools.restic.delete(INSTANCE_NAME)
+            raise j.exceptions.Value(f&#34;Couldn&#39;t create restic repo with given data {e}&#34;)
+        else:
+            minio.save()
 
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;backup repos inited&#34;})
 
@@ -265,9 +269,11 @@ def init(self, minio_url, password, access_key, secret_key) -&gt; str:
     minio.extra_env = {&#34;AWS_ACCESS_KEY_ID&#34;: access_key, &#34;AWS_SECRET_ACCESS_KEY&#34;: secret_key}
     try:
         minio.init_repo()
-    except Exception:
-        raise j.exceptions.Value(&#34;Couldn&#39;t create restic repo with given data&#34;)
-    minio.save()
+    except Exception as e:
+        j.tools.restic.delete(INSTANCE_NAME)
+        raise j.exceptions.Value(f&#34;Couldn&#39;t create restic repo with given data {e}&#34;)
+    else:
+        minio.save()
 
     return j.data.serializers.json.dumps({&#34;data&#34;: &#34;backup repos inited&#34;})</code></pre>
 </details>
@@ -336,9 +342,11 @@ def snapshots(self, tags=None) -&gt; str:
         minio.extra_env = {&#34;AWS_ACCESS_KEY_ID&#34;: access_key, &#34;AWS_SECRET_ACCESS_KEY&#34;: secret_key}
         try:
             minio.init_repo()
-        except Exception:
-            raise j.exceptions.Value(&#34;Couldn&#39;t create restic repo with given data&#34;)
-        minio.save()
+        except Exception as e:
+            j.tools.restic.delete(INSTANCE_NAME)
+            raise j.exceptions.Value(f&#34;Couldn&#39;t create restic repo with given data {e}&#34;)
+        else:
+            minio.save()
 
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;backup repos inited&#34;})
 
@@ -472,9 +480,11 @@ def init(self, minio_url, password, access_key, secret_key) -&gt; str:
     minio.extra_env = {&#34;AWS_ACCESS_KEY_ID&#34;: access_key, &#34;AWS_SECRET_ACCESS_KEY&#34;: secret_key}
     try:
         minio.init_repo()
-    except Exception:
-        raise j.exceptions.Value(&#34;Couldn&#39;t create restic repo with given data&#34;)
-    minio.save()
+    except Exception as e:
+        j.tools.restic.delete(INSTANCE_NAME)
+        raise j.exceptions.Value(f&#34;Couldn&#39;t create restic repo with given data {e}&#34;)
+    else:
+        minio.save()
 
     return j.data.serializers.json.dumps({&#34;data&#34;: &#34;backup repos inited&#34;})</code></pre>
 </details>

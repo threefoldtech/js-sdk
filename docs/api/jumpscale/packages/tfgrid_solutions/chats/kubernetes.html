@@ -22,9 +22,11 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+<pre><code class="python">import uuid
+from textwrap import dedent
+
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
-import uuid
 
 
 class KubernetesDeploy(GedisChatBot):
@@ -174,19 +176,26 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
-        res = f&#34;&#34;&#34;# Kubernetes cluster has been deployed successfully:
-\n&lt;br /&gt;\n
-- Master
-    - IP: {self.reservations[0][&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
+        res = f&#34;&#34;&#34;\
+        # Kubernetes cluster has been deployed successfully:
+        &lt;br /&gt;\n
+        - Master
+            - IP: {self.reservations[0][&#34;ip_address&#34;]}
+            - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
+        &lt;br /&gt;\n
+
+        &#34;&#34;&#34;
+        res = dedent(res)
+        worker_res = &#34;&#34;
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f&#34;&#34;&#34;
-- Worker {idx + 1}
-    - IP: {resv[&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
-        self.md_show(res)
+            worker_res += f&#34;&#34;&#34;\
+            \n
+            - Worker {idx + 1}
+                - IP: {resv[&#34;ip_address&#34;]}
+                - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
+            &lt;br /&gt;\n
+            &#34;&#34;&#34;
+        self.md_show(res + dedent(worker_res))
 
 
 chat = KubernetesDeploy</code></pre>
@@ -360,19 +369,26 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
-        res = f&#34;&#34;&#34;# Kubernetes cluster has been deployed successfully:
-\n&lt;br /&gt;\n
-- Master
-    - IP: {self.reservations[0][&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
+        res = f&#34;&#34;&#34;\
+        # Kubernetes cluster has been deployed successfully:
+        &lt;br /&gt;\n
+        - Master
+            - IP: {self.reservations[0][&#34;ip_address&#34;]}
+            - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
+        &lt;br /&gt;\n
+
+        &#34;&#34;&#34;
+        res = dedent(res)
+        worker_res = &#34;&#34;
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f&#34;&#34;&#34;
-- Worker {idx + 1}
-    - IP: {resv[&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
-        self.md_show(res)</code></pre>
+            worker_res += f&#34;&#34;&#34;\
+            \n
+            - Worker {idx + 1}
+                - IP: {resv[&#34;ip_address&#34;]}
+                - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
+            &lt;br /&gt;\n
+            &#34;&#34;&#34;
+        self.md_show(res + dedent(worker_res))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -656,19 +672,26 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
-        res = f&#34;&#34;&#34;# Kubernetes cluster has been deployed successfully:
-\n&lt;br /&gt;\n
-- Master
-    - IP: {self.reservations[0][&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
+        res = f&#34;&#34;&#34;\
+        # Kubernetes cluster has been deployed successfully:
+        &lt;br /&gt;\n
+        - Master
+            - IP: {self.reservations[0][&#34;ip_address&#34;]}
+            - To connect: `ssh rancher@{self.reservations[0][&#34;ip_address&#34;]}`
+        &lt;br /&gt;\n
+
+        &#34;&#34;&#34;
+        res = dedent(res)
+        worker_res = &#34;&#34;
         for idx, resv in enumerate(self.reservations[1:]):
-            res += f&#34;&#34;&#34;
-- Worker {idx + 1}
-    - IP: {resv[&#34;ip_address&#34;]}
-    - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
-&#34;&#34;&#34;
-        self.md_show(res)</code></pre>
+            worker_res += f&#34;&#34;&#34;\
+            \n
+            - Worker {idx + 1}
+                - IP: {resv[&#34;ip_address&#34;]}
+                - To connect: `ssh rancher@{resv[&#34;ip_address&#34;]}`
+            &lt;br /&gt;\n
+            &#34;&#34;&#34;
+        self.md_show(res + dedent(worker_res))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

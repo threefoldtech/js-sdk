@@ -148,7 +148,6 @@ def _container_challenge(container):
         b.write(str(nc.network_id))
         b.write(str(nc.ipaddress))
         b.write(str(nc.public_ip6).lower())
-        b.write(str(nc.yggdrasil_ip).lower())
     b.write(str(container.capacity.cpu))
     b.write(str(container.capacity.memory))
     b.write(str(container.capacity.disk_size))
