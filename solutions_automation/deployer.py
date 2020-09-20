@@ -346,9 +346,13 @@ def deploy_threebot(solution_name, secret, expiration, debug=True):
     )
 
 
-def recover_threebot(solution_name, secret, expiration, debug=True):
+def recover_threebot(solution_name, recover_password, expiration, debug=True):
     return ThreebotDeployAutomated(
-        type="Recover", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Recover",
+        solution_name=solution_name,
+        recover_password=recover_password,
+        expiration=expiration,
+        debug=debug,
     )
 
 
