@@ -181,8 +181,9 @@ def deploy_minio(
     )
 
 
-def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
-    return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+# TODO: uncomment after Fixing importing problem
+# def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
+#     return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
 
 
 def delegated_domain(domain, gateway="choose_random", debug=True):
