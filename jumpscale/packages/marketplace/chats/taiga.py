@@ -82,7 +82,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
         }
 
-        self.workload_ids.append(
+        self.resv_id = self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
                 node_id=self.selected_node.node_id,
@@ -106,12 +106,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_id,
             )
         )
-        success = deployer.wait_workload(self.workload_ids[-1], self)
+        success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to deploy workload {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
+                wid=self.resv_id,
             )
 
         # expose threebot container
