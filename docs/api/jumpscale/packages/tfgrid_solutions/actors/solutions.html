@@ -102,11 +102,12 @@ class Solutions(BaseActor):
             pool_dict[&#34;hidden&#34;] = hidden
             pool_dict[&#34;explorer_url&#34;] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            farm = farm_names.get(farm_id)
-            if not farm:
-                farm = deployer._explorer.farms.get(farm_id)
-                farm_names[farm_id] = farm
-            pool_dict[&#34;farm&#34;] = farm.name
+            if farm_id &gt;= 0:
+                farm = farm_names.get(farm_id)
+                if not farm:
+                    farm = deployer._explorer.farms.get(farm_id)
+                    farm_names[farm_id] = farm
+                pool_dict[&#34;farm&#34;] = farm.name
             for i, wid in enumerate(pool_dict[&#34;active_workload_ids&#34;]):
                 if wid in workloads_dict:
                     pool_dict[&#34;active_workload_ids&#34;][i] = f&#34;{workloads_dict[wid].info.workload_type.name} - {wid}&#34;
@@ -250,11 +251,12 @@ Actor = Solutions</code></pre>
             pool_dict[&#34;hidden&#34;] = hidden
             pool_dict[&#34;explorer_url&#34;] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            farm = farm_names.get(farm_id)
-            if not farm:
-                farm = deployer._explorer.farms.get(farm_id)
-                farm_names[farm_id] = farm
-            pool_dict[&#34;farm&#34;] = farm.name
+            if farm_id &gt;= 0:
+                farm = farm_names.get(farm_id)
+                if not farm:
+                    farm = deployer._explorer.farms.get(farm_id)
+                    farm_names[farm_id] = farm
+                pool_dict[&#34;farm&#34;] = farm.name
             for i, wid in enumerate(pool_dict[&#34;active_workload_ids&#34;]):
                 if wid in workloads_dict:
                     pool_dict[&#34;active_workload_ids&#34;][i] = f&#34;{workloads_dict[wid].info.workload_type.name} - {wid}&#34;
@@ -441,11 +443,12 @@ def list_pools(self, include_hidden) -&gt; str:
         pool_dict[&#34;hidden&#34;] = hidden
         pool_dict[&#34;explorer_url&#34;] = j.core.identity.me.explorer_url
         farm_id = deployer.get_pool_farm_id(pool.pool_id)
-        farm = farm_names.get(farm_id)
-        if not farm:
-            farm = deployer._explorer.farms.get(farm_id)
-            farm_names[farm_id] = farm
-        pool_dict[&#34;farm&#34;] = farm.name
+        if farm_id &gt;= 0:
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            pool_dict[&#34;farm&#34;] = farm.name
         for i, wid in enumerate(pool_dict[&#34;active_workload_ids&#34;]):
             if wid in workloads_dict:
                 pool_dict[&#34;active_workload_ids&#34;][i] = f&#34;{workloads_dict[wid].info.workload_type.name} - {wid}&#34;
@@ -616,11 +619,12 @@ def unhide_pool(self, pool_id) -&gt; bool:
             pool_dict[&#34;hidden&#34;] = hidden
             pool_dict[&#34;explorer_url&#34;] = j.core.identity.me.explorer_url
             farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            farm = farm_names.get(farm_id)
-            if not farm:
-                farm = deployer._explorer.farms.get(farm_id)
-                farm_names[farm_id] = farm
-            pool_dict[&#34;farm&#34;] = farm.name
+            if farm_id &gt;= 0:
+                farm = farm_names.get(farm_id)
+                if not farm:
+                    farm = deployer._explorer.farms.get(farm_id)
+                    farm_names[farm_id] = farm
+                pool_dict[&#34;farm&#34;] = farm.name
             for i, wid in enumerate(pool_dict[&#34;active_workload_ids&#34;]):
                 if wid in workloads_dict:
                     pool_dict[&#34;active_workload_ids&#34;][i] = f&#34;{workloads_dict[wid].info.workload_type.name} - {wid}&#34;
@@ -807,11 +811,12 @@ def list_pools(self, include_hidden) -&gt; str:
         pool_dict[&#34;hidden&#34;] = hidden
         pool_dict[&#34;explorer_url&#34;] = j.core.identity.me.explorer_url
         farm_id = deployer.get_pool_farm_id(pool.pool_id)
-        farm = farm_names.get(farm_id)
-        if not farm:
-            farm = deployer._explorer.farms.get(farm_id)
-            farm_names[farm_id] = farm
-        pool_dict[&#34;farm&#34;] = farm.name
+        if farm_id &gt;= 0:
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            pool_dict[&#34;farm&#34;] = farm.name
         for i, wid in enumerate(pool_dict[&#34;active_workload_ids&#34;]):
             if wid in workloads_dict:
                 pool_dict[&#34;active_workload_ids&#34;][i] = f&#34;{workloads_dict[wid].info.workload_type.name} - {wid}&#34;

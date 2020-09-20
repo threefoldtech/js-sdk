@@ -33,8 +33,6 @@ class Peertube(MarketPlaceAppsChatflow):
     steps = [
         &#34;get_solution_name&#34;,
         &#34;volume_details&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -46,11 +44,11 @@ class Peertube(MarketPlaceAppsChatflow):
 
     @chatflow_step(title=&#34;Volume details&#34;)
     def volume_details(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         self._choose_flavor()
         self.vol_size = self.flavor_resources[&#34;sru&#34;]
         self.vol_mount_point = &#34;/var/www/peertube/storage/&#34;
         self.query[&#34;sru&#34;] += self.vol_size
-        self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
     @deployment_context()
@@ -71,7 +69,10 @@ class Peertube(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -87,7 +88,8 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34;
+                f&#34; {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
             )
         self.threebot_url = f&#34;http://{self.domain}&#34;
@@ -113,7 +115,9 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         _id = deployer.expose_and_create_certificate(
@@ -134,7 +138,7 @@ class Peertube(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=_id,
             )
@@ -170,8 +174,6 @@ any extra kwargs that is passed while creating the session
     steps = [
         &#34;get_solution_name&#34;,
         &#34;volume_details&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -183,11 +185,11 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Volume details&#34;)
     def volume_details(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         self._choose_flavor()
         self.vol_size = self.flavor_resources[&#34;sru&#34;]
         self.vol_mount_point = &#34;/var/www/peertube/storage/&#34;
         self.query[&#34;sru&#34;] += self.vol_size
-        self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
     @deployment_context()
@@ -208,7 +210,10 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -224,7 +229,8 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34;
+                f&#34; {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
             )
         self.threebot_url = f&#34;http://{self.domain}&#34;
@@ -250,7 +256,9 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         _id = deployer.expose_and_create_certificate(
@@ -271,7 +279,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=_id,
             )</code></pre>
@@ -353,8 +361,6 @@ any extra kwargs that is passed while creating the session
     steps = [
         &#34;get_solution_name&#34;,
         &#34;volume_details&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -366,11 +372,11 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Volume details&#34;)
     def volume_details(self):
+        self.user_email = self.user_info()[&#34;email&#34;]
         self._choose_flavor()
         self.vol_size = self.flavor_resources[&#34;sru&#34;]
         self.vol_mount_point = &#34;/var/www/peertube/storage/&#34;
         self.query[&#34;sru&#34;] += self.vol_size
-        self.user_email = self.user_info()[&#34;email&#34;]
 
     @chatflow_step(title=&#34;Reservation&#34;, disable_previous=True)
     @deployment_context()
@@ -391,7 +397,10 @@ any extra kwargs that is passed while creating the session
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise DeploymentFailed(f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;, wid=vol_id)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                wid=vol_id,
+            )
         volume_config = {self.vol_mount_point: vol_id}
 
         # reserve subdomain
@@ -407,7 +416,8 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway&#34; f&#34; {self.gateway.node_id} {_id}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway&#34;
+                f&#34; {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
             )
         self.threebot_url = f&#34;http://{self.domain}&#34;
@@ -433,7 +443,9 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         _id = deployer.expose_and_create_certificate(
@@ -454,7 +466,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=_id,
             )</code></pre>

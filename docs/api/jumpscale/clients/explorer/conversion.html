@@ -41,11 +41,7 @@ class Conversion:
 
         url = self._client.url + &#34;/reservations/convert&#34;
 
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-        resp = self._session.get(url, auth=auth, headers=headers)
+        resp = self._session.get(url)
 
         if resp.status_code == 204:
             raise AlreadyConvertedError(f&#34;convertion for user {me.tid} has already been done&#34;)
@@ -57,14 +53,10 @@ class Conversion:
 
         url = self._client.url + &#34;/reservations/convert&#34;
 
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
         for w in workloads:
             print(w[&#34;result&#34;])
 
-        resp = self._session.post(url, json=workloads, auth=auth, headers=headers)
+        resp = self._session.post(url, json=workloads)
         return resp.json()</code></pre>
 </details>
 </section>
@@ -114,11 +106,7 @@ class Conversion:
 
         url = self._client.url + &#34;/reservations/convert&#34;
 
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-        resp = self._session.get(url, auth=auth, headers=headers)
+        resp = self._session.get(url)
 
         if resp.status_code == 204:
             raise AlreadyConvertedError(f&#34;convertion for user {me.tid} has already been done&#34;)
@@ -130,14 +118,10 @@ class Conversion:
 
         url = self._client.url + &#34;/reservations/convert&#34;
 
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
         for w in workloads:
             print(w[&#34;result&#34;])
 
-        resp = self._session.post(url, json=workloads, auth=auth, headers=headers)
+        resp = self._session.post(url, json=workloads)
         return resp.json()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -154,14 +138,10 @@ class Conversion:
 
     url = self._client.url + &#34;/reservations/convert&#34;
 
-    secret = me.nacl.signing_key.encode(Base64Encoder)
-    auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-    headers = {&#34;threebot-id&#34;: str(me.tid)}
-
     for w in workloads:
         print(w[&#34;result&#34;])
 
-    resp = self._session.post(url, json=workloads, auth=auth, headers=headers)
+    resp = self._session.post(url, json=workloads)
     return resp.json()</code></pre>
 </details>
 </dd>
@@ -177,11 +157,7 @@ class Conversion:
 
     url = self._client.url + &#34;/reservations/convert&#34;
 
-    secret = me.nacl.signing_key.encode(Base64Encoder)
-    auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-    headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-    resp = self._session.get(url, auth=auth, headers=headers)
+    resp = self._session.get(url)
 
     if resp.status_code == 204:
         raise AlreadyConvertedError(f&#34;convertion for user {me.tid} has already been done&#34;)

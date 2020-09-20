@@ -154,7 +154,7 @@ __all__ = [
     &#34;get_current_version&#34;,
 ]
 
-__version__ = &#34;11.0b3&#34;
+__version__ = &#34;11.0.0-a3&#34;
 
 
 config_root = os.path.expanduser(os.path.join(&#34;~/.config&#34;, &#34;jumpscale&#34;))
@@ -248,12 +248,12 @@ def set(key, val):
 
 
 def set_default(key, val):
-    &#34;&#34;&#34; Sets key to value in jumpscale config and returns 
+    &#34;&#34;&#34; Sets key to value in jumpscale config and returns
 
     Arguments:
         key (str): the key you wish to update
         val: value to update with and to return if key doesn&#39;t exist in configurations
-    
+
     Returns:
         val (str): returned if key doesn&#39;t exist in configuration or the value of key in configurations
     &#34;&#34;&#34;
@@ -501,12 +501,12 @@ migrate_config()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def set_default(key, val):
-    &#34;&#34;&#34; Sets key to value in jumpscale config and returns 
+    &#34;&#34;&#34; Sets key to value in jumpscale config and returns
 
     Arguments:
         key (str): the key you wish to update
         val: value to update with and to return if key doesn&#39;t exist in configurations
-    
+
     Returns:
         val (str): returned if key doesn&#39;t exist in configuration or the value of key in configurations
     &#34;&#34;&#34;

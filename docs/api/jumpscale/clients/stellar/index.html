@@ -22,7 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.core.base import StoredFactory
+<pre><code class="python">import requests
+
+from jumpscale.loader import j
+from jumpscale.core.base import StoredFactory
 from stellar_sdk import Keypair
 from .exceptions import *
 
@@ -38,6 +41,77 @@ class StellarFactory(StoredFactory):
             instance.secret = secret
 
         return instance
+
+    def check_stellar_service(self):
+        &#34;&#34;&#34;This method will check if stellar and token service is up or not
+        &#34;&#34;&#34;
+        _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+            &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+            &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+        }
+        _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+
+        services_status = True
+
+        # urls of services according to identity explorer
+        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
+            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
+        else:
+            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+
+        # check stellar service
+        try:
+            j.tools.http.get(stellar_url)
+        except:
+            services_status = False
+
+        # check token services
+        try:
+            j.tools.http.get(tokenservices_url)
+        except:
+            services_status = False
+
+        return services_status
+
+    def create_testnet_funded_wallet(self, name: str) -&gt; bool:
+        &#34;&#34;&#34;This method will create a testnet wallet and fund it from the facuet
+
+        Args:
+            name (str): name of the wallet
+
+        &#34;&#34;&#34;
+        wallet = self.new(name)
+        try:
+            wallet.network = &#34;TEST&#34;
+            wallet.activate_through_friendbot()
+            wallet.add_known_trustline(&#34;TFT&#34;)
+            wallet.save()
+        except Exception as e:
+            self.delete(name)
+            raise j.exceptions.Runtime(f&#34;Failed to create the wallet due to token service&#34;)
+
+        headers = {&#34;Content-Type&#34;: &#34;application/json&#34;}
+        url = &#34;https://gettft.testnet.grid.tf/tft_faucet/api/transfer&#34;
+        data = {&#34;destination&#34;: wallet.address}
+
+        try:
+            response = requests.post(url, json=data, headers=headers)
+        except requests.exceptions.HTTPError:
+            self.delete(name)
+            raise j.exceptions.Runtime(
+                f&#34;Failed to fund wallet can&#39;t reach {url} due to connection error. Changes will be reverted.&#34;
+            )
+
+        if response.status_code != 200:
+            self.delete(name)
+            raise j.exceptions.Runtime(
+                f&#34;Failed to fund the wallet due to to facuet server error. Changes will be reverted.&#34;
+            )
+
+        j.logger.info(&#34;Wallet created successfully&#34;)
+        return True
 
 
 def export_module_as():
@@ -129,7 +203,78 @@ to store all instance configurations.</p>
         else:
             instance.secret = secret
 
-        return instance</code></pre>
+        return instance
+
+    def check_stellar_service(self):
+        &#34;&#34;&#34;This method will check if stellar and token service is up or not
+        &#34;&#34;&#34;
+        _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+            &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+            &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+        }
+        _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+
+        services_status = True
+
+        # urls of services according to identity explorer
+        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
+            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
+        else:
+            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
+            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+
+        # check stellar service
+        try:
+            j.tools.http.get(stellar_url)
+        except:
+            services_status = False
+
+        # check token services
+        try:
+            j.tools.http.get(tokenservices_url)
+        except:
+            services_status = False
+
+        return services_status
+
+    def create_testnet_funded_wallet(self, name: str) -&gt; bool:
+        &#34;&#34;&#34;This method will create a testnet wallet and fund it from the facuet
+
+        Args:
+            name (str): name of the wallet
+
+        &#34;&#34;&#34;
+        wallet = self.new(name)
+        try:
+            wallet.network = &#34;TEST&#34;
+            wallet.activate_through_friendbot()
+            wallet.add_known_trustline(&#34;TFT&#34;)
+            wallet.save()
+        except Exception as e:
+            self.delete(name)
+            raise j.exceptions.Runtime(f&#34;Failed to create the wallet due to token service&#34;)
+
+        headers = {&#34;Content-Type&#34;: &#34;application/json&#34;}
+        url = &#34;https://gettft.testnet.grid.tf/tft_faucet/api/transfer&#34;
+        data = {&#34;destination&#34;: wallet.address}
+
+        try:
+            response = requests.post(url, json=data, headers=headers)
+        except requests.exceptions.HTTPError:
+            self.delete(name)
+            raise j.exceptions.Runtime(
+                f&#34;Failed to fund wallet can&#39;t reach {url} due to connection error. Changes will be reverted.&#34;
+            )
+
+        if response.status_code != 200:
+            self.delete(name)
+            raise j.exceptions.Runtime(
+                f&#34;Failed to fund the wallet due to to facuet server error. Changes will be reverted.&#34;
+            )
+
+        j.logger.info(&#34;Wallet created successfully&#34;)
+        return True</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -137,6 +282,101 @@ to store all instance configurations.</p>
 <li><a title="jumpscale.core.events.Handler" href="../../core/events/index.html#jumpscale.core.events.Handler">Handler</a></li>
 <li><a title="jumpscale.core.base.factory.Factory" href="../../core/base/factory.html#jumpscale.core.base.factory.Factory">Factory</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.stellar.StellarFactory.check_stellar_service"><code class="name flex">
+<span>def <span class="ident">check_stellar_service</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method will check if stellar and token service is up or not</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def check_stellar_service(self):
+    &#34;&#34;&#34;This method will check if stellar and token service is up or not
+    &#34;&#34;&#34;
+    _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+        &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+        &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+    }
+    _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+
+    services_status = True
+
+    # urls of services according to identity explorer
+    if &#34;testnet&#34; in j.core.identity.me.explorer_url:
+        stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
+        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
+    else:
+        stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
+        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+
+    # check stellar service
+    try:
+        j.tools.http.get(stellar_url)
+    except:
+        services_status = False
+
+    # check token services
+    try:
+        j.tools.http.get(tokenservices_url)
+    except:
+        services_status = False
+
+    return services_status</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.stellar.StellarFactory.create_testnet_funded_wallet"><code class="name flex">
+<span>def <span class="ident">create_testnet_funded_wallet</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This method will create a testnet wallet and fund it from the facuet</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the wallet</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_testnet_funded_wallet(self, name: str) -&gt; bool:
+    &#34;&#34;&#34;This method will create a testnet wallet and fund it from the facuet
+
+    Args:
+        name (str): name of the wallet
+
+    &#34;&#34;&#34;
+    wallet = self.new(name)
+    try:
+        wallet.network = &#34;TEST&#34;
+        wallet.activate_through_friendbot()
+        wallet.add_known_trustline(&#34;TFT&#34;)
+        wallet.save()
+    except Exception as e:
+        self.delete(name)
+        raise j.exceptions.Runtime(f&#34;Failed to create the wallet due to token service&#34;)
+
+    headers = {&#34;Content-Type&#34;: &#34;application/json&#34;}
+    url = &#34;https://gettft.testnet.grid.tf/tft_faucet/api/transfer&#34;
+    data = {&#34;destination&#34;: wallet.address}
+
+    try:
+        response = requests.post(url, json=data, headers=headers)
+    except requests.exceptions.HTTPError:
+        self.delete(name)
+        raise j.exceptions.Runtime(
+            f&#34;Failed to fund wallet can&#39;t reach {url} due to connection error. Changes will be reverted.&#34;
+        )
+
+    if response.status_code != 200:
+        self.delete(name)
+        raise j.exceptions.Runtime(
+            f&#34;Failed to fund the wallet due to to facuet server error. Changes will be reverted.&#34;
+        )
+
+    j.logger.info(&#34;Wallet created successfully&#34;)
+    return True</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="jumpscale.core.base.factory.StoredFactory" href="../../core/base/factory.html#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></b></code>:
@@ -187,6 +427,10 @@ to store all instance configurations.</p>
 <ul>
 <li>
 <h4><code><a title="jumpscale.clients.stellar.StellarFactory" href="#jumpscale.clients.stellar.StellarFactory">StellarFactory</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.stellar.StellarFactory.check_stellar_service" href="#jumpscale.clients.stellar.StellarFactory.check_stellar_service">check_stellar_service</a></code></li>
+<li><code><a title="jumpscale.clients.stellar.StellarFactory.create_testnet_funded_wallet" href="#jumpscale.clients.stellar.StellarFactory.create_testnet_funded_wallet">create_testnet_funded_wallet</a></code></li>
+</ul>
 </li>
 </ul>
 </li>

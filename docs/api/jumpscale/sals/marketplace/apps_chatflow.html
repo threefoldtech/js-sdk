@@ -22,18 +22,20 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
-import uuid
+<pre><code class="python">import math
 import random
-import requests
+import uuid
 from textwrap import dedent
-import math
+
+import requests
+
 from jumpscale.loader import j
-from .solutions import solutions
-from .deployer import deployer
-from .chatflow import MarketPlaceChatflow
-from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+
+from .chatflow import MarketPlaceChatflow
+from .deployer import deployer
+from .solutions import solutions
 
 FLAVORS = {
     &#34;Silver&#34;: {&#34;sru&#34;: 2,},
@@ -51,11 +53,17 @@ RESOURCE_VALUE_KEYS = {
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
+        self.md_show_update(&#34;Checking payment service...&#34;)
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow(&#34;Payment service is currently down, try again later&#34;)
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
-        self.solution_metadata[&#34;owner&#34;] = self.user_info()[&#34;username&#34;]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()[&#34;username&#34;], &#34;.3bot&#34;)
+        self.username = self.user_info()[&#34;username&#34;]
+        self.solution_metadata[&#34;owner&#34;] = self.username
+        self.threebot_name = j.data.text.removesuffix(self.username, &#34;.3bot&#34;)
+        self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -82,8 +90,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
+        self.currency = &#34;TFT&#34;
         available_farms = []
         farm_names = [&#34;freefarm&#34;]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
@@ -95,9 +105,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         networks_names = [n[&#34;Name&#34;] for n in user_networks]
         if &#34;apps&#34; in networks_names:
             # old user
-            self.md_show_update(
-                &#34;Checking if you have free resources (If you have an old deployment that failed after payment)....&#34;
-            )
+            self.md_show_update(&#34;Checking for free resources .....&#34;)
             free_pools = deployer.get_free_pools(self.solution_metadata[&#34;owner&#34;])
             if free_pools:
                 self.md_show_update(
@@ -108,24 +116,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     free_pools, self.expiration, free_to_use=self.currency == &#34;FreeTFT&#34;, **self.query
                 )
                 if cu_diff &lt; 0 or su_diff &lt; 0:
-                    # extend pool
-                    self.md_show_update(
-                        &#34;Found pool that requires extension. payment screen will be shown in a moment...&#34;
-                    )
                     cu_diff = abs(cu_diff) if cu_diff &lt; 0 else 0
                     su_diff = abs(su_diff) if su_diff &lt; 0 else 0
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    qr_code = deployer.show_payment(pool_info, self)
+                    deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_pool_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    result = deployer.wait_demo_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
                     )
                     if not result:
                         raise StopChatFlow(
-                            f&#34;Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
+                            f&#34;can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
                         )
                     self.pool_id = pool.pool_id
                 else:
@@ -134,7 +138,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     )
                     self.pool_id = pool.pool_id
             else:
-                self.pool_info, qr_code = deployer.create_solution_pool(
+                self.md_show_update(&#34;Reserving new resources....&#34;)
+                self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata[&#34;owner&#34;],
                     farm_name=self.farm_name,
@@ -142,20 +147,26 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     currency=self.currency,
                     **self.query,
                 )
-                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+                deployer.pay_for_pool(self.pool_info)
+                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
                 if not result:
-                    raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}&#34;)
+                    raise StopChatFlow(f&#34;provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}&#34;)
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user
-            self.pool_info, self.wgconf = deployer.init_new_user(
-                bot=self,
-                username=self.solution_metadata[&#34;owner&#34;],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
+            self.pool_info = deployer.create_solution_pool(
+                self,
+                self.solution_metadata[&#34;owner&#34;],
+                self.farm_name,
+                self.expiration,
                 currency=self.currency,
                 **self.query,
             )
+            deployer.pay_for_pool(self.pool_info)
+            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f&#34;provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}&#34;)
+            deployer.init_new_user_network(self, self.solution_metadata[&#34;owner&#34;], self.pool_info.reservation_id)
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
@@ -181,7 +192,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
                         raise DeploymentFailed(
-                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid
+                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                            wid=wid,
                         )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
@@ -190,23 +202,38 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update(&#34;Preparing gateways ...&#34;)
-        gateways = deployer.list_all_gateways(self.user_info()[&#34;username&#34;])
+        gateways = deployer.list_all_gateways(self.username)
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(
+                &#34;There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments.&#34;
+            )
 
         domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
         for gw_dict in gateways.values():
             gateway = gw_dict[&#34;gateway&#34;]
             for domain in gateway.managed_domains:
+                is_managed_domains = True
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
+                    is_http_failure = True
                     continue
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow(&#34;Letsencrypt limit has been reached on all gateways&#34;)
+            if is_http_failure:
+                raise StopChatFlow(
+                    &#39;An error encountered while trying to fetch certifcates information from &lt;a href=&#34;crt.sh&#34; target=&#34;_blank&#34;&gt;crt.sh&lt;/a&gt;. Please try again later.&#39;
+                )
+            elif not is_managed_domains:
+                raise StopChatFlow(&#34;Couldn&#39;t find managed domains in the available gateways. Please contact support.&#34;)
+            else:
+                raise StopChatFlow(
+                    &#34;Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments.&#34;
+                )
 
         self.domain = random.choice(list(domains.keys()))
 
@@ -254,64 +281,67 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}-{self.solution_name}&#34;
 
-    @chatflow_step(title=&#34;Payment currency&#34;)
-    def payment_currency(self):
-        self.currency = self.single_choice(
-            &#34;Please select the currency you want to pay with.&#34;, [&#34;FreeTFT&#34;, &#34;TFT&#34;, &#34;TFTA&#34;], required=True
-        )
-
-    @chatflow_step(title=&#34;Expiration Date and Time&#34;)
-    def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=&#34;&#34;)
-
     @chatflow_step(title=&#34;Setup&#34;, disable_previous=True)
     def infrastructure_setup(self):
+        self.md_show_update(&#34;Preparing Infrastructure...&#34;)
         self._get_pool()
         self._deploy_network()
         self._get_domain()
 
     @chatflow_step(title=&#34;Initializing&#34;, disable_previous=True)
     def initializing(self):
-        if hasattr(self, &#34;wgconf&#34;):
-            user_wgconf_check = self.single_choice(
-                &#34;Do you want to save the wireguard configration, it could help you to connect with your workload using ip address ?&#34;,
-                [&#34;YES&#34;, &#34;NO&#34;],
-                default=&#34;NO&#34;,
-            )
-            if user_wgconf_check == &#34;YES&#34;:
-                msg = f&#34;&#34;&#34;&lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
-&lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
-&lt;br&gt;
-&lt;pre style=&#34;text-align:center&#34;&gt;{self.wgconf}&lt;/pre&gt;
-&lt;br&gt;
-&lt;h3&gt;navigate to where the config is downloaded and start your connection using &#34;wg-quick up ./apps.conf&#34;&lt;/h3&gt;
-&#34;&#34;&#34;
-                self.download_file(msg=msg, data=self.wgconf, filename=&#34;apps.conf&#34;, html=True)
-
         self.md_show_update(f&#34;Initializing your {self.SOLUTION_TYPE}...&#34;)
 
         if not j.sals.reservation_chatflow.wait_http_test(
             f&#34;https://{self.domain}&#34;, timeout=600, verify=not j.config.get(&#34;TEST_CERT&#34;)
         ):
-            self.stop(
-                f&#34;&#34;&#34;\
-Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
-Node: {self.selected_node.node_id},
-IP Address: {self.ip_address},
-Reservation ID: {self.resv_id},
-Pool ID: {self.pool_id},
-Domain: {self.domain}
+            stop_message = f&#34;&#34;&#34;\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+                Node: {self.selected_node.node_id},
+                IP Address: {self.ip_address},
+                Reservation ID: {self.resv_id},
+                Pool ID: {self.pool_id},
+                Domain: {self.domain}
                 &#34;&#34;&#34;
-            )
+            self.stop(dedent(stop_message))
+
+    # for threebot
+    @chatflow_step(title=&#34;New Expiration&#34;)
+    def new_expiration(self):
+        DURATION_MAX = 9223372036854775807
+        self.pool = j.sals.zos.pools.get(self.pool_id)
+        if self.pool.empty_at &lt; DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.utcnow().timestamp + 1209600
+        self.expiration = deployer.ask_expiration(
+            self, default_time, min=min_timestamp_fromnow, pool_empty_at=self.pool.empty_at
+        )
+
+    @chatflow_step(title=&#34;Payment&#34;)
+    def solution_extension(self):
+        self.currencies = [&#34;TFT&#34;]
+        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+            self, self.pool_id, self.expiration, self.currencies, **self.query
+        )
+        if self.pool_info and self.qr_code:
+            # cru = 1 so cus will be = 0
+            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            if not result:
+                raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f&#34;{self.solution_metadata[&#39;owner&#39;]}-&#34;, &#34;&#34;)
         message = f&#34;&#34;&#34;\
-# You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
-                &#34;&#34;&#34;
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        &lt;br /&gt;\n
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 </section>
@@ -338,11 +368,17 @@ any extra kwargs that is passed while creating the session
 <summary>Source code</summary>
 <pre><code class="python">class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _init_solution(self):
+        self.md_show_update(&#34;Checking payment service...&#34;)
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow(&#34;Payment service is currently down, try again later&#34;)
         self._validate_user()
         self.solution_id = uuid.uuid4().hex
         self.solution_metadata = {}
-        self.solution_metadata[&#34;owner&#34;] = self.user_info()[&#34;username&#34;]
-        self.threebot_name = j.data.text.removesuffix(self.user_info()[&#34;username&#34;], &#34;.3bot&#34;)
+        self.username = self.user_info()[&#34;username&#34;]
+        self.solution_metadata[&#34;owner&#34;] = self.username
+        self.threebot_name = j.data.text.removesuffix(self.username, &#34;.3bot&#34;)
+        self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -369,8 +405,10 @@ any extra kwargs that is passed while creating the session
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
+        self.currency = &#34;TFT&#34;
         available_farms = []
         farm_names = [&#34;freefarm&#34;]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
             if available:
@@ -382,9 +420,7 @@ any extra kwargs that is passed while creating the session
         networks_names = [n[&#34;Name&#34;] for n in user_networks]
         if &#34;apps&#34; in networks_names:
             # old user
-            self.md_show_update(
-                &#34;Checking if you have free resources (If you have an old deployment that failed after payment)....&#34;
-            )
+            self.md_show_update(&#34;Checking for free resources .....&#34;)
             free_pools = deployer.get_free_pools(self.solution_metadata[&#34;owner&#34;])
             if free_pools:
                 self.md_show_update(
@@ -395,24 +431,20 @@ any extra kwargs that is passed while creating the session
                     free_pools, self.expiration, free_to_use=self.currency == &#34;FreeTFT&#34;, **self.query
                 )
                 if cu_diff &lt; 0 or su_diff &lt; 0:
-                    # extend pool
-                    self.md_show_update(
-                        &#34;Found pool that requires extension. payment screen will be shown in a moment...&#34;
-                    )
                     cu_diff = abs(cu_diff) if cu_diff &lt; 0 else 0
                     su_diff = abs(su_diff) if su_diff &lt; 0 else 0
                     pool_info = j.sals.zos.pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
-                    qr_code = deployer.show_payment(pool_info, self)
+                    deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
                     trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_pool_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus, qr_code=qr_code
+                    result = deployer.wait_demo_payment(
+                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
                     )
                     if not result:
                         raise StopChatFlow(
-                            f&#34;Waiting for pool payment timedout. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
+                            f&#34;can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}&#34;
                         )
                     self.pool_id = pool.pool_id
                 else:
@@ -421,7 +453,8 @@ any extra kwargs that is passed while creating the session
                     )
                     self.pool_id = pool.pool_id
             else:
-                self.pool_info, qr_code = deployer.create_solution_pool(
+                self.md_show_update(&#34;Reserving new resources....&#34;)
+                self.pool_info = deployer.create_solution_pool(
                     bot=self,
                     username=self.solution_metadata[&#34;owner&#34;],
                     farm_name=self.farm_name,
@@ -429,20 +462,26 @@ any extra kwargs that is passed while creating the session
                     currency=self.currency,
                     **self.query,
                 )
-                result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+                deployer.pay_for_pool(self.pool_info)
+                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
                 if not result:
-                    raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_info.reservation_id}&#34;)
+                    raise StopChatFlow(f&#34;provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}&#34;)
                 self.pool_id = self.pool_info.reservation_id
         else:
             # new user
-            self.pool_info, self.wgconf = deployer.init_new_user(
-                bot=self,
-                username=self.solution_metadata[&#34;owner&#34;],
-                farm_name=self.farm_name,
-                expiration=self.expiration,
+            self.pool_info = deployer.create_solution_pool(
+                self,
+                self.solution_metadata[&#34;owner&#34;],
+                self.farm_name,
+                self.expiration,
                 currency=self.currency,
                 **self.query,
             )
+            deployer.pay_for_pool(self.pool_info)
+            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            if not result:
+                raise StopChatFlow(f&#34;provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}&#34;)
+            deployer.init_new_user_network(self, self.solution_metadata[&#34;owner&#34;], self.pool_info.reservation_id)
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
@@ -468,7 +507,8 @@ any extra kwargs that is passed while creating the session
                     success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
                     if not success:
                         raise DeploymentFailed(
-                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}&#34;, wid=wid
+                            f&#34;Failed to add node {self.selected_node.node_id} to network {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                            wid=wid,
                         )
                 self.network_view = self.network_view.copy()
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
@@ -477,23 +517,38 @@ any extra kwargs that is passed while creating the session
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update(&#34;Preparing gateways ...&#34;)
-        gateways = deployer.list_all_gateways(self.user_info()[&#34;username&#34;])
+        gateways = deployer.list_all_gateways(self.username)
         if not gateways:
-            raise StopChatFlow(&#34;There are no available gateways in the farms bound to your pools.&#34;)
+            raise StopChatFlow(
+                &#34;There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments.&#34;
+            )
 
         domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
         for gw_dict in gateways.values():
             gateway = gw_dict[&#34;gateway&#34;]
             for domain in gateway.managed_domains:
+                is_managed_domains = True
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
+                    is_http_failure = True
                     continue
                 domains[domain] = gw_dict
 
         if not domains:
-            raise StopChatFlow(&#34;Letsencrypt limit has been reached on all gateways&#34;)
+            if is_http_failure:
+                raise StopChatFlow(
+                    &#39;An error encountered while trying to fetch certifcates information from &lt;a href=&#34;crt.sh&#34; target=&#34;_blank&#34;&gt;crt.sh&lt;/a&gt;. Please try again later.&#39;
+                )
+            elif not is_managed_domains:
+                raise StopChatFlow(&#34;Couldn&#39;t find managed domains in the available gateways. Please contact support.&#34;)
+            else:
+                raise StopChatFlow(
+                    &#34;Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments.&#34;
+                )
 
         self.domain = random.choice(list(domains.keys()))
 
@@ -541,64 +596,67 @@ any extra kwargs that is passed while creating the session
                 valid = True
         self.solution_name = f&#34;{self.solution_metadata[&#39;owner&#39;]}-{self.solution_name}&#34;
 
-    @chatflow_step(title=&#34;Payment currency&#34;)
-    def payment_currency(self):
-        self.currency = self.single_choice(
-            &#34;Please select the currency you want to pay with.&#34;, [&#34;FreeTFT&#34;, &#34;TFT&#34;, &#34;TFTA&#34;], required=True
-        )
-
-    @chatflow_step(title=&#34;Expiration Date and Time&#34;)
-    def solution_expiration(self):
-        self.expiration = deployer.ask_expiration(self, j.data.time.get().timestamp + 15552000, msg=&#34;&#34;)
-
     @chatflow_step(title=&#34;Setup&#34;, disable_previous=True)
     def infrastructure_setup(self):
+        self.md_show_update(&#34;Preparing Infrastructure...&#34;)
         self._get_pool()
         self._deploy_network()
         self._get_domain()
 
     @chatflow_step(title=&#34;Initializing&#34;, disable_previous=True)
     def initializing(self):
-        if hasattr(self, &#34;wgconf&#34;):
-            user_wgconf_check = self.single_choice(
-                &#34;Do you want to save the wireguard configration, it could help you to connect with your workload using ip address ?&#34;,
-                [&#34;YES&#34;, &#34;NO&#34;],
-                default=&#34;NO&#34;,
-            )
-            if user_wgconf_check == &#34;YES&#34;:
-                msg = f&#34;&#34;&#34;&lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
-&lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
-&lt;br&gt;
-&lt;pre style=&#34;text-align:center&#34;&gt;{self.wgconf}&lt;/pre&gt;
-&lt;br&gt;
-&lt;h3&gt;navigate to where the config is downloaded and start your connection using &#34;wg-quick up ./apps.conf&#34;&lt;/h3&gt;
-&#34;&#34;&#34;
-                self.download_file(msg=msg, data=self.wgconf, filename=&#34;apps.conf&#34;, html=True)
-
         self.md_show_update(f&#34;Initializing your {self.SOLUTION_TYPE}...&#34;)
 
         if not j.sals.reservation_chatflow.wait_http_test(
             f&#34;https://{self.domain}&#34;, timeout=600, verify=not j.config.get(&#34;TEST_CERT&#34;)
         ):
-            self.stop(
-                f&#34;&#34;&#34;\
-Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
-Node: {self.selected_node.node_id},
-IP Address: {self.ip_address},
-Reservation ID: {self.resv_id},
-Pool ID: {self.pool_id},
-Domain: {self.domain}
+            stop_message = f&#34;&#34;&#34;\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+                Node: {self.selected_node.node_id},
+                IP Address: {self.ip_address},
+                Reservation ID: {self.resv_id},
+                Pool ID: {self.pool_id},
+                Domain: {self.domain}
                 &#34;&#34;&#34;
-            )
+            self.stop(dedent(stop_message))
+
+    # for threebot
+    @chatflow_step(title=&#34;New Expiration&#34;)
+    def new_expiration(self):
+        DURATION_MAX = 9223372036854775807
+        self.pool = j.sals.zos.pools.get(self.pool_id)
+        if self.pool.empty_at &lt; DURATION_MAX:
+            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
+            min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp
+            default_time = self.pool.empty_at + 3900
+        else:
+            # Pool not being consumed (compute or storage), default is in 14 days (60*60*24*14 = 1209600)
+            min_timestamp_fromnow = None
+            default_time = j.data.time.utcnow().timestamp + 1209600
+        self.expiration = deployer.ask_expiration(
+            self, default_time, min=min_timestamp_fromnow, pool_empty_at=self.pool.empty_at
+        )
+
+    @chatflow_step(title=&#34;Payment&#34;)
+    def solution_extension(self):
+        self.currencies = [&#34;TFT&#34;]
+        self.pool_info, self.qr_code = deployer.extend_solution_pool(
+            self, self.pool_id, self.expiration, self.currencies, **self.query
+        )
+        if self.pool_info and self.qr_code:
+            # cru = 1 so cus will be = 0
+            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            if not result:
+                raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f&#34;{self.solution_metadata[&#39;owner&#39;]}-&#34;, &#34;&#34;)
         message = f&#34;&#34;&#34;\
-# You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
-                &#34;&#34;&#34;
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        &lt;br /&gt;\n
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -608,13 +666,14 @@ Domain: {self.domain}
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.packages.marketplace.chats.publisher.Publisher" href="../../packages/marketplace/chats/publisher.html#jumpscale.packages.marketplace.chats.publisher.Publisher">Publisher</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.cryptpad.CryptpadDeploy" href="../../packages/marketplace/chats/cryptpad.html#jumpscale.packages.marketplace.chats.cryptpad.CryptpadDeploy">CryptpadDeploy</a></li>
-<li><a title="jumpscale.packages.marketplace.chats.discourse.Discourse" href="../../packages/marketplace/chats/discourse.html#jumpscale.packages.marketplace.chats.discourse.Discourse">Discourse</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.gitea.GiteaDeploy" href="../../packages/marketplace/chats/gitea.html#jumpscale.packages.marketplace.chats.gitea.GiteaDeploy">GiteaDeploy</a></li>
+<li><a title="jumpscale.packages.marketplace.chats.publisher.Publisher" href="../../packages/marketplace/chats/publisher.html#jumpscale.packages.marketplace.chats.publisher.Publisher">Publisher</a></li>
+<li><a title="jumpscale.packages.marketplace.chats.discourse.Discourse" href="../../packages/marketplace/chats/discourse.html#jumpscale.packages.marketplace.chats.discourse.Discourse">Discourse</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.mattermost.MattermostDeploy" href="../../packages/marketplace/chats/mattermost.html#jumpscale.packages.marketplace.chats.mattermost.MattermostDeploy">MattermostDeploy</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.peertube.Peertube" href="../../packages/marketplace/chats/peertube.html#jumpscale.packages.marketplace.chats.peertube.Peertube">Peertube</a></li>
 <li><a title="jumpscale.packages.marketplace.chats.taiga.TaigaDeploy" href="../../packages/marketplace/chats/taiga.html#jumpscale.packages.marketplace.chats.taiga.TaigaDeploy">TaigaDeploy</a></li>
+<li><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot" href="../../packages/threebot_deployer/chats/extend.html#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot">ExtendThreebot</a></li>
 <li><a title="jumpscale.packages.threebot_deployer.chats.threebot.ThreebotDeploy" href="../../packages/threebot_deployer/chats/threebot.html#jumpscale.packages.threebot_deployer.chats.threebot.ThreebotDeploy">ThreebotDeploy</a></li>
 </ul>
 <h3>Methods</h3>
@@ -658,8 +717,8 @@ Domain: {self.domain}
     return func(*args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.payment_currency"><code class="name flex">
-<span>def <span class="ident">payment_currency</span></span>(<span>*args, **kwargs)</span>
+<dt id="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.new_expiration"><code class="name flex">
+<span>def <span class="ident">new_expiration</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -671,8 +730,8 @@ Domain: {self.domain}
     return func(*args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_expiration"><code class="name flex">
-<span>def <span class="ident">solution_expiration</span></span>(<span>*args, **kwargs)</span>
+<dt id="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_extension"><code class="name flex">
+<span>def <span class="ident">solution_extension</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -748,8 +807,8 @@ Domain: {self.domain}
 <li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.get_solution_name" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.get_solution_name">get_solution_name</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.infrastructure_setup" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.infrastructure_setup">infrastructure_setup</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.initializing" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.initializing">initializing</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.payment_currency" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.payment_currency">payment_currency</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_expiration" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_expiration">solution_expiration</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.new_expiration" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.new_expiration">new_expiration</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_extension" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.solution_extension">solution_extension</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.success" href="#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.success">success</a></code></li>
 </ul>
 </li>

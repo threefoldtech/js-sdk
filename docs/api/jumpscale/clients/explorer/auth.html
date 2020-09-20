@@ -76,6 +76,8 @@ class HeaderSigner(Signer):
         required_headers = self.headers or [&#34;date&#34;]
         created = time.time()
         expires = created + 60
+        dt = datetime.fromtimestamp(created)
+        headers[&#34;date&#34;] = formatdate(timeval=time.mktime(dt.timetuple()), localtime=False, usegmt=True)
         signable = generate_message(required_headers, headers, created, expires, host, method, path)
         signature = super().sign(signable)
         headers[self.sign_header] = self.signature_template % (signature, created, expires)
@@ -389,6 +391,8 @@ When using ed25519 algorithm, the secret is the base64-encoded private key</p></
         required_headers = self.headers or [&#34;date&#34;]
         created = time.time()
         expires = created + 60
+        dt = datetime.fromtimestamp(created)
+        headers[&#34;date&#34;] = formatdate(timeval=time.mktime(dt.timetuple()), localtime=False, usegmt=True)
         signable = generate_message(required_headers, headers, created, expires, host, method, path)
         signature = super().sign(signable)
         headers[self.sign_header] = self.signature_template % (signature, created, expires)
@@ -426,6 +430,8 @@ headers).
     required_headers = self.headers or [&#34;date&#34;]
     created = time.time()
     expires = created + 60
+    dt = datetime.fromtimestamp(created)
+    headers[&#34;date&#34;] = formatdate(timeval=time.mktime(dt.timetuple()), localtime=False, usegmt=True)
     signable = generate_message(required_headers, headers, created, expires, host, method, path)
     signature = super().sign(signable)
     headers[self.sign_header] = self.signature_template % (signature, created, expires)
