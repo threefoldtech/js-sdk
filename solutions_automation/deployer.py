@@ -1,6 +1,6 @@
 from dashboard_solutions.delegated_domain import DomainDelegationAutomated
 from dashboard_solutions.exposed import SolutionExposeDeployAutomated
-from dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
+
 from dashboard_solutions.generic_flist import FlistAutomated
 from dashboard_solutions.kubernetes import KubernetesAutomated
 from dashboard_solutions.minio import MinioAutomated
@@ -181,8 +181,9 @@ def deploy_minio(
     )
 
 
-def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
-    return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+# TODO: uncomment after Fixing importing problem
+# def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
+#     return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
 
 
 def delegated_domain(domain, gateway="choose_random", debug=True):

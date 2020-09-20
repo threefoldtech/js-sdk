@@ -27,7 +27,7 @@ For example,
 class AutomatedNewApp(GedisChatBotPatch):
     QS = {
         "How old are you?": "age",
-        "Choosee you favorite color?": "choose_color"
+        "Choose you favorite color?": "choose_color"
     }
 
     def choose_color(self, msg, options, *args, **kwargs):
@@ -40,7 +40,7 @@ Just initializing the class begins the work. The debug option specifies whether 
 
 ## Use an existing one
 
-Inside `deployer.py`, there're methods to deploy the soluions with the parameters specified in them with the default values.
+Inside `deployer.py`, there're methods to deploy the solutions with the parameters specified in them with the default values.
 
 Another way is to import the class and instantiate a new object as follows:
 
