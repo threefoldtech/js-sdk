@@ -43,7 +43,7 @@
                   text
                   :link="true"
                   color="blue"
-                  href="https://manual-testnet.threefold.io/#/"
+                  href="https://manual.threefold.io/#/"
                   target="_blank"
                 >Manual</v-btn>
               </v-list-item-content>
@@ -126,36 +126,36 @@ module.exports = {
       timenow: null,
       clockInterval: null,
       dialogs: {
-        identity: false
-      }
+        identity: false,
+      },
     };
   },
   components: {
-    identities: httpVueLoader("./Identity.vue")
+    identities: httpVueLoader("./Identity.vue"),
   },
   computed: {},
   methods: {},
   computed: {
     pages() {
-      return this.$router.options.routes.filter(page => {
+      return this.$router.options.routes.filter((page) => {
         return page.meta.listed;
       });
-    }
+    },
   },
   watch: {
     darkTheme(val) {
       $cookies.set("darkTheme", val ? "1" : "0");
       this.$vuetify.theme.dark = val;
-    }
+    },
   },
   methods: {
     getCurrentUser() {
-      this.$api.user.currentUser().then(response => {
+      this.$api.user.currentUser().then((response) => {
         this.user = response.data;
       });
     },
     getIdentity() {
-      this.$api.identity.get().then(response => {
+      this.$api.identity.get().then((response) => {
         this.identity = JSON.parse(response.data);
       });
     },
@@ -182,7 +182,7 @@ module.exports = {
       else
         this.$vuetify.theme.dark = this.darkTheme =
           cookie == "1" ? true : false;
-    }
+    },
   },
   mounted() {
     this.checkDarkMode();
@@ -195,6 +195,6 @@ module.exports = {
   },
   destroyed() {
     clearInterval(this.clockInterval);
-  }
+  },
 };
 </script>

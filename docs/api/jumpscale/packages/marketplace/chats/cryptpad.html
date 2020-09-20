@@ -34,8 +34,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     steps = [
         &#34;get_solution_name&#34;,
         &#34;cryptpad_info&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -76,7 +74,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
             )
 
         # deploy volume
@@ -90,7 +88,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=vol_id,
             )
@@ -122,7 +120,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -145,7 +143,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34;
+                f&#34; {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -182,8 +181,6 @@ any extra kwargs that is passed while creating the session
     steps = [
         &#34;get_solution_name&#34;,
         &#34;cryptpad_info&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -224,7 +221,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
             )
 
         # deploy volume
@@ -238,7 +235,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=vol_id,
             )
@@ -270,7 +267,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -293,7 +290,8 @@ any extra kwargs that is passed while creating the session
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34;
+                f&#34; {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )</code></pre>
@@ -376,8 +374,6 @@ any extra kwargs that is passed while creating the session
     steps = [
         &#34;get_solution_name&#34;,
         &#34;cryptpad_info&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -418,7 +414,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}&#34;,
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
             )
 
         # deploy volume
@@ -432,7 +428,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(vol_id, self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}&#34;,
+                f&#34;Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=vol_id,
             )
@@ -464,7 +460,7 @@ any extra kwargs that is passed while creating the session
         success = deployer.wait_workload(self.workload_ids[-1], self)
         if not success:
             raise DeploymentFailed(
-                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}&#34;,
+                f&#34;Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
@@ -487,7 +483,8 @@ any extra kwargs that is passed while creating the session
         if not success:
             # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34; f&#34; {_id}&#34;,
+                f&#34;Failed to create TRC container on node {self.selected_node.node_id}&#34;
+                f&#34; {_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )</code></pre>

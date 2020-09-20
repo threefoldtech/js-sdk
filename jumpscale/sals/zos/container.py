@@ -33,7 +33,6 @@ class ContainerGenerator:
         interactive: bool = False,
         secret_env: dict = {},
         public_ipv6: bool = False,
-        yggdrasil_ip: bool = False,
         storage_url: str = "zdb://hub.grid.tf:9900",
     ) -> Container:
         """Create a container workload object
@@ -73,7 +72,6 @@ class ContainerGenerator:
         net.network_id = network_name
         net.ipaddress = ip_address
         net.public_ip6 = public_ipv6
-        net.yggdrasil_ip = yggdrasil_ip
         cont.network_connection.append(net)
 
         cont.capacity.cpu = cpu

@@ -22,16 +22,15 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import time
+<pre><code class="python">from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
 class NetworkDeploy(GedisChatBot):
-    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;, &#34;success&#34;]
+    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;]
     title = &#34;Network&#34;
 
     @chatflow_step(title=&#34;Welcome&#34;)
@@ -75,7 +74,11 @@ class NetworkDeploy(GedisChatBot):
             &#34;How would you like to connect to your network? If unsure, choose IPv4&#34;, ips, required=True, default=&#34;IPv4&#34;,
         )
         self.md_show_update(&#34;Searching for access node...&#34;)
-        pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pools = [
+            p
+            for p in j.sals.zos.pools.list()
+            if p.node_ids and p.cus &gt;= 0 and p.sus &gt;= 0 and p.empty_at &gt; j.data.time.now().timestamp
+        ]
         self.access_node = None
         for pool in pools:
             try:
@@ -128,30 +131,20 @@ class NetworkDeploy(GedisChatBot):
             if not success:
                 raise DeploymentFailed(f&#34;Failed to deploy workload {wid}&#34;, wid=wid)
 
-    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True, final_step=True)
     def network_info(self):
         self.filename = &#34;wg-{}.conf&#34;.format(self.config[&#34;rid&#34;])
         self.wgconf = self.config[&#34;wg&#34;]
 
-        msg = f&#34;&#34;&#34;&lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
-&lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
-&lt;br&gt;
-&lt;pre style=&#34;text-align:center&#34;&gt;{self.wgconf}&lt;/pre&gt;
-&lt;br&gt;
-&lt;h3&gt;navigate to where the config is downloaded and start your connection using &#34;wg-quick up {self.filename}&#34;&lt;/h3&gt;
-&#34;&#34;&#34;
-        self.download_file(msg=msg, data=self.wgconf, filename=self.filename, html=True)
-
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
-    def success(self):
-        message = f&#34;&#34;&#34;
-### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
-\n&lt;br /&gt;\n
-#### ```wg-quick up /etc/wireguard/{self.filename}```
-\n&lt;br /&gt;\n
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
         &#34;&#34;&#34;
-
-        self.md_show(message, md=True)
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
 
 
 chat = NetworkDeploy</code></pre>
@@ -179,7 +172,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class NetworkDeploy(GedisChatBot):
-    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;, &#34;success&#34;]
+    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;]
     title = &#34;Network&#34;
 
     @chatflow_step(title=&#34;Welcome&#34;)
@@ -223,7 +216,11 @@ any extra kwargs that is passed while creating the session
             &#34;How would you like to connect to your network? If unsure, choose IPv4&#34;, ips, required=True, default=&#34;IPv4&#34;,
         )
         self.md_show_update(&#34;Searching for access node...&#34;)
-        pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pools = [
+            p
+            for p in j.sals.zos.pools.list()
+            if p.node_ids and p.cus &gt;= 0 and p.sus &gt;= 0 and p.empty_at &gt; j.data.time.now().timestamp
+        ]
         self.access_node = None
         for pool in pools:
             try:
@@ -276,30 +273,20 @@ any extra kwargs that is passed while creating the session
             if not success:
                 raise DeploymentFailed(f&#34;Failed to deploy workload {wid}&#34;, wid=wid)
 
-    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True, final_step=True)
     def network_info(self):
         self.filename = &#34;wg-{}.conf&#34;.format(self.config[&#34;rid&#34;])
         self.wgconf = self.config[&#34;wg&#34;]
 
-        msg = f&#34;&#34;&#34;&lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
-&lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
-&lt;br&gt;
-&lt;pre style=&#34;text-align:center&#34;&gt;{self.wgconf}&lt;/pre&gt;
-&lt;br&gt;
-&lt;h3&gt;navigate to where the config is downloaded and start your connection using &#34;wg-quick up {self.filename}&#34;&lt;/h3&gt;
-&#34;&#34;&#34;
-        self.download_file(msg=msg, data=self.wgconf, filename=self.filename, html=True)
-
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
-    def success(self):
-        message = f&#34;&#34;&#34;
-### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
-\n&lt;br /&gt;\n
-#### ```wg-quick up /etc/wireguard/{self.filename}```
-\n&lt;br /&gt;\n
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
         &#34;&#34;&#34;
-
-        self.md_show(message, md=True)</code></pre>
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -359,19 +346,6 @@ any extra kwargs that is passed while creating the session
 </dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start"><code class="name flex">
 <span>def <span class="ident">start</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success"><code class="name flex">
-<span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -411,7 +385,7 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class NetworkDeploy(GedisChatBot):
-    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;, &#34;success&#34;]
+    steps = [&#34;welcome&#34;, &#34;start&#34;, &#34;ip_config&#34;, &#34;network_reservation&#34;, &#34;network_info&#34;]
     title = &#34;Network&#34;
 
     @chatflow_step(title=&#34;Welcome&#34;)
@@ -455,7 +429,11 @@ any extra kwargs that is passed while creating the session
             &#34;How would you like to connect to your network? If unsure, choose IPv4&#34;, ips, required=True, default=&#34;IPv4&#34;,
         )
         self.md_show_update(&#34;Searching for access node...&#34;)
-        pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        pools = [
+            p
+            for p in j.sals.zos.pools.list()
+            if p.node_ids and p.cus &gt;= 0 and p.sus &gt;= 0 and p.empty_at &gt; j.data.time.now().timestamp
+        ]
         self.access_node = None
         for pool in pools:
             try:
@@ -508,30 +486,20 @@ any extra kwargs that is passed while creating the session
             if not success:
                 raise DeploymentFailed(f&#34;Failed to deploy workload {wid}&#34;, wid=wid)
 
-    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True)
+    @chatflow_step(title=&#34;Network Information&#34;, disable_previous=True, final_step=True)
     def network_info(self):
         self.filename = &#34;wg-{}.conf&#34;.format(self.config[&#34;rid&#34;])
         self.wgconf = self.config[&#34;wg&#34;]
 
-        msg = f&#34;&#34;&#34;&lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
-&lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
-&lt;br&gt;
-&lt;pre style=&#34;text-align:center&#34;&gt;{self.wgconf}&lt;/pre&gt;
-&lt;br&gt;
-&lt;h3&gt;navigate to where the config is downloaded and start your connection using &#34;wg-quick up {self.filename}&#34;&lt;/h3&gt;
-&#34;&#34;&#34;
-        self.download_file(msg=msg, data=self.wgconf, filename=self.filename, html=True)
-
-    @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
-    def success(self):
-        message = f&#34;&#34;&#34;
-### In order to have the network active and accessible from your local/container machine. To do this, execute this command:
-\n&lt;br /&gt;\n
-#### ```wg-quick up /etc/wireguard/{self.filename}```
-\n&lt;br /&gt;\n
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
         &#34;&#34;&#34;
-
-        self.md_show(message, md=True)</code></pre>
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -591,19 +559,6 @@ any extra kwargs that is passed while creating the session
 </dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start"><code class="name flex">
 <span>def <span class="ident">start</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success"><code class="name flex">
-<span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -681,7 +636,6 @@ any extra kwargs that is passed while creating the session
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.network_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.network_reservation">network_reservation</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start">start</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.steps" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.steps">steps</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.title" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.title">title</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.welcome" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.welcome">welcome</a></code></li>
 </ul>
@@ -694,7 +648,6 @@ any extra kwargs that is passed while creating the session
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.network_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.network_reservation">network_reservation</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.start">start</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.steps" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.steps">steps</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.title" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.title">title</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.welcome" href="#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy.welcome">welcome</a></code></li>
 </ul>

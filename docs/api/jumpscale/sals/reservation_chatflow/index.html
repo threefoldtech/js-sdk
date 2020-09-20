@@ -64,7 +64,7 @@ class deployment_context(ContextDecorator):
             workload = zos.workloads.get(exc.wid)
             if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
                 j.logger.info(f&#34;blocking node {workload.info.node_id} for failed workload {workload.id}&#34;)
-                deployer.block_node(workload.info.node_id)
+                reservation_chatflow.block_node(workload.info.node_id)
 
 
 # TODO: remove the below on releasing jsng 11.0.0a3
@@ -292,7 +292,7 @@ def check_url_reachable(url: str, timeout=5, verify=True):
             workload = zos.workloads.get(exc.wid)
             if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
                 j.logger.info(f&#34;blocking node {workload.info.node_id} for failed workload {workload.id}&#34;)
-                deployer.block_node(workload.info.node_id)</code></pre>
+                reservation_chatflow.block_node(workload.info.node_id)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

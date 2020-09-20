@@ -25,7 +25,7 @@
 <pre><code class="python">import requests
 
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.reservation_chatflow import deployer
@@ -37,6 +37,10 @@ class PoolReservation(GedisChatBot):
 
     @chatflow_step(title=&#34;Welcome&#34;)
     def pool_start(self):
+        self.md_show_update(&#34;Checking payment service...&#34;)
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow(&#34;Payment service is currently down, try again later&#34;)
         self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         if not self.pools:
             self.action = &#34;create&#34;
@@ -113,6 +117,10 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Welcome&#34;)
     def pool_start(self):
+        self.md_show_update(&#34;Checking payment service...&#34;)
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow(&#34;Payment service is currently down, try again later&#34;)
         self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         if not self.pools:
             self.action = &#34;create&#34;
@@ -234,6 +242,10 @@ any extra kwargs that is passed while creating the session
 
     @chatflow_step(title=&#34;Welcome&#34;)
     def pool_start(self):
+        self.md_show_update(&#34;Checking payment service...&#34;)
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow(&#34;Payment service is currently down, try again later&#34;)
         self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         if not self.pools:
             self.action = &#34;create&#34;

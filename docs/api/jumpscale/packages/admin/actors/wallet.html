@@ -128,6 +128,11 @@ class Wallet(BaseActor):
         j.clients.stellar.delete(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})
 
+    @actor_method
+    def create_testnet_funded(self, name: str) -&gt; str:
+        j.clients.stellar.create_testnet_funded_wallet(name=name)
+        return j.data.serializers.json.dumps({&#34;data&#34;: True})
+
 
 Actor = Wallet</code></pre>
 </details>
@@ -247,6 +252,11 @@ Actor = Wallet</code></pre>
     @actor_method
     def delete_wallet(self, name: str) -&gt; str:
         j.clients.stellar.delete(name=name)
+        return j.data.serializers.json.dumps({&#34;data&#34;: True})
+
+    @actor_method
+    def create_testnet_funded(self, name: str) -&gt; str:
+        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -255,6 +265,19 @@ Actor = Wallet</code></pre>
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded"><code class="name flex">
+<span>def <span class="ident">create_testnet_funded</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def create_testnet_funded(self, name: str) -&gt; str:
+    j.clients.stellar.create_testnet_funded_wallet(name=name)
+    return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet"><code class="name flex">
 <span>def <span class="ident">create_wallet</span></span>(<span>self, name)</span>
 </code></dt>
@@ -511,6 +534,11 @@ def update_trustlines(self, name: str) -&gt; str:
     @actor_method
     def delete_wallet(self, name: str) -&gt; str:
         j.clients.stellar.delete(name=name)
+        return j.data.serializers.json.dumps({&#34;data&#34;: True})
+
+    @actor_method
+    def create_testnet_funded(self, name: str) -&gt; str:
+        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -519,6 +547,19 @@ def update_trustlines(self, name: str) -&gt; str:
 </ul>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded"><code class="name flex">
+<span>def <span class="ident">create_testnet_funded</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def create_testnet_funded(self, name: str) -&gt; str:
+    j.clients.stellar.create_testnet_funded_wallet(name=name)
+    return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet"><code class="name flex">
 <span>def <span class="ident">create_wallet</span></span>(<span>self, name)</span>
 </code></dt>
@@ -687,7 +728,8 @@ def update_trustlines(self, name: str) -&gt; str:
 <ul>
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.wallet.Wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet">Wallet</a></code></h4>
-<ul class="two-column">
+<ul class="">
+<li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded">create_testnet_funded</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_wallet">create_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet">delete_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info" href="#jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info">get_wallet_info</a></code></li>
@@ -698,7 +740,8 @@ def update_trustlines(self, name: str) -&gt; str:
 </li>
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.wallet.Wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet">Wallet</a></code></h4>
-<ul class="two-column">
+<ul class="">
+<li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded">create_testnet_funded</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_wallet">create_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet">delete_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info" href="#jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info">get_wallet_info</a></code></li>

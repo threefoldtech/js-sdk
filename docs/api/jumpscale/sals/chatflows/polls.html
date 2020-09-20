@@ -22,9 +22,11 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.loader import j
+<pre><code class="python">from textwrap import dedent
+
 from jumpscale.core.base import StoredFactory
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.chatflows.models.voter_model import User
 
 WALLET_NAME = &#34;polls_receive&#34;
@@ -113,17 +115,17 @@ class Poll(GedisChatBot):
                 message=self.user.user_code,
             )
 
-            message_text = f&#34;&#34;&#34;
-&lt;h3&gt;Make a Payment&lt;/h3&gt;
-Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
-Make sure to add the message (user code) as memo_text
-Please make the transaction and press Next
-&lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address} \n
-&lt;h4&gt; Currency: &lt;/h4&gt;  {currency} \n
-&lt;h4&gt; Amount: &lt;/h4&gt;  {amount} \n
-&lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code} \n
+            message_text = f&#34;&#34;&#34;\
+            &lt;h3&gt;Make a Payment&lt;/h3&gt;
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            &lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address}
+            &lt;h4&gt; Currency: &lt;/h4&gt;  {currency}
+            &lt;h4&gt; Amount: &lt;/h4&gt;  {amount}
+            &lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code}
             &#34;&#34;&#34;
-            self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True, md=True)
+            self.qrcode_show(data=qr_code_content, msg=dedent(message_text), scale=4, update=True, html=True, md=True)
             if self._check_payment(timeout=360):
                 return True
             else:
@@ -447,17 +449,17 @@ just inherit from this class and override poll_name and QUESTIONS in your chatfl
                 message=self.user.user_code,
             )
 
-            message_text = f&#34;&#34;&#34;
-&lt;h3&gt;Make a Payment&lt;/h3&gt;
-Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
-Make sure to add the message (user code) as memo_text
-Please make the transaction and press Next
-&lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address} \n
-&lt;h4&gt; Currency: &lt;/h4&gt;  {currency} \n
-&lt;h4&gt; Amount: &lt;/h4&gt;  {amount} \n
-&lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code} \n
+            message_text = f&#34;&#34;&#34;\
+            &lt;h3&gt;Make a Payment&lt;/h3&gt;
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            &lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address}
+            &lt;h4&gt; Currency: &lt;/h4&gt;  {currency}
+            &lt;h4&gt; Amount: &lt;/h4&gt;  {amount}
+            &lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code}
             &#34;&#34;&#34;
-            self.qrcode_show(data=qr_code_content, msg=message_text, scale=4, update=True, html=True, md=True)
+            self.qrcode_show(data=qr_code_content, msg=dedent(message_text), scale=4, update=True, html=True, md=True)
             if self._check_payment(timeout=360):
                 return True
             else:

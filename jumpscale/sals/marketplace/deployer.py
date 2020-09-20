@@ -1,6 +1,5 @@
 import math
 import random
-from decimal import Decimal
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
@@ -13,6 +12,9 @@ from .models import UserPool
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
+
+    WALLET_NAME = "demos_wallet"
+
     def list_user_pool_ids(self, username):
         user_pools = self.list_user_pools(username)
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -70,7 +72,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def pay_for_pool(self, pool):
         info = self.get_payment_info(pool)
-        wallet = j.clients.stellar.get(name="demos_wallet")
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        wallet = j.clients.stellar.get(name=WALLET_NAME)
         wallet.transfer(
             destination_address=info["escrow_address"],
             amount=info["total_amount_dec"],
@@ -249,14 +252,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = cu * expiration
-        su = su * expiration
-        pool = j.sals.zos.pools.get(pool_id)
-        old_cu, old_su = pool.cus, pool.sus
-        cu = math.ceil(cu - old_cu)
-        su = math.ceil(su - old_su)
+        cu = math.ceil(cu * expiration)
+        su = math.ceil(su * expiration)
+
+        # guard in case of negative results
         cu = max(cu, 0)
         su = max(su, 0)
+
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
@@ -289,7 +291,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     break
             if not valid:
                 continue
-            if pool.cus == 0 and pool.sus == 0:
+            if (pool.cus == 0 and pool.sus == 0) or pool.empty_at < j.data.time.now().timestamp:
                 continue
             free_pools.append(pool)
         return free_pools
@@ -379,10 +381,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None, msg="", min=None):
-        default = default or j.data.time.get().timestamp + 3900
+    def ask_expiration(self, bot, default=None, msg="", min=None, pool_empty_at=None):
+        default = default or j.data.time.utcnow().timestamp + 3900
         min = min or 3600
-        timestamp_now = j.data.time.get().timestamp
+        timestamp_now = j.data.time.utcnow().timestamp
         min_message = f"Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now"
         self.expiration = bot.datetime_picker(
             "Please enter the solution's expiration time" if not msg else msg,
@@ -390,7 +392,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             min_time=[min, min_message],
             default=default,
         )
-        return self.expiration - j.data.time.get().timestamp
+        current_pool_expiration = pool_empty_at or j.data.time.utcnow().timestamp
+        return self.expiration - current_pool_expiration
 
 
 deployer = MarketPlaceDeployer()

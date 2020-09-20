@@ -26,21 +26,19 @@
 
 
 class marketplace:
-    def install(self):
+    def install(self, **kwargs):
         &#34;&#34;&#34;Called when package is added
         &#34;&#34;&#34;
-        # http_location = j.sals.nginx.main.websites.default_80.locations.get(name=&#34;marketplace_root_proxy&#34;)
-        # http_location.port = &#34;80&#34;
-        # http_location.scheme = &#34;http&#34;
-        # https_location = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_root_proxy&#34;)
-        # https_location.port = &#34;443&#34;
-        # https_location.scheme = &#34;https&#34;
-        # for location in [http_location, https_location]:
-        #     location.location_type = &#34;proxy&#34;
-        #     location.path_url = &#34;/&#34;
-        #     location.path_dest = &#34;/marketplace&#34;
-        #     location.save()
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        if WALLET_NAME not in j.clients.stellar.list_all():
+            secret = kwargs.get(&#34;secret&#34;, None)
+            wallet = j.clients.stellar.new(WALLET_NAME, secret=secret, network=&#34;TEST&#34;)
+            if not secret:
+                wallet.activate_through_friendbot()
+                wallet.add_known_trustline(&#34;TFT&#34;)
+            wallet.save()
 
+    def start(self):
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_actors&#34;)
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
@@ -53,9 +51,6 @@ class marketplace:
 
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
-
-    def start(self):
-        self.install()
 
     def uninstall(self):
         &#34;&#34;&#34;Called when package is deleted
@@ -82,21 +77,19 @@ class marketplace:
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class marketplace:
-    def install(self):
+    def install(self, **kwargs):
         &#34;&#34;&#34;Called when package is added
         &#34;&#34;&#34;
-        # http_location = j.sals.nginx.main.websites.default_80.locations.get(name=&#34;marketplace_root_proxy&#34;)
-        # http_location.port = &#34;80&#34;
-        # http_location.scheme = &#34;http&#34;
-        # https_location = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_root_proxy&#34;)
-        # https_location.port = &#34;443&#34;
-        # https_location.scheme = &#34;https&#34;
-        # for location in [http_location, https_location]:
-        #     location.location_type = &#34;proxy&#34;
-        #     location.path_url = &#34;/&#34;
-        #     location.path_dest = &#34;/marketplace&#34;
-        #     location.save()
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        if WALLET_NAME not in j.clients.stellar.list_all():
+            secret = kwargs.get(&#34;secret&#34;, None)
+            wallet = j.clients.stellar.new(WALLET_NAME, secret=secret, network=&#34;TEST&#34;)
+            if not secret:
+                wallet.activate_through_friendbot()
+                wallet.add_known_trustline(&#34;TFT&#34;)
+            wallet.save()
 
+    def start(self):
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_actors&#34;)
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
@@ -110,9 +103,6 @@ class marketplace:
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
 
-    def start(self):
-        self.install()
-
     def uninstall(self):
         &#34;&#34;&#34;Called when package is deleted
         &#34;&#34;&#34;
@@ -122,27 +112,33 @@ class marketplace:
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.marketplace.package.marketplace.install"><code class="name flex">
-<span>def <span class="ident">install</span></span>(<span>self)</span>
+<span>def <span class="ident">install</span></span>(<span>self, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Called when package is added</p></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def install(self):
+<pre><code class="python">def install(self, **kwargs):
     &#34;&#34;&#34;Called when package is added
     &#34;&#34;&#34;
-    # http_location = j.sals.nginx.main.websites.default_80.locations.get(name=&#34;marketplace_root_proxy&#34;)
-    # http_location.port = &#34;80&#34;
-    # http_location.scheme = &#34;http&#34;
-    # https_location = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_root_proxy&#34;)
-    # https_location.port = &#34;443&#34;
-    # https_location.scheme = &#34;https&#34;
-    # for location in [http_location, https_location]:
-    #     location.location_type = &#34;proxy&#34;
-    #     location.path_url = &#34;/&#34;
-    #     location.path_dest = &#34;/marketplace&#34;
-    #     location.save()
-
+    WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+    if WALLET_NAME not in j.clients.stellar.list_all():
+        secret = kwargs.get(&#34;secret&#34;, None)
+        wallet = j.clients.stellar.new(WALLET_NAME, secret=secret, network=&#34;TEST&#34;)
+        if not secret:
+            wallet.activate_through_friendbot()
+            wallet.add_known_trustline(&#34;TFT&#34;)
+        wallet.save()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.marketplace.package.marketplace.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def start(self):
     location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;marketplace_actors&#34;)
     location_actors_443.is_auth = False
     location_actors_443.is_admin = False
@@ -155,17 +151,6 @@ class marketplace:
 
     j.sals.nginx.main.websites.default_443.configure()
     j.sals.nginx.main.websites.default_80.configure()</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.marketplace.package.marketplace.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def start(self):
-    self.install()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.marketplace.package.marketplace.uninstall"><code class="name flex">

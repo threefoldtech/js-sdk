@@ -1,7 +1,7 @@
 import requests
 
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.reservation_chatflow import deployer
@@ -13,6 +13,10 @@ class PoolReservation(GedisChatBot):
 
     @chatflow_step(title="Welcome")
     def pool_start(self):
+        self.md_show_update("Checking payment service...")
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow("Payment service is currently down, try again later")
         self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         if not self.pools:
             self.action = "create"

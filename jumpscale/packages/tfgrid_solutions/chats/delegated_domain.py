@@ -10,8 +10,9 @@ class DomainDelegation(GedisChatBot):
     steps = ["select_pool", "domain_name", "reservation", "success"]
     title = "Domain Delegation"
 
-    @chatflow_step(title="Pool")
+    @chatflow_step(title="Gateway Selection")
     def select_pool(self):
+        deployer.chatflow_pools_check()
         self.solution_id = uuid.uuid4().hex
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id

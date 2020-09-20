@@ -335,7 +335,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow("There are no farms available that the selected currency")
+            raise StopChatFlow(f"There are no farms available that the support {currencies[0]} currency")
         selected_farm = bot.single_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -464,6 +464,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cu, available_su
         if su and available_su < su:
             return False, available_cu, available_su
+        if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
+            return False, 0, 0
         return True, available_cu, available_su
 
     def select_pool(
@@ -507,20 +509,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 except requests.exceptions.HTTPError:
                     continue
             return farm_id or -1
-
-    def check_pool_capacity(self, pool, cu=None, su=None):
-        """
-        pool: pool schema object
-        """
-        available_su = pool.sus - pool.active_su
-        available_cu = pool.cus - pool.active_cu
-        if pool.empty_at < 0:
-            return False, 0, 0
-        if cu and available_cu < cu:
-            return False, available_cu, available_su
-        if su and available_su < su:
-            return False, available_cu, available_su
-        return True, available_cu, available_su
 
     def ask_name(self, bot, msg=None):
         msg = (
@@ -895,8 +883,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return cu, su
         """
-        cu = min(cru * 4, (mru - 1) / 4)
-        su = hru / 1000 / 1.2 + sru / 100 / 1.2
+        cu = min((mru - 1) / 4, cru * 4 / 2)
+        su = (hru / 1000 + sru / 100 / 2) / 1.2
         if cu < 0:
             cu = 0
         if su < 0:
@@ -1118,7 +1106,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     )
                 result[message] = {"gateway": gateway, "pool": pool}
         if not result:
-            raise StopChatFlow(f"no available gateways")
+            raise StopChatFlow(f"no gateways available in your pools")
         return result
 
     def select_gateway(self, bot, pool_ids=None):

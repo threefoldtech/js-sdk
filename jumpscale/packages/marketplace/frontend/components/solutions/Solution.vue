@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Solutions" icon="mdi-apps" :loading="loading">
+    <base-component title="Apps Menu" icon="mdi-menu-left" url="/" :loading="loading">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
@@ -13,7 +13,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <a
                   class="chatflowInfo"
-                  :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
+                  :href="`https://now.threefold.io/#/${solution.type}`"
                   target="blank"
                 >
                   <v-icon

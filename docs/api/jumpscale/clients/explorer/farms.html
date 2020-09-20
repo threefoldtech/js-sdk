@@ -141,13 +141,7 @@ class Farms(BaseResource):
         return True
 
     def delete(self, farm_id, node_id):
-        me = identity.get_identity()
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-        self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;, auth=auth, headers=headers)
+        self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;)
         return True</code></pre>
 </details>
 </section>
@@ -265,13 +259,7 @@ class Farms(BaseResource):
         return True
 
     def delete(self, farm_id, node_id):
-        me = identity.get_identity()
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-        headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-        self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;, auth=auth, headers=headers)
+        self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;)
         return True</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -288,13 +276,7 @@ class Farms(BaseResource):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete(self, farm_id, node_id):
-    me = identity.get_identity()
-    secret = me.nacl.signing_key.encode(Base64Encoder)
-
-    auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=[&#34;(created)&#34;, &#34;date&#34;, &#34;threebot-id&#34;])
-    headers = {&#34;threebot-id&#34;: str(me.tid)}
-
-    self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;, auth=auth, headers=headers)
+    self._session.delete(f&#34;{self._url}/{farm_id}/{node_id}&#34;)
     return True</code></pre>
 </details>
 </dd>

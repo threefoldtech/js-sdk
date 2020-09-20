@@ -24,21 +24,23 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
+        user_info = self.user_info()
+        self.user_email = user_info["email"]
+        self.username = user_info["username"]
         form = self.new_form()
-        EMAIL_HOST_USER = form.string_ask("Please add the host e-mail address for your solution.", required=True)
+        EMAIL_HOST_USER = form.string_ask("Please add the host e-mail address for your solution", required=True)
         EMAIL_HOST = form.string_ask(
             "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", required=True, md=True
         )
         EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
 
         SECRET_KEY = form.secret_ask("Please add a secret key for your solution", required=True)
+
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
-        self.user_email = self.user_info()["email"]
-        self.username = self.user_info()["username"]
 
     @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()

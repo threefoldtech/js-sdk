@@ -224,7 +224,7 @@ def clean(all=False):
                 j.tools.alerthandler.reset()
             except Exception as e:
                 print("failed to clean up alerts")
-                print(f"exceptionn was {e} for debugging")
+                print(f"exception was {e} for debugging")
 
             answer = j.tools.console.ask_yes_no(f"Do you want to remove {config_root} ? ")
             if answer=="y":
