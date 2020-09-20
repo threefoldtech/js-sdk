@@ -1,4 +1,4 @@
-from gedispatch import GedisChatBotPatch
+from utils.gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.minio import MinioDeploy
 
 

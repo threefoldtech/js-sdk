@@ -1,5 +1,5 @@
-from gedispatch import GedisChatBotPatch
 from jumpscale.packages.marketplace.chats.website import WebsiteDeploy
+from utils.gedispatch import GedisChatBotPatch
 
 
 class WebsiteAutomated(GedisChatBotPatch, WebsiteDeploy):

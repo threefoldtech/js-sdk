@@ -1,23 +1,24 @@
-from gitea import GiteaAutomated
-from cryptpad import CryptpadAutomated
-from wiki import WikiAutomated
-from website import WebsiteAutomated
-from blog import BlogAutomated
-from ubuntu import UbuntuAutomated
-from mattermost import MattermostAutomated
-from discourse import DiscourseAutomated
-from peertube import PeertubeAutomated
-from kubernetes import KubernetesAutomated
-from minio import MinioAutomated
-from four_to6gw import FourToSixGatewayAutomated
-from delegated_domain import DomainDelegationAutomated
-from generic_flist import FlistAutomated
-from monitoring import MonitoringAutomated
-from network import NetworkDeployAutomated
-from taiga import TaigaAutomated
-from exposed import SolutionExposeDeployAutomated
-from pools import PoolAutomated
-from threebot_deploy import ThreebotDeployAutomated
+from dashboard_solutions.delegated_domain import DomainDelegationAutomated
+from dashboard_solutions.exposed import SolutionExposeDeployAutomated
+from dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
+from dashboard_solutions.generic_flist import FlistAutomated
+from dashboard_solutions.kubernetes import KubernetesAutomated
+from dashboard_solutions.minio import MinioAutomated
+from dashboard_solutions.monitoring import MonitoringAutomated
+from dashboard_solutions.network import NetworkDeployAutomated
+from dashboard_solutions.pools import PoolAutomated
+from dashboard_solutions.ubuntu import UbuntuAutomated
+from marketplace.blog import BlogAutomated
+from marketplace.cryptpad import CryptpadAutomated
+from marketplace.discourse import DiscourseAutomated
+from marketplace.gitea import GiteaAutomated
+from marketplace.mattermost import MattermostAutomated
+from marketplace.peertube import PeertubeAutomated
+from marketplace.taiga import TaigaAutomated
+from marketplace.website import WebsiteAutomated
+from marketplace.wiki import WikiAutomated
+from threebot.deploy import ThreebotDeployAutomated
+from threebot.extend import ThreebotExtendAutomated
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -50,12 +51,11 @@ def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     )
 
 
-def deploy_discourse(host_email, solution_name, smtp_email, stmp_username, stmp_password, wg_config="NO", debug=True):
+def deploy_discourse(solution_name, smtp_email, stmp_host, stmp_password, wg_config="NO", debug=True):
     return DiscourseAutomated(
-        host_email=host_email,
         solution_name=solution_name,
         smtp_email=smtp_email,
-        stmp_username=stmp_username,
+        stmp_username=stmp_host,
         stmp_password=stmp_password,
         wg_config=wg_config,
         debug=debug,
@@ -66,10 +66,10 @@ def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
     return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_taiga(solution_name, host_email, smtp_email, stmp_password, secret, wg_config="NO", debug=True):
+def deploy_taiga(solution_name, smtp_host, smtp_email, stmp_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
-        host_email=host_email,
+        host_email=smtp_host,
         smtp_email=smtp_email,
         stmp_password=stmp_password,
         secret=secret,
@@ -148,11 +148,11 @@ def deploy_minio(
     parity_shards=1,
     network="choose_random",
     ipv4="choose_random",
+    ipv6="NO",
     container_pool="choose_random",
     zdb_pools="multi_choice",
     log="NO",
     ssh="~/.ssh/id_rsa.pub",
-    ipv6="NO",
     node_automatic="YES",
     node="choose_random",
     debug=True,
@@ -181,12 +181,12 @@ def deploy_minio(
     )
 
 
-def deploy_4to6gw(public_key, debug=True):
-    return FourToSixGatewayAutomated(public_key=public_key, debug=debug)
+def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
+    return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
 
 
-def delegated_domain(solution_name, debug=True):
-    return DomainDelegationAutomated(solution_name=solution_name, debug=debug)
+def delegated_domain(domain, gateway="choose_random", debug=True):
+    return DomainDelegationAutomated(domain=domain, gateway=gateway, debug=debug)
 
 
 def deploy_generic_flist(
@@ -202,6 +202,10 @@ def deploy_generic_flist(
     log="NO",
     ipv6="NO",
     node_automatic="NO",
+    node="choose_random",
+    ipv4="choose_random",
+    network="choose_random",
+    pool="choose_random",
     debug=True,
 ):
     return FlistAutomated(
@@ -217,6 +221,10 @@ def deploy_generic_flist(
         log=log,
         ipv6=ipv6,
         node_automatic=node_automatic,
+        node=node,
+        ipv4=ipv4,
+        network=network,
+        pool=pool,
         debug=debug,
     )
 
@@ -228,9 +236,19 @@ def deploy_monitoring(
     memory=1024,
     disk_size=256,
     volume_size=10,
-    redis_node_select="yes",
-    prometheus_node_select="yes",
-    grafana_node_select="yes",
+    network="choose_random",
+    redis_node_select="YES",
+    redis_pool="choose_random",
+    redis_ip="choose_random",
+    redis_node="choose_random",
+    prometheus_node_select="YES",
+    prometheus_pool="choose_random",
+    prometheus_ip="choose_random",
+    prometheus_node="choose_random",
+    grafana_node_select="YES",
+    grafana_pool="choose_random",
+    grafana_ip="choose_random",
+    grafana_node="choose_random",
     debug=True,
 ):
     return MonitoringAutomated(
@@ -240,40 +258,64 @@ def deploy_monitoring(
         memory=memory,
         disk_size=disk_size,
         volume_size=volume_size,
+        network=network,
         redis_node_select=redis_node_select,
+        redis_pool=redis_pool,
+        redis_ip=redis_ip,
+        redis_node=redis_node,
         prometheus_node_select=prometheus_node_select,
+        prometheus_pool=prometheus_pool,
+        prometheus_ip=prometheus_ip,
+        prometheus_node=prometheus_node,
         grafana_node_select=grafana_node_select,
+        grafana_pool=grafana_pool,
+        grafana_ip=grafana_ip,
+        grafana_node=grafana_node,
         debug=True,
     )
 
 
-def deploy_network(
-    solution_name, type, ip_type="IPv4", network_ip="Choose ip range for me", debug=True,
+def create_network(
+    solution_name, ip_version="IPv4", ip_select="Choose ip range for me", ip_range="", debug=True,
 ):
     return NetworkDeployAutomated(
-        solution_name=solution_name, type=type, ip_type=ip_type, network_ip=network_ip, debug=True,
+        solution_name=solution_name,
+        type="Create",
+        ip_version=ip_version,
+        network_ip=ip_select,
+        ip_range=ip_range,
+        debug=True,
     )
 
 
+def add_access_to_network(
+    network_name, ip_version="IPv4", debug=True,
+):
+    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True,)
+
+
 def deploy_exposed(
-    solution_to_expose, tls_port=6443, port_expose=6443, sub_domain="subdomain3", debug=True,
+    solution_type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
 ):
     return SolutionExposeDeployAutomated(
+        solution_type=solution_type,
         solution_to_expose=solution_to_expose,
-        tls_port=tls_port,
-        port_expose=port_expose,
+        domain=domain,
         sub_domain=sub_domain,
+        tls_port=tls_port,
+        port=port,
         debug=debug,
     )
 
 
-def deploy_pool(
-    type, solution_name, wallet_name, cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
+def create_pool(
+    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
 ):
     return PoolAutomated(
-        type=type,
+        type="Create",
         solution_name=solution_name,
         wallet_name=wallet_name,
+        farm=farm,
         cu=cu,
         su=su,
         time_unit=time_unit,
@@ -282,5 +324,33 @@ def deploy_pool(
     )
 
 
-def deploy_threebot(type, solution_name, secret, debug=True):
-    return ThreebotDeployAutomated(type=type, solution_name=solution_name, secret=secret, debug=debug)
+def extend_pool(
+    pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
+):
+    return PoolAutomated(
+        type="Extend",
+        pool_name=pool_name,
+        wallet_name=wallet_name,
+        farm=farm,
+        cu=cu,
+        su=su,
+        time_unit=time_unit,
+        time_to_live=time_to_live,
+        debug=debug,
+    )
+
+
+def deploy_threebot(solution_name, secret, expiration, debug=True):
+    return ThreebotDeployAutomated(
+        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+    )
+
+
+def recover_threebot(solution_name, secret, expiration, debug=True):
+    return ThreebotDeployAutomated(
+        type="Recover", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+    )
+
+
+def extend_threebot(name, expiration):
+    return ThreebotExtendAutomated(name=name, expiration=expiration)

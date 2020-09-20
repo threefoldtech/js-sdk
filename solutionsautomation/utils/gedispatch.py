@@ -1,11 +1,13 @@
 import os
-from jumpscale.sals.chatflows.chatflows import GedisChatBot
-from decimal import Decimal
-from jumpscale.loader import j
-from form import Form
-from utils import is_message_matched, read_file
-from errors import MissingValueException, DuplicateSolutionNameException, MissingMessageException
 import random
+from decimal import Decimal
+
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot
+
+from .errors import DuplicateSolutionNameException, MissingMessageException, MissingValueException
+from .form import Form
+from .utils import is_message_matched, read_file
 
 
 class GedisChatBotPatch(GedisChatBot):
@@ -46,13 +48,10 @@ class GedisChatBotPatch(GedisChatBot):
             raise DuplicateSolutionNameException("Solution name already exists")
 
     def get_wallet(self):
-        WALLET_NAME = os.environ.get("WALLET_NAME")
-        WALLET_SECRET = os.environ.get("WALLET_SECRET")
-        if WALLET_NAME and WALLET_SECRET:
-            wallet = j.clients.stellar.get(WALLET_NAME, network="TEST", secret=WALLET_SECRET)
-            return wallet
-        else:
-            raise ValueError("Please provide add Values to the environment variables WALLET_NAME and WALLET_SECRET")
+        wallet = j.clients.stellar.find("demos_wallet")
+        if not wallet:
+            raise ValueError(f"Couldn't find wallet with name 'demos_wallet'")
+        return wallet
 
     def user_info(self):
         return {"email": j.core.identity.me.email, "username": j.core.identity.me.tname}

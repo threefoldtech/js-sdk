@@ -1,5 +1,5 @@
-from gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.monitoring import MonitoringDeploy
+from utils.gedispatch import GedisChatBotPatch
 
 
 class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
@@ -30,17 +30,17 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
         MEMORY: "memory",
         DISK_SIZE: "disk_size",
         VOLUME_SIZE: "volume_size",
-        POOL_RADIS: "choose_random",
+        POOL_RADIS: "redis_pool",
         REDIS_NODE_SELECT: "redis_node_select",
-        POOL_PROMETHEUS: "choose_random",
+        POOL_PROMETHEUS: "prometheus_pool",
         PROMETHEUS_NODE_SELECT: "prometheus_node_select",
-        POOL_GRAFANA: "choose_random",
+        POOL_GRAFANA: "grafana_pool",
         GRAFANA_NODE_SELECT: "grafana_node_select",
-        IP_REDIS: "choose_random",
-        IP_PROMETHEUS: "choose_random",
-        IP_GRAFANA: "choose_random",
-        NETWORK_MESSAGE: "choose_random",
-        REDIS_NODE: "choose_random",
-        PROMETHEUS_NODE: "choose_random",
-        GRAFANA_NODE: "choose_random",
+        IP_REDIS: "redis_ip",
+        IP_PROMETHEUS: "prometheus_ip",
+        IP_GRAFANA: "grafana_ip",
+        NETWORK_MESSAGE: "network",
+        REDIS_NODE: "redis_node",
+        PROMETHEUS_NODE: "prometheus_node",
+        GRAFANA_NODE: "grafana_node",
     }
