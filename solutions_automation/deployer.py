@@ -55,7 +55,7 @@ def deploy_discourse(solution_name, smtp_email, stmp_host, stmp_password, wg_con
     return DiscourseAutomated(
         solution_name=solution_name,
         smtp_email=smtp_email,
-        stmp_username=stmp_host,
+        stmp_host=stmp_host,
         stmp_password=stmp_password,
         wg_config=wg_config,
         debug=debug,
@@ -69,7 +69,7 @@ def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
 def deploy_taiga(solution_name, smtp_host, smtp_email, stmp_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
-        host_email=smtp_host,
+        smtp_host=smtp_host,
         smtp_email=smtp_email,
         stmp_password=stmp_password,
         secret=secret,
@@ -283,7 +283,7 @@ def create_network(
         solution_name=solution_name,
         type="Create",
         ip_version=ip_version,
-        network_ip=ip_select,
+        ip_select=ip_select,
         ip_range=ip_range,
         debug=True,
     )
