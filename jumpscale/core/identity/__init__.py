@@ -1,12 +1,23 @@
+from urllib.parse import urlparse
+
 import requests
 
 from jumpscale.clients.explorer.models import User
+from jumpscale.core import config as js_config
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
 from jumpscale.core.exceptions import Input, NotFound, Value
 from jumpscale.data.encryption import mnemonic
 from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
+
+DEFAULT_EXPLORER_URLS = {
+    "mainnet": "https://explorer.grid.tf/api/v1/",
+    "testnet": "https://explorer.testnet.grid.tf/api/v1/",
+    "devnet": "https://explorer.devnet.grid.tf/api/v1/",
+}
+
+EXPLORER_URLS = js_config.set_default("explorer_api_urls", DEFAULT_EXPLORER_URLS)
 
 
 class Identity(Base):
@@ -87,6 +98,14 @@ class Identity(Base):
             from jumpscale.clients.explorer import export_module_as  # Import here to avoid circular imports
 
             ex_factory = export_module_as()
+
+            # Backward compitablity (Update mainnet url)
+            # Create new config has_migrated = True after mainnet update
+            if not js_config.get("has_migrated_explorer_url", False):
+                if urlparse(self.explorer_url).hostname == urlparse(EXPLORER_URLS["mainnet"]).hostname:
+                    self.explorer_url = EXPLORER_URLS["mainnet"]
+                    js_config.set("has_migrated_explorer_url", True)
+
             if self.explorer_url:
                 self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
             else:

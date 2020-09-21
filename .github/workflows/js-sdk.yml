@@ -19,11 +19,16 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis
           sudo pip3 install poetry
-          sudo poetry run pip3 install pytest
+          sudo poetry run pip3 install pytest pytest-cov
       - name: Install
         run: |
           sudo poetry update
           sudo poetry install
       - name: Run tests
         run: |
-          sudo poetry run pytest tests -s -m "unittests"
+          sudo poetry run pytest tests -s -m "unittests" --cov=jumpscale --cov-report=xml
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
