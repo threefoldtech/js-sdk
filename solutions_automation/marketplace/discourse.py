@@ -3,12 +3,12 @@ from utils.gedispatch import GedisChatBotPatch
 
 
 class DiscourseAutomated(GedisChatBotPatch, Discourse):
-    SMTP_EMIAL = "Please add the host e-mail address for your solution"
+    HOST_EMAIL = "Please add the host e-mail address for your solution"
     SMTP_HOST = r"^Please add the smtp host .*"
-    STMP_PASSWORD = "Please add the host e-mail password"
+    HOST_EMAIL_PASSWORD = "Please add the host e-mail password"
 
     QS = {
-        SMTP_EMIAL: "smtp_email",
+        HOST_EMAIL: "host_email",
         SMTP_HOST: "stmp_host",
-        STMP_PASSWORD: "stmp_password",
+        HOST_EMAIL_PASSWORD: "host_email_password",
     }
