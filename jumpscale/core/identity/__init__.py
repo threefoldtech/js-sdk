@@ -104,6 +104,7 @@ class Identity(Base):
             if not js_config.get("has_migrated_explorer_url", False):
                 if urlparse(self.explorer_url).hostname == urlparse(EXPLORER_URLS["mainnet"]).hostname:
                     self.explorer_url = EXPLORER_URLS["mainnet"]
+                    self.save()
                     js_config.set("has_migrated_explorer_url", True)
 
             if self.explorer_url:
