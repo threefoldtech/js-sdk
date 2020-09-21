@@ -6,7 +6,6 @@ from uuid import uuid4
 sdk_location = __file__.split("tests")[0]
 solution_automation_location = f"{sdk_location}solutions_automation"
 sys.path.append(solution_automation_location)
-
 import pytest
 from jumpscale.loader import j
 from solutions_automation import deployer
@@ -52,5 +51,46 @@ class AutomatedChatflows(TestCase):
 
         self.info("Check that wiki is accessed.")
         request = j.tools.http.get(f"https://{wiki.domain}", verify=False)
+        self.assertEqual(request.status_code, 200)
+        self.assertIn("TF Grid 2.1 Manual", request.content.decode())
+
+    def test02_blog(self):
+        """
+
+        **Test Scenario**
+        #. Deploy Blog
+        #. Check if blog is accessed
+
+        """
+        self.info("Deploy blog...")
+        name = self.random_string()
+        title = self.random_string()
+        repo = "https://github.com/threefoldfoundation/info_gridmanual"
+        branch = "master"
+        blog = deployer.deploy_blog(solution_name=name, title=title, repo=repo, branch=branch)
+        self.workloads = blog.workload_ids
+
+        self.info("Check if blog is accessed..")
+        request = j.tools.http.get(f"https://{blog.domain}", verify=False)
+        self.assertEqual(request.status_code, 200)
+        self.assertIn("TF Grid 2.1 Manual", request.content.decode())
+
+    def test03_website(self):
+        """
+        **Test Scenario**
+        #. Deploy Website
+        #. Check if website is accessed
+
+        """
+        self.info("Deploy Website")
+        name = self.random_string()
+        title = self.random_string()
+        repo = "https://github.com/threefoldfoundation/info_gridmanual"
+        branch = "master"
+        website = deployer.deploy_website(solution_name=name, title=title, repo=repo, branch=branch)
+        self.workloads = website.workload_ids
+
+        self.info("Check if website is accessed")
+        request = j.tools.http.get(f"https://{website.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("TF Grid 2.1 Manual", request.content.decode())
