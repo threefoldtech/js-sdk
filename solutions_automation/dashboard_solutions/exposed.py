@@ -5,7 +5,7 @@ from utils.gedispatch import GedisChatBotPatch
 
 
 class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
-    SOLUTION_TYPE = "Please choose the solution type"
+    TYPE = "Please choose the solution type"
     SOLUTION_TO_EXPOSE = "Please choose the solution to expose"
     TLS_PORT = "Which tls port you want to expose"
     PORT_EXPOSE = "Which port you want to expose"
@@ -13,7 +13,7 @@ class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
     SUB_DOMAIN = r"^Please specify the sub domain name you wish to bind to. will .*"
 
     QS = {
-        SOLUTION_TYPE: "solution_type",
+        TYPE: "type",
         SOLUTION_TO_EXPOSE: "solution_to_expose",
         TLS_PORT: "tls_port",
         PORT_EXPOSE: "port",

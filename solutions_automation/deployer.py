@@ -295,10 +295,10 @@ def add_access_to_network(
 
 
 def deploy_exposed(
-    solution_type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
+    type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
 ):
     return SolutionExposeDeployAutomated(
-        solution_type=solution_type,
+        type=type,
         solution_to_expose=solution_to_expose,
         domain=domain,
         sub_domain=sub_domain,
@@ -312,7 +312,7 @@ def create_pool(
     solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
 ):
     return PoolAutomated(
-        type="Create",
+        type="create",
         solution_name=solution_name,
         wallet_name=wallet_name,
         farm=farm,
@@ -328,7 +328,7 @@ def extend_pool(
     pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
 ):
     return PoolAutomated(
-        type="Extend",
+        type="extend",
         pool_name=pool_name,
         wallet_name=wallet_name,
         farm=farm,
