@@ -1,5 +1,16 @@
-from jumpscale.loader import j
+from functools import partial
+
+import gevent
+import gevent.pool
+
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.tfgrid_solutions.models import PoolConfig
+from jumpscale.sals.reservation_chatflow import deployer
+
+# from functools import lru_cache
+
 
 K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
 
@@ -635,6 +646,52 @@ class ChatflowSolutions:
         for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
             if solution_uuid == self.get_solution_uuid(workload):
                 j.sals.zos.workloads.decomission(workload.id)
+
+    def _handle_one_pool(self, include_hidden, pool):
+        farm_names = {}
+        pool_factory = StoredFactory(PoolConfig)
+        workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
+        if not pool.node_ids:
+            return {}
+        hidden = False
+        name = ""
+        if f"pool_{pool.pool_id}" in pool_factory.list_all():
+            local_config = pool_factory.get(f"pool_{pool.pool_id}")
+            hidden = local_config.hidden
+            name = local_config.name
+
+        if not include_hidden and hidden:
+            return {}
+
+        pool_dict = pool.to_dict()
+        pool_dict["name"] = name
+        pool_dict["hidden"] = hidden
+        pool_dict["explorer_url"] = j.core.identity.me.explorer_url
+
+        farm_id = deployer.get_pool_farm_id(pool.pool_id)
+        if farm_id >= 0:
+            farm = farm_names.get(farm_id)
+            if not farm:
+                farm = deployer._explorer.farms.get(farm_id)
+                farm_names[farm_id] = farm
+            pool_dict["farm"] = farm.name
+
+        for i, wid in enumerate(pool_dict["active_workload_ids"]):
+            if wid in workloads_dict:
+                pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
+            else:
+                # due to differnet next action. we'll just show the id
+                pool_dict["active_workload_ids"][i] = wid
+        return pool_dict
+
+    # @lru_cache(maxsize=400)
+    def list_pool_solutions(self, include_hidden):
+        dapool = gevent.pool.Pool(100)
+
+        func = partial(self._handle_one_pool, include_hidden)
+        res = dapool.map(func, j.sals.zos.pools.list())
+        res = [x for x in res if x]
+        return res
 
 
 solutions = ChatflowSolutions()

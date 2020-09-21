@@ -1,11 +1,9 @@
-import json
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
+from jumpscale.clients.explorer.conversion import AlreadyConvertedError
+from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
-from jumpscale.core.base import StoredFactory
-from jumpscale.sals.reservation_chatflow import solutions, deployer
-from jumpscale.clients.explorer.conversion import AlreadyConvertedError
-from jumpscale.clients.explorer.models import NextAction
+from jumpscale.sals.reservation_chatflow import solutions
+from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
 
 class Solutions(BaseActor):
@@ -56,41 +54,7 @@ class Solutions(BaseActor):
 
     @actor_method
     def list_pools(self, include_hidden) -> str:
-        res = []
-        farm_names = {}
-        pool_factory = StoredFactory(PoolConfig)
-        workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
-        for pool in j.sals.zos.pools.list():
-            if not pool.node_ids:
-                continue
-            hidden = False
-            name = ""
-            if f"pool_{pool.pool_id}" in pool_factory.list_all():
-                local_config = pool_factory.get(f"pool_{pool.pool_id}")
-                hidden = local_config.hidden
-                name = local_config.name
-
-            if not include_hidden and hidden:
-                continue
-
-            pool_dict = pool.to_dict()
-            pool_dict["name"] = name
-            pool_dict["hidden"] = hidden
-            pool_dict["explorer_url"] = j.core.identity.me.explorer_url
-            farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            if farm_id >= 0:
-                farm = farm_names.get(farm_id)
-                if not farm:
-                    farm = deployer._explorer.farms.get(farm_id)
-                    farm_names[farm_id] = farm
-                pool_dict["farm"] = farm.name
-            for i, wid in enumerate(pool_dict["active_workload_ids"]):
-                if wid in workloads_dict:
-                    pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"
-                else:
-                    # due to differnet next action. we'll just show the id
-                    pool_dict["active_workload_ids"][i] = wid
-            res.append(pool_dict)
+        res = j.sals.reservation_chatflow.solutions.list_pool_solutions(include_hidden)
         return j.data.serializers.json.dumps({"data": res})
 
     @actor_method
