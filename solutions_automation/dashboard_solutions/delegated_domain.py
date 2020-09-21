@@ -7,6 +7,6 @@ class DomainDelegationAutomated(GedisChatBotPatch, DomainDelegation):
     DOMAIN = "Please enter a domain name to delegate"
 
     QS = {
-        GATEWAY: "gatway",
+        GATEWAY: "gateway",
         DOMAIN: "domain",
     }
