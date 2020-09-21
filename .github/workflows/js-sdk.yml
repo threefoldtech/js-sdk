@@ -26,4 +26,9 @@ jobs:
           sudo poetry install
       - name: Run tests
         run: |
-          sudo poetry run pytest tests -s -m "unittests"
+          sudo poetry run pytest tests -s -m "unittests" --cov=jumpscale --cov-report=xml
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
