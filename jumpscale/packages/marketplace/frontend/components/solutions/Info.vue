@@ -3,10 +3,10 @@
     <base-dialog :title="'Application details'" v-model="dialog" :loading="loading">
       <template #default>
         <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
-          <v-tab :key="'App details'">App details</v-tab>
+          <v-tab :key="'appdetails'">App details</v-tab>
           <v-tab :key="'moredetails'">More details</v-tab>
 
-          <v-tab-item :key="'App details'">
+          <v-tab-item :key="'appdetails'">
             <v-simple-table>
               <template v-slot:default>
                 <tbody>
