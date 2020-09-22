@@ -12,9 +12,9 @@ from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
 DEFAULT_EXPLORER_URLS = {
-    "mainnet": "https://explorer.grid.tf/api/v1/",
-    "testnet": "https://explorer.testnet.grid.tf/api/v1/",
-    "devnet": "https://explorer.devnet.grid.tf/api/v1/",
+    "mainnet": "https://explorer.grid.tf/api/v1",
+    "testnet": "https://explorer.testnet.grid.tf/api/v1",
+    "devnet": "https://explorer.devnet.grid.tf/api/v1",
 }
 
 EXPLORER_URLS = js_config.set_default("explorer_api_urls", DEFAULT_EXPLORER_URLS)
