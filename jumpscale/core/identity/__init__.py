@@ -54,6 +54,7 @@ class Identity(Base):
         Raises: Input: when params are missing
         """
         self._explorer = None
+        explorer_url = explorer_url.rstrip("/")
         super().__init__(
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
         )
@@ -108,6 +109,7 @@ class Identity(Base):
                     js_config.set("has_migrated_explorer_url", True)
 
             if self.explorer_url:
+                self.explorer_url = self.explorer_url.rstrip("/")
                 self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
             else:
                 self._explorer = ex_factory.get_default()
