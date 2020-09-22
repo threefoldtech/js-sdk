@@ -67,7 +67,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         """
         self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
         msg_text = resv_id_msg_text + self.msg_payment_info
-        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
+        bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True, pool=pool)
         return qr_code
 
     def pay_for_pool(self, pool):
