@@ -1,12 +1,12 @@
 <template>
   <div>
-    <base-dialog :title="'Application details'" v-model="dialog" :loading="loading">
+    <base-dialog title="Application details" v-model="dialog" :loading="loading">
       <template #default>
         <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
-          <v-tab :key="'appdetails'">App details</v-tab>
-          <v-tab :key="'moredetails'">More details</v-tab>
+          <v-tab key="appdetails">App details</v-tab>
+          <v-tab key="moredetails">More details</v-tab>
 
-          <v-tab-item :key="'appdetails'">
+          <v-tab-item key="appdetails">
             <v-simple-table>
               <template v-slot:default>
                 <tbody>
@@ -24,7 +24,7 @@
               </template>
             </v-simple-table>
           </v-tab-item>
-          <v-tab-item :key="'moredetails'">
+          <v-tab-item key="moredetails">
             <v-card flat>
               <json-tree :raw="JSON.stringify(json)"></json-tree>
             </v-card>
