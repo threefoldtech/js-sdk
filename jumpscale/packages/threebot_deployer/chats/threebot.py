@@ -16,7 +16,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     steps = [
         "create_or_recover",
         "get_solution_name",
-        # "upload_public_key",
+        "upload_public_key",
         "set_backup_password",
         "infrastructure_setup",
         "deploy",
@@ -77,12 +77,15 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
-    # @chatflow_step(title="SSH key")
-    # def upload_public_key(self):
-    #     self.public_key = self.upload_file(
-    #         "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
-    #         required=True,
-    #     ).strip()
+    @chatflow_step(title="SSH key (Optional)")
+    def upload_public_key(self):
+        self.public_key = (
+            self.upload_file(
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+            )
+            or ""
+        )
+        self.public_key = self.public_key.strip()
 
     def _existing_3bot(self):
         try:
@@ -164,7 +167,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "INSTANCE_NAME": self.solution_name,
             "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,
-            # "SSHKEY": self.public_key,
+            "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
         }
