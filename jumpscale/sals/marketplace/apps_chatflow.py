@@ -66,7 +66,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
-        self.currency = "TFT"
+        self.currency = self.payment_currency()
         available_farms = []
         farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
 
@@ -264,6 +264,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self._deploy_network()
         self._get_domain()
 
+    @chatflow_step(title="Payment currency")
+    def payment_currency(self):
+        self.currency = self.single_choice(
+            "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
+        )
+        return  self.currency
+
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
@@ -300,7 +307,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Payment")
     def solution_extension(self):
-        self.currencies = ["TFT"]
+        farm_id = deployer.get_pool_farm_id(self.pool_id)
+        farm = deployer._explorer.farms.get(farm_id)
+        assets = [w.asset for w in farm.wallet_addresses]
+        if "FreeTFT" in assets:
+            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=self.pool_id)
+            for node in pool_nodes:
+                if not node.free_to_use:
+                    assets.remove("FreeTFT")
+                    break
+        currency = self.single_choice("Please choose your preferred payment currency", assets, required=True)
+        self.currencies = [currency]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )

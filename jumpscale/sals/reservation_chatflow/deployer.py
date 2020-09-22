@@ -273,6 +273,7 @@ class ChatflowDeployer:
             "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month",
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
+        currencies = form.single_choice("Please choose the currency", ["TFT", "FreeTFT"], required=True)
         form.ask(
             """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).
 - Storage Unit (SU) is the size of data storage capacity.
@@ -303,7 +304,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, ["TFT"])
+        return (cu, su, [currencies.value])
 
     def create_pool(self, bot):
         cu, su, currencies = self._pool_form(bot)
@@ -352,7 +353,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def extend_pool(self, bot, pool_id):
         cu, su, currencies = self._pool_form(bot)
-        currencies = ["TFT"]
         try:
             pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currencies=currencies)
         except Exception as e:

@@ -18,6 +18,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         # "upload_public_key",
         "set_backup_password",
+        "payment_currency",
         "infrastructure_setup",
         "deploy",
         "initializing",
