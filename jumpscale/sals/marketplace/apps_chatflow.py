@@ -68,7 +68,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_pool(self):
         self.currency = self.payment_currency()
         available_farms = []
-        farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
 
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
@@ -269,7 +269,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.currency = self.single_choice(
             "Please select the currency you want to pay with.", ["FreeTFT", "TFT", "TFTA"], required=True
         )
-        return  self.currency
+        return self.currency
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
