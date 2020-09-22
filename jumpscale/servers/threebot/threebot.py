@@ -403,13 +403,10 @@ class PackageManager(Base):
         package.install(**kwargs)
 
         # install package if threebot is started
-        try:
-            if self.threebot.started:
-                self.install(package)
-                self.threebot.nginx.reload()
-            self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
-        except Exception as e:
-            j.exceptions.Runtime(f"Error happend during adding {package.name}, {str(e)}")
+        if self.threebot.started:
+            self.install(package)
+            self.threebot.nginx.reload()
+        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         self.save()
 
