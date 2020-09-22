@@ -373,14 +373,6 @@ class PackageManager(Base):
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
 
-        for package_name in self.packages:
-            package = self.get(package_name)
-            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
-            # if path and path == package.path:
-            #     raise j.exceptions.Value("Package with the same path already exists")
-            # if giturl and giturl == package.giturl:
-            #     raise j.exceptions.Value("Package with the same giturl already exists")
-
         if giturl:
             url = urlparse(giturl)
             url_parts = url.path.lstrip("/").split("/", 4)
@@ -407,8 +399,6 @@ class PackageManager(Base):
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
 
-        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
-
         # execute package install method
         package.install(**kwargs)
 
@@ -416,6 +406,8 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
+        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
+
         self.save()
 
         # Return updated package info
