@@ -78,8 +78,12 @@ class Identity(Base):
         if not self.words:
             raise Input("Words are mandotory for an indentity")
         if self._tid != -1:
-            resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
-            resp.raise_for_status()
+            try:
+                resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
+            except Exception as e:
+                j.logger.error(e)
+            else:
+                resp.raise_for_status()
             user = User.from_dict(resp.json())
             if self.tname and self.tname != user.name:
                 raise Input("Name of user does not match name in explorer")

@@ -364,7 +364,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
+    def check_farm_capacity(
+        self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, has_gateways=False
+    ):
+        farm = j.core.identity.me.explorer.farms.get(farm_name=farm_name)
+        gateways = j.core.identity.me.explorer.gateway.list(farm.id)
+
         currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
@@ -377,12 +382,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 continue
             if not j.sals.zos.nodes_finder.filter_is_up(node):
                 continue
+
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru
             available_sru += node.total_resources.sru - node.used_resources.sru
             available_mru += node.total_resources.mru - node.used_resources.mru
             available_hru += node.total_resources.hru - node.used_resources.hru
         if not running_nodes:
+            return False, available_cru, available_sru, available_mru, available_hru
+        if has_gateways and not any([x for x in gateways if j.sals.zos.nodes_finder.filter_is_up(x)]):
             return False, available_cru, available_sru, available_mru, available_hru
         if sru and available_sru < sru:
             return False, available_cru, available_sru, available_mru, available_hru

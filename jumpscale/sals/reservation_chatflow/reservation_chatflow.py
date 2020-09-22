@@ -1408,6 +1408,7 @@ class ReservationChatflow:
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
+        number_of_nodes += len(disallowed_node_ids)
         nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
@@ -1624,6 +1625,9 @@ class ReservationChatflow:
             failure_count = int(failure_count_dict[key])
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
+
+    def get_blocked_nodes_count(self):
+        return len(j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*"))
 
     def clear_blocked_nodes(self):
         blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
