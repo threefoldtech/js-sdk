@@ -13,7 +13,7 @@ from .models import UserPool
 
 class MarketPlaceDeployer(ChatflowDeployer):
 
-    WALLET_NAME = "waleed_main"
+    WALLET_NAME = "demos_wallet"
 
     def list_user_pool_ids(self, username):
         user_pools = self.list_user_pools(username)
