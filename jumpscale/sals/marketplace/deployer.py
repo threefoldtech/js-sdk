@@ -10,6 +10,9 @@ from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, Netwo
 
 from .models import UserPool
 
+pool_factory = StoredFactory(UserPool)
+pool_factory.always_reload = True
+
 
 class MarketPlaceDeployer(ChatflowDeployer):
 
@@ -21,7 +24,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return user_pool_ids
 
     def list_user_pools(self, username):
-        pool_factory = StoredFactory(UserPool)
+
         _, _, user_pools = pool_factory.find_many(owner=username)
         all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -53,7 +56,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_pool(self, username, bot):
         pool_info = super().create_pool(bot)
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -126,8 +128,33 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
-    def list_all_gateways(self, username):
+    def _get_gateways_pools(self, farm_name):
+        """
+        Returns:
+            List : will return pool ids for pools on farms with gateways
+        """
+        gateways_pools_ids = []
+        farms_ids_with_gateways = [
+            gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
+        ]
+        farms_names_with_gateways = set(
+            map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
+        )
+
+        for farm_name in farms_names_with_gateways:
+            gw_pool_name = f"marketplace_gateway_{farm_name}"
+            if gw_pool_name not in pool_factory.list_all():
+                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
+                gateways_pools_ids.append(gateways_pool_info.reservation_id)
+            else:
+                pool_id = pool_factory.get(gw_pool_name).pool_id
+                gateways_pools_ids.append(pool_id)
+        return gateways_pools_ids
+
+    def list_all_gateways(self, username, farm_name=None):
         pool_ids = self.list_user_pool_ids(username)
+        gateways_pools = self._get_gateways_pools(farm_name)  # Empty pools contains the gateways only
+        pool_ids.extend(gateways_pools)
         return super().list_all_gateways(pool_ids=pool_ids)
 
     def select_gateway(self, username, bot):
@@ -271,9 +298,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
+        user_pool.pool_id = pool_info.reservation_id
+        user_pool.save()
+        return pool_info
+
+    def create_gateway_emptypool(self, gwpool_name, farm_name):
+        pool_info = j.sals.zos.pools.create(0, 0, farm_name, ["TFT"])
+        user_pool = pool_factory.new(gwpool_name)
+        user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
         return pool_info
