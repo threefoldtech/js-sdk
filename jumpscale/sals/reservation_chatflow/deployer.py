@@ -1270,7 +1270,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {"TRC_SECRET": trc_secret}
-        entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port}" f" -remote {remote}"
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
@@ -1289,16 +1288,22 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_view = network_view.copy()
         network_view.used_ips.append(local_ip)
         ip_address = network_view.get_free_ip(node)
-
+        env = {
+            "SOLUTION_IP": local_ip,
+            "HTTP_PORT": str(port),
+            "HTTPS_PORT": str(tls_port),
+            "REMOTE_IP": gateway.dns_nameserver[0],
+            "REMOTE_PORT": str(gateway.tcp_router_port),
+        }
         resv_id = self.deploy_container(
             pool_id=pool_id,
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-trc-zinit.flist",
             disk_type=DiskType.HDD,
-            entrypoint=entry_point,
             secret_env=secret_env,
+            env=env,
             public_ipv6=False,
             **metadata,
         )
