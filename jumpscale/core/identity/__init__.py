@@ -81,7 +81,7 @@ class Identity(Base):
             try:
                 resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
             except Exception as e:
-                j.logger.error(e)
+                raise RuntimeError("could not execute get request") from e
             else:
                 resp.raise_for_status()
             user = User.from_dict(resp.json())
