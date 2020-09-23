@@ -10,8 +10,8 @@ from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, Netwo
 
 from .models import UserPool
 
-gw_user_pools = StoredFactory(UserPool)
-gw_user_pools.always_reload = True
+pool_factory = StoredFactory(UserPool)
+pool_factory.always_reload = True
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -24,7 +24,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return user_pool_ids
 
     def list_user_pools(self, username):
-        pool_factory = StoredFactory(UserPool)
+
         _, _, user_pools = pool_factory.find_many(owner=username)
         all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -56,7 +56,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_pool(self, username, bot):
         pool_info = super().create_pool(bot)
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -135,24 +134,21 @@ class MarketPlaceDeployer(ChatflowDeployer):
             List : will return pool ids for pools on farms with gateways
         """
         gateways_pools_ids = []
-        farm_id = deployer._explorer.farms.get(farm_name=farm_name).id
-        farm_gateways = deployer._explorer.gateway.list(farm_id)
-        if not farm_gateways:
-            farms_ids_with_gateways = [
-                gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
-            ]
-            farms_names_with_gateways = set(
-                map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
-            )
+        farms_ids_with_gateways = [
+            gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
+        ]
+        farms_names_with_gateways = set(
+            map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
+        )
 
-            for farm_name in farms_names_with_gateways:
-                gw_pool_name = f"marketplace_gateway_{farm_name}"
-                if gw_pool_name not in gw_user_pools.list_all():
-                    gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
-                    gateways_pools_ids.append(gateways_pool_info.reservation_id)
-                else:
-                    pool_id = gw_user_pools.get(gw_pool_name).pool_id
-                    gateways_pools_ids.append(pool_id)
+        for farm_name in farms_names_with_gateways:
+            gw_pool_name = f"marketplace_gateway_{farm_name}"
+            if gw_pool_name not in pool_factory.list_all():
+                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
+                gateways_pools_ids.append(gateways_pool_info.reservation_id)
+            else:
+                pool_id = pool_factory.get(gw_pool_name).pool_id
+                gateways_pools_ids.append(pool_id)
         return gateways_pools_ids
 
     def list_all_gateways(self, username, farm_name=None):
@@ -302,7 +298,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -311,7 +306,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_gateway_emptypool(self, gwpool_name, farm_name):
         pool_info = j.sals.zos.pools.create(0, 0, farm_name, ["TFT"])
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
