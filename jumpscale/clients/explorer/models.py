@@ -42,6 +42,7 @@ class Location(Base):
     def __str__(self):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
+
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -55,7 +56,6 @@ class Farm(Base):
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
-        
 
 
 class WorkloadsAmount(Base):
@@ -250,8 +250,13 @@ class ContainerNetworkConnection(Base):
 
 
 class ContainerLogsRedis(Base):
+    # deprecated, please use secret_stdout instead
     stdout = fields.String(default="")
+    # deprecated, please use secret_stderr instead
     stderr = fields.String(default="")
+
+    secret_stdout = fields.String(default="")
+    secret_stderr = fields.String(default="")
 
 
 class ContainerLogs(Base):
