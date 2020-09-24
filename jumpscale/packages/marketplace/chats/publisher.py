@@ -23,6 +23,7 @@ class Publisher(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "configuration",
+        "payment_currency",
         "infrastructure_setup",
         "deploy",
         "initializing",
