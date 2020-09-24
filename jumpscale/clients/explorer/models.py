@@ -341,6 +341,13 @@ class Statsaggregator(Base):
     port = fields.Integer()
     secret = fields.String(default="")
 
+class ContainerStatsRedis(Base):
+    endpoint = fields.String(default="")
+
+class ContainerStats(Base):
+    type = fields.String(default="")
+    data = fields.Object(ContainerStatsRedis)
+
 
 class K8s(Base):
     id = fields.Integer()
@@ -399,7 +406,7 @@ class Container(Base):
     interactive = fields.Boolean(default=True)
     volumes = fields.List(fields.Object(ContainerMount))
     network_connection = fields.List(fields.Object(ContainerNetworkConnection))
-    stats_aggregator = fields.List(fields.Object(Statsaggregator))
+    stats_aggregator = fields.List(fields.Object(ContainerStats)) # Previously Statsaggregator
     farmer_tid = fields.Integer()
     logs = fields.List(fields.Object(ContainerLogs))
     capacity = fields.Object(ContainerCapacity)
