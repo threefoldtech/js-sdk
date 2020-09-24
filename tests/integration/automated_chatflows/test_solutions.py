@@ -77,7 +77,7 @@ class AutomatedChatflows(TestCase):
         self.assertIn("successfully", ubuntu.success())
         self.assertIn("zos", res)
 
-    def test03_kubernetes(self):
+    def test02_kubernetes(self):
         """Test case for create kubernetes.
 
         **Test Scenario**
@@ -100,3 +100,47 @@ class AutomatedChatflows(TestCase):
         _, res, _ = localclient.sshclient.run("hostname")
         self.assertIn("successfully", kubernetes.success())
         self.assertIn("k3os", res)
+
+    def test03_create_pool(self):
+        """Test case for create pool.
+
+        **Test Scenario**
+        #. create pool
+        #. check that create pool is successful
+        #. check that cu and su as reserved
+        """
+        self.info("create pool")
+        name = self.random_string()
+        wallet_name = os.environ.get("WALLET_NAME")
+        pool = deployer.create_pool(solution_name=name, wallet_name=wallet_name,)
+
+        self.info("check that create pool is successful")
+        self.assertIn("reservation_id", dir(pool.pool_data))
+        self.assertEqual(pool.cu, 1)
+        self.assertEqual(pool.su, 1)
+
+    def test04_minio(self):
+        """Test case for create minio.
+
+        **Test Scenario**
+        #. create minio
+        #. check that create minio is successful"
+        """
+        self.info("create minio")
+        name = self.random_string()
+        username = self.random_string()
+        password = self.random_string()
+        minio = deployer.deploy_minio(
+            solution_name=name,
+            username=username,
+            password=password,
+            network=self.network_name,
+            ssh="/tmp/.ssh/id_rsa.pub",
+        )
+
+        import pdb
+
+        pdb.set_trace()
+        self.info("check that create minio is successful")
+        request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
+        self.assertEqual(request.status_code, 200)
