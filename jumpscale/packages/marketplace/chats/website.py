@@ -6,6 +6,7 @@ class WebsiteDeploy(Publisher):
 
     title = "Deploy a Website"
     SOLUTION_TYPE = "website"  # chatflow used to deploy the solution
+    EXAMPLE_URL = "https://github.com/xmonader/www_incubaid"
 
     @chatflow_step(title="Website Setup")
     def configuration(self):
@@ -14,7 +15,8 @@ class WebsiteDeploy(Publisher):
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask(Publisher.MD_CONFIG_MSG, md=True)
+        msg = self.get_mdconfig_msg()
+        form.ask(msg, md=True)
         self.envars = {
             "TYPE": "www",
             "NAME": "entrypoint",
