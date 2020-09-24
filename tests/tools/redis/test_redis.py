@@ -14,11 +14,19 @@ class TestRedis(TestCase):
         return conn.laddr[1]
 
     def test001_redis_start_stop(self):
+        """Test case for start redis and stop it.
+        **Test scenario**
+        #. Start redis server .
+        #. check about port , pid and process.
+        #. Stop redis server .
+        #. check about pid and process.
+        """
         port = random.randint(20000, 25000)
         redis_instance = self._get_instance()
         redis_instance.port = port
         redis_instance.save()
         redis_instance.start()
+        j.logger.info("Redis server started")
         self.assertTrue(
             j.sals.nettools.wait_connection_test(
                 redis_instance.host, redis_instance.port, 2
@@ -26,14 +34,14 @@ class TestRedis(TestCase):
         )
 
         self.assertTrue(redis_instance.cmd.is_running())
-        self.assertTrue(redis_instance.cmd.process.pid)
         self.assertTrue(redis_instance.cmd.process)
+        self.assertTrue(redis_instance.cmd.process.pid)
 
         proc_port = self._get_port(redis_instance.cmd.process)
-        self.assertTrue(redis_instance.cmd.is_running())
         self.assertEqual(proc_port, port)
 
         redis_instance.stop()
+        j.logger.info("Redis server stopped")
         self.assertFalse(
             j.sals.nettools.wait_connection_test(
                 redis_instance.host, redis_instance.port, 2
@@ -43,10 +51,19 @@ class TestRedis(TestCase):
         self.assertFalse(redis_instance.cmd.process)
 
     def test001_redis_restart(self):
+        """Test case for start redis and restart it.
+        **Test scenario**
+        #. Start redis server .
+        #. check about port , pid and process.
+        #. restart redis server .
+        #. check about port , pid and process.
+        """
+
         port = random.randint(20000, 25000)
         redis_instance = self._get_instance()
         redis_instance.port = port
         redis_instance.save()
+        j.logger.info("Redis server started")
         redis_instance.start()
         self.assertTrue(
             j.sals.nettools.wait_connection_test(
@@ -65,7 +82,7 @@ class TestRedis(TestCase):
         self.assertEqual(proc_port, port)
 
         redis_instance.restart()
-
+        j.logger.info("Redis server restarted")
         self.assertTrue(
             j.sals.nettools.wait_connection_test(
                 redis_instance.host, redis_instance.port, 2
