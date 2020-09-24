@@ -72,8 +72,8 @@ class TestRedis(TestCase):
         )
 
         self.assertTrue(redis_instance.cmd.is_running())
-        self.assertTrue(redis_instance.cmd.process.pid)
         self.assertTrue(redis_instance.cmd.process)
+        self.assertTrue(redis_instance.cmd.process.pid)
 
         pid = redis_instance.cmd.process.pid
 
