@@ -70,7 +70,7 @@ class Discourse(MarketPlaceAppsChatflow):
 
         # reserve subdomain
         _id = deployer.create_subdomain(
-            pool_id=self.pool_id,
+            pool_id=self.gateway_pool.pool_id,
             gateway_id=self.gateway.node_id,
             subdomain=self.domain,
             addresses=self.addresses,

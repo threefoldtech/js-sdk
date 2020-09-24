@@ -178,7 +178,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.username)
+        gateways = deployer.list_all_gateways(self.username, self.farm_name)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
