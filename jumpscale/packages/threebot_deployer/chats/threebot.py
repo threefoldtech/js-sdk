@@ -116,14 +116,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
-    @chatflow_step(title="Select your preferred payment currency")
-    def payment_currency(self):
-        self.currency = self.single_choice(
-            "Please select the currency you would like to pay your 3Bot deployment with.",
-            ["FreeTFT", "TFT", "TFTA"],
-            required=True,
-        )
-
     @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
     def deploy(self):
