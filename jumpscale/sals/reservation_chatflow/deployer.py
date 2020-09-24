@@ -25,6 +25,9 @@ GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Proxy,
 ]
 
+pool_factory = StoredFactory(PoolConfig)
+pool_factory.always_reload = True
+
 
 class NetworkView:
     def __init__(self, name, workloads=None, nodes=None):
@@ -435,7 +438,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def list_pools(self, cu=None, su=None):
         all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
-        pool_factory = StoredFactory(PoolConfig)
+
         available_pools = {}
         for pool in all_pools:
             hidden = False
@@ -1078,7 +1081,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             for pool in all_pools:
                 available_node_ids.update({node_id: pool for node_id in pool.node_ids})
         result = {}
-        pool_factory = StoredFactory(PoolConfig)
         for gateway in all_gateways:
             if gateway.node_id in available_node_ids:
                 if not gateway.dns_nameserver:

@@ -6,6 +6,7 @@ class WikiDeploy(Publisher):
 
     title = "Deploy a Wiki"
     SOLUTION_TYPE = "wiki"  # chatflow used to deploy the solution
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/info_gridmanual"
 
     @chatflow_step(title="Wiki Setup")
     def configuration(self):
@@ -14,7 +15,8 @@ class WikiDeploy(Publisher):
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask(Publisher.MD_CONFIG_MSG, md=True)
+        msg = self.get_mdconfig_msg()
+        form.ask(msg, md=True)
         self.envars = {
             "TYPE": "wiki",
             "NAME": "entrypoint",
