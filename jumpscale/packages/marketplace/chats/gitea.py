@@ -12,8 +12,8 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     title = "Gitea"
     steps = [
         "get_solution_name",
-        "infrastructure_setup",
         "payment_currency",
+        "infrastructure_setup",
         "reservation",
         "initializing",
         "success",
