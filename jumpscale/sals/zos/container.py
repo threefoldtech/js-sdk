@@ -8,6 +8,7 @@ from nacl import public, signing
 from jumpscale.clients.explorer.models import (
     Container,
     ContainerLogs,
+    ContainerStats,
     ContainerNetworkConnection,
     DiskType,
     WorkloadType,
@@ -132,3 +133,24 @@ class ContainerGenerator:
         container.logs.append(cont_logs)
 
         return cont_logs
+
+    def add_stats(
+        self, container: Container, redis_endpoint: str
+    ) -> ContainerStats:
+        """Enable statistics forwarding for the container
+
+        Args:
+          cont(tfgrid.workloads.reservation.container.1): container instance
+          channel_type(str): type of channel the stats will be streamed to
+          channel_host(str): endpoint where to push stats (eg: redis://user:pwd@host:port/channel)
+
+        Returns:
+          tfgrid.workloads.reservation.container.stats.1: stats object added to the container
+
+        """
+        cont_stats = ContainerStats()
+        cont_stats.type = "redis"
+        cont_stats.data.endpoint = redis_endpoint
+        container.stats_aggregator.append(cont_stats)
+
+        return cont_stats
