@@ -84,15 +84,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         if "apps" in networks_names:
             # old user
             self.md_show_update("Checking for free resources .....")
-            free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
+            free_pools = deployer.get_free_pools(self.solution_metadata["owner"], **self.query)
             if free_pools:
                 self.md_show_update(
                     "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
                 )
                 # select free pool and extend if required
-                pool, cu_diff, su_diff = deployer.get_best_fit_pool(
-                    free_pools, self.expiration, free_to_use=self.currency == "FreeTFT", **self.query
-                )
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
