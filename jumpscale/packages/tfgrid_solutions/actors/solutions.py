@@ -56,8 +56,18 @@ class Solutions(BaseActor):
 
     @actor_method
     def list_pools(self, include_hidden) -> str:
+        def pool_farm_from_cache(cache_dict, pool):
+            for node_id in pool.node_ids:
+                if node_id in cache_dict:
+                    return cache_dict[node_id]
+
+        def update_pool_farm_cache(cache_dict, pool, farm):
+            for node_id in pool.node_ids:
+                cache_dict[node_id] = farm
+
         res = []
         farm_names = {}
+        node_to_farm = {}
         pool_factory = StoredFactory(PoolConfig)
         workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
         for pool in j.sals.zos.pools.list():
@@ -77,13 +87,18 @@ class Solutions(BaseActor):
             pool_dict["name"] = name
             pool_dict["hidden"] = hidden
             pool_dict["explorer_url"] = j.core.identity.me.explorer_url
-            farm_id = deployer.get_pool_farm_id(pool.pool_id)
-            if farm_id >= 0:
-                farm = farm_names.get(farm_id)
-                if not farm:
-                    farm = deployer._explorer.farms.get(farm_id)
-                    farm_names[farm_id] = farm
+            farm = pool_farm_from_cache(node_to_farm, pool)
+            if not farm:
+                farm_id = deployer.get_pool_farm_id(pool=pool)
+                if farm_id >= 0:
+                    farm = farm_names.get(farm_id)
+                    if not farm:
+                        farm = deployer._explorer.farms.get(farm_id)
+                        farm_names[farm_id] = farm
+                    update_pool_farm_cache(node_to_farm, pool, farm)
+            if farm:
                 pool_dict["farm"] = farm.name
+
             for i, wid in enumerate(pool_dict["active_workload_ids"]):
                 if wid in workloads_dict:
                     pool_dict["active_workload_ids"][i] = f"{workloads_dict[wid].info.workload_type.name} - {wid}"

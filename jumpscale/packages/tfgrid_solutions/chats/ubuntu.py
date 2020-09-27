@@ -19,9 +19,9 @@ class UbuntuDeploy(GedisChatBot):
         "ubuntu_network",
         "container_logs",
         "public_key_get",
+        "ipv6_config",
         "container_node_id",
         "container_ip",
-        "ipv6_config",
         "reservation",
         "success",
     ]
@@ -93,6 +93,14 @@ class UbuntuDeploy(GedisChatBot):
             """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True,
         ).split("\n")[0]
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+        if self.public_ipv6:
+            self.ip_version = "IPv6"
+        else:
+            self.ip_version = None
+
     @chatflow_step(title="Container node id")
     def container_node_id(self):
         query = {
@@ -100,9 +108,9 @@ class UbuntuDeploy(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
+        self.selected_node = deployer.ask_container_placement(self, self.pool_id, ip_version=self.ip_version, **query)
         if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **query)
+            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **query)
 
     @chatflow_step(title="Container IP")
     @deployment_context()
@@ -127,10 +135,6 @@ class UbuntuDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True,
         )
-
-    @chatflow_step(title="Global IPv6 Address")
-    def ipv6_config(self):
-        self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title="Reservation")
     @deployment_context()
