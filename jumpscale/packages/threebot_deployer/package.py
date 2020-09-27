@@ -35,7 +35,7 @@ class threebot_deployer:
                 f"Added remote redis logs on machine {log_config['channel_host']}:{log_config['channel_port']}"
             )
 
-    def start(self):
+    def start(self, **kwargs):
         # Configuring 3bot deployer package actors to be public
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name="threebot_deployer_actors")
         location_actors_443.is_auth = False
