@@ -312,7 +312,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info
 
-    def get_free_pools(self, username, workload_types=None, free_to_use=False):
+    def get_free_pools(
+        self, username, workload_types=None, free_to_use=False, cru=0, mru=0, sru=0, hru=0, ip_version="IPv6"
+    ):
         def is_pool_free(pool, nodes_dict):
             for node_id in pool.node_ids:
                 node = nodes_dict.get(node_id)
@@ -329,6 +331,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
             nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in user_pools:
             valid = True
+            try:
+                j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
+                )
+            except StopChatFlow as e:
+                j.logger.error(
+                    f"Failed to find resources for this reservation in this pool: {pool}, {e}. We will use another one."
+                )
+                continue
+
             if free_to_use and not is_pool_free(pool, nodes):
                 continue
             for wokrkload_type in workload_types:
@@ -339,6 +351,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 continue
             if (pool.cus == 0 and pool.sus == 0) or pool.empty_at < j.data.time.now().timestamp:
                 continue
+
             free_pools.append(pool)
         return free_pools
 
@@ -349,7 +362,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
         exact_fit_pools = []  # contains pools that are exact match of the required resources
         over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
         under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
-
         for pool in pools:
             if pool.cus == required_cu and pool.sus == required_su:
                 exact_fit_pools.append(pool)

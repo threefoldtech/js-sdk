@@ -375,10 +375,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         available_mru = 0
         available_hru = 0
         running_nodes = 0
+        blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
             if not j.sals.zos.nodes_finder.filter_is_up(node):
+                continue
+            if node.node_id in blocked_nodes:
                 continue
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru

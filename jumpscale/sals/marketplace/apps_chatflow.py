@@ -84,7 +84,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             # old user
             self.md_show_update("Checking for free resources .....")
             free_pools = deployer.get_free_pools(
-                self.solution_metadata["owner"], free_to_use=self.currency == "FreeTFT"
+                self.solution_metadata["owner"], free_to_use=self.currency == "FreeTFT", **self.query
             )
             if free_pools:
                 self.md_show_update(
