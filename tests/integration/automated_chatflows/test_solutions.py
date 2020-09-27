@@ -138,9 +138,61 @@ class AutomatedChatflows(TestCase):
             ssh="/tmp/.ssh/id_rsa.pub",
         )
 
-        import pdb
-
-        pdb.set_trace()
         self.info("check that create minio is successful")
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+    def test05_monitoring(self):
+        """Test case for create monitoring.
+
+        **Test Scenario**
+        #. create monitoring
+        #. check access prometheus UI
+        #. check access grafana UI
+        """
+        self.info("create monitoring")
+        name = self.random_string()
+        monitoring = deployer.deploy_monitoring(solution_name=name, network=self.network_name,)
+
+        self.info("check access prometheus UI")
+        request = j.tools.http.get(f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+        self.info("check access grafana UI")
+        request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+    def test06_generic_flist(self):
+        """Test case for deploy generic flist.
+
+        **Test Scenario**
+        #. create flist
+        #. check access flist
+        """
+        self.info("create generic flist")
+        name = self.random_string()
+        generic_flist = deployer.deploy_generic_flist(
+            solution_name=name,
+            flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
+            network=self.network_name,
+        )
+
+        self.info("check access flist")
+        request = j.tools.http.get(f"http://{generic_flist.ip_address}:7681", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+    def test07_exposed_flist(self):
+        """Test case for deploy generic flist.
+
+        **Test Scenario**
+        #. create exposed
+        #. check access exposed
+        """
+        self.info("create exposed")
+        exposed = deployer.deploy_exposed(
+            type="flist", solution_to_expose="hlhujlh", sub_domain="hassan1", tls_port="7681", port="7681"
+        )
+
+        self.info("check access exposed")
+        request = j.tools.http.get(f"http://{exposed.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
