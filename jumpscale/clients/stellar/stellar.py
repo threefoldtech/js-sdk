@@ -387,7 +387,7 @@ class Stellar(Client):
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
-                raise Exception("Wrong asset format should be in format 'assetcode:issuer'")
+                raise Exception(f"Wrong asset format should be in format 'assetcode:issuer', but received {assetStr}")
             asset = assetStr[0]
             issuer = assetStr[1]
 
