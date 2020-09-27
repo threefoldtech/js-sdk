@@ -27,11 +27,7 @@ class TestRedis(TestCase):
         redis_instance.save()
         redis_instance.start()
         j.logger.info("Redis server started")
-        self.assertTrue(
-            j.sals.nettools.wait_connection_test(
-                redis_instance.host, redis_instance.port, 2
-            )
-        )
+        self.assertTrue(j.sals.nettools.wait_connection_test(redis_instance.host, redis_instance.port, 2))
 
         self.assertTrue(redis_instance.cmd.is_running())
         self.assertTrue(redis_instance.cmd.process)
@@ -42,11 +38,7 @@ class TestRedis(TestCase):
 
         redis_instance.stop()
         j.logger.info("Redis server stopped")
-        self.assertFalse(
-            j.sals.nettools.wait_connection_test(
-                redis_instance.host, redis_instance.port, 2
-            )
-        )
+        self.assertFalse(j.sals.nettools.wait_connection_test(redis_instance.host, redis_instance.port, 2))
         self.assertFalse(redis_instance.cmd.is_running())
         self.assertFalse(redis_instance.cmd.process)
 
@@ -65,11 +57,7 @@ class TestRedis(TestCase):
         redis_instance.save()
         j.logger.info("Redis server started")
         redis_instance.start()
-        self.assertTrue(
-            j.sals.nettools.wait_connection_test(
-                redis_instance.host, redis_instance.port, 2
-            )
-        )
+        self.assertTrue(j.sals.nettools.wait_connection_test(redis_instance.host, redis_instance.port, 2))
 
         self.assertTrue(redis_instance.cmd.is_running())
         self.assertTrue(redis_instance.cmd.process)
@@ -83,11 +71,7 @@ class TestRedis(TestCase):
 
         redis_instance.restart()
         j.logger.info("Redis server restarted")
-        self.assertTrue(
-            j.sals.nettools.wait_connection_test(
-                redis_instance.host, redis_instance.port, 2
-            )
-        )
+        self.assertTrue(j.sals.nettools.wait_connection_test(redis_instance.host, redis_instance.port, 2))
         self.assertTrue(redis_instance.cmd.is_running())
         self.assertTrue(redis_instance.cmd.process)
         self.assertNotEqual(redis_instance.cmd.process.pid, pid)
