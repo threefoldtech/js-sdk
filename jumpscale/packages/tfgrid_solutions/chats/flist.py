@@ -20,11 +20,11 @@ class FlistDeploy(GedisChatBot):
         "flist_network",
         "flist_url",
         "container_interactive",
+        "ipv6_config",
         "container_node_id",
         "container_logs",
         "container_ip",
         "container_env",
-        "ipv6_config",
         "reservation",
         "success",
     ]
@@ -115,7 +115,7 @@ class FlistDeploy(GedisChatBot):
                 continue
             valid = True
 
-    @chatflow_step(title="Container ineractive & EntryPoint")
+    @chatflow_step(title="Container Interactive & EntryPoint")
     def container_interactive(self):
         self.interactive = self.single_choice(
             "Would you like access to your container through the web browser (coreX)?",
@@ -133,6 +133,14 @@ class FlistDeploy(GedisChatBot):
     def container_env(self):
         self.env.update(self.multi_values_ask("Set Environment Variables"))
 
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+        if self.public_ipv6:
+            self.ip_version = "IPv6"
+        else:
+            self.ip_version = None
+
     @chatflow_step(title="Container node id")
     def container_node_id(self):
         query = {
@@ -140,9 +148,9 @@ class FlistDeploy(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, **query)
+        self.selected_node = deployer.ask_container_placement(self, self.pool_id, ip_version=self.ip_version, **query)
         if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, **query)
+            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **query)
 
     @chatflow_step(title="Container logs")
     def container_logs(self):
@@ -179,10 +187,6 @@ class FlistDeploy(GedisChatBot):
         self.ip_address = self.drop_down_choice(
             "Please choose IP Address for your solution", free_ips, default=free_ips[0], required=True
         )
-
-    @chatflow_step(title="Global IPv6 Address")
-    def ipv6_config(self):
-        self.public_ipv6 = deployer.ask_ipv6(self)
 
     @chatflow_step(title="Reservation")
     @deployment_context()

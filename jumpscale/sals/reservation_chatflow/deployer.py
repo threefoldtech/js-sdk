@@ -498,8 +498,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         pool = bot.single_choice(msg, list(pool_messages.keys()), required=True)
         return pool_messages[pool]
 
-    def get_pool_farm_id(self, pool_id):
-        pool = j.sals.zos.pools.get(pool_id)
+    def get_pool_farm_id(self, pool_id=None, pool=None):
+        pool = pool or j.sals.zos.pools.get(pool_id)
+        pool_id = pool.pool_id
         if not pool.node_ids:
             raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
         farm_id = None
@@ -991,7 +992,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None, ip_version=None,
     ):
         """
         Ask and schedule workloads accross multiple pools
@@ -1033,9 +1034,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     continue
                 pool_choices[p] = pools[p]
             pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
-            node = self.ask_container_placement(bot, pool_id, workload_name=workload_names[i], **resource_query_list[i])
+            node = self.ask_container_placement(
+                bot, pool_id, workload_name=workload_names[i], ip_version=ip_version, **resource_query_list[i]
+            )
             if not node:
-                node = self.schedule_container(pool_id, **resource_query_list[i])
+                node = self.schedule_container(pool_id, ip_version=ip_version, **resource_query_list[i])
             selected_nodes.append(node)
             selected_pool_ids.append(pool_id)
         return selected_nodes, selected_pool_ids
@@ -1466,7 +1469,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         url = f"{namespace}:{password}@[{ip}]:{port}"
         return url
 
-    def ask_multi_pool_distribution(self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None):
+    def ask_multi_pool_distribution(
+        self, bot, number_of_nodes, resource_query=None, pool_ids=None, workload_name=None, ip_version=None
+    ):
         """
         Choose multiple pools to distribute workload automatically
 
@@ -1525,7 +1530,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 node_to_pool[node_id] = pool
 
         nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            number_of_nodes, pool_ids=list(pool_ids.values()), **resource_query
+            number_of_nodes, pool_ids=list(pool_ids.values()), ip_version=ip_version, **resource_query
         )
         selected_nodes = []
         selected_pool_ids = []

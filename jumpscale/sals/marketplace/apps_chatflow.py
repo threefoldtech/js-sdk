@@ -39,6 +39,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
+        self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
@@ -162,7 +163,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
+            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
@@ -230,27 +231,37 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
                 )
 
-        self.domain = random.choice(list(domains.keys()))
-
-        self.gateway = domains[self.domain]["gateway"]
-        self.gateway_pool = domains[self.domain]["pool"]
-
-        solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-        owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-        solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
-        # check if domain name is free or append random number
-        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{self.domain}"
-        while True:
-            if j.tools.dnstool.is_free(full_domain):
-                self.domain = full_domain
-                break
-            else:
-                random_number = random.randint(1000, 100000)
-                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{self.domain}"
-
         self.addresses = []
-        for ns in self.gateway.dns_nameserver:
-            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        while not self.addresses and domains:
+            managed_domain = random.choice(list(domains.keys()))
+            self.gateway = domains[managed_domain]["gateway"]
+            self.gateway_pool = domains[managed_domain]["pool"]
+
+            solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
+            owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
+            solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
+            # check if domain name is free or append random number
+            full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+            while True:
+                if j.tools.dnstool.is_free(full_domain):
+                    self.domain = full_domain
+                    break
+                else:
+                    random_number = random.randint(1000, 100000)
+                    full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
+
+            for ns in self.gateway.dns_nameserver:
+                try:
+                    self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+                except Exception as e:
+                    j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
+
+            if not self.addresses:
+                domains.pop(managed_domain)
+
+        if not self.addresses:
+            raise RuntimeError("No valid gateways found, Please contact support")
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
