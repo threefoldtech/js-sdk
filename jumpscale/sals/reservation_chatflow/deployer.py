@@ -367,7 +367,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
+    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
         currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
@@ -376,6 +376,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         available_hru = 0
         running_nodes = 0
         blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
+        access_node = None
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
@@ -383,6 +384,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 continue
             if node.node_id in blocked_nodes:
                 continue
+            if ip_version and not access_node:
+                if ip_version == "IPv4":
+                    node_filter = j.sals.zos.nodes_finder.filter_public_ip4
+                elif ip_version == "IPv6":
+                    node_filter = j.sals.zos.nodes_finder.filter_public_ip6
+                else:
+                    raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
+                if node_filter(node):
+                    access_node = node
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru
             available_sru += node.total_resources.sru - node.used_resources.sru
@@ -397,6 +407,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if mru and available_mru < mru:
             return False, available_cru, available_sru, available_mru, available_hru
         if hru and available_hru < hru:
+            return False, available_cru, available_sru, available_mru, available_hru
+        if ip_version and not access_node:
             return False, available_cru, available_sru, available_mru, available_hru
         return True, available_cru, available_sru, available_mru, available_hru
 

@@ -388,9 +388,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user_network(self, bot, username, pool_id):
+    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4"):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_id], ip_version="IPv4"
+            1, pool_ids=[pool_id], ip_version=ip_version
         )[0]
 
         result = self.deploy_network(
