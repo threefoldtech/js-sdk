@@ -196,7 +196,7 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl=""):
+    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -205,6 +205,7 @@ class Package:
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.kwargs = kwargs or {}
 
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
@@ -296,7 +297,7 @@ class Package:
 
     def start(self):
         if self.module and hasattr(self.module, "start"):
-            self.module.start()
+            self.module.start(**self.kwargs)
 
     def stop(self):
         if self.module and hasattr(self.module, "stop"):
@@ -325,11 +326,13 @@ class PackageManager(Base):
         if package_name in self.packages:
             package_path = self.packages[package_name]["path"]
             package_giturl = self.packages[package_name]["giturl"]
+            package_kwargs = self.packages[package_name].get("kwargs", {})
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
                 giturl=package_giturl,
+                kwargs=package_kwargs,
             )
 
     def get_packages(self):
@@ -392,7 +395,11 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path,
+            default_domain=self.threebot.domain,
+            default_email=self.threebot.email,
+            giturl=giturl,
+            kwargs=kwargs,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
@@ -406,7 +413,12 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
-        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
+        self.packages[package.name] = {
+            "name": package.name,
+            "path": package.path,
+            "giturl": package.giturl,
+            "kwargs": package.kwargs,
+        }
 
         self.save()
 

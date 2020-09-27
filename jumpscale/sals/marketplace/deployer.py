@@ -312,13 +312,37 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info
 
-    def get_free_pools(self, username, workload_types=None):
+    def get_free_pools(
+        self, username, workload_types=None, free_to_use=False, cru=0, mru=0, sru=0, hru=0, ip_version="IPv6"
+    ):
+        def is_pool_free(pool, nodes_dict):
+            for node_id in pool.node_ids:
+                node = nodes_dict.get(node_id)
+                if node and not node.free_to_use:
+                    return False
+            return True
+
         user_pools = self.list_user_pools(username)
         j.sals.reservation_chatflow.deployer.load_user_workloads()
         free_pools = []
         workload_types = workload_types or [WorkloadType.Container]
+        nodes = {}
+        if free_to_use:
+            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in user_pools:
             valid = True
+            try:
+                j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
+                )
+            except StopChatFlow as e:
+                j.logger.error(
+                    f"Failed to find resources for this reservation in this pool: {pool}, {e}. We will use another one."
+                )
+                continue
+
+            if free_to_use and not is_pool_free(pool, nodes):
+                continue
             for wokrkload_type in workload_types:
                 if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][wokrkload_type][pool.pool_id]:
                     valid = False
@@ -327,16 +351,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 continue
             if (pool.cus == 0 and pool.sus == 0) or pool.empty_at < j.data.time.now().timestamp:
                 continue
+
             free_pools.append(pool)
         return free_pools
 
-    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, free_to_use=False):
-        def is_pool_free(pool, nodes_dict):
-            for node_id in pool.node_ids:
-                node = nodes_dict.get(node_id)
-                if node and not node.free_to_use:
-                    return False
-            return True
+    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0):
 
         cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
         required_cu = cu * expiration
@@ -344,12 +363,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         exact_fit_pools = []  # contains pools that are exact match of the required resources
         over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
         under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
-        nodes = {}
-        if free_to_use:
-            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in pools:
-            if free_to_use and not is_pool_free(pool, nodes):
-                continue
             if pool.cus == required_cu and pool.sus == required_su:
                 exact_fit_pools.append(pool)
             else:
@@ -375,9 +389,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user_network(self, bot, username, pool_id):
+    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4"):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_id], ip_version="IPv4"
+            1, pool_ids=[pool_id], ip_version=ip_version
         )[0]
 
         result = self.deploy_network(
