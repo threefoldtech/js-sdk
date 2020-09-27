@@ -12,8 +12,8 @@ Adding packages with kwargs has some limitations and hence kwargs are needed eve
 
 ## Decision
 
-Pass kwargs to start method so it will be passed when adding a package until starting the package.
+Add kwargs passed to the package instance that will be saved locally, and can be retrieved everytime the threebot server restarts and starts the package.
 
 ## Consequences
 
-start can take kwargs and other packages will not be affected therefore its backward compatible
+Any package that is added with kwargs will save them and hence with every restart of the package, they are reloaded and used in the install of the package.
