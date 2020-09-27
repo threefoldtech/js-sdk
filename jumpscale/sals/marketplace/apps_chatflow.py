@@ -39,6 +39,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
+        self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
@@ -163,7 +164,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
+            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
