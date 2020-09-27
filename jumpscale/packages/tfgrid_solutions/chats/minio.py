@@ -16,13 +16,13 @@ class MinioDeploy(GedisChatBot):
         "container_resources",
         "minio_resources",
         "zdb_nodes_selection",
+        "ipv6_config",
         "minio_nodes_selection",
         "minio_network",
         "access_credentials",
         "container_logs",
         "public_key",
         "ip_selection",
-        "ipv6_config",
         "zdb_reservation",
         "minio_reservation",
         "success",
@@ -97,8 +97,16 @@ class MinioDeploy(GedisChatBot):
         query = {"sru": 10}
         workload_name = "ZDB workloads"
         self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
-            self, self.zdb_number, query, workload_name=workload_name
+            self, self.zdb_number, query, workload_name=workload_name, ip_version="IPv6",
         )
+
+    @chatflow_step(title="Global IPv6 Address")
+    def ipv6_config(self):
+        self.public_ipv6 = deployer.ask_ipv6(self)
+        if self.public_ipv6:
+            self.ip_version = "IPv6"
+        else:
+            self.ip_version = None
 
     @chatflow_step(title="Minio Nodes")
     def minio_nodes_selection(self):
@@ -113,7 +121,7 @@ class MinioDeploy(GedisChatBot):
         if self.mode == "Master/Slave":
             workload_names.append("Secondary")
         self.minio_nodes, self.minio_pool_ids = deployer.ask_multi_pool_placement(
-            self, len(queries), queries, workload_names=workload_names,
+            self, len(queries), queries, workload_names=workload_names, ip_version=self.ip_version,
         )
 
     @chatflow_step(title="Network")
@@ -207,9 +215,9 @@ class MinioDeploy(GedisChatBot):
             )
             self.network_view.used_ips.append(self.ip_addresses[1])
 
-    @chatflow_step(title="Global IPv6 Address")
-    def ipv6_config(self):
-        self.public_ipv6 = deployer.ask_ipv6(self)
+    @chatflow_step(title="Reserve zdb", disable_previous=True)
+    @deployment_context()
+    def zdb_reservation(self):
         self.metadata = {
             "Solution Name": self.solution_name,
             "Solution Type": "minio",
@@ -217,11 +225,6 @@ class MinioDeploy(GedisChatBot):
             "Master IP": self.ip_addresses[0],
         }
         self.solution_metadata.update(self.metadata)
-
-    @chatflow_step(title="Reserve zdb", disable_previous=True)
-    @deployment_context()
-    def zdb_reservation(self):
-
         self.password = uuid.uuid4().hex
         self.zdb_result = deployer.deploy_minio_zdb(
             pool_id=self.zdb_pool_ids[0],
