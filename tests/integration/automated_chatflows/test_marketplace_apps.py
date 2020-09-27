@@ -116,6 +116,7 @@ class AutomatedChatflows(TestCase):
         """
         **Test Scenario**
         #. Deploy Cryptpad
+        #. Check if Cryptpad is accessed
         """
         self.info("Deploy Cryptpad")
         name = self.random_string()
@@ -125,7 +126,6 @@ class AutomatedChatflows(TestCase):
         self.info("Check if Crypted is accessed")
         request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-        self.assertIn("", request.content.decode())
 
     def test06_gitea(self):
         """
@@ -141,7 +141,6 @@ class AutomatedChatflows(TestCase):
         self.info("Check if Gitea is accessed")
         request = j.tools.http.get(f"https://{gitea.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-        self.assertIn("", request.content.decode())
 
     def test07_discourse(self):
         """
@@ -157,7 +156,7 @@ class AutomatedChatflows(TestCase):
         discourse = deployer.deploy_discourse(
             solution_name=name, host_email=host_email, smtp_host=smtp_host, host_email_password=host_email_password
         )
-        # self.workloads = discourse.workload_ids
+        self.workloads = discourse.workload_ids
 
         self.info("Check if Discourse is accessed")
         request = j.tools.http.get(f"https://{discourse.domain}", verify=False)
@@ -204,4 +203,3 @@ class AutomatedChatflows(TestCase):
         self.info("Check if Taiga is accessed")
         request = j.tools.http.get(f"https://{taiga.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-        self.assertIn("DISCOVER CIRCLES", request.content.decode())
