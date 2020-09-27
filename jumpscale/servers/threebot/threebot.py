@@ -294,9 +294,9 @@ class Package:
         if self.module and hasattr(self.module, "uninstall"):
             self.module.uninstall()
 
-    def start(self):
+    def start(self, **kwargs):
         if self.module and hasattr(self.module, "start"):
-            self.module.start()
+            self.module.start(**kwargs)
 
     def stop(self):
         if self.module and hasattr(self.module, "stop"):
@@ -404,7 +404,7 @@ class PackageManager(Base):
 
         # install package if threebot is started
         if self.threebot.started:
-            self.install(package)
+            self.install(package, **kwargs)
             self.threebot.nginx.reload()
         self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
@@ -451,7 +451,7 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def install(self, package):
+    def install(self, package, **kwargs):
         """install and apply package configrations
 
         Args:
@@ -491,7 +491,7 @@ class PackageManager(Base):
         package.nginx_config.apply()
 
         # execute package start method
-        package.start()
+        package.start(**kwargs)
         self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
