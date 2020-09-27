@@ -463,7 +463,7 @@ class PackageManager(Base):
         self.packages.pop(package_name)
         self.save()
 
-    def install(self, package, **kwargs):
+    def install(self, package):
         """install and apply package configrations
 
         Args:
