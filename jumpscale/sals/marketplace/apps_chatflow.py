@@ -68,6 +68,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_pool(self):
         available_farms = []
         farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
             available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
@@ -137,6 +138,15 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+            if not all(
+                [
+                    self.pool_info.escrow_information.address.strip() != "",
+                    self.pool_info.escrow_information.address.strip() != "",
+                ]
+            ):
+                raise StopChatFlow(
+                    f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
+                )
             deployer.pay_for_pool(self.pool_info)
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
