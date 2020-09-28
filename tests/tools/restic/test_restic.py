@@ -1,13 +1,14 @@
-from unittest import TestCase
-import random
 from jumpscale.loader import j
-import tempfile
+from jumpscale.core.exceptions import NotFound, Runtime
+from unittest import TestCase
+
 import random
+import tempfile
 import uuid
 import os
 import shutil
 import socket
-from jumpscale.core.exceptions import NotFound, Runtime
+import subprocess
 
 
 class TempDir(tempfile.TemporaryDirectory):
@@ -23,6 +24,11 @@ class TempDir(tempfile.TemporaryDirectory):
 
 
 class TestRestic(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        if subprocess.call(["which", "restic"], stdout=subprocess.DEVNULL):
+            raise NotFound(f"restic not installed")
+
     def setUp(self):
         """Initialize a repo and change dir to a temp directory"""
         self.temps = []
@@ -61,7 +67,7 @@ class TestRestic(TestCase):
         """Return a random string with length between 10 and 100"""
         length = random.randint(10, 100)
         res = ""
-        for i in range(length):
+        for _ in range(length):
             res += chr(random.randint(97, 123))
         return res
 
@@ -132,7 +138,7 @@ class TestRestic(TestCase):
             path (str): The directory path
         """
         res = {}  # path: content
-        for root, dirs, files in os.walk(path, topdown=True):
+        for root, _, files in os.walk(path, topdown=True):
             for f in files:
                 file_path = os.path.join(root, f)
                 res[file_path[len(path) :]] = j.sals.fs.read_file(file_path)
@@ -264,7 +270,6 @@ class TestRestic(TestCase):
         #. Check only one snapshot remains
         """
         working_dir = self._create_random_dir()
-        backup_dir = self._create_temp_dir()
         self.instance.backup(working_dir.name)
         self.instance.backup(working_dir.name)
         self.instance.backup(working_dir.name)
