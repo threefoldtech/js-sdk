@@ -274,5 +274,17 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         """
         self.download_file(msg=dedent(msg), data=content, filename="apps.conf", html=True)
 
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
+        message = f"""\
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+        - You can access your 3Bot via IP: `{self.ip_address}`. To use it make sure wireguard is up and running.
+        """
+        self.md_show(dedent(message), md=True)
+
 
 chat = ThreebotDeploy

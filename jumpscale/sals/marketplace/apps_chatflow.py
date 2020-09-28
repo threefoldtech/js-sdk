@@ -207,6 +207,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
+                # TODO: FIXME Remove when gateways is fixed
+                if domain in [
+                    "tfgw-prod-05.ava.tf",
+                    "tfgw-prod-05.base.tf",
+                    "tfgw-prod-05.3x0.me",
+                    "tfgw-prod-05.gateway.tf",
+                    "tfgw-prod-02.gateway.tf",
+                    "tfgw-prod-07.base.tf",
+                ]:
+                    continue
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
