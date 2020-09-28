@@ -73,10 +73,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
-            available, _, _, _, _ = deployer.check_farm_capacity(
+            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
                 farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
-            if available:
+            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
+            )
+            if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
 
         self.farm_name = random.choice(available_farms)
@@ -153,7 +156,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
-            deployer.init_new_user_network(self, self.solution_metadata["owner"], self.pool_info.reservation_id)
+            self.wgcfg = deployer.init_new_user_network(
+                self, self.solution_metadata["owner"], self.pool_info.reservation_id
+            )
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
