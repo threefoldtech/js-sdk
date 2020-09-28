@@ -406,7 +406,7 @@ class Container(Base):
     interactive = fields.Boolean(default=True)
     volumes = fields.List(fields.Object(ContainerMount))
     network_connection = fields.List(fields.Object(ContainerNetworkConnection))
-    stats_aggregator = fields.List(fields.Object(ContainerStats)) # Previously Statsaggregator
+    stats = fields.List(fields.Object(ContainerStats))
     farmer_tid = fields.Integer()
     logs = fields.List(fields.Object(ContainerLogs))
     capacity = fields.Object(ContainerCapacity)

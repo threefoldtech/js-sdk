@@ -151,6 +151,6 @@ class ContainerGenerator:
         cont_stats = ContainerStats()
         cont_stats.type = "redis"
         cont_stats.data.endpoint = redis_endpoint
-        container.stats_aggregator.append(cont_stats)
+        container.stats.append(cont_stats)
 
         return cont_stats
