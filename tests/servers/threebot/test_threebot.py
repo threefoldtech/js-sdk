@@ -16,8 +16,9 @@ class Test3BotServer(BaseTests):
 
     @classmethod
     def setUpClass(cls):
-        myid = j.core.identity.new(cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words,
-                                   explorer_url=cls.explorer_url)
+        myid = j.core.identity.new(
+            cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
+        )
         myid.register()
         j.core.identity.set_default(cls.MYID_NAME)
         myid.save()
