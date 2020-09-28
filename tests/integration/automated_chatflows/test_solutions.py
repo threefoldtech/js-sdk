@@ -4,6 +4,7 @@ from unittest import TestCase
 from uuid import uuid4
 import os
 from time import sleep
+from time import time
 
 sdk_location = __file__.split("tests")[0]
 solution_automation_location = f"{sdk_location}solutions_automation"
@@ -196,3 +197,52 @@ class AutomatedChatflows(TestCase):
         self.info("check access exposed")
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
+
+    def test08_deploy_threebot(self):
+        """Test case for deploy three bot
+
+        **Test Scenario**
+        #. create threebot
+        #. check access threebot
+        """
+
+        self.info("create threebot")
+        name = self.random_string()
+        secret = self.random_string()
+        threebot = deployer.deploy_threebot(
+            solution_name=name, secret=secret, expiration=time() * 60 + 15, ssh="/tmp/.ssh/id_rsa.pub"
+        )
+        self.info("check access threebot")
+        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+    def test09_recover_threebot(self):
+        """Test case for recover threebot
+
+        **Test Scenario**
+        #. recover threebot
+        #. check access recoverd threebot
+        """
+
+        self.info("recover threebot")
+        threebot = deployer.recover_threebot(
+            solution_name="", recover_password="", ssh="/tmp/.ssh/id_rsa.pub", expiration=time() * 60 + 15,
+        )
+
+        self.info("check access recoverd threebot")
+        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
+        self.assertEqual(request.status_code, 200)
+
+    def test010_extend_threebot(self):
+        """Test case for extend threebot
+
+        **Test Scenario**
+        #. extend threebot
+        #. check access threebot
+        """
+
+        self.info("extend threebot")
+        threebot = deployer.extend_threebot(name="testthreebot", expiration=time() * 60 * 60 + 15,)
+
+        self.info("check if extend threebot is successful")
+        self.assertIn("", threebot.success())

@@ -340,18 +340,19 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(solution_name, secret, expiration, ssh, debug=True):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, ssh=ssh, debug=debug
     )
 
 
-def recover_threebot(solution_name, recover_password, expiration, debug=True):
+def recover_threebot(solution_name, recover_password, expiration, ssh, debug=True):
     return ThreebotDeployAutomated(
         type="Recover",
         solution_name=solution_name,
         recover_password=recover_password,
         expiration=expiration,
+        ssh=ssh,
         debug=debug,
     )
 
