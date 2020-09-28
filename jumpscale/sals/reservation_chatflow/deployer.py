@@ -9,7 +9,7 @@ import requests
 import gevent
 import netaddr
 from nacl.public import Box
-
+from contextlib import ContextDecorator
 from jumpscale.clients.explorer.models import DiskType, NextAction, WorkloadType, ZDBMode
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -30,6 +30,19 @@ pool_factory.always_reload = True
 
 
 class NetworkView:
+    class dry_run_context(ContextDecorator):
+        def __init__(self, test_network_name, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.test_network_name = test_network_name
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            network_view = NetworkView(self.test_network_name)
+            for workload in network_view.network_workloads:
+                j.sals.zos.workloads.decomission(workload.id)
+
     def __init__(self, name, workloads=None, nodes=None):
         self.name = name
         if not workloads:
@@ -162,12 +175,13 @@ class NetworkView:
                 return ip
         return None
 
-    def dry_run(self, node_ids=None, pool_ids=None, bot=None, breaking_node_ids=None):
+    def dry_run(self, test_network_name=None, node_ids=None, pool_ids=None, bot=None, breaking_node_ids=None):
+        name = test_network_name or uuid.uuid4().hex
         breaking_node_ids = breaking_node_ids or node_ids
         if bot:
             bot.md_show_update("Starting dry run to check nodes status")
         ip_range = netaddr.IPNetwork("10.10.0.0/16")
-        name = uuid.uuid4().hex
+
         if any([node_ids, pool_ids]) and not all([node_ids, pool_ids]):
             raise StopChatFlow("you must specify both pool ids and node ids together")
         node_pool_dict = {}
@@ -193,8 +207,6 @@ class NetworkView:
             try:
                 result.append(j.sals.zos.workloads.deploy(resource))
             except Exception as e:
-                for wid in result:
-                    j.sals.zos.workloads.decomission(wid)
                 raise StopChatFlow(
                     f"failed to deploy workload on node {resource.info.node_id} due to" f" error {str(e)}"
                 )
@@ -206,14 +218,10 @@ class NetworkView:
                 # if not a breaking nodes (old node not used for deployment) we can overlook it
                 if workload.info.node_id not in breaking_node_ids:
                     continue
-                for wid in result:
-                    j.sals.zos.workloads.decomission(wid)
                 j.sals.reservation_chatflow.reservation_chatflow.block_node(network.network_resources[idx].info.node_id)
                 raise StopChatFlow(
                     "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
                 )
-        for wid in result:
-            j.sals.zos.workloads.decomission(wid)
 
 
 class ChatflowDeployer:
@@ -367,7 +375,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None):
+    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
         currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
@@ -375,11 +383,24 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         available_mru = 0
         available_hru = 0
         running_nodes = 0
+        blocked_nodes = j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
+        access_node = None
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
             if not j.sals.zos.nodes_finder.filter_is_up(node):
                 continue
+            if node.node_id in blocked_nodes:
+                continue
+            if ip_version and not access_node:
+                if ip_version == "IPv4":
+                    node_filter = j.sals.zos.nodes_finder.filter_public_ip4
+                elif ip_version == "IPv6":
+                    node_filter = j.sals.zos.nodes_finder.filter_public_ip6
+                else:
+                    raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
+                if node_filter(node):
+                    access_node = node
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru
             available_sru += node.total_resources.sru - node.used_resources.sru
@@ -394,6 +415,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if mru and available_mru < mru:
             return False, available_cru, available_sru, available_mru, available_hru
         if hru and available_hru < hru:
+            return False, available_cru, available_sru, available_mru, available_hru
+        if ip_version and not access_node:
             return False, available_cru, available_sru, available_mru, available_hru
         return True, available_cru, available_sru, available_mru, available_hru
 
@@ -588,12 +611,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-        network_view.dry_run(
-            list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
-            bot,
-            breaking_node_ids=[node_id],
-        )
+
+        dry_run_name = uuid.uuid4().hex
+        with NetworkView.dry_run_context(dry_run_name):
+            network_view.dry_run(
+                dry_run_name,
+                list(node_workloads.keys()),
+                [w.info.pool_id for w in node_workloads.values()],
+                bot,
+                breaking_node_ids=[node_id],
+            )
 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
@@ -614,12 +641,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-        network_view.dry_run(
-            list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
-            bot,
-            breaking_node_ids=[node_id],
-        )
+        dry_run_name = uuid.uuid4().hex
+        with NetworkView.dry_run_context(dry_run_name):
+            network_view.dry_run(
+                dry_run_name,
+                list(node_workloads.keys()),
+                [w.info.pool_id for w in node_workloads.values()],
+                bot,
+                breaking_node_ids=[node_id],
+            )
         parent_id = network_view.network_workloads[-1].id
         result = []
         for resource in node_workloads.values():
@@ -703,13 +733,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         # deploy only latest resource generated by zos sal for each node
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-
-        network_view.dry_run(
-            list(node_workloads.keys()),
-            [w.info.pool_id for w in node_workloads.values()],
-            bot,
-            breaking_node_ids=[node.node_id],
-        )
+        dry_run_name = uuid.uuid4().hex
+        with NetworkView.dry_run_context(dry_run_name):
+            network_view.dry_run(
+                dry_run_name,
+                list(node_workloads.keys()),
+                [w.info.pool_id for w in node_workloads.values()],
+                bot,
+                breaking_node_ids=[node.node_id],
+            )
         for workload in node_workloads.values():
             workload.info.reference = ""
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
