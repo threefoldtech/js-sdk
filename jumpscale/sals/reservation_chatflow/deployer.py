@@ -376,6 +376,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+        node_filter = None
+        if ip_version and ip_version not in ["IPv4", "IPv6"]:
+            raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
+        else:
+            if ip_version == "IPv4":
+                node_filter = j.sals.zos.nodes_finder.filter_public_ip4
+            elif ip_version == "IPv6":
+                node_filter = j.sals.zos.nodes_finder.filter_public_ip6
         currencies = currencies or []
         farm_nodes = j.sals.zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
@@ -392,20 +400,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 continue
             if node.node_id in blocked_nodes:
                 continue
-            if ip_version and not access_node:
-                if ip_version == "IPv4":
-                    node_filter = j.sals.zos.nodes_finder.filter_public_ip4
-                elif ip_version == "IPv6":
-                    node_filter = j.sals.zos.nodes_finder.filter_public_ip6
-                else:
-                    raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
-                if node_filter(node):
-                    access_node = node
+            if not access_node and node_filter(node):
+                access_node = node
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru
             available_sru += node.total_resources.sru - node.used_resources.sru
             available_mru += node.total_resources.mru - node.used_resources.mru
             available_hru += node.total_resources.hru - node.used_resources.hru
+
         if not running_nodes:
             return False, available_cru, available_sru, available_mru, available_hru
         if sru and available_sru < sru:
