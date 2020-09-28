@@ -30,7 +30,7 @@ class TestRestic(TestCase):
             raise NotFound(f"restic not installed")
 
     def setUp(self):
-        """Initialize a repo and change dir to a temp directory"""
+        """Initialize a repo and change current directory to a newly created temp directory"""
         self.temps = []
         self.repos_temp_dir = self._create_temp_dir()
         os.chdir(self.repos_temp_dir.name)
@@ -40,13 +40,13 @@ class TestRestic(TestCase):
         self.instance.init_repo()
 
     def _create_temp_dir(self):
-        """Returns a new temp directory"""
+        """Return a new temp directory"""
         temp_dir = TempDir()
         self.temps.append(temp_dir)
         return temp_dir
 
     def _create_random_dir(self, n=21):
-        """Creates a directory with n items
+        """Create a directory with n items
 
         Args:
             n (int, optional): The number of nested items (files and directories)
@@ -87,7 +87,7 @@ class TestRestic(TestCase):
         return adjacency_list
 
     def _get_file_object(self, node, adjacency_list):
-        """Returns a dict if the node represents a dir, otherwise it returns a string with the file content
+        """Return a dict if the node represents a dir, otherwise it returns a string with the file content
 
         Args:
             node (int): The node to be processed in the tree
@@ -104,7 +104,7 @@ class TestRestic(TestCase):
         return res
 
     def _create_random_dir_dict(self, n=21):
-        """Creates a directory dict with n items
+        """Create a directory dict with n items
 
         Args:
             n (int, optional): The number of nested items (files and directories)
@@ -116,7 +116,7 @@ class TestRestic(TestCase):
         return self._get_file_object(0, tree)
 
     def _fill_dir(self, dir_name, dir_dict):
-        """Fills the directory at the given path withe directory dict
+        """Fill the directory at the given path with directory dict
 
         Args:
             dir_name  (str): The path of the directory
@@ -132,7 +132,7 @@ class TestRestic(TestCase):
                     f.write(v)
 
     def _canonicalize(self, path):
-        """Returns a cononical form of the directory, used for comparison
+        """Return a cononical form of the directory, used for comparison
 
         Args:
             path (str): The directory path
@@ -145,7 +145,7 @@ class TestRestic(TestCase):
         return res
 
     def _check_dirs_equal(self, first_dir, second_dir):
-        """Checks if the two directories have the same content
+        """Check if the two directories have the same content
 
         Args:
             first_dir (str): The first directory path
@@ -218,7 +218,7 @@ class TestRestic(TestCase):
         **Test Scenario**
         #. Make two directories with random content
         #. Backup the first then the second then the third with tags: [tag1, tag2], [tag2, tag3], [tag2, tag3]
-        #. List the snapshots using the tag name [(tag1), (tag2), (tag3),  (tag1, tag3)]
+        #. List the snapshots using the tag name [(tag1), (tag2), (tag3), (tag1, tag3)]
         #. Check that any snapshot that had a tag that was passed is included in the result
         #. Check listing with the path
         """
