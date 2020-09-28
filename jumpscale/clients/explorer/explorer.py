@@ -22,9 +22,10 @@ from jumpscale.loader import j
 
 
 def log_request(r, *args, **kwargs):
-    j.logger.debug(
-        f"Request {r.request.url} method: {r.request.method} body: {r.request.body} headers: {r.request.headers}"
-    )
+    if j.config.get("EXPLORER_LOGS"):
+        j.logger.debug(
+            f"Request {r.request.url} method: {r.request.method} body: {r.request.body} headers: {r.request.headers}"
+        )
 
 
 class Explorer(Client):
