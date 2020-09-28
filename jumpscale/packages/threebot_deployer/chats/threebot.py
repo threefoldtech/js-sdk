@@ -42,7 +42,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         # the main container + the nginx container with 0.25 GB disk
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
-        self.expiration = 30 * 60  # 30 minutes for 3bot
+        self.expiration = 60 * 60  # 60 minutes for 3bot
         self.ip_version = "IPv6"
 
     @chatflow_step(title="Welcome")
