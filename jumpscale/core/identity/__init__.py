@@ -12,9 +12,9 @@ from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
 DEFAULT_EXPLORER_URLS = {
-    "mainnet": "https://explorer.grid.tf/api/v1/",
-    "testnet": "https://explorer.testnet.grid.tf/api/v1/",
-    "devnet": "https://explorer.devnet.grid.tf/api/v1/",
+    "mainnet": "https://explorer.grid.tf/api/v1",
+    "testnet": "https://explorer.testnet.grid.tf/api/v1",
+    "devnet": "https://explorer.devnet.grid.tf/api/v1",
 }
 
 EXPLORER_URLS = js_config.set_default("explorer_api_urls", DEFAULT_EXPLORER_URLS)
@@ -54,6 +54,7 @@ class Identity(Base):
         Raises: Input: when params are missing
         """
         self._explorer = None
+        explorer_url = explorer_url.rstrip("/")
         super().__init__(
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
         )
@@ -104,9 +105,11 @@ class Identity(Base):
             if not js_config.get("has_migrated_explorer_url", False):
                 if urlparse(self.explorer_url).hostname == urlparse(EXPLORER_URLS["mainnet"]).hostname:
                     self.explorer_url = EXPLORER_URLS["mainnet"]
+                    self.save()
                     js_config.set("has_migrated_explorer_url", True)
 
             if self.explorer_url:
+                self.explorer_url = self.explorer_url.rstrip("/")
                 self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
             else:
                 self._explorer = ex_factory.get_default()
@@ -167,6 +170,11 @@ class Identity(Base):
             self.admins.append(self.tname)
         self.save()
         return tid
+
+    def set_default(self):
+        from jumpscale.loader import j
+
+        return j.core.identity.set_default(self.instance_name)
 
 
 def get_identity():
