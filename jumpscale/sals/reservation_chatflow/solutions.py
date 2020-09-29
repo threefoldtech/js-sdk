@@ -644,5 +644,12 @@ class ChatflowSolutions:
             if solution_uuid == self.get_solution_uuid(workload):
                 j.sals.zos.workloads.decomission(workload.id)
 
+    def get_workloads_by_uuid(self, solution_uuid, next_action=None):
+        workloads = []
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
+            if solution_uuid == self.get_solution_uuid(workload):
+                workloads.append(workload)
+        return workloads
+
 
 solutions = ChatflowSolutions()

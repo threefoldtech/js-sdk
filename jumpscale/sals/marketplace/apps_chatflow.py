@@ -12,6 +12,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.clients.explorer.models import WorkloadType
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -256,25 +257,19 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 dom["domain"]: dom
                 for dom in solutions._list_subdomain_workloads(solution_type, metadata_filters=[metafilter])
             }
-            user_proxies = {
-                proxy["domain"]: proxy
-                for proxy in solutions._list_proxy_workloads(solution_type, metadata_filters=[metafilter])
-            }
 
             while True:
                 if full_domain in user_subdomains:
-                    # check if the pool expired
-                    pool_id = user_subdomains[full_domain]
-                    pool = j.sals.zos.pools.get(pool_id)
-                    if pool.empty_at < j.data.time.utcnow().timestamp:
-                        j.sals.zos.workloads.decomission(user_subdomains[full_domain]["wid"])
-
-                if full_domain in user_proxies:
-                    # check if the pool expired
-                    pool_id = user_proxies[full_domain]
-                    pool = j.sals.zos.pools.get(pool_id)
-                    if pool.empty_at < j.data.time.utcnow().timestamp:
-                        j.sals.zos.workloads.decomission(user_proxies[full_domain]["wid"])
+                    # check if related container workloads still exist
+                    sol_uuid = user_subdomains[full_domain]["uuid"]
+                    workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                    is_free = True
+                    for w in workloads:
+                        if w.info.workload_type == WorkloadType.Container:
+                            is_free = False
+                            break
+                    if is_free:
+                        solutions.cancel_solution_by_uuid(sol_uuid)
 
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
