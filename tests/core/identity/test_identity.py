@@ -17,7 +17,7 @@ class TestIdentity(TestCase):
                 explorer_url="https://explorer.testnet.grid.tf/api/v1",
             )
         else:
-            raise Exception("Please add (name, Email, words) of your 3bot identity as Env ")
+            raise Exception("Please add (tname, email, words) of your 3bot identity as Env ")
 
     def test001_register(self):
         """Test case for register and check identity.
@@ -73,4 +73,4 @@ class TestIdentity(TestCase):
 
         j.core.identity.delete(self.instance_name)
 
-        self.assertTrue(type(None), j.core.identity.find(self.instance_name))
+        self.assertIsNone(j.core.identity.find(self.instance_name))
