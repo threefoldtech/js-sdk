@@ -50,11 +50,11 @@ def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     )
 
 
-def deploy_discourse(solution_name, host_email, stmp_host, host_email_password, wg_config="NO", debug=True):
+def deploy_discourse(solution_name, host_email, smtp_host, host_email_password, wg_config="NO", debug=True):
     return DiscourseAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         wg_config=wg_config,
         debug=debug,
@@ -65,11 +65,11 @@ def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
     return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_taiga(solution_name, host_email, stmp_host, host_email_password, secret, wg_config="NO", debug=True):
+def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         secret=secret,
         wg_config=wg_config,
@@ -340,18 +340,19 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(solution_name, secret, expiration, ssh, debug=True):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, ssh=ssh, debug=debug
     )
 
 
-def recover_threebot(solution_name, recover_password, expiration, debug=True):
+def recover_threebot(solution_name, recover_password, expiration, ssh, debug=True):
     return ThreebotDeployAutomated(
         type="Recover",
         solution_name=solution_name,
         recover_password=recover_password,
         expiration=expiration,
+        ssh=ssh,
         debug=debug,
     )
 
