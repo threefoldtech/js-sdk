@@ -262,18 +262,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             while True:
                 if full_domain in user_subdomains:
                     # check if related container workloads still exist
-                    target_domains = user_subdomains[full_domain]
-                    for dom in target_domains:
-                        sol_uuid = dom["uuid"]
-                        if sol_uuid:
-                            workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
-                            is_free = True
-                            for w in workloads:
-                                if w.info.workload_type == WorkloadType.Container:
-                                    is_free = False
-                                    break
-                            if is_free:
-                                solutions.cancel_solution_by_uuid(sol_uuid)
+                    dom = user_subdomains[full_domain]
+                    sol_uuid = dom["uuid"]
+                    if sol_uuid:
+                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        is_free = True
+                        for w in workloads:
+                            if w.info.workload_type == WorkloadType.Container:
+                                is_free = False
+                                break
+                        if is_free:
+                            solutions.cancel_solution_by_uuid(sol_uuid)
 
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
