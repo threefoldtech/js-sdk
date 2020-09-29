@@ -6,7 +6,7 @@ import os
 class TestIdentity(TestCase):
     def setUp(self):
         self.instance_name = j.data.random_names.random_name()
-        self.me = j.core.identity.me
+        self.me = j.core.identity._me
 
     def _get_instance(self):
         if os.getenv("tname") and os.getenv("email") and os.getenv("words"):
