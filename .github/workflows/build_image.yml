@@ -10,10 +10,11 @@ jobs:
         - uses: actions/checkout@v2
         - uses: docker/build-push-action@v1
           with:
+            directory: jumpscale/install
             repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
-            dockerfile: jumpscale/install/Dockerfile
+            dockerfile: Dockerfile
             tags: latest
         - name: upload to flist
           run: |
