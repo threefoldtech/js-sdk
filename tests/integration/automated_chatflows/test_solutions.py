@@ -190,8 +190,9 @@ class AutomatedChatflows(TestCase):
         #. check access exposed
         """
         self.info("create exposed")
+        sub_domain = self.random_string()
         exposed = deployer.deploy_exposed(
-            type="flist", solution_to_expose="hlhujlh", sub_domain="hassan1", tls_port="7681", port="7681"
+            type="flist", solution_to_expose="", sub_domain=sub_domain, tls_port="7681", port="7681"
         )
 
         self.info("check access exposed")
@@ -205,7 +206,6 @@ class AutomatedChatflows(TestCase):
         #. create threebot
         #. check access threebot
         """
-
         self.info("create threebot")
         name = self.random_string()
         secret = self.random_string()
@@ -223,7 +223,6 @@ class AutomatedChatflows(TestCase):
         #. recover threebot
         #. check access recoverd threebot
         """
-
         self.info("recover threebot")
         threebot = deployer.recover_threebot(
             solution_name="", recover_password="", ssh="/tmp/.ssh/id_rsa.pub", expiration=time() * 60 + 15,
@@ -238,11 +237,10 @@ class AutomatedChatflows(TestCase):
 
         **Test Scenario**
         #. extend threebot
-        #. check access threebot
+        #. check expiration
         """
-
         self.info("extend threebot")
-        threebot = deployer.extend_threebot(name="testthreebot", expiration=time() * 60 * 60 + 15,)
+        threebot = deployer.extend_threebot(name="hftgf", expiration=time() * 60 + 15,)
 
-        self.info("check if extend threebot is successful")
-        self.assertIn("", threebot.success())
+        self.info("check expiration")
+        self.assertEqual(time() * 60 + 15, threebot.expiration)
