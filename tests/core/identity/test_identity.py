@@ -6,7 +6,7 @@ import os
 class TestIdentity(TestCase):
     def _get_instance(self):
         self.instance_name = j.data.random_names.random_name()
-
+        self.me = j.core.identity.me
         if os.getenv("tname") and os.getenv("email") and os.getenv("words"):
 
             return j.core.identity.new(
@@ -74,3 +74,29 @@ class TestIdentity(TestCase):
         j.core.identity.delete(self.instance_name)
 
         self.assertIsNone(j.core.identity.find(self.instance_name))
+
+    def test004_register_fake_identity(self):
+        """Test case for delete my identity.
+        **Test scenario**
+        #. Get identity instance.
+        #. Register an instance.
+        #. Delete my identity.
+        #. Search if my identity exist or not.
+        """
+        self.instance_name = j.data.random_names.random_name()
+        self.me = j.core.identity.me
+        with self.assertRaises(j.core.exceptions.exceptions.Input):
+            identity = j.core.identity.new(
+                self.instance_name,
+                tname=f"{self.instance_name}.3bot",
+                email=os.getenv("email"),
+                words=os.getenv("words"),
+                explorer_url="https://explorer.testnet.grid.tf/api/v1",
+            )
+
+            identity.register()
+
+    def tearDown(self):
+        if self.me:
+            j.core.identity.set_default(self.me.instance_name)
+        j.core.identity.delete(self.instance_name)
