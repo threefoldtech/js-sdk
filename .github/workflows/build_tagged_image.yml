@@ -17,7 +17,7 @@ jobs:
             repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
-            dockerfile: Dockerfile
+            dockerfile: jumpscale/install/Dockerfile
             tags: ${{ steps.tagName.outputs.tag }}
         - name: upload to flist
           run: |
