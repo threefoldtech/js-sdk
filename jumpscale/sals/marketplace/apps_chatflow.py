@@ -253,7 +253,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
             metafilter = lambda metadata: metadata.get("owner") == self.username
             # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
-            user_subdomains = solutions._list_subdomain_workloads(solution_type, metadata_filters=[metafilter])
+            user_subdomains = {}
+            all_domains = solutions._list_subdomain_workloads(solution_type, metadata_filters=[metafilter]).values()
+            for dom_list in all_domains:
+                for dom in dom_list:
+                    user_subdomains[dom["domain"]] = dom
 
             while True:
                 if full_domain in user_subdomains:

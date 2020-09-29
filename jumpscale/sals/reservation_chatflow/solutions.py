@@ -570,8 +570,8 @@ class ChatflowSolutions:
             proxy_dicts = proxy_workloads.get(name)
             if not subdomain_dicts or not proxy_dicts:
                 continue
-            subdomain_dict = subdomain_dicts[0]
-            proxy_dict = proxy_dicts[0]
+            subdomain_dict = subdomain_dicts[-1]
+            proxy_dict = proxy_dicts[-1]
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
