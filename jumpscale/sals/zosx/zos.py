@@ -33,7 +33,7 @@ class Zosv2:
 
     @property
     def _explorer(self):
-        return _identity.explorer
+        return self._identity.explorer
 
     @property
     def network(self):
