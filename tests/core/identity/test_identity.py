@@ -4,9 +4,11 @@ import os
 
 
 class TestIdentity(TestCase):
-    def _get_instance(self):
+    def setUp(self):
         self.instance_name = j.data.random_names.random_name()
         self.me = j.core.identity.me
+
+    def _get_instance(self):
         if os.getenv("tname") and os.getenv("email") and os.getenv("words"):
 
             return j.core.identity.new(
@@ -83,8 +85,6 @@ class TestIdentity(TestCase):
         #. Delete my identity.
         #. Search if my identity exist or not.
         """
-        self.instance_name = j.data.random_names.random_name()
-        self.me = j.core.identity.me
         with self.assertRaises(j.core.exceptions.exceptions.Input):
             identity = j.core.identity.new(
                 self.instance_name,
