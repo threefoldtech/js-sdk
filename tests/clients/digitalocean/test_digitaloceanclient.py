@@ -1,5 +1,5 @@
 import os
-import time
+import gevent
 import pytest
 from unittest import TestCase
 from jumpscale.loader import j
@@ -185,9 +185,11 @@ class DigitalOcean(TestCase):
         for _ in range(seconds):
             if check_exist_method(name):
                 return True
-            time.sleep(1)
+            gevent.sleep(1)
         return False
 
     def tearDown(self):
         for item in self.dg_instances:
             item.delete_remote()
+        j.clients.sshkey.delete(name="test")
+        j.clients.digitalocean.delete("testDG")
