@@ -1,16 +1,19 @@
 import os
 import gevent
 import pytest
+import string
 from unittest import TestCase
 from jumpscale.loader import j
 
 
 class DigitalOcean(TestCase):
     def setUp(self):
-        ssh = j.clients.sshkey.get(name="test")
+        self.ssh_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        self.dg_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        ssh = j.clients.sshkey.get(name=self.ssh_client_name)
         ssh.private_key_path = os.environ.get("SSH_PRIVATE_KEY_PATH")
         ssh.load_from_file_system()
-        self.dg = j.clients.digitalocean.get("testDG")
+        self.dg = j.clients.digitalocean.get(self.dg_client_name)
         self.dg.token = os.environ.get("DIGITAL_OCEAN_ACCESS_TOKEN")
         self.dg.set_default_sshkey(ssh)
         self.dg_instances = list()
@@ -24,14 +27,15 @@ class DigitalOcean(TestCase):
         #. Set a random name to be used on Digital Ocean
         #. Wait for project deployment
         """
-        project = self.dg.projects.new("testing_DG_client")
-        dg_project_name = j.data.fake.word()
+        dg_project_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        project = self.dg.projects.new(dg_project_client_name)
+        dg_project_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         project.set_digital_ocean_name(dg_project_name)
+        self.dg_instances.append(project)
         result = project.deploy(purpose="testing digital ocean client")
         self.assertIsNotNone(result)
         self.wait_instance_deploy(10, self.dg.projects.check_project_exist_remote, dg_project_name)
         self.assertTrue(self.dg.projects.check_project_exist_remote(dg_project_name))
-        self.dg_instances.append(project)
 
     @pytest.mark.integration
     def test02_test_deploy_droplet(self):
@@ -42,14 +46,15 @@ class DigitalOcean(TestCase):
         #. Set a random name to be used on Digital Ocean
         #. Wait for droplet deployment
         """
-        droplet = self.dg.droplets.new("test_droplet_dg")
-        dg_droplet_name = j.data.fake.word()
+        dg_droplet_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        droplet = self.dg.droplets.new(dg_droplet_client_name)
+        dg_droplet_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         droplet.set_digital_ocean_name(dg_droplet_name)
+        self.dg_instances.append(droplet)
         result = droplet.deploy()
         self.assertIsNone(result)
         self.wait_instance_deploy(10, self.dg.droplets.check_droplet_exist_remote, dg_droplet_name)
         self.assertTrue(self.dg.droplets.check_droplet_exist_remote(dg_droplet_name))
-        self.dg_instances.append(droplet)
 
     @pytest.mark.integration
     def test03_test_get_project_by_name(self):
@@ -61,13 +66,14 @@ class DigitalOcean(TestCase):
         #. Wait for project deployment
         #. Get the deployed project instance
         """
-        project = self.dg.projects.new("testing_DG_client2")
-        dg_project_name = j.data.fake.word()
+        dg_project_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        project = self.dg.projects.new(dg_project_client_name)
+        dg_project_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         project.set_digital_ocean_name(dg_project_name)
+        self.dg_instances.append(project)
         project.deploy(purpose="testing digital ocean client")
         self.wait_instance_deploy(10, self.dg.projects.check_project_exist_remote, dg_project_name)
         self.assertIsNotNone(self.dg.projects.get_project_exist_remote(dg_project_name))
-        self.dg_instances.append(project)
 
     @pytest.mark.integration
     def test04_test_get_droplet_by_name(self):
@@ -79,13 +85,14 @@ class DigitalOcean(TestCase):
         #. Wait for droplet deployment
         #. Get the deployed droplet instance
         """
-        droplet = self.dg.droplets.new("test_droplet_dg2")
-        dg_droplet_name = j.data.fake.word()
+        dg_droplet_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        droplet = self.dg.droplets.new(dg_droplet_client_name)
+        dg_droplet_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         droplet.set_digital_ocean_name(dg_droplet_name)
+        self.dg_instances.append(droplet)
         droplet.deploy()
         self.wait_instance_deploy(10, self.dg.droplets.check_droplet_exist_remote, dg_droplet_name)
         self.assertIsNotNone(self.dg.droplets.get_droplet_exist_remote(dg_droplet_name))
-        self.dg_instances.append(droplet)
 
     @pytest.mark.integration
     def test05_test_get_digital_ocean_images(self):
@@ -191,5 +198,5 @@ class DigitalOcean(TestCase):
     def tearDown(self):
         for item in self.dg_instances:
             item.delete_remote()
-        j.clients.sshkey.delete(name="test")
-        j.clients.digitalocean.delete("testDG")
+        j.clients.sshkey.delete(name=self.ssh_client_name)
+        j.clients.digitalocean.delete(self.dg_client_name)
