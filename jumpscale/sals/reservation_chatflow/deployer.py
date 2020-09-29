@@ -400,7 +400,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 continue
             if node.node_id in blocked_nodes:
                 continue
-            if not access_node and node_filter(node):
+            if not access_node and ip_version and node_filter(node):
                 access_node = node
             running_nodes += 1
             available_cru += node.total_resources.cru - node.used_resources.cru

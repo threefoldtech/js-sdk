@@ -43,7 +43,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         # the main container + the nginx container with 0.25 GB disk
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
-        self.expiration = 30 * 60  # 30 minutes for 3bot
+        self.expiration = 60 * 60  # 60 minutes for 3bot
         self.ip_version = "IPv6"
 
     @chatflow_step(title="Welcome")
@@ -266,6 +266,18 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         <h3>In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &lt;your_download_dir&gt;/apps.conf`</h3>
         """
         self.download_file(msg=dedent(msg), data=content, filename="apps.conf", html=True)
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
+        message = f"""\
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+        - You can access your 3Bot via IP: `{self.ip_address}`. To use it make sure wireguard is up and running.
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = ThreebotDeploy
