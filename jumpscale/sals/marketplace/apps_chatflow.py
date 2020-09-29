@@ -12,6 +12,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.clients.explorer.models import WorkloadType
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -250,7 +251,30 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
             # check if domain name is free or append random number
             full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+
+            metafilter = lambda metadata: metadata.get("owner") == self.username
+            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+            user_subdomains = {}
+            all_domains = solutions._list_subdomain_workloads(solution_type, metadata_filters=[metafilter]).values()
+            for dom_list in all_domains:
+                for dom in dom_list:
+                    user_subdomains[dom["domain"]] = dom
+
             while True:
+                if full_domain in user_subdomains:
+                    # check if related container workloads still exist
+                    dom = user_subdomains[full_domain]
+                    sol_uuid = dom["uuid"]
+                    if sol_uuid:
+                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        is_free = True
+                        for w in workloads:
+                            if w.info.workload_type == WorkloadType.Container:
+                                is_free = False
+                                break
+                        if is_free:
+                            solutions.cancel_solution_by_uuid(sol_uuid)
+
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
                     break
