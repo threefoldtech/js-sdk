@@ -18,5 +18,5 @@ jobs:
             tags: latest
         - name: upload to flist
           run: |
-            docker save ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest | gzip > js-sdk-latest.tar.gz
-            curl -v -X POST  -H 'Authorization: bearer ${{ secrets.ZEROHUB_TOKEN}}' ${{secrets.ZEROHUB_URL}}/api/flist/me/upload -F 'file=@js-sdk-latest.tar.gz'
+            # docker save ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest | gzip > js-sdk-latest.tar.gz
+            curl -v -X POST  -H 'Authorization: bearer ${{ secrets.ZEROHUB_TOKEN}}' ${{secrets.ZEROHUB_URL}}/api/flist/me/upload -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest'
