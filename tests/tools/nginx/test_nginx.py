@@ -1,5 +1,6 @@
 from unittest import TestCase
 from jumpscale.loader import j
+import gevent
 
 
 class TestNginx(TestCase):
@@ -28,7 +29,11 @@ class TestNginx(TestCase):
         self.assertTrue(nginx_instance.is_running())
 
         nginx_instance.stop()
-        self.assertTrue(j.sals.nettools.wait_connection_test("127.0.0.1", 80, 2))
+        for _ in range(10):
+            if j.sals.nettools.tcp_connection_test("127.0.0.1", 80, 2):
+                gevent.sleep(0.2)
+            else:
+                break
         j.logger.info("NGINX server stopped")
         self.assertFalse(nginx_instance.is_running())
 
