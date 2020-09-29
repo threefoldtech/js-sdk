@@ -17,7 +17,7 @@ jobs:
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis
+          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis nginx
           sudo pip3 install poetry
           sudo poetry run pip3 install pytest
       - name: Install
