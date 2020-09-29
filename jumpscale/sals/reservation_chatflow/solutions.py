@@ -483,6 +483,8 @@ class ChatflowSolutions:
                     "domain": workload.domain,
                     "ips": workload.ips,
                     "owner": metadata.get("owner"),
+                    "pool": workload.info.pool_id,
+                    "uuid": metadata.get("solution_uuid"),
                 }
                 if name not in result:
                     result[name] = [subdomain_dict]
@@ -525,7 +527,13 @@ class ChatflowSolutions:
                     continue
 
                 name = name_identitfier(metadata)
-                proxy_dict = {"wid": workload.id, "domain": workload.domain, "owner": metadata.get("owner")}
+                proxy_dict = {
+                    "wid": workload.id,
+                    "pool": workload.info.pool_id,
+                    "domain": workload.domain,
+                    "owner": metadata.get("owner"),
+                    "uuid": metadata.get("solution_uuid"),
+                }
                 if name not in result:
                     result[name] = [proxy_dict]
                 else:

@@ -249,7 +249,33 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
             # check if domain name is free or append random number
             full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+
+            metafilter = lambda metadata: metadata.get("owner") == self.username
+            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+            user_subdomains = {
+                dom["domain"]: dom
+                for dom in solutions._list_subdomain_workloads(solution_type, metadata_filters=[metafilter])
+            }
+            user_proxies = {
+                proxy["domain"]: proxy
+                for proxy in solutions._list_proxy_workloads(solution_type, metadata_filters=[metafilter])
+            }
+
             while True:
+                if full_domain in user_subdomains:
+                    # check if the pool expired
+                    pool_id = user_subdomains[full_domain]
+                    pool = j.sals.zos.pools.get(pool_id)
+                    if pool.empty_at < j.data.time.utcnow().timestamp:
+                        j.sals.zos.workloads.decomission(user_subdomains[full_domain]["wid"])
+
+                if full_domain in user_proxies:
+                    # check if the pool expired
+                    pool_id = user_proxies[full_domain]
+                    pool = j.sals.zos.pools.get(pool_id)
+                    if pool.empty_at < j.data.time.utcnow().timestamp:
+                        j.sals.zos.workloads.decomission(user_proxies[full_domain]["wid"])
+
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
                     break
