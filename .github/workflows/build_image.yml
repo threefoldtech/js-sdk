@@ -1,0 +1,21 @@
+name: Build docker image
+
+on:
+  push:
+    branches: [ development_images ]
+jobs:
+    build-docker:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: docker/build-push-action@v1
+          with:
+            repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+            dockerfile: jumpscale/install/Dockerfile
+            tags: latest
+        - name: upload to flist
+          run: |
+            docker save ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest | gzip > js-sdk-latest.tar.gz
+            curl -v -X POST  -H 'Authorization: bearer ${{ secrets.ZEROHUB_TOKEN}}' ${{secrets.ZEROHUB_URL}}/api/flist/me/upload -F 'file=@js-sdk-latest.tar.gz'
