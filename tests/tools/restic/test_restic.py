@@ -164,6 +164,8 @@ class TestRestic(TestCase):
         #. Use restic to restore it to the backup directory
         #. Check that the restored content and the original are the same
         """
+        import os
+
         original_dir = self._create_random_dir()
         j.logger.info(f"Created a random directory in {original_dir.name}")
         backup_dir = self._create_temp_dir()
@@ -172,6 +174,8 @@ class TestRestic(TestCase):
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         j.logger.info(f"Restoring and checking the backup in {restore_path}")
         self.instance.restore(backup_dir.name, path=original_dir.name)
+        os.system(f"tree {original_dir.name}")
+        os.system(f"tree {restore_path}")
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
     def test02_multiple_restores(self):
@@ -189,6 +193,8 @@ class TestRestic(TestCase):
         #. Restore the latest backup using host name
         #. Check that the backup and the new version are the same
         """
+        import os
+
         second_dir_dict = self._create_random_dir_dict()
         original_dir = self._create_random_dir()
         j.logger.info(f"Created a random directory in {original_dir.name}")
@@ -207,18 +213,33 @@ class TestRestic(TestCase):
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         j.logger.info(f"Restoring and checking the new version in {restore_path}")
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[1]["id"])
+        from time import sleep
+
+        sleep(20)
+        os.system(f"tree {original_dir.name}")
+        os.system(f"tree {restore_path}")
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
         backup_dir.clear_contents()
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         j.logger.info(f"Restoring and checking the old version in {restore_path}")
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[0]["id"])
+        from time import sleep
+
+        sleep(20)
+        os.system(f"tree {original_dir.name}")
+        os.system(f"tree {restore_path}")
         self.assertTrue(self._check_dirs_equal(first_dir_copy.name, restore_path))
 
         backup_dir.clear_contents()
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         j.logger.info(f"Restoring and checking the latest version of the original directory using the hostname")
         self.instance.restore(backup_dir.name, host=j.sals.nettools.get_host_name())
+        from time import sleep
+
+        sleep(20)
+        os.system(f"tree {original_dir.name}")
+        os.system(f"tree {restore_path}")
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
     def test03_snapshot_listing(self):
