@@ -155,7 +155,7 @@ class TestRestic(TestCase):
         """
         return self._canonicalize(first_dir) == self._canonicalize(second_dir)
 
-    def test_backup_restore(self):
+    def test01_backup_restore(self):
         """Test case for simple directory backup and restore
         **Test Scenario**
         #. Create a directory with random content
@@ -164,16 +164,17 @@ class TestRestic(TestCase):
         #. Use restic to restore it to the backup directory
         #. Check that the restored content and the original are the same
         """
-        dir_dict = self._create_random_dir_dict()
-        original_dir = self._create_temp_dir()
+        original_dir = self._create_random_dir()
+        j.logger.info(f"Created a random directory in {original_dir.name}")
         backup_dir = self._create_temp_dir()
-        self._fill_dir(original_dir.name, dir_dict)
+        j.logger.info("Creating a backup of this directory")
         self.instance.backup(original_dir.name, tags=["tag1", "tag2"])
-        self.instance.restore(backup_dir.name, path=original_dir.name)
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
+        j.logger.info(f"Restoring and checking the backup in {restore_path}")
+        self.instance.restore(backup_dir.name, path=original_dir.name)
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
-    def test_multiple_restores(self):
+    def test02_multiple_restores(self):
         """Test case for directory backup and restore with modifications
         **Test Scenario**
         #. Create a directory with random content
@@ -188,34 +189,39 @@ class TestRestic(TestCase):
         #. Restore the latest backup using host name
         #. Check that the backup and the new version are the same
         """
-        first_dir_dict = self._create_random_dir_dict()
         second_dir_dict = self._create_random_dir_dict()
-        original_dir = self._create_temp_dir()
+        original_dir = self._create_random_dir()
+        j.logger.info(f"Created a random directory in {original_dir.name}")
         first_dir_copy = self._create_temp_dir()
         backup_dir = self._create_temp_dir()
-        self._fill_dir(original_dir.name, first_dir_dict)
+        j.logger.info("Creating a backup of this directory")
         self.instance.backup(original_dir.name, tags=["tag1", "tag2"])
+        j.logger.info(f"Creating a manual copy of this directory in {first_dir_copy.name}")
         j.sals.fs.copy_tree(original_dir.name, first_dir_copy.name)
         original_dir.clear_contents()
+        j.logger.info("Overriding the original directory with new content")
         self._fill_dir(original_dir.name, second_dir_dict)
+        j.logger.info("Creating another backup of this directory")
         self.instance.backup(original_dir.name, tags=["tag3", "tag4"])
-
         snapshots = self.instance.list_snapshots()
-        self.instance.restore(backup_dir.name, snapshot_id=snapshots[1]["id"])
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
+        j.logger.info(f"Restoring and checking the new version in {restore_path}")
+        self.instance.restore(backup_dir.name, snapshot_id=snapshots[1]["id"])
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
         backup_dir.clear_contents()
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
+        j.logger.info(f"Restoring and checking the old version in {restore_path}")
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[0]["id"])
         self.assertTrue(self._check_dirs_equal(first_dir_copy.name, restore_path))
 
         backup_dir.clear_contents()
         restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
+        j.logger.info(f"Restoring and checking the latest version of the original directory using the hostname")
         self.instance.restore(backup_dir.name, host=j.sals.nettools.get_host_name())
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
-    def test_snapshot_listing(self):
+    def test03_snapshot_listing(self):
         """Test case for snapshots listing
         **Test Scenario**
         #. Make two directories with random content
@@ -226,9 +232,12 @@ class TestRestic(TestCase):
         """
         first_dir = self._create_random_dir()
         second_dir = self._create_random_dir()
+        j.logger.info(f"Created two random directories in {first_dir.name} and {second_dir.name}")
         self.instance.backup(first_dir.name, tags=["tag1", "tag2"])
         self.instance.backup(second_dir.name, tags=["tag2", "tag3"])
         self.instance.backup(first_dir.name, tags=["tag2", "tag3"])
+        j.logger.info("Created multiple backups with different tags")
+
         snapshots = self.instance.list_snapshots()
         tag1_snapshot = self.instance.list_snapshots(tags=["tag1"])
         tag2_snapshot = self.instance.list_snapshots(tags=["tag2"])
@@ -236,6 +245,7 @@ class TestRestic(TestCase):
         tag13_snapshot = self.instance.list_snapshots(tags=["tag1", "tag3"])
         latest_tag2_snapshots = self.instance.list_snapshots(tags=["tag2"], last=True)
         working_dir_snapshots = self.instance.list_snapshots(path=first_dir.name)
+        j.logger.info("Fetching various combination of tags and checking them")
         self.assertEqual(len(tag1_snapshot), 1)
         self.assertEqual(len(tag2_snapshot), 3)
         self.assertEqual(len(tag3_snapshot), 2)
@@ -248,7 +258,7 @@ class TestRestic(TestCase):
         self.assertEqual(latest_tag2_snapshots[1]["id"], snapshots[2]["id"])
         self.assertEqual(working_dir_snapshots[0]["id"], snapshots[0]["id"])
 
-    def test_autobackup(self):
+    def test04_autobackup(self):
         """Test case for auto backup
         **Test Scenario**
         #. Make a directory with random content
@@ -257,13 +267,19 @@ class TestRestic(TestCase):
         #. Turn it off and check it's off
         """
         working_dir = self._create_random_dir()
+        j.logger.info(f"Created a random directory in {working_dir.name}")
+        j.logger.info("Checking no autobackup is running initially")
         self.assertFalse(self.instance.auto_backup_running(working_dir.name))
+        j.logger.info("Making an autobackup of this dir")
         self.instance.auto_backup(working_dir.name)
+        j.logger.info("Checking the autobackup job is running")
         self.assertTrue(self.instance.auto_backup_running(working_dir.name))
+        j.logger.info("Disabling the autobackup")
         self.instance.disable_auto_backup(working_dir.name)
+        j.logger.info("Checking the autobackup job is not running")
         self.assertFalse(self.instance.auto_backup_running(working_dir.name))
 
-    def test_remove_snapshots(self):
+    def test05_remove_snapshots(self):
         """Test case for snapshot removal
         **Test Scenario**
         #. Create multiple snapshots
@@ -272,23 +288,34 @@ class TestRestic(TestCase):
         #. Check only one snapshot remains
         """
         working_dir = self._create_random_dir()
+        j.logger.info(f"Created a random directory in {working_dir.name}")
+        j.logger.info("Creating muliple snapshots of it")
         self.instance.backup(working_dir.name)
         self.instance.backup(working_dir.name)
         self.instance.backup(working_dir.name)
-        self.assertEqual(len(self.instance.list_snapshots()), 3)
+        j.logger.info("Making sure all of them are listed")
+        snapshots = self.instance.list_snapshots()
+        latest = snapshots[-1]
+        self.assertEqual(len(snapshots), 3)
+        j.logger.info("Forget all but the last")
         self.instance.forget(keep_last=1, prune=True)
-        self.assertEqual(len(self.instance.list_snapshots()), 1)
+        j.logger.info("Ensuring the last one is the only one remaining")
+        snapshots = self.instance.list_snapshots()
+        self.assertEqual(len(snapshots), 1)
+        self.assertEqual(latest["id"], snapshots[0]["id"])
 
-    def test_raises(self):
+    def test06_raises(self):
         """Test case for unusual inputs
         **Test Scenario**
         #. Call restore without passing it any info
         #. Restore a directory that wasn't backed up
         """
+        j.logger.info("Testing restoring with no sufficient data")
         with self.assertRaises(ValueError):
-            self.instance.restore("/tmp/123", latest=False)
+            self.instance.restore("./asd", latest=False)
+        j.logger.info("Restoring a non-existent backup")
         with self.assertRaises(Runtime):
-            self.instance.restore("/tmp/123", path="sadf")
+            self.instance.restore("./asd", path="sadf")
 
     def tearDown(self):
         """Clean up all created temp directories and removes the restic instance"""
