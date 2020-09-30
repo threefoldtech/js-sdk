@@ -176,6 +176,7 @@ class TestRestic(TestCase):
         self.instance.restore(backup_dir.name, path=original_dir.name)
         os.system(f"tree {original_dir.name}")
         os.system(f"tree {restore_path}")
+        os.system(f"tree {self.original_dir}")
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
     def test02_multiple_restores(self):
