@@ -1,5 +1,6 @@
 FROM threefoldtech/phusion:19.10
 
+ARG BRANCH
 RUN apt-get update && apt-get install curl wget git python3-pip python3-venv redis-server tmux nginx restic musl musl-tools -y
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && cp ~/.cargo/bin/* /usr/local/bin/
 RUN pip3 install poetry
@@ -8,7 +9,7 @@ RUN git clone https://github.com/threefoldtech/zinit.git /sandbox/code/github/th
 WORKDIR /sandbox/code/github/threefoldtech/zinit
 RUN make && cp target/x86_64-unknown-linux-musl/release/zinit /sbin/zinit
 RUN cp /sandbox/code/github/threefoldtech/zinit/target/x86_64-unknown-linux-musl/release/zinit /sbin/zinit
-RUN git clone https://github.com/threefoldtech/js-sdk.git /sandbox/code/github/threefoldtech/js-sdk -b development
+RUN git clone https://github.com/threefoldtech/js-sdk.git /sandbox/code/github/threefoldtech/js-sdk -b $BRANCH
 WORKDIR /sandbox/code/github/threefoldtech/js-sdk
 RUN poetry config virtualenvs.create false && poetry update &&  poetry install
 RUN poetry shell
