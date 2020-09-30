@@ -1,12 +1,13 @@
 from textwrap import dedent
-
+import random
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
+from collections import defaultdict
 
 
 class NetworkDeploy(GedisChatBot):
-    steps = ["welcome", "start", "ip_config", "network_reservation", "network_info"]
+    steps = ["welcome", "start", "ip_config", "access_node_selection", "network_reservation", "network_info"]
     title = "Network"
 
     @chatflow_step(title="Welcome")
@@ -45,32 +46,57 @@ class NetworkDeploy(GedisChatBot):
 
     @chatflow_step(title="IP Configuration")
     def ip_config(self):
+        if self.action == "Create":
+            self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
         ips = ["IPv6", "IPv4"]
         self.ipversion = self.single_choice(
             "How would you like to connect to your network? If unsure, choose IPv4", ips, required=True, default="IPv4",
         )
-        self.md_show_update("Searching for access node...")
+
+    @chatflow_step(title="Access Node Selection")
+    def access_node_selection(self):
+        self.md_show_update("Fetching Access Nodes...")
         pools = [
             p
             for p in j.sals.zos.pools.list()
             if p.node_ids and p.cus >= 0 and p.sus >= 0 and p.empty_at > j.data.time.now().timestamp
         ]
-        self.access_node = None
-        for pool in pools:
-            try:
-                access_nodes = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-                    1, ip_version=self.ipversion, pool_ids=[pool.pool_id]
-                )
-            except StopChatFlow:
-                continue
-            if access_nodes:
-                self.access_node = access_nodes[0]
-                self.pool = pool.pool_id
-                break
-        if not self.access_node:
+
+        access_nodes_pools = defaultdict(list)
+        for p in pools:
+            for node_id in p.node_ids:
+                access_nodes_pools[node_id].append(p.pool_id)
+        available_access_nodes = {}
+        all_access_nodes = filter(lambda node: node.node_id in access_nodes_pools, j.sals.zos._explorer.nodes.list())
+        if self.ipversion == "IPv4":
+            ip_filter = j.sals.zos.nodes_finder.filter_public_ip4
+        else:
+            ip_filter = j.sals.zos.nodes_finder.filter_public_ip6
+        available_access_nodes = {
+            n.node_id: n for n in all_access_nodes if ip_filter(n) and j.sals.zos.nodes_finder.filter_is_up(n)
+        }
+
+        if not available_access_nodes:
             raise StopChatFlow("There are no available access nodes in your existing pools")
-        if self.action == "Create":
-            self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
+
+        access_node_id = self.drop_down_choice(
+            "Please select an access node or leave it empty to automatically select it",
+            list(available_access_nodes.keys()),
+        )
+        if access_node_id:
+            self.access_node = available_access_nodes[access_node_id]
+            if len(access_nodes_pools[self.access_node.node_id]) > 1:
+                self.pool = self.drop_down_choice(
+                    "Please select a pool or leave it empty to automaically select it",
+                    access_nodes_pools[self.access_node.node_id],
+                )
+                if not self.pool:
+                    self.pool = random.choice(list(access_nodes_pools[self.access_node.node_id]))
+            else:
+                self.pool = access_nodes_pools[self.access_node.node_id][0]
+        else:
+            self.access_node = random.choice(list(available_access_nodes.values()))
+            self.pool = random.choice(list(access_nodes_pools[self.access_node.node_id]))
 
     @chatflow_step(title="Reservation")
     @deployment_context()

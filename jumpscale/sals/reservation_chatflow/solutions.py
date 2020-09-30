@@ -483,6 +483,8 @@ class ChatflowSolutions:
                     "domain": workload.domain,
                     "ips": workload.ips,
                     "owner": metadata.get("owner"),
+                    "pool": workload.info.pool_id,
+                    "uuid": metadata.get("solution_uuid"),
                 }
                 if name not in result:
                     result[name] = [subdomain_dict]
@@ -525,7 +527,13 @@ class ChatflowSolutions:
                     continue
 
                 name = name_identitfier(metadata)
-                proxy_dict = {"wid": workload.id, "domain": workload.domain, "owner": metadata.get("owner")}
+                proxy_dict = {
+                    "wid": workload.id,
+                    "pool": workload.info.pool_id,
+                    "domain": workload.domain,
+                    "owner": metadata.get("owner"),
+                    "uuid": metadata.get("solution_uuid"),
+                }
                 if name not in result:
                     result[name] = [proxy_dict]
                 else:
@@ -562,8 +570,8 @@ class ChatflowSolutions:
             proxy_dicts = proxy_workloads.get(name)
             if not subdomain_dicts or not proxy_dicts:
                 continue
-            subdomain_dict = subdomain_dicts[0]
-            proxy_dict = proxy_dicts[0]
+            subdomain_dict = subdomain_dicts[-1]
+            proxy_dict = proxy_dicts[-1]
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
@@ -635,6 +643,13 @@ class ChatflowSolutions:
         for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
             if solution_uuid == self.get_solution_uuid(workload):
                 j.sals.zos.workloads.decomission(workload.id)
+
+    def get_workloads_by_uuid(self, solution_uuid, next_action=None):
+        workloads = []
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
+            if solution_uuid == self.get_solution_uuid(workload):
+                workloads.append(workload)
+        return workloads
 
 
 solutions = ChatflowSolutions()

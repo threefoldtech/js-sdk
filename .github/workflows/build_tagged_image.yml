@@ -1,0 +1,25 @@
+name: Build docker image
+
+on:
+  push:
+    tags:
+      - '**'
+jobs:
+    build-tagged-docker:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: olegtarasov/get-tag@v2 # getting tagname
+          id: tagName
+        - uses: docker/build-push-action@v1
+          with:
+            path: jumpscale/install
+            repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+            dockerfile: jumpscale/install/Dockerfile
+            tags: ${{ steps.tagName.outputs.tag }}
+            build_args: BRANCH=${{ steps.tagName.outputs.tag }}
+        - name: Convert Docker image to flist
+          run: |
+            curl -X POST  -H 'Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}' ${{secrets.ZEROHUB_URL}}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:${{ steps.tagName.outputs.tag }}'

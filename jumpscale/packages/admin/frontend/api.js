@@ -168,12 +168,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs }
             })
         },
         clearBlockedNodes: () => {

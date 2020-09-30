@@ -23,6 +23,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "initializing",
         "new_expiration",
         "solution_extension",
+        "wireguard_configs",
         "success",
     ]
 
@@ -41,7 +42,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         # the main container + the nginx container with 0.25 GB disk
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
-        self.expiration = 30 * 60  # 30 minutes for 3bot
+        self.expiration = 60 * 60  # 60 minutes for 3bot
         self.ip_version = "IPv6"
 
     @chatflow_step(title="Welcome")
@@ -240,6 +241,50 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         ):
             self.stop(f"Failed to initialize 3Bot on {self.threebot_url} , please contact support")
         self.domain = f"{self.domain}/admin"
+
+    @chatflow_step(title="Container Access")
+    def wireguard_configs(self):
+        filename = self.solution_metadata["owner"].replace(".3bot", "")
+        wg_file_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, f"{filename}.3bot_apps.conf")
+        wg_file_path_alt = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "wireguard", f"{filename}.3bot_apps.conf")
+        if j.sals.fs.exists(wg_file_path):
+            content = j.sals.fs.read_file(wg_file_path)
+        elif j.sals.fs.exists(wg_file_path_alt):
+            content = j.sals.fs.read_file(wg_file_path_alt)
+        elif hasattr(self, "wgcfg"):
+            content = self.wgcfg
+        else:
+            config = deployer.add_access(
+                self.network_view.name,
+                self.network_view,
+                self.selected_node.node_id,
+                self.pool_id,
+                bot=self,
+                **self.solution_metadata,
+            )
+            content = config["wg"]
+
+        msg = f"""\
+        <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+        <h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+        <br /><br />
+        <p>{content.replace(chr(10), "<br />")}</p>
+        <br /><br />
+        <h3>In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &lt;your_download_dir&gt;/apps.conf`</h3>
+        """
+        self.download_file(msg=dedent(msg), data=content, filename="apps.conf", html=True)
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")
+        message = f"""\
+        # You deployed a new instance {display_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+
+        - You can access your 3Bot via IP: `{self.ip_address}`. To use it make sure wireguard is up and running.
+        """
+        self.md_show(dedent(message), md=True)
 
 
 chat = ThreebotDeploy

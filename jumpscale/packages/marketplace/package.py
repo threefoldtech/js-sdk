@@ -14,7 +14,7 @@ class marketplace:
                 wallet.add_known_trustline("TFT")
             wallet.save()
 
-    def start(self):
+    def start(self, **kwargs):
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name="marketplace_actors")
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
