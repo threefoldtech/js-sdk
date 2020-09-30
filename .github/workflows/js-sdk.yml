@@ -25,5 +25,10 @@ jobs:
           sudo poetry update
           sudo poetry install
       - name: Run tests
+        env:
+          TNAME: ${{ secrets.TNAME }}
+          EMAIL: ${{ secrets.EMAIL }}
+          WORDS: ${{ secrets.WORDS }}
         run: |
-          sudo poetry run pytest tests -s -m "unittests"
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \
+          poetry run pytest tests -s -m "unittests"
