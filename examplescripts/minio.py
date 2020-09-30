@@ -18,7 +18,7 @@ SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
 network_name = str(uuid.uuid4())
 print(f"network name: {network_name}")
-BAD_NODES = set([])
+BAD_NODES = set(["A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7"])
 UP_FOR = 60 * 20  # number of seconds
 
 
@@ -53,6 +53,21 @@ def wait_workload(wid):
     while not workload.info.result.workload_id:
         sleep(1)
         workload = zos.workloads.get(wid)
+
+
+def wait_zdb_workloads(zdb_wids):
+    # Looks like the workload_id can be set before the namespace
+    for wid in zdb_wids:
+        workload = zos.workloads.get(wid)
+        data = j.data.serializers.json.loads(workload.info.result.data_json)
+        if workload.info.result.message:
+            x = workload.info.result.message
+            raise Exception(f"Failed to initialize ZDB: {x}")
+        elif data.get("IP") or data.get("IPs"):
+            return
+        else:
+            sleep(1)
+            continue
 
 
 def wait_pools(pools):
@@ -286,6 +301,7 @@ master_vol_id = deploy_volume(minio_master_node.node_id, master_pool)
 backup_vol_id = deploy_volume(minio_backup_node.node_id, backup_pool)
 zdb_wids = [x.id for x in zdb_workloads]
 wait_workloads(zdb_wids)
+wait_zdb_workloads(zdb_wids)
 wait_workload(tlog_workload.id)
 wait_workload(master_vol_id)
 wait_workload(backup_vol_id)
@@ -325,6 +341,7 @@ zdb_new_pools = create_zdb_pools(zdb_later_nodes)
 zdb_new_workloads = deploy_zdbs(zdb_later_nodes, zdb_new_pools)
 zdb_new_wids = [x.id for x in zdb_new_workloads]
 wait_workloads(zdb_new_wids)
+wait_zdb_workloads(zdb_new_wids)
 new_namespace_config = get_namespace_config(zdb_new_workloads)
 
 print("Removing three backup storages")
