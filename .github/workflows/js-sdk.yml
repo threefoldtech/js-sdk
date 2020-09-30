@@ -30,4 +30,4 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
-          sudo poetry run pytest tests -s -m "unittests"
+          sudo -E poetry run pytest tests -s -m "unittests"
