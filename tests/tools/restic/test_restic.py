@@ -2,38 +2,41 @@ from jumpscale.loader import j
 from jumpscale.core.exceptions import NotFound, Runtime
 from unittest import TestCase
 
-import random
-import tempfile
-import uuid
-import os
-import shutil
-import socket
-import subprocess
 
+class TempDir:
+    def __init__(self):
+        self.name = j.data.random_names.random_name()
+        while j.sals.fs.exists(self.name):
+            self.name = j.data.random_names.random_name()
+        self.name = j.sals.fs.join_paths(j.sals.fs.cwd(), self.name)
+        j.sals.fs.mkdir(self.name)
 
-class TempDir(tempfile.TemporaryDirectory):
+    def cleanup(self):
+        """Remove the directory"""
+        j.sals.fs.rmtree(self.name)
+
     def clear_contents(self):
         """Keep the directory but remove its contents"""
         dir_name = self.name
-        for filename in os.listdir(dir_name):
-            file_path = os.path.join(dir_name, filename)
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
+        for file_path in j.sals.fs.walk_non_recursive(dir_name):
+            if j.sals.fs.is_file(file_path):
+                j.sals.fs.unlink(file_path)
+            elif j.sals.fs.is_dir(file_path):
+                j.sals.fs.rmtree(file_path)
 
 
 class TestRestic(TestCase):
     @classmethod
     def setUpClass(cls):
-        if subprocess.call(["which", "restic"], stdout=subprocess.DEVNULL):
+        if not j.sals.process.is_installed("restic"):
             raise NotFound(f"restic not installed")
 
     def setUp(self):
         """Initialize a repo and change current directory to a newly created temp directory"""
+        self.original_dir = j.sals.fs.cwd()
         self.temps = []
         self.repos_temp_dir = self._create_temp_dir()
-        os.chdir(self.repos_temp_dir.name)
+        j.sals.fs.change_dir(self.repos_temp_dir.name)
         self.instance_name = j.data.random_names.random_name()
         self.password = "123"
         self.instance = j.tools.restic.new(self.instance_name, password=self.password, repo=self.instance_name)
@@ -61,14 +64,14 @@ class TestRestic(TestCase):
 
     def _random_name(self):
         """Return a random name"""
-        return str(uuid.uuid4())
+        return str(j.data.idgenerator.uuid.uuid4())
 
     def _random_content(self):
         """Return a random string with length between 10 and 100"""
-        length = random.randint(10, 100)
+        length = j.data.idgenerator.random_int(10, 100)
         res = ""
         for _ in range(length):
-            res += chr(random.randint(97, 123))
+            res += chr(j.data.idgenerator.random_int(97, 123))
         return res
 
     def _generate_random_tree(self, n):
@@ -82,7 +85,7 @@ class TestRestic(TestCase):
         """
         adjacency_list = [[] for i in range(n)]
         for i in range(1, n):
-            parent = random.randint(0, i - 1)
+            parent = j.data.idgenerator.random_int(0, i - 1)
             adjacency_list[parent].append(i)
         return adjacency_list
 
@@ -124,11 +127,11 @@ class TestRestic(TestCase):
         """
         for k, v in dir_dict.items():
             if isinstance(v, dict):
-                self._fill_dir(os.path.join(dir_name, k), v)
+                self._fill_dir(j.sals.fs.join_paths(dir_name, k), v)
             else:
-                os.makedirs(dir_name, exist_ok=True)
-                file_path = os.path.join(dir_name, k)
-                with open(file_path, "w") as f:
+                j.sals.fs.mkdirs(dir_name, exist_ok=True)
+                file_path = j.sals.fs.join_paths(dir_name, k)
+                with open(file_path, "w+") as f:
                     f.write(v)
 
     def _canonicalize(self, path):
@@ -138,10 +141,9 @@ class TestRestic(TestCase):
             path (str): The directory path
         """
         res = {}  # path: content
-        for root, _, files in os.walk(path, topdown=True):
-            for f in files:
-                file_path = os.path.join(root, f)
-                res[file_path[len(path) :]] = j.sals.fs.read_file(file_path)
+        for f in j.sals.fs.walk(path):
+            if j.sals.fs.is_file(f):
+                res[f[len(path) :]] = j.sals.fs.read_file(f)
         return res
 
     def _check_dirs_equal(self, first_dir, second_dir):
@@ -168,7 +170,7 @@ class TestRestic(TestCase):
         self._fill_dir(original_dir.name, dir_dict)
         self.instance.backup(original_dir.name, tags=["tag1", "tag2"])
         self.instance.restore(backup_dir.name, path=original_dir.name)
-        restore_path = os.path.join(backup_dir.name, original_dir.name[1:])
+        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
     def test_multiple_restores(self):
@@ -200,17 +202,17 @@ class TestRestic(TestCase):
 
         snapshots = self.instance.list_snapshots()
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[1]["id"])
-        restore_path = os.path.join(backup_dir.name, original_dir.name[1:])
+        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
         backup_dir.clear_contents()
-        restore_path = os.path.join(backup_dir.name, original_dir.name[1:])
+        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[0]["id"])
         self.assertTrue(self._check_dirs_equal(first_dir_copy.name, restore_path))
 
         backup_dir.clear_contents()
-        restore_path = os.path.join(backup_dir.name, original_dir.name[1:])
-        self.instance.restore(backup_dir.name, host=socket.gethostname())
+        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
+        self.instance.restore(backup_dir.name, host=j.sals.nettools.get_host_name())
         self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
 
     def test_snapshot_listing(self):
@@ -294,3 +296,4 @@ class TestRestic(TestCase):
         j.tools.restic.delete(self.instance_name)
         for temp_dir in self.temps:
             temp_dir.cleanup()
+        j.sals.fs.change_dir(self.original_dir)
