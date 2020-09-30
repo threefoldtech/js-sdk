@@ -8,7 +8,6 @@ RUN mkdir -p /sandbox/code/github/threefoldtech
 RUN git clone https://github.com/threefoldtech/zinit.git /sandbox/code/github/threefoldtech/zinit -b master
 WORKDIR /sandbox/code/github/threefoldtech/zinit
 RUN make && cp target/x86_64-unknown-linux-musl/release/zinit /sbin/zinit
-RUN cp /sandbox/code/github/threefoldtech/zinit/target/x86_64-unknown-linux-musl/release/zinit /sbin/zinit
 RUN git clone https://github.com/threefoldtech/js-sdk.git /sandbox/code/github/threefoldtech/js-sdk -b $BRANCH
 WORKDIR /sandbox/code/github/threefoldtech/js-sdk
 RUN poetry config virtualenvs.create false && poetry update &&  poetry install
