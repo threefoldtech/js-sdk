@@ -1,17 +1,15 @@
 import os
-from gevent import monkey
 from random import randint
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
 
-monkey.patch_all(subprocess=False)
-
 
 class TestPackageManager(BaseTests):
-    tname = os.environ.get("tname")
-    email = os.environ.get("email")
-    words = os.environ.get("words")
-    explorer_url = os.environ.get("explorer_url")
+    HOME_DIR = os.getenv("HOME")
+    tname = os.environ.get("TNAME")
+    email = os.environ.get("EMAIL")
+    words = os.environ.get("WORDS")
+    explorer_url = "https://explorer.testnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
 
     @classmethod
@@ -42,12 +40,13 @@ class TestPackageManager(BaseTests):
         #. Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
-        current_dir = os.getcwd()
-        marketplace = j.servers.threebot.default.packages.add("{}/jumpscale/packages/marketplace/".format(current_dir))
+        marketplace = j.servers.threebot.default.packages.add(
+            "{}/js-sdk/jumpscale/packages/marketplace/".format(self.HOME_DIR)
+        )
         marketplace_dir = {
             "marketplace": {
                 "name": "marketplace",
-                "path": "{}/jumpscale/packages/marketplace/".format(current_dir),
+                "path": "{}/js-sdk/jumpscale/packages/marketplace/".format(self.HOME_DIR),
                 "giturl": None,
                 "kwargs": {},
             }
@@ -86,9 +85,8 @@ class TestPackageManager(BaseTests):
          #. List packages again, the deleted package should not be found.
         """
         self.info("Add a package")
-        current_dir = os.getcwd()
         self.assertTrue(
-            j.servers.threebot.default.packages.add("{}/jumpscale/packages/codeserver/".format(current_dir))
+            j.servers.threebot.default.packages.add("{}/js-sdk/jumpscale/packages/codeserver/".format(self.HOME_DIR))
         )
 
         self.info("List packages, the added package should be found")
