@@ -119,6 +119,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             solution_port=8065,
             enforce_https=False,
             node_id=self.selected_node.node_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )

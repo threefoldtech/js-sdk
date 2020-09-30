@@ -120,9 +120,15 @@ class ContainerGenerator:
           tfgrid.workloads.reservation.container.logs.1: logs object added to the container
 
         """
+        stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
+        stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
+
         cont_logs = ContainerLogs()
         cont_logs.type = channel_type
-        cont_logs.data.stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
-        cont_logs.data.stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
+        cont_logs.data.secret_stdout = self.encrypt_secret(
+            container.info.node_id, stdout)
+        cont_logs.data.secret_stderr = self.encrypt_secret(
+            container.info.node_id, stderr)
         container.logs.append(cont_logs)
+
         return cont_logs

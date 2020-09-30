@@ -116,17 +116,24 @@ class Admin(BaseActor):
     def get_developer_options(self) -> str:
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
-        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
+        explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
+        return j.data.serializers.json.dumps(
+            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+        )
 
     @actor_method
-    def set_developer_options(self, test_cert: bool, over_provision: bool) -> str:
+    def set_developer_options(self, test_cert: bool, over_provision: bool, explorer_logs: bool) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
-        return j.data.serializers.json.dumps({"data": {"test_cert": test_cert, "over_provision": over_provision}})
+        j.core.config.set("EXPLORER_LOGS", explorer_logs)
+        return j.data.serializers.json.dumps(
+            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+        )
 
     @actor_method
     def clear_blocked_nodes(self) -> str:
-        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes() 
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
+
 
 Actor = Admin

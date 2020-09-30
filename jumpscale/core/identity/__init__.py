@@ -171,6 +171,11 @@ class Identity(Base):
         self.save()
         return tid
 
+    def set_default(self):
+        from jumpscale.loader import j
+
+        return j.core.identity.set_default(self.instance_name)
+
 
 def get_identity():
     return IdentityFactory(Identity).me
