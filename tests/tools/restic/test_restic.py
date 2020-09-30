@@ -38,7 +38,7 @@ class TestRestic(TestCase):
         self.repos_temp_dir = self._create_temp_dir()
         j.sals.fs.change_dir(self.repos_temp_dir.name)
         self.instance_name = j.data.random_names.random_name()
-        self.password = "123"
+        self.password = self._random_name()
         self.instance = j.tools.restic.new(self.instance_name, password=self.password, repo=self.instance_name)
         self.instance.init_repo()
 
