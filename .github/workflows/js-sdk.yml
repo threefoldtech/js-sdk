@@ -11,13 +11,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@master
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis
+          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron
           sudo pip3 install poetry
           sudo poetry run pip3 install pytest
       - name: Install

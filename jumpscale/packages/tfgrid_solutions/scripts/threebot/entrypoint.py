@@ -41,7 +41,7 @@ def main():
         identity.register()
         identity.save()
 
-    j.core.identity.set_default("test")
+    j.core.identity.set_default("main")
 
     if backup_password:
         # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
