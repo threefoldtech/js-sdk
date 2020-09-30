@@ -1,3 +1,3 @@
 #!/bin/bash
 
-export SEND_GRID_API_KEY_TOKEN="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"
+export SEND_GRID_API_KEY_TOKEN=""

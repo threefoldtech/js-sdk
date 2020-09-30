@@ -18,12 +18,10 @@ class Sendgrid(TestCase):
         # Writing pdf to be used in attachemt
         j.sals.fs.write_file(path=self.attachment_path, data="i am testing")
 
-    @pytest.mark.integration
     def test01_test_sendgrid_send_mail(self):
         res = self.test.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
         self.assertIsNone(res)
 
-    @pytest.mark.integration
     def test02_test_sendgrid_send_mail_with_attachment(self):
         attach = self.test.build_attachment(filepath=self.attachment_path)
         res = self.test.send(
