@@ -9,17 +9,17 @@ class TestIdentity(TestCase):
         self.me = j.core.identity._me
 
     def _get_instance(self):
-        if os.getenv("tname") and os.getenv("email") and os.getenv("words"):
+        if os.getenv("TNAME") and os.getenv("EMAIL") and os.getenv("WORDS"):
 
             return j.core.identity.new(
                 self.instance_name,
-                tname=os.getenv("tname"),
-                email=os.getenv("email"),
-                words=os.getenv("words"),
+                tname=os.getenv("TNAME"),
+                email=os.getenv("EMAIL"),
+                words=os.getenv("WORDS"),
                 explorer_url="https://explorer.testnet.grid.tf/api/v1",
             )
         else:
-            raise Exception("Please add (tname, email, words) of your 3bot identity as Env ")
+            raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables ")
 
     def test001_register(self):
         """Test case for register and check identity.
@@ -34,10 +34,10 @@ class TestIdentity(TestCase):
 
         self.assertTrue(id, j.core.identity.get(self.instance_name)._tid)
 
-        self.assertTrue(os.getenv("tname"), j.core.identity.find(self.instance_name).tname)
+        self.assertTrue(os.getenv("TNAME"), j.core.identity.find(self.instance_name).tname)
 
-        self.assertTrue(os.getenv("email"), j.core.identity.find(self.instance_name).email)
-        self.assertTrue(os.getenv("words"), j.core.identity.find(self.instance_name).words)
+        self.assertTrue(os.getenv("EMAIL"), j.core.identity.find(self.instance_name).email)
+        self.assertTrue(os.getenv("WORDS"), j.core.identity.find(self.instance_name).words)
 
     def test002_set_default(self):
         """Test case for set my identity as default.
@@ -54,10 +54,10 @@ class TestIdentity(TestCase):
 
         self.assertTrue(id, j.core.identity.me._tid)
 
-        self.assertTrue(os.getenv("tname"), j.core.identity.me.tname)
+        self.assertTrue(os.getenv("TNAME"), j.core.identity.me.tname)
 
-        self.assertTrue(os.getenv("email"), j.core.identity.me.email)
-        self.assertTrue(os.getenv("words"), j.core.identity.me.words)
+        self.assertTrue(os.getenv("EMAIL"), j.core.identity.me.email)
+        self.assertTrue(os.getenv("WORDS"), j.core.identity.me.words)
 
     def test003_delete(self):
         """Test case for delete my identity.
@@ -71,7 +71,7 @@ class TestIdentity(TestCase):
         identity.register()
         j.logger.info("Identity registered")
 
-        self.assertTrue(os.getenv("tname"), j.core.identity.find(self.instance_name).tname)
+        self.assertTrue(os.getenv("TNAME"), j.core.identity.find(self.instance_name).tname)
 
         j.core.identity.delete(self.instance_name)
 
@@ -89,8 +89,8 @@ class TestIdentity(TestCase):
             identity = j.core.identity.new(
                 self.instance_name,
                 tname=f"{self.instance_name}.3bot",
-                email=os.getenv("email"),
-                words=os.getenv("words"),
+                email=os.getenv("EMAIL"),
+                words=os.getenv("WORDS"),
                 explorer_url="https://explorer.testnet.grid.tf/api/v1",
             )
 
