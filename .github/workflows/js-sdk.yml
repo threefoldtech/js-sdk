@@ -30,4 +30,5 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
-          sudo -E poetry run pytest tests -s -m "unittests"
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \
+          poetry run pytest tests -s -m "unittests"
