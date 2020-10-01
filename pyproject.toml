@@ -2,14 +2,14 @@
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
 
-version = "11.0b6"
+version = "11.0b7"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 cryptography = "3.0"
-js-ng = "11.0b3"
+js-ng = "11.0b4"
 greenlet = "0.4.16"
 python = "^3.6"
 pillow = "^6.1"

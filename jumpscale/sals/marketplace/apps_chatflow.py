@@ -12,6 +12,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.clients.explorer.models import WorkloadType
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -39,6 +40,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
+        self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
 
     def _choose_flavor(self, flavors=None):
@@ -68,11 +70,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_pool(self):
         self.currency = "TFT"
         available_farms = []
-        farm_names = ["freefarm"]  # [f.name for f in j.sals.zos._explorer.farms.list()]  # TODO: RESTORE LATER
+        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
-            available, _, _, _, _ = deployer.check_farm_capacity(farm_name, currencies=[self.currency], **self.query)
-            if available:
+            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+            )
+            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
+            )
+            if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
 
         self.farm_name = random.choice(available_farms)
@@ -82,15 +90,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         if "apps" in networks_names:
             # old user
             self.md_show_update("Checking for free resources .....")
-            free_pools = deployer.get_free_pools(self.solution_metadata["owner"])
+            free_pools = deployer.get_free_pools(self.solution_metadata["owner"], **self.query)
             if free_pools:
                 self.md_show_update(
                     "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
                 )
                 # select free pool and extend if required
-                pool, cu_diff, su_diff = deployer.get_best_fit_pool(
-                    free_pools, self.expiration, free_to_use=self.currency == "FreeTFT", **self.query
-                )
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
@@ -138,11 +144,22 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
+            if not all(
+                [
+                    self.pool_info.escrow_information.address.strip() != "",
+                    self.pool_info.escrow_information.address.strip() != "",
+                ]
+            ):
+                raise StopChatFlow(
+                    f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
+                )
             deployer.pay_for_pool(self.pool_info)
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
-            deployer.init_new_user_network(self, self.solution_metadata["owner"], self.pool_info.reservation_id)
+            self.wgcfg = deployer.init_new_user_network(
+                self, self.solution_metadata["owner"], self.pool_info.reservation_id
+            )
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
@@ -153,7 +170,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
+            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
@@ -191,6 +208,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
+                # TODO: FIXME Remove when gateways is fixed
+                if domain in [
+                    "tfgw-prod-05.ava.tf",
+                    "tfgw-prod-05.base.tf",
+                    "tfgw-prod-05.3x0.me",
+                    "tfgw-prod-05.gateway.tf",
+                    "tfgw-prod-02.gateway.tf",
+                    "tfgw-prod-07.base.tf",
+                ]:
+                    continue
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
@@ -211,27 +238,62 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
                 )
 
-        self.domain = random.choice(list(domains.keys()))
-
-        self.gateway = domains[self.domain]["gateway"]
-        self.gateway_pool = domains[self.domain]["pool"]
-
-        solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-        owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-        solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
-        # check if domain name is free or append random number
-        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{self.domain}"
-        while True:
-            if j.tools.dnstool.is_free(full_domain):
-                self.domain = full_domain
-                break
-            else:
-                random_number = random.randint(1000, 100000)
-                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{self.domain}"
-
         self.addresses = []
-        for ns in self.gateway.dns_nameserver:
-            self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+
+        while not self.addresses and domains:
+            managed_domain = random.choice(list(domains.keys()))
+            self.gateway = domains[managed_domain]["gateway"]
+            self.gateway_pool = domains[managed_domain]["pool"]
+
+            solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
+            owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
+            solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
+            # check if domain name is free or append random number
+            full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+
+            metafilter = lambda metadata: metadata.get("owner") == self.username
+            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+            user_subdomains = {}
+            all_domains = solutions._list_subdomain_workloads(
+                self.SOLUTION_TYPE, metadata_filters=[metafilter]
+            ).values()
+            for dom_list in all_domains:
+                for dom in dom_list:
+                    user_subdomains[dom["domain"]] = dom
+
+            while True:
+                if full_domain in user_subdomains:
+                    # check if related container workloads still exist
+                    dom = user_subdomains[full_domain]
+                    sol_uuid = dom["uuid"]
+                    if sol_uuid:
+                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        is_free = True
+                        for w in workloads:
+                            if w.info.workload_type == WorkloadType.Container:
+                                is_free = False
+                                break
+                        if is_free:
+                            solutions.cancel_solution_by_uuid(sol_uuid)
+
+                if j.tools.dnstool.is_free(full_domain):
+                    self.domain = full_domain
+                    break
+                else:
+                    random_number = random.randint(1000, 100000)
+                    full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
+
+            for ns in self.gateway.dns_nameserver:
+                try:
+                    self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+                except Exception as e:
+                    j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
+
+            if not self.addresses:
+                domains.pop(managed_domain)
+
+        if not self.addresses:
+            raise RuntimeError("No valid gateways found, Please contact support")
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain

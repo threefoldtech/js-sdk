@@ -10,8 +10,8 @@ from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, Netwo
 
 from .models import UserPool
 
-gw_user_pools = StoredFactory(UserPool)
-gw_user_pools.always_reload = True
+pool_factory = StoredFactory(UserPool)
+pool_factory.always_reload = True
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
@@ -24,7 +24,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return user_pool_ids
 
     def list_user_pools(self, username):
-        pool_factory = StoredFactory(UserPool)
+
         _, _, user_pools = pool_factory.find_many(owner=username)
         all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -56,7 +56,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_pool(self, username, bot):
         pool_info = super().create_pool(bot)
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -135,24 +134,21 @@ class MarketPlaceDeployer(ChatflowDeployer):
             List : will return pool ids for pools on farms with gateways
         """
         gateways_pools_ids = []
-        farm_id = deployer._explorer.farms.get(farm_name=farm_name).id
-        farm_gateways = deployer._explorer.gateway.list(farm_id)
-        if not farm_gateways:
-            farms_ids_with_gateways = [
-                gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
-            ]
-            farms_names_with_gateways = set(
-                map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
-            )
+        farms_ids_with_gateways = [
+            gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
+        ]
+        farms_names_with_gateways = set(
+            map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
+        )
 
-            for farm_name in farms_names_with_gateways:
-                gw_pool_name = f"marketplace_gateway_{farm_name}"
-                if gw_pool_name not in gw_user_pools.list_all():
-                    gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
-                    gateways_pools_ids.append(gateways_pool_info.reservation_id)
-                else:
-                    pool_id = gw_user_pools.get(gw_pool_name).pool_id
-                    gateways_pools_ids.append(pool_id)
+        for farm_name in farms_names_with_gateways:
+            gw_pool_name = f"marketplace_gateway_{farm_name}"
+            if gw_pool_name not in pool_factory.list_all():
+                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
+                gateways_pools_ids.append(gateways_pool_info.reservation_id)
+            else:
+                pool_id = pool_factory.get(gw_pool_name).pool_id
+                gateways_pools_ids.append(pool_id)
         return gateways_pools_ids
 
     def list_all_gateways(self, username, farm_name=None):
@@ -302,7 +298,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -311,20 +306,43 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_gateway_emptypool(self, gwpool_name, farm_name):
         pool_info = j.sals.zos.pools.create(0, 0, farm_name, ["TFT"])
-        pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
         return pool_info
 
-    def get_free_pools(self, username, workload_types=None):
+    def get_free_pools(
+        self, username, workload_types=None, free_to_use=False, cru=0, mru=0, sru=0, hru=0, ip_version="IPv6"
+    ):
+        def is_pool_free(pool, nodes_dict):
+            for node_id in pool.node_ids:
+                node = nodes_dict.get(node_id)
+                if node and not node.free_to_use:
+                    return False
+            return True
+
         user_pools = self.list_user_pools(username)
         j.sals.reservation_chatflow.deployer.load_user_workloads()
         free_pools = []
         workload_types = workload_types or [WorkloadType.Container]
+        nodes = {}
+        if free_to_use:
+            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in user_pools:
             valid = True
+            try:
+                j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
+                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
+                )
+            except StopChatFlow as e:
+                j.logger.error(
+                    f"Failed to find resources for this reservation in this pool: {pool}, {e}. We will use another one."
+                )
+                continue
+
+            if free_to_use and not is_pool_free(pool, nodes):
+                continue
             for wokrkload_type in workload_types:
                 if j.sals.reservation_chatflow.deployer.workloads[NextAction.DEPLOY][wokrkload_type][pool.pool_id]:
                     valid = False
@@ -333,16 +351,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 continue
             if (pool.cus == 0 and pool.sus == 0) or pool.empty_at < j.data.time.now().timestamp:
                 continue
+
             free_pools.append(pool)
         return free_pools
 
-    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, free_to_use=False):
-        def is_pool_free(pool, nodes_dict):
-            for node_id in pool.node_ids:
-                node = nodes_dict.get(node_id)
-                if node and not node.free_to_use:
-                    return False
-            return True
+    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0):
 
         cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
         required_cu = cu * expiration
@@ -350,12 +363,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         exact_fit_pools = []  # contains pools that are exact match of the required resources
         over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
         under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
-        nodes = {}
-        if free_to_use:
-            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
         for pool in pools:
-            if free_to_use and not is_pool_free(pool, nodes):
-                continue
             if pool.cus == required_cu and pool.sus == required_su:
                 exact_fit_pools.append(pool)
             else:
@@ -381,9 +389,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user_network(self, bot, username, pool_id):
+    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4"):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_id], ip_version="IPv4"
+            1, pool_ids=[pool_id], ip_version=ip_version
         )[0]
 
         result = self.deploy_network(
