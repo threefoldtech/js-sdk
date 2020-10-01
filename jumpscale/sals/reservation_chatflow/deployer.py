@@ -1119,6 +1119,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id: your node id
             solution_uuid: solution id
             public_key: your public key in case you want to have ssh access on the nginx container
+
         """
         test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
