@@ -6,7 +6,7 @@ import os
 class TestIdentity(TestCase):
     def setUp(self):
         self.instance_name = j.data.random_names.random_name()
-        if hasattr(j.core.identity, "me"):
+        if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
             self.me = j.core.identity.me
 
         self.tname = os.getenv("TNAME")

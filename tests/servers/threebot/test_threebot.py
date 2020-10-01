@@ -17,7 +17,7 @@ class Test3BotServer(BaseTests):
         if not (cls.tname and cls.email and cls.words):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
         cls.me = None
-        if hasattr(j.core.identity, "me"):
+        if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
             cls.me = j.core.identity.me
         myid = j.core.identity.new(
             cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
