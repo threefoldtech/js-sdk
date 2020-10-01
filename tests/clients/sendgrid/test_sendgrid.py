@@ -28,50 +28,75 @@ class Sendgrid(TestCase):
         j.sals.fs.write_file(path=self.attachment_path, data="i am testing")
 
     def test01_test_sendgrid_send_mail(self):
+        """Test for sending an email without attachment
+        **.Test Scenario**
+        #. Get sendgrid object
+        #. Send the email
+        #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
+        #. Delete the send email from the receiver mail inbox.
+        """
         res = self.test.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
         self.assertIsNone(res)
+        self.assertTrue(self.await_validate_mail(validate_attachment=False))
 
     def test02_test_sendgrid_send_mail_with_attachment(self):
+        """Test for sending an email without attachment
+        **.Test Scenario**
+        #. Get sendgrid object
+        #. Create attachment
+        #. Add the attachment to sendgrid object
+        #. Send the email
+        #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
+        #. Delete the send email from the receiver mail inbox.
+        """
         attach = self.test.build_attachment(filepath=self.attachment_path, typ=self.attachment_type)
         res = self.test.send(
             sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail], attachments=[attach]
         )
         self.assertIsNone(res)
-        gevent.sleep(10)
-        self.assertTrue(self.read_email_from_gmail(self.sender_mail, self.subject, self.attachment_type))
+        self.assertTrue(self.await_validate_mail(validate_attachment=False, attachment_type=self.attachment_type))
 
-    def read_email_from_gmail(self, sender_mail, subject, attachment_type):
+    def read_email_from_gmail(self, validate_attachment=True, attachment_type=None):
         try:
-
             mail = imaplib.IMAP4_SSL(os.environ.get("SMTP_SERVER"))
             mail.login(os.environ.get("RECIPIENT_MAIL"), os.environ.get("RECIPIENT_PASS"))
             mail.select("inbox")
-
             _, data = mail.search(None, "ALL")
             mail_ids = data[0]
-
             id_list = mail_ids.split()
             first_email_id = int(id_list[0])
             latest_email_id = int(id_list[-1])
-
             for i in range(latest_email_id, first_email_id, -1):
-                # need str(i)
-                _, data = mail.fetch(str(i), "(RFC822)")
-
-                for response_part in data:
-                    if isinstance(response_part, tuple):
-                        # from_bytes, not from_string
-                        msg = email.message_from_bytes(response_part[1])
-                        email_subject = msg["subject"]
-                        email_from = msg["from"]
-                        if email_from == sender_mail:
-                            self.assertEqual(email_subject, subject)
-                            attachment = msg.get_payload()[1]
-                            self.assertEqual(attachment.get_content_type(), attachment_type)
-                            return True
+                if self.validate_mail(mail, i, validate_attachment, attachment_type):
+                    # Delete the mail
+                    mail.store(str(i).encode(), "+FLAGS", "\\Deleted")
+                    mail.expunge()
+                    return True
             return False
         except Exception as e:
             print(str(e))
+
+    def validate_mail(self, mail, mail_index, validate_attachment=True, attachment_type=None):
+        _, data = mail.fetch(str(mail_index), "(RFC822)")
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_subject = msg["subject"]
+                email_from = msg["from"]
+                if email_from == self.sender_mail:
+                    self.assertEqual(email_subject, self.subject)
+                    if validate_attachment:
+                        attachment = msg.get_payload()[1]
+                        self.assertEqual(attachment.get_content_type(), attachment_type)
+                    return True
+        return False
+
+    def await_validate_mail(self, seconds=10, validate_attachment=True, attachment_type=None):
+        for i in range(seconds):
+            if self.read_email_from_gmail(validate_attachment, attachment_type):
+                return True
+            gevent.sleep(1)
+        return False
 
     def tearDown(self):
         j.clients.sendgrid.delete(self.sendgird_client_name)
