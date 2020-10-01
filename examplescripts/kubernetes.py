@@ -33,7 +33,7 @@ def reserve_pool():
     txs = zos.billing.payout_farmers(wallet, payment_detail)
     pool = zos.pools.get(payment_detail.reservation_id)
     while True:
-        pool = j.sals.zos.get_zos_for().pools.get(pool.pool_id)
+        pool = j.sals.zos.get().pools.get(pool.pool_id)
         if pool.cus > 0:
             break
         sleep(5)

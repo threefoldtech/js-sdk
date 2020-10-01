@@ -84,7 +84,7 @@ class Poll(GedisChatBot):
                 required=True,
             )
 
-            qr_code_content = j.sals.zos.get_zos_for()._escrow_to_qrcode(
+            qr_code_content = j.sals.zos.get()._escrow_to_qrcode(
                 escrow_address=self.wallet.address,
                 escrow_asset=currency,
                 total_amount=amount,

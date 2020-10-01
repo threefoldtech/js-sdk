@@ -58,7 +58,7 @@ class NetworkDeploy(GedisChatBot):
         self.md_show_update("Fetching Access Nodes...")
         pools = [
             p
-            for p in j.sals.zos.get_zos_for().pools.list()
+            for p in j.sals.zos.get().pools.list()
             if p.node_ids and p.cus >= 0 and p.sus >= 0 and p.empty_at > j.data.time.now().timestamp
         ]
 
@@ -68,16 +68,14 @@ class NetworkDeploy(GedisChatBot):
                 access_nodes_pools[node_id].append(p.pool_id)
         available_access_nodes = {}
         all_access_nodes = filter(
-            lambda node: node.node_id in access_nodes_pools, j.sals.zos.get_zos_for()._explorer.nodes.list()
+            lambda node: node.node_id in access_nodes_pools, j.sals.zos.get()._explorer.nodes.list()
         )
         if self.ipversion == "IPv4":
-            ip_filter = j.sals.zos.get_zos_for().nodes_finder.filter_public_ip4
+            ip_filter = j.sals.zos.get().nodes_finder.filter_public_ip4
         else:
-            ip_filter = j.sals.zos.get_zos_for().nodes_finder.filter_public_ip6
+            ip_filter = j.sals.zos.get().nodes_finder.filter_public_ip6
         available_access_nodes = {
-            n.node_id: n
-            for n in all_access_nodes
-            if ip_filter(n) and j.sals.zos.get_zos_for().nodes_finder.filter_is_up(n)
+            n.node_id: n for n in all_access_nodes if ip_filter(n) and j.sals.zos.get().nodes_finder.filter_is_up(n)
         }
 
         if not available_access_nodes:

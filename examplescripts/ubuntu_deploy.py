@@ -58,7 +58,7 @@ mem = 1024
 disk = 256
 
 available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=2, mru=2, pool_id=pool.pool_id))
-available_nodes = list(filter(j.sals.zos.get_zos_for().nodes_finder.filter_is_up, available_nodes))
+available_nodes = list(filter(j.sals.zos.get().nodes_finder.filter_is_up, available_nodes))
 deployment_node = random.choice(available_nodes)
 zos.network.add_node(network, deployment_node.node_id, "10.110.4.0/24", pool.pool_id)
 

@@ -256,16 +256,10 @@ def pick_minio_nodes(nodes):
 
 
 freefarm_nodes = list(
-    filter(
-        j.sals.zos.get_zos_for().nodes_finder.filter_is_up,
-        j.sals.zos.get_zos_for().nodes_finder.nodes_search(FREEFARM_ID),
-    )
+    filter(j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_search(FREEFARM_ID),)
 )
 mazr3a_nodes = list(
-    filter(
-        j.sals.zos.get_zos_for().nodes_finder.filter_is_up,
-        j.sals.zos.get_zos_for().nodes_finder.nodes_search(MAZR3A_ID),
-    )
+    filter(j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_search(MAZR3A_ID),)
 )
 
 nodes = freefarm_nodes + mazr3a_nodes

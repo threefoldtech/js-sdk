@@ -126,7 +126,7 @@ class SolutionExpose(GedisChatBot):
                     required=True,
                     is_identifier=True,
                 )
-                domain = j.sals.zos.get_zos_for().gateway.correct_domain(domain)
+                domain = j.sals.zos.get().gateway.correct_domain(domain)
                 if "." in domain:
                     retry = True
                     self.md_show("You can't nest domains. please click next to try again.")
@@ -139,7 +139,7 @@ class SolutionExpose(GedisChatBot):
             self.domain = domain + "." + self.domain
         else:
             self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
-            self.domain = j.sals.zos.get_zos_for().gateway.correct_domain(self.domain)
+            self.domain = j.sals.zos.get().gateway.correct_domain(self.domain)
             self.domain_gateway, self.domain_pool = deployer.select_gateway(self)
             self.domain_type = "Custom Domain"
             res = """\
