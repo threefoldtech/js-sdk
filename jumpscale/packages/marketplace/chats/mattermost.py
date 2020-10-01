@@ -25,9 +25,8 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         self.vol_size = self.flavor_resources["sru"]
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         var_dict = {
             "MYSQL_ROOT_PASSWORD": "mostest",
             "MYSQL_USER": "mmuser",

@@ -1,6 +1,7 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.loader import j
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
@@ -26,9 +27,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         self.workload_ids = []
         metadata = {
             "name": self.solution_name,

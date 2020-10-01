@@ -16,7 +16,7 @@ class Publisher(MarketPlaceAppsChatflow):
         "get_solution_name",
         "configuration",
         "infrastructure_setup",
-        "deploy",
+        "reservation",
         "initializing",
         "success",
     ]
@@ -60,9 +60,8 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_email,
         }
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def deploy(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": self.SOLUTION_TYPE},

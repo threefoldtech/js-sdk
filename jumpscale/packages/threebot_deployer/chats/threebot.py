@@ -19,7 +19,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "upload_public_key",
         "set_backup_password",
         "infrastructure_setup",
-        "deploy",
+        "reservation",
         "initializing",
         "new_expiration",
         "solution_extension",
@@ -125,25 +125,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             ["FreeTFT", "TFT", "TFTA"],
             required=True,
         )
-
-    @chatflow_step(title="Reservation", disable_previous=True)
-    def deploy(self):
-        success = False
-        while not success:
-            try:
-                self._deploy()
-                success = True
-            except DeploymentFailed as e:
-                j.logger.error(e)
-                if self.retries > 0:
-                    self.retries -= 1
-                    self.md_show_update(
-                        f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
-                    )
-                    self.ip_address = None
-                    self._deploy_network()
-                else:
-                    raise e
 
     @deployment_context()
     def _deploy(self):

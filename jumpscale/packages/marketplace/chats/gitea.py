@@ -20,9 +20,8 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
     query = {"cru": 2, "mru": 1, "sru": 6}
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         self.database_name = "gitea"
         self.database_user = "root"
         self.database_password = uuid.uuid4().hex

@@ -26,9 +26,8 @@ class Peertube(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},

@@ -44,9 +44,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},

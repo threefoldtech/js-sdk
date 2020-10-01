@@ -386,6 +386,25 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 
+    @chatflow_step(title="Reservation", disable_previous=True)
+    def reservation(self):
+        success = False
+        while not success:
+            try:
+                self._deploy()
+                success = True
+            except DeploymentFailed as e:
+                j.logger.error(e)
+                if self.retries > 0:
+                    self.retries -= 1
+                    self.md_show_update(
+                        f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
+                    )
+                    self.ip_address = None
+                    self._deploy_network()
+                else:
+                    raise e
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         display_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "")

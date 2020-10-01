@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.loader import j
 import nacl
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
@@ -37,9 +37,8 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
