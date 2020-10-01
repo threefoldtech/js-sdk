@@ -1210,6 +1210,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         enforce_https=False,
         node_id=None,
         proxy_pool_id=None,
+        log_config=None,
         bot=None,
         public_key="",
         **metadata,
@@ -1271,12 +1272,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-prestart.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-zinit.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
-            entrypoint="bash /usr/local/bin/startup.sh",
             secret_env=secret_env,
             public_ipv6=False,
+            log_config=log_config,
             **metadata,
         )
         return resv_id

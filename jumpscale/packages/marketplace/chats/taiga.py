@@ -128,6 +128,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
 
