@@ -206,6 +206,10 @@ class SolutionExpose(GedisChatBot):
                 f"Failed to reserve reverse proxy workload {self.proxy_id}", solution_uuid=self.solution_id
             )
 
+        trc_log_config = j.core.config.get("LOGGING_SINK", {})
+        if trc_log_config:
+            trc_log_config["channel_name"] = self.solution_name + "-trc"
+
         self.tcprouter_id = deployer.expose_address(
             pool_id=self.pool_id,
             gateway_id=self.domain_gateway.node_id,
@@ -215,6 +219,7 @@ class SolutionExpose(GedisChatBot):
             tls_port=self.tls_port,
             trc_secret=self.secret,
             bot=self,
+            log_config=trc_log_config,
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )

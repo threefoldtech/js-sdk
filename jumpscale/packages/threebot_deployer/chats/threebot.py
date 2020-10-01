@@ -221,6 +221,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 domain_name=self.domain,
                 proxy_pool_id=self.gateway_pool.pool_id,
                 solution_uuid=self.solution_id,
+                log_config=self.trc_log_config,
                 **self.solution_metadata,
             )
         )
