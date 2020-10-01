@@ -1455,6 +1455,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         master_volume_id = self.deploy_volume(pool_id, minio_nodes[0], disk_size, disk_type, **metadata)
         success = self.wait_workload(master_volume_id, bot)
         if not success:
+            j.sals.reservation_chatflow.solutions.cancel_solution([master_volume_id])
             raise StopChatFlow(
                 f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}"
             )
@@ -1479,6 +1480,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             slave_volume_id = self.deploy_volume(pool_id, minio_nodes[1], disk_size, disk_type, **metadata)
             success = self.wait_workload(slave_volume_id, bot)
             if not success:
+                j.sals.reservation_chatflow.solutions.cancel_solution([slave_volume_id])
                 raise StopChatFlow(
                     f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}"
                 )
