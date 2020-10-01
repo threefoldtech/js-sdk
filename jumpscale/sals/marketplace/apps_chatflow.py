@@ -12,6 +12,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.clients.explorer.models import WorkloadType
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -73,10 +74,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
-            available, _, _, _, _ = deployer.check_farm_capacity(
+            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
                 farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
-            if available:
+            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
+            )
+            if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
 
         self.farm_name = random.choice(available_farms)
@@ -153,7 +157,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
-            deployer.init_new_user_network(self, self.solution_metadata["owner"], self.pool_info.reservation_id)
+            self.wgcfg = deployer.init_new_user_network(
+                self, self.solution_metadata["owner"], self.pool_info.reservation_id
+            )
             self.pool_id = self.pool_info.reservation_id
 
         return self.pool_id
@@ -202,6 +208,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
+                # TODO: FIXME Remove when gateways is fixed
+                if domain in [
+                    "tfgw-prod-05.ava.tf",
+                    "tfgw-prod-05.base.tf",
+                    "tfgw-prod-05.3x0.me",
+                    "tfgw-prod-05.gateway.tf",
+                    "tfgw-prod-02.gateway.tf",
+                    "tfgw-prod-07.base.tf",
+                ]:
+                    continue
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
@@ -234,7 +250,32 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
             # check if domain name is free or append random number
             full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+
+            metafilter = lambda metadata: metadata.get("owner") == self.username
+            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+            user_subdomains = {}
+            all_domains = solutions._list_subdomain_workloads(
+                self.SOLUTION_TYPE, metadata_filters=[metafilter]
+            ).values()
+            for dom_list in all_domains:
+                for dom in dom_list:
+                    user_subdomains[dom["domain"]] = dom
+
             while True:
+                if full_domain in user_subdomains:
+                    # check if related container workloads still exist
+                    dom = user_subdomains[full_domain]
+                    sol_uuid = dom["uuid"]
+                    if sol_uuid:
+                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        is_free = True
+                        for w in workloads:
+                            if w.info.workload_type == WorkloadType.Container:
+                                is_free = False
+                                break
+                        if is_free:
+                            solutions.cancel_solution_by_uuid(sol_uuid)
+
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
                     break
