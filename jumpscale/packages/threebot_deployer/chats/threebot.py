@@ -126,8 +126,20 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
 
     @chatflow_step(title="Reservation", disable_previous=True)
-    @deployment_context()
     def deploy(self):
+        try:
+            self._deploy()
+        except DeploymentFailed as e:
+            if self.retries > 0:
+                self.md_show_update(f"Deployment failed on node {self.selected_node.node_id}. retrying....")
+                self.retries -= 1
+                self.ip_address = None
+                self._deploy_network()
+            else:
+                raise e
+
+    @deployment_context()
+    def _deploy(self):
         # 1- add node to network
         metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
         self.solution_metadata.update(metadata)
