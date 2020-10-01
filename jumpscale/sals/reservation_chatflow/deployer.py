@@ -1102,7 +1102,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
         proxy_pool_id=None,
         bot=None,
         public_key="",
-        nginx_config=None,
         **metadata,
     ):
         """
@@ -1120,14 +1119,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id: your node id
             solution_uuid: solution id
             public_key: your public key in case you want to have ssh access on the nginx container
-
         """
-
-        if not nginx_config:
-            nginx_config = j.sals.certbot_config.CertbotConfig()
-
-        http_config, https_config = nginx_config.serialize()
-
         test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
@@ -1147,8 +1139,6 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
             "PUBKEY": public_key,
             "TEST_CERT": "true" if test_cert else "false",
-            "HTTP_CONFIG": http_config,
-            "HTTPS_CONFIG": https_config,
         }
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
@@ -1170,7 +1160,7 @@ Deployment will be cancelled if it is not successful in {remaning_time}
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-custom.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-latest.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
             entrypoint="bash /usr/local/bin/startup.sh",
