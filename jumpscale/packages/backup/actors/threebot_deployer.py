@@ -7,7 +7,7 @@ from nacl.public import Box
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
-MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.grid.tf/")
+MARKETPLACE_URL = os.environ.get("MARKETPLACE_URL", "https://deploy3bot.testnet.grid.tf/")
 BACKUP_TOKEN = os.environ.get("BACKUP_TOKEN", "")
 CREATE_USER_ENDPOINT = "threebot_deployer/actors/backup/init"
 PUBLIC_KEY_ENDPOINT = "threebot_deployer/actors/backup/public_key"
@@ -15,6 +15,20 @@ REPO_NAMES = ["config_backup_1", "config_backup_2"]
 
 
 class Backup(BaseActor):
+    @property
+    def downloaded_packages_path(self):
+        packages_path = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
+        if not j.sals.fs.exists(packages_path):
+            j.sals.fs.mkdirs(packages_path)
+        return packages_path
+
+    @property
+    def user_code_path(self):
+        code_path = j.sals.fs.join_paths(j.core.dirs.CODEDIR, "playground")
+        if not j.sals.fs.exists(code_path):
+            j.sals.fs.mkdirs(code_path)
+        return code_path
+
     @actor_method
     def repos_exist(self) -> bool:
         restic_repos = j.tools.restic.list_all()
@@ -63,6 +77,8 @@ class Backup(BaseActor):
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
+            repo.backup(self.downloaded_packages_path, tags=tags)
+            repo.backup(self.user_code_path, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
 
     @actor_method
@@ -112,7 +128,7 @@ class Backup(BaseActor):
         snapshots = []
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
-            repo_snapshots = repo.list_snapshots(last=True, tags=tags, path=j.core.dirs.JSCFGDIR)
+            repo_snapshots = repo.list_snapshots(last=True, tags=tags)
             if repo_snapshots:
                 snapshot = repo_snapshots[0]
                 snapshot["repo_name"] = repo_name
@@ -138,6 +154,8 @@ class Backup(BaseActor):
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.auto_backup(j.core.dirs.JSCFGDIR)
+            repo.auto_backup(self.downloaded_packages_path)
+            repo.auto_backup(self.user_code_path)
         return j.data.serializers.json.dumps({"data": "auto backup enabled"})
 
     @actor_method
@@ -147,7 +165,13 @@ class Backup(BaseActor):
 
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
-            if not repo.auto_backup_running(j.core.dirs.JSCFGDIR):
+            if not all(
+                [
+                    repo.auto_backup_running(j.core.dirs.JSCFGDIR),
+                    repo.auto_backup_running(self.downloaded_packages_path),
+                    repo.auto_backup_running(self.user_code_path),
+                ]
+            ):
                 return False
         return True
 
@@ -158,6 +182,8 @@ class Backup(BaseActor):
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
             repo.disable_auto_backup(j.core.dirs.JSCFGDIR)
+            repo.disable_auto_backup(self.downloaded_packages_path)
+            repo.disable_auto_backup(self.user_code_path)
         return j.data.serializers.json.dumps({"data": "auto backup disabled"})
 
 

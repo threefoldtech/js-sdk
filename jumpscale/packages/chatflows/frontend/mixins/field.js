@@ -26,23 +26,11 @@ validators = {
 
         },
         is_identifier: (field) => {
-            let str = field.val;
-            if (typeof str !== 'string') {
-                return `Invalid value. It should be lowercase, no spaces and no special characters`;
-            }
+            let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
+            const regex = /^[a-z]([a-z0-9]*)$/
 
-            if (str.trim() !== str) {
-                return `Invalid value. It should be lowercase, no spaces and no special characters`;
-            }
-
-            try {
-                new Function(str, 'var ' + str);
-            } catch (_) {
-                return `Invalid value. It should be lowercase, no spaces and no special characters`;
-            }
-
-            if (str.toLowerCase() !== str) {
-                return `Invalid value. It should be lowercase, no spaces and no special characters`;
+            if (!regex.test(field.val)) {
+                return errmsg;
             }
 
             return true;

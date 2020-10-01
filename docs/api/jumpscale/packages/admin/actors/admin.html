@@ -90,6 +90,7 @@ class Admin(BaseActor):
                         &#34;email&#34;: identity.email,
                         &#34;tid&#34;: identity.tid,
                         &#34;explorer_url&#34;: identity.explorer_url,
+                        &#34;words&#34;: identity.words,
                     }
                 }
             )
@@ -111,11 +112,15 @@ class Admin(BaseActor):
         explorer_url = f&#34;https://{explorers[explorer_type]}/api/v1&#34;
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({&#34;data&#34;: &#34;Identity with the same instance name already exists&#34;})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;New identity successfully created and registered&#34;})
 
     @actor_method
@@ -133,8 +138,8 @@ class Admin(BaseActor):
 
     @actor_method
     def get_developer_options(self) -&gt; str:
-        test_cert = j.core.config.get(&#34;TEST_CERT&#34;)
-        over_provision = j.core.config.get(&#34;OVER_PROVISIONING&#34;)
+        test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
+        over_provision = j.core.config.set_default(&#34;OVER_PROVISIONING&#34;, False)
         return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
 
     @actor_method
@@ -143,6 +148,10 @@ class Admin(BaseActor):
         j.core.config.set(&#34;OVER_PROVISIONING&#34;, over_provision)
         return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
 
+    @actor_method
+    def clear_blocked_nodes(self) -&gt; str:
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+        return j.data.serializers.json.dumps({&#34;data&#34;: &#34;blocked nodes got cleared successfully.&#34;})
 
 Actor = Admin</code></pre>
 </details>
@@ -223,6 +232,7 @@ Actor = Admin</code></pre>
                         &#34;email&#34;: identity.email,
                         &#34;tid&#34;: identity.tid,
                         &#34;explorer_url&#34;: identity.explorer_url,
+                        &#34;words&#34;: identity.words,
                     }
                 }
             )
@@ -244,11 +254,15 @@ Actor = Admin</code></pre>
         explorer_url = f&#34;https://{explorers[explorer_type]}/api/v1&#34;
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({&#34;data&#34;: &#34;Identity with the same instance name already exists&#34;})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;New identity successfully created and registered&#34;})
 
     @actor_method
@@ -266,15 +280,20 @@ Actor = Admin</code></pre>
 
     @actor_method
     def get_developer_options(self) -&gt; str:
-        test_cert = j.core.config.get(&#34;TEST_CERT&#34;)
-        over_provision = j.core.config.get(&#34;OVER_PROVISIONING&#34;)
+        test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
+        over_provision = j.core.config.set_default(&#34;OVER_PROVISIONING&#34;, False)
         return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
 
     @actor_method
     def set_developer_options(self, test_cert: bool, over_provision: bool) -&gt; str:
         j.core.config.set(&#34;TEST_CERT&#34;, test_cert)
         j.core.config.set(&#34;OVER_PROVISIONING&#34;, over_provision)
-        return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})</code></pre>
+        return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
+
+    @actor_method
+    def clear_blocked_nodes(self) -&gt; str:
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+        return j.data.serializers.json.dumps({&#34;data&#34;: &#34;blocked nodes got cleared successfully.&#34;})</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -309,12 +328,29 @@ def add_identity(self, identity_instance_name: str, tname: str, email: str, word
     explorer_url = f&#34;https://{explorers[explorer_type]}/api/v1&#34;
     if identity_instance_name in j.core.identity.list_all():
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;Identity with the same instance name already exists&#34;})
-    new_identity = j.core.identity.new(
-        name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-    )
-    new_identity.register()
-    new_identity.save()
+    try:
+        new_identity = j.core.identity.new(
+            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+        )
+        new_identity.register()
+        new_identity.save()
+    except Exception as e:
+        j.core.identity.delete(identity_instance_name)
+        raise j.exceptions.Value(str(e))
     return j.data.serializers.json.dumps({&#34;data&#34;: &#34;New identity successfully created and registered&#34;})</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes"><code class="name flex">
+<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def clear_blocked_nodes(self) -&gt; str:
+    j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+    return j.data.serializers.json.dumps({&#34;data&#34;: &#34;blocked nodes got cleared successfully.&#34;})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_admin"><code class="name flex">
@@ -362,8 +398,8 @@ def delete_identity(self, identity_instance_name: str) -&gt; str:
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def get_developer_options(self) -&gt; str:
-    test_cert = j.core.config.get(&#34;TEST_CERT&#34;)
-    over_provision = j.core.config.get(&#34;OVER_PROVISIONING&#34;)
+    test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
+    over_provision = j.core.config.set_default(&#34;OVER_PROVISIONING&#34;, False)
     return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})</code></pre>
 </details>
 </dd>
@@ -407,6 +443,7 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
                     &#34;email&#34;: identity.email,
                     &#34;tid&#34;: identity.tid,
                     &#34;explorer_url&#34;: identity.explorer_url,
+                    &#34;words&#34;: identity.words,
                 }
             }
         )
@@ -559,6 +596,7 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
                         &#34;email&#34;: identity.email,
                         &#34;tid&#34;: identity.tid,
                         &#34;explorer_url&#34;: identity.explorer_url,
+                        &#34;words&#34;: identity.words,
                     }
                 }
             )
@@ -580,11 +618,15 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
         explorer_url = f&#34;https://{explorers[explorer_type]}/api/v1&#34;
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({&#34;data&#34;: &#34;Identity with the same instance name already exists&#34;})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;New identity successfully created and registered&#34;})
 
     @actor_method
@@ -602,15 +644,20 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 
     @actor_method
     def get_developer_options(self) -&gt; str:
-        test_cert = j.core.config.get(&#34;TEST_CERT&#34;)
-        over_provision = j.core.config.get(&#34;OVER_PROVISIONING&#34;)
+        test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
+        over_provision = j.core.config.set_default(&#34;OVER_PROVISIONING&#34;, False)
         return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
 
     @actor_method
     def set_developer_options(self, test_cert: bool, over_provision: bool) -&gt; str:
         j.core.config.set(&#34;TEST_CERT&#34;, test_cert)
         j.core.config.set(&#34;OVER_PROVISIONING&#34;, over_provision)
-        return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})</code></pre>
+        return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})
+
+    @actor_method
+    def clear_blocked_nodes(self) -&gt; str:
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+        return j.data.serializers.json.dumps({&#34;data&#34;: &#34;blocked nodes got cleared successfully.&#34;})</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -645,12 +692,29 @@ def add_identity(self, identity_instance_name: str, tname: str, email: str, word
     explorer_url = f&#34;https://{explorers[explorer_type]}/api/v1&#34;
     if identity_instance_name in j.core.identity.list_all():
         return j.data.serializers.json.dumps({&#34;data&#34;: &#34;Identity with the same instance name already exists&#34;})
-    new_identity = j.core.identity.new(
-        name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-    )
-    new_identity.register()
-    new_identity.save()
+    try:
+        new_identity = j.core.identity.new(
+            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+        )
+        new_identity.register()
+        new_identity.save()
+    except Exception as e:
+        j.core.identity.delete(identity_instance_name)
+        raise j.exceptions.Value(str(e))
     return j.data.serializers.json.dumps({&#34;data&#34;: &#34;New identity successfully created and registered&#34;})</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes"><code class="name flex">
+<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def clear_blocked_nodes(self) -&gt; str:
+    j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+    return j.data.serializers.json.dumps({&#34;data&#34;: &#34;blocked nodes got cleared successfully.&#34;})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_admin"><code class="name flex">
@@ -698,8 +762,8 @@ def delete_identity(self, identity_instance_name: str) -&gt; str:
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def get_developer_options(self) -&gt; str:
-    test_cert = j.core.config.get(&#34;TEST_CERT&#34;)
-    over_provision = j.core.config.get(&#34;OVER_PROVISIONING&#34;)
+    test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
+    over_provision = j.core.config.set_default(&#34;OVER_PROVISIONING&#34;, False)
     return j.data.serializers.json.dumps({&#34;data&#34;: {&#34;test_cert&#34;: test_cert, &#34;over_provision&#34;: over_provision}})</code></pre>
 </details>
 </dd>
@@ -743,6 +807,7 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
                     &#34;email&#34;: identity.email,
                     &#34;tid&#34;: identity.tid,
                     &#34;explorer_url&#34;: identity.explorer_url,
+                    &#34;words&#34;: identity.words,
                 }
             }
         )
@@ -849,6 +914,7 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 <ul class="">
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.add_admin" href="#jumpscale.packages.admin.actors.admin.Admin.add_admin">add_admin</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.add_identity" href="#jumpscale.packages.admin.actors.admin.Admin.add_identity">add_identity</a></code></li>
+<li><code><a title="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes" href="#jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes">clear_blocked_nodes</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.delete_admin" href="#jumpscale.packages.admin.actors.admin.Admin.delete_admin">delete_admin</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.delete_identity" href="#jumpscale.packages.admin.actors.admin.Admin.delete_identity">delete_identity</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.get_developer_options" href="#jumpscale.packages.admin.actors.admin.Admin.get_developer_options">get_developer_options</a></code></li>
@@ -866,6 +932,7 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 <ul class="">
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.add_admin" href="#jumpscale.packages.admin.actors.admin.Admin.add_admin">add_admin</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.add_identity" href="#jumpscale.packages.admin.actors.admin.Admin.add_identity">add_identity</a></code></li>
+<li><code><a title="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes" href="#jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes">clear_blocked_nodes</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.delete_admin" href="#jumpscale.packages.admin.actors.admin.Admin.delete_admin">delete_admin</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.delete_identity" href="#jumpscale.packages.admin.actors.admin.Admin.delete_identity">delete_identity</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.admin.Admin.get_developer_options" href="#jumpscale.packages.admin.actors.admin.Admin.get_developer_options">get_developer_options</a></code></li>

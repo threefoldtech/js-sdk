@@ -247,12 +247,16 @@ class ContainerNetworkConnection(Base):
     network_id = fields.String(default="")
     ipaddress = fields.IPAddress()
     public_ip6 = fields.Boolean()
-    yggdrasil_ip = fields.Boolean()
 
 
 class ContainerLogsRedis(Base):
+    # deprecated, please use secret_stdout instead
     stdout = fields.String(default="")
+    # deprecated, please use secret_stderr instead
     stderr = fields.String(default="")
+
+    secret_stdout = fields.String(default="")
+    secret_stderr = fields.String(default="")
 
 
 class ContainerLogs(Base):

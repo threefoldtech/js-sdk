@@ -196,7 +196,7 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl=""):
+    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -205,6 +205,7 @@ class Package:
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.kwargs = kwargs or {}
 
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
@@ -282,6 +283,10 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def preinstall(self):
+        if self.module and hasattr(self.module, "preinstall"):
+            self.module.preinstall()
+
     def install(self, **kwargs):
         if self.module and hasattr(self.module, "install"):
             self.module.install(**kwargs)
@@ -292,7 +297,7 @@ class Package:
 
     def start(self):
         if self.module and hasattr(self.module, "start"):
-            self.module.start()
+            self.module.start(**self.kwargs)
 
     def stop(self):
         if self.module and hasattr(self.module, "stop"):
@@ -321,11 +326,13 @@ class PackageManager(Base):
         if package_name in self.packages:
             package_path = self.packages[package_name]["path"]
             package_giturl = self.packages[package_name]["giturl"]
+            package_kwargs = self.packages[package_name].get("kwargs", {})
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
                 giturl=package_giturl,
+                kwargs=package_kwargs,
             )
 
     def get_packages(self):
@@ -362,20 +369,12 @@ class PackageManager(Base):
         return all_packages
 
     def list_all(self):
-        return self.packages.keys()
+        return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
         # TODO: Check if package already exists
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
-
-        for package_name in self.packages:
-            package = self.get(package_name)
-            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
-            # if path and path == package.path:
-            #     raise j.exceptions.Value("Package with the same path already exists")
-            # if giturl and giturl == package.giturl:
-            #     raise j.exceptions.Value("Package with the same giturl already exists")
 
         if giturl:
             url = urlparse(giturl)
@@ -396,14 +395,16 @@ class PackageManager(Base):
             path = j.sals.fs.join_paths(repo_path, repo, package_path)
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path,
+            default_domain=self.threebot.domain,
+            default_email=self.threebot.email,
+            giturl=giturl,
+            kwargs=kwargs,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f"Package with name {package.name} already exists")
-
-        self.packages[package.name] = {"name": package.name, "path": package.path, "giturl": package.giturl}
 
         # execute package install method
         package.install(**kwargs)
@@ -412,6 +413,12 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
+        self.packages[package.name] = {
+            "name": package.name,
+            "path": package.path,
+            "giturl": package.giturl,
+            "kwargs": package.kwargs,
+        }
 
         self.save()
 
@@ -426,13 +433,15 @@ class PackageManager(Base):
             raise j.exceptions.NotFound(f"{package_name} package not found")
 
         # remove bottle servers
-        for bottle_server in list(self.threebot.rack._servers):
+        rack_servers = list(self.threebot.rack._servers)
+        for bottle_server in rack_servers:
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            for actor in self.threebot.gedis._loaded_actors.keys():
+            gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+            for actor in gedis_actors:
                 if actor.startswith(f"{package_name}_"):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -464,7 +473,7 @@ class PackageManager(Base):
             [dict]: [package info]
         """
         sys.path.append(package.path + "/../")  # TODO to be changed
-        package.install()
+        package.preinstall()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
@@ -487,7 +496,6 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
-
         # start servers
         self.threebot.rack.start()
 
@@ -496,6 +504,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+        self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -517,7 +526,8 @@ class PackageManager(Base):
         This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         """
-        for package in self.list_all():
+        all_packages = self.list_all()
+        for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
                 self.install(self.get(package))
@@ -662,7 +672,8 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        for package_name in self.packages.list_all():
+        server_packages = self.packages.list_all()
+        for package_name in server_packages:
             package = self.packages.get(package_name)
             package.stop()
         self.nginx.stop()

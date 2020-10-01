@@ -12,8 +12,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     title = "Gitea"
     steps = [
         "get_solution_name",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -46,7 +44,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         self.solution_metadata.update(metadata)
         # reserve subdomain
         subdomain_wid = deployer.create_subdomain(
-            pool_id=self.pool_id,
+            pool_id=self.gateway_pool.pool_id,
             gateway_id=self.gateway.node_id,
             subdomain=self.domain,
             addresses=self.addresses,

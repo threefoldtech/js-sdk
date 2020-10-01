@@ -182,9 +182,10 @@ class GedisChatBot:
                 alert = j.tools.alerthandler.alert_raise(
                     appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
                 )
-                if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
+                username = self.user_info()[&#34;username&#34;]
+                if username in j.core.identity.me.admins:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
+                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
                         &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
                         md=True,
                         html=True,
@@ -983,9 +984,10 @@ any extra kwargs that is passed while creating the session
                 alert = j.tools.alerthandler.alert_raise(
                     appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
                 )
-                if self.user_info()[&#34;username&#34;] in j.core.identity.me.admins:
+                username = self.user_info()[&#34;username&#34;]
+                if username in j.core.identity.me.admins:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
+                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
                         &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
                         md=True,
                         html=True,
@@ -1467,15 +1469,15 @@ any extra kwargs that is passed while creating the session
 <li><a title="jumpscale.sals.chatflows.polls.Poll" href="polls.html#jumpscale.sals.chatflows.polls.Poll">Poll</a></li>
 <li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose" href="../../packages/tfgrid_solutions/chats/exposed.html#jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose">SolutionExpose</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy" href="../../packages/tfgrid_solutions/chats/flist.html#jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy">FlistDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy" href="../../packages/tfgrid_solutions/chats/kubernetes.html#jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy" href="../../packages/tfgrid_solutions/chats/minio.html#jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy">MinioDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy" href="../../packages/tfgrid_solutions/chats/monitoring.html#jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy" href="../../packages/tfgrid_solutions/chats/network.html#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy">NetworkDeploy</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
+<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
 <li><a title="jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy" href="../../packages/tfgrid_solutions/chats/ubuntu.html#jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
 </ul>
 <h3>Class variables</h3>

@@ -23,12 +23,11 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace.chatflow import MarketPlaceChatflow
-from jumpscale.sals.marketplace import deployer, solutions
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, solutions
 
 
-class ExtendThreebot(MarketPlaceChatflow):
+class ExtendThreebot(MarketPlaceAppsChatflow):
 
     title = &#34;Extend 3Bot&#34;
     steps = [&#34;select_threebot&#34;, &#34;new_expiration&#34;, &#34;solution_extension&#34;, &#34;success&#34;]
@@ -36,7 +35,7 @@ class ExtendThreebot(MarketPlaceChatflow):
     @chatflow_step(title=&#34;Select 3Bot&#34;)
     def select_threebot(self):
         self._validate_user()
-        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
+        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2.25}
         self.threebot_name = self.user_info()[&#34;username&#34;]
         self.explorer = j.core.identity.me.explorer
         self.threebot_workloads = solutions.list_solutions(self.threebot_name, &#34;threebot&#34;)
@@ -47,43 +46,6 @@ class ExtendThreebot(MarketPlaceChatflow):
         )
         self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
         self.pool = j.sals.zos.pools.get(self.pool_id)
-
-    @chatflow_step(title=&#34;New Expiration&#34;)
-    def new_expiration(self):
-        DURATION_MAX = 9223372036854775807
-        if self.pool.empty_at &lt; DURATION_MAX:
-            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
-            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
-            default_time = self.pool.empty_at + 3900
-        else:
-            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
-            min_timestamp_fromnow = None
-            default_time = j.data.time.get().timestamp + 15552000
-        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
-
-    @chatflow_step(title=&#34;Payment&#34;)
-    def solution_extension(self):
-
-        farm_id = deployer.get_pool_farm_id(self.pool_id)
-        farm = deployer._explorer.farms.get(farm_id)
-        assets = [w.asset for w in farm.wallet_addresses]
-        if &#34;FreeTFT&#34; in assets:
-            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=self.pool_id)
-            for node in pool_nodes:
-                if not node.free_to_use:
-                    assets.remove(&#34;FreeTFT&#34;)
-                    break
-        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
-        self.currencies = [currency]
-        self.pool_info, self.qr_code = deployer.extend_solution_pool(
-            self, self.pool_id, self.expiration, self.currencies, **self.query
-        )
-
-        result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
-        )
-        if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
 
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
@@ -114,7 +76,7 @@ any extra kwargs that is passed while creating the session
 (i.e. can be used for passing any query parameters)</p></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">class ExtendThreebot(MarketPlaceChatflow):
+<pre><code class="python">class ExtendThreebot(MarketPlaceAppsChatflow):
 
     title = &#34;Extend 3Bot&#34;
     steps = [&#34;select_threebot&#34;, &#34;new_expiration&#34;, &#34;solution_extension&#34;, &#34;success&#34;]
@@ -122,7 +84,7 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Select 3Bot&#34;)
     def select_threebot(self):
         self._validate_user()
-        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
+        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2.25}
         self.threebot_name = self.user_info()[&#34;username&#34;]
         self.explorer = j.core.identity.me.explorer
         self.threebot_workloads = solutions.list_solutions(self.threebot_name, &#34;threebot&#34;)
@@ -134,49 +96,13 @@ any extra kwargs that is passed while creating the session
         self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
         self.pool = j.sals.zos.pools.get(self.pool_id)
 
-    @chatflow_step(title=&#34;New Expiration&#34;)
-    def new_expiration(self):
-        DURATION_MAX = 9223372036854775807
-        if self.pool.empty_at &lt; DURATION_MAX:
-            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
-            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
-            default_time = self.pool.empty_at + 3900
-        else:
-            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
-            min_timestamp_fromnow = None
-            default_time = j.data.time.get().timestamp + 15552000
-        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
-
-    @chatflow_step(title=&#34;Payment&#34;)
-    def solution_extension(self):
-
-        farm_id = deployer.get_pool_farm_id(self.pool_id)
-        farm = deployer._explorer.farms.get(farm_id)
-        assets = [w.asset for w in farm.wallet_addresses]
-        if &#34;FreeTFT&#34; in assets:
-            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=self.pool_id)
-            for node in pool_nodes:
-                if not node.free_to_use:
-                    assets.remove(&#34;FreeTFT&#34;)
-                    break
-        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
-        self.currencies = [currency]
-        self.pool_info, self.qr_code = deployer.extend_solution_pool(
-            self, self.pool_id, self.expiration, self.currencies, **self.query
-        )
-
-        result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
-        )
-        if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
-
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
         self.md_show(&#34;Your 3Bot has been extended successfully.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow" href="../../../sals/marketplace/apps_chatflow.html#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow">MarketPlaceAppsChatflow</a></li>
 <li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../../../sals/marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
 </ul>
@@ -193,34 +119,8 @@ any extra kwargs that is passed while creating the session
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration"><code class="name flex">
-<span>def <span class="ident">new_expiration</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot"><code class="name flex">
 <span>def <span class="ident">select_threebot</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension"><code class="name flex">
-<span>def <span class="ident">solution_extension</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -259,7 +159,7 @@ any extra kwargs that is passed while creating the session
 (i.e. can be used for passing any query parameters)</p></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">class ExtendThreebot(MarketPlaceChatflow):
+<pre><code class="python">class ExtendThreebot(MarketPlaceAppsChatflow):
 
     title = &#34;Extend 3Bot&#34;
     steps = [&#34;select_threebot&#34;, &#34;new_expiration&#34;, &#34;solution_extension&#34;, &#34;success&#34;]
@@ -267,7 +167,7 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Select 3Bot&#34;)
     def select_threebot(self):
         self._validate_user()
-        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2}
+        self.query = {&#34;cru&#34;: 2, &#34;mru&#34;: 2, &#34;sru&#34;: 2.25}
         self.threebot_name = self.user_info()[&#34;username&#34;]
         self.explorer = j.core.identity.me.explorer
         self.threebot_workloads = solutions.list_solutions(self.threebot_name, &#34;threebot&#34;)
@@ -279,49 +179,13 @@ any extra kwargs that is passed while creating the session
         self.pool_id = self._threebots_dict[self.threebot_selected][&#34;Pool&#34;]
         self.pool = j.sals.zos.pools.get(self.pool_id)
 
-    @chatflow_step(title=&#34;New Expiration&#34;)
-    def new_expiration(self):
-        DURATION_MAX = 9223372036854775807
-        if self.pool.empty_at &lt; DURATION_MAX:
-            # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
-            min_timestamp_fromnow = self.pool.empty_at - j.data.time.get().timestamp
-            default_time = self.pool.empty_at + 3900
-        else:
-            # Pool not being consumed (compute or storage), default is in 6 months (60*60*24*30*6 = 15552000)
-            min_timestamp_fromnow = None
-            default_time = j.data.time.get().timestamp + 15552000
-        self.expiration = deployer.ask_expiration(self, default_time, min=min_timestamp_fromnow)
-
-    @chatflow_step(title=&#34;Payment&#34;)
-    def solution_extension(self):
-
-        farm_id = deployer.get_pool_farm_id(self.pool_id)
-        farm = deployer._explorer.farms.get(farm_id)
-        assets = [w.asset for w in farm.wallet_addresses]
-        if &#34;FreeTFT&#34; in assets:
-            pool_nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=self.pool_id)
-            for node in pool_nodes:
-                if not node.free_to_use:
-                    assets.remove(&#34;FreeTFT&#34;)
-                    break
-        currency = self.single_choice(&#34;Please choose your preferred payment currency&#34;, assets, required=True)
-        self.currencies = [currency]
-        self.pool_info, self.qr_code = deployer.extend_solution_pool(
-            self, self.pool_id, self.expiration, self.currencies, **self.query
-        )
-
-        result = deployer.wait_pool_payment(
-            self, self.pool_id, qr_code=self.qr_code, trigger_cus=self.pool.cus + 1, trigger_sus=self.pool.sus + 1
-        )
-        if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {self.pool_id}&#34;)
-
     @chatflow_step(title=&#34;Success&#34;, final_step=True)
     def success(self):
         self.md_show(&#34;Your 3Bot has been extended successfully.&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow" href="../../../sals/marketplace/apps_chatflow.html#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow">MarketPlaceAppsChatflow</a></li>
 <li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../../../sals/marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
 <li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
 </ul>
@@ -338,34 +202,8 @@ any extra kwargs that is passed while creating the session
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration"><code class="name flex">
-<span>def <span class="ident">new_expiration</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot"><code class="name flex">
 <span>def <span class="ident">select_threebot</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension"><code class="name flex">
-<span>def <span class="ident">solution_extension</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -393,28 +231,28 @@ any extra kwargs that is passed while creating the session
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../../../sals/marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></b></code>:
+<li><code><b><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow" href="../../../sals/marketplace/apps_chatflow.html#jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow">MarketPlaceAppsChatflow</a></b></code>:
 <ul class="hlist">
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.autocomplete_drop_down" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.datetime_picker" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.download_file" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.drop_down_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice">drop_down_choice</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.int_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask">int_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.loading_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show">loading_show</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.location_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask">location_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.md_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show">md_show</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.md_show_confirm" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm">md_show_confirm</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.multi_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice">multi_choice</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.multi_list_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice">multi_list_choice</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.multi_values_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask">multi_values_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.new_form" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form">new_form</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.qrcode_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show">qrcode_show</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.secret_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask">secret_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.single_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice">single_choice</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.string_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask">string_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.text_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask">text_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.time_delta_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask">time_delta_ask</a></code></li>
-<li><code><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow.upload_file" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file">upload_file</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.autocomplete_drop_down" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.datetime_picker" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.download_file" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.drop_down_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice">drop_down_choice</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.int_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask">int_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.loading_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show">loading_show</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.location_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask">location_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.md_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show">md_show</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.md_show_confirm" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm">md_show_confirm</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.multi_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice">multi_choice</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.multi_list_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice">multi_list_choice</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.multi_values_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask">multi_values_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.new_form" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form">new_form</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.qrcode_show" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show">qrcode_show</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.secret_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask">secret_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.single_choice" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice">single_choice</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.string_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask">string_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.text_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask">text_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.time_delta_ask" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask">time_delta_ask</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.apps_chatflow.MarketPlaceAppsChatflow.upload_file" href="../../../sals/chatflows/chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file">upload_file</a></code></li>
 </ul>
 </li>
 </ul>
@@ -437,10 +275,8 @@ any extra kwargs that is passed while creating the session
 <ul>
 <li>
 <h4><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot">ExtendThreebot</a></code></h4>
-<ul class="two-column">
-<li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration">new_expiration</a></code></li>
+<ul class="">
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot">select_threebot</a></code></li>
-<li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension">solution_extension</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.steps" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.steps">steps</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.success" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.title" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.title">title</a></code></li>
@@ -448,10 +284,8 @@ any extra kwargs that is passed while creating the session
 </li>
 <li>
 <h4><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot">ExtendThreebot</a></code></h4>
-<ul class="two-column">
-<li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.new_expiration">new_expiration</a></code></li>
+<ul class="">
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.select_threebot">select_threebot</a></code></li>
-<li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.solution_extension">solution_extension</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.steps" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.steps">steps</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.success" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.title" href="#jumpscale.packages.threebot_deployer.chats.extend.ExtendThreebot.title">title</a></code></li>

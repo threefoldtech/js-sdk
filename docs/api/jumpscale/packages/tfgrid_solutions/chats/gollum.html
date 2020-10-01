@@ -22,14 +22,15 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import time
+<pre><code class="python">import math
+import time
 import uuid
-import math
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow.models import SolutionType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow.models import SolutionType
 
 
 class GollumDeploy(GedisChatBot):
@@ -94,35 +95,28 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title=&#34;Access Key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Email&#34;)
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask(
-            &#34;Please enter an email to get ssl certificate updates of your container&#34;,
-        )
+        self.email = form.string_ask(&#34;Please enter an email to get ssl certificate updates of your container&#34;)
         form.ask()
 
     @chatflow_step(title=&#34;Github repo setup&#34;)
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask(
-            &#34;Please enter your github username&#34;,
-        )
+        self.github_user = form.string_ask(&#34;Please enter your github username&#34;)
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask(
-            &#34;Please enter your github email&#34;,
-        )
+        self.github_email = form.string_ask(&#34;Please enter your github email&#34;)
         self.github_repo = form.string_ask(
-            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;,
+            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;
         )
         self.github_token = form.string_ask(
             &#34;Please enter github personal access token.&#34;
-            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;,
+            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;
         )
         form.ask()
 
@@ -271,13 +265,17 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def container_access(self):
         res = f&#34;&#34;&#34;\
-# Gollum has been deployed successfully:\n&lt;br&gt;
-Reservation id: {self.workload_ids[-1]}\n
-To ssh into your container: ```ssh root@{self.ip_address}```\n
-You can access your wiki repo from browser at {self.container_url}\n
-# It may take a few minutes.
+        # Gollum has been deployed successfully:
+        &lt;br /&gt;\n
+        Reservation id: {self.workload_ids[-1]}
+
+        To ssh into your container: ```ssh root@{self.ip_address}```
+
+        You can access your wiki repo from browser at {self.container_url}
+
+        ## It may take a few minutes...
         &#34;&#34;&#34;
-        self.md_show(res, md=True)
+        self.md_show(dedent(res), md=True)
 
 
 chat = GollumDeploy</code></pre>
@@ -366,35 +364,28 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Access Key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Email&#34;)
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask(
-            &#34;Please enter an email to get ssl certificate updates of your container&#34;,
-        )
+        self.email = form.string_ask(&#34;Please enter an email to get ssl certificate updates of your container&#34;)
         form.ask()
 
     @chatflow_step(title=&#34;Github repo setup&#34;)
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask(
-            &#34;Please enter your github username&#34;,
-        )
+        self.github_user = form.string_ask(&#34;Please enter your github username&#34;)
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask(
-            &#34;Please enter your github email&#34;,
-        )
+        self.github_email = form.string_ask(&#34;Please enter your github email&#34;)
         self.github_repo = form.string_ask(
-            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;,
+            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;
         )
         self.github_token = form.string_ask(
             &#34;Please enter github personal access token.&#34;
-            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;,
+            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;
         )
         form.ask()
 
@@ -543,13 +534,17 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def container_access(self):
         res = f&#34;&#34;&#34;\
-# Gollum has been deployed successfully:\n&lt;br&gt;
-Reservation id: {self.workload_ids[-1]}\n
-To ssh into your container: ```ssh root@{self.ip_address}```\n
-You can access your wiki repo from browser at {self.container_url}\n
-# It may take a few minutes.
+        # Gollum has been deployed successfully:
+        &lt;br /&gt;\n
+        Reservation id: {self.workload_ids[-1]}
+
+        To ssh into your container: ```ssh root@{self.ip_address}```
+
+        You can access your wiki repo from browser at {self.container_url}
+
+        ## It may take a few minutes...
         &#34;&#34;&#34;
-        self.md_show(res, md=True)</code></pre>
+        self.md_show(dedent(res), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -804,35 +799,28 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Access Key&#34;)
     def public_key_get(self):
         self.public_key = self.upload_file(
-            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;,
-            required=True,
+            &#34;&#34;&#34;Please upload your public SSH key to be able to access the depolyed container via ssh&#34;&#34;&#34;, required=True
         ).split(&#34;\n&#34;)[0]
 
     @chatflow_step(title=&#34;Email&#34;)
     def gollum_email(self):
         form = self.new_form()
         # TODO: replace by email_ask to verify email
-        self.email = form.string_ask(
-            &#34;Please enter an email to get ssl certificate updates of your container&#34;,
-        )
+        self.email = form.string_ask(&#34;Please enter an email to get ssl certificate updates of your container&#34;)
         form.ask()
 
     @chatflow_step(title=&#34;Github repo setup&#34;)
     def github_repo_setup(self):
         form = self.new_form()
-        self.github_user = form.string_ask(
-            &#34;Please enter your github username&#34;,
-        )
+        self.github_user = form.string_ask(&#34;Please enter your github username&#34;)
         # TODO: replace by email_ask to verify email
-        self.github_email = form.string_ask(
-            &#34;Please enter your github email&#34;,
-        )
+        self.github_email = form.string_ask(&#34;Please enter your github email&#34;)
         self.github_repo = form.string_ask(
-            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;,
+            &#34;Please enter your github repo name that will be used for the wiki.# Make sure the repo exists&#34;
         )
         self.github_token = form.string_ask(
             &#34;Please enter github personal access token.&#34;
-            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;,
+            &#34;You can create it by following the steps here: https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token&#34;
         )
         form.ask()
 
@@ -981,13 +969,17 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def container_access(self):
         res = f&#34;&#34;&#34;\
-# Gollum has been deployed successfully:\n&lt;br&gt;
-Reservation id: {self.workload_ids[-1]}\n
-To ssh into your container: ```ssh root@{self.ip_address}```\n
-You can access your wiki repo from browser at {self.container_url}\n
-# It may take a few minutes.
+        # Gollum has been deployed successfully:
+        &lt;br /&gt;\n
+        Reservation id: {self.workload_ids[-1]}
+
+        To ssh into your container: ```ssh root@{self.ip_address}```
+
+        You can access your wiki repo from browser at {self.container_url}
+
+        ## It may take a few minutes...
         &#34;&#34;&#34;
-        self.md_show(res, md=True)</code></pre>
+        self.md_show(dedent(res), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

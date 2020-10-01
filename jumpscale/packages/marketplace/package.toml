@@ -21,7 +21,22 @@ port = 5555
 
 [[servers]]
 name = "marketplace_root_proxy"
-domain = "demo.grid.tf"
+domain = "marketplace.threefold.me"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplace*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /marketplace;
+}
+"""
+
+[[servers]]
+name = "marketplace_io_proxy"
+domain = "marketplace.threefold.io"
 letsencryptemail = "motaweam@incubaid.com"
 includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplace*"]
 

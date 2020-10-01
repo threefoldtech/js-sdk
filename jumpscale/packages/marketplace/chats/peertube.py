@@ -9,8 +9,6 @@ class Peertube(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "volume_details",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -22,11 +20,11 @@ class Peertube(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Volume details")
     def volume_details(self):
+        self.user_email = self.user_info()["email"]
         self._choose_flavor()
         self.vol_size = self.flavor_resources["sru"]
         self.vol_mount_point = "/var/www/peertube/storage/"
         self.query["sru"] += self.vol_size
-        self.user_email = self.user_info()["email"]
 
     @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
@@ -55,7 +53,7 @@ class Peertube(MarketPlaceAppsChatflow):
 
         # reserve subdomain
         _id = deployer.create_subdomain(
-            pool_id=self.pool_id,
+            pool_id=self.gateway_pool.pool_id,
             gateway_id=self.gateway.node_id,
             subdomain=self.domain,
             addresses=self.addresses,

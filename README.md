@@ -4,7 +4,11 @@
 [![Actions Status](https://github.com/threefoldtech/js-sdk/workflows/js-sdk/badge.svg?query=branch%3Adevelopment)](https://github.com/threefoldtech/js-sdk/actions?query=branch%3Adevelopment)
 ![[https://codecov.io/gh/threefoldtech/js-sdk]](https://codecov.io/gh/threefoldtech/js-sdk/branch/master/graph/badge.svg)
 
-official extenions to js framework
+Threefold Grid extension based on [js-ng framework](https://github.com/threefoldtech/js-ng)
+
+## Getting started
+- Our wiki https://threefoldtech.github.io/js-sdk/wiki
+- quick start https://threefoldtech.github.io/js-sdk/wiki/#/./quick_start
 
 ## Contribution
 
@@ -12,29 +16,6 @@ official extenions to js framework
 - Documentation
 - Tests
 
-## Development environment
-
-- clone repo
-- `poetry update` if you already had an install before
-- `poetry install`
-- `poetry shell`
-
-## Running tests
-
-- `make tests`
-
-## Generating docs
-
-- `make docs`
-
-
-## building dists
-
-- `poetry build`
-
-## publishing
-
-- `poetry publish`
 
 ## API Docs
 

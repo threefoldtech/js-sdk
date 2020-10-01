@@ -255,7 +255,7 @@ class Stellar(Client):
         server = self._get_horizon_server()
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
-        source_account = server.load_account()
+        source_account = self.load_account()
 
         base_fee = server.fetch_base_fee()
         transaction = (
@@ -387,7 +387,7 @@ class Stellar(Client):
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
-                raise Exception("Wrong asset format should be in format 'assetcode:issuer'")
+                raise Exception(f"Wrong asset format should be in format 'assetcode:issuer', but received {assetStr}")
             asset = assetStr[0]
             issuer = assetStr[1]
 

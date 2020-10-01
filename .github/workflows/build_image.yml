@@ -1,0 +1,22 @@
+name: Build docker image
+
+on:
+  push:
+    branches: [ development ]
+jobs:
+    build-docker:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: docker/build-push-action@v1
+          with:
+            path: jumpscale/install
+            repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+            dockerfile: jumpscale/install/Dockerfile
+            tags: latest
+            build_args: BRANCH=development
+        - name: Convert Docker image to flist
+          run: |
+            curl -v -X POST  -H 'Authorization: bearer ${{ secrets.ZEROHUB_TOKEN}}' ${{secrets.ZEROHUB_URL}}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest'

@@ -57,7 +57,6 @@ class ContainerGenerator:
         interactive: bool = False,
         secret_env: dict = {},
         public_ipv6: bool = False,
-        yggdrasil_ip: bool = False,
         storage_url: str = &#34;zdb://hub.grid.tf:9900&#34;,
     ) -&gt; Container:
         &#34;&#34;&#34;Create a container workload object
@@ -97,7 +96,6 @@ class ContainerGenerator:
         net.network_id = network_name
         net.ipaddress = ip_address
         net.public_ip6 = public_ipv6
-        net.yggdrasil_ip = yggdrasil_ip
         cont.network_connection.append(net)
 
         cont.capacity.cpu = cpu
@@ -189,7 +187,6 @@ class ContainerGenerator:
         interactive: bool = False,
         secret_env: dict = {},
         public_ipv6: bool = False,
-        yggdrasil_ip: bool = False,
         storage_url: str = &#34;zdb://hub.grid.tf:9900&#34;,
     ) -&gt; Container:
         &#34;&#34;&#34;Create a container workload object
@@ -229,7 +226,6 @@ class ContainerGenerator:
         net.network_id = network_name
         net.ipaddress = ip_address
         net.public_ip6 = public_ipv6
-        net.yggdrasil_ip = yggdrasil_ip
         cont.network_connection.append(net)
 
         cont.capacity.cpu = cpu
@@ -330,7 +326,7 @@ channel_name(str): name of channel that will be published to</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.zos.container.ContainerGenerator.create"><code class="name flex">
-<span>def <span class="ident">create</span></span>(<span>self, node_id, network_name, ip_address, flist, capacity_pool_id, env={}, cpu=1, memory=1024, disk_size=256, entrypoint=&#39;&#39;, interactive=False, secret_env={}, public_ipv6=False, yggdrasil_ip=False, storage_url=&#39;zdb://hub.grid.tf:9900&#39;)</span>
+<span>def <span class="ident">create</span></span>(<span>self, node_id, network_name, ip_address, flist, capacity_pool_id, env={}, cpu=1, memory=1024, disk_size=256, entrypoint=&#39;&#39;, interactive=False, secret_env={}, public_ipv6=False, storage_url=&#39;zdb://hub.grid.tf:9900&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Create a container workload object</p>
@@ -371,7 +367,6 @@ storage_url(str, optional): Address of the server where the data of the flist ar
     interactive: bool = False,
     secret_env: dict = {},
     public_ipv6: bool = False,
-    yggdrasil_ip: bool = False,
     storage_url: str = &#34;zdb://hub.grid.tf:9900&#34;,
 ) -&gt; Container:
     &#34;&#34;&#34;Create a container workload object
@@ -411,7 +406,6 @@ storage_url(str, optional): Address of the server where the data of the flist ar
     net.network_id = network_name
     net.ipaddress = ip_address
     net.public_ip6 = public_ipv6
-    net.yggdrasil_ip = yggdrasil_ip
     cont.network_connection.append(net)
 
     cont.capacity.cpu = cpu

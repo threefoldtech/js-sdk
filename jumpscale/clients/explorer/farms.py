@@ -117,11 +117,5 @@ class Farms(BaseResource):
         return True
 
     def delete(self, farm_id, node_id):
-        me = identity.get_identity()
-        secret = me.nacl.signing_key.encode(Base64Encoder)
-
-        auth = HTTPSignatureAuth(key_id=str(me.tid), secret=secret, headers=["(created)", "date", "threebot-id"])
-        headers = {"threebot-id": str(me.tid)}
-
-        self._session.delete(f"{self._url}/{farm_id}/{node_id}", auth=auth, headers=headers)
+        self._session.delete(f"{self._url}/{farm_id}/{node_id}")
         return True

@@ -10,6 +10,11 @@ Maketplace deployment requires three machines. One machine has `js-sdk` installe
 
 ### Installation
 
+#### Create your wallet
+
+the marketplace requires wallet with TFT with name `demos_wallet` [create your wallet](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md#from-js-ng-shell-advanced)
+
+#### Adding marketplace package
 Marketplace package is installed normally like any other package using the admin dashboard or from `jsng` shell using the package path as below:
 
 ```python
@@ -97,5 +102,6 @@ j.servers.threebot.default.save()
     JS-NG> ssh_server1.save()
     JS-NG> ssh_server2.save()
     ```
+
 
 Now you can start your `3Bot` server and access marketplace dashboard on `/marketplace`

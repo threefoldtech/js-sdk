@@ -25,21 +25,24 @@
 <pre><code class="python">import base64
 import copy
 import json
-from jumpscale.loader import j
-from jumpscale.core.base import StoredFactory
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
+import random
+import time
+from textwrap import dedent
+
+import netaddr
+import requests
+from nacl.public import Box
+
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
 
-from nacl.public import Box
-import netaddr
-import random
-import requests
-import time
-
-NODES_DISALLOW_KEY = &#34;ZOS:DISALLOWED_NODES&#34;
+NODES_DISALLOW_PREFIX = &#34;ZOS:NODES:DISALLOWED&#34;
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+NODES_COUNT_KEY = &#34;ZOS:NODES:FAILURE_COUNT&#34;
 
 
 class Network:
@@ -733,11 +736,12 @@ class ReservationChatflow:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=[&#34;minute&#34;, &#34;second&#34;]
             )
-            deploying_message = f&#34;&#34;&#34;
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
+            deploying_message = f&#34;&#34;&#34;\
+            # Payment being processed...
+
+            &lt;br /&gt;Deployment will be cancelled if payment is not successful {remaning_time}
+            &#34;&#34;&#34;
+            bot.md_show_update(dedent(deploying_message), md=True)
             if reservation.next_action != &#34;PAY&#34;:
                 return
             if is_expired(reservation):
@@ -808,10 +812,11 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                 granularity=[&#34;minute&#34;, &#34;second&#34;]
             )
             deploying_message = f&#34;&#34;&#34;
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
+            # Deploying...
+
+            &lt;br /&gt;Deployment will be cancelled if it is not successful in {remaning_time}
+            &#34;&#34;&#34;
+            bot.md_show_update(dedent(deploying_message), md=True)
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
@@ -1414,17 +1419,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
             list of available nodes
         &#34;&#34;&#34;
 
-        def filter_disallowed_nodes(disallowed_dict, nodes):
+        def filter_disallowed_nodes(disallowed_node_ids, nodes):
             result = []
             for node in nodes:
-                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
-                if node_blocking_time &lt; j.data.time.now().timestamp:
+                if node.node_id not in disallowed_node_ids:
                     result.append(node)
             return result
 
-        disallowed_dict = {}
+        disallowed_node_ids = []
         if filter_blocked:
-            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+            disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
             mru = 0
@@ -1439,7 +1443,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
-            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
+            nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -1447,7 +1451,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
                     while node.node_id in selected_ids:
                         node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
+                    raise StopChatFlow(
+                        &#34;Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit &lt;a href=&#39;https://manual2.threefold.io/#/3bot_settings?id=developers-options&#39;&gt;our manual&lt;/a&gt;&#34;,
+                        htmlAlert=True,
+                    )
                 nodes.remove(node)
                 nodes_selected.append(node)
                 selected_ids.append(node.node_id)
@@ -1610,6 +1617,43 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info[&#34;username&#34;]:
             raise j.exceptions.Value(&#34;Name of logged in user shouldn&#39;t be empty&#34;)
         return self._explorer.users.get(name=user_info[&#34;username&#34;], email=user_info[&#34;email&#34;])
+
+    def block_node(self, node_id):
+        count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
+        expiration = count * NODES_DISALLOW_EXPIRATION
+        node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+        j.core.db.set(node_key, expiration, ex=expiration)
+
+    def unblock_node(self, node_id, reset=True):
+        node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+        j.core.db.delete(node_key)
+        j.core.db.hdel(NODES_COUNT_KEY, node_id)
+
+    def list_blocked_nodes(self):
+        &#34;&#34;&#34;
+        each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+        number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked
+
+        returns
+            dict: {node_id: {expiration: .., failure_count: ...}}
+        &#34;&#34;&#34;
+        blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+        failure_count_dict = j.core.db.hgetall(NODES_COUNT_KEY)
+        blocked_node_values = j.core.db.mget(blocked_node_keys)
+        result = {}
+        for idx, key in enumerate(blocked_node_keys):
+            key = key[len(NODES_DISALLOW_PREFIX) + 1 :]
+            node_id = key.decode()
+            expiration = int(blocked_node_values[idx])
+            failure_count = int(failure_count_dict[key])
+            result[node_id] = {&#34;expiration&#34;: expiration, &#34;failure_count&#34;: failure_count}
+        return result
+
+    def clear_blocked_nodes(self):
+        blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+        if blocked_node_keys:
+            j.core.db.delete(*blocked_node_keys)
+        j.core.db.delete(NODES_COUNT_KEY)
 
 
 reservation_chatflow = ReservationChatflow()</code></pre>
@@ -2603,11 +2647,12 @@ you can add, update, list, get, filter nodes</p>
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=[&#34;minute&#34;, &#34;second&#34;]
             )
-            deploying_message = f&#34;&#34;&#34;
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
+            deploying_message = f&#34;&#34;&#34;\
+            # Payment being processed...
+
+            &lt;br /&gt;Deployment will be cancelled if payment is not successful {remaning_time}
+            &#34;&#34;&#34;
+            bot.md_show_update(dedent(deploying_message), md=True)
             if reservation.next_action != &#34;PAY&#34;:
                 return
             if is_expired(reservation):
@@ -2678,10 +2723,11 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                 granularity=[&#34;minute&#34;, &#34;second&#34;]
             )
             deploying_message = f&#34;&#34;&#34;
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
+            # Deploying...
+
+            &lt;br /&gt;Deployment will be cancelled if it is not successful in {remaning_time}
+            &#34;&#34;&#34;
+            bot.md_show_update(dedent(deploying_message), md=True)
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
@@ -3284,17 +3330,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
             list of available nodes
         &#34;&#34;&#34;
 
-        def filter_disallowed_nodes(disallowed_dict, nodes):
+        def filter_disallowed_nodes(disallowed_node_ids, nodes):
             result = []
             for node in nodes:
-                node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
-                if node_blocking_time &lt; j.data.time.now().timestamp:
+                if node.node_id not in disallowed_node_ids:
                     result.append(node)
             return result
 
-        disallowed_dict = {}
+        disallowed_node_ids = []
         if filter_blocked:
-            disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+            disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get(&#34;OVER_PROVISIONING&#34;):
             cru = 0
             mru = 0
@@ -3309,7 +3354,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
-            nodes = filter_disallowed_nodes(disallowed_dict, nodes)
+            nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -3317,7 +3362,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
                     while node.node_id in selected_ids:
                         node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
+                    raise StopChatFlow(
+                        &#34;Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit &lt;a href=&#39;https://manual2.threefold.io/#/3bot_settings?id=developers-options&#39;&gt;our manual&lt;/a&gt;&#34;,
+                        htmlAlert=True,
+                    )
                 nodes.remove(node)
                 nodes_selected.append(node)
                 selected_ids.append(node.node_id)
@@ -3479,7 +3527,44 @@ Deployment will be cancelled if it is not successful {remaning_time}
             raise j.exceptions.Value(&#34;Email shouldn&#39;t be empty&#34;)
         if not user_info[&#34;username&#34;]:
             raise j.exceptions.Value(&#34;Name of logged in user shouldn&#39;t be empty&#34;)
-        return self._explorer.users.get(name=user_info[&#34;username&#34;], email=user_info[&#34;email&#34;])</code></pre>
+        return self._explorer.users.get(name=user_info[&#34;username&#34;], email=user_info[&#34;email&#34;])
+
+    def block_node(self, node_id):
+        count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
+        expiration = count * NODES_DISALLOW_EXPIRATION
+        node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+        j.core.db.set(node_key, expiration, ex=expiration)
+
+    def unblock_node(self, node_id, reset=True):
+        node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+        j.core.db.delete(node_key)
+        j.core.db.hdel(NODES_COUNT_KEY, node_id)
+
+    def list_blocked_nodes(self):
+        &#34;&#34;&#34;
+        each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+        number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked
+
+        returns
+            dict: {node_id: {expiration: .., failure_count: ...}}
+        &#34;&#34;&#34;
+        blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+        failure_count_dict = j.core.db.hgetall(NODES_COUNT_KEY)
+        blocked_node_values = j.core.db.mget(blocked_node_keys)
+        result = {}
+        for idx, key in enumerate(blocked_node_keys):
+            key = key[len(NODES_DISALLOW_PREFIX) + 1 :]
+            node_id = key.decode()
+            expiration = int(blocked_node_values[idx])
+            failure_count = int(failure_count_dict[key])
+            result[node_id] = {&#34;expiration&#34;: expiration, &#34;failure_count&#34;: failure_count}
+        return result
+
+    def clear_blocked_nodes(self):
+        blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+        if blocked_node_keys:
+            j.core.db.delete(*blocked_node_keys)
+        j.core.db.delete(NODES_COUNT_KEY)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -3533,6 +3618,20 @@ def me(self):
     encrypted_metadata = base64.b85encode(box.encrypt(meta_json.encode())).decode()
     reservation.metadata = encrypted_metadata
     return reservation</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.block_node"><code class="name flex">
+<span>def <span class="ident">block_node</span></span>(<span>self, node_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def block_node(self, node_id):
+    count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
+    expiration = count * NODES_DISALLOW_EXPIRATION
+    node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+    j.core.db.set(node_key, expiration, ex=expiration)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.cancel_solution_reservation"><code class="name flex">
@@ -3727,6 +3826,20 @@ def me(self):
     elif reservation.data_reservation.domain_delegates:
         return SolutionType.DelegatedDomain
     return SolutionType.Unknown</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.clear_blocked_nodes"><code class="name flex">
+<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def clear_blocked_nodes(self):
+    blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+    if blocked_node_keys:
+        j.core.db.delete(*blocked_node_keys)
+    j.core.db.delete(NODES_COUNT_KEY)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.create_network"><code class="name flex">
@@ -4244,17 +4357,16 @@ free_to_use (bool)</p>
         list of available nodes
     &#34;&#34;&#34;
 
-    def filter_disallowed_nodes(disallowed_dict, nodes):
+    def filter_disallowed_nodes(disallowed_node_ids, nodes):
         result = []
         for node in nodes:
-            node_blocking_time = int(disallowed_dict.get(node.node_id.encode(), 0))
-            if node_blocking_time &lt; j.data.time.now().timestamp:
+            if node.node_id not in disallowed_node_ids:
                 result.append(node)
         return result
 
-    disallowed_dict = {}
+    disallowed_node_ids = []
     if filter_blocked:
-        disallowed_dict = j.core.db.hgetall(NODES_DISALLOW_KEY)
+        disallowed_node_ids = self.list_blocked_nodes().keys()
     if j.config.get(&#34;OVER_PROVISIONING&#34;):
         cru = 0
         mru = 0
@@ -4269,7 +4381,7 @@ free_to_use (bool)</p>
         nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
             cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
         )
-        nodes = filter_disallowed_nodes(disallowed_dict, nodes)
+        nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
         nodes = self.filter_nodes(nodes, currency == &#34;FreeTFT&#34;, ip_version=ip_version)
         for i in range(nodes_number):
             try:
@@ -4277,7 +4389,10 @@ free_to_use (bool)</p>
                 while node.node_id in selected_ids:
                     node = random.choice(nodes)
             except IndexError:
-                raise StopChatFlow(&#34;Failed to find resources for this reservation&#34;)
+                raise StopChatFlow(
+                    &#34;Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit &lt;a href=&#39;https://manual2.threefold.io/#/3bot_settings?id=developers-options&#39;&gt;our manual&lt;/a&gt;&#34;,
+                    htmlAlert=True,
+                )
             nodes.remove(node)
             nodes_selected.append(node)
             selected_ids.append(node.node_id)
@@ -4685,6 +4800,37 @@ return dict of info</p></section>
             }
         )
     return reservations_data</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_blocked_nodes"><code class="name flex">
+<span>def <span class="ident">list_blocked_nodes</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked</p>
+<p>returns
+dict: {node_id: {expiration: .., failure_count: &hellip;}}</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_blocked_nodes(self):
+    &#34;&#34;&#34;
+    each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+    number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked
+
+    returns
+        dict: {node_id: {expiration: .., failure_count: ...}}
+    &#34;&#34;&#34;
+    blocked_node_keys = j.core.db.keys(f&#34;{NODES_DISALLOW_PREFIX}:*&#34;)
+    failure_count_dict = j.core.db.hgetall(NODES_COUNT_KEY)
+    blocked_node_values = j.core.db.mget(blocked_node_keys)
+    result = {}
+    for idx, key in enumerate(blocked_node_keys):
+        key = key[len(NODES_DISALLOW_PREFIX) + 1 :]
+        node_id = key.decode()
+        expiration = int(blocked_node_values[idx])
+        failure_count = int(failure_count_dict[key])
+        result[node_id] = {&#34;expiration&#34;: expiration, &#34;failure_count&#34;: failure_count}
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_delegate_domains"><code class="name flex">
@@ -5317,6 +5463,19 @@ where a QR code is viewed for the user to scan and continue with their payment</
             &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.unblock_node"><code class="name flex">
+<span>def <span class="ident">unblock_node</span></span>(<span>self, node_id, reset=True)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def unblock_node(self, node_id, reset=True):
+    node_key = f&#34;{NODES_DISALLOW_PREFIX}:{node_id}&#34;
+    j.core.db.delete(node_key)
+    j.core.db.hdel(NODES_COUNT_KEY, node_id)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.update_local_reservations"><code class="name flex">
 <span>def <span class="ident">update_local_reservations</span></span>(<span>self)</span>
 </code></dt>
@@ -5440,45 +5599,46 @@ where a QR code is viewed for the user to scan and continue with their payment</
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">    def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
-        &#34;&#34;&#34;wait slide untill payment is ready
+<pre><code class="python">def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
+    &#34;&#34;&#34;wait slide untill payment is ready
 
-        Args:
-            bot (GedisChatBot): bot instance
-            rid (int): customer tid
-            threebot_app (bool, optional): is using threebot app payment. Defaults to False.
-            reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
+    Args:
+        bot (GedisChatBot): bot instance
+        rid (int): customer tid
+        threebot_app (bool, optional): is using threebot app payment. Defaults to False.
+        reservation_create_resp (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1, optional): reservation object response. Defaults to None.
+    &#34;&#34;&#34;
+
+    # wait to check payment is actually done next_action changed from:PAY
+    def is_expired(reservation):
+        return reservation.data_reservation.expiration_provisioning.timestamp() &lt; j.data.time.get().timestamp
+
+    reservation = self._explorer.reservations.get(rid)
+    while True:
+        remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+            granularity=[&#34;minute&#34;, &#34;second&#34;]
+        )
+        deploying_message = f&#34;&#34;&#34;\
+        # Payment being processed...
+
+        &lt;br /&gt;Deployment will be cancelled if payment is not successful {remaning_time}
         &#34;&#34;&#34;
-
-        # wait to check payment is actually done next_action changed from:PAY
-        def is_expired(reservation):
-            return reservation.data_reservation.expiration_provisioning.timestamp() &lt; j.data.time.get().timestamp
-
-        reservation = self._explorer.reservations.get(rid)
-        while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
-                granularity=[&#34;minute&#34;, &#34;second&#34;]
-            )
-            deploying_message = f&#34;&#34;&#34;
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
-            if reservation.next_action != &#34;PAY&#34;:
-                return
-            if is_expired(reservation):
-                res = f&#34;# Failed to wait for payment for reservation:```{reservation.id}```:\n&#34;
-                for x in reservation.results:
-                    if x.state == &#34;ERROR&#34;:
-                        res += f&#34;\n### {x.category}: ```{x.message}```\n&#34;
-                link = f&#34;{self._explorer.url}/reservations/{reservation.id}&#34;
-                res += f&#34;&lt;h2&gt; &lt;a href={link}&gt;Full reservation info&lt;/a&gt;&lt;/h2&gt;&#34;
-                j.sals.zos.reservation_cancel(rid)
-                bot.stop(res, md=True, html=True)
-            if threebot_app and reservation_create_resp:
-                self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
-            time.sleep(5)
-            reservation = self._explorer.reservations.get(rid)</code></pre>
+        bot.md_show_update(dedent(deploying_message), md=True)
+        if reservation.next_action != &#34;PAY&#34;:
+            return
+        if is_expired(reservation):
+            res = f&#34;# Failed to wait for payment for reservation:```{reservation.id}```:\n&#34;
+            for x in reservation.results:
+                if x.state == &#34;ERROR&#34;:
+                    res += f&#34;\n### {x.category}: ```{x.message}```\n&#34;
+            link = f&#34;{self._explorer.url}/reservations/{reservation.id}&#34;
+            res += f&#34;&lt;h2&gt; &lt;a href={link}&gt;Full reservation info&lt;/a&gt;&lt;/h2&gt;&#34;
+            j.sals.zos.reservation_cancel(rid)
+            bot.stop(res, md=True, html=True)
+        if threebot_app and reservation_create_resp:
+            self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
+        time.sleep(5)
+        reservation = self._explorer.reservations.get(rid)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.wait_reservation"><code class="name flex">
@@ -5496,73 +5656,74 @@ If there are errors then error message is previewed in the chatflow to the user 
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">    def wait_reservation(self, bot, rid):
-        &#34;&#34;&#34;
-        Wait for reservation results to be complete, have errors, or expire.
-        If there are errors then error message is previewed in the chatflow to the user and the chat is ended.
+<pre><code class="python">def wait_reservation(self, bot, rid):
+    &#34;&#34;&#34;
+    Wait for reservation results to be complete, have errors, or expire.
+    If there are errors then error message is previewed in the chatflow to the user and the chat is ended.
+
+    Args:
+        bot (GedisChatBot): bot instance
+        rid (int): user tid
+    &#34;&#34;&#34;
+
+    def is_finished(reservation):
+        count = 0
+        count += len(reservation.data_reservation.volumes)
+        count += len(reservation.data_reservation.zdbs)
+        count += len(reservation.data_reservation.containers)
+        count += len(reservation.data_reservation.kubernetes)
+        count += len(reservation.data_reservation.proxies)
+        count += len(reservation.data_reservation.reverse_proxies)
+        count += len(reservation.data_reservation.subdomains)
+        count += len(reservation.data_reservation.domain_delegates)
+        count += len(reservation.data_reservation.gateway4to6)
+        for network in reservation.data_reservation.networks:
+            count += len(network.network_resources)
+        return len(reservation.results) &gt;= count
+
+    def is_expired(reservation):
+        &#34;&#34;&#34;[summary]
 
         Args:
-            bot (GedisChatBot): bot instance
-            rid (int): user tid
+            reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
+
+        Returns:
+            [bool]: True if the reservation is expired
         &#34;&#34;&#34;
+        return reservation.data_reservation.expiration_provisioning.timestamp() &lt; j.data.time.get().timestamp
 
-        def is_finished(reservation):
-            count = 0
-            count += len(reservation.data_reservation.volumes)
-            count += len(reservation.data_reservation.zdbs)
-            count += len(reservation.data_reservation.containers)
-            count += len(reservation.data_reservation.kubernetes)
-            count += len(reservation.data_reservation.proxies)
-            count += len(reservation.data_reservation.reverse_proxies)
-            count += len(reservation.data_reservation.subdomains)
-            count += len(reservation.data_reservation.domain_delegates)
-            count += len(reservation.data_reservation.gateway4to6)
-            for network in reservation.data_reservation.networks:
-                count += len(network.network_resources)
-            return len(reservation.results) &gt;= count
+    reservation = self._explorer.reservations.get(rid)
+    while True:
+        remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
+            granularity=[&#34;minute&#34;, &#34;second&#34;]
+        )
+        deploying_message = f&#34;&#34;&#34;
+        # Deploying...
 
-        def is_expired(reservation):
-            &#34;&#34;&#34;[summary]
+        &lt;br /&gt;Deployment will be cancelled if it is not successful in {remaning_time}
+        &#34;&#34;&#34;
+        bot.md_show_update(dedent(deploying_message), md=True)
+        self._reservation_failed(bot, reservation)
 
-            Args:
-                reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
-
-            Returns:
-                [bool]: True if the reservation is expired
-            &#34;&#34;&#34;
-            return reservation.data_reservation.expiration_provisioning.timestamp() &lt; j.data.time.get().timestamp
-
-        reservation = self._explorer.reservations.get(rid)
-        while True:
-            remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
-                granularity=[&#34;minute&#34;, &#34;second&#34;]
-            )
-            deploying_message = f&#34;&#34;&#34;
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-&#34;&#34;&#34;
-            bot.md_show_update(deploying_message, md=True)
-            self._reservation_failed(bot, reservation)
-
-            if is_finished(reservation):
-                if reservation.next_action != NextAction.DEPLOY:
-                    res = f&#34;# Sorry your reservation ```{reservation.id}``` failed to deploy\n&#34;
-                    for x in reservation.results:
-                        if x.state == &#34;ERROR&#34;:
-                            res += f&#34;\n### {x.category}: ```{x.message}```\n&#34;
-                    bot.stop(res, md=True, html=True)
-                return reservation.results
-            if is_expired(reservation):
-                res = f&#34;# Sorry your reservation ```{reservation.id}``` failed to deploy in time:\n&#34;
+        if is_finished(reservation):
+            if reservation.next_action != NextAction.DEPLOY:
+                res = f&#34;# Sorry your reservation ```{reservation.id}``` failed to deploy\n&#34;
                 for x in reservation.results:
                     if x.state == &#34;ERROR&#34;:
                         res += f&#34;\n### {x.category}: ```{x.message}```\n&#34;
-                link = f&#34;{self._explorer.url}/reservations/{reservation.id}&#34;
-                res += f&#34;&lt;h2&gt; &lt;a href={link}&gt;Full reservation info&lt;/a&gt;&lt;/h2&gt;&#34;
-                j.sals.zos.reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
-            time.sleep(1)
-            reservation = self._explorer.reservations.get(rid)</code></pre>
+            return reservation.results
+        if is_expired(reservation):
+            res = f&#34;# Sorry your reservation ```{reservation.id}``` failed to deploy in time:\n&#34;
+            for x in reservation.results:
+                if x.state == &#34;ERROR&#34;:
+                    res += f&#34;\n### {x.category}: ```{x.message}```\n&#34;
+            link = f&#34;{self._explorer.url}/reservations/{reservation.id}&#34;
+            res += f&#34;&lt;h2&gt; &lt;a href={link}&gt;Full reservation info&lt;/a&gt;&lt;/h2&gt;&#34;
+            j.sals.zos.reservation_cancel(rid)
+            bot.stop(res, md=True, html=True)
+        time.sleep(1)
+        reservation = self._explorer.reservations.get(rid)</code></pre>
 </details>
 </dd>
 </dl>
@@ -5598,10 +5759,12 @@ Deployment will be cancelled if it is not successful {remaning_time}
 <h4><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow">ReservationChatflow</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.add_reservation_metadata" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.add_reservation_metadata">add_reservation_metadata</a></code></li>
+<li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.block_node" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.block_node">block_node</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.cancel_solution_reservation" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.cancel_solution_reservation">cancel_solution_reservation</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_farm_resources" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_farm_resources">check_farm_resources</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_farms" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_farms">check_farms</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_solution_type" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.check_solution_type">check_solution_type</a></code></li>
+<li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.clear_blocked_nodes" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.clear_blocked_nodes">clear_blocked_nodes</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.create_network" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.create_network">create_network</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.create_payment" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.create_payment">create_payment</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.decrypt_reservation_metadata" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.decrypt_reservation_metadata">decrypt_reservation_metadata</a></code></li>
@@ -5620,6 +5783,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solution_ubuntu_info" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solution_ubuntu_info">get_solution_ubuntu_info</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solutions" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solutions">get_solutions</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solutions_explorer" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.get_solutions_explorer">get_solutions_explorer</a></code></li>
+<li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_blocked_nodes" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_blocked_nodes">list_blocked_nodes</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_delegate_domains" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_delegate_domains">list_delegate_domains</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_gateways" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_gateways">list_gateways</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_networks" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.list_networks">list_networks</a></code></li>
@@ -5633,6 +5797,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.select_network" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.select_network">select_network</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.show_escrow_qr" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.show_escrow_qr">show_escrow_qr</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.show_payments" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.show_payments">show_payments</a></code></li>
+<li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.unblock_node" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.unblock_node">unblock_node</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.update_local_reservations" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.update_local_reservations">update_local_reservations</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.validate_node" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.validate_node">validate_node</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.validate_user" href="#jumpscale.sals.reservation_chatflow.reservation_chatflow.ReservationChatflow.validate_user">validate_user</a></code></li>
