@@ -1,8 +1,6 @@
 import os
 import string
-import pytest
 import gevent
-import time
 import imaplib
 import email
 from unittest import TestCase
@@ -92,7 +90,7 @@ class Sendgrid(TestCase):
         return False
 
     def await_validate_mail(self, seconds=10, validate_attachment=True, attachment_type=None):
-        for i in range(seconds):
+        for _ in range(seconds):
             if self.read_email_from_gmail(validate_attachment, attachment_type):
                 return True
             gevent.sleep(1)
