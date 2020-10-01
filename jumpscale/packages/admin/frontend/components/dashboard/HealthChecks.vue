@@ -47,4 +47,8 @@ module.exports = {
 .chip-txt {
   color: white;
 }
+
+.green {
+  background-color: #5caa5f !important;
+}
 </style>
