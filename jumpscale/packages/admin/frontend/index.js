@@ -11,8 +11,7 @@ const vuetify = new Vuetify({
         themes: {
             dark: {
                 navbar: '#363636',
-                logo: '#363636',
-                primary: '#a793d1'
+                primary: '#0877be'
             },
             light: {
                 primary: '#1B4F72',
