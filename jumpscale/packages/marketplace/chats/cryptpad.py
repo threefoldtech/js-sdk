@@ -10,8 +10,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "cryptpad_info",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -37,11 +35,10 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
-
         # reserve subdomain
         self.workload_ids.append(
             deployer.create_subdomain(
-                pool_id=self.pool_id,
+                pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
                 subdomain=self.domain,
                 addresses=self.addresses,
@@ -113,8 +110,10 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             solution_ip=self.ip_address,
             solution_port=3000,
             enforce_https=False,
+            proxy_pool_id=self.gateway_pool.pool_id,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)

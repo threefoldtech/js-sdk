@@ -306,6 +306,10 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def preinstall(self):
+        if self.module and hasattr(self.module, &#34;preinstall&#34;):
+            self.module.preinstall()
+
     def install(self, **kwargs):
         if self.module and hasattr(self.module, &#34;install&#34;):
             self.module.install(**kwargs)
@@ -386,7 +390,7 @@ class PackageManager(Base):
         return all_packages
 
     def list_all(self):
-        return self.packages.keys()
+        return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
         # TODO: Check if package already exists
@@ -436,7 +440,6 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
-
         self.save()
 
         # Return updated package info
@@ -450,13 +453,15 @@ class PackageManager(Base):
             raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
 
         # remove bottle servers
-        for bottle_server in list(self.threebot.rack._servers):
+        rack_servers = list(self.threebot.rack._servers)
+        for bottle_server in rack_servers:
             if bottle_server.startswith(f&#34;{package_name}_&#34;):
                 self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            for actor in self.threebot.gedis._loaded_actors.keys():
+            gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+            for actor in gedis_actors:
                 if actor.startswith(f&#34;{package_name}_&#34;):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -488,7 +493,7 @@ class PackageManager(Base):
             [dict]: [package info]
         &#34;&#34;&#34;
         sys.path.append(package.path + &#34;/../&#34;)  # TODO to be changed
-        package.install()
+        package.preinstall()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
@@ -511,7 +516,6 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
-
         # start servers
         self.threebot.rack.start()
 
@@ -520,6 +524,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+        self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -541,7 +546,8 @@ class PackageManager(Base):
         This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         &#34;&#34;&#34;
-        for package in self.list_all():
+        all_packages = self.list_all()
+        for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f&#34;Configuring package {package}&#34;)
                 self.install(self.get(package))
@@ -686,7 +692,8 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        for package_name in self.packages.list_all():
+        server_packages = self.packages.list_all()
+        for package_name in server_packages:
             package = self.packages.get(package_name)
             package.stop()
         self.nginx.stop()
@@ -1125,6 +1132,10 @@ def default_config(self):
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def preinstall(self):
+        if self.module and hasattr(self.module, &#34;preinstall&#34;):
+            self.module.preinstall()
+
     def install(self, **kwargs):
         if self.module and hasattr(self.module, &#34;install&#34;):
             self.module.install(**kwargs)
@@ -1282,6 +1293,18 @@ def static_dirs(self):
 <summary>Source code</summary>
 <pre><code class="python">def load_config(self):
     return toml.load(j.sals.fs.join_paths(self.path, &#34;package.toml&#34;))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.preinstall"><code class="name flex">
+<span>def <span class="ident">preinstall</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def preinstall(self):
+    if self.module and hasattr(self.module, &#34;preinstall&#34;):
+        self.module.preinstall()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.resolve_staticdir_location"><code class="name flex">
@@ -1460,7 +1483,7 @@ print(p.name, p.age)
         return all_packages
 
     def list_all(self):
-        return self.packages.keys()
+        return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
         # TODO: Check if package already exists
@@ -1510,7 +1533,6 @@ print(p.name, p.age)
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
-
         self.save()
 
         # Return updated package info
@@ -1524,13 +1546,15 @@ print(p.name, p.age)
             raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
 
         # remove bottle servers
-        for bottle_server in list(self.threebot.rack._servers):
+        rack_servers = list(self.threebot.rack._servers)
+        for bottle_server in rack_servers:
             if bottle_server.startswith(f&#34;{package_name}_&#34;):
                 self.threebot.rack.remove(bottle_server)
 
         if self.threebot.started:
             # unregister gedis actors
-            for actor in self.threebot.gedis._loaded_actors.keys():
+            gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+            for actor in gedis_actors:
                 if actor.startswith(f&#34;{package_name}_&#34;):
                     self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -1562,7 +1586,7 @@ print(p.name, p.age)
             [dict]: [package info]
         &#34;&#34;&#34;
         sys.path.append(package.path + &#34;/../&#34;)  # TODO to be changed
-        package.install()
+        package.preinstall()
         for static_dir in package.static_dirs:
             path = package.resolve_staticdir_location(static_dir)
             if not j.sals.fs.exists(path):
@@ -1585,7 +1609,6 @@ print(p.name, p.age)
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
-
         # start servers
         self.threebot.rack.start()
 
@@ -1594,6 +1617,7 @@ print(p.name, p.age)
 
         # execute package start method
         package.start()
+        self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -1615,7 +1639,8 @@ print(p.name, p.age)
         This method shall not be called directly from the shell,
         it must be called only from the code on the running Gedis server
         &#34;&#34;&#34;
-        for package in self.list_all():
+        all_packages = self.list_all()
+        for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f&#34;Configuring package {package}&#34;)
                 self.install(self.get(package))</code></pre>
@@ -1722,7 +1747,6 @@ def threebot(self):
     if self.threebot.started:
         self.install(package)
         self.threebot.nginx.reload()
-
     self.save()
 
     # Return updated package info
@@ -1744,13 +1768,15 @@ def threebot(self):
         raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
 
     # remove bottle servers
-    for bottle_server in list(self.threebot.rack._servers):
+    rack_servers = list(self.threebot.rack._servers)
+    for bottle_server in rack_servers:
         if bottle_server.startswith(f&#34;{package_name}_&#34;):
             self.threebot.rack.remove(bottle_server)
 
     if self.threebot.started:
         # unregister gedis actors
-        for actor in self.threebot.gedis._loaded_actors.keys():
+        gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
+        for actor in gedis_actors:
             if actor.startswith(f&#34;{package_name}_&#34;):
                 self.threebot.gedis._system_actor.unregister_actor(actor)
 
@@ -1857,7 +1883,7 @@ def threebot(self):
         [dict]: [package info]
     &#34;&#34;&#34;
     sys.path.append(package.path + &#34;/../&#34;)  # TODO to be changed
-    package.install()
+    package.preinstall()
     for static_dir in package.static_dirs:
         path = package.resolve_staticdir_location(static_dir)
         if not j.sals.fs.exists(path):
@@ -1880,7 +1906,6 @@ def threebot(self):
     # add chatflows actors
     if package.chats_dir:
         self.threebot.chatbot.load(package.chats_dir)
-
     # start servers
     self.threebot.rack.start()
 
@@ -1889,6 +1914,7 @@ def threebot(self):
 
     # execute package start method
     package.start()
+    self.threebot.gedis_http.client.reload()
     self.threebot.nginx.reload()</code></pre>
 </details>
 </dd>
@@ -1900,7 +1926,7 @@ def threebot(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def list_all(self):
-    return self.packages.keys()</code></pre>
+    return list(self.packages.keys())</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.PackageManager.reload"><code class="name flex">
@@ -2124,7 +2150,8 @@ print(p.name, p.age)
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        for package_name in self.packages.list_all():
+        server_packages = self.packages.list_all()
+        for package_name in server_packages:
             package = self.packages.get(package_name)
             package.stop()
         self.nginx.stop()
@@ -2400,7 +2427,8 @@ def started(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def stop(self):
-    for package_name in self.packages.list_all():
+    server_packages = self.packages.list_all()
+    for package_name in server_packages:
         package = self.packages.get(package_name)
         package.stop()
     self.nginx.stop()
@@ -2459,6 +2487,7 @@ def started(self):
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.install" href="#jumpscale.servers.threebot.threebot.Package.install">install</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.load_config" href="#jumpscale.servers.threebot.threebot.Package.load_config">load_config</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.module" href="#jumpscale.servers.threebot.threebot.Package.module">module</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.preinstall" href="#jumpscale.servers.threebot.threebot.Package.preinstall">preinstall</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.resolve_staticdir_location" href="#jumpscale.servers.threebot.threebot.Package.resolve_staticdir_location">resolve_staticdir_location</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.restart" href="#jumpscale.servers.threebot.threebot.Package.restart">restart</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.start" href="#jumpscale.servers.threebot.threebot.Package.start">start</a></code></li>

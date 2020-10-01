@@ -31,7 +31,8 @@ from nacl.public import Box
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
-MARKETPLACE_URL = os.environ.get(&#34;MARKETPLACE_URL&#34;, &#34;https://deploy3bot.grid.tf/&#34;)
+MARKETPLACE_URL = os.environ.get(&#34;MARKETPLACE_URL&#34;, &#34;https://deploy3bot.testnet.grid.tf/&#34;)
+BACKUP_TOKEN = os.environ.get(&#34;BACKUP_TOKEN&#34;, &#34;&#34;)
 CREATE_USER_ENDPOINT = &#34;threebot_deployer/actors/backup/init&#34;
 PUBLIC_KEY_ENDPOINT = &#34;threebot_deployer/actors/backup/public_key&#34;
 REPO_NAMES = [&#34;config_backup_1&#34;, &#34;config_backup_2&#34;]
@@ -59,7 +60,7 @@ class Backup(BaseActor):
         priv_key = j.core.identity.me.nacl.private_key
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new}
+        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new, &#34;token&#34;: BACKUP_TOKEN}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
@@ -225,7 +226,7 @@ Actor = Backup</code></pre>
         priv_key = j.core.identity.me.nacl.private_key
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new}
+        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new, &#34;token&#34;: BACKUP_TOKEN}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
@@ -476,7 +477,7 @@ def init(self, password, new=True) -&gt; str:
     priv_key = j.core.identity.me.nacl.private_key
     box = Box(priv_key, mrkt_pub_key)
     password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-    data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new}
+    data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new, &#34;token&#34;: BACKUP_TOKEN}
     url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
     response = requests.post(url, json=data, headers=headers)
     if response.status_code != 200:
@@ -603,7 +604,7 @@ def snapshots(self, tags=None) -&gt; str:
         priv_key = j.core.identity.me.nacl.private_key
         box = Box(priv_key, mrkt_pub_key)
         password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new}
+        data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new, &#34;token&#34;: BACKUP_TOKEN}
         url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
         response = requests.post(url, json=data, headers=headers)
         if response.status_code != 200:
@@ -854,7 +855,7 @@ def init(self, password, new=True) -&gt; str:
     priv_key = j.core.identity.me.nacl.private_key
     box = Box(priv_key, mrkt_pub_key)
     password_encrypted = box.encrypt(password.encode(), encoder=nacl.encoding.Base64Encoder).decode()
-    data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new}
+    data = {&#34;threebot_name&#34;: tname, &#34;passwd&#34;: password_encrypted, &#34;new&#34;: new, &#34;token&#34;: BACKUP_TOKEN}
     url = os.path.join(MARKETPLACE_URL, CREATE_USER_ENDPOINT)
     response = requests.post(url, json=data, headers=headers)
     if response.status_code != 200:

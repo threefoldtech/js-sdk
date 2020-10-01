@@ -22,19 +22,23 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.clients.explorer.models import NextAction, WorkloadType
+<pre><code class="python">import math
+import random
+
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
-from decimal import Decimal
+from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
+
 from .models import UserPool
-import random
-import math
 
 
 class MarketPlaceDeployer(ChatflowDeployer):
+
+    WALLET_NAME = &#34;demos_wallet&#34;
+
     def list_user_pool_ids(self, username):
         user_pools = self.list_user_pools(username)
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -49,19 +53,22 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return result
 
     def list_networks(self, username, next_action=NextAction.DEPLOY, sync=True):
-        user_pool_ids = self.list_user_pool_ids(username)
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
         for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
-            if pool_id in user_pool_ids:
-                for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if metadata.get(&#34;owner&#34;) == username:
                     networks[workload.name] = workload
         all_workloads = []
-        for pools_workloads in self.workloads[next_action].values():
+        workload_values = self.workloads[next_action].values()
+        for pools_workloads in workload_values:
             for pool_id, workload_list in pools_workloads.items():
-                if pool_id in user_pool_ids:
-                    all_workloads += workload_list
+                for workload in workload_list:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    if metadata.get(&#34;owner&#34;) == username:
+                        all_workloads.append(workload)
         network_views = {}
         if all_workloads:
             for network_name in networks:
@@ -78,28 +85,25 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return pool_info
 
     def show_payment(self, pool, bot):
-        escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
-        escrow_address = escrow_info.address
-        escrow_asset = escrow_info.asset
-        total_amount = escrow_info.amount
-        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-        thecurrency = escrow_asset.split(&#34;:&#34;)[0]
-        total_amount = &#34;{0:f}&#34;.format(total_amount_dec)
-        qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
-        msg_text = f&#34;&#34;&#34;
-        &lt;h3&gt;Make a Payment&lt;/h3&gt;
+        resv_id_msg_text = f&#34;&#34;&#34;&lt;h3&gt;Make a Payment&lt;/h3&gt;
         Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
-
-        &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
-        &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n
-        &lt;h4&gt; Memo Text (Reservation Id): &lt;/h4&gt;  p-{resv_id} \n
-        &lt;h4&gt; Total Amount: &lt;/h4&gt; {total_amount} {thecurrency} \n
-
-        &lt;h5&gt;Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.&lt;/h5&gt;
         &#34;&#34;&#34;
+        self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
+        msg_text = resv_id_msg_text + self.msg_payment_info
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
+
+    def pay_for_pool(self, pool):
+        info = self.get_payment_info(pool)
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        wallet = j.clients.stellar.get(name=WALLET_NAME)
+        wallet.transfer(
+            destination_address=info[&#34;escrow_address&#34;],
+            amount=info[&#34;total_amount_dec&#34;],
+            asset=info[&#34;escrow_asset&#34;],
+            memo_text=f&#34;p-{info[&#39;resv_id&#39;]}&#34;,
+        )
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
@@ -272,14 +276,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = cu * expiration
-        su = su * expiration
-        pool = j.sals.zos.pools.get(pool_id)
-        old_cu, old_su = pool.cus, pool.sus
-        cu = math.ceil(cu - old_cu)
-        su = math.ceil(su - old_su)
+        cu = math.ceil(cu * expiration)
+        su = math.ceil(su * expiration)
+
+        # guard in case of negative results
         cu = max(cu, 0)
         su = max(su, 0)
+
         if not isinstance(currency, list):
             currency = [currency]
         if cu &gt; 0 or su &gt; 0:
@@ -292,13 +295,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        qr_code = self.show_payment(pool_info, bot)
         pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f&#34;pool_{username.replace(&#39;.3bot&#39;, &#39;&#39;)}_{pool_info.reservation_id}&#34;)
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
-        return pool_info, qr_code
+        return pool_info
 
     def get_free_pools(self, username, workload_types=None):
         user_pools = self.list_user_pools(username)
@@ -313,7 +315,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     break
             if not valid:
                 continue
-            if pool.cus == 0 and pool.sus == 0:
+            if (pool.cus == 0 and pool.sus == 0) or pool.empty_at &lt; j.data.time.now().timestamp:
                 continue
             free_pools.append(pool)
         return free_pools
@@ -363,13 +365,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
-        pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
-        if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+    def init_new_user_network(self, bot, username, pool_id):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
+            1, pool_ids=[pool_id], ip_version=&#34;IPv4&#34;
         )[0]
 
         result = self.deploy_network(
@@ -377,22 +375,40 @@ class MarketPlaceDeployer(ChatflowDeployer):
             access_node=access_node,
             ip_range=&#34;10.100.0.0/16&#34;,
             ip_version=&#34;IPv4&#34;,
-            pool_id=pool_info.reservation_id,
+            pool_id=pool_id,
             owner=username,
         )
         for wid in result[&#34;ids&#34;]:
-            success = self.wait_workload(wid, bot=bot)
+            try:
+                success = self.wait_workload(wid, bot=bot)
+            except StopChatFlow as e:
+                for sol_wid in result[&#34;ids&#34;]:
+                    j.sals.zos.workloads.decomission(sol_wid)
+                raise e
             if not success:
                 for sol_wid in result[&#34;ids&#34;]:
-                    j.sals.zos.workloads.decomession(sol_wid)
-                raise DeploymentFailed(f&#34;Failed to deploy apps network in workload {wid}&#34;, wid=wid)
+                    j.sals.zos.workloads.decomission(sol_wid)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                    wid=wid,
+                )
         wgcfg = result[&#34;wg&#34;]
+        return wgcfg
+
+    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
+        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+        qr_code = self.show_payment(pool_info, bot)
+        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        if not result:
+            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+
+        wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None):
-        default = default or j.data.time.get().timestamp + 3900
+    def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None, pool_empty_at=None):
+        default = default or j.data.time.utcnow().timestamp + 3900
         min = min or 3600
-        timestamp_now = j.data.time.get().timestamp
+        timestamp_now = j.data.time.utcnow().timestamp
         min_message = f&#34;Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now&#34;
         self.expiration = bot.datetime_picker(
             &#34;Please enter the solution&#39;s expiration time&#34; if not msg else msg,
@@ -400,7 +416,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             min_time=[min, min_message],
             default=default,
         )
-        return self.expiration - j.data.time.get().timestamp
+        current_pool_expiration = pool_empty_at or j.data.time.utcnow().timestamp
+        return self.expiration - current_pool_expiration
 
 
 deployer = MarketPlaceDeployer()</code></pre>
@@ -423,6 +440,9 @@ deployer = MarketPlaceDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class MarketPlaceDeployer(ChatflowDeployer):
+
+    WALLET_NAME = &#34;demos_wallet&#34;
+
     def list_user_pool_ids(self, username):
         user_pools = self.list_user_pools(username)
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -437,19 +457,22 @@ deployer = MarketPlaceDeployer()</code></pre>
         return result
 
     def list_networks(self, username, next_action=NextAction.DEPLOY, sync=True):
-        user_pool_ids = self.list_user_pool_ids(username)
         if sync:
             self.load_user_workloads(next_action=next_action)
         networks = {}  # name: last child network resource
         for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
-            if pool_id in user_pool_ids:
-                for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if metadata.get(&#34;owner&#34;) == username:
                     networks[workload.name] = workload
         all_workloads = []
-        for pools_workloads in self.workloads[next_action].values():
+        workload_values = self.workloads[next_action].values()
+        for pools_workloads in workload_values:
             for pool_id, workload_list in pools_workloads.items():
-                if pool_id in user_pool_ids:
-                    all_workloads += workload_list
+                for workload in workload_list:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                    if metadata.get(&#34;owner&#34;) == username:
+                        all_workloads.append(workload)
         network_views = {}
         if all_workloads:
             for network_name in networks:
@@ -466,28 +489,25 @@ deployer = MarketPlaceDeployer()</code></pre>
         return pool_info
 
     def show_payment(self, pool, bot):
-        escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
-        escrow_address = escrow_info.address
-        escrow_asset = escrow_info.asset
-        total_amount = escrow_info.amount
-        total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-        thecurrency = escrow_asset.split(&#34;:&#34;)[0]
-        total_amount = &#34;{0:f}&#34;.format(total_amount_dec)
-        qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
-        msg_text = f&#34;&#34;&#34;
-        &lt;h3&gt;Make a Payment&lt;/h3&gt;
+        resv_id_msg_text = f&#34;&#34;&#34;&lt;h3&gt;Make a Payment&lt;/h3&gt;
         Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
-
-        &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
-        &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n
-        &lt;h4&gt; Memo Text (Reservation Id): &lt;/h4&gt;  p-{resv_id} \n
-        &lt;h4&gt; Total Amount: &lt;/h4&gt; {total_amount} {thecurrency} \n
-
-        &lt;h5&gt;Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.&lt;/h5&gt;
         &#34;&#34;&#34;
+        self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
+        msg_text = resv_id_msg_text + self.msg_payment_info
         bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
         return qr_code
+
+    def pay_for_pool(self, pool):
+        info = self.get_payment_info(pool)
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        wallet = j.clients.stellar.get(name=WALLET_NAME)
+        wallet.transfer(
+            destination_address=info[&#34;escrow_address&#34;],
+            amount=info[&#34;total_amount_dec&#34;],
+            asset=info[&#34;escrow_asset&#34;],
+            memo_text=f&#34;p-{info[&#39;resv_id&#39;]}&#34;,
+        )
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
@@ -660,14 +680,13 @@ deployer = MarketPlaceDeployer()</code></pre>
 
     def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        cu = cu * expiration
-        su = su * expiration
-        pool = j.sals.zos.pools.get(pool_id)
-        old_cu, old_su = pool.cus, pool.sus
-        cu = math.ceil(cu - old_cu)
-        su = math.ceil(su - old_su)
+        cu = math.ceil(cu * expiration)
+        su = math.ceil(su * expiration)
+
+        # guard in case of negative results
         cu = max(cu, 0)
         su = max(su, 0)
+
         if not isinstance(currency, list):
             currency = [currency]
         if cu &gt; 0 or su &gt; 0:
@@ -680,13 +699,12 @@ deployer = MarketPlaceDeployer()</code></pre>
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-        qr_code = self.show_payment(pool_info, bot)
         pool_factory = StoredFactory(UserPool)
         user_pool = pool_factory.new(f&#34;pool_{username.replace(&#39;.3bot&#39;, &#39;&#39;)}_{pool_info.reservation_id}&#34;)
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
-        return pool_info, qr_code
+        return pool_info
 
     def get_free_pools(self, username, workload_types=None):
         user_pools = self.list_user_pools(username)
@@ -701,7 +719,7 @@ deployer = MarketPlaceDeployer()</code></pre>
                     break
             if not valid:
                 continue
-            if pool.cus == 0 and pool.sus == 0:
+            if (pool.cus == 0 and pool.sus == 0) or pool.empty_at &lt; j.data.time.now().timestamp:
                 continue
             free_pools.append(pool)
         return free_pools
@@ -751,13 +769,9 @@ deployer = MarketPlaceDeployer()</code></pre>
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
-        pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
-        if not result:
-            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+    def init_new_user_network(self, bot, username, pool_id):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-            1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
+            1, pool_ids=[pool_id], ip_version=&#34;IPv4&#34;
         )[0]
 
         result = self.deploy_network(
@@ -765,22 +779,40 @@ deployer = MarketPlaceDeployer()</code></pre>
             access_node=access_node,
             ip_range=&#34;10.100.0.0/16&#34;,
             ip_version=&#34;IPv4&#34;,
-            pool_id=pool_info.reservation_id,
+            pool_id=pool_id,
             owner=username,
         )
         for wid in result[&#34;ids&#34;]:
-            success = self.wait_workload(wid, bot=bot)
+            try:
+                success = self.wait_workload(wid, bot=bot)
+            except StopChatFlow as e:
+                for sol_wid in result[&#34;ids&#34;]:
+                    j.sals.zos.workloads.decomission(sol_wid)
+                raise e
             if not success:
                 for sol_wid in result[&#34;ids&#34;]:
-                    j.sals.zos.workloads.decomession(sol_wid)
-                raise DeploymentFailed(f&#34;Failed to deploy apps network in workload {wid}&#34;, wid=wid)
+                    j.sals.zos.workloads.decomission(sol_wid)
+                raise DeploymentFailed(
+                    f&#34;Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                    wid=wid,
+                )
         wgcfg = result[&#34;wg&#34;]
+        return wgcfg
+
+    def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
+        pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+        qr_code = self.show_payment(pool_info, bot)
+        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        if not result:
+            raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+
+        wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
         return pool_info, wgcfg
 
-    def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None):
-        default = default or j.data.time.get().timestamp + 3900
+    def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None, pool_empty_at=None):
+        default = default or j.data.time.utcnow().timestamp + 3900
         min = min or 3600
-        timestamp_now = j.data.time.get().timestamp
+        timestamp_now = j.data.time.utcnow().timestamp
         min_message = f&#34;Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now&#34;
         self.expiration = bot.datetime_picker(
             &#34;Please enter the solution&#39;s expiration time&#34; if not msg else msg,
@@ -788,25 +820,33 @@ deployer = MarketPlaceDeployer()</code></pre>
             min_time=[min, min_message],
             default=default,
         )
-        return self.expiration - j.data.time.get().timestamp</code></pre>
+        current_pool_expiration = pool_empty_at or j.data.time.utcnow().timestamp
+        return self.expiration - current_pool_expiration</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer">ChatflowDeployer</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.WALLET_NAME"><code class="name">var <span class="ident">WALLET_NAME</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.ask_expiration"><code class="name flex">
-<span>def <span class="ident">ask_expiration</span></span>(<span>self, bot, default=None, msg=&#39;&#39;, min=None)</span>
+<span>def <span class="ident">ask_expiration</span></span>(<span>self, bot, default=None, msg=&#39;&#39;, min=None, pool_empty_at=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None):
-    default = default or j.data.time.get().timestamp + 3900
+<pre><code class="python">def ask_expiration(self, bot, default=None, msg=&#34;&#34;, min=None, pool_empty_at=None):
+    default = default or j.data.time.utcnow().timestamp + 3900
     min = min or 3600
-    timestamp_now = j.data.time.get().timestamp
+    timestamp_now = j.data.time.utcnow().timestamp
     min_message = f&#34;Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now&#34;
     self.expiration = bot.datetime_picker(
         &#34;Please enter the solution&#39;s expiration time&#34; if not msg else msg,
@@ -814,7 +854,8 @@ deployer = MarketPlaceDeployer()</code></pre>
         min_time=[min, min_message],
         default=default,
     )
-    return self.expiration - j.data.time.get().timestamp</code></pre>
+    current_pool_expiration = pool_empty_at or j.data.time.utcnow().timestamp
+    return self.expiration - current_pool_expiration</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.create_pool"><code class="name flex">
@@ -844,13 +885,12 @@ deployer = MarketPlaceDeployer()</code></pre>
 <pre><code class="python">def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
     cu, su = self.calculate_capacity_units(**resources)
     pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
-    qr_code = self.show_payment(pool_info, bot)
     pool_factory = StoredFactory(UserPool)
     user_pool = pool_factory.new(f&#34;pool_{username.replace(&#39;.3bot&#39;, &#39;&#39;)}_{pool_info.reservation_id}&#34;)
     user_pool.owner = username
     user_pool.pool_id = pool_info.reservation_id
     user_pool.save()
-    return pool_info, qr_code</code></pre>
+    return pool_info</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.extend_solution_pool"><code class="name flex">
@@ -862,14 +902,13 @@ deployer = MarketPlaceDeployer()</code></pre>
 <summary>Source code</summary>
 <pre><code class="python">def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
     cu, su = self.calculate_capacity_units(**resources)
-    cu = cu * expiration
-    su = su * expiration
-    pool = j.sals.zos.pools.get(pool_id)
-    old_cu, old_su = pool.cus, pool.sus
-    cu = math.ceil(cu - old_cu)
-    su = math.ceil(su - old_su)
+    cu = math.ceil(cu * expiration)
+    su = math.ceil(su * expiration)
+
+    # guard in case of negative results
     cu = max(cu, 0)
     su = max(su, 0)
+
     if not isinstance(currency, list):
         currency = [currency]
     if cu &gt; 0 or su &gt; 0:
@@ -953,7 +992,7 @@ deployer = MarketPlaceDeployer()</code></pre>
                 break
         if not valid:
             continue
-        if pool.cus == 0 and pool.sus == 0:
+        if (pool.cus == 0 and pool.sus == 0) or pool.empty_at &lt; j.data.time.now().timestamp:
             continue
         free_pools.append(pool)
     return free_pools</code></pre>
@@ -967,12 +1006,26 @@ deployer = MarketPlaceDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
-    pool_info, qr_code = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+    pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
+    qr_code = self.show_payment(pool_info, bot)
     result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
     if not result:
         raise StopChatFlow(f&#34;Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}&#34;)
+
+    wgcfg = self.init_new_user_network(bot, username, pool_info.reservation_id)
+    return pool_info, wgcfg</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.init_new_user_network"><code class="name flex">
+<span>def <span class="ident">init_new_user_network</span></span>(<span>self, bot, username, pool_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def init_new_user_network(self, bot, username, pool_id):
     access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-        1, pool_ids=[pool_info.reservation_id], ip_version=&#34;IPv4&#34;
+        1, pool_ids=[pool_id], ip_version=&#34;IPv4&#34;
     )[0]
 
     result = self.deploy_network(
@@ -980,17 +1033,25 @@ deployer = MarketPlaceDeployer()</code></pre>
         access_node=access_node,
         ip_range=&#34;10.100.0.0/16&#34;,
         ip_version=&#34;IPv4&#34;,
-        pool_id=pool_info.reservation_id,
+        pool_id=pool_id,
         owner=username,
     )
     for wid in result[&#34;ids&#34;]:
-        success = self.wait_workload(wid, bot=bot)
+        try:
+            success = self.wait_workload(wid, bot=bot)
+        except StopChatFlow as e:
+            for sol_wid in result[&#34;ids&#34;]:
+                j.sals.zos.workloads.decomission(sol_wid)
+            raise e
         if not success:
             for sol_wid in result[&#34;ids&#34;]:
-                j.sals.zos.workloads.decomession(sol_wid)
-            raise DeploymentFailed(f&#34;Failed to deploy apps network in workload {wid}&#34;, wid=wid)
+                j.sals.zos.workloads.decomission(sol_wid)
+            raise DeploymentFailed(
+                f&#34;Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                wid=wid,
+            )
     wgcfg = result[&#34;wg&#34;]
-    return pool_info, wgcfg</code></pre>
+    return wgcfg</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_networks"><code class="name flex">
@@ -1001,19 +1062,22 @@ deployer = MarketPlaceDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def list_networks(self, username, next_action=NextAction.DEPLOY, sync=True):
-    user_pool_ids = self.list_user_pool_ids(username)
     if sync:
         self.load_user_workloads(next_action=next_action)
     networks = {}  # name: last child network resource
     for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
-        if pool_id in user_pool_ids:
-            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+        for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
+            metadata = j.data.serializers.json.loads(workload.info.metadata)
+            if metadata.get(&#34;owner&#34;) == username:
                 networks[workload.name] = workload
     all_workloads = []
-    for pools_workloads in self.workloads[next_action].values():
+    workload_values = self.workloads[next_action].values()
+    for pools_workloads in workload_values:
         for pool_id, workload_list in pools_workloads.items():
-            if pool_id in user_pool_ids:
-                all_workloads += workload_list
+            for workload in workload_list:
+                metadata = j.data.serializers.json.loads(workload.info.metadata)
+                if metadata.get(&#34;owner&#34;) == username:
+                    all_workloads.append(workload)
     network_views = {}
     if all_workloads:
         for network_name in networks:
@@ -1067,6 +1131,25 @@ deployer = MarketPlaceDeployer()</code></pre>
     user_pool_ids = [p.pool_id for p in user_pools]
     result = [p for p in all_pools if p.pool_id in user_pool_ids]
     return result</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.pay_for_pool"><code class="name flex">
+<span>def <span class="ident">pay_for_pool</span></span>(<span>self, pool)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def pay_for_pool(self, pool):
+    info = self.get_payment_info(pool)
+    WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+    wallet = j.clients.stellar.get(name=WALLET_NAME)
+    wallet.transfer(
+        destination_address=info[&#34;escrow_address&#34;],
+        amount=info[&#34;total_amount_dec&#34;],
+        asset=info[&#34;escrow_asset&#34;],
+        memo_text=f&#34;p-{info[&#39;resv_id&#39;]}&#34;,
+    )</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.select_network"><code class="name flex">
@@ -1127,26 +1210,12 @@ deployer = MarketPlaceDeployer()</code></pre>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def show_payment(self, pool, bot):
-    escrow_info = pool.escrow_information
     resv_id = pool.reservation_id
-    escrow_address = escrow_info.address
-    escrow_asset = escrow_info.asset
-    total_amount = escrow_info.amount
-    total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-    thecurrency = escrow_asset.split(&#34;:&#34;)[0]
-    total_amount = &#34;{0:f}&#34;.format(total_amount_dec)
-    qr_code = f&#34;{thecurrency}:{escrow_address}?amount={total_amount}&amp;message=p-{resv_id}&amp;sender=me&#34;
-    msg_text = f&#34;&#34;&#34;
-    &lt;h3&gt;Make a Payment&lt;/h3&gt;
+    resv_id_msg_text = f&#34;&#34;&#34;&lt;h3&gt;Make a Payment&lt;/h3&gt;
     Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to put p-{resv_id} as memo_text value.
-
-    &lt;h4&gt; Wallet Address: &lt;/h4&gt;  {escrow_address} \n
-    &lt;h4&gt; Currency: &lt;/h4&gt;  {thecurrency} \n
-    &lt;h4&gt; Memo Text (Reservation Id): &lt;/h4&gt;  p-{resv_id} \n
-    &lt;h4&gt; Total Amount: &lt;/h4&gt; {total_amount} {thecurrency} \n
-
-    &lt;h5&gt;Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 FreeTFT will automatically occurs per transaction.&lt;/h5&gt;
     &#34;&#34;&#34;
+    self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
+    msg_text = resv_id_msg_text + self.msg_payment_info
     bot.qrcode_show(data=qr_code, msg=msg_text, scale=4, update=True, html=True)
     return qr_code</code></pre>
 </details>
@@ -1159,7 +1228,6 @@ deployer = MarketPlaceDeployer()</code></pre>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_distribution" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_distribution">ask_multi_pool_distribution</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_placement" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.ask_multi_pool_placement">ask_multi_pool_placement</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.calculate_capacity_units" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.calculate_capacity_units">calculate_capacity_units</a></code></li>
-<li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.check_pool_capacity" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.check_pool_capacity">check_pool_capacity</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.create_proxy" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.create_proxy">create_proxy</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.create_subdomain" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.create_subdomain">create_subdomain</a></code></li>
 <li><code><a title="jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.deploy_container" href="../reservation_chatflow/deployer.html#jumpscale.sals.reservation_chatflow.deployer.ChatflowDeployer.deploy_container">deploy_container</a></code></li>
@@ -1192,6 +1260,7 @@ deployer = MarketPlaceDeployer()</code></pre>
 <li>
 <h4><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer">MarketPlaceDeployer</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.WALLET_NAME" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.WALLET_NAME">WALLET_NAME</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.ask_expiration" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.ask_expiration">ask_expiration</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.create_pool" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.create_pool">create_pool</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.create_solution_pool" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.create_solution_pool">create_solution_pool</a></code></li>
@@ -1199,10 +1268,12 @@ deployer = MarketPlaceDeployer()</code></pre>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.get_best_fit_pool" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.get_best_fit_pool">get_best_fit_pool</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.get_free_pools" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.get_free_pools">get_free_pools</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.init_new_user" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.init_new_user">init_new_user</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.init_new_user_network" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.init_new_user_network">init_new_user_network</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_networks" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_networks">list_networks</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_pools" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_pools">list_pools</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_user_pool_ids" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_user_pool_ids">list_user_pool_ids</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_user_pools" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.list_user_pools">list_user_pools</a></code></li>
+<li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.pay_for_pool" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.pay_for_pool">pay_for_pool</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.select_network" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.select_network">select_network</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.select_pool" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.select_pool">select_pool</a></code></li>
 <li><code><a title="jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.show_payment" href="#jumpscale.sals.marketplace.deployer.MarketPlaceDeployer.show_payment">show_payment</a></code></li>

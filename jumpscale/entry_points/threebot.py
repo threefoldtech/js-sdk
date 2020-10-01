@@ -210,15 +210,45 @@ def restart(ctx, identity=None, background=False, local=False, development=False
     )
 
 
+@click.command()
+@click.option("--all", default=False, is_flag=True, help="delete all of jumpscale config")
+def clean(all=False):
+    """deletes previous configurations of jumpscale
+    """
+    config_root = j.core.config.config_root
+
+    if all:
+        try:
+            print("cleaning alerts...")
+            try:
+                j.tools.alerthandler.reset()
+            except Exception as e:
+                print("failed to clean up alerts")
+                print(f"exception was {e} for debugging")
+
+            answer = j.tools.console.ask_yes_no(f"Do you want to remove {config_root} ? ")
+            if answer=="y":
+                j.sals.fs.rmtree(config_root)
+                print("Previous configuration is deleted.")
+
+        except Exception as e:
+            print(f"couldn't remove {config_root}")
+            print(f"exception for debugging {e}")
+
+
+
 @click.group()
 def cli():
     pass
+
+
 
 
 cli.add_command(start)
 cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
+cli.add_command(clean)
 
 
 if __name__ == "__main__":

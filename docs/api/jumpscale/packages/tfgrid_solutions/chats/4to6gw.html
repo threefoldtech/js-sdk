@@ -23,6 +23,7 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">import uuid
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -30,16 +31,14 @@ from jumpscale.sals.reservation_chatflow import deployer
 
 
 class FourToSixGateway(GedisChatBot):
-    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
+    steps = [&#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
-
-    @chatflow_step(title=&#34;Pool&#34;)
-    def select_pool(self):
-        self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
 
     @chatflow_step(title=&#34;Gateway&#34;)
     def gateway_start(self):
+        deployer.chatflow_pools_check()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
@@ -57,6 +56,7 @@ class FourToSixGateway(GedisChatBot):
     def wg_reservation(self):
         if not self.publickey:
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
+            self.privatekey = self.privatekey.decode()
 
         self.resv_id = deployer.create_ipv6_gateway(
             self.gateway_id,
@@ -70,46 +70,37 @@ class FourToSixGateway(GedisChatBot):
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
-        res = &#34;&#34;&#34;
-## Use the following template to configure your wireguard connection. This will give you access to your network.
-\n&lt;br/&gt;\n
-Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed
-Click next
-to download your configuration
-        &#34;&#34;&#34;
-        self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
-    def wg_config(self):
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True, final_step=True)
+    def success(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
-[Interface]
-Address = {{cfg.ips[0]}}
-PrivateKey = {{privatekey}}
-{% for peer in cfg.peers %}
-[Peer]
-PublicKey = {{peer.public_key}}
-AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
-{% if peer.endpoint -%}
-Endpoint = {{peer.endpoint}}
-{% endif %}
-{% endfor %}
+        [Interface]
+        Address = {{cfg.ips[0]}}
+        PrivateKey = {{privatekey}}
+        {% for peer in cfg.peers %}
+        [Peer]
+        PublicKey = {{peer.public_key}}
+        AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
+        {% if peer.endpoint -%}
+        Endpoint = {{peer.endpoint}}
+        {% endif %}
+        {% endfor %}
             &#34;&#34;&#34;
-        config = j.tools.jinja2.render_template(
-            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+        self.wgconf = j.tools.jinja2.render_template(
+            template_text=dedent(wgconfigtemplate), cfg=cfg, privatekey=self.privatekey
         )
-        config = config
         self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
-    def success(self):
-        res = f&#34;&#34;&#34;
-# In order to connect to the 4 to 6 gateway execute this command:
-\n&lt;br/&gt;\n
-## ```wg-quick up ./{self.filename}```
-                    &#34;&#34;&#34;
-        self.md_show(res, md=True)
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
+        &#34;&#34;&#34;
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)
 
 
 chat = FourToSixGateway</code></pre>
@@ -137,16 +128,14 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class FourToSixGateway(GedisChatBot):
-    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
+    steps = [&#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
-
-    @chatflow_step(title=&#34;Pool&#34;)
-    def select_pool(self):
-        self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
 
     @chatflow_step(title=&#34;Gateway&#34;)
     def gateway_start(self):
+        deployer.chatflow_pools_check()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
@@ -164,6 +153,7 @@ any extra kwargs that is passed while creating the session
     def wg_reservation(self):
         if not self.publickey:
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
+            self.privatekey = self.privatekey.decode()
 
         self.resv_id = deployer.create_ipv6_gateway(
             self.gateway_id,
@@ -177,46 +167,37 @@ any extra kwargs that is passed while creating the session
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
-        res = &#34;&#34;&#34;
-## Use the following template to configure your wireguard connection. This will give you access to your network.
-\n&lt;br/&gt;\n
-Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed
-Click next
-to download your configuration
-        &#34;&#34;&#34;
-        self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
-    def wg_config(self):
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True, final_step=True)
+    def success(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
-[Interface]
-Address = {{cfg.ips[0]}}
-PrivateKey = {{privatekey}}
-{% for peer in cfg.peers %}
-[Peer]
-PublicKey = {{peer.public_key}}
-AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
-{% if peer.endpoint -%}
-Endpoint = {{peer.endpoint}}
-{% endif %}
-{% endfor %}
+        [Interface]
+        Address = {{cfg.ips[0]}}
+        PrivateKey = {{privatekey}}
+        {% for peer in cfg.peers %}
+        [Peer]
+        PublicKey = {{peer.public_key}}
+        AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
+        {% if peer.endpoint -%}
+        Endpoint = {{peer.endpoint}}
+        {% endif %}
+        {% endfor %}
             &#34;&#34;&#34;
-        config = j.tools.jinja2.render_template(
-            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+        self.wgconf = j.tools.jinja2.render_template(
+            template_text=dedent(wgconfigtemplate), cfg=cfg, privatekey=self.privatekey
         )
-        config = config
         self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
-    def success(self):
-        res = f&#34;&#34;&#34;
-# In order to connect to the 4 to 6 gateway execute this command:
-\n&lt;br/&gt;\n
-## ```wg-quick up ./{self.filename}```
-                    &#34;&#34;&#34;
-        self.md_show(res, md=True)</code></pre>
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
+        &#34;&#34;&#34;
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -248,34 +229,8 @@ Endpoint = {{peer.endpoint}}
     return func(*args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool"><code class="name flex">
-<span>def <span class="ident">select_pool</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success"><code class="name flex">
 <span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config"><code class="name flex">
-<span>def <span class="ident">wg_config</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -328,16 +283,14 @@ any extra kwargs that is passed while creating the session
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class FourToSixGateway(GedisChatBot):
-    steps = [&#34;select_pool&#34;, &#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;wg_config&#34;, &#34;success&#34;]
+    steps = [&#34;gateway_start&#34;, &#34;wireguard_public_get&#34;, &#34;wg_reservation&#34;, &#34;success&#34;]
     title = &#34;4to6 GW&#34;
-
-    @chatflow_step(title=&#34;Pool&#34;)
-    def select_pool(self):
-        self.solution_id = uuid.uuid4().hex
-        self.solution_metadata = {}
 
     @chatflow_step(title=&#34;Gateway&#34;)
     def gateway_start(self):
+        deployer.chatflow_pools_check()
+        self.solution_id = uuid.uuid4().hex
+        self.solution_metadata = {}
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
         self.gateway_id = self.gateway.node_id
@@ -355,6 +308,7 @@ any extra kwargs that is passed while creating the session
     def wg_reservation(self):
         if not self.publickey:
             self.privatekey, self.publickey = j.tools.wireguard.generate_key_pair()
+            self.privatekey = self.privatekey.decode()
 
         self.resv_id = deployer.create_ipv6_gateway(
             self.gateway_id,
@@ -368,46 +322,37 @@ any extra kwargs that is passed while creating the session
         if not success:
             raise StopChatFlow(f&#34;Failed to deploy workload {self.resv_id}&#34;)
         self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
-        res = &#34;&#34;&#34;
-## Use the following template to configure your wireguard connection. This will give you access to your network.
-\n&lt;br/&gt;\n
-Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed
-Click next
-to download your configuration
-        &#34;&#34;&#34;
-        self.md_show(res)
 
-    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True)
-    def wg_config(self):
+    @chatflow_step(title=&#34;Wireguard Configuration&#34;, disable_previous=True, final_step=True)
+    def success(self):
         cfg = j.data.serializers.json.loads(self.reservation_result.data_json)
         wgconfigtemplate = &#34;&#34;&#34;\
-[Interface]
-Address = {{cfg.ips[0]}}
-PrivateKey = {{privatekey}}
-{% for peer in cfg.peers %}
-[Peer]
-PublicKey = {{peer.public_key}}
-AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
-{% if peer.endpoint -%}
-Endpoint = {{peer.endpoint}}
-{% endif %}
-{% endfor %}
+        [Interface]
+        Address = {{cfg.ips[0]}}
+        PrivateKey = {{privatekey}}
+        {% for peer in cfg.peers %}
+        [Peer]
+        PublicKey = {{peer.public_key}}
+        AllowedIPs = {{&#34;,&#34;.join(peer.allowed_ips)}}
+        {% if peer.endpoint -%}
+        Endpoint = {{peer.endpoint}}
+        {% endif %}
+        {% endfor %}
             &#34;&#34;&#34;
-        config = j.tools.jinja2.render_template(
-            template_text=wgconfigtemplate, cfg=cfg, privatekey=self.privatekey.decode()
+        self.wgconf = j.tools.jinja2.render_template(
+            template_text=dedent(wgconfigtemplate), cfg=cfg, privatekey=self.privatekey
         )
-        config = config
         self.filename = &#34;wg-{}.conf&#34;.format(self.resv_id)
-        self.download_file(msg=f&#34;&lt;pre&gt;{config}&lt;/pre&gt;&#34;, data=config, filename=self.filename, html=True)
 
-    @chatflow_step(title=&#34;Success&#34;, final_step=True, disable_previous=True)
-    def success(self):
-        res = f&#34;&#34;&#34;
-# In order to connect to the 4 to 6 gateway execute this command:
-\n&lt;br/&gt;\n
-## ```wg-quick up ./{self.filename}```
-                    &#34;&#34;&#34;
-        self.md_show(res, md=True)</code></pre>
+        msg = f&#34;&#34;&#34;\
+        &lt;h3&gt; Use the following template to configure your wireguard connection. This will give you access to your network. &lt;/h3&gt;
+        &lt;h3&gt; Make sure you have &lt;a target=&#34;_blank&#34; href=&#34;https://www.wireguard.com/install/&#34;&gt;wireguard&lt;/a&gt; installed &lt;/h3&gt;
+        &lt;br /&gt;
+        &lt;p style=&#34;text-align:center&#34;&gt;{self.wgconf.replace(chr(10), &#34;&lt;br /&gt;&#34;)}&lt;/p&gt;
+        &lt;br /&gt;
+        &lt;h3&gt;In order to have the network active and accessible from your local/container machine, navigate to where the config is downloaded and start your connection using `wg-quick up &amp;lt;your_download_dir&amp;gt;/{self.filename}`&lt;/h3&gt;
+        &#34;&#34;&#34;
+        self.download_file(msg=dedent(msg), data=self.wgconf, filename=self.filename, html=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -439,34 +384,8 @@ Endpoint = {{peer.endpoint}}
     return func(*args, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool"><code class="name flex">
-<span>def <span class="ident">select_pool</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success"><code class="name flex">
 <span>def <span class="ident">success</span></span>(<span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wrapper(*args, **kwargs):
-    self_ = args[0]
-    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
-    return func(*args, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config"><code class="name flex">
-<span>def <span class="ident">wg_config</span></span>(<span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
@@ -553,11 +472,9 @@ Endpoint = {{peer.endpoint}}
 <h4><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start">gateway_start</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool">select_pool</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps">steps</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title">title</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config">wg_config</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation">wg_reservation</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wireguard_public_get" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wireguard_public_get">wireguard_public_get</a></code></li>
 </ul>
@@ -566,11 +483,9 @@ Endpoint = {{peer.endpoint}}
 <h4><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.gateway_start">gateway_start</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.select_pool">select_pool</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.steps">steps</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.success">success</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.title">title</a></code></li>
-<li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_config">wg_config</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wg_reservation">wg_reservation</a></code></li>
 <li><code><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wireguard_public_get" href="#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway.wireguard_public_get">wireguard_public_get</a></code></li>
 </ul>

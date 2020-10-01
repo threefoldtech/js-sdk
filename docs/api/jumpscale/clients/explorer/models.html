@@ -66,7 +66,6 @@ class Location(Base):
     def __str__(self):
         return &#34;,&#34;.join([x for x in [self.continent, self.country, self.city] if x])
 
-
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -80,6 +79,7 @@ class Farm(Base):
 
     def __str__(self):
         return &#34; - &#34;.join([x for x in [self.name, str(self.location)] if x])
+
 
 
 class WorkloadsAmount(Base):
@@ -271,7 +271,6 @@ class ContainerNetworkConnection(Base):
     network_id = fields.String(default=&#34;&#34;)
     ipaddress = fields.IPAddress()
     public_ip6 = fields.Boolean()
-    yggdrasil_ip = fields.Boolean()
 
 
 class ContainerLogsRedis(Base):
@@ -1537,8 +1536,7 @@ print(p.name, p.age)
 <pre><code class="python">class ContainerNetworkConnection(Base):
     network_id = fields.String(default=&#34;&#34;)
     ipaddress = fields.IPAddress()
-    public_ip6 = fields.Boolean()
-    yggdrasil_ip = fields.Boolean()</code></pre>
+    public_ip6 = fields.Boolean()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1598,31 +1596,6 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.explorer.models.ContainerNetworkConnection.public_ip6"><code class="name">var <span class="ident">public_ip6</span></code></dt>
-<dd>
-<section class="desc"><p>getter method this property</p>
-<p>will call <code>_get_value</code>, which would if the value is already defined
-and will get the default value if not</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>any</code></strong></dt>
-<dd>the field value</dd>
-</dl></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def getter(self):
-    &#34;&#34;&#34;
-    getter method this property
-
-    will call `_get_value`, which would if the value is already defined
-    and will get the default value if not
-
-    Returns:
-        any: the field value
-    &#34;&#34;&#34;
-    return self._get_value(name, field)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.clients.explorer.models.ContainerNetworkConnection.yggdrasil_ip"><code class="name">var <span class="ident">yggdrasil_ip</span></code></dt>
 <dd>
 <section class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
@@ -10363,7 +10336,6 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.clients.explorer.models.ContainerNetworkConnection.ipaddress" href="#jumpscale.clients.explorer.models.ContainerNetworkConnection.ipaddress">ipaddress</a></code></li>
 <li><code><a title="jumpscale.clients.explorer.models.ContainerNetworkConnection.network_id" href="#jumpscale.clients.explorer.models.ContainerNetworkConnection.network_id">network_id</a></code></li>
 <li><code><a title="jumpscale.clients.explorer.models.ContainerNetworkConnection.public_ip6" href="#jumpscale.clients.explorer.models.ContainerNetworkConnection.public_ip6">public_ip6</a></code></li>
-<li><code><a title="jumpscale.clients.explorer.models.ContainerNetworkConnection.yggdrasil_ip" href="#jumpscale.clients.explorer.models.ContainerNetworkConnection.yggdrasil_ip">yggdrasil_ip</a></code></li>
 </ul>
 </li>
 <li>

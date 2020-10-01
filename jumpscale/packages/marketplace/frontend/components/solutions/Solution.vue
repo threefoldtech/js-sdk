@@ -1,19 +1,18 @@
 <template>
   <div>
-    <base-component title="Solutions" icon="mdi-apps" :loading="loading">
+    <base-component title="Apps Menu" icon="mdi-menu-left" url="/" :loading="loading">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
             <v-avatar size="50px" class="mr-5" tile>
               <v-img v-if="solution.image" :src="solution.image"></v-img>
-              <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
             </v-avatar>
             <span>{{solution.name}}</span>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
                 <a
                   class="chatflowInfo"
-                  :href="`https://manual-testnet.threefold.io/#/${solution.type}`"
+                  :href="solution.helpLink"
                   target="blank"
                 >
                   <v-icon
@@ -93,10 +92,13 @@
 
 <script>
 module.exports = {
-  props: { type: String },
+  props: {
+    type: String,
+  },
+
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
-    "cancel-solution": httpVueLoader("./Delete.vue")
+    "cancel-solution": httpVueLoader("./Delete.vue"),
   },
   data() {
     return {
@@ -104,30 +106,32 @@ module.exports = {
       selected: null,
       dialogs: {
         info: false,
-        cancelSolution: false
+        cancelSolution: false,
       },
       headers: [
         { text: "Name", value: "Name" },
         { text: "URL", value: "domain" },
         { text: "Expiration", value: "expiration" },
-        { text: "Actions", value: "actions", sortable: false }
+        { text: "Actions", value: "actions", sortable: false },
       ],
       deployedSolutions: [],
-      solutions: [...Object.values(APPS)]
+      sections: SECTIONS,
     };
   },
   computed: {
     solution() {
-      return this.solutions.find(obj => {
-        return obj.type === this.type;
-      });
-    }
+      for (section in this.sections) {
+        if (Object.keys(this.sections[section].apps).includes(this.type)) {
+          return this.sections[section].apps[this.type];
+        }
+      }
+    },
   },
   methods: {
     open(solutionId) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId }
+        params: { topic: solutionId },
       });
     },
     restart(solutionId) {
@@ -148,17 +152,17 @@ module.exports = {
     getDeployedSolutions(solution_type) {
       this.$api.solutions
         .getDeployed(solution_type)
-        .then(response => {
+        .then((response) => {
           this.deployedSolutions = response.data.data;
         })
         .finally(() => {
           this.loading = false;
         });
-    }
+    },
   },
   mounted() {
     this.getDeployedSolutions(this.type);
-  }
+  },
 };
 </script>
 

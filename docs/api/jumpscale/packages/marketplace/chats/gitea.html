@@ -22,10 +22,12 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.sals.chatflows.chatflows import chatflow_step
+<pre><code class="python">import uuid
+from textwrap import dedent
+
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-import uuid
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class GiteaDeploy(MarketPlaceAppsChatflow):
@@ -34,8 +36,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     title = &#34;Gitea&#34;
     steps = [
         &#34;get_solution_name&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -79,7 +79,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         self.resv_id = deployer.deploy_container(
@@ -103,7 +103,9 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
@@ -125,7 +127,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
@@ -133,14 +135,14 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
-\n&lt;br /&gt;\n
-- After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-                &#34;&#34;&#34;
-        self.md_show(message, md=True)
+        # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+        &lt;br /&gt;\n
+
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+
+        - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
+        &#34;&#34;&#34;
+        self.md_show(dedent(message), md=True)
 
 
 chat = GiteaDeploy</code></pre>
@@ -173,8 +175,6 @@ any extra kwargs that is passed while creating the session
     title = &#34;Gitea&#34;
     steps = [
         &#34;get_solution_name&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -218,7 +218,7 @@ any extra kwargs that is passed while creating the session
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         self.resv_id = deployer.deploy_container(
@@ -242,7 +242,9 @@ any extra kwargs that is passed while creating the session
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
@@ -264,7 +266,7 @@ any extra kwargs that is passed while creating the session
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
@@ -272,14 +274,14 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
-\n&lt;br /&gt;\n
-- After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-                &#34;&#34;&#34;
-        self.md_show(message, md=True)</code></pre>
+        # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+        &lt;br /&gt;\n
+
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+
+        - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
+        &#34;&#34;&#34;
+        self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -358,8 +360,6 @@ any extra kwargs that is passed while creating the session
     title = &#34;Gitea&#34;
     steps = [
         &#34;get_solution_name&#34;,
-        &#34;solution_expiration&#34;,
-        &#34;payment_currency&#34;,
         &#34;infrastructure_setup&#34;,
         &#34;reservation&#34;,
         &#34;initializing&#34;,
@@ -403,7 +403,7 @@ any extra kwargs that is passed while creating the session
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}&#34;
+                f&#34;Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.&#34;
             )
 
         self.resv_id = deployer.deploy_container(
@@ -427,7 +427,9 @@ any extra kwargs that is passed while creating the session
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.resv_id])
             raise DeploymentFailed(
-                f&#34;Failed to deploy workload {self.resv_id}&#34;, solution_uuid=self.solution_id, wid=self.resv_id
+                f&#34;Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
             )
 
         self.reverse_proxy_id = deployer.expose_and_create_certificate(
@@ -449,7 +451,7 @@ any extra kwargs that is passed while creating the session
         if not success:
             solutions.cancel_solution(self.solution_metadata[&#34;owner&#34;], [self.reverse_proxy_id])
             raise DeploymentFailed(
-                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}&#34;,
+                f&#34;Failed to reserve TCP Router container workload {self.reverse_proxy_id}. The resources you paid for will be re-used in your upcoming deployments.&#34;,
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
@@ -457,14 +459,14 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-# Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
-\n&lt;br /&gt;\n
-- You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
-\n&lt;br /&gt;\n
-- After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
-\n&lt;br /&gt;\n
-                &#34;&#34;&#34;
-        self.md_show(message, md=True)</code></pre>
+        # Congratulations! Your own instance from {self.SOLUTION_TYPE} deployed successfully:
+        &lt;br /&gt;\n
+
+        - You can access it via the browser using: &lt;a href=&#34;https://{self.domain}&#34; target=&#34;_blank&#34;&gt;https://{self.domain}&lt;/a&gt;
+
+        - After installation you can access your admin account at &lt;a href=&#34;https://{self.domain}/user/admin&#34; target=&#34;_blank&#34;&gt;https://{self.domain}/user/admin&lt;/a&gt;
+        &#34;&#34;&#34;
+        self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

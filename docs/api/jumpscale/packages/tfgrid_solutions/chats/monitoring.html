@@ -26,10 +26,8 @@
 import uuid
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import SolutionType
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
 
@@ -249,18 +247,21 @@ class MonitoringDeploy(GedisChatBot):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-## Your containers have been deployed successfully:
-\n&lt;br/&gt;\n
-### Prometheus
-- Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
-- Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
-\n&lt;br /&gt;\n
-### Grafana
-- Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
-\n&lt;br /&gt;\n
-### Redis
-- Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-            &#34;&#34;&#34;
+        ## Your containers have been deployed successfully
+        &lt;br /&gt;\n
+        ### Prometheus
+
+        - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
+        - Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
+
+        ### Grafana
+
+        - Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
+
+        ### Redis
+
+        - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)
 
 
@@ -504,18 +505,21 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-## Your containers have been deployed successfully:
-\n&lt;br/&gt;\n
-### Prometheus
-- Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
-- Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
-\n&lt;br /&gt;\n
-### Grafana
-- Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
-\n&lt;br /&gt;\n
-### Redis
-- Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-            &#34;&#34;&#34;
+        ## Your containers have been deployed successfully
+        &lt;br /&gt;\n
+        ### Prometheus
+
+        - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
+        - Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
+
+        ### Grafana
+
+        - Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
+
+        ### Redis
+
+        - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -908,18 +912,21 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         message = f&#34;&#34;&#34;\
-## Your containers have been deployed successfully:
-\n&lt;br/&gt;\n
-### Prometheus
-- Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
-- Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
-\n&lt;br /&gt;\n
-### Grafana
-- Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
-\n&lt;br /&gt;\n
-### Redis
-- Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
-            &#34;&#34;&#34;
+        ## Your containers have been deployed successfully
+        &lt;br /&gt;\n
+        ### Prometheus
+
+        - Access container by `ssh root@{self.ip_addresses[1]}` where you can manually customize the solutions you want to monitor
+        - Access Prometheus UI through &lt;a href=&#34;http://{self.ip_addresses[1]}:9090/graph&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[1]}:9090/graph&lt;/a&gt; which is accessed through your browser
+
+        ### Grafana
+
+        - Access Grafana UI through &lt;a href=&#34;http://{self.ip_addresses[2]}:3000&#34; target=&#34;_blank&#34;&gt;http://{self.ip_addresses[2]}:3000&lt;/a&gt; which is accessed through your browser where you can manually configure to use prometheus
+
+        ### Redis
+
+        - Access redis cli via: `redis-cli -h {self.ip_addresses[0]}`
+        &#34;&#34;&#34;
         self.md_show(dedent(message), md=True)</code></pre>
 </details>
 <h3>Ancestors</h3>

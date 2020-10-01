@@ -33,7 +33,6 @@ class ContainerGenerator:
         interactive: bool = False,
         secret_env: dict = {},
         public_ipv6: bool = False,
-        yggdrasil_ip: bool = False,
         storage_url: str = "zdb://hub.grid.tf:9900",
     ) -> Container:
         """Create a container workload object
@@ -73,7 +72,6 @@ class ContainerGenerator:
         net.network_id = network_name
         net.ipaddress = ip_address
         net.public_ip6 = public_ipv6
-        net.yggdrasil_ip = yggdrasil_ip
         cont.network_connection.append(net)
 
         cont.capacity.cpu = cpu
@@ -122,9 +120,18 @@ class ContainerGenerator:
           tfgrid.workloads.reservation.container.logs.1: logs object added to the container
 
         """
+        stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
+        stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
+
         cont_logs = ContainerLogs()
         cont_logs.type = channel_type
-        cont_logs.data.stdout = f"redis://{channel_host}:{channel_port}/{channel_name}-stdout"
-        cont_logs.data.stderr = f"redis://{channel_host}:{channel_port}/{channel_name}-stderr"
+
+        # TODO: Remove stdout, stderr when merged on mainnet FIXME
+        cont_logs.data.stdout = stdout
+        cont_logs.data.stderr = stderr
+
+        cont_logs.data.secret_stdout = self.encrypt_secret(container.info.node_id, stdout)
+        cont_logs.data.secret_stderr = self.encrypt_secret(container.info.node_id, stderr)
         container.logs.append(cont_logs)
+
         return cont_logs

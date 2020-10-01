@@ -37,6 +37,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 ],
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
+                nodeToDelete: { id: 0 }
             }
         },
         computed: {
@@ -170,9 +171,13 @@ module.exports = new Promise(async (resolve, reject) => {
                 if (index > -1) this.expanded.splice(index, 1);
                 else this.expanded.push(node);
             },
-            deleteNode(node) {
-                console.log(node.id)
-                this.deleteNodeFarm(node)
+            openDeleteNodeModal(node) {                
+                this.openDeleteModal = true
+                this.nodeToDelete = node
+            },
+            deleteNode() {
+                console.log(`Going to delete node with id: ${this.nodeToDelete.id}`)
+                this.deleteNodeFarm(this.nodeToDelete)
                     .then(response => {
                         if (response.status == 200) {
                             this.deleteNodeFarmAlert = {
@@ -187,9 +192,9 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                         setTimeout(() => {
                             this.deleteNodeFarmAlert = undefined
-                            this.openDeleteModal = false
-                            this.getNodes(node.farm.id)
                         }, 2000)
+                        this.openDeleteModal = false
+                        this.getNodes(this.nodeToDelete.farmer.id)
                     }).catch(err => {
                         var msg = "server error"
                         if (err.response) {
@@ -201,6 +206,10 @@ module.exports = new Promise(async (resolve, reject) => {
                             message: msg,
                             type: "error",
                         }
+                        this.openDeleteModal = false
+                        setTimeout(() => {
+                            this.deleteNodeFarmAlert = undefined
+                        }, 2000)
                     })
             }
         }

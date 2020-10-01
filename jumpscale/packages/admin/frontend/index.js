@@ -10,11 +10,14 @@ const vuetify = new Vuetify({
     theme: {
         themes: {
             dark: {
-                navbar: '#363636'
+                navbar: '#363636',
+                logo: '#363636',
+                primary: '#a793d1'
             },
             light: {
                 primary: '#1B4F72',
                 navbar: '#1B4F72',
+                logo: '#1B4F72',
                 secondary: '#CCCBCA',
                 accent: '#59B88C',
                 success: "#17A589",
@@ -96,6 +99,7 @@ const router = new VueRouter({
         { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
         { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
         { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
+        { name: "Alert", path: '/alerts/:alertID', component: alerts, props: true, meta: { icon: "mdi-alert-outline", listed: false } },
         { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },

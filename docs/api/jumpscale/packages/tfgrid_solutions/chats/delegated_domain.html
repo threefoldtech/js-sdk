@@ -34,8 +34,9 @@ class DomainDelegation(GedisChatBot):
     steps = [&#34;select_pool&#34;, &#34;domain_name&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Domain Delegation&#34;
 
-    @chatflow_step(title=&#34;Pool&#34;)
+    @chatflow_step(title=&#34;Gateway Selection&#34;)
     def select_pool(self):
+        deployer.chatflow_pools_check()
         self.solution_id = uuid.uuid4().hex
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
@@ -59,15 +60,15 @@ class DomainDelegation(GedisChatBot):
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
-# Delegated your domain successfully:
-\n&lt;br /&gt;\n
-- Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
-    {% for dns in gateway.dns_nameserver -%}
-    - {{dns}}
-    {% endfor %}
+        # Delegated your domain successfully:
+        &lt;br /&gt;\n
+        - Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
+            {% for dns in gateway.dns_nameserver -%}
+            - {{dns}}
+            {% endfor %}
             &#34;&#34;&#34;
         res = j.tools.jinja2.render_template(
-            template_text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
+            template_text=dedent(res), gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
         )
         self.md_show(dedent(res), md=True)
 
@@ -100,8 +101,9 @@ any extra kwargs that is passed while creating the session
     steps = [&#34;select_pool&#34;, &#34;domain_name&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Domain Delegation&#34;
 
-    @chatflow_step(title=&#34;Pool&#34;)
+    @chatflow_step(title=&#34;Gateway Selection&#34;)
     def select_pool(self):
+        deployer.chatflow_pools_check()
         self.solution_id = uuid.uuid4().hex
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
@@ -125,15 +127,15 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
-# Delegated your domain successfully:
-\n&lt;br /&gt;\n
-- Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
-    {% for dns in gateway.dns_nameserver -%}
-    - {{dns}}
-    {% endfor %}
+        # Delegated your domain successfully:
+        &lt;br /&gt;\n
+        - Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
+            {% for dns in gateway.dns_nameserver -%}
+            - {{dns}}
+            {% endfor %}
             &#34;&#34;&#34;
         res = j.tools.jinja2.render_template(
-            template_text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
+            template_text=dedent(res), gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
         )
         self.md_show(dedent(res), md=True)</code></pre>
 </details>
@@ -224,8 +226,9 @@ any extra kwargs that is passed while creating the session
     steps = [&#34;select_pool&#34;, &#34;domain_name&#34;, &#34;reservation&#34;, &#34;success&#34;]
     title = &#34;Domain Delegation&#34;
 
-    @chatflow_step(title=&#34;Pool&#34;)
+    @chatflow_step(title=&#34;Gateway Selection&#34;)
     def select_pool(self):
+        deployer.chatflow_pools_check()
         self.solution_id = uuid.uuid4().hex
         self.gateway, pool = deployer.select_gateway(bot=self)
         self.pool_id = pool.pool_id
@@ -249,15 +252,15 @@ any extra kwargs that is passed while creating the session
     @chatflow_step(title=&#34;Success&#34;, disable_previous=True, final_step=True)
     def success(self):
         res = &#34;&#34;&#34;\
-# Delegated your domain successfully:
-\n&lt;br /&gt;\n
-- Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
-    {% for dns in gateway.dns_nameserver -%}
-    - {{dns}}
-    {% endfor %}
+        # Delegated your domain successfully:
+        &lt;br /&gt;\n
+        - Please create an `NS` record in your dns manager for domain: `{{domain}}` pointing to:
+            {% for dns in gateway.dns_nameserver -%}
+            - {{dns}}
+            {% endfor %}
             &#34;&#34;&#34;
         res = j.tools.jinja2.render_template(
-            template_text=res, gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
+            template_text=dedent(res), gateway=self.gateway, domain=self.domain, resv_id=self.resv_id
         )
         self.md_show(dedent(res), md=True)</code></pre>
 </details>

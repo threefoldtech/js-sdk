@@ -26,7 +26,41 @@
 
 
 class threebot_deployer:
-    def install(self):
+    def install(self, **kwargs):
+        # Configure wallet
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        if WALLET_NAME not in j.clients.stellar.list_all():
+            wallet_secret = kwargs.get(&#34;wallet_secret&#34;, None)
+            wallet_network = kwargs.get(&#34;wallet_network&#34;, &#34;TEST&#34;)
+
+            wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret, network=wallet_network)
+
+            if not wallet_secret:
+                if wallet_network == &#34;TEST&#34;:
+                    # in case of testnetwork, we&#39;ll create a funded wallet
+                    j.clients.stellar.delete(WALLET_NAME)
+                    j.clients.stellar.create_testnet_funded_wallet(WALLET_NAME)
+                else:
+                    # mainnet, activate and add trustlines to an empty wallet
+                    wallet.activate_through_threefold_service()
+                    wallet.add_known_trustline(&#34;TFT&#34;)
+                    wallet.save()
+            j.logger.info(f&#34;Created wallet {WALLET_NAME} successfully and ready to use.&#34;)
+
+        # Configure Redis logs
+        log_config = {}
+        log_config[&#34;channel_type&#34;] = kwargs.get(&#34;channel_type&#34;)
+        log_config[&#34;channel_host&#34;] = kwargs.get(&#34;channel_host&#34;)
+        log_config[&#34;channel_port&#34;] = kwargs.get(&#34;channel_port&#34;)
+
+        if all([v for v in log_config.values()]):
+            j.core.config.set(&#34;LOGGING_SINK&#34;, log_config)
+            j.logger.info(
+                f&#34;Added remote redis logs on machine {log_config[&#39;channel_host&#39;]}:{log_config[&#39;channel_port&#39;]}&#34;
+            )
+
+    def start(self):
+        # Configuring 3bot deployer package actors to be public
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;threebot_deployer_actors&#34;)
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
@@ -39,9 +73,6 @@ class threebot_deployer:
 
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
-
-    def start(self):
-        self.install()
 
     def uninstall(self):
         &#34;&#34;&#34;Called when package is deleted
@@ -68,7 +99,41 @@ class threebot_deployer:
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class threebot_deployer:
-    def install(self):
+    def install(self, **kwargs):
+        # Configure wallet
+        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        if WALLET_NAME not in j.clients.stellar.list_all():
+            wallet_secret = kwargs.get(&#34;wallet_secret&#34;, None)
+            wallet_network = kwargs.get(&#34;wallet_network&#34;, &#34;TEST&#34;)
+
+            wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret, network=wallet_network)
+
+            if not wallet_secret:
+                if wallet_network == &#34;TEST&#34;:
+                    # in case of testnetwork, we&#39;ll create a funded wallet
+                    j.clients.stellar.delete(WALLET_NAME)
+                    j.clients.stellar.create_testnet_funded_wallet(WALLET_NAME)
+                else:
+                    # mainnet, activate and add trustlines to an empty wallet
+                    wallet.activate_through_threefold_service()
+                    wallet.add_known_trustline(&#34;TFT&#34;)
+                    wallet.save()
+            j.logger.info(f&#34;Created wallet {WALLET_NAME} successfully and ready to use.&#34;)
+
+        # Configure Redis logs
+        log_config = {}
+        log_config[&#34;channel_type&#34;] = kwargs.get(&#34;channel_type&#34;)
+        log_config[&#34;channel_host&#34;] = kwargs.get(&#34;channel_host&#34;)
+        log_config[&#34;channel_port&#34;] = kwargs.get(&#34;channel_port&#34;)
+
+        if all([v for v in log_config.values()]):
+            j.core.config.set(&#34;LOGGING_SINK&#34;, log_config)
+            j.logger.info(
+                f&#34;Added remote redis logs on machine {log_config[&#39;channel_host&#39;]}:{log_config[&#39;channel_port&#39;]}&#34;
+            )
+
+    def start(self):
+        # Configuring 3bot deployer package actors to be public
         location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;threebot_deployer_actors&#34;)
         location_actors_443.is_auth = False
         location_actors_443.is_admin = False
@@ -82,9 +147,6 @@ class threebot_deployer:
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
 
-    def start(self):
-        self.install()
-
     def uninstall(self):
         &#34;&#34;&#34;Called when package is deleted
         &#34;&#34;&#34;
@@ -94,13 +156,55 @@ class threebot_deployer:
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.threebot_deployer.package.threebot_deployer.install"><code class="name flex">
-<span>def <span class="ident">install</span></span>(<span>self)</span>
+<span>def <span class="ident">install</span></span>(<span>self, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def install(self):
+<pre><code class="python">def install(self, **kwargs):
+    # Configure wallet
+    WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+    if WALLET_NAME not in j.clients.stellar.list_all():
+        wallet_secret = kwargs.get(&#34;wallet_secret&#34;, None)
+        wallet_network = kwargs.get(&#34;wallet_network&#34;, &#34;TEST&#34;)
+
+        wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret, network=wallet_network)
+
+        if not wallet_secret:
+            if wallet_network == &#34;TEST&#34;:
+                # in case of testnetwork, we&#39;ll create a funded wallet
+                j.clients.stellar.delete(WALLET_NAME)
+                j.clients.stellar.create_testnet_funded_wallet(WALLET_NAME)
+            else:
+                # mainnet, activate and add trustlines to an empty wallet
+                wallet.activate_through_threefold_service()
+                wallet.add_known_trustline(&#34;TFT&#34;)
+                wallet.save()
+        j.logger.info(f&#34;Created wallet {WALLET_NAME} successfully and ready to use.&#34;)
+
+    # Configure Redis logs
+    log_config = {}
+    log_config[&#34;channel_type&#34;] = kwargs.get(&#34;channel_type&#34;)
+    log_config[&#34;channel_host&#34;] = kwargs.get(&#34;channel_host&#34;)
+    log_config[&#34;channel_port&#34;] = kwargs.get(&#34;channel_port&#34;)
+
+    if all([v for v in log_config.values()]):
+        j.core.config.set(&#34;LOGGING_SINK&#34;, log_config)
+        j.logger.info(
+            f&#34;Added remote redis logs on machine {log_config[&#39;channel_host&#39;]}:{log_config[&#39;channel_port&#39;]}&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.threebot_deployer.package.threebot_deployer.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def start(self):
+    # Configuring 3bot deployer package actors to be public
     location_actors_443 = j.sals.nginx.main.websites.default_443.locations.get(name=&#34;threebot_deployer_actors&#34;)
     location_actors_443.is_auth = False
     location_actors_443.is_admin = False
@@ -113,17 +217,6 @@ class threebot_deployer:
 
     j.sals.nginx.main.websites.default_443.configure()
     j.sals.nginx.main.websites.default_80.configure()</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.packages.threebot_deployer.package.threebot_deployer.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def start(self):
-    self.install()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.threebot_deployer.package.threebot_deployer.uninstall"><code class="name flex">

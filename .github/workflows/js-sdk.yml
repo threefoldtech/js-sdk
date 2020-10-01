@@ -11,19 +11,23 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@master
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis
+          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron
           sudo pip3 install poetry
           sudo poetry run pip3 install pytest
       - name: Install
         run: |
-          sudo poetry update
           sudo poetry install
       - name: Run tests
+        env:
+          TNAME: ${{ secrets.TNAME }}
+          EMAIL: ${{ secrets.EMAIL }}
+          WORDS: ${{ secrets.WORDS }}
         run: |
-          sudo poetry run pytest tests -s -m "unittests"
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \
+          poetry run pytest tests -s -m "unittests"

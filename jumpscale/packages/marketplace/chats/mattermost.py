@@ -10,8 +10,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "mattermost_info",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -22,10 +20,10 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Mattermost Information")
     def mattermost_info(self):
+        self.user_email = self.user_info()["email"]
         self._choose_flavor()
         self.vol_size = self.flavor_resources["sru"]
         self.query["sru"] += self.vol_size
-        self.user_email = self.user_info()["email"]
 
     @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
@@ -121,7 +119,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             solution_port=8065,
             enforce_https=False,
             node_id=self.selected_node.node_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)

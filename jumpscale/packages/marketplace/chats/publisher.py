@@ -9,22 +9,12 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 class Publisher(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-pubtools-trc.flist"
     SOLUTION_TYPE = "publisher"  # chatflow used to deploy the solution
-    MD_CONFIG_MSG = dedent(
-        """\
-    Few parameters are needed to be able to publish your content online
-    - Title  is the title shown up on your published content
-    - Repository URL  is a valid git repository URL where your content lives e.g (https://github.com/threefoldfoundation/info_gridmanual)
-    - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/info_gridmanual"
 
-    for more information on the publishing tools please check the [manual](https://manual2.threefold.io/)
-    """
-    )
     title = "Publisher"
     steps = [
         "get_solution_name",
         "configuration",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
         "deploy",
         "initializing",
@@ -34,8 +24,24 @@ class Publisher(MarketPlaceAppsChatflow):
     storage_url = "zdb://hub.grid.tf:9900"
     query = {"cru": 1, "mru": 1, "sru": 2}
 
+    def get_mdconfig_msg(self):
+        msg = dedent(
+            f"""\
+        Few parameters are needed to be able to publish your content online
+        - Title  is the title shown up on your published content
+        - Repository URL  is a valid git repository URL where your content lives e.g ({self.EXAMPLE_URL})
+        - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
+
+        for more information on the publishing tools please check the [manual](https://manual.threefold.io/)
+        """
+        )
+        return msg
+
     @chatflow_step(title="Solution Settings")
     def configuration(self):
+        user_info = self.user_info()
+        self.username = user_info["username"]
+        self.user_email = user_info["email"]
         form = self.new_form()
         ttype = form.single_choice(
             "Choose the publication type", options=["wiki", "www", "blog"], default="wiki", required=True
@@ -43,9 +49,8 @@ class Publisher(MarketPlaceAppsChatflow):
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        form.ask(self.MD_CONFIG_MSG, md=True)
-        self.username = self.user_info()["username"]
-        self.user_email = self.user_info()["email"]
+        msg = self.get_mdconfig_msg()
+        form.ask(msg, md=True)
         self.envars = {
             "TYPE": ttype.value,
             "NAME": "entrypoint",
