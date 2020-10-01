@@ -22,7 +22,6 @@ jobs:
           sudo poetry run pip3 install pytest
       - name: Install
         run: |
-          sudo poetry update
           sudo poetry install
       - name: Run tests
         env:
