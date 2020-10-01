@@ -26,7 +26,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def list_user_pools(self, username):
 
         _, _, user_pools = pool_factory.find_many(owner=username)
-        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        all_pools = [p for p in j.sals.zos.get_zos_for().pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
         result = [p for p in all_pools if p.pool_id in user_pool_ids]
         return result
@@ -207,7 +207,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
                     continue
-                nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
+                nodes = j.sals.zos.get_zos_for().nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
@@ -261,7 +261,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         pool_ids = {}
         node_to_pool = {}
         for p in pool_choices:
-            pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
+            pool = pool_ids.get(messages[p], j.sals.zos.get_zos_for().pools.get(messages[p]))
             pool_ids[messages[p]] = pool.pool_id
             for node_id in pool.node_ids:
                 node_to_pool[node_id] = pool
@@ -289,7 +289,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
-            pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
+            pool_info = j.sals.zos.get_zos_for().pools.extend(pool_id, cu, su, currency)
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
@@ -297,7 +297,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
+        pool_info = j.sals.zos.get_zos_for().pools.create(
+            int(cu * expiration), int(su * expiration), farm_name, [currency]
+        )
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -305,7 +307,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return pool_info
 
     def create_gateway_emptypool(self, gwpool_name, farm_name):
-        pool_info = j.sals.zos.pools.create(0, 0, farm_name, ["TFT"])
+        pool_info = j.sals.zos.get_zos_for().pools.create(0, 0, farm_name, ["TFT"])
         user_pool = pool_factory.new(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
@@ -328,7 +330,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         workload_types = workload_types or [WorkloadType.Container]
         nodes = {}
         if free_to_use:
-            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
+            nodes = {node.node_id: node for node in j.sals.zos.get_zos_for()._explorer.nodes.list()}
         for pool in user_pools:
             valid = True
             try:
@@ -407,11 +409,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 success = self.wait_workload(wid, bot=bot)
             except StopChatFlow as e:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.workloads.decomission(sol_wid)
+                    j.sals.zos.get_zos_for().workloads.decomission(sol_wid)
                 raise e
             if not success:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.workloads.decomission(sol_wid)
+                    j.sals.zos.get_zos_for().workloads.decomission(sol_wid)
                 raise DeploymentFailed(
                     f"Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=wid,

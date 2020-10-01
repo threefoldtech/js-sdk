@@ -129,7 +129,7 @@ where :
 
 - *tid*: 3Bot id to filter network reservations on
 
-- *reservations*: list of reservations to look for networks in. If not provided then `j.sals.zos.list_reservation(tid=tid,next_action="DEPLOY")` is used to get all reservations of that user and checking in them.
+- *reservations*: list of reservations to look for networks in. If not provided then `j.sals.zos.get_zos_for().list_reservation(tid=tid,next_action="DEPLOY")` is used to get all reservations of that user and checking in them.
 
 ### Save reservation(solutions)
 

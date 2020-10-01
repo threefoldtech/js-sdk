@@ -75,7 +75,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_pool(self):
         self.currency = "TFT"
         available_farms = []
-        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        farm_names = [f.name for f in j.sals.zos.get_zos_for()._explorer.farms.list()]
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
@@ -105,7 +105,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
-                    pool_info = j.sals.zos.pools.extend(
+                    pool_info = j.sals.zos.get_zos_for().pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
@@ -454,7 +454,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
         DURATION_MAX = 9223372036854775807
-        self.pool = j.sals.zos.pools.get(self.pool_id)
+        self.pool = j.sals.zos.get_zos_for().pools.get(self.pool_id)
         if self.pool.empty_at < DURATION_MAX:
             # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
             min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp

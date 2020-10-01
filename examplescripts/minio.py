@@ -255,8 +255,18 @@ def pick_minio_nodes(nodes):
     return nodes[-1], nodes[-2]
 
 
-freefarm_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos.nodes_finder.nodes_search(FREEFARM_ID)))
-mazr3a_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, j.sals.zos.nodes_finder.nodes_search(MAZR3A_ID)))
+freefarm_nodes = list(
+    filter(
+        j.sals.zos.get_zos_for().nodes_finder.filter_is_up,
+        j.sals.zos.get_zos_for().nodes_finder.nodes_search(FREEFARM_ID),
+    )
+)
+mazr3a_nodes = list(
+    filter(
+        j.sals.zos.get_zos_for().nodes_finder.filter_is_up,
+        j.sals.zos.get_zos_for().nodes_finder.nodes_search(MAZR3A_ID),
+    )
+)
 
 nodes = freefarm_nodes + mazr3a_nodes
 random.shuffle(nodes)

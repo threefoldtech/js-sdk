@@ -21,7 +21,7 @@ class ExtendThreebot(MarketPlaceAppsChatflow):
             "Choose the 3Bot you would like to extend", self.threebot_names, required=True
         )
         self.pool_id = self._threebots_dict[self.threebot_selected]["Pool"]
-        self.pool = j.sals.zos.pools.get(self.pool_id)
+        self.pool = j.sals.zos.get_zos_for().pools.get(self.pool_id)
 
     @chatflow_step(title="Success", final_step=True)
     def success(self):

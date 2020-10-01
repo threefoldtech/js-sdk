@@ -17,7 +17,7 @@ class PoolReservation(GedisChatBot):
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
-        self.pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        self.pools = [p for p in j.sals.zos.get_zos_for().pools.list() if p.node_ids]
         if not self.pools:
             self.action = "create"
         else:
