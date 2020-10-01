@@ -17,7 +17,7 @@
 
       <template #default>
         <v-alert v-if="!inited" text prominent class="ma-5" border="right" type="info">
-          <span>Your repo is not inited, plesaed init it first</span>
+          <span>Your repo is not inited, please init it first</span>
           <v-btn
             text
             class="ml-5"
@@ -37,14 +37,17 @@
               <v-list-item-title v-html="snapshot.id"></v-list-item-title>
               <v-list-item-subtitle>{{new Date(snapshot.time).toLocaleString()}}</v-list-item-subtitle>
               <v-list-item-subtitle>
-                <v-chip v-for="tag in snapshot.tags" :key="snapshot.id + tag" class="mr-1 mt-2" small outlined>
-                  {{ tag }}
-                </v-chip>
+                <v-chip
+                  v-for="tag in snapshot.tags"
+                  :key="snapshot.id + tag"
+                  class="mr-1 mt-2"
+                  small
+                  outlined
+                >{{ tag }}</v-chip>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
-
       </template>
     </base-section>
     <init-repos v-model="dialogs.init"></init-repos>
@@ -54,9 +57,10 @@
 
 <script>
 module.exports = {
+  mixins: [dialog],
   components: {
     "take-backup": httpVueLoader("./TakeBackup.vue"),
-    "init-repos": httpVueLoader("./InitRepos.vue")
+    "init-repos": httpVueLoader("./InitRepos.vue"),
   },
   data() {
     return {
@@ -65,47 +69,62 @@ module.exports = {
       autoBackup: false,
       inited: true,
       loadings: {
-        init: false
+        init: false,
       },
       dialogs: {
         take: false,
-        init: false
-      }
+        init: false,
+      },
     };
   },
   watch: {
     autoBackup() {
       this.changeAutoBackup();
-    }
+    },
   },
   methods: {
+    enableAutoBackup() {
+      this.$api.mrktbackup
+        .enable()
+        .then((response) => {
+          this.autoBackup = true;
+        })
+        .catch((error) => {
+          this.error = error.response.data.message;
+        });
+    },
     checkReposInit() {
       this.$api.mrktbackup
         .inited()
-        .then(response => {
+        .then((response) => {
           this.inited = response.data;
+          if (this.inited) {
+            this.checkAutoBackup();
+            this.enableAutoBackup();
+            this.listSnapshots();
+          }
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.message;
         });
     },
-    listSnapshots () {
+    listSnapshots() {
       this.$api.mrktbackup
         .snapshots()
-        .then(response => {
+        .then((response) => {
           this.snapshots = JSON.parse(response.data).data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.response.data.message;
-        })
+        });
     },
     checkAutoBackup() {
       this.$api.mrktbackup
         .enabled()
-        .then(response => {
+        .then((response) => {
           this.autoBackup = response.data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.response.data.message;
         });
     },
@@ -113,10 +132,10 @@ module.exports = {
       if (this.autoBackup == true) {
         this.$api.mrktbackup
           .enable()
-          .then(response => {
+          .then((response) => {
             this.done("Auto backup is enabled");
           })
-          .catch(error => {
+          .catch((error) => {
             this.error = error.response.data.message;
           })
           .finally(() => {
@@ -125,22 +144,20 @@ module.exports = {
       } else {
         this.$api.mrktbackup
           .disable()
-          .then(response => {
-            this.done("Auto backup is disbaled");
+          .then((response) => {
+            this.done("Auto backup is disabled");
           })
-          .catch(error => {
+          .catch((error) => {
             this.error = error.response.data.message;
           })
           .finally(() => {
             this.loading = false;
           });
       }
-    }
+    },
   },
   mounted() {
     this.checkReposInit();
-    this.checkAutoBackup();
-    this.listSnapshots();
-  }
+  },
 };
 </script>

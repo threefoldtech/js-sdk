@@ -19,10 +19,13 @@
         SOLUTION_TYPE = "{app_name}"
         title = "App Title"
     ```
+4. Define the `query` your app needs.
+    ```python
+        self.query = {"cru": 1, "mru": 1, "sru": 1}
+    ```
 3. Define your chatflow steps:
     ```python
         steps = [
-            "start", # required
             "get_solution_name", # required
             "app_info_steps",
             "solution_expiration", # required
@@ -34,28 +37,8 @@
         ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps `["start", "solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
+    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "get_solution_name", "solution_expiration", "payment_currency", "infrastructure_setup", "success"]`.
 
-    - In the `start` step, you have to:
-        1. Call `self._init_solution()` in the first line to initialize some props.
-
-        2. Override the value of the `self.query` that your app needs.
-            ```python
-            @chatflow_step()
-            def start(self):
-                self._init_solution()
-                self.query = {"cru": 1, "mru": 1, "sru": 1}
-                self.md_show("# This wizard will help you deploy an App", md=True)
-            ```
-    - In the `success` step, you have to:
-        1. call `self._wgconf_show_check()` in the first line to check if the user need to download new wgconf.
-            ```python
-            @chatflow_step(title="Success", disable_previous=True, final_step=True)
-            def success(self):
-                self._wgconf_show_check()
-                message = "success message"
-                self.md_show(message, md=True)
-            ```
     - After `solution_name` step, put the extra info steps required for your app.
     - In `overview` step, you define your app metadata to be confirmed by the user
         - For example:
@@ -87,12 +70,34 @@
 - And for returning your solution count should append your `{SOLUTION_TYPE}` in the `count_dict` in `count_solutions` method in the same module
 
 ## Add app in frontend
-- In the frontend, you just need to add your app object in `apps` dict in `packages/marketplace/frontend/App.vue`
-    ```js
-    {
-        name: "App Name in frontend",
-        type: "{SOLUTION_TYPE}",
-        path: "/{your_app_name}",
-        meta: { icon: "app_icon" },
-    }
-    ```
+- In the frontend, you just need to add your app object as below in `apps` dict under the section you want to list your app in `packages/marketplace/frontend/data.js`
+    - If you need to add another section, just create new one in the `SECTIONS` object with the same structure:
+        ```js
+        "SECTION NAME": {
+            titleToolTip: "Tooltip shown on hovering on section title in the frontend",
+            apps: {
+                // list your applications objects as below structure
+                "App Name": {
+                    name: "App Name in frontend",
+                    type: "{SOLUTION_TYPE}", // defined in the previous steps
+                    image: "./assets/appImage.png", // add your app image in the assets dir
+                    disable: false, // make it true if you want to hide your app in the marketplace frontend
+                    helpLink: "https://now10.threefold.io/docs", // link to application manual
+                    description: "Description of your application"
+                },
+            },
+        },
+        ```
+    - If you just need to add your application in an existing section, add a new app object with below structure in the section object you want to list in:
+        ```js
+        {
+            "App Name": {
+                name: "App Name in frontend",
+                type: "{SOLUTION_TYPE}", // defined in the previous steps
+                image: "./assets/appImage.png", // add your app image in the assets dir
+                disable: false, // make it true if you want to hide your app in the marketplace frontend
+                helpLink: "https://now10.threefold.io/docs", // link to application manual
+                description: "Description of your application"
+            },
+        }
+        ```

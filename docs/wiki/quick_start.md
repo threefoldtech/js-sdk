@@ -45,7 +45,6 @@ This version of the SDK tries to be isolated as possible in case of developers o
 
   ```bash
   cd js-sdk
-  poetry update
   poetry install
   poetry shell
   ```
@@ -208,10 +207,10 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
 
 4. Then select your pool you want for your container
     ![pool](images/ubuntu4.png)
-    
+
 5. Choose the network on which you want to deploy your Ubuntu container. Use the same name you entered previously when creating the network
     ![network](images/ubuntu5.png)
-    
+
 5. The next step includes the possibility to stream the container's logs to a redis channel. In our simple deployment we will not need it so you can simply choose No
     ![container_logs](images/ubuntu6.png)
 
@@ -251,3 +250,6 @@ To start the wizard click the left menu on Solutions then Ubuntu, then Create ne
   ```
   open -n -a /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --args --user-data-dir="/tmp/chrome_dev_test" --disable-web-security --ignore-certificate-errors
   ```
+
+- Data is stored in `~/.config/jumpscale/secureconfig/jumpscale`. if you want to start over, you can remove that directory using `rm ~/.config/jumpscale/secureconfig/jumpscale`
+- There're also some configurations that gets generated e.g (nginx configurations), logs and binaries when copied in `~/sandbox` directory

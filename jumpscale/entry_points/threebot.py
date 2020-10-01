@@ -160,10 +160,18 @@ def start(identity=None, background=False, local=False, development=False, domai
 def stop():
     """stops threebot server
     """
-    j.tools.nginx.get("default").stop()
-    threebot_cmd = j.tools.startupcmd.get("threebot_default")
-    threebot_cmd.stop()
-    j.servers.threebot.get().redis.stop()
+    threebot_pids = j.sals.process.get_pids("threebot")
+    if len(threebot_pids) > 1:  # Check if threebot was started in foreground
+        # Kill all other processes other than `threebot stop`
+        mypid = j.sals.process.get_my_process().pid  # `threebot stop` pid
+        for pid in threebot_pids:
+            if pid != mypid:
+                j.sals.process.kill(pid)
+    else:
+        threebot_cmd = j.tools.startupcmd.get("threebot_default")
+        threebot_cmd.stop()
+        j.servers.threebot.get().redis.stop()
+        j.tools.nginx.get("default").stop()
     print("Threebot server Stopped")
 
 
@@ -179,12 +187,54 @@ def status():
 
 @click.command()
 @click.option("--identity", default=None, help="threebot name(i,e name.3bot)")
+@click.option("--domain", default=None, help="threebot domain")
+@click.option("--email", default=None, help="threebot ssl email")
+@click.option("--development", default=False, is_flag=True, help="start in development mode (no identity is required)")
+@click.option("--background/--no-background", default=False, help="threebot name(i,e name.3bot)")
+@click.option(
+    "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
+)
 @click.pass_context
-def restart(ctx, identity=None):
+def restart(ctx, identity=None, background=False, local=False, development=False, domain=None, email=None):
     """restart threebot server
     """
     ctx.invoke(stop)
-    ctx.invoke(start, identity=identity)
+    ctx.invoke(
+        start,
+        identity=identity,
+        background=background,
+        local=local,
+        development=development,
+        domain=domain,
+        email=email,
+    )
+
+
+@click.command()
+@click.option("--all", default=False, is_flag=True, help="delete all of jumpscale config")
+def clean(all=False):
+    """deletes previous configurations of jumpscale
+    """
+    config_root = j.core.config.config_root
+
+    if all:
+        try:
+            print("cleaning alerts...")
+            try:
+                j.tools.alerthandler.reset()
+            except Exception as e:
+                print("failed to clean up alerts")
+                print(f"exception was {e} for debugging")
+
+            answer = j.tools.console.ask_yes_no(f"Do you want to remove {config_root} ? ")
+            if answer=="y":
+                j.sals.fs.rmtree(config_root)
+                print("Previous configuration is deleted.")
+
+        except Exception as e:
+            print(f"couldn't remove {config_root}")
+            print(f"exception for debugging {e}")
+
 
 
 @click.group()
@@ -192,10 +242,13 @@ def cli():
     pass
 
 
+
+
 cli.add_command(start)
 cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
+cli.add_command(clean)
 
 
 if __name__ == "__main__":

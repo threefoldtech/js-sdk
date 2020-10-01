@@ -1,20 +1,17 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <v-switch
-        v-model="darkTheme"
-        hide-details
-        inset
-        label="Dark mode"
-      ></v-switch>
+      <v-switch v-model="darkTheme" hide-details inset label="Dark mode"></v-switch>
       <v-spacer></v-spacer>
       <v-chip label flat color="transparent" class="pr-5">
-        <v-icon color="primary" left>mdi-clock-outline</v-icon> {{ timenow }}
+        <v-icon color="primary" left>mdi-clock-outline</v-icon>
+        {{ timenow }}
       </v-chip>
       <v-menu v-if="user.username" v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
-            <v-icon color="primary" left>mdi-account</v-icon> {{user.username}}
+            <v-icon color="primary" left>mdi-account</v-icon>
+            {{user.username}}
           </v-btn>
         </template>
         <v-card>
@@ -30,6 +27,27 @@
                 <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn text color="blue" :to="'/terms'">Terms and Conditions</v-btn>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn text color="blue" :to="'/disclaimer'">Disclaimer</v-btn>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn
+                  text
+                  :link="true"
+                  color="blue"
+                  href="https://manual.threefold.io/#/"
+                  target="_blank"
+                >Manual</v-btn>
+              </v-list-item-content>
+            </v-list-item>
           </v-list>
 
           <v-divider></v-divider>
@@ -43,17 +61,11 @@
       </v-menu>
     </v-app-bar>
 
-    <v-navigation-drawer
-      color="navbar"
-      class="elevation-3"
-      :mini-variant="mini"
-      app
-      permanent
-      dark
-    >
-      <v-sheet color="#148F77">
+    <v-navigation-drawer color="navbar" class="elevation-3" :mini-variant="mini" app permanent dark>
+      <v-sheet color="logo">
         <v-list class="text-center">
-          <img src="./assets/3bot.png" :width="mini ? 40 : 128"/><br>
+          <img src="./assets/3bot.png" :width="mini ? 40 : 128" />
+          <br />
           <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
@@ -65,13 +77,13 @@
           </v-list-item>
           <v-list-item v-else>
             <v-btn text block @click.stop="dialogs.identity = true">
-              <v-icon left>mdi-account-cog</v-icon> Set identity
+              <v-icon left>mdi-account-cog</v-icon>Set identity
             </v-btn>
           </v-list-item>
         </v-list>
       </v-sheet>
 
-      <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
+      <div style="width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
         <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
@@ -103,86 +115,86 @@
 </template>
 
 <script>
-module.exports =  {
-  data () {
+module.exports = {
+  data() {
     return {
       darkTheme: this.$vuetify.theme.dark,
       user: {},
       identity: null,
       menu: false,
-      mini:false,
+      mini: false,
       timenow: null,
       clockInterval: null,
       dialogs: {
-        identity: false
-      }
-    }
+        identity: false,
+      },
+    };
   },
   components: {
-    identities: httpVueLoader("./Identity.vue")
+    identities: httpVueLoader("./Identity.vue"),
   },
   computed: {},
   methods: {},
   computed: {
-    pages () {
+    pages() {
       return this.$router.options.routes.filter((page) => {
-        return page.meta.listed
-      })
-    }
+        return page.meta.listed;
+      });
+    },
   },
   watch: {
-    darkTheme(val){
-        $cookies.set('darkTheme', val ? "1" : "0")
-        this.$vuetify.theme.dark = val
-    }
+    darkTheme(val) {
+      $cookies.set("darkTheme", val ? "1" : "0");
+      this.$vuetify.theme.dark = val;
+    },
   },
   methods: {
-    getCurrentUser () {
+    getCurrentUser() {
       this.$api.user.currentUser().then((response) => {
-        this.user = response.data
-      })
+        this.user = response.data;
+      });
     },
-    getIdentity () {
+    getIdentity() {
       this.$api.identity.get().then((response) => {
-        this.identity = JSON.parse(response.data)
-      })
+        this.identity = JSON.parse(response.data);
+      });
     },
-    setTimeLocal () {
-      this.timenow = new Date().toLocaleString()
+    setTimeLocal() {
+      this.timenow = new Date().toLocaleString();
     },
     getCookie(cname) {
-        var name = cname + "=";
-        var ca = document.cookie.split(';');
-        for(var i = 0; i < ca.length; i++) {
-          var c = ca[i];
-          while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-          }
-          if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-          }
+      var name = cname + "=";
+      var ca = document.cookie.split(";");
+      for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == " ") {
+          c = c.substring(1);
         }
-        return "";
-      },
-      checkDarkMode(){
-        let cookie = this.getCookie("darkTheme")
-        if (cookie == "")
-          this.$vuetify.theme.dark = this.darkTheme = false
-        else
-          this.$vuetify.theme.dark = this.darkTheme = cookie == "1" ? true : false;
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
       }
+      return "";
+    },
+    checkDarkMode() {
+      let cookie = this.getCookie("darkTheme");
+      if (cookie == "") this.$vuetify.theme.dark = this.darkTheme = false;
+      else
+        this.$vuetify.theme.dark = this.darkTheme =
+          cookie == "1" ? true : false;
+    },
   },
   mounted() {
-    this.checkDarkMode()
+    this.checkDarkMode();
     this.getIdentity();
     this.getCurrentUser();
-    this.setTimeLocal()
+    this.setTimeLocal();
     this.clockInterval = setInterval(() => {
-     this.setTimeLocal()
+      this.setTimeLocal();
     }, 1000);
   },
-  destroyed () {
-    clearInterval(this.clockInterval)
-  }
+  destroyed() {
+    clearInterval(this.clockInterval);
+  },
 };
 </script>

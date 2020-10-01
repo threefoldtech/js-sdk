@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.servers.openresty.server API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.servers.openresty.server</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from jumpscale.loader import j
+from enum import Enum
+from jumpscale.core.base import Base, fields
+from .location import Location
+from .utils import render_config_template, DIR_PATH
+
+
+class Status(Enum):
+    INIT = &#34;init&#34;
+    INSTALLED = &#34;installed&#34;
+
+
+class Website(Base):
+
+    port = fields.Integer(default=80)
+    ssl = fields.Boolean()
+    domain = fields.String()
+    path = fields.String()
+    locations = fields.Factory(Location)
+
+    @property
+    def path_cfg_dir(self):
+        return f&#34;{self.parent.path_cfg_dir}/servers&#34;
+
+    @property
+    def path_cfg(self):
+        return f&#34;{self.path_cfg_dir}/{self.instance_name}.http.conf&#34;
+
+    @property
+    def path_web(self):
+        return self.parent.path_web
+
+    def configure(self):
+        &#34;&#34;&#34;Writes configuration of the website and its locations
+        &#34;&#34;&#34;
+
+        j.sals.fs.mkdir(self.path_cfg_dir)
+        config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
+        j.sals.fs.write_file(self.path_cfg, config)
+
+        for location_name in self.locations.list_all():
+            location = self.locations.get(location_name)
+            location.configure()
+
+
+class OpenRestyServer(Base):
+    status = fields.Enum(Status)
+    websites = fields.Factory(Website)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._cmd = None
+        self._path_web = None
+        self._path_cfg_dir = None
+        self._logs_dir = None
+
+        self.executor = &#34;tmux&#34;  # only tmux for now
+
+    @property
+    def path_web(self):
+        if not self._path_web:
+            self._path_web = j.sals.fs.join_paths(j.core.dirs.VARDIR, &#34;web&#34;, self.instance_name)
+            j.sals.fs.mkdirs(j.sals.fs.join_paths(self._path_web, &#34;static&#34;))
+        return self._path_web
+
+    @property
+    def path_cfg_dir(self):
+        if not self._path_cfg_dir:
+            self._path_cfg_dir = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.instance_name)
+            j.sals.fs.mkdirs(self._path_cfg_dir)
+        return self._path_cfg_dir
+
+    @property
+    def path_cfg(self):
+        return j.sals.fs.join_paths(self.path_cfg_dir, &#34;nginx.conf&#34;)
+
+    @property
+    def logs_dir(self):
+        if not self._logs_dir:
+            self._logs_dir = j.sals.fs.join_paths(j.core.dirs.LOGDIR, &#34;openresty&#34;, self.instance_name)
+            j.sals.fs.mkdirs(self._logs_dir)
+        return self._logs_dir
+
+    def configure(self):
+        # clean old websites config
+        self.cleanup()
+        &#34;&#34;&#34;configures main nginx conf
+        &#34;&#34;&#34;
+        # self.install() This is commented for now until the repo and necessary deps are handled
+        configtext = j.tools.jinja2.render_template(
+            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+        )
+        j.sals.fs.write_file(self.path_cfg, configtext)
+
+    def get_from_port(self, port, domain=None, ssl=None):
+        &#34;&#34;&#34;will try to get a website listening on port, if it doesn&#39;t exist it will create one
+
+        Args:
+            port (int): port to search for
+            domain (str, optional): domain. Defaults to None.
+            ssl (bool, optional): Will set ssl if True. Defaults to None.
+
+        Returns:
+            Website: A new or an old website instance with the needed port
+        &#34;&#34;&#34;
+        website_name = f&#34;{self.instance_name}_website_{port}&#34;
+
+        website = self.websites.find(website_name)
+        if website:
+            return website
+
+        website = self.websites.get(website_name)
+        ssl = ssl or port == 443  # Use ssl if port is 443 if ssl in not specified
+
+        website.domain = domain
+        website.port = port
+        website.ssl = ssl
+
+        return website
+
+    def install(self, reset=False):
+        &#34;&#34;&#34;Install required deps for openresty
+
+        Args:
+            reset (bool, optional): If true will redo the installation. Defaults to False.
+        &#34;&#34;&#34;
+        if reset or self.status == &#34;init&#34;:
+            # get weblib
+            weblibs_path = j.tools.git.ensure_repo(
+                &#34;https://github.com/threefoldtech/js-weblibs&#34;  # Place holder repo might be changed
+            )
+
+            # copy the templates to the right location
+            j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
+
+            j.sals.fs.symlink(
+                f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
+            )
+            self.status = Status.INSTALLED
+
+            self.save()
+
+    @property
+    def startup_cmd(self):
+        pass
+
+    def start(self, reset=False):
+        pass
+
+    def stop(self):
+        pass
+
+    def is_running(self):
+        pass
+
+    def reload(self):
+        self.configure()
+        j.sals.process.execute(&#34;lapis build&#34;, cwd=self.path_cfg_dir)
+
+    def cleanup(self):
+        j.sals.fs.rmtree(f&#34;{self.path_cfg_dir}/servers&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer"><code class="flex name class">
+<span>class <span class="ident">OpenRestyServer</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class OpenRestyServer(Base):
+    status = fields.Enum(Status)
+    websites = fields.Factory(Website)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._cmd = None
+        self._path_web = None
+        self._path_cfg_dir = None
+        self._logs_dir = None
+
+        self.executor = &#34;tmux&#34;  # only tmux for now
+
+    @property
+    def path_web(self):
+        if not self._path_web:
+            self._path_web = j.sals.fs.join_paths(j.core.dirs.VARDIR, &#34;web&#34;, self.instance_name)
+            j.sals.fs.mkdirs(j.sals.fs.join_paths(self._path_web, &#34;static&#34;))
+        return self._path_web
+
+    @property
+    def path_cfg_dir(self):
+        if not self._path_cfg_dir:
+            self._path_cfg_dir = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.instance_name)
+            j.sals.fs.mkdirs(self._path_cfg_dir)
+        return self._path_cfg_dir
+
+    @property
+    def path_cfg(self):
+        return j.sals.fs.join_paths(self.path_cfg_dir, &#34;nginx.conf&#34;)
+
+    @property
+    def logs_dir(self):
+        if not self._logs_dir:
+            self._logs_dir = j.sals.fs.join_paths(j.core.dirs.LOGDIR, &#34;openresty&#34;, self.instance_name)
+            j.sals.fs.mkdirs(self._logs_dir)
+        return self._logs_dir
+
+    def configure(self):
+        # clean old websites config
+        self.cleanup()
+        &#34;&#34;&#34;configures main nginx conf
+        &#34;&#34;&#34;
+        # self.install() This is commented for now until the repo and necessary deps are handled
+        configtext = j.tools.jinja2.render_template(
+            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+        )
+        j.sals.fs.write_file(self.path_cfg, configtext)
+
+    def get_from_port(self, port, domain=None, ssl=None):
+        &#34;&#34;&#34;will try to get a website listening on port, if it doesn&#39;t exist it will create one
+
+        Args:
+            port (int): port to search for
+            domain (str, optional): domain. Defaults to None.
+            ssl (bool, optional): Will set ssl if True. Defaults to None.
+
+        Returns:
+            Website: A new or an old website instance with the needed port
+        &#34;&#34;&#34;
+        website_name = f&#34;{self.instance_name}_website_{port}&#34;
+
+        website = self.websites.find(website_name)
+        if website:
+            return website
+
+        website = self.websites.get(website_name)
+        ssl = ssl or port == 443  # Use ssl if port is 443 if ssl in not specified
+
+        website.domain = domain
+        website.port = port
+        website.ssl = ssl
+
+        return website
+
+    def install(self, reset=False):
+        &#34;&#34;&#34;Install required deps for openresty
+
+        Args:
+            reset (bool, optional): If true will redo the installation. Defaults to False.
+        &#34;&#34;&#34;
+        if reset or self.status == &#34;init&#34;:
+            # get weblib
+            weblibs_path = j.tools.git.ensure_repo(
+                &#34;https://github.com/threefoldtech/js-weblibs&#34;  # Place holder repo might be changed
+            )
+
+            # copy the templates to the right location
+            j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
+
+            j.sals.fs.symlink(
+                f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
+            )
+            self.status = Status.INSTALLED
+
+            self.save()
+
+    @property
+    def startup_cmd(self):
+        pass
+
+    def start(self, reset=False):
+        pass
+
+    def stop(self):
+        pass
+
+    def is_running(self):
+        pass
+
+    def reload(self):
+        self.configure()
+        j.sals.process.execute(&#34;lapis build&#34;, cwd=self.path_cfg_dir)
+
+    def cleanup(self):
+        j.sals.fs.rmtree(f&#34;{self.path_cfg_dir}/servers&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.logs_dir"><code class="name">var <span class="ident">logs_dir</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def logs_dir(self):
+    if not self._logs_dir:
+        self._logs_dir = j.sals.fs.join_paths(j.core.dirs.LOGDIR, &#34;openresty&#34;, self.instance_name)
+        j.sals.fs.mkdirs(self._logs_dir)
+    return self._logs_dir</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.path_cfg"><code class="name">var <span class="ident">path_cfg</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_cfg(self):
+    return j.sals.fs.join_paths(self.path_cfg_dir, &#34;nginx.conf&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.path_cfg_dir"><code class="name">var <span class="ident">path_cfg_dir</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_cfg_dir(self):
+    if not self._path_cfg_dir:
+        self._path_cfg_dir = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.instance_name)
+        j.sals.fs.mkdirs(self._path_cfg_dir)
+    return self._path_cfg_dir</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.path_web"><code class="name">var <span class="ident">path_web</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_web(self):
+    if not self._path_web:
+        self._path_web = j.sals.fs.join_paths(j.core.dirs.VARDIR, &#34;web&#34;, self.instance_name)
+        j.sals.fs.mkdirs(j.sals.fs.join_paths(self._path_web, &#34;static&#34;))
+    return self._path_web</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.startup_cmd"><code class="name">var <span class="ident">startup_cmd</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def startup_cmd(self):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.status"><code class="name">var <span class="ident">status</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.websites"><code class="name">var <span class="ident">websites</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.cleanup"><code class="name flex">
+<span>def <span class="ident">cleanup</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def cleanup(self):
+    j.sals.fs.rmtree(f&#34;{self.path_cfg_dir}/servers&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.configure"><code class="name flex">
+<span>def <span class="ident">configure</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def configure(self):
+    # clean old websites config
+    self.cleanup()
+    &#34;&#34;&#34;configures main nginx conf
+    &#34;&#34;&#34;
+    # self.install() This is commented for now until the repo and necessary deps are handled
+    configtext = j.tools.jinja2.render_template(
+        template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+    )
+    j.sals.fs.write_file(self.path_cfg, configtext)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.get_from_port"><code class="name flex">
+<span>def <span class="ident">get_from_port</span></span>(<span>self, port, domain=None, ssl=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>will try to get a website listening on port, if it doesn't exist it will create one</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
+<dd>port to search for</dd>
+<dt><strong><code>domain</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>domain. Defaults to None.</dd>
+<dt><strong><code>ssl</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Will set ssl if True. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><a title="jumpscale.servers.openresty.server.Website" href="#jumpscale.servers.openresty.server.Website"><code>Website</code></a></strong></dt>
+<dd>A new or an old website instance with the needed port</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_from_port(self, port, domain=None, ssl=None):
+    &#34;&#34;&#34;will try to get a website listening on port, if it doesn&#39;t exist it will create one
+
+    Args:
+        port (int): port to search for
+        domain (str, optional): domain. Defaults to None.
+        ssl (bool, optional): Will set ssl if True. Defaults to None.
+
+    Returns:
+        Website: A new or an old website instance with the needed port
+    &#34;&#34;&#34;
+    website_name = f&#34;{self.instance_name}_website_{port}&#34;
+
+    website = self.websites.find(website_name)
+    if website:
+        return website
+
+    website = self.websites.get(website_name)
+    ssl = ssl or port == 443  # Use ssl if port is 443 if ssl in not specified
+
+    website.domain = domain
+    website.port = port
+    website.ssl = ssl
+
+    return website</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.install"><code class="name flex">
+<span>def <span class="ident">install</span></span>(<span>self, reset=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Install required deps for openresty</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>reset</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If true will redo the installation. Defaults to False.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def install(self, reset=False):
+    &#34;&#34;&#34;Install required deps for openresty
+
+    Args:
+        reset (bool, optional): If true will redo the installation. Defaults to False.
+    &#34;&#34;&#34;
+    if reset or self.status == &#34;init&#34;:
+        # get weblib
+        weblibs_path = j.tools.git.ensure_repo(
+            &#34;https://github.com/threefoldtech/js-weblibs&#34;  # Place holder repo might be changed
+        )
+
+        # copy the templates to the right location
+        j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
+
+        j.sals.fs.symlink(
+            f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
+        )
+        self.status = Status.INSTALLED
+
+        self.save()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.is_running"><code class="name flex">
+<span>def <span class="ident">is_running</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_running(self):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.reload"><code class="name flex">
+<span>def <span class="ident">reload</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def reload(self):
+    self.configure()
+    j.sals.process.execute(&#34;lapis build&#34;, cwd=self.path_cfg_dir)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self, reset=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def start(self, reset=False):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.OpenRestyServer.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def stop(self):
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Status"><code class="flex name class">
+<span>class <span class="ident">Status</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Status(Enum):
+    INIT = &#34;init&#34;
+    INSTALLED = &#34;installed&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.servers.openresty.server.Status.INIT"><code class="name">var <span class="ident">INIT</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Status.INSTALLED"><code class="name">var <span class="ident">INSTALLED</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website"><code class="flex name class">
+<span>class <span class="ident">Website</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Website(Base):
+
+    port = fields.Integer(default=80)
+    ssl = fields.Boolean()
+    domain = fields.String()
+    path = fields.String()
+    locations = fields.Factory(Location)
+
+    @property
+    def path_cfg_dir(self):
+        return f&#34;{self.parent.path_cfg_dir}/servers&#34;
+
+    @property
+    def path_cfg(self):
+        return f&#34;{self.path_cfg_dir}/{self.instance_name}.http.conf&#34;
+
+    @property
+    def path_web(self):
+        return self.parent.path_web
+
+    def configure(self):
+        &#34;&#34;&#34;Writes configuration of the website and its locations
+        &#34;&#34;&#34;
+
+        j.sals.fs.mkdir(self.path_cfg_dir)
+        config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
+        j.sals.fs.write_file(self.path_cfg, config)
+
+        for location_name in self.locations.list_all():
+            location = self.locations.get(location_name)
+            location.configure()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.servers.openresty.server.Website.domain"><code class="name">var <span class="ident">domain</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.locations"><code class="name">var <span class="ident">locations</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.path"><code class="name">var <span class="ident">path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.path_cfg"><code class="name">var <span class="ident">path_cfg</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_cfg(self):
+    return f&#34;{self.path_cfg_dir}/{self.instance_name}.http.conf&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.path_cfg_dir"><code class="name">var <span class="ident">path_cfg_dir</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_cfg_dir(self):
+    return f&#34;{self.parent.path_cfg_dir}/servers&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.path_web"><code class="name">var <span class="ident">path_web</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def path_web(self):
+    return self.parent.path_web</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.port"><code class="name">var <span class="ident">port</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.openresty.server.Website.ssl"><code class="name">var <span class="ident">ssl</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.servers.openresty.server.Website.configure"><code class="name flex">
+<span>def <span class="ident">configure</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Writes configuration of the website and its locations</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def configure(self):
+    &#34;&#34;&#34;Writes configuration of the website and its locations
+    &#34;&#34;&#34;
+
+    j.sals.fs.mkdir(self.path_cfg_dir)
+    config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
+    j.sals.fs.write_file(self.path_cfg, config)
+
+    for location_name in self.locations.list_all():
+        location = self.locations.get(location_name)
+        location.configure()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.servers.openresty" href="index.html">jumpscale.servers.openresty</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.servers.openresty.server.OpenRestyServer" href="#jumpscale.servers.openresty.server.OpenRestyServer">OpenRestyServer</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.cleanup" href="#jumpscale.servers.openresty.server.OpenRestyServer.cleanup">cleanup</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.configure" href="#jumpscale.servers.openresty.server.OpenRestyServer.configure">configure</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.get_from_port" href="#jumpscale.servers.openresty.server.OpenRestyServer.get_from_port">get_from_port</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.install" href="#jumpscale.servers.openresty.server.OpenRestyServer.install">install</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.is_running" href="#jumpscale.servers.openresty.server.OpenRestyServer.is_running">is_running</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.logs_dir" href="#jumpscale.servers.openresty.server.OpenRestyServer.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.path_cfg" href="#jumpscale.servers.openresty.server.OpenRestyServer.path_cfg">path_cfg</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.path_cfg_dir" href="#jumpscale.servers.openresty.server.OpenRestyServer.path_cfg_dir">path_cfg_dir</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.path_web" href="#jumpscale.servers.openresty.server.OpenRestyServer.path_web">path_web</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.reload" href="#jumpscale.servers.openresty.server.OpenRestyServer.reload">reload</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.start" href="#jumpscale.servers.openresty.server.OpenRestyServer.start">start</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.startup_cmd" href="#jumpscale.servers.openresty.server.OpenRestyServer.startup_cmd">startup_cmd</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.status" href="#jumpscale.servers.openresty.server.OpenRestyServer.status">status</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.stop" href="#jumpscale.servers.openresty.server.OpenRestyServer.stop">stop</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.OpenRestyServer.websites" href="#jumpscale.servers.openresty.server.OpenRestyServer.websites">websites</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.servers.openresty.server.Status" href="#jumpscale.servers.openresty.server.Status">Status</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.servers.openresty.server.Status.INIT" href="#jumpscale.servers.openresty.server.Status.INIT">INIT</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Status.INSTALLED" href="#jumpscale.servers.openresty.server.Status.INSTALLED">INSTALLED</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.servers.openresty.server.Website" href="#jumpscale.servers.openresty.server.Website">Website</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.servers.openresty.server.Website.configure" href="#jumpscale.servers.openresty.server.Website.configure">configure</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.domain" href="#jumpscale.servers.openresty.server.Website.domain">domain</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.locations" href="#jumpscale.servers.openresty.server.Website.locations">locations</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.path" href="#jumpscale.servers.openresty.server.Website.path">path</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.path_cfg" href="#jumpscale.servers.openresty.server.Website.path_cfg">path_cfg</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.path_cfg_dir" href="#jumpscale.servers.openresty.server.Website.path_cfg_dir">path_cfg_dir</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.path_web" href="#jumpscale.servers.openresty.server.Website.path_web">path_web</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.port" href="#jumpscale.servers.openresty.server.Website.port">port</a></code></li>
+<li><code><a title="jumpscale.servers.openresty.server.Website.ssl" href="#jumpscale.servers.openresty.server.Website.ssl">ssl</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

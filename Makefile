@@ -1,4 +1,4 @@
-.PHONY: tests docs
+.PHONY: tests docs api_docs docs-serve
 
 tests:
 	pytest tests -sv
@@ -9,5 +9,13 @@ integrationtests:
 unittests:
 	pytest tests -sv -m "unittests"
 
-docs:
-	pdoc3 jumpscale --html --output-dir docs/api --overwrite
+api_docs:
+	pdoc3 jumpscale --html --output-dir docs/api --force
+
+docs: api_docs
+
+docs-serve:
+	python3 -m http.server --directory ./docs
+
+requirements.txt:
+	 poetry lock && poetry run pip freeze > $@

@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.data.nacl.jsnacl API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.data.nacl.jsnacl</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">import binascii
+import nacl.utils
+
+from nacl.public import PrivateKey, PublicKey, Box
+from nacl.secret import SecretBox
+from nacl.signing import SigningKey, VerifyKey
+from nacl.exceptions import BadSignatureError
+
+
+class NACL:
+    KEY_SIZE = 32
+
+    def __init__(self, private_key=None, symmetric_key=None):
+        &#34;&#34;&#34;Constructor for nacl object
+
+        Args:
+            private_key (bytes, optional): The private key used to sign and encrypt the data. Generated randomly if not given.
+            symmetric_key (bytes, optional): The key used for symmetric encryption. Generated randomly if not given.
+        &#34;&#34;&#34;
+        self.signing_key = SigningKey(private_key) if private_key else SigningKey.generate()
+        self.verify_key = self.signing_key.verify_key
+        self.private_key = self.signing_key.to_curve25519_private_key()
+        self.public_key = self.private_key.public_key
+        self.symmetric_key = nacl.utils.random(NACL.KEY_SIZE) if symmetric_key is None else symmetric_key
+        self.symmetric_box = SecretBox(self.symmetric_key)
+
+    def encrypt(self, message, reciever_public_key):
+        &#34;&#34;&#34;Encrypt the message to send to a receiver. (public key encryption)
+
+        Args:
+            message (bytes): The message to be encrypted.
+            reciever_public_key (bytes): The receiver&#39;s public key.
+
+        Returns:
+            bytes: The encrypted message
+        &#34;&#34;&#34;
+        return Box(self.private_key, PublicKey(reciever_public_key)).encrypt(message)
+
+    def decrypt(self, message, sender_public_key):
+        &#34;&#34;&#34;Decrypt a received message. (public key encryption)
+
+        Args:
+            message (bytes): The encrypted message.
+            sender_public_key (bytes): The public key of the sender.
+
+        Returns:
+            bytes: The decrypted message
+        &#34;&#34;&#34;
+        return Box(self.private_key, PublicKey(sender_public_key)).decrypt(message)
+
+    def encrypt_symmetric(self, message):
+        &#34;&#34;&#34;Encrypt the message to send to a receiver. (secret key encryption)
+
+        Args:
+            message (bytes): The message to be encrypted.
+
+        Returns:
+            bytes: The encrypted message
+        &#34;&#34;&#34;
+        return self.symmetric_box.encrypt(message)
+
+    def decrypt_symmetric(self, message, symmetric_key):
+        &#34;&#34;&#34;Decrypt the receiver message. (secret key encryption)
+
+        Args:
+            message (bytes): The message to be decrypted.
+
+        Returns:
+            bytes: The decrypted message
+        &#34;&#34;&#34;
+        return SecretBox(symmetric_key).decrypt(message)
+
+    def sign(self, message):
+        &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+        Args:
+            message (bytes): The message to be signed
+
+        Returns:
+            bytes, bytes: The message and the signature.
+        &#34;&#34;&#34;
+        signed = self.signing_key.sign(message)
+        return message, signed.signature
+
+    def sign_hex(self, message):
+        &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+        Args:
+            message (bytes): The message to be signed
+
+        Returns:
+            bytes: The message and the signature.
+        &#34;&#34;&#34;
+        signed = self.signing_key.sign(message)
+        signedhex = binascii.hexlify(signed.signature)
+        return signedhex
+
+    def verify(self, message, signature, verification_key):
+        &#34;&#34;&#34;Verify that the signature using the verification key
+
+        Args:
+            message (bytes): The received message.
+            signature (bytes): The recieved signature.
+            verification_key (bytes): The verification key.
+
+        Returns:
+            bool: True if the verification succeeds.
+        &#34;&#34;&#34;
+        try:
+            VerifyKey(verification_key).verify(message, signature)
+            return True
+        except BadSignatureError:
+            return False
+
+    def get_signing_seed(self):
+        &#34;&#34;&#34;Returns the signing seed (same as the private key).
+
+        Returns:
+            bytes: The 32-bit signing key.
+        &#34;&#34;&#34;
+        return bytes(self.signing_key._seed)
+
+    def get_verification_key(self):
+        &#34;&#34;&#34;Returns the verification key.
+
+        Returns:
+            bytes: The verification key.
+        &#34;&#34;&#34;
+        return bytes(self.verify_key)
+
+    def get_verify_key_hex(self):
+        return binascii.hexlify(self.verify_key.encode()).decode()
+
+    def get_public_key_hex(self):
+        return binascii.hexlify(self.public_key.encode()).decode()
+
+    def get_public_key(self):
+        &#34;&#34;&#34;Getter for the public key.
+
+        Returns:
+            bytes: The public key.
+        &#34;&#34;&#34;
+        return bytes(self.public_key)
+
+    def get_private_key(self):
+        &#34;&#34;&#34;Getter for the private key.
+
+        Returns:
+            bytes: The private key.
+        &#34;&#34;&#34;
+        return bytes(self.private_key)
+
+    def get_symmetric_key(self):
+        &#34;&#34;&#34;Getter for the symmetric key.
+
+        Returns:
+            bytes: The symmetric key.
+        &#34;&#34;&#34;
+        return bytes(self.symmetric_key)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.data.nacl.jsnacl.NACL"><code class="flex name class">
+<span>class <span class="ident">NACL</span></span>
+<span>(</span><span>private_key=None, symmetric_key=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Constructor for nacl object</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>private_key</code></strong> :&ensp;<code>bytes</code>, optional</dt>
+<dd>The private key used to sign and encrypt the data. Generated randomly if not given.</dd>
+<dt><strong><code>symmetric_key</code></strong> :&ensp;<code>bytes</code>, optional</dt>
+<dd>The key used for symmetric encryption. Generated randomly if not given.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class NACL:
+    KEY_SIZE = 32
+
+    def __init__(self, private_key=None, symmetric_key=None):
+        &#34;&#34;&#34;Constructor for nacl object
+
+        Args:
+            private_key (bytes, optional): The private key used to sign and encrypt the data. Generated randomly if not given.
+            symmetric_key (bytes, optional): The key used for symmetric encryption. Generated randomly if not given.
+        &#34;&#34;&#34;
+        self.signing_key = SigningKey(private_key) if private_key else SigningKey.generate()
+        self.verify_key = self.signing_key.verify_key
+        self.private_key = self.signing_key.to_curve25519_private_key()
+        self.public_key = self.private_key.public_key
+        self.symmetric_key = nacl.utils.random(NACL.KEY_SIZE) if symmetric_key is None else symmetric_key
+        self.symmetric_box = SecretBox(self.symmetric_key)
+
+    def encrypt(self, message, reciever_public_key):
+        &#34;&#34;&#34;Encrypt the message to send to a receiver. (public key encryption)
+
+        Args:
+            message (bytes): The message to be encrypted.
+            reciever_public_key (bytes): The receiver&#39;s public key.
+
+        Returns:
+            bytes: The encrypted message
+        &#34;&#34;&#34;
+        return Box(self.private_key, PublicKey(reciever_public_key)).encrypt(message)
+
+    def decrypt(self, message, sender_public_key):
+        &#34;&#34;&#34;Decrypt a received message. (public key encryption)
+
+        Args:
+            message (bytes): The encrypted message.
+            sender_public_key (bytes): The public key of the sender.
+
+        Returns:
+            bytes: The decrypted message
+        &#34;&#34;&#34;
+        return Box(self.private_key, PublicKey(sender_public_key)).decrypt(message)
+
+    def encrypt_symmetric(self, message):
+        &#34;&#34;&#34;Encrypt the message to send to a receiver. (secret key encryption)
+
+        Args:
+            message (bytes): The message to be encrypted.
+
+        Returns:
+            bytes: The encrypted message
+        &#34;&#34;&#34;
+        return self.symmetric_box.encrypt(message)
+
+    def decrypt_symmetric(self, message, symmetric_key):
+        &#34;&#34;&#34;Decrypt the receiver message. (secret key encryption)
+
+        Args:
+            message (bytes): The message to be decrypted.
+
+        Returns:
+            bytes: The decrypted message
+        &#34;&#34;&#34;
+        return SecretBox(symmetric_key).decrypt(message)
+
+    def sign(self, message):
+        &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+        Args:
+            message (bytes): The message to be signed
+
+        Returns:
+            bytes, bytes: The message and the signature.
+        &#34;&#34;&#34;
+        signed = self.signing_key.sign(message)
+        return message, signed.signature
+
+    def sign_hex(self, message):
+        &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+        Args:
+            message (bytes): The message to be signed
+
+        Returns:
+            bytes: The message and the signature.
+        &#34;&#34;&#34;
+        signed = self.signing_key.sign(message)
+        signedhex = binascii.hexlify(signed.signature)
+        return signedhex
+
+    def verify(self, message, signature, verification_key):
+        &#34;&#34;&#34;Verify that the signature using the verification key
+
+        Args:
+            message (bytes): The received message.
+            signature (bytes): The recieved signature.
+            verification_key (bytes): The verification key.
+
+        Returns:
+            bool: True if the verification succeeds.
+        &#34;&#34;&#34;
+        try:
+            VerifyKey(verification_key).verify(message, signature)
+            return True
+        except BadSignatureError:
+            return False
+
+    def get_signing_seed(self):
+        &#34;&#34;&#34;Returns the signing seed (same as the private key).
+
+        Returns:
+            bytes: The 32-bit signing key.
+        &#34;&#34;&#34;
+        return bytes(self.signing_key._seed)
+
+    def get_verification_key(self):
+        &#34;&#34;&#34;Returns the verification key.
+
+        Returns:
+            bytes: The verification key.
+        &#34;&#34;&#34;
+        return bytes(self.verify_key)
+
+    def get_verify_key_hex(self):
+        return binascii.hexlify(self.verify_key.encode()).decode()
+
+    def get_public_key_hex(self):
+        return binascii.hexlify(self.public_key.encode()).decode()
+
+    def get_public_key(self):
+        &#34;&#34;&#34;Getter for the public key.
+
+        Returns:
+            bytes: The public key.
+        &#34;&#34;&#34;
+        return bytes(self.public_key)
+
+    def get_private_key(self):
+        &#34;&#34;&#34;Getter for the private key.
+
+        Returns:
+            bytes: The private key.
+        &#34;&#34;&#34;
+        return bytes(self.private_key)
+
+    def get_symmetric_key(self):
+        &#34;&#34;&#34;Getter for the symmetric key.
+
+        Returns:
+            bytes: The symmetric key.
+        &#34;&#34;&#34;
+        return bytes(self.symmetric_key)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.KEY_SIZE"><code class="name">var <span class="ident">KEY_SIZE</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.decrypt"><code class="name flex">
+<span>def <span class="ident">decrypt</span></span>(<span>self, message, sender_public_key)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Decrypt a received message. (public key encryption)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The encrypted message.</dd>
+<dt><strong><code>sender_public_key</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The public key of the sender.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The decrypted message</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def decrypt(self, message, sender_public_key):
+    &#34;&#34;&#34;Decrypt a received message. (public key encryption)
+
+    Args:
+        message (bytes): The encrypted message.
+        sender_public_key (bytes): The public key of the sender.
+
+    Returns:
+        bytes: The decrypted message
+    &#34;&#34;&#34;
+    return Box(self.private_key, PublicKey(sender_public_key)).decrypt(message)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.decrypt_symmetric"><code class="name flex">
+<span>def <span class="ident">decrypt_symmetric</span></span>(<span>self, message, symmetric_key)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Decrypt the receiver message. (secret key encryption)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The message to be decrypted.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The decrypted message</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def decrypt_symmetric(self, message, symmetric_key):
+    &#34;&#34;&#34;Decrypt the receiver message. (secret key encryption)
+
+    Args:
+        message (bytes): The message to be decrypted.
+
+    Returns:
+        bytes: The decrypted message
+    &#34;&#34;&#34;
+    return SecretBox(symmetric_key).decrypt(message)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.encrypt"><code class="name flex">
+<span>def <span class="ident">encrypt</span></span>(<span>self, message, reciever_public_key)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Encrypt the message to send to a receiver. (public key encryption)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The message to be encrypted.</dd>
+<dt><strong><code>reciever_public_key</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The receiver's public key.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The encrypted message</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def encrypt(self, message, reciever_public_key):
+    &#34;&#34;&#34;Encrypt the message to send to a receiver. (public key encryption)
+
+    Args:
+        message (bytes): The message to be encrypted.
+        reciever_public_key (bytes): The receiver&#39;s public key.
+
+    Returns:
+        bytes: The encrypted message
+    &#34;&#34;&#34;
+    return Box(self.private_key, PublicKey(reciever_public_key)).encrypt(message)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.encrypt_symmetric"><code class="name flex">
+<span>def <span class="ident">encrypt_symmetric</span></span>(<span>self, message)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Encrypt the message to send to a receiver. (secret key encryption)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The message to be encrypted.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The encrypted message</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def encrypt_symmetric(self, message):
+    &#34;&#34;&#34;Encrypt the message to send to a receiver. (secret key encryption)
+
+    Args:
+        message (bytes): The message to be encrypted.
+
+    Returns:
+        bytes: The encrypted message
+    &#34;&#34;&#34;
+    return self.symmetric_box.encrypt(message)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_private_key"><code class="name flex">
+<span>def <span class="ident">get_private_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Getter for the private key.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The private key.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_private_key(self):
+    &#34;&#34;&#34;Getter for the private key.
+
+    Returns:
+        bytes: The private key.
+    &#34;&#34;&#34;
+    return bytes(self.private_key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_public_key"><code class="name flex">
+<span>def <span class="ident">get_public_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Getter for the public key.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The public key.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_public_key(self):
+    &#34;&#34;&#34;Getter for the public key.
+
+    Returns:
+        bytes: The public key.
+    &#34;&#34;&#34;
+    return bytes(self.public_key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_public_key_hex"><code class="name flex">
+<span>def <span class="ident">get_public_key_hex</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_public_key_hex(self):
+    return binascii.hexlify(self.public_key.encode()).decode()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_signing_seed"><code class="name flex">
+<span>def <span class="ident">get_signing_seed</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns the signing seed (same as the private key).</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The 32-bit signing key.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_signing_seed(self):
+    &#34;&#34;&#34;Returns the signing seed (same as the private key).
+
+    Returns:
+        bytes: The 32-bit signing key.
+    &#34;&#34;&#34;
+    return bytes(self.signing_key._seed)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_symmetric_key"><code class="name flex">
+<span>def <span class="ident">get_symmetric_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Getter for the symmetric key.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The symmetric key.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_symmetric_key(self):
+    &#34;&#34;&#34;Getter for the symmetric key.
+
+    Returns:
+        bytes: The symmetric key.
+    &#34;&#34;&#34;
+    return bytes(self.symmetric_key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_verification_key"><code class="name flex">
+<span>def <span class="ident">get_verification_key</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns the verification key.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The verification key.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_verification_key(self):
+    &#34;&#34;&#34;Returns the verification key.
+
+    Returns:
+        bytes: The verification key.
+    &#34;&#34;&#34;
+    return bytes(self.verify_key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.get_verify_key_hex"><code class="name flex">
+<span>def <span class="ident">get_verify_key_hex</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_verify_key_hex(self):
+    return binascii.hexlify(self.verify_key.encode()).decode()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.sign"><code class="name flex">
+<span>def <span class="ident">sign</span></span>(<span>self, message)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sign the message and return the messsage and the signature.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The message to be signed</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>bytes, bytes: The message and the signature.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sign(self, message):
+    &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+    Args:
+        message (bytes): The message to be signed
+
+    Returns:
+        bytes, bytes: The message and the signature.
+    &#34;&#34;&#34;
+    signed = self.signing_key.sign(message)
+    return message, signed.signature</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.sign_hex"><code class="name flex">
+<span>def <span class="ident">sign_hex</span></span>(<span>self, message)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Sign the message and return the messsage and the signature.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The message to be signed</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bytes</code></strong></dt>
+<dd>The message and the signature.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def sign_hex(self, message):
+    &#34;&#34;&#34;Sign the message and return the messsage and the signature.
+
+    Args:
+        message (bytes): The message to be signed
+
+    Returns:
+        bytes: The message and the signature.
+    &#34;&#34;&#34;
+    signed = self.signing_key.sign(message)
+    signedhex = binascii.hexlify(signed.signature)
+    return signedhex</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.data.nacl.jsnacl.NACL.verify"><code class="name flex">
+<span>def <span class="ident">verify</span></span>(<span>self, message, signature, verification_key)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Verify that the signature using the verification key</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The received message.</dd>
+<dt><strong><code>signature</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The recieved signature.</dd>
+<dt><strong><code>verification_key</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>The verification key.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if the verification succeeds.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def verify(self, message, signature, verification_key):
+    &#34;&#34;&#34;Verify that the signature using the verification key
+
+    Args:
+        message (bytes): The received message.
+        signature (bytes): The recieved signature.
+        verification_key (bytes): The verification key.
+
+    Returns:
+        bool: True if the verification succeeds.
+    &#34;&#34;&#34;
+    try:
+        VerifyKey(verification_key).verify(message, signature)
+        return True
+    except BadSignatureError:
+        return False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.data.nacl" href="index.html">jumpscale.data.nacl</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.data.nacl.jsnacl.NACL" href="#jumpscale.data.nacl.jsnacl.NACL">NACL</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.KEY_SIZE" href="#jumpscale.data.nacl.jsnacl.NACL.KEY_SIZE">KEY_SIZE</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.decrypt" href="#jumpscale.data.nacl.jsnacl.NACL.decrypt">decrypt</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.decrypt_symmetric" href="#jumpscale.data.nacl.jsnacl.NACL.decrypt_symmetric">decrypt_symmetric</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.encrypt" href="#jumpscale.data.nacl.jsnacl.NACL.encrypt">encrypt</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.encrypt_symmetric" href="#jumpscale.data.nacl.jsnacl.NACL.encrypt_symmetric">encrypt_symmetric</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_private_key" href="#jumpscale.data.nacl.jsnacl.NACL.get_private_key">get_private_key</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_public_key" href="#jumpscale.data.nacl.jsnacl.NACL.get_public_key">get_public_key</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_public_key_hex" href="#jumpscale.data.nacl.jsnacl.NACL.get_public_key_hex">get_public_key_hex</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_signing_seed" href="#jumpscale.data.nacl.jsnacl.NACL.get_signing_seed">get_signing_seed</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_symmetric_key" href="#jumpscale.data.nacl.jsnacl.NACL.get_symmetric_key">get_symmetric_key</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_verification_key" href="#jumpscale.data.nacl.jsnacl.NACL.get_verification_key">get_verification_key</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.get_verify_key_hex" href="#jumpscale.data.nacl.jsnacl.NACL.get_verify_key_hex">get_verify_key_hex</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.sign" href="#jumpscale.data.nacl.jsnacl.NACL.sign">sign</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.sign_hex" href="#jumpscale.data.nacl.jsnacl.NACL.sign_hex">sign_hex</a></code></li>
+<li><code><a title="jumpscale.data.nacl.jsnacl.NACL.verify" href="#jumpscale.data.nacl.jsnacl.NACL.verify">verify</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

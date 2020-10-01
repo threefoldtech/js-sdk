@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.sals.chatflows.polls API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.sals.chatflows.polls</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from textwrap import dedent
+
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.models.voter_model import User
+
+WALLET_NAME = &#34;polls_receive&#34;
+MANIFESTO_VERSION = &#34;2.0.1&#34;
+
+all_users = StoredFactory(User)
+all_users.always_reload = True
+
+
+class Poll(GedisChatBot):
+    &#34;&#34;&#34;Polls chatflow base
+    just inherit from this class and override poll_name and QUESTIONS in your chatflow
+
+    Args:
+        GedisChatBot (Parent): contains the chatflows sals main functions
+
+    Raises:
+        j.core.exceptions.Runtime: if wrong inheritance happens
+        StopChatFlow: if payment is failed
+    &#34;&#34;&#34;
+
+    poll_name = None  # Required
+
+    steps = [&#34;initialize&#34;, &#34;welcome&#34;, &#34;payment&#34;, &#34;custom_votes&#34;, &#34;result&#34;]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.QUESTIONS = {}
+        self.extra_data = {}
+        self.metadata = {}
+        self.custom_answers = {}
+
+        if not j.clients.stellar.find(WALLET_NAME):
+            raise j.core.exceptions.Runtime(f&#34;Wallet {WALLET_NAME} is not configured, please create it.&#34;)
+
+        self.wallet = j.clients.stellar.get(WALLET_NAME)
+
+    def _get_wallets_as_md(self, wallets):
+        result = &#34;\n&#34;
+        for item in wallets:
+            result += f&#34;- `{item}` has {self._get_voter_balance(item)} (TFT+TFTA)\n&#34;
+        return result
+
+    @chatflow_step()
+    def initialize(self):
+        user_info = self.user_info()
+
+        username = user_info[&#34;username&#34;].split(&#34;.&#34;)[0]
+        welcome_message = f&#34;# Welcome `{username}` to {self.poll_name.capitalize()} Poll\n&lt;br/&gt;The detailed poll results are only visible to the tfgrid council members&#34;
+        self.user = all_users.get(name=f&#34;{self.poll_name}_{username}&#34;)
+        self.user.poll_name = self.poll_name
+        if self.user.has_voted:
+            welcome_message += &#34;\n&lt;br/&gt;&lt;br/&gt;`Note: You have already voted.`&#34;
+
+        if self.user.has_voted:
+            actions = [&#34;Edit My Vote&#34;, &#34;See Results&#34;]
+            action = self.single_choice(welcome_message, options=actions, required=True, md=True)
+            if action == actions[1]:
+                self.result()
+                self.end()
+        else:
+            self.md_show(welcome_message, md=True)
+
+    @chatflow_step()
+    def welcome(self):
+        pass
+
+    @chatflow_step(title=&#34;Loading Wallets&#34;)
+    def payment(self):
+        def _pay(msg=&#34;&#34;):
+            amount = 0.1
+            currency = self.single_choice(
+                &#34;We need to know how many tokens you have to allow weighted vote results, &#34;
+                &#34;in order to do this we need to know all of your wallets addresses you want us to consider in this poll. &#34;
+                &#34;The idea is you send us a small transaction that costs 0.1 tokens. &#34;
+                &#34;Then we will be able to calculate the sum of the TFTs and TFTAs you have in all of the wallets you added. Now you can start adding your wallets &#34;
+                &#34;Which token would you like to continue the transaction with?&#34;,
+                [&#34;TFT&#34;, &#34;TFTA&#34;],
+                required=True,
+            )
+
+            qr_code_content = j.sals.zos._escrow_to_qrcode(
+                escrow_address=self.wallet.address,
+                escrow_asset=currency,
+                total_amount=amount,
+                message=self.user.user_code,
+            )
+
+            message_text = f&#34;&#34;&#34;\
+            &lt;h3&gt;Make a Payment&lt;/h3&gt;
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            &lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address}
+            &lt;h4&gt; Currency: &lt;/h4&gt;  {currency}
+            &lt;h4&gt; Amount: &lt;/h4&gt;  {amount}
+            &lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code}
+            &#34;&#34;&#34;
+            self.qrcode_show(data=qr_code_content, msg=dedent(message_text), scale=4, update=True, html=True, md=True)
+            if self._check_payment(timeout=360):
+                return True
+            else:
+                return False
+
+        def _pay_again(msg=&#34;&#34;):
+            while True:
+                pay_again = self.single_choice(
+                    msg
+                    or f&#34;Wallets added: {self._get_wallets_as_md(self.user.wallets_addresses)}\nDo you like to add another wallet?&#34;,
+                    [&#34;YES&#34;, &#34;NO&#34;],
+                    md=True,
+                )
+                if pay_again == &#34;NO&#34;:
+                    break
+                if not _pay():
+                    _pay_again(
+                        &#34;Error adding the wallet, Please make sure you transaction is completed.\n do you want to try again ?&#34;
+                    )
+
+        if not self.user.user_code:
+            self.user.user_code = j.data.idgenerator.chars(10)
+        # Payment
+        if self.user.has_voted and len(self.user.wallets_addresses) &gt; 0:
+            self.md_show(
+                f&#34;You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and modify your vote&#34;,
+                md=True,
+            )
+            _pay_again()
+
+        elif len(self.user.wallets_addresses) &gt; 0:
+            self.md_show(
+                f&#34;You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and submit your vote&#34;,
+                md=True,
+            )
+            _pay_again()
+        else:
+            if _pay():
+                _pay_again()
+            else:
+                self.stop(&#34;Error adding the wallet, Please make sure you transaction is completed.\n Please try again&#34;)
+
+    def _check_payment(self, timeout):
+        &#34;&#34;&#34;Returns True if user has paid already, False if not&#34;&#34;&#34;
+        now = j.data.time.get().timestamp
+        remaning_time = j.data.time.get(now + timeout).timestamp
+        while remaning_time &gt; now:
+            remaning_time_msg = j.data.time.get(remaning_time).humanize(granularity=[&#34;minute&#34;, &#34;second&#34;])
+            payment_message = (
+                &#34;# Payment being processed...\n&#34;
+                f&#34;Process will be cancelled if payment is not successful {remaning_time_msg}&#34;
+            )
+            self.md_show_update(payment_message, md=True)
+            user_wallets_count = len(self.user.wallets_addresses)
+            transactions = self.wallet.list_transactions()
+            for transaction in transactions:
+                if transaction.memo_text == self.user.user_code:
+                    if transaction.hash not in self.user.transaction_hashes:
+                        self.user.transaction_hashes.append(transaction.hash)
+                    user_wallet = self.wallet.get_sender_wallet_address(transaction.hash)
+                    if not user_wallet in self.user.wallets_addresses:
+                        self.user.wallets_addresses.append(user_wallet)
+                        self.user.tokens += float(self._get_voter_balance(user_wallet))
+                    self.user.save()
+            if len(self.user.wallets_addresses) &gt; user_wallets_count:
+                return True
+        return False
+
+    def get_vote_answer(self, vote_title):
+        answer_array = self.user.vote_data.get(vote_title)
+        if answer_array:
+            options = self.QUESTIONS.get(vote_title)
+            try:
+                return options[answer_array.index(1)]
+            except ValueError:
+                pass
+
+    def get_question_answer(self, question_title):
+        return self.user.extra_data.get(question_title)
+
+    def vote(self):
+        answers = {}
+        answers.update(self.custom_answers)
+        vote_data = self._map_vote_results(answers.copy())
+        vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
+        self.user.vote_data = vote_data
+        self.user.vote_data_weighted = vote_data_weighted
+        self.user.has_voted = True
+        self.user.extra_data = self.extra_data
+        self.user.manifesto_version = MANIFESTO_VERSION
+        self.user.save()
+
+    @chatflow_step(title=&#34;Please fill in the following form&#34;, disable_previous=True)
+    def custom_votes(self):
+        &#34;&#34;&#34;allow child classes to have its custom slides
+
+        Returns:
+            Dict, Dict: Has all questions and answer, extra saved data outside the poll
+        &#34;&#34;&#34;
+        pass
+
+    def _map_vote_results(self, form_answers, weighted=False):
+        &#34;&#34;&#34;takes form answers and returns a sparse array of what user chose
+        to be easy in calcualting votes
+
+        example: [&#34;Blue&#34;, &#34;Red&#34;, &#34;Green&#34;, &#34;Orange&#34;]
+        if user chose &#34;Red&#34; will [0, 1, 0, 0]
+        if user chose &#34;Red&#34; and weighted results will [0, &lt;user_token_sum&gt;, 0, 0]
+        Args:
+            form_answers (dict): form result dictionary
+        &#34;&#34;&#34;
+        for question, answer in form_answers.items():
+            all_answers_init = len(self.QUESTIONS[question]) * [0.0]
+            answer_index = self.QUESTIONS[question].index(answer)
+            if weighted:
+                all_answers_init[answer_index] = self.user.tokens
+            else:
+                all_answers_init[answer_index] = 1
+            form_answers[question] = all_answers_init
+        return form_answers
+
+    @chatflow_step(title=&#34;Poll Results %&#34;, final_step=True)
+    def result(self):
+        usersnames = all_users.list_all()
+        total_votes = 0
+        total_answers = {}
+        total_answers_weighted = {}
+        for username in usersnames:
+            user = all_users.get(username)
+            if user.poll_name == self.poll_name and user.has_voted:
+                total_votes += 1
+                user_votes = all_users.get(username).vote_data
+                user_votes_weighted = all_users.get(username).vote_data_weighted
+                for question, answer in user_votes.items():
+                    if total_answers.get(question):
+                        total_answers[question] = list(map(sum, zip(total_answers[question], answer)))
+                    else:
+                        total_answers[question] = answer
+
+                for question, answer in user_votes_weighted.items():
+                    if total_answers_weighted.get(question):
+                        total_answers_weighted[question] = list(map(sum, zip(total_answers_weighted[question], answer)))
+                    else:
+                        total_answers_weighted[question] = answer
+
+        total_answers_with_percent = {k: self._calculate_percent(v) for k, v in total_answers.items()}
+        total_answers_weighted_with_percent = {k: self._calculate_percent(v) for k, v in total_answers_weighted.items()}
+
+        result_msg = &#34;&#34;
+        for question, answers in total_answers_with_percent.items():
+            question_current_title = question
+            question_new_title = self.metadata[&#34;new_title_keys&#34;][question_current_title]
+            result_msg += f&#34;### {question_new_title}\n&#34;
+            for i in range(len(answers)):
+                answer_name = self.QUESTIONS[question][i]
+                result_msg += f&#34;- {answer_name}: {answers[i]}%\n&#34;
+            result_msg += &#34;\n\n&#34;
+
+        # result_msg += &#34;\n&lt;br /&gt;\n\n&#34;
+        # result_msg += &#34;## Weighted results %\n\n&lt;br /&gt;\n\n&#34;
+        # for question, answers in total_answers_weighted_with_percent.items():
+        #     question_current_title = question
+        #     question_new_title = self.metadata[&#34;new_title_keys&#34;][question_current_title]
+        #     result_msg += f&#34;### {question_new_title}\n&#34;
+        #     for i in range(len(answers)):
+        #         answer_name = self.QUESTIONS[question][i]
+        #         result_msg += f&#34;- {answer_name}: {answers[i]}%\n&#34;
+        #     result_msg += &#34;\n&#34;
+
+        result_msg += f&#34;\n&lt;br /&gt;\n\n#### Total number of votes: {total_votes}\n&#34;
+        self.md_show(result_msg, md=True)
+
+    def _calculate_percent(self, answers):
+        &#34;&#34;&#34;Takes the answers list which is a sparse array and map it
+        to percentages
+
+        Args:
+            answers (list)
+
+        Returns:
+            list: answers_list mapped to percentages
+        &#34;&#34;&#34;
+        answers_list = answers[:]
+        total_votes = float(sum(answers_list))
+        for i in range(len(answers_list)):
+            res = (answers_list[i] / total_votes) * 100
+            answers_list[i] = round(res, 2)
+        return answers_list
+
+    def _get_voter_balance(self, wallet_address):
+        &#34;&#34;&#34;Get sum of user TFT and TFTA
+
+        Args:
+            wallet_address (String): Wallet address
+        &#34;&#34;&#34;
+        assets = self.wallet.get_balance(wallet_address)
+        total_balance = 0.0
+        # get free balances
+        for asset in assets.balances:
+            if asset.asset_code == &#34;TFT&#34; or asset.asset_code == &#34;TFTA&#34;:
+                total_balance += float(asset.balance)
+
+        # add locked funds too
+        for locked_account in assets.escrow_accounts:
+            for locked_asset in locked_account.balances:
+                if locked_asset.asset_code == &#34;TFT&#34; or locked_asset.asset_code == &#34;TFTA&#34;:
+                    total_balance += float(locked_asset.balance)
+
+        return total_balance</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.sals.chatflows.polls.Poll"><code class="flex name class">
+<span>class <span class="ident">Poll</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Polls chatflow base
+just inherit from this class and override poll_name and QUESTIONS in your chatflow</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>GedisChatBot</code></strong> :&ensp;<code>Parent</code></dt>
+<dd>contains the chatflows sals main functions</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>j.core.exceptions.Runtime</code>: <code>if</code> <code>wrong</code> <code>inheritance</code> <code>happens</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>StopChatFlow</code></strong></dt>
+<dd>if payment is failed</dd>
+<dt><code>Keyword</code> <code>Args</code></dt>
+<dd>any extra kwargs that is passed while creating the session
+(i.e. can be used for passing any query parameters)</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Poll(GedisChatBot):
+    &#34;&#34;&#34;Polls chatflow base
+    just inherit from this class and override poll_name and QUESTIONS in your chatflow
+
+    Args:
+        GedisChatBot (Parent): contains the chatflows sals main functions
+
+    Raises:
+        j.core.exceptions.Runtime: if wrong inheritance happens
+        StopChatFlow: if payment is failed
+    &#34;&#34;&#34;
+
+    poll_name = None  # Required
+
+    steps = [&#34;initialize&#34;, &#34;welcome&#34;, &#34;payment&#34;, &#34;custom_votes&#34;, &#34;result&#34;]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.QUESTIONS = {}
+        self.extra_data = {}
+        self.metadata = {}
+        self.custom_answers = {}
+
+        if not j.clients.stellar.find(WALLET_NAME):
+            raise j.core.exceptions.Runtime(f&#34;Wallet {WALLET_NAME} is not configured, please create it.&#34;)
+
+        self.wallet = j.clients.stellar.get(WALLET_NAME)
+
+    def _get_wallets_as_md(self, wallets):
+        result = &#34;\n&#34;
+        for item in wallets:
+            result += f&#34;- `{item}` has {self._get_voter_balance(item)} (TFT+TFTA)\n&#34;
+        return result
+
+    @chatflow_step()
+    def initialize(self):
+        user_info = self.user_info()
+
+        username = user_info[&#34;username&#34;].split(&#34;.&#34;)[0]
+        welcome_message = f&#34;# Welcome `{username}` to {self.poll_name.capitalize()} Poll\n&lt;br/&gt;The detailed poll results are only visible to the tfgrid council members&#34;
+        self.user = all_users.get(name=f&#34;{self.poll_name}_{username}&#34;)
+        self.user.poll_name = self.poll_name
+        if self.user.has_voted:
+            welcome_message += &#34;\n&lt;br/&gt;&lt;br/&gt;`Note: You have already voted.`&#34;
+
+        if self.user.has_voted:
+            actions = [&#34;Edit My Vote&#34;, &#34;See Results&#34;]
+            action = self.single_choice(welcome_message, options=actions, required=True, md=True)
+            if action == actions[1]:
+                self.result()
+                self.end()
+        else:
+            self.md_show(welcome_message, md=True)
+
+    @chatflow_step()
+    def welcome(self):
+        pass
+
+    @chatflow_step(title=&#34;Loading Wallets&#34;)
+    def payment(self):
+        def _pay(msg=&#34;&#34;):
+            amount = 0.1
+            currency = self.single_choice(
+                &#34;We need to know how many tokens you have to allow weighted vote results, &#34;
+                &#34;in order to do this we need to know all of your wallets addresses you want us to consider in this poll. &#34;
+                &#34;The idea is you send us a small transaction that costs 0.1 tokens. &#34;
+                &#34;Then we will be able to calculate the sum of the TFTs and TFTAs you have in all of the wallets you added. Now you can start adding your wallets &#34;
+                &#34;Which token would you like to continue the transaction with?&#34;,
+                [&#34;TFT&#34;, &#34;TFTA&#34;],
+                required=True,
+            )
+
+            qr_code_content = j.sals.zos._escrow_to_qrcode(
+                escrow_address=self.wallet.address,
+                escrow_asset=currency,
+                total_amount=amount,
+                message=self.user.user_code,
+            )
+
+            message_text = f&#34;&#34;&#34;\
+            &lt;h3&gt;Make a Payment&lt;/h3&gt;
+            Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment.
+            Make sure to add the message (user code) as memo_text
+            Please make the transaction and press Next
+            &lt;h4&gt; Wallet address: &lt;/h4&gt;  {self.wallet.address}
+            &lt;h4&gt; Currency: &lt;/h4&gt;  {currency}
+            &lt;h4&gt; Amount: &lt;/h4&gt;  {amount}
+            &lt;h4&gt; Message (User code): &lt;/h4&gt;  {self.user.user_code}
+            &#34;&#34;&#34;
+            self.qrcode_show(data=qr_code_content, msg=dedent(message_text), scale=4, update=True, html=True, md=True)
+            if self._check_payment(timeout=360):
+                return True
+            else:
+                return False
+
+        def _pay_again(msg=&#34;&#34;):
+            while True:
+                pay_again = self.single_choice(
+                    msg
+                    or f&#34;Wallets added: {self._get_wallets_as_md(self.user.wallets_addresses)}\nDo you like to add another wallet?&#34;,
+                    [&#34;YES&#34;, &#34;NO&#34;],
+                    md=True,
+                )
+                if pay_again == &#34;NO&#34;:
+                    break
+                if not _pay():
+                    _pay_again(
+                        &#34;Error adding the wallet, Please make sure you transaction is completed.\n do you want to try again ?&#34;
+                    )
+
+        if not self.user.user_code:
+            self.user.user_code = j.data.idgenerator.chars(10)
+        # Payment
+        if self.user.has_voted and len(self.user.wallets_addresses) &gt; 0:
+            self.md_show(
+                f&#34;You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and modify your vote&#34;,
+                md=True,
+            )
+            _pay_again()
+
+        elif len(self.user.wallets_addresses) &gt; 0:
+            self.md_show(
+                f&#34;You have already added wallets: {self._get_wallets_as_md(self.user.wallets_addresses)}\n, Press Next to add another wallet and submit your vote&#34;,
+                md=True,
+            )
+            _pay_again()
+        else:
+            if _pay():
+                _pay_again()
+            else:
+                self.stop(&#34;Error adding the wallet, Please make sure you transaction is completed.\n Please try again&#34;)
+
+    def _check_payment(self, timeout):
+        &#34;&#34;&#34;Returns True if user has paid already, False if not&#34;&#34;&#34;
+        now = j.data.time.get().timestamp
+        remaning_time = j.data.time.get(now + timeout).timestamp
+        while remaning_time &gt; now:
+            remaning_time_msg = j.data.time.get(remaning_time).humanize(granularity=[&#34;minute&#34;, &#34;second&#34;])
+            payment_message = (
+                &#34;# Payment being processed...\n&#34;
+                f&#34;Process will be cancelled if payment is not successful {remaning_time_msg}&#34;
+            )
+            self.md_show_update(payment_message, md=True)
+            user_wallets_count = len(self.user.wallets_addresses)
+            transactions = self.wallet.list_transactions()
+            for transaction in transactions:
+                if transaction.memo_text == self.user.user_code:
+                    if transaction.hash not in self.user.transaction_hashes:
+                        self.user.transaction_hashes.append(transaction.hash)
+                    user_wallet = self.wallet.get_sender_wallet_address(transaction.hash)
+                    if not user_wallet in self.user.wallets_addresses:
+                        self.user.wallets_addresses.append(user_wallet)
+                        self.user.tokens += float(self._get_voter_balance(user_wallet))
+                    self.user.save()
+            if len(self.user.wallets_addresses) &gt; user_wallets_count:
+                return True
+        return False
+
+    def get_vote_answer(self, vote_title):
+        answer_array = self.user.vote_data.get(vote_title)
+        if answer_array:
+            options = self.QUESTIONS.get(vote_title)
+            try:
+                return options[answer_array.index(1)]
+            except ValueError:
+                pass
+
+    def get_question_answer(self, question_title):
+        return self.user.extra_data.get(question_title)
+
+    def vote(self):
+        answers = {}
+        answers.update(self.custom_answers)
+        vote_data = self._map_vote_results(answers.copy())
+        vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
+        self.user.vote_data = vote_data
+        self.user.vote_data_weighted = vote_data_weighted
+        self.user.has_voted = True
+        self.user.extra_data = self.extra_data
+        self.user.manifesto_version = MANIFESTO_VERSION
+        self.user.save()
+
+    @chatflow_step(title=&#34;Please fill in the following form&#34;, disable_previous=True)
+    def custom_votes(self):
+        &#34;&#34;&#34;allow child classes to have its custom slides
+
+        Returns:
+            Dict, Dict: Has all questions and answer, extra saved data outside the poll
+        &#34;&#34;&#34;
+        pass
+
+    def _map_vote_results(self, form_answers, weighted=False):
+        &#34;&#34;&#34;takes form answers and returns a sparse array of what user chose
+        to be easy in calcualting votes
+
+        example: [&#34;Blue&#34;, &#34;Red&#34;, &#34;Green&#34;, &#34;Orange&#34;]
+        if user chose &#34;Red&#34; will [0, 1, 0, 0]
+        if user chose &#34;Red&#34; and weighted results will [0, &lt;user_token_sum&gt;, 0, 0]
+        Args:
+            form_answers (dict): form result dictionary
+        &#34;&#34;&#34;
+        for question, answer in form_answers.items():
+            all_answers_init = len(self.QUESTIONS[question]) * [0.0]
+            answer_index = self.QUESTIONS[question].index(answer)
+            if weighted:
+                all_answers_init[answer_index] = self.user.tokens
+            else:
+                all_answers_init[answer_index] = 1
+            form_answers[question] = all_answers_init
+        return form_answers
+
+    @chatflow_step(title=&#34;Poll Results %&#34;, final_step=True)
+    def result(self):
+        usersnames = all_users.list_all()
+        total_votes = 0
+        total_answers = {}
+        total_answers_weighted = {}
+        for username in usersnames:
+            user = all_users.get(username)
+            if user.poll_name == self.poll_name and user.has_voted:
+                total_votes += 1
+                user_votes = all_users.get(username).vote_data
+                user_votes_weighted = all_users.get(username).vote_data_weighted
+                for question, answer in user_votes.items():
+                    if total_answers.get(question):
+                        total_answers[question] = list(map(sum, zip(total_answers[question], answer)))
+                    else:
+                        total_answers[question] = answer
+
+                for question, answer in user_votes_weighted.items():
+                    if total_answers_weighted.get(question):
+                        total_answers_weighted[question] = list(map(sum, zip(total_answers_weighted[question], answer)))
+                    else:
+                        total_answers_weighted[question] = answer
+
+        total_answers_with_percent = {k: self._calculate_percent(v) for k, v in total_answers.items()}
+        total_answers_weighted_with_percent = {k: self._calculate_percent(v) for k, v in total_answers_weighted.items()}
+
+        result_msg = &#34;&#34;
+        for question, answers in total_answers_with_percent.items():
+            question_current_title = question
+            question_new_title = self.metadata[&#34;new_title_keys&#34;][question_current_title]
+            result_msg += f&#34;### {question_new_title}\n&#34;
+            for i in range(len(answers)):
+                answer_name = self.QUESTIONS[question][i]
+                result_msg += f&#34;- {answer_name}: {answers[i]}%\n&#34;
+            result_msg += &#34;\n\n&#34;
+
+        # result_msg += &#34;\n&lt;br /&gt;\n\n&#34;
+        # result_msg += &#34;## Weighted results %\n\n&lt;br /&gt;\n\n&#34;
+        # for question, answers in total_answers_weighted_with_percent.items():
+        #     question_current_title = question
+        #     question_new_title = self.metadata[&#34;new_title_keys&#34;][question_current_title]
+        #     result_msg += f&#34;### {question_new_title}\n&#34;
+        #     for i in range(len(answers)):
+        #         answer_name = self.QUESTIONS[question][i]
+        #         result_msg += f&#34;- {answer_name}: {answers[i]}%\n&#34;
+        #     result_msg += &#34;\n&#34;
+
+        result_msg += f&#34;\n&lt;br /&gt;\n\n#### Total number of votes: {total_votes}\n&#34;
+        self.md_show(result_msg, md=True)
+
+    def _calculate_percent(self, answers):
+        &#34;&#34;&#34;Takes the answers list which is a sparse array and map it
+        to percentages
+
+        Args:
+            answers (list)
+
+        Returns:
+            list: answers_list mapped to percentages
+        &#34;&#34;&#34;
+        answers_list = answers[:]
+        total_votes = float(sum(answers_list))
+        for i in range(len(answers_list)):
+            res = (answers_list[i] / total_votes) * 100
+            answers_list[i] = round(res, 2)
+        return answers_list
+
+    def _get_voter_balance(self, wallet_address):
+        &#34;&#34;&#34;Get sum of user TFT and TFTA
+
+        Args:
+            wallet_address (String): Wallet address
+        &#34;&#34;&#34;
+        assets = self.wallet.get_balance(wallet_address)
+        total_balance = 0.0
+        # get free balances
+        for asset in assets.balances:
+            if asset.asset_code == &#34;TFT&#34; or asset.asset_code == &#34;TFTA&#34;:
+                total_balance += float(asset.balance)
+
+        # add locked funds too
+        for locked_account in assets.escrow_accounts:
+            for locked_asset in locked_account.balances:
+                if locked_asset.asset_code == &#34;TFT&#34; or locked_asset.asset_code == &#34;TFTA&#34;:
+                    total_balance += float(locked_asset.balance)
+
+        return total_balance</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.packages.polls.chats.threefold.TFPoll" href="../../packages/polls/chats/threefold.html#jumpscale.packages.polls.chats.threefold.TFPoll">TFPoll</a></li>
+<li><a title="jumpscale.packages.polls.chats.example2.Example2" href="../../packages/polls/chats/example2.html#jumpscale.packages.polls.chats.example2.Example2">Example2</a></li>
+<li><a title="jumpscale.packages.polls.chats.foo.Foo" href="../../packages/polls/chats/foo.html#jumpscale.packages.polls.chats.foo.Foo">Foo</a></li>
+<li><a title="jumpscale.packages.polls.chats.new.New" href="../../packages/polls/chats/new.html#jumpscale.packages.polls.chats.new.New">New</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.polls.Poll.poll_name"><code class="name">var <span class="ident">poll_name</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.steps"><code class="name">var <span class="ident">steps</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.sals.chatflows.polls.Poll.custom_votes"><code class="name flex">
+<span>def <span class="ident">custom_votes</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.get_question_answer"><code class="name flex">
+<span>def <span class="ident">get_question_answer</span></span>(<span>self, question_title)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_question_answer(self, question_title):
+    return self.user.extra_data.get(question_title)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.get_vote_answer"><code class="name flex">
+<span>def <span class="ident">get_vote_answer</span></span>(<span>self, vote_title)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_vote_answer(self, vote_title):
+    answer_array = self.user.vote_data.get(vote_title)
+    if answer_array:
+        options = self.QUESTIONS.get(vote_title)
+        try:
+            return options[answer_array.index(1)]
+        except ValueError:
+            pass</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.initialize"><code class="name flex">
+<span>def <span class="ident">initialize</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.payment"><code class="name flex">
+<span>def <span class="ident">payment</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.result"><code class="name flex">
+<span>def <span class="ident">result</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.vote"><code class="name flex">
+<span>def <span class="ident">vote</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def vote(self):
+    answers = {}
+    answers.update(self.custom_answers)
+    vote_data = self._map_vote_results(answers.copy())
+    vote_data_weighted = self._map_vote_results(answers.copy(), weighted=True)
+    self.user.vote_data = vote_data
+    self.user.vote_data_weighted = vote_data_weighted
+    self.user.has_voted = True
+    self.user.extra_data = self.extra_data
+    self.user.manifesto_version = MANIFESTO_VERSION
+    self.user.save()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.chatflows.polls.Poll.welcome"><code class="name flex">
+<span>def <span class="ident">welcome</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def wrapper(*args, **kwargs):
+    self_ = args[0]
+    self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+    return func(*args, **kwargs)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.drop_down_choice">drop_down_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.int_ask">int_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.loading_show">loading_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.location_ask">location_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show">md_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.md_show_confirm">md_show_confirm</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_choice">multi_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_list_choice">multi_list_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.multi_values_ask">multi_values_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.new_form">new_form</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.qrcode_show">qrcode_show</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.secret_ask">secret_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.single_choice">single_choice</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.string_ask">string_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.text_ask">text_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.time_delta_ask">time_delta_ask</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file" href="chatflows.html#jumpscale.sals.chatflows.chatflows.GedisChatBot.upload_file">upload_file</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.sals.chatflows" href="index.html">jumpscale.sals.chatflows</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.sals.chatflows.polls.Poll" href="#jumpscale.sals.chatflows.polls.Poll">Poll</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.custom_votes" href="#jumpscale.sals.chatflows.polls.Poll.custom_votes">custom_votes</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.get_question_answer" href="#jumpscale.sals.chatflows.polls.Poll.get_question_answer">get_question_answer</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.get_vote_answer" href="#jumpscale.sals.chatflows.polls.Poll.get_vote_answer">get_vote_answer</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.initialize" href="#jumpscale.sals.chatflows.polls.Poll.initialize">initialize</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.payment" href="#jumpscale.sals.chatflows.polls.Poll.payment">payment</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.poll_name" href="#jumpscale.sals.chatflows.polls.Poll.poll_name">poll_name</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.result" href="#jumpscale.sals.chatflows.polls.Poll.result">result</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.steps" href="#jumpscale.sals.chatflows.polls.Poll.steps">steps</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.vote" href="#jumpscale.sals.chatflows.polls.Poll.vote">vote</a></code></li>
+<li><code><a title="jumpscale.sals.chatflows.polls.Poll.welcome" href="#jumpscale.sals.chatflows.polls.Poll.welcome">welcome</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

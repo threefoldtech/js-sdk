@@ -84,7 +84,11 @@ class Wallet(BaseActor):
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({"error": "Wallet name already exists"})
         network = network or "TEST"
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        try:
+            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        except Exception as e:
+            j.clients.stellar.delete(name)
+            return j.data.serializers.json.dumps({"error": str(e)})
         try:
             wallet.get_balance()
         except:
@@ -98,6 +102,11 @@ class Wallet(BaseActor):
     @actor_method
     def delete_wallet(self, name: str) -> str:
         j.clients.stellar.delete(name=name)
+        return j.data.serializers.json.dumps({"data": True})
+
+    @actor_method
+    def create_testnet_funded(self, name: str) -> str:
+        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({"data": True})
 
 

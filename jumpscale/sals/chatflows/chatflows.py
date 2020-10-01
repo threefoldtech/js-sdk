@@ -84,13 +84,13 @@ class GedisChatBot:
 
     def __init__(self, **kwargs):
         """
-        :param session_id: user session id created by ChatBotFactory session_new method
-        :param topic_method: the bot topic (chatflow)
-        :param kwargs: any extra kwargs that is passed while creating the session
-                       (i.e. can be used for passing any query parameters)
+        Keyword Args
+            any extra kwargs that is passed while creating the session
+            (i.e. can be used for passing any query parameters)
         """
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get("spawn", True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -136,15 +136,24 @@ class GedisChatBot:
             "final_step": self.step_info.get("final_step"),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
+                j.logger.exception("error", exception=e)
+                j.tools.alerthandler.alert_raise(
+                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                )
                 if e.msg:
-                    self.send_error(e.msg, **e.kwargs)
+                    self.send_error(
+                        e.msg + ". Please use the refresh button on the upper right to restart the chatflow", **e.kwargs
+                    )
                 self.send_data({"category": "end"})
 
             except Exception as e:
@@ -153,14 +162,19 @@ class GedisChatBot:
                 alert = j.tools.alerthandler.alert_raise(
                     appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
-                if self.user_info()["username"] in j.core.identity.me.admins:
+                username = self.user_info()["username"]
+                if username in j.core.identity.me.admins:
                     self.send_error(
-                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts" target="_parent">{alert.id} </a>""",
+                        f"""Something wrong happened, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>"""
+                        "Please use the refresh button on the upper right to restart the chatflow",
                         md=True,
                         html=True,
                     )
                 else:
-                    self.send_error(f"Something wrong happened, please contact support with alert ID: {alert.id}")
+                    self.send_error(
+                        f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
+                        "Please use the refresh button on the upper right to restart the chatflow"
+                    )
                 self.send_data({"category": "end"})
 
             if not internal_error:

@@ -44,8 +44,12 @@ class Pools:
 
         node_ids = []
         for node in self._nodes.iter(farm_id=farm_id):
+            if currencies == ["FreeTFT"] and not node.free_to_use:
+                continue
             node_ids.append(node.node_id)
         for gw in self._gateways.iter(farm_id=farm_id):
+            if currencies == ["FreeTFT"] and not gw.free_to_use:
+                continue
             node_ids.append(gw.node_id)
 
         pool = self._pools.new()
@@ -75,8 +79,8 @@ class Pools:
 
         pool = self._pools.new()
         pool.data_reservation.pool_id = p.pool_id
-        pool.data_reservation.cus = int(p.cus + cu)
-        pool.data_reservation.sus = int(p.sus + su)
+        pool.data_reservation.cus = cu
+        pool.data_reservation.sus = su
         pool.data_reservation.node_ids = p.node_ids
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)

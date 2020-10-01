@@ -1,0 +1,1552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.zdb.client API documentation</title>
+<meta name="description" content="To get a new ZDB instance …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.zdb.client</code></h1>
+</header>
+<section id="section-intro">
+<h1 id="to-get-a-new-zdb-instance">To get a new ZDB instance</h1>
+<p>zcl = j.clients.zdb.get("instance", admin=True, mode="user")</p>
+<h1 id="this-will-gets-an-instance-with-admin-capabilities-in-user-mode">This will gets an instance with admin capabilities in user mode</h1>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;
+# To get a new ZDB instance
+
+zcl = j.clients.zdb.get(&#34;instance&#34;, admin=True, mode=&#34;user&#34;)
+
+# This will gets an instance with admin capabilities in user mode
+
+&#34;&#34;&#34;
+from jumpscale.clients.base import Client
+from jumpscale.core.base import fields
+from enum import Enum
+
+
+import redis
+import struct
+
+
+class Mode(Enum):
+    SEQ = &#34;seq&#34;
+    USER = &#34;user&#34;
+
+
+class ZDBClient(Client):
+    addr = fields.String(default=&#34;localhost&#34;)
+    port = fields.Integer(default=9900)
+    secret_ = fields.String(default=&#34;1234567&#34;)
+    nsname = fields.String(default=&#34;test&#34;)
+    admin = fields.Boolean(default=False)
+    mode = fields.Enum(Mode)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if not self.secret_:
+        #     self.secret_ = j.core.myenv.adminsecret
+
+        assert len(self.secret_) &gt; 5
+
+        if self.admin:
+            self.nsname = &#34;default&#34;
+        self.type = &#34;ZDB&#34;
+        self._redis = None
+        self.nsname = self.nsname.lower().strip()
+
+        # if j.data.bcdb._master:
+        #     self._model.trigger_add(self._update_trigger)
+
+    def _update_trigger(self, obj, action, **kwargs):
+        if action in [&#34;save&#34;, &#34;change&#34;]:
+            self._redis = None
+
+    @property
+    def redis(self):
+        if not self._redis:
+            pool = redis.ConnectionPool(
+                host=self.addr,
+                port=self.port,
+                password=self.secret_,
+                connection_class=ZDBConnection,
+                namespace=self.nsname,
+                namespace_password=self.secret_,
+                admin=self.admin,
+            )
+            self._redis = _patch_redis_client(redis.Redis(connection_pool=pool))
+        return self._redis
+
+    def _key_encode(self, key):
+        if self.mode.value == Mode.SEQ.value:
+            if key is None:
+                key = &#34;&#34;
+            else:
+                key = struct.pack(&#34;&lt;I&#34;, key)
+        return key
+
+    def _key_decode(self, key):
+        if self.mode.value == Mode.SEQ.value:
+            key = struct.unpack(&#34;&lt;I&#34;, key)[0]
+        return key
+
+    def set(self, data, key=None):
+        key = key or &#34;&#34;
+        key = self._key_encode(key)
+        res = self.redis.execute_command(&#34;SET&#34;, key, data)
+        if not res:
+            return res
+        return self._key_decode(res)
+
+    def get(self, key):
+        key = self._key_encode(key)
+        return self.redis.execute_command(&#34;GET&#34;, key)
+
+    def exists(self, key):
+        key = self._key_encode(key)
+        return self.redis.execute_command(&#34;EXISTS&#34;, key) == 1
+
+    def delete(self, key):
+        if not key:
+            raise j.exceptions.Value(&#34;key must be provided&#34;)
+        key = self._key_encode(key)
+        self.redis.execute_command(&#34;DEL&#34;, key)
+
+    def flush(self):
+        &#34;&#34;&#34;
+        will remove all data from the database DANGEROUS !!!!
+        This is only allowed on private and password protected namespace
+        You need to select the namespace before running the command.
+        :return:
+        &#34;&#34;&#34;
+        if not self.nsname in [&#34;default&#34;, &#34;system&#34;]:
+            self.redis.execute_command(&#34;FLUSH&#34;)
+
+    def stop(self):
+        pass
+
+    @property
+    def nsinfo(self):
+        cmd = self.redis.execute_command(&#34;NSINFO&#34;, self.nsname)
+        return _parse_nsinfo(cmd.decode())
+
+    def list(self, key_start=None, reverse=False):
+        &#34;&#34;&#34;
+        list all the keys in the namespace
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                        if False, walk from older to newer keys
+                        if True walk from newer to older keys
+                        defaults to False
+        :param reverse: bool, optional
+        :return: list of keys
+        :rtype: [str]
+        &#34;&#34;&#34;
+        result = []
+        for key, data in self.iterate(key_start=key_start, reverse=reverse, keyonly=True):
+            result.append(key)
+        return result
+
+    def iterate(self, key_start=None, reverse=False, keyonly=False):
+        &#34;&#34;&#34;
+        walk over all the namespace and yield (key,data) for each entries in a namespace
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                if False, walk from older to newer keys
+                if True walk from newer to older keys
+                defaults to False
+        :param reverse: bool, optional
+        :param keyonly: [description], defaults to False
+        :param keyonly: bool, optional
+        :raises e: [description]
+        &#34;&#34;&#34;
+
+        next = None
+        data = None
+
+        if key_start is not None:
+            next = self.redis.execute_command(&#34;KEYCUR&#34;, self._key_encode(key_start))
+            if not keyonly:
+                data = self.get(key_start)
+            yield (key_start, data)
+
+        CMD = &#34;SCANX&#34; if not reverse else &#34;RSCAN&#34;
+
+        while True:
+            try:
+                if not next:
+                    response = self.redis.execute_command(CMD)
+                else:
+                    response = self.redis.execute_command(CMD, next)
+                # format of the response
+                # see https://github.com/threefoldtech/0-db/tree/development#scan
+            except redis.ResponseError as e:
+                if e.args[0] == &#34;No more data&#34;:
+                    return
+                raise e
+
+            (next, results) = response
+            for item in results:
+                keyb, size, epoch = item
+                key_new = self._key_decode(keyb)
+                data = None
+                if not keyonly:
+                    data = self.redis.execute_command(&#34;GET&#34;, keyb)
+                yield (key_new, data)
+
+    @property
+    def count(self):
+        &#34;&#34;&#34;
+        :return: return the number of entries in the namespace
+        :rtype: int
+        &#34;&#34;&#34;
+        return self.nsinfo[&#34;entries&#34;]
+
+    def ping(self):
+        &#34;&#34;&#34;
+        go to default namespace &amp; ping
+        :return:
+        &#34;&#34;&#34;
+        return self.redis.ping()
+
+    @property
+    def next_id(self):
+        &#34;&#34;&#34;
+        :return: return the next id
+        :rtype: int
+        &#34;&#34;&#34;
+        id_bytes = struct.pack(&#34;&lt;I&#34;, int(self.nsinfo[&#34;next_internal_id&#34;], 16))
+        return int.from_bytes(id_bytes, byteorder=&#34;big&#34;, signed=True)
+
+
+# Helper functions
+def _patch_redis_client(redis):
+    # don&#39;t auto parse response for set, it&#39;s not 100% redis compatible
+    # 0-db does return a key after in set
+    for cmd in [&#34;SET&#34;, &#34;DEL&#34;]:
+        if cmd in redis.response_callbacks:
+            del redis.response_callbacks[cmd]
+    return redis
+
+
+def _parse_nsinfo(raw):
+    def empty(line):
+        line = line.strip()
+        if len(line) &lt;= 0 or line[0] == &#34;#&#34; or &#34;:&#34; not in line:
+            return False
+        return True
+
+    info = {}
+    for line in filter(empty, raw.splitlines()):
+        key, val = line.split(&#34;:&#34;)
+        try:
+            val = int(val)
+            info[key] = val
+            continue
+        except ValueError:
+            pass
+        try:
+            val = float(val)
+            info[key] = val
+            continue
+        except ValueError:
+            pass
+
+        info[key] = str(val).strip()
+    return info
+
+
+class ZDBConnection(redis.Connection):
+    &#34;&#34;&#34;
+    ZDBConnection implement the custom selection of namespace
+    on 0-DB
+    &#34;&#34;&#34;
+
+    def __init__(self, namespace=None, namespace_password=None, admin=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.namespace = namespace or &#34;default&#34;
+        self.namespace_password = namespace_password
+        self.admin = admin
+
+    def on_connect(self):
+        &#34;&#34;&#34;
+        when a new connection is created, switch to the proper namespace
+        &#34;&#34;&#34;
+        self._parser.on_connect(self)
+
+        # if a password is specified, authenticate
+        if self.admin and self.password:
+            # avoid checking health here -- PING will fail if we try
+            # to check the health prior to the AUTH
+            self.send_command(&#34;AUTH&#34;, self.password, check_health=False)
+            if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+                raise redis.connection.AuthenticationError(&#34;Invalid Password&#34;)
+
+        # if a namespace is specified and it&#39;s not default, switch to it
+        if self.namespace and not self.admin:
+            args = [self.namespace]
+            if self.namespace_password:
+                args.append(self.namespace_password)
+
+            self.send_command(&#34;SELECT&#34;, *args)
+            if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+                raise redis.connection.ConnectionError(f&#34;Failed to select namespace {self.namespace}&#34;)
+
+
+class ZDBAdminClient(ZDBClient):
+    def auth(self):
+        assert self.admin
+        if self.secret_:
+            # authentication should only happen in zdbadmin client
+            self.redis.execute_command(&#34;AUTH&#34;, self.secret_)
+
+    def namespace_exists(self, name):
+        assert self.admin
+        self.auth()
+        try:
+            self.redis.execute_command(&#34;NSINFO&#34;, name)
+            return True
+        except Exception as e:
+            if not &#34;Namespace not found&#34; in str(e):
+                raise j.exceptions.Base(&#34;could not check namespace:%s, error:%s&#34; % (name, e))
+            return False
+
+    def namespaces_list(self):
+        assert self.admin
+        self.auth()
+        res = self.redis.execute_command(&#34;NSLIST&#34;)
+        return [i.decode() for i in res]
+
+    def namespace_new(self, name, secret=None, maxsize=0, die=False):
+        &#34;&#34;&#34;
+        check namespace exists &amp; will return zdb client to that namespace
+
+        :param name:
+        :param secret:
+        :param maxsize:
+        :param die:
+        :return:
+        &#34;&#34;&#34;
+        assert self.admin
+        self.auth()
+        if not self.namespace_exists(name):
+            self.redis.execute_command(&#34;NSNEW&#34;, name)
+        else:
+            if die:
+                raise j.exceptions.Base(&#34;namespace already exists:%s&#34; % name)
+
+        if secret:
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;password&#34;, secret)
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;public&#34;, &#34;no&#34;)
+
+        if maxsize != 0:
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;maxsize&#34;, maxsize)
+
+        ns = j.clients.zdb.client_get(
+            name=&#34;temp_%s&#34; % name, addr=self.addr, port=self.port, mode=self.mode, secret=secret, namespace=name
+        )
+
+        assert ns.ping()
+        if secret:
+            assert ns.nsinfo[&#34;public&#34;] == &#34;no&#34;
+        else:
+            assert ns.nsinfo[&#34;public&#34;] == &#34;yes&#34;
+
+        ns._data.delete()
+        return ns
+
+    def namespace_get(self, name, secret=&#34;&#34;):
+        assert self.admin
+        self.auth()
+        return self.namespace_new(name, secret)
+
+    def namespace_delete(self, name):
+        assert self.admin
+        self.auth()
+        if self.namespace_exists(name):
+            self.redis.execute_command(&#34;NSDEL&#34;, name)
+
+    def reset(self, ignore=[]):
+        &#34;&#34;&#34;
+        dangerous, will remove all namespaces &amp; all data
+        :param: list of namespace names not to reset
+        :return:
+        &#34;&#34;&#34;
+        assert self.admin
+        self.auth()
+        for name in self.namespaces_list():
+            if name not in [&#34;default&#34;] and name not in ignore:
+                self.namespace_delete(name)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.clients.zdb.client.Mode"><code class="flex name class">
+<span>class <span class="ident">Mode</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Mode(Enum):
+    SEQ = &#34;seq&#34;
+    USER = &#34;user&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.clients.zdb.client.Mode.SEQ"><code class="name">var <span class="ident">SEQ</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.clients.zdb.client.Mode.USER"><code class="name">var <span class="ident">USER</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient"><code class="flex name class">
+<span>class <span class="ident">ZDBAdminClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ZDBAdminClient(ZDBClient):
+    def auth(self):
+        assert self.admin
+        if self.secret_:
+            # authentication should only happen in zdbadmin client
+            self.redis.execute_command(&#34;AUTH&#34;, self.secret_)
+
+    def namespace_exists(self, name):
+        assert self.admin
+        self.auth()
+        try:
+            self.redis.execute_command(&#34;NSINFO&#34;, name)
+            return True
+        except Exception as e:
+            if not &#34;Namespace not found&#34; in str(e):
+                raise j.exceptions.Base(&#34;could not check namespace:%s, error:%s&#34; % (name, e))
+            return False
+
+    def namespaces_list(self):
+        assert self.admin
+        self.auth()
+        res = self.redis.execute_command(&#34;NSLIST&#34;)
+        return [i.decode() for i in res]
+
+    def namespace_new(self, name, secret=None, maxsize=0, die=False):
+        &#34;&#34;&#34;
+        check namespace exists &amp; will return zdb client to that namespace
+
+        :param name:
+        :param secret:
+        :param maxsize:
+        :param die:
+        :return:
+        &#34;&#34;&#34;
+        assert self.admin
+        self.auth()
+        if not self.namespace_exists(name):
+            self.redis.execute_command(&#34;NSNEW&#34;, name)
+        else:
+            if die:
+                raise j.exceptions.Base(&#34;namespace already exists:%s&#34; % name)
+
+        if secret:
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;password&#34;, secret)
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;public&#34;, &#34;no&#34;)
+
+        if maxsize != 0:
+            self.redis.execute_command(&#34;NSSET&#34;, name, &#34;maxsize&#34;, maxsize)
+
+        ns = j.clients.zdb.client_get(
+            name=&#34;temp_%s&#34; % name, addr=self.addr, port=self.port, mode=self.mode, secret=secret, namespace=name
+        )
+
+        assert ns.ping()
+        if secret:
+            assert ns.nsinfo[&#34;public&#34;] == &#34;no&#34;
+        else:
+            assert ns.nsinfo[&#34;public&#34;] == &#34;yes&#34;
+
+        ns._data.delete()
+        return ns
+
+    def namespace_get(self, name, secret=&#34;&#34;):
+        assert self.admin
+        self.auth()
+        return self.namespace_new(name, secret)
+
+    def namespace_delete(self, name):
+        assert self.admin
+        self.auth()
+        if self.namespace_exists(name):
+            self.redis.execute_command(&#34;NSDEL&#34;, name)
+
+    def reset(self, ignore=[]):
+        &#34;&#34;&#34;
+        dangerous, will remove all namespaces &amp; all data
+        :param: list of namespace names not to reset
+        :return:
+        &#34;&#34;&#34;
+        assert self.admin
+        self.auth()
+        for name in self.namespaces_list():
+            if name not in [&#34;default&#34;] and name not in ignore:
+                self.namespace_delete(name)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.zdb.client.ZDBClient" href="#jumpscale.clients.zdb.client.ZDBClient">ZDBClient</a></li>
+<li><a title="jumpscale.clients.base.Client" href="../base.html#jumpscale.clients.base.Client">Client</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.auth"><code class="name flex">
+<span>def <span class="ident">auth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def auth(self):
+    assert self.admin
+    if self.secret_:
+        # authentication should only happen in zdbadmin client
+        self.redis.execute_command(&#34;AUTH&#34;, self.secret_)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_delete"><code class="name flex">
+<span>def <span class="ident">namespace_delete</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def namespace_delete(self, name):
+    assert self.admin
+    self.auth()
+    if self.namespace_exists(name):
+        self.redis.execute_command(&#34;NSDEL&#34;, name)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_exists"><code class="name flex">
+<span>def <span class="ident">namespace_exists</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def namespace_exists(self, name):
+    assert self.admin
+    self.auth()
+    try:
+        self.redis.execute_command(&#34;NSINFO&#34;, name)
+        return True
+    except Exception as e:
+        if not &#34;Namespace not found&#34; in str(e):
+            raise j.exceptions.Base(&#34;could not check namespace:%s, error:%s&#34; % (name, e))
+        return False</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_get"><code class="name flex">
+<span>def <span class="ident">namespace_get</span></span>(<span>self, name, secret=&#39;&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def namespace_get(self, name, secret=&#34;&#34;):
+    assert self.admin
+    self.auth()
+    return self.namespace_new(name, secret)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_new"><code class="name flex">
+<span>def <span class="ident">namespace_new</span></span>(<span>self, name, secret=None, maxsize=0, die=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>check namespace exists &amp; will return zdb client to that namespace</p>
+<p>:param name:
+:param secret:
+:param maxsize:
+:param die:
+:return:</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def namespace_new(self, name, secret=None, maxsize=0, die=False):
+    &#34;&#34;&#34;
+    check namespace exists &amp; will return zdb client to that namespace
+
+    :param name:
+    :param secret:
+    :param maxsize:
+    :param die:
+    :return:
+    &#34;&#34;&#34;
+    assert self.admin
+    self.auth()
+    if not self.namespace_exists(name):
+        self.redis.execute_command(&#34;NSNEW&#34;, name)
+    else:
+        if die:
+            raise j.exceptions.Base(&#34;namespace already exists:%s&#34; % name)
+
+    if secret:
+        self.redis.execute_command(&#34;NSSET&#34;, name, &#34;password&#34;, secret)
+        self.redis.execute_command(&#34;NSSET&#34;, name, &#34;public&#34;, &#34;no&#34;)
+
+    if maxsize != 0:
+        self.redis.execute_command(&#34;NSSET&#34;, name, &#34;maxsize&#34;, maxsize)
+
+    ns = j.clients.zdb.client_get(
+        name=&#34;temp_%s&#34; % name, addr=self.addr, port=self.port, mode=self.mode, secret=secret, namespace=name
+    )
+
+    assert ns.ping()
+    if secret:
+        assert ns.nsinfo[&#34;public&#34;] == &#34;no&#34;
+    else:
+        assert ns.nsinfo[&#34;public&#34;] == &#34;yes&#34;
+
+    ns._data.delete()
+    return ns</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.namespaces_list"><code class="name flex">
+<span>def <span class="ident">namespaces_list</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def namespaces_list(self):
+    assert self.admin
+    self.auth()
+    res = self.redis.execute_command(&#34;NSLIST&#34;)
+    return [i.decode() for i in res]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBAdminClient.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self, ignore=[])</span>
+</code></dt>
+<dd>
+<section class="desc"><p>dangerous, will remove all namespaces &amp; all data
+:param: list of namespace names not to reset
+:return:</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def reset(self, ignore=[]):
+    &#34;&#34;&#34;
+    dangerous, will remove all namespaces &amp; all data
+    :param: list of namespace names not to reset
+    :return:
+    &#34;&#34;&#34;
+    assert self.admin
+    self.auth()
+    for name in self.namespaces_list():
+        if name not in [&#34;default&#34;] and name not in ignore:
+            self.namespace_delete(name)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.zdb.client.ZDBClient" href="#jumpscale.clients.zdb.client.ZDBClient">ZDBClient</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.addr" href="#jumpscale.clients.zdb.client.ZDBClient.addr">addr</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.admin" href="#jumpscale.clients.zdb.client.ZDBClient.admin">admin</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.count" href="#jumpscale.clients.zdb.client.ZDBClient.count">count</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.flush" href="#jumpscale.clients.zdb.client.ZDBClient.flush">flush</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.iterate" href="#jumpscale.clients.zdb.client.ZDBClient.iterate">iterate</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.list" href="#jumpscale.clients.zdb.client.ZDBClient.list">list</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.mode" href="#jumpscale.clients.zdb.client.ZDBClient.mode">mode</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.next_id" href="#jumpscale.clients.zdb.client.ZDBClient.next_id">next_id</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.nsname" href="#jumpscale.clients.zdb.client.ZDBClient.nsname">nsname</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.ping" href="#jumpscale.clients.zdb.client.ZDBClient.ping">ping</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.port" href="#jumpscale.clients.zdb.client.ZDBClient.port">port</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.secret_" href="#jumpscale.clients.zdb.client.ZDBClient.secret_">secret_</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient"><code class="flex name class">
+<span>class <span class="ident">ZDBClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ZDBClient(Client):
+    addr = fields.String(default=&#34;localhost&#34;)
+    port = fields.Integer(default=9900)
+    secret_ = fields.String(default=&#34;1234567&#34;)
+    nsname = fields.String(default=&#34;test&#34;)
+    admin = fields.Boolean(default=False)
+    mode = fields.Enum(Mode)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if not self.secret_:
+        #     self.secret_ = j.core.myenv.adminsecret
+
+        assert len(self.secret_) &gt; 5
+
+        if self.admin:
+            self.nsname = &#34;default&#34;
+        self.type = &#34;ZDB&#34;
+        self._redis = None
+        self.nsname = self.nsname.lower().strip()
+
+        # if j.data.bcdb._master:
+        #     self._model.trigger_add(self._update_trigger)
+
+    def _update_trigger(self, obj, action, **kwargs):
+        if action in [&#34;save&#34;, &#34;change&#34;]:
+            self._redis = None
+
+    @property
+    def redis(self):
+        if not self._redis:
+            pool = redis.ConnectionPool(
+                host=self.addr,
+                port=self.port,
+                password=self.secret_,
+                connection_class=ZDBConnection,
+                namespace=self.nsname,
+                namespace_password=self.secret_,
+                admin=self.admin,
+            )
+            self._redis = _patch_redis_client(redis.Redis(connection_pool=pool))
+        return self._redis
+
+    def _key_encode(self, key):
+        if self.mode.value == Mode.SEQ.value:
+            if key is None:
+                key = &#34;&#34;
+            else:
+                key = struct.pack(&#34;&lt;I&#34;, key)
+        return key
+
+    def _key_decode(self, key):
+        if self.mode.value == Mode.SEQ.value:
+            key = struct.unpack(&#34;&lt;I&#34;, key)[0]
+        return key
+
+    def set(self, data, key=None):
+        key = key or &#34;&#34;
+        key = self._key_encode(key)
+        res = self.redis.execute_command(&#34;SET&#34;, key, data)
+        if not res:
+            return res
+        return self._key_decode(res)
+
+    def get(self, key):
+        key = self._key_encode(key)
+        return self.redis.execute_command(&#34;GET&#34;, key)
+
+    def exists(self, key):
+        key = self._key_encode(key)
+        return self.redis.execute_command(&#34;EXISTS&#34;, key) == 1
+
+    def delete(self, key):
+        if not key:
+            raise j.exceptions.Value(&#34;key must be provided&#34;)
+        key = self._key_encode(key)
+        self.redis.execute_command(&#34;DEL&#34;, key)
+
+    def flush(self):
+        &#34;&#34;&#34;
+        will remove all data from the database DANGEROUS !!!!
+        This is only allowed on private and password protected namespace
+        You need to select the namespace before running the command.
+        :return:
+        &#34;&#34;&#34;
+        if not self.nsname in [&#34;default&#34;, &#34;system&#34;]:
+            self.redis.execute_command(&#34;FLUSH&#34;)
+
+    def stop(self):
+        pass
+
+    @property
+    def nsinfo(self):
+        cmd = self.redis.execute_command(&#34;NSINFO&#34;, self.nsname)
+        return _parse_nsinfo(cmd.decode())
+
+    def list(self, key_start=None, reverse=False):
+        &#34;&#34;&#34;
+        list all the keys in the namespace
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                        if False, walk from older to newer keys
+                        if True walk from newer to older keys
+                        defaults to False
+        :param reverse: bool, optional
+        :return: list of keys
+        :rtype: [str]
+        &#34;&#34;&#34;
+        result = []
+        for key, data in self.iterate(key_start=key_start, reverse=reverse, keyonly=True):
+            result.append(key)
+        return result
+
+    def iterate(self, key_start=None, reverse=False, keyonly=False):
+        &#34;&#34;&#34;
+        walk over all the namespace and yield (key,data) for each entries in a namespace
+
+        :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+        :param key_start: str, optional
+        :param reverse: decide how to walk the namespace
+                if False, walk from older to newer keys
+                if True walk from newer to older keys
+                defaults to False
+        :param reverse: bool, optional
+        :param keyonly: [description], defaults to False
+        :param keyonly: bool, optional
+        :raises e: [description]
+        &#34;&#34;&#34;
+
+        next = None
+        data = None
+
+        if key_start is not None:
+            next = self.redis.execute_command(&#34;KEYCUR&#34;, self._key_encode(key_start))
+            if not keyonly:
+                data = self.get(key_start)
+            yield (key_start, data)
+
+        CMD = &#34;SCANX&#34; if not reverse else &#34;RSCAN&#34;
+
+        while True:
+            try:
+                if not next:
+                    response = self.redis.execute_command(CMD)
+                else:
+                    response = self.redis.execute_command(CMD, next)
+                # format of the response
+                # see https://github.com/threefoldtech/0-db/tree/development#scan
+            except redis.ResponseError as e:
+                if e.args[0] == &#34;No more data&#34;:
+                    return
+                raise e
+
+            (next, results) = response
+            for item in results:
+                keyb, size, epoch = item
+                key_new = self._key_decode(keyb)
+                data = None
+                if not keyonly:
+                    data = self.redis.execute_command(&#34;GET&#34;, keyb)
+                yield (key_new, data)
+
+    @property
+    def count(self):
+        &#34;&#34;&#34;
+        :return: return the number of entries in the namespace
+        :rtype: int
+        &#34;&#34;&#34;
+        return self.nsinfo[&#34;entries&#34;]
+
+    def ping(self):
+        &#34;&#34;&#34;
+        go to default namespace &amp; ping
+        :return:
+        &#34;&#34;&#34;
+        return self.redis.ping()
+
+    @property
+    def next_id(self):
+        &#34;&#34;&#34;
+        :return: return the next id
+        :rtype: int
+        &#34;&#34;&#34;
+        id_bytes = struct.pack(&#34;&lt;I&#34;, int(self.nsinfo[&#34;next_internal_id&#34;], 16))
+        return int.from_bytes(id_bytes, byteorder=&#34;big&#34;, signed=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.base.Client" href="../base.html#jumpscale.clients.base.Client">Client</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.zdb.client.ZDBAdminClient" href="#jumpscale.clients.zdb.client.ZDBAdminClient">ZDBAdminClient</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.addr"><code class="name">var <span class="ident">addr</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.admin"><code class="name">var <span class="ident">admin</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.count"><code class="name">var <span class="ident">count</span></code></dt>
+<dd>
+<section class="desc"><p>:return: return the number of entries in the namespace
+:rtype: int</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def count(self):
+    &#34;&#34;&#34;
+    :return: return the number of entries in the namespace
+    :rtype: int
+    &#34;&#34;&#34;
+    return self.nsinfo[&#34;entries&#34;]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.mode"><code class="name">var <span class="ident">mode</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.next_id"><code class="name">var <span class="ident">next_id</span></code></dt>
+<dd>
+<section class="desc"><p>:return: return the next id
+:rtype: int</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def next_id(self):
+    &#34;&#34;&#34;
+    :return: return the next id
+    :rtype: int
+    &#34;&#34;&#34;
+    id_bytes = struct.pack(&#34;&lt;I&#34;, int(self.nsinfo[&#34;next_internal_id&#34;], 16))
+    return int.from_bytes(id_bytes, byteorder=&#34;big&#34;, signed=True)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.nsinfo"><code class="name">var <span class="ident">nsinfo</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def nsinfo(self):
+    cmd = self.redis.execute_command(&#34;NSINFO&#34;, self.nsname)
+    return _parse_nsinfo(cmd.decode())</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.nsname"><code class="name">var <span class="ident">nsname</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.port"><code class="name">var <span class="ident">port</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.redis"><code class="name">var <span class="ident">redis</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def redis(self):
+    if not self._redis:
+        pool = redis.ConnectionPool(
+            host=self.addr,
+            port=self.port,
+            password=self.secret_,
+            connection_class=ZDBConnection,
+            namespace=self.nsname,
+            namespace_password=self.secret_,
+            admin=self.admin,
+        )
+        self._redis = _patch_redis_client(redis.Redis(connection_pool=pool))
+    return self._redis</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.secret_"><code class="name">var <span class="ident">secret_</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self, key)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def delete(self, key):
+    if not key:
+        raise j.exceptions.Value(&#34;key must be provided&#34;)
+    key = self._key_encode(key)
+    self.redis.execute_command(&#34;DEL&#34;, key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.exists"><code class="name flex">
+<span>def <span class="ident">exists</span></span>(<span>self, key)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def exists(self, key):
+    key = self._key_encode(key)
+    return self.redis.execute_command(&#34;EXISTS&#34;, key) == 1</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.flush"><code class="name flex">
+<span>def <span class="ident">flush</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>will remove all data from the database DANGEROUS !!!!
+This is only allowed on private and password protected namespace
+You need to select the namespace before running the command.
+:return:</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def flush(self):
+    &#34;&#34;&#34;
+    will remove all data from the database DANGEROUS !!!!
+    This is only allowed on private and password protected namespace
+    You need to select the namespace before running the command.
+    :return:
+    &#34;&#34;&#34;
+    if not self.nsname in [&#34;default&#34;, &#34;system&#34;]:
+        self.redis.execute_command(&#34;FLUSH&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, key)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get(self, key):
+    key = self._key_encode(key)
+    return self.redis.execute_command(&#34;GET&#34;, key)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.iterate"><code class="name flex">
+<span>def <span class="ident">iterate</span></span>(<span>self, key_start=None, reverse=False, keyonly=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>walk over all the namespace and yield (key,data) for each entries in a namespace</p>
+<p>:param key_start: if specified start to walk from that key instead of the first one, defaults to None
+:param key_start: str, optional
+:param reverse: decide how to walk the namespace
+if False, walk from older to newer keys
+if True walk from newer to older keys
+defaults to False
+:param reverse: bool, optional
+:param keyonly: [description], defaults to False
+:param keyonly: bool, optional
+:raises e: [description]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def iterate(self, key_start=None, reverse=False, keyonly=False):
+    &#34;&#34;&#34;
+    walk over all the namespace and yield (key,data) for each entries in a namespace
+
+    :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+    :param key_start: str, optional
+    :param reverse: decide how to walk the namespace
+            if False, walk from older to newer keys
+            if True walk from newer to older keys
+            defaults to False
+    :param reverse: bool, optional
+    :param keyonly: [description], defaults to False
+    :param keyonly: bool, optional
+    :raises e: [description]
+    &#34;&#34;&#34;
+
+    next = None
+    data = None
+
+    if key_start is not None:
+        next = self.redis.execute_command(&#34;KEYCUR&#34;, self._key_encode(key_start))
+        if not keyonly:
+            data = self.get(key_start)
+        yield (key_start, data)
+
+    CMD = &#34;SCANX&#34; if not reverse else &#34;RSCAN&#34;
+
+    while True:
+        try:
+            if not next:
+                response = self.redis.execute_command(CMD)
+            else:
+                response = self.redis.execute_command(CMD, next)
+            # format of the response
+            # see https://github.com/threefoldtech/0-db/tree/development#scan
+        except redis.ResponseError as e:
+            if e.args[0] == &#34;No more data&#34;:
+                return
+            raise e
+
+        (next, results) = response
+        for item in results:
+            keyb, size, epoch = item
+            key_new = self._key_decode(keyb)
+            data = None
+            if not keyonly:
+                data = self.redis.execute_command(&#34;GET&#34;, keyb)
+            yield (key_new, data)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.list"><code class="name flex">
+<span>def <span class="ident">list</span></span>(<span>self, key_start=None, reverse=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>list all the keys in the namespace</p>
+<p>:param key_start: if specified start to walk from that key instead of the first one, defaults to None
+:param key_start: str, optional
+:param reverse: decide how to walk the namespace
+if False, walk from older to newer keys
+if True walk from newer to older keys
+defaults to False
+:param reverse: bool, optional
+:return: list of keys
+:rtype: [str]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list(self, key_start=None, reverse=False):
+    &#34;&#34;&#34;
+    list all the keys in the namespace
+
+    :param key_start: if specified start to walk from that key instead of the first one, defaults to None
+    :param key_start: str, optional
+    :param reverse: decide how to walk the namespace
+                    if False, walk from older to newer keys
+                    if True walk from newer to older keys
+                    defaults to False
+    :param reverse: bool, optional
+    :return: list of keys
+    :rtype: [str]
+    &#34;&#34;&#34;
+    result = []
+    for key, data in self.iterate(key_start=key_start, reverse=reverse, keyonly=True):
+        result.append(key)
+    return result</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.ping"><code class="name flex">
+<span>def <span class="ident">ping</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>go to default namespace &amp; ping
+:return:</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ping(self):
+    &#34;&#34;&#34;
+    go to default namespace &amp; ping
+    :return:
+    &#34;&#34;&#34;
+    return self.redis.ping()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.set"><code class="name flex">
+<span>def <span class="ident">set</span></span>(<span>self, data, key=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set(self, data, key=None):
+    key = key or &#34;&#34;
+    key = self._key_encode(key)
+    res = self.redis.execute_command(&#34;SET&#34;, key, data)
+    if not res:
+        return res
+    return self._key_decode(res)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBClient.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def stop(self):
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.base.Client" href="../base.html#jumpscale.clients.base.Client">Client</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.base.Client.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.clients.base.Client.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.clients.base.Client.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.zdb.client.ZDBConnection"><code class="flex name class">
+<span>class <span class="ident">ZDBConnection</span></span>
+<span>(</span><span>namespace=None, namespace_password=None, admin=False, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>ZDBConnection implement the custom selection of namespace
+on 0-DB</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ZDBConnection(redis.Connection):
+    &#34;&#34;&#34;
+    ZDBConnection implement the custom selection of namespace
+    on 0-DB
+    &#34;&#34;&#34;
+
+    def __init__(self, namespace=None, namespace_password=None, admin=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.namespace = namespace or &#34;default&#34;
+        self.namespace_password = namespace_password
+        self.admin = admin
+
+    def on_connect(self):
+        &#34;&#34;&#34;
+        when a new connection is created, switch to the proper namespace
+        &#34;&#34;&#34;
+        self._parser.on_connect(self)
+
+        # if a password is specified, authenticate
+        if self.admin and self.password:
+            # avoid checking health here -- PING will fail if we try
+            # to check the health prior to the AUTH
+            self.send_command(&#34;AUTH&#34;, self.password, check_health=False)
+            if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+                raise redis.connection.AuthenticationError(&#34;Invalid Password&#34;)
+
+        # if a namespace is specified and it&#39;s not default, switch to it
+        if self.namespace and not self.admin:
+            args = [self.namespace]
+            if self.namespace_password:
+                args.append(self.namespace_password)
+
+            self.send_command(&#34;SELECT&#34;, *args)
+            if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+                raise redis.connection.ConnectionError(f&#34;Failed to select namespace {self.namespace}&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>redis.connection.Connection</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.zdb.client.ZDBConnection.on_connect"><code class="name flex">
+<span>def <span class="ident">on_connect</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>when a new connection is created, switch to the proper namespace</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def on_connect(self):
+    &#34;&#34;&#34;
+    when a new connection is created, switch to the proper namespace
+    &#34;&#34;&#34;
+    self._parser.on_connect(self)
+
+    # if a password is specified, authenticate
+    if self.admin and self.password:
+        # avoid checking health here -- PING will fail if we try
+        # to check the health prior to the AUTH
+        self.send_command(&#34;AUTH&#34;, self.password, check_health=False)
+        if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+            raise redis.connection.AuthenticationError(&#34;Invalid Password&#34;)
+
+    # if a namespace is specified and it&#39;s not default, switch to it
+    if self.namespace and not self.admin:
+        args = [self.namespace]
+        if self.namespace_password:
+            args.append(self.namespace_password)
+
+        self.send_command(&#34;SELECT&#34;, *args)
+        if redis.connection.nativestr(self.read_response()) != &#34;OK&#34;:
+            raise redis.connection.ConnectionError(f&#34;Failed to select namespace {self.namespace}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#to-get-a-new-zdb-instance">To get a new ZDB instance</a></li>
+<li><a href="#this-will-gets-an-instance-with-admin-capabilities-in-user-mode">This will gets an instance with admin capabilities in user mode</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients.zdb" href="index.html">jumpscale.clients.zdb</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.clients.zdb.client.Mode" href="#jumpscale.clients.zdb.client.Mode">Mode</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.zdb.client.Mode.SEQ" href="#jumpscale.clients.zdb.client.Mode.SEQ">SEQ</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.Mode.USER" href="#jumpscale.clients.zdb.client.Mode.USER">USER</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient" href="#jumpscale.clients.zdb.client.ZDBAdminClient">ZDBAdminClient</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.auth" href="#jumpscale.clients.zdb.client.ZDBAdminClient.auth">auth</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_delete" href="#jumpscale.clients.zdb.client.ZDBAdminClient.namespace_delete">namespace_delete</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_exists" href="#jumpscale.clients.zdb.client.ZDBAdminClient.namespace_exists">namespace_exists</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_get" href="#jumpscale.clients.zdb.client.ZDBAdminClient.namespace_get">namespace_get</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.namespace_new" href="#jumpscale.clients.zdb.client.ZDBAdminClient.namespace_new">namespace_new</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.namespaces_list" href="#jumpscale.clients.zdb.client.ZDBAdminClient.namespaces_list">namespaces_list</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBAdminClient.reset" href="#jumpscale.clients.zdb.client.ZDBAdminClient.reset">reset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.zdb.client.ZDBClient" href="#jumpscale.clients.zdb.client.ZDBClient">ZDBClient</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.addr" href="#jumpscale.clients.zdb.client.ZDBClient.addr">addr</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.admin" href="#jumpscale.clients.zdb.client.ZDBClient.admin">admin</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.count" href="#jumpscale.clients.zdb.client.ZDBClient.count">count</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.delete" href="#jumpscale.clients.zdb.client.ZDBClient.delete">delete</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.exists" href="#jumpscale.clients.zdb.client.ZDBClient.exists">exists</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.flush" href="#jumpscale.clients.zdb.client.ZDBClient.flush">flush</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.get" href="#jumpscale.clients.zdb.client.ZDBClient.get">get</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.iterate" href="#jumpscale.clients.zdb.client.ZDBClient.iterate">iterate</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.list" href="#jumpscale.clients.zdb.client.ZDBClient.list">list</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.mode" href="#jumpscale.clients.zdb.client.ZDBClient.mode">mode</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.next_id" href="#jumpscale.clients.zdb.client.ZDBClient.next_id">next_id</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.nsinfo" href="#jumpscale.clients.zdb.client.ZDBClient.nsinfo">nsinfo</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.nsname" href="#jumpscale.clients.zdb.client.ZDBClient.nsname">nsname</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.ping" href="#jumpscale.clients.zdb.client.ZDBClient.ping">ping</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.port" href="#jumpscale.clients.zdb.client.ZDBClient.port">port</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.redis" href="#jumpscale.clients.zdb.client.ZDBClient.redis">redis</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.secret_" href="#jumpscale.clients.zdb.client.ZDBClient.secret_">secret_</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.set" href="#jumpscale.clients.zdb.client.ZDBClient.set">set</a></code></li>
+<li><code><a title="jumpscale.clients.zdb.client.ZDBClient.stop" href="#jumpscale.clients.zdb.client.ZDBClient.stop">stop</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.zdb.client.ZDBConnection" href="#jumpscale.clients.zdb.client.ZDBConnection">ZDBConnection</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.zdb.client.ZDBConnection.on_connect" href="#jumpscale.clients.zdb.client.ZDBConnection.on_connect">on_connect</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

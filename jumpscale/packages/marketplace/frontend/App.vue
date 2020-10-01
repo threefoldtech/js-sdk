@@ -1,8 +1,29 @@
 <template>
   <v-app>
     <v-app-bar app>
+      <router-link to="/" style="text-decoration: none;">
+        <v-row>
+          <img class="ml-2" src="./assets/3bot.png" height="50" width="50" />
+          <h2 class="ml-4 mt-2">TF Grid Demo</h2>
+        </v-row>
+      </router-link>
       <v-spacer></v-spacer>
-
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            v-bind="attrs"
+            v-on="on"
+            class="ma-2 mr-4"
+            color="#ea5455"
+            label
+            text-color="white"
+          ><b>Demo staged on testnet</b></v-chip>
+        </template>
+        <pre>
+This is for demo purposes to showcase grid usage.
+We're running on testnet which means it's always on latest testing code.
+Forgive any instability you might encounter while our developers work out the kinks</pre>
+      </v-tooltip>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
         <template v-slot:activator="{ on }">
           <v-btn text v-on="on">
@@ -23,6 +44,27 @@
                 <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn text color="blue" :to="'/terms'">Terms and Conditions</v-btn>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn text color="blue" :to="'/disclaimer'">Disclaimer</v-btn>
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
+                <v-btn
+                  text
+                  :link="true"
+                  color="blue"
+                  href="https://manual.threefold.io/#/"
+                  target="_blank"
+                >Manual</v-btn>
+              </v-list-item-content>
+            </v-list-item>
           </v-list>
           <v-divider></v-divider>
           <v-card-actions>
@@ -33,76 +75,6 @@
         </v-card>
       </v-menu>
     </v-app-bar>
-
-    <v-navigation-drawer
-      v-if="sidebar"
-      color="primary"
-      class="elevation-3"
-      :mini-variant="mini"
-      app
-      permanent
-      dark
-      :width="320"
-    >
-      <v-sheet color="#148F77">
-        <v-list class="text-center">
-          <img src="./assets/3bot.png" :width="mini ? 40 : 128" />
-          <br />
-        </v-list>
-      </v-sheet>
-
-      <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
-
-      <v-list class="mt-0 pt-0">
-        <v-list-item v-for="app in apps" :key="app.name" :to="app.path" link>
-          <v-list-item-icon>
-            <v-img height="30px" width="30px" v-if="app.meta.img" :src="app.meta.img"></v-img>
-            <v-icon v-else color="white">{{app.meta.icon}}</v-icon>
-          </v-list-item-icon>
-
-          <v-list-item-content>
-            <v-list-item-title>
-              {{ app.name }}
-              <v-chip :loading="true" class="ml-2" small outlined>{{solutionCount[app.type] || 0}}</v-chip>
-            </v-list-item-title>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-group no-action value="true" color="white">
-          <template v-slot:activator>
-            <v-list-item-content>
-              <v-list-item-title>Advanced Solutions</v-list-item-title>
-            </v-list-item-content>
-          </template>
-
-          <v-list-item v-for="solution in solutions" :key="solution.name" :to="solution.path" link>
-            <v-list-item-icon>
-              <v-img height="25px" width="25px" v-if="solution.meta.img" :src="solution.meta.img"></v-img>
-              <v-icon v-else color="white">{{solution.meta.icon}}</v-icon>
-            </v-list-item-icon>
-
-            <v-list-item-content>
-              <v-list-item-title>
-                {{ solution.name }}
-                <v-chip
-                  :loading="true"
-                  class="ml-2"
-                  small
-                  outlined
-                >{{solutionCount[solution.type] || 0}}</v-chip>
-              </v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-group>
-      </v-list>
-
-      <template v-slot:append>
-        <div class="text-center pa-2">
-          <v-btn icon @click.stop="mini = !mini">
-            <v-icon>{{mini ? 'mdi-chevron-right' : 'mdi-chevron-left'}}</v-icon>
-          </v-btn>
-        </div>
-      </template>
-    </v-navigation-drawer>
 
     <v-main>
       <router-view></router-view>
@@ -119,131 +91,6 @@ module.exports = {
       menu: false,
       mini: false,
       solutionCount: {},
-      sidebar: true,
-      apps: [
-        {
-          name: "Peertube",
-          type: "peertube",
-          path: "/peertube",
-          meta: { img: "./assets/peertube.png" },
-        },
-        {
-          name: "Discourse",
-          type: "discourse",
-          path: "/discourse",
-          meta: { img: "./assets/discourse.png" },
-        },
-        {
-          name: "Mattermost",
-          type: "mattermost",
-          path: "/mattermost",
-          meta: { icon: "mdi-chat-processing-outline" },
-        },
-        {
-          name: "Cryptpad",
-          type: "cryptpad",
-          path: "/cryptpad",
-          meta: { img: "./assets/cryptpad.png" },
-        },
-        {
-          name: "Blog",
-          type: "blog",
-          path: "/blog",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Website",
-          type: "website",
-          path: "/website",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Wiki",
-          type: "wiki",
-          path: "/wiki",
-          meta: { icon: "mdi-web-box" },
-        },
-        {
-          name: "Taiga",
-          type: "taiga",
-          path: "/taiga",
-          meta: { img: "./assets/taiga.png" },
-        },
-      ],
-      solutions: [
-        {
-          name: "Pools",
-          type: "pools",
-          path: "/pools",
-          meta: { icon: "mdi-cloud" },
-        },
-        {
-          name: "Network",
-          type: "network",
-          path: "/network",
-          meta: { icon: "mdi-network-outline" },
-        },
-        {
-          name: "Ubuntu",
-          type: "ubuntu",
-          path: "/ubuntu",
-          meta: { img: "./assets/ubuntu.png" },
-        },
-        {
-          name: "Generic Container",
-          type: "flist",
-          path: "/flist",
-          meta: { icon: "mdi-folder-multiple" },
-        },
-        {
-          name: "Kubernetes",
-          type: "kubernetes",
-          path: "/kubernetes",
-          meta: { img: "./assets/kubernetes.png" },
-        },
-        {
-          name: "Minio",
-          type: "minio",
-          path: "/minio",
-          meta: { img: "./assets/minio.png" },
-        },
-        {
-          name: "Monitoring",
-          type: "monitoring",
-          path: "/monitoring",
-          meta: { icon: "mdi-monitor-dashboard" },
-        },
-        {
-          name: "Gitea",
-          type: "gitea",
-          path: "/gitea",
-          meta: { img: "./assets/gitea.png" },
-        },
-        {
-          name: "Solution Expose",
-          type: "exposed",
-          path: "/exposed",
-          meta: { icon: "mdi-publish" },
-        },
-        {
-          name: "Domain Delegation",
-          type: "delegated_domain",
-          path: "/delegated_domain",
-          meta: { icon: "mdi-web" },
-        },
-        {
-          name: "4 to 6 Gateway",
-          type: "4to6gw",
-          path: "/4to6gw",
-          meta: { icon: "mdi-router" },
-        },
-        {
-          type: "threebot",
-          name: "3Bot",
-          path: "/threebot",
-          meta: { img: "./assets/3bot.png" },
-        },
-      ],
     };
   },
   computed: {},
@@ -263,10 +110,6 @@ module.exports = {
   mounted() {
     this.getCurrentUser();
     this.getSolutionCount();
-
-    this.$root.$on("sidebar", (sidebar) => {
-      this.sidebar = sidebar;
-    });
   },
 };
 </script>

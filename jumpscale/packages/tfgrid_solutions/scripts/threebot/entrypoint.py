@@ -5,7 +5,7 @@ monkey.patch_all(subprocess=False)  # noqa: E402
 import os
 import requests
 from jumpscale.loader import j
-from jumpscale.packages.backup.actors.marketplace import Backup
+from jumpscale.packages.backup.actors.threebot_deployer import Backup
 
 
 def main():
@@ -23,15 +23,15 @@ def main():
 
     new = True
 
-    resp = requests.get("https://explorer.grid.tf/explorer/users", params={"name": tname})
+    resp = requests.get("https://explorer.grid.tf/api/v1/users", params={"name": tname})
     if resp.json():
         new = False
 
     j.logger.info("Generating guest identity ...")
-    identity_main = j.core.identity.new(
-        "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/explorer"
+    identity_main = j.core.identity.get(
+        "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
     )
-    identity_test = j.core.identity.new(
+    identity_test = j.core.identity.get(
         "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
     )
 
@@ -44,6 +44,20 @@ def main():
     j.core.identity.set_default("main")
 
     if backup_password:
+        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
+        # Create a funded wallet to the threebot testnet
+        try:
+            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
+        except Exception as e:
+            j.logger.error(str(e))
+
+        # Sanitation for the case user deleted his old backups!
+        try:
+            BACKUP_ACTOR.init(backup_password, new=False)
+        except Exception as e:
+            new = True
+            j.logger.warning(f"{str(e)}: Reinitalizing backup for new user")
+
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
             if not new:
@@ -59,10 +73,11 @@ def main():
 
     j.logger.info("Starting threebot ...")
 
-    if test_cert == "true":
-        j.servers.threebot.start_default(wait=True, local=False)
-    else:
-        j.servers.threebot.start_default(wait=True, local=False, domain=domain, email=email)
+    server = j.servers.threebot.get("default")
+    if test_cert == "false":
+        server.domain = domain
+        server.email = email
+        server.save()
 
 
 if __name__ == "__main__":

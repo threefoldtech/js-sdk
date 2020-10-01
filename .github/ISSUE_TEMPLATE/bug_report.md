@@ -17,7 +17,7 @@ A clear description of the bug
 ### Version information
 
 * OS: e.g. Ubuntu 19.04, Windows 10
-* project commit/version: e.g. js-ng 11.0.0a1
+* project commit/version: e.g. js-ng 11.0b3
 * Browser: e.g. chrome 79
 *
 ### Installation method

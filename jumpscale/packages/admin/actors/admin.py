@@ -66,6 +66,7 @@ class Admin(BaseActor):
                         "email": identity.email,
                         "tid": identity.tid,
                         "explorer_url": identity.explorer_url,
+                        "words": identity.words,
                     }
                 }
             )
@@ -87,11 +88,15 @@ class Admin(BaseActor):
         explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
-        new_identity = j.core.identity.new(
-            name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
-        )
-        new_identity.register()
-        new_identity.save()
+        try:
+            new_identity = j.core.identity.new(
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+            )
+            new_identity.register()
+            new_identity.save()
+        except Exception as e:
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
@@ -106,6 +111,29 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} deleted successfully"})
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
+
+    @actor_method
+    def get_developer_options(self) -> str:
+        test_cert = j.core.config.set_default("TEST_CERT", False)
+        over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
+        explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
+        return j.data.serializers.json.dumps(
+            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+        )
+
+    @actor_method
+    def set_developer_options(self, test_cert: bool, over_provision: bool, explorer_logs: bool) -> str:
+        j.core.config.set("TEST_CERT", test_cert)
+        j.core.config.set("OVER_PROVISIONING", over_provision)
+        j.core.config.set("EXPLORER_LOGS", explorer_logs)
+        return j.data.serializers.json.dumps(
+            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+        )
+
+    @actor_method
+    def clear_blocked_nodes(self) -> str:
+        j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
+        return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
 
 Actor = Admin

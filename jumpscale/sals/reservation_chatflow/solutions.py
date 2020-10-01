@@ -1,26 +1,36 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
-K8S_SIZES = {
-    1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"},
-    2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"},
-}
+K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
 
 
 class ChatflowSolutions:
+    def get_node_farm(self, node_id):
+        explorer = j.core.identity.me.explorer
+        farm_id = explorer.nodes.get(node_id).farm_id
+        return str(explorer.farms.get(farm_id))
+
     def list_network_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=sync)
         if not sync and not networks:
             networks = j.sals.reservation_chatflow.deployer.list_networks(next_action=next_action, sync=False)
         result = []
+        nodes = {}
+        farms = {}
+        if networks:
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
         for n in networks.values():
-            if len(n.network_workloads) == 0:
+            if not n.network_workloads:
                 continue
             result.append(
                 {
                     "Name": n.name,
                     "IP Range": n.network_workloads[-1].network_iprange,
-                    "nodes": {res.info.node_id: res.iprange for res in n.network_workloads},
+                    "nodes": {
+                        res.info.node_id: f"{res.iprange} {farms.get(nodes.get(res.info.node_id))}"
+                        for res in n.network_workloads
+                    },
                     "wids": [res.id for res in n.network_workloads],
                 }
             )
@@ -42,7 +52,7 @@ class ChatflowSolutions:
         return self._list_single_container_solution("flist", next_action, sync)
 
     def list_gitea_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("gitea", next_action, sync)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx")
 
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
@@ -66,7 +76,7 @@ class ChatflowSolutions:
         return self._list_single_container_solution("gollum", next_action, sync)
 
     def list_cryptpad_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("cryptpad", next_action, sync)
+        return self._list_proxied_solution("cryptpad", next_action, sync, "nginx")
 
     def list_minio_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -124,22 +134,22 @@ class ChatflowSolutions:
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
                     if name in result:
-                        if len(workload.master_ips) != 0:
+                        if workload.master_ips:
                             result[name]["wids"].append(workload.id)
                             result[name]["Slave IPs"].append(workload.ipaddress)
                             result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
-                    result[f"{name}"] = {
+                    result[name] = {
                         "wids": [workload.id],
                         "Name": name,
                         "Network": workload.network_id,
-                        "Master IP": workload.ipaddress if len(workload.master_ips) == 0 else workload.master_ips[0],
+                        "Master IP": workload.ipaddress if not workload.master_ips else workload.master_ips[0],
                         "Slave IPs": [],
                         "Slave Pools": [],
                         "Master Pool": workload.info.pool_id,
                     }
                     result[name].update(self.get_workload_capacity(workload))
-                    if len(workload.master_ips) != 0:
+                    if workload.master_ips:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
@@ -168,6 +178,7 @@ class ChatflowSolutions:
                 solution_dict[f"{cont_type} IPv4"] = c_dict["ipv4"]
                 solution_dict[f"{cont_type} IPv6"] = c_dict["ipv6"]
                 solution_dict[f"{cont_type} Node"] = c_dict["node"]
+                solution_dict[f"{cont_type} Farm"] = self.get_node_farm(c_dict["node"])
                 solution_dict[f"{cont_type} Pool"] = c_dict["pool"]
                 for key, val in c_dict["capacity"].items():
                     solution_dict[f"{cont_type} {key}"] = val
@@ -204,7 +215,7 @@ class ChatflowSolutions:
         ].values():
             for dom in domains:
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
                 )
         return result
 
@@ -232,7 +243,7 @@ class ChatflowSolutions:
                         "Pool": proxy.info.pool_id,
                         "Domain": proxy.domain,
                     }
-                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
@@ -246,7 +257,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -271,7 +282,7 @@ class ChatflowSolutions:
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -417,6 +428,7 @@ class ChatflowSolutions:
                     "ipv6": self.get_ipv6_address(workload),
                     "network": workload.network_connection[0].network_id,
                     "node": workload.info.node_id,
+                    "farm": self.get_node_farm(workload.info.node_id),
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
                     "capacity": self.get_workload_capacity(workload),
@@ -471,6 +483,8 @@ class ChatflowSolutions:
                     "domain": workload.domain,
                     "ips": workload.ips,
                     "owner": metadata.get("owner"),
+                    "pool": workload.info.pool_id,
+                    "uuid": metadata.get("solution_uuid"),
                 }
                 if name not in result:
                     result[name] = [subdomain_dict]
@@ -515,8 +529,10 @@ class ChatflowSolutions:
                 name = name_identitfier(metadata)
                 proxy_dict = {
                     "wid": workload.id,
+                    "pool": workload.info.pool_id,
                     "domain": workload.domain,
                     "owner": metadata.get("owner"),
+                    "uuid": metadata.get("solution_uuid"),
                 }
                 if name not in result:
                     result[name] = [proxy_dict]
@@ -554,8 +570,8 @@ class ChatflowSolutions:
             proxy_dicts = proxy_workloads.get(name)
             if not subdomain_dicts or not proxy_dicts:
                 continue
-            subdomain_dict = subdomain_dicts[0]
-            proxy_dict = proxy_dicts[0]
+            subdomain_dict = subdomain_dicts[-1]
+            proxy_dict = proxy_dicts[-1]
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
@@ -565,18 +581,25 @@ class ChatflowSolutions:
                 "Name": sol_name,
                 "Domain": subdomain_dict["domain"],
             }
+            if chatflow == "threebot":
+                solution_dict.update(
+                    {"Owner": owner,}
+                )
             if len(container_workloads[name]) != containers_len:
                 continue
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
+                    pool = j.sals.zos.pools.get(c_dict["pool"])
                     solution_dict.update(
                         {
                             "IPv4 Address": c_dict["ipv4"],
                             "IPv6 Address": c_dict["ipv6"],
                             "Node": c_dict["node"],
+                            "Farm": self.get_node_farm(c_dict["node"]),
                             "Pool": c_dict["pool"],
                             "Network": c_dict["network"],
+                            "Expiration": pool.empty_at,
                         }
                     )
                     solution_dict.update(c_dict["capacity"])
@@ -607,12 +630,26 @@ class ChatflowSolutions:
                     "IPv4 Address": c_dict["ipv4"],
                     "IPv6 Address": c_dict["ipv6"],
                     "Node": c_dict["node"],
+                    "Farm": self.get_node_farm(c_dict["node"]),
                     "Pool": c_dict["pool"],
                     "Network": c_dict["network"],
                 }
             )
             result[-1].update(c_dict["capacity"])
         return result
+
+    def cancel_solution_by_uuid(self, solution_uuid):
+        # Get workloads with specific UUID
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+            if solution_uuid == self.get_solution_uuid(workload):
+                j.sals.zos.workloads.decomission(workload.id)
+
+    def get_workloads_by_uuid(self, solution_uuid, next_action=None):
+        workloads = []
+        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
+            if solution_uuid == self.get_solution_uuid(workload):
+                workloads.append(workload)
+        return workloads
 
 
 solutions = ChatflowSolutions()

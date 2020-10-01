@@ -1,6 +1,8 @@
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow.solutions import ChatflowSolutions
+from jumpscale.core.base import StoredFactory
+from .models import UserPool
 
 
 class MarketplaceSolutions(ChatflowSolutions):
@@ -38,7 +40,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_single_container_solution("flist", next_action, sync, owner=username)
 
     def list_gitea_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("gitea", next_action, sync, owner=username)
+        return self._list_proxied_solution("gitea", next_action, sync, "nginx", owner=username)
 
     def list_mattermost_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
@@ -62,7 +64,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_single_container_solution("gollum", next_action, sync, owner=username)
 
     def list_cryptpad_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_single_container_solution("cryptpad", next_action, sync, owner=username)
+        return self._list_proxied_solution("cryptpad", next_action, sync, "nginx", owner=username)
 
     def list_minio_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -160,13 +162,13 @@ class MarketplaceSolutions(ChatflowSolutions):
                     continue
                 name = metadata["form_info"].get("Solution name", metadata.get("name"))
                 if name:
-                    if f"{name}" in result:
+                    if name in result:
                         if len(workload.master_ips) != 0:
-                            result[f"{name}"]["wids"].append(workload.id)
-                            result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
-                            result[f"{name}"]["Slave Pools"].append(workload.info.pool_id)
+                            result[name]["wids"].append(workload.id)
+                            result[name]["Slave IPs"].append(workload.ipaddress)
+                            result[name]["Slave Pools"].append(workload.info.pool_id)
                         continue
-                    result[f"{name}"] = {
+                    result[name] = {
                         "wids": [workload.id],
                         "Name": name[len(username) + 1 :],
                         "Network": workload.network_id,
@@ -177,7 +179,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                     }
                     result[name].update(self.get_workload_capacity(workload))
                     if len(workload.master_ips) != 0:
-                        result[f"{name}"]["Slave IPs"].append(workload.ipaddress)
+                        result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
     def list_4to6gw_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
@@ -255,7 +257,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "Domain": proxy.domain,
                     }
                     name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
-                    name_to_proxy[f"{name}"] = f"{proxy.info.pool_id}-{proxy.domain}"
+                    name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
         # link subdomains to proxy_reservations
@@ -275,7 +277,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if not solution_name:
                     continue
                 domain = workload.domain
-                if name_to_proxy.get(f"{solution_name}"):
+                if name_to_proxy.get(solution_name):
                     result[name_to_proxy[solution_name]]["wids"].append(workload.id)
 
         # link tcp router containers to proxy reservations
@@ -301,9 +303,9 @@ class MarketplaceSolutions(ChatflowSolutions):
                 )
                 if not solution_name:
                     continue
-                if name_to_proxy.get(f"{solution_name}"):
-                    domain = name_to_proxy.get(f"{solution_name}")
-                    result[f"{domain}"]["wids"].append(container_workload.id)
+                if name_to_proxy.get(solution_name):
+                    domain = name_to_proxy.get(solution_name)
+                    result[domain]["wids"].append(container_workload.id)
         return list(result.values())
 
     def count_solutions(self, username, next_action=NextAction.DEPLOY):
@@ -344,18 +346,26 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_solutions(self, username, solution_type):
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=NextAction.DEPLOY)
         method = getattr(self, f"list_{solution_type}_solutions")
-        return method(username, next_action=NextAction.DEPLOY, sync=True)
+        return method(username, next_action=NextAction.DEPLOY, sync=False)
 
-    def cancel_solution(self, username, solution_wids):
+    def cancel_solution(self, username, solution_wids, delete_pool=False):
         valid = True
+        pool_id = None
         for wid in solution_wids:
             workload = j.sals.zos.workloads.get(wid)
+            if workload.info.workload_type == WorkloadType.Container:
+                pool_id = workload.info.pool_id
             metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
             metadata = j.data.serializers.json.loads(metadata_json)
             if metadata.get("owner") != username:
                 valid = False
                 break
         if valid:
+            if pool_id and delete_pool:
+                # deassociate the pool from user
+                pool_factory = StoredFactory(UserPool)
+                instance_name = f"pool_{username.replace('.3bot', '')}_{pool_id}"
+                pool_factory.delete(instance_name)
             super().cancel_solution(solution_wids)
 
 

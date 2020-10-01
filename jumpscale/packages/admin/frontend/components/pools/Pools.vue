@@ -1,8 +1,8 @@
 <template>
   <div>
-    <base-component title="Pools" icon="mdi-cloud" :loading="loading">
+    <base-component title="Capacity Pools" icon="mdi-cloud">
       <template #actions>
-        <v-btn color="primary" text to="/solutions/pools_reservation">
+        <v-btn color="primary" text to="/solutions/pools">
           <v-icon left>mdi-cloud</v-icon>Create/Extend Pool
         </v-btn>
         <v-btn color="primary" text @click="toggleHiddenPools">
@@ -11,7 +11,8 @@
       </template>
 
       <template #default>
-        <v-data-table :headers="headers" :items="pools" @click:row="open">
+        <v-data-table :headers="headers" :loading="loading" :items="pools.reverse()" @click:row="open">
+          <template slot="no-data">No pools available</p></template>
           <template v-slot:item.node_ids="{ item }">{{ item.node_ids.length }}</template>
           <template v-slot:item.active_workload_ids="{ item }">{{ item.active_workload_ids.length }}</template>
           <template v-slot:item.empty_at="{ item }">
@@ -33,7 +34,7 @@ module.exports = {
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
       dialog: false,
       hidden_dialog: false,

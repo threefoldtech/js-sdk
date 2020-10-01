@@ -1,18 +1,24 @@
 import base64
 import copy
 import json
-from jumpscale.loader import j
-from jumpscale.core.base import StoredFactory
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.models import TfgridSolution1, TfgridSolutionsPayment1, SolutionType
+import random
+import time
+from textwrap import dedent
+
+import netaddr
+import requests
+from nacl.public import Box
+
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
 
-from nacl.public import Box
-import netaddr
-import random
-import requests
-import time
+NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
+NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+NODES_COUNT_KEY = "ZOS:NODES:FAILURE_COUNT"
 
 
 class Network:
@@ -211,12 +217,14 @@ class Network:
 
 class ReservationChatflow:
     def __init__(self, **kwargs):
-        """This class is responsible for managing, creating, cancelling reservations
-        """
-        self.me = j.core.identity.me
+        """This class is responsible for managing, creating, cancelling reservations"""
         self.solutions = StoredFactory(TfgridSolution1)
         self.payments = StoredFactory(TfgridSolutionsPayment1)
         self.deployed_reservations = StoredFactory(DeployedReservation)
+
+    @property
+    def me(self):
+        return j.core.identity.me
 
     @property
     def _explorer(self):
@@ -486,8 +494,7 @@ class ReservationChatflow:
         return reservations_data
 
     def update_local_reservations(self):
-        """update local reserfvations with new ones
-        """
+        """update local reserfvations with new ones"""
         for obj in self.solutions.list_all():
             self.solutions.delete(obj)
         reservations = self.get_solutions_explorer()
@@ -528,14 +535,14 @@ class ReservationChatflow:
         payment_details = self.get_payment_details(escrow_info, escrow_asset.split(":")[0])
 
         message_text = f"""
-        <h3> Please make your payment </h3>
-        Scan the QR code with your application (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
+        <h3>Make a Payment</h3>
+        Scan the QR code with your wallet (do not change the message) or enter the information below manually and proceed with the payment. Make sure to add the reservationid as memo_text.
         <p>If no payment is made {remaning_time} the reservation will be canceled</p>
 
-        <h4> Wallet address: </h4>  {escrow_address} \n
+        <h4> Destination Wallet Address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
-        <h4> Reservation id: </h4>  {reservationid} \n
-        <h4> Payment details: </h4> {payment_details} \n
+        <h4> Reservation ID: </h4>  {reservationid} \n
+        <h4> Payment Details: </h4> {payment_details} \n
         """
 
         bot.qrcode_show(data=qrcode, msg=message_text, scale=4, update=True, html=True)
@@ -600,7 +607,7 @@ class ReservationChatflow:
         return payment_details
 
     def show_payments(self, bot, reservation_create_resp, currency):
-        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of 3Bot app is shown
+        """Show valid payment options in chatflow available. All available wallets possible are shown or usage of External wallet (QR code) is shown
         where a QR code is viewed for the user to scan and continue with their payment
 
         Args:
@@ -626,16 +633,16 @@ class ReservationChatflow:
         wallet_names = []
         for w in wallets.keys():
             wallet_names.append(w)
-        wallet_names.append("3Bot app")
+        wallet_names.append("External Wallet (QR Code)")
 
         payment_details = self.get_payment_details(escrow_info, currency)
 
         message = f"""
         Billing details:
-        <h4> Wallet address: </h4>  {escrow_address} \n
+        <h4> Destination Wallet address: </h4>  {escrow_address} \n
         <h4> Currency: </h4>  {escrow_asset} \n
-        <h4> Payment details: </h4> {payment_details} \n
-        <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+        <h4> Payment Details: </h4> {payment_details} \n
+        <h4> Choose a wallet name to use for payment or proceed with the payment through an external wallet (QR Code) </h4>
         """
         retry = False
         while True:
@@ -645,7 +652,7 @@ class ReservationChatflow:
             if result not in wallet_names:
                 retry = True
                 continue
-            if result == "3Bot app":
+            if result == "External Wallet (QR Code)":
                 reservation = self._explorer.reservations.get(rid)
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
                 payment_obj = self.create_payment(
@@ -654,7 +661,7 @@ class ReservationChatflow:
                     escrow_address=escrow_address,
                     escrow_asset=escrow_asset,
                     total_amount=total_amount,
-                    payment_source="3bot app",
+                    payment_source="external_wallet",
                     farmer_payments=escrow_info["farmer_payments"],
                 )
                 return payment, payment_obj
@@ -683,7 +690,7 @@ class ReservationChatflow:
                 <h4> Wallet address: </h4>  {escrow_address} \n
                 <h4> Currency: </h4>  {escrow_asset} \n
                 <h4> Payment details: </h4> {payment_details} \n
-                <h4> Choose a wallet name to use for payment or proceed with payment through 3Bot app </h4>
+                <h4> Choose a wallet name to use for payment or proceed with payment through External Wallet (QR Code) </h4>
                 """
 
     def wait_payment(self, bot, rid, threebot_app=False, reservation_create_resp=None):
@@ -705,11 +712,12 @@ class ReservationChatflow:
             remaning_time = j.data.time.get(reservation.data_reservation.expiration_provisioning).humanize(
                 granularity=["minute", "second"]
             )
-            deploying_message = f"""
-# Payment being processed...\n
-Deployment will be cancelled if payment is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
+            deploying_message = f"""\
+            # Payment being processed...
+
+            <br />Deployment will be cancelled if payment is not successful {remaning_time}
+            """
+            bot.md_show_update(dedent(deploying_message), md=True)
             if reservation.next_action != "PAY":
                 return
             if is_expired(reservation):
@@ -780,10 +788,11 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                 granularity=["minute", "second"]
             )
             deploying_message = f"""
-# Deploying...\n
-Deployment will be cancelled if it is not successful {remaning_time}
-"""
-            bot.md_show_update(deploying_message, md=True)
+            # Deploying...
+
+            <br />Deployment will be cancelled if it is not successful in {remaning_time}
+            """
+            bot.md_show_update(dedent(deploying_message), md=True)
             self._reservation_failed(bot, reservation)
 
             if is_finished(reservation):
@@ -1124,7 +1133,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return reservations
 
     def add_reservation_metadata(self, reservation, metadata):
-        """ add the encrypted metadata to reservation object
+        """add the encrypted metadata to reservation object
 
         Args:
             reservation (jumpscale.clients.explorer.models.TfgridWorkloadsReservation1): reservation object
@@ -1356,7 +1365,16 @@ Deployment will be cancelled if it is not successful {remaning_time}
         return node
 
     def get_nodes(
-        self, number_of_nodes, cru=None, sru=None, mru=None, hru=None, currency="TFT", ip_version=None, pool_ids=None,
+        self,
+        number_of_nodes,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        currency="TFT",
+        ip_version=None,
+        pool_ids=None,
+        filter_blocked=True,
     ):
         """get available nodes to deploy solutions on
 
@@ -1376,6 +1394,17 @@ Deployment will be cancelled if it is not successful {remaning_time}
         Returns:
             list of available nodes
         """
+
+        def filter_disallowed_nodes(disallowed_node_ids, nodes):
+            result = []
+            for node in nodes:
+                if node.node_id not in disallowed_node_ids:
+                    result.append(node)
+            return result
+
+        disallowed_node_ids = []
+        if filter_blocked:
+            disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
@@ -1390,6 +1419,7 @@ Deployment will be cancelled if it is not successful {remaning_time}
             nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
+            nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
             for i in range(nodes_number):
                 try:
@@ -1397,7 +1427,10 @@ Deployment will be cancelled if it is not successful {remaning_time}
                     while node.node_id in selected_ids:
                         node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow("Failed to find resources for this reservation")
+                    raise StopChatFlow(
+                        "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
+                        htmlAlert=True,
+                    )
                 nodes.remove(node)
                 nodes_selected.append(node)
                 selected_ids.append(node.node_id)
@@ -1560,6 +1593,43 @@ Deployment will be cancelled if it is not successful {remaning_time}
         if not user_info["username"]:
             raise j.exceptions.Value("Name of logged in user shouldn't be empty")
         return self._explorer.users.get(name=user_info["username"], email=user_info["email"])
+
+    def block_node(self, node_id):
+        count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
+        expiration = count * NODES_DISALLOW_EXPIRATION
+        node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
+        j.core.db.set(node_key, expiration, ex=expiration)
+
+    def unblock_node(self, node_id, reset=True):
+        node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
+        j.core.db.delete(node_key)
+        j.core.db.hdel(NODES_COUNT_KEY, node_id)
+
+    def list_blocked_nodes(self):
+        """
+        each blocked node is stored in a key with a prefix ZOS:NODES:DISALLOWED:{node_id} and its value is the expiration period for it.
+        number of failure count is defined in hash with key ZOS:NODES:FAILURE_COUNT. the hash keys are node_ids and values are count of how many times the node has been blocked
+
+        returns
+            dict: {node_id: {expiration: .., failure_count: ...}}
+        """
+        blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
+        failure_count_dict = j.core.db.hgetall(NODES_COUNT_KEY)
+        blocked_node_values = j.core.db.mget(blocked_node_keys)
+        result = {}
+        for idx, key in enumerate(blocked_node_keys):
+            key = key[len(NODES_DISALLOW_PREFIX) + 1 :]
+            node_id = key.decode()
+            expiration = int(blocked_node_values[idx])
+            failure_count = int(failure_count_dict[key])
+            result[node_id] = {"expiration": expiration, "failure_count": failure_count}
+        return result
+
+    def clear_blocked_nodes(self):
+        blocked_node_keys = j.core.db.keys(f"{NODES_DISALLOW_PREFIX}:*")
+        if blocked_node_keys:
+            j.core.db.delete(*blocked_node_keys)
+        j.core.db.delete(NODES_COUNT_KEY)
 
 
 reservation_chatflow = ReservationChatflow()

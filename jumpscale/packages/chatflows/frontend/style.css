@@ -6,6 +6,10 @@ html, body {
   width: 100% !important;
 }
 
+.theme--dark tbody {
+  color: #fff;
+}
+
 .theme--dark .v-main {
   background: url(./assets/images/background-dark.jpg) repeat center !important;
   background-size: cover;

@@ -12,8 +12,8 @@ from jumpscale.core.base import fields
 class SendGridClient(Client):
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def build_attachment(self, filepath, typ="application/pdf"):
         """

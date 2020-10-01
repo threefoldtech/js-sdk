@@ -1,19 +1,20 @@
 import math
 
-from jumpscale.packages.tfgrid_solutions.chats.gollum_deploy import GollumDeploy as BaseGollumDeploy
+from jumpscale.packages.tfgrid_solutions.chats.gollum import GollumDeploy as BaseGollumDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceChatflow, deployer, solutions
 
 
 class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
-    @chatflow_step()
-    def gollum_start(self):
+    def _gollum_start(self):
         self._validate_user()
-        super().gollum_start()
-        self.solution_metadata["owner"] = self.user_info()["username"]
+        super()._gollum_start()
+        self.username = self.user_info()["username"]
+        self.solution_metadata["owner"] = self.username
 
-    @chatflow_step(title="Solution name")
+    @chatflow_step(title="Solution Name")
     def gollum_name(self):
+        self._gollum_start()
         valid = False
         while not valid:
             self.solution_name = deployer.ask_name(self)
@@ -22,7 +23,7 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
             for sol in gollum_solutions:
                 if sol["Name"] == self.solution_name:
                     valid = False
-                    self.md_show("The specified solution name already exists. please choose another.")
+                    self.md_show("The specified solution name already exists. please choose another name.")
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}_{self.solution_name}"

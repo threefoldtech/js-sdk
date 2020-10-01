@@ -1,0 +1,43 @@
+name = "threebot_deployer"
+is_auth = true
+is_admin = false
+frontend = "/threebot_deployer"
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/solutions.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+port = 5560
+
+[[bottle_servers]]
+name = "backup"
+file_path = "bottle/backup.py"
+path_url = "/backup/"
+path_dest = "/backup/"
+host = "0.0.0.0"
+port = 5561
+
+
+[[servers]]
+name = "threebot_deployer_root_proxy"
+domain = "deploy3bot.testnet.grid.tf"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.threebot_deployer*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /threebot_deployer;
+}
+"""

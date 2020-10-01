@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Solutions" icon="mdi-apps" :loading="loading">
+    <base-component title="Solutions Menu" icon="mdi-menu-left" url="/solutions">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
@@ -9,35 +9,63 @@
               <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
             </v-avatar>
             <span>{{solution.name}}</span>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <a
+                  class="chatflowInfo"
+                  :href="`https://manual.threefold.io/#/${solution.type}`"
+                  target="blank"
+                >
+                  <v-icon
+                    color="primary"
+                    large
+                    v-bind="attrs"
+                    v-on="on"
+                    right
+                  >mdi-information-outline</v-icon>
+                </a>
+              </template>
+              <span>Go to How-to Manual</span>
+            </v-tooltip>
           </v-card-title>
 
           <v-card-text>
             <span>{{solution.description}}</span>
             <br />
             <br />
-            <v-btn color="primary" @click.stop="restart(solution.topic)">New</v-btn>
+            <v-btn color="primary" @click.stop="restart(solution.type)">New</v-btn>
             <v-btn
               color="primary"
-              v-if="started(solution.topic)"
-              @click.stop="open(solution.topic)"
+              v-if="started(solution.type)"
+              @click.stop="open(solution.type)"
             >Continue</v-btn>
 
             <v-divider class="my-5"></v-divider>
-
-            <v-chip
-              class="ma-2"
-              color="primary"
-              min-width="100"
-              v-for="(s, i) in deployedSolutions"
-              :key="i"
-              @click="showInfo(s)"
-              outlined
-            >{{ s.Name }}</v-chip>
+            <v-data-table
+              :loading="loading"
+              :headers="headers"
+              :items="deployedSolutions"
+              class="elevation-1"
+            >
+              <template slot="no-data">
+                <p>No {{solution.name.toLowerCase()}} workloads available</p>
+              </template>
+              <template v-slot:item.actions="{ item }">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click.stop="showInfo(item)">
+                      <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Show Information</span>
+                </v-tooltip>
+              </template>
+            </v-data-table>
           </v-card-text>
         </v-card>
       </template>
     </base-component>
-    <solution-info v-if="selected" v-model="dialog" :data="selected" :type="selected"></solution-info>
+    <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
   </div>
 </template>
 
@@ -45,50 +73,70 @@
 module.exports = {
   props: { type: String },
   components: {
-    "solution-info": httpVueLoader("./Info.vue")
+    "solution-info": httpVueLoader("./Info.vue"),
   },
   data() {
     return {
-      loading: false,
+      loading: true,
       selected: null,
-      dialog: false,
-      deployedSolutions: {},
-      solutions: [...Object.values(APPS), ...Object.values(SOLUTIONS)]
+      dialogs: {
+        info: false,
+      },
+      headers: [
+        { text: "Name", value: "Name" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      deployedSolutions: [],
+      solutions: [...Object.values(SOLUTIONS)],
     };
   },
   computed: {
     solution() {
-      return this.solutions.find(obj => {
+      return this.solutions.find((obj) => {
         return obj.type === this.type;
       });
-    }
+    },
   },
   methods: {
-    open(solutionId) {
+    open(solutionType) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: solutionId }
+        params: { topic: solutionType },
       });
     },
-    restart(solutionId) {
-      localStorage.removeItem(solutionId);
-      this.open(solutionId);
+    restart(solutionType) {
+      localStorage.removeItem(solutionType);
+      this.open(solutionType);
     },
-    started(solution_type) {
-      return localStorage.hasOwnProperty(solution_type);
+    started(solutionType) {
+      return localStorage.hasOwnProperty(solutionType);
     },
     showInfo(data) {
       this.selected = data;
-      this.dialog = true;
+      this.dialogs.info = true;
     },
-    getDeployedSolutions(solution_type) {
-      this.$api.solutions.getDeployed(solution_type).then(response => {
-        this.deployedSolutions = JSON.parse(response.data).data;
-      });
-    }
+    getDeployedSolutions(solutionType) {
+      this.$api.solutions
+        .getDeployed(solutionType)
+        .then((response) => {
+          this.deployedSolutions = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
   },
   mounted() {
     this.getDeployedSolutions(this.type);
-  }
+  },
 };
 </script>
+
+<style scoped>
+a.chatflowInfo {
+  text-decoration: none;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+</style>

@@ -13,12 +13,12 @@ cd ${SDK_PATH}
 git fetch --all
 git reset --hard origin/${SDK_VERSION}
 
-poetry update
 poetry install
 
 echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
 echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
 echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
+echo "BACKUP_TOKEN=${BACKUP_TOKEN}" >> ~/.bashrc
 echo "DOMAIN=${DOMAIN}" >> ~/.bashrc
 
 echo "[*] Starting threebot in background ..."

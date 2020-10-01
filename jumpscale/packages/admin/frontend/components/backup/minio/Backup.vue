@@ -17,7 +17,7 @@
 
       <template #default>
         <v-alert v-if="!inited" text prominent class="ma-5" border="right" type="info">
-          <span>Your repo is not inited, plesaed init it first</span>
+          <span>Your repo is not inited, please init it first</span>
           <v-btn
             text
             class="ml-5"
@@ -37,14 +37,17 @@
               <v-list-item-title v-html="snapshot.id"></v-list-item-title>
               <v-list-item-subtitle>{{new Date(snapshot.time).toLocaleString()}}</v-list-item-subtitle>
               <v-list-item-subtitle>
-                <v-chip v-for="(tag, index) in snapshot.tags" :key="snapshot.id + index" class="mr-1 mt-2" small outlined>
-                  {{ tag }}
-                </v-chip>
+                <v-chip
+                  v-for="(tag, index) in snapshot.tags"
+                  :key="snapshot.id + index"
+                  class="mr-1 mt-2"
+                  small
+                  outlined
+                >{{ tag }}</v-chip>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
-
       </template>
     </base-section>
     <init-repos v-model="dialogs.init"></init-repos>
@@ -56,56 +59,57 @@
 module.exports = {
   components: {
     "take-backup": httpVueLoader("./TakeBackup.vue"),
-    "init-repos": httpVueLoader("./InitRepos.vue")
+    "init-repos": httpVueLoader("./InitRepos.vue"),
   },
   data() {
     return {
       loading: false,
       snapshots: [],
       autoBackup: false,
-      inited: true,
+      inited: false,
       loadings: {
-        init: false
+        init: false,
       },
       dialogs: {
         take: false,
-        init: false
-      }
+        init: false,
+      },
     };
   },
   watch: {
     autoBackup() {
       this.changeAutoBackup();
-    }
+    },
   },
   methods: {
-    listSnapshots () {
+    listSnapshots() {
       this.$api.miniobackup
         .snapshots()
-        .then(response => {
+        .then((response) => {
           this.snapshots = JSON.parse(response.data).data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.response.data.message;
-        })
+        });
     },
     checkReposInit() {
       this.$api.miniobackup
         .inited()
-        .then(response => {
+        .then((response) => {
           this.inited = response.data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.response.data.message;
+          this.inited = false;
         });
     },
     checkAutoBackup() {
       this.$api.miniobackup
         .enabled()
-        .then(response => {
+        .then((response) => {
           this.autoBackup = response.data;
         })
-        .catch(error => {
+        .catch((error) => {
           this.error = error.response.data.message;
         });
     },
@@ -113,10 +117,10 @@ module.exports = {
       if (this.autoBackup == true) {
         this.$api.miniobackup
           .enable()
-          .then(response => {
+          .then((response) => {
             this.done("Auto backup is enabled");
           })
-          .catch(error => {
+          .catch((error) => {
             this.error = error.response.data.message;
           })
           .finally(() => {
@@ -125,22 +129,22 @@ module.exports = {
       } else {
         this.$api.miniobackup
           .disable()
-          .then(response => {
+          .then((response) => {
             this.done("Auto backup is disbaled");
           })
-          .catch(error => {
+          .catch((error) => {
             this.error = error.response.data.message;
           })
           .finally(() => {
             this.loading = false;
           });
       }
-    }
+    },
   },
   mounted() {
     this.checkReposInit();
     this.checkAutoBackup();
-    this.listSnapshots()
-  }
+    this.listSnapshots();
+  },
 };
 </script>

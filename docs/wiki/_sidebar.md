@@ -18,11 +18,12 @@
     * [Development process/Contribution](./devprocess.md)
     * Packages
     * ChatEngine
-    * [Threebot](./threebot.md)
+    * [Threebot](./threebot/threebot.md)
     * [Threebot Auth](./research/threebot_auth.md)
     * [NGINX/SSL](./research/nginx_ssl.md)
     * [RPC](./rpc.md)
+    * [Actors over HTTP](./actors.md)
     * [API](generated_apis.md)
     * Builders
     * [Github actions](./githubactions.md)
-    
+

@@ -1,9 +1,6 @@
-from textwrap import dedent
-
-from jumpscale.packages.tfgrid_solutions.chats.mattermost import MattermostDeploy as BaseMattermostDeploy
-from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
 class MattermostDeploy(MarketPlaceAppsChatflow):
@@ -11,48 +8,25 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "mattermost"
     title = "Mattermost"
     steps = [
-        "start",
         "get_solution_name",
         "mattermost_info",
-        "solution_expiration",
-        "payment_currency",
         "infrastructure_setup",
-        "overview",
         "reservation",
+        "initializing",
         "success",
     ]
 
-    @chatflow_step()
-    def start(self):
-        self._init_solution()
-        self.query = {"cru": 1, "mru": 1, "sru": 1}
-        self.md_show("# This wizard wil help you deploy an mattermost container", md=True)
+    query = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Mattermost Information")
     def mattermost_info(self):
-        form = self.new_form()
-        disk_sizes = [2, 5, 10]
-        volume_size = form.single_choice("choose the disk size", disk_sizes, required=True, default=disk_sizes[0])
-        form.ask()
-        self.vol_size = int(volume_size.value)
+        self.user_email = self.user_info()["email"]
+        self._choose_flavor()
+        self.vol_size = self.flavor_resources["sru"]
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Deployment Information", disable_previous=True)
-    def overview(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Network": self.network_view.name,
-            "Node ID": self.selected_node.node_id,
-            "Pool": self.pool_info.reservation_id,
-            "CPU": self.query["cru"],
-            "Memory": self.query["mru"],
-            "Disk Size": self.query["sru"],
-            "IP Address": self.ip_address,
-            "Domain Name": self.domain,
-        }
-        self.md_show_confirm(self.metadata)
-
     @chatflow_step(title="Reservation", disable_previous=True)
+    @deployment_context()
     def reservation(self):
         var_dict = {
             "MYSQL_ROOT_PASSWORD": "mostest",
@@ -82,7 +56,10 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
 
         success = deployer.wait_workload(_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to create subdomain {self.domain} on gateway" f" {self.gateway.node_id} {_id}")
+            raise DeploymentFailed(
+                f"Failed to create subdomain {self.domain} on gateway"
+                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments."
+            )
         self.solution_url = f"https://{self.domain}"
 
         # create volume
@@ -97,7 +74,11 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(vol_id, self)
         if not success:
-            raise StopChatFlow(f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}")
+            raise DeploymentFailed(
+                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=vol_id,
+            )
         volume_config[vol_mount_point] = vol_id
 
         # Create container
@@ -120,8 +101,11 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         )
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
-            solutions.cancel_solution([self.resv_id])
-            raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
+            raise DeploymentFailed(
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=self.resv_id,
+            )
 
         # expose threebot container
         _id = deployer.expose_and_create_certificate(
@@ -130,34 +114,24 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             trc_secret=self.secret,
             domain=self.domain,
-            email=self.user_info()["email"],
+            email=self.user_email,
             solution_ip=self.ip_address,
             solution_port=8065,
             enforce_https=False,
             node_id=self.selected_node.node_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise StopChatFlow(f"Failed to create trc container on node {self.selected_node.node_id}" f" {_id}")
-
-    @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
-        self._wgconf_show_check()
-        message = f"""\
-# mattermost has been deployed successfully:
-\n<br />\n
-your reservation id is: {self.resv_id}
-\n<br />\n
-your container ip is: `{self.ip_address}`
-\n<br />\n
-open Mattermost from browser at <a href="http://{self.domain}" target="_blank">https://{self.domain}</a>
-\n<br />\n
-- It may take few minutes to load.
-                """
-        self.md_show(dedent(message), md=True)
+            raise DeploymentFailed(
+                f"Failed to create TRC container on node {self.selected_node.node_id}"
+                f" {_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=_id,
+            )
 
 
 chat = MattermostDeploy

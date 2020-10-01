@@ -1,0 +1,3 @@
+exec: sh -c "/bin/bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.sh"
+oneshot: true
+log: stdout

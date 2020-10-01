@@ -23,16 +23,14 @@ export default {
   actions: {
     getTfgridUrl: async context => {
       var response = await tfService.getExplorer();
-      var url = JSON.parse(response.data).data.url
-      if (!url.startsWith('http')) {
-        url = `https://${url}/api/v1`;
-      }
+      var url = JSON.parse(response.data).url
       context.commit("setTfgridUrl", url);
     },
     getUser: async context => {
       var response = await tfService.getUser();
-      if (response.data.username.length > 0) {
-        context.commit("setUser", response.data);
+      var user = JSON.parse(response.data)
+      if (user.name.length > 0) {
+        context.commit("setUser", user);
       }
     },
     getNodes(context, farm_id) {
@@ -45,7 +43,7 @@ export default {
       return tfService.setNodeFree(node_id, free)
     },
     getFarms: context => {
-      tfService.getFarms(context.getters.tfgridUrl, context.getters.user.tid).then(response => {
+      tfService.getFarms(context.getters.tfgridUrl, context.getters.user.id).then(response => {
         context.commit("setFarms", response.data);
       });
     },

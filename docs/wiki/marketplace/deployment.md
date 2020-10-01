@@ -6,10 +6,15 @@ Marketplace package is created to offer a centralized place where end-users can 
 
 ### Components
 
-Maketplace deployment requires three machines. One machine has `js-sdk` installed with `3Bot` server to run the marketplace package and two machines used for backup.
+Maketplace deployment requires three machines. One machine has `js-sdk` installed with `3Bot` server to run the marketplace package (3bot server running as root with no --local) and two machines used for backup.
 
 ### Installation
 
+#### Create your wallet
+
+the marketplace requires wallet with TFT with name `demos_wallet` [create your wallet](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md#from-js-ng-shell-advanced)
+
+#### Adding marketplace package
 Marketplace package is installed normally like any other package using the admin dashboard or from `jsng` shell using the package path as below:
 
 ```python
@@ -78,19 +83,25 @@ j.servers.threebot.default.save()
     bash backup.sh
     ```
 
-    2- Add the ssh-key of the marketplace to authorized keys in both servers.
+    2- Add the ssh-key of root user of the marketplace to authorized keys in both servers.
 
     3- Configure ssh clients on marketplace machine's `jsng` shell
 
     ```python
     JS-NG> BACKUP_SERVER1 = "backup_server1"
     JS-NG> BACKUP_SERVER2 = "backup_server2"
+    JS-NG> ssh_key = j.clients.sshkey.new("marketplace")
+    JS-NG> ssh_key.private_key_path = "/root/.ssh/id_rsa"
+    JS-NG> ssh_key.save()
     JS-NG> ssh_server1 = j.clients.sshclient.get(BACKUP_SERVER1)
     JS-NG> ssh_server2 = j.clients.sshclient.get(BACKUP_SERVER2)
     JS-NG> ssh_server1.host = IP_SERVER1
     JS-NG> ssh_server2.host = IP_SERVER2
+    JS-NG> ssh_server1.sshkey = ssh_key.instance_name
+    JS-NG> ssh_server2.sshkey = ssh_key.instance_name
     JS-NG> ssh_server1.save()
     JS-NG> ssh_server2.save()
     ```
+
 
 Now you can start your `3Bot` server and access marketplace dashboard on `/marketplace`

@@ -18,6 +18,15 @@ from .reservations import Reservations
 from .users import Users
 from .workloads import Workloads
 
+from jumpscale.loader import j
+
+
+def log_request(r, *args, **kwargs):
+    if j.config.get("EXPLORER_LOGS"):
+        j.logger.debug(
+            f"Request {r.request.url} method: {r.request.method} body: {r.request.body} headers: {r.request.headers}"
+        )
+
 
 class Explorer(Client):
     url = fields.String()
@@ -30,7 +39,7 @@ class Explorer(Client):
         else:
             self._loaded_identity = identity.get_identity()
         self._session = requests.Session()
-        self._session.hooks = dict(response=raise_for_status)
+        self._session.hooks = dict(response=[log_request, raise_for_status])
 
         secret = self._loaded_identity.nacl.signing_key.encode(Base64Encoder)
         auth = HTTPSignatureAuth(
