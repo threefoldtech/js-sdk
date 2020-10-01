@@ -15,9 +15,13 @@ class Sendgrid(TestCase):
     def setUp(self):
         self.sendgird_client_name = generate_rand_text(10, string.ascii_letters)
         self.test = j.clients.sendgrid.get(name=self.sendgird_client_name)
-        self.test.apikey = os.environ.get("SEND_GRID_API_KEY_TOKEN")
+        if os.getenv("SEND_GRID_API_KEY_TOKEN") and os.getenv("RECIPIENT_MAIL"):
+            self.test.apikey = os.getenv("SEND_GRID_API_KEY_TOKEN")
+            self.recipient_mail = os.getenv("RECIPIENT_MAIL")
+        else:
+            raise Exception("Please add (SEND_GRID_API_KEY_TOKEN, RECIPIENT_MAIL) as environment variables ")
+
         self.sender_mail = j.data.fake.email()
-        self.recipient_mail = os.environ.get("RECIPIENT_MAIL")
         self.subject = j.data.fake.sentence()
         self.attachment_type = "application/txt"
         file_name = generate_rand_text(10, string.ascii_letters)
@@ -56,8 +60,11 @@ class Sendgrid(TestCase):
 
     def read_email_from_gmail(self, validate_attachment=True, attachment_type=None):
         try:
-            mail = imaplib.IMAP4_SSL(os.environ.get("SMTP_SERVER"))
-            mail.login(os.environ.get("RECIPIENT_MAIL"), os.environ.get("RECIPIENT_PASS"))
+            if os.getenv("SMTP_SERVER") and os.getenv("RECIPIENT_MAIL") and os.getenv("RECIPIENT_PASS"):
+                mail = imaplib.IMAP4_SSL(os.getenv("SMTP_SERVER"))
+                mail.login(os.getenv("RECIPIENT_MAIL"), os.getenv("RECIPIENT_PASS"))
+            else:
+                raise Exception("Please add (SMTP_SERVER, RECIPIENT_MAIL, RECIPIENT_PASS)  as environment variables ")
             mail.select("inbox")
             _, data = mail.search(None, "ALL")
             mail_ids = data[0]
