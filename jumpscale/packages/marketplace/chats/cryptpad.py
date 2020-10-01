@@ -1,7 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
-from jumpscale.loader import j
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
