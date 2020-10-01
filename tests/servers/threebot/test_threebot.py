@@ -2,6 +2,7 @@ from os import environ
 from random import randint
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
+from gevent import sleep
 
 
 class Test3BotServer(BaseTests):
@@ -35,6 +36,14 @@ class Test3BotServer(BaseTests):
         if cls.me:
             j.core.identity.set_default(cls.me.instance_name)
 
+    def wait_for_server_to_stop(self, host, port, timeout):
+        for _ in range(timeout):
+            if j.sals.nettools.tcp_connection_test(host, port, 1):
+                sleep(1)
+            else:
+                return True
+        return False
+
     def check_threebot_main_running_servers(self):
         self.info("Make sure that server started successfully by check nginx_main, redis_default and gedis work.")
         self.info("*** nginx server ***")
@@ -56,10 +65,10 @@ class Test3BotServer(BaseTests):
     def check_threebot_main_running_servers_stopped_correctly(self):
         self.info("Check servers stopped successfully.")
         self.info("Make sure that server stopped successfully by check nginx_main, redis_default and gedis don't work.")
-        self.assertFalse(j.sals.nettools.tcp_connection_test("localhost", 80, 3), "Nginx still running")
-        self.assertFalse(j.sals.nettools.tcp_connection_test("localhost", 443, 3), "Nginx still running")
-        self.assertFalse(j.sals.nettools.tcp_connection_test("localhost", 16000, 3), "gedis still running")
-        self.assertFalse(j.sals.nettools.tcp_connection_test("localhost", 8000, 3), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 80, 3), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 443, 3), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 16000, 3), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 3), "gedis still running")
 
     def test01_start_threebot(self):
         """
