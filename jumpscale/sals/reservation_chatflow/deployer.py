@@ -1295,6 +1295,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         proxy_pool_id=None,
         domain_name=None,
         bot=None,
+        log_config=None,
         **metadata,
     ):
         proxy_pool_id = proxy_pool_id or pool_id
@@ -1334,6 +1335,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             "REMOTE_IP": gateway.dns_nameserver[0],
             "REMOTE_PORT": str(gateway.tcp_router_port),
         }
+        print(log_config)
         resv_id = self.deploy_container(
             pool_id=pool_id,
             node_id=node_id,
@@ -1344,6 +1346,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             secret_env=secret_env,
             env=env,
             public_ipv6=False,
+            log_config=log_config,
             **metadata,
         )
         return resv_id
