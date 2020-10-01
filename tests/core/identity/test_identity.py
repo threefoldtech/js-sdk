@@ -6,13 +6,14 @@ import os
 class TestIdentity(TestCase):
     def setUp(self):
         self.instance_name = j.data.random_names.random_name()
-        self.me = j.core.identity._me
-        if os.getenv("TNAME") and os.getenv("EMAIL") and os.getenv("WORDS"):
-            self.tname = os.getenv("TNAME")
-            self.email = os.getenv("EMAIL")
-            self.words = os.getenv("WORDS")
-        else:
-            raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables ")
+        if hasattr(j.core.identity, "me"):
+            self.me = j.core.identity.me
+
+        self.tname = os.getenv("TNAME")
+        self.email = os.getenv("EMAIL")
+        self.words = os.getenv("WORDS")
+        if not (self.tname and self.email and self.words):
+            raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 
     def _get_instance(self):
         return j.core.identity.new(

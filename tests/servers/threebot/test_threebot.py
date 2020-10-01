@@ -10,9 +10,15 @@ class Test3BotServer(BaseTests):
     words = environ.get("WORDS")
     explorer_url = "https://explorer.testnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
+    JS_SDK_PARENT_LOCATION = __file__.split("js-sdk")[0]
 
     @classmethod
     def setUpClass(cls):
+        if not (cls.tname and cls.email and cls.words):
+            raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
+        cls.me = None
+        if hasattr(j.core.identity, "me"):
+            cls.me = j.core.identity.me
         myid = j.core.identity.new(
             cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
         )
@@ -26,6 +32,8 @@ class Test3BotServer(BaseTests):
     @classmethod
     def tearDownClass(cls):
         j.core.identity.delete(cls.MYID_NAME)
+        if cls.me:
+            j.core.identity.set_default(cls.me.instance_name)
 
     def check_threebot_main_running_servers(self):
         self.info("Make sure that server started successfully by check nginx_main, redis_default and gedis work.")
@@ -130,7 +138,6 @@ class Test3BotServer(BaseTests):
         #. Check the package list that should be started by default with threebot server.
         ['auth', 'chatflows', 'admin', 'weblibs', 'tfgrid_solutions', 'backup']
         """
-
         self.info("Start threebot server")
         j.servers.threebot.start_default()
 
@@ -138,3 +145,50 @@ class Test3BotServer(BaseTests):
         default_packages_list = ["auth", "chatflows", "admin", "weblibs", "tfgrid_solutions", "backup"]
         packages_list = j.servers.threebot.default.packages.list_all()
         self.assertTrue(set(default_packages_list).issubset(packages_list), "not all default packages exist")
+
+    def test05_package_add_and_delete(self):
+        """
+        Test case for adding and deleting package in threebot server
+
+        **Test scenario**
+        #. Add a package.
+        #. Check that the package has been added.
+        #. Try to add wrong package, and make sure that the error has been raised.
+        #. Delete a package.
+        #. Check that the package is deleted correctly.
+        #. Try to delete non exists package, and make sure that the error has been raised.
+        """
+        self.info("Add a package")
+        marketplace = j.servers.threebot.default.packages.add(
+            "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION)
+        )
+        marketplace_dir = {
+            "marketplace": {
+                "name": "marketplace",
+                "path": "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION),
+                "giturl": None,
+                "kwargs": {},
+            }
+        }
+        self.assertEqual(marketplace, marketplace_dir)
+
+        self.info("Check that the package has been added")
+        packages_list = j.servers.threebot.default.packages.list_all()
+        self.assertIn("marketplace", packages_list)
+
+        self.info("Try to add wrong package, and check that there is an error")
+        with self.assertRaises(Exception) as error:
+            j.servers.threebot.default.packages.add("test_wrong_package")
+            self.assertIn("No such file or directory : 'test_wrong_package/package.toml'", error.exception.args[0])
+
+        self.info("Delete a package")
+        j.servers.threebot.default.packages.delete("marketplace")
+
+        self.info("Check that the package is deleted correctly")
+        packages_list = j.servers.threebot.default.packages.list_all()
+        self.assertNotIn("marketplace", packages_list)
+
+        self.info("Try to delete non exists package, and make sure that the error has been raised")
+        with self.assertRaises(Exception) as error:
+            j.servers.threebot.default.packages.delete("test_wrong_package")
+            self.assertIn("test_wrong_package package not found", error.exception.args[0])
