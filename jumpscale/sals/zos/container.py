@@ -13,8 +13,9 @@ from jumpscale.clients.explorer.models import (
     DiskType,
     WorkloadType,
 )
-from jumpscale.core.exceptions import Input
 
+from jumpscale.core.exceptions import Input
+from .container_stats import ContainerStatsMonitor
 
 class ContainerGenerator:
     """ """
@@ -154,3 +155,16 @@ class ContainerGenerator:
         container.stats.append(cont_stats)
 
         return cont_stats
+
+    def monitor(self, container):
+        """
+        Try to reach endpoint from container statistics and fetch stats when available
+        """
+        if len(container.stats) == 0:
+            return False
+
+        stats = ContainerStatsMonitor()
+        stats.endpoint(container.stats[0].data.endpoint)
+        stats.monitor()
+
+        return True
