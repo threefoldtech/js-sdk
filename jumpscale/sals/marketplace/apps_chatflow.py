@@ -8,10 +8,12 @@ import requests
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from jumpscale.sals.reservation_chatflow.deployer import GATEWAY_WORKLOAD_TYPES
 
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
 from .solutions import solutions
+from jumpscale.clients.explorer.models import WorkloadType
 
 FLAVORS = {
     "Silver": {"sru": 2,},
@@ -41,6 +43,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
+        self.retries = 3
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -203,20 +206,22 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         domains = dict()
         is_http_failure = False
         is_managed_domains = False
-        for gw_dict in gateways.values():
+        gateway_keys = list(gateways.values())
+        random.shuffle(gateway_keys)
+        blocked_domains = deployer.list_blocked_managed_domains()
+        for gw_dict in gateway_keys:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
-                # TODO: FIXME Remove when gateways is fixed
-                if domain in [
-                    "tfgw-prod-05.ava.tf",
-                    "tfgw-prod-05.base.tf",
-                    "tfgw-prod-05.3x0.me",
-                    "tfgw-prod-05.gateway.tf",
-                    "tfgw-prod-02.gateway.tf",
-                    "tfgw-prod-07.base.tf",
-                ]:
+                if domain in blocked_domains:
                     continue
+                success = deployer.test_managed_domain(gateway.node_id, domain, gw_dict["pool"].pool_id, gateway)
+                if not success:
+                    j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
+                    deployer.block_managed_domain(domain)
+                    continue
+                else:
+                    deployer.unblock_managed_domain(domain)
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
@@ -249,7 +254,32 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
             # check if domain name is free or append random number
             full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+
+            metafilter = lambda metadata: metadata.get("owner") == self.username
+            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+            user_subdomains = {}
+            all_domains = solutions._list_subdomain_workloads(
+                self.SOLUTION_TYPE, metadata_filters=[metafilter]
+            ).values()
+            for dom_list in all_domains:
+                for dom in dom_list:
+                    user_subdomains[dom["domain"]] = dom
+
             while True:
+                if full_domain in user_subdomains:
+                    # check if related container workloads still exist
+                    dom = user_subdomains[full_domain]
+                    sol_uuid = dom["uuid"]
+                    if sol_uuid:
+                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        is_free = True
+                        for w in workloads:
+                            if w.info.workload_type == WorkloadType.Container:
+                                is_free = False
+                                break
+                        if is_free:
+                            solutions.cancel_solution_by_uuid(sol_uuid)
+
                 if j.tools.dnstool.is_free(full_domain):
                     self.domain = full_domain
                     break
@@ -271,6 +301,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
+
+    def _config_logs(self):
+        self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.solution_log_config:
+            self.solution_log_config["channel_name"] = self.solution_name
+        self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.nginx_log_config:
+            self.nginx_log_config["channel_name"] = self.solution_name + "-nginx"
+        self.trc_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.trc_log_config:
+            self.trc_log_config["channel_name"] = self.solution_name + "-trc"
 
     @chatflow_step(title="Solution Name")
     def get_solution_name(self):
@@ -297,8 +338,22 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def infrastructure_setup(self):
         self.md_show_update("Preparing Infrastructure...")
         self._get_pool()
-        self._deploy_network()
+        success = False
+        while not success:
+            try:
+                self._deploy_network()
+                success = True
+            except DeploymentFailed as e:
+                j.logger.error(e)
+                if self.retries > 0:
+                    self.md_show_update(f"Deployment failed on node {self.selected_node.node_id}. retrying....")
+                    self.retries -= 1
+                    self.ip_address = None
+                    self._deploy_network()
+                else:
+                    raise e
         self._get_domain()
+        self._config_logs()
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
@@ -345,6 +400,30 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+
+    @chatflow_step(title="Reservation", disable_previous=True)
+    def reservation(self):
+        success = False
+        while not success:
+            try:
+                self._deploy()
+                success = True
+            except DeploymentFailed as e:
+                j.logger.error(e)
+                if self.retries > 0:
+                    self.retries -= 1
+                    self.md_show_update(
+                        f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
+                    )
+                    failed_workload = j.sals.zos.workloads.get(e.wid)
+                    if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
+                        self.addresses = []
+                        self._get_domain()
+                    else:
+                        self.ip_address = None
+                        self._deploy_network()
+                else:
+                    raise e
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

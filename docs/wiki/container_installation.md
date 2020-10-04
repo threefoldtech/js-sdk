@@ -20,7 +20,6 @@
   cd ~/sandbox/code/threefoldtech/;
   git clone https://github.com/threefoldtech/js-ng.git;
   cd js-ng;
-  poetry update;
   poetry install;
   poetry shell;
   ```

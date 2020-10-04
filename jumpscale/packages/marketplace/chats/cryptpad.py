@@ -26,9 +26,8 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         self.workload_ids = []
         metadata = {
             "name": self.solution_name,
@@ -50,6 +49,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
             )
 
         # deploy volume
@@ -113,6 +113,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             proxy_pool_id=self.gateway_pool.pool_id,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)
