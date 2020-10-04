@@ -38,7 +38,7 @@ def create_pool(currency="TFT", wallet_name=None):
     payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=[currency])
 
     wallet = j.clients.stellar.get(wallet_name)
-    txs = zos.billing.payout_farmers(wallet, payment_detail)
+    zos.billing.payout_farmers(wallet, payment_detail)
     pool = zos.pools.get(payment_detail.reservation_id)
     while pool.cus == 0:
         pool = zos.pools.get(payment_detail.reservation_id)
