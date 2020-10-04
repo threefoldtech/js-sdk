@@ -19,7 +19,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "upload_public_key",
         "set_backup_password",
         "infrastructure_setup",
-        "deploy",
+        "reservation",
         "initializing",
         "new_expiration",
         "solution_extension",
@@ -44,6 +44,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 60 * 60  # 60 minutes for 3bot
         self.ip_version = "IPv6"
+        self.retries = 3
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -125,9 +126,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             required=True,
         )
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def deploy(self):
+    def _deploy(self):
         # 1- add node to network
         metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
         self.solution_metadata.update(metadata)
@@ -154,7 +154,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
             )
         test_cert = j.config.get("TEST_CERT")
 

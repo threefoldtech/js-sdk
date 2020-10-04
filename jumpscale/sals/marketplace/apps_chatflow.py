@@ -8,6 +8,7 @@ import requests
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from jumpscale.sals.reservation_chatflow.deployer import GATEWAY_WORKLOAD_TYPES
 
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
@@ -42,6 +43,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
+        self.retries = 3
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -204,7 +206,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         domains = dict()
         is_http_failure = False
         is_managed_domains = False
-        for gw_dict in gateways.values():
+        gateway_keys = list(gateways.values())
+        random.shuffle(gateway_keys)
+        for gw_dict in gateway_keys:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
@@ -334,7 +338,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def infrastructure_setup(self):
         self.md_show_update("Preparing Infrastructure...")
         self._get_pool()
-        self._deploy_network()
+        success = False
+        while not success:
+            try:
+                self._deploy_network()
+                success = True
+            except DeploymentFailed as e:
+                j.logger.error(e)
+                if self.retries > 0:
+                    self.md_show_update(f"Deployment failed on node {self.selected_node.node_id}. retrying....")
+                    self.retries -= 1
+                    self.ip_address = None
+                    self._deploy_network()
+                else:
+                    raise e
         self._get_domain()
         self._config_logs()
 
@@ -383,6 +400,30 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+
+    @chatflow_step(title="Reservation", disable_previous=True)
+    def reservation(self):
+        success = False
+        while not success:
+            try:
+                self._deploy()
+                success = True
+            except DeploymentFailed as e:
+                j.logger.error(e)
+                if self.retries > 0:
+                    self.retries -= 1
+                    self.md_show_update(
+                        f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
+                    )
+                    failed_workload = j.sals.zos.workloads.get(e.wid)
+                    if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
+                        self.addresses = []
+                        self._get_domain()
+                    else:
+                        self.ip_address = None
+                        self._deploy_network()
+                else:
+                    raise e
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
