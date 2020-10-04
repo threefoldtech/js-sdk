@@ -208,20 +208,20 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         is_managed_domains = False
         gateway_keys = list(gateways.values())
         random.shuffle(gateway_keys)
+        blocked_domains = deployer.list_blocked_managed_domains()
         for gw_dict in gateway_keys:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
-                # TODO: FIXME Remove when gateways is fixed
-                if domain in [
-                    "tfgw-prod-05.ava.tf",
-                    "tfgw-prod-05.base.tf",
-                    "tfgw-prod-05.3x0.me",
-                    "tfgw-prod-05.gateway.tf",
-                    "tfgw-prod-02.gateway.tf",
-                    "tfgw-prod-07.base.tf",
-                ]:
+                if domain in blocked_domains:
                     continue
+                success = deployer.test_managed_domain(gateway.node_id, domain, self.gateway_pool.pool_id, gateway)
+                if not success:
+                    j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
+                    deployer.block_managed_domain(domain)
+                    continue
+                else:
+                    deployer.unblock_managed_domain(domain)
                 try:
                     if j.sals.crtsh.has_reached_limit(domain):
                         continue
