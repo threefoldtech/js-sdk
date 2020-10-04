@@ -22,6 +22,7 @@ NETWORK_NAME = j.data.random_names.random_name()
 SOLUTION_IP_ADDRESS = "172.18.4.3"
 TRC1_IP_ADDRESS = "172.18.4.4"
 TRC2_IP_ADDRESS = "172.18.4.5"
+TRC3_IP_ADDRESS = "172.18.4.6"
 SOLUTION_PORT = 3001
 SOLUTION_TLS_PORT = 443  # not serving https actually, but it must be provided
 SECRET = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
@@ -32,10 +33,9 @@ zos = j.sals.zos
 def create_pool(currency="TFT", wallet_name=None):
     wallet_name = wallet_name or os.environ.get("WALLET_NAME")
     if wallet_name is None:
-        print("Pass WALLET_NAME with the name of the wallet in j.clients.stellar to reserve a pool")
+        j.logger.error("Pass WALLET_NAME with the name of the wallet in j.clients.stellar to reserve a pool")
         exit(0)
     payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=[currency])
-    print(payment_detail)
 
     wallet = j.clients.stellar.get(wallet_name)
     txs = zos.billing.payout_farmers(wallet, payment_detail)
@@ -44,8 +44,6 @@ def create_pool(currency="TFT", wallet_name=None):
         pool = zos.pools.get(payment_detail.reservation_id)
         sleep(1)
 
-    print("compute units available:", pool.cus)
-    print("storage units available:", pool.sus)
     return pool
 
 
@@ -65,6 +63,7 @@ def create_network(pool, network_name):
         while not workload.info.result.workload_id:
             sleep(1)
             workload = zos.workloads.get(wid)
+    j.logger.info("Network wg config:")
     print(wg_quick)
     return network, wg_quick
 
@@ -174,8 +173,13 @@ j.logger.info(f"Reserving the proxy on the gateway {gateway1_ip}")
 first_proxy = create_proxy(deployment_node, gateway1, pool, TRC1_IP_ADDRESS, SUBDOMAIN1)
 j.logger.info(f"Reserving the proxy on the gateway {gateway2_ip}")
 second_proxy = create_proxy(deployment_node, gateway2, pool, TRC2_IP_ADDRESS, SUBDOMAIN1)
+j.logger.info(f"Reserving the proxy on the gateway {gateway1_ip}")
+second_domain_proxy = create_proxy(deployment_node, gateway1, pool, TRC3_IP_ADDRESS, SUBDOMAIN2)
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway1_ip} in /etc/hosts")
 j.logger.info(f"Decommisioning the proxy workload from the first gateway")
 zos.workloads.decomission(first_proxy)
 input(f"Check https://{SUBDOMAIN1} is no longer reachable.")
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway2_ip} in /etc/hosts")
+input(
+    f"Check https://{SUBDOMAIN2} is not reachable because the generated certificate for a different domain. but is accessible using http after pointing it to {gateway1_ip}."
+)
