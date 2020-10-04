@@ -15,7 +15,6 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from contextlib import ContextDecorator
 from jumpscale.sals.zos.zos import Zosv2
 
 
