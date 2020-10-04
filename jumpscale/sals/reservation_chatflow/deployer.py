@@ -1271,9 +1271,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 
-        self.create_proxy(
+        proxy_id = self.create_proxy(
             pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
         )
+        success = self.wait_workload(proxy_id)
+        if not success:
+            raise DeploymentFailed(
+                f"failed to create reverse proxy on gateway {gateway_id} workload {proxy_id}",
+                wid=proxy_id,
+                solution_uuid=metadata.get("solution_uuid"),
+            )
 
         tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {
