@@ -1755,7 +1755,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
     def unblock_managed_domain(self, managed_domain, reset=True):
         domain_key = f"{DOMAINS_DISALLOW_PREFIX}:{managed_domain}"
         j.core.db.delete(domain_key)
-        j.core.db.hdel(DOMAINS_COUNT_KEY, managed_domain)
+        if reset:
+            j.core.db.hdel(DOMAINS_COUNT_KEY, managed_domain)
 
     def list_blocked_managed_domains(self):
         blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
