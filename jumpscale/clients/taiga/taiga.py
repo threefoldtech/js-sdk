@@ -217,3 +217,137 @@ class TaigaClient(Client):
 
         self.api.user_stories.delete(story_id)
         return migrate_story.id
+
+    def list_all_issues(self, user_id=""):
+        """
+        List all issues for specific user if you didn't pass user_id will list all the issues
+        
+        Args:
+            user_id (int): id of the user.
+
+        Returns:
+            List: List of issues.
+        """
+        return self.api.issues.list(assigned_to=user_id)
+
+    def list_all_projects(self):
+        """
+        List all projects
+        
+        Returns:
+            List: List of projects.
+        """
+        return self.api.projects.list()
+
+    def list_all_milestones(self):
+        """
+        List all milestones
+        
+        Returns:
+            List: List of milestones.
+        """
+        return self.api.milestone.list()
+
+    def list_all_user_stories(self, user_id=""):
+        """
+        List all user stories for specific user if you didn't pass user_id will list all the available user stories
+        
+        Args:
+            user_id (int): id of the user.
+            
+        Returns:
+            List: List of user stories.
+        """
+        return self.api.user_stories.list(assigned_to=user_id)
+
+    def get_issues_export_text(self, prepend_text="Issues", issues=None):
+        """Get issues subject and append them to text
+        
+        Args:
+            prepend_text (str): the text that the method will append to it.
+            issues (List): list of all issues that we will get the subject from .
+            
+        Returns:
+            str: string contains the issues subject.
+        """
+        for issue in issues:
+            prepend_text += f"- {issue.subject} \n"
+        return prepend_text
+
+    def export_all_issues_subjects(self, path="/tmp/issues_titles.md"):
+        """Export all the issues subjects in a markdown file
+        
+        Args:
+            path (str): The path of exported markdown file.
+            
+        """
+        text = f"""
+### Issues \n
+"""
+        issues = self.list_all_issues()
+        text = self.get_issues_export_text(prepend_text=text, issues=issues)
+
+        j.sals.fs.write_file(path=path, data=text)
+
+    def export_issues_per_project(self, path="/tmp/issues_per_project.md"):
+        """Export issues per project in a markdown file
+        
+        Args:
+            path (str): The path of exported markdown file.
+            
+        """
+        projects = self.list_all_projects()
+        text = """
+### Issues  Per Project \n
+"""
+        for project in projects:
+            text += f"##### {project.name} \n"
+            # text += self.get_issues_export_text(prepend_text=text, issues=project.list_issues())
+            for issue in project.list_issues():
+                text += f"- {issue.subject} \n"
+
+        j.sals.fs.write_file(path=path, data=text)
+
+    def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md"):
+        """Export all the issues per specif user in a markdown file, if no user given
+        the method export issues for the current logged in user
+        
+        Args:
+            path (str): The path of exported markdown file.
+            user_name (str): The name of the user we want to get his issues.
+            
+        """
+        if user_name:
+            selected_user_name = user_name
+        else:
+            selected_user_name = self.username
+        user_id = self._get_user_id(selected_user_name)
+        text = f"""
+### {selected_user_name} Issues \n
+"""
+        issues = self.list_all_issues(user_id=user_id)
+        text = self.get_issues_export_text(prepend_text=text, issues=issues)
+        j.sals.fs.write_file(path=path, data=text)
+
+    def export_all_user_stories(self, path="/tmp/all_stories.md"):
+        """Export all the user stories in a markdown file
+        
+        Args:
+            path (str): The path of exported markdown file.
+            
+        """
+        users_stories = self.list_all_user_stories()
+        text = f"""
+### All User Stories \n
+"""
+        for story in users_stories:
+            text += f"#### {story.subject} \n"
+            if story.assigned_to_extra_info:
+                text += f"- **Assigned to:** {story.assigned_to_extra_info.get('full_name_display','unassigned')} \n"
+                text += f"- **Is Active:** {story.assigned_to_extra_info.get('is_active','unknown')} \n"
+            text += f"- **Tasks** \n"
+            for task in story.list_tasks():
+                text += f"  - {task.subject} \n"
+
+        j.sals.fs.write_file(path=path, data=text)
+
