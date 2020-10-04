@@ -66,6 +66,8 @@ class BaseTest(TestCase):
         options = ChromeOptions()
         options.add_argument("--no-sandbox")
         options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
         self.driver = webdriver.Chrome(chrome_options=options)
         self.driver.implicitly_wait(10)
@@ -78,6 +80,7 @@ class BaseTest(TestCase):
         if self._outcome.errors:
             self.driver.save_screenshot(f"{self._testMethodName}.png")
         self.driver.close()
+        self.driver.quit()
 
     def info(self, msg):
         j.logger.info(msg)
