@@ -29,7 +29,11 @@ SECRET = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 zos = j.sals.zos
 
 
-def create_pool(currency="TFT", wallet_name="main"):
+def create_pool(currency="TFT", wallet_name=None):
+    wallet_name = wallet_name or os.environ.get("WALLET_NAME")
+    if wallet_name is None:
+        print("Pass WALLET_NAME with the name of the wallet in j.clients.stellar to reserve a pool")
+        exit(0)
     payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=[currency])
     print(payment_detail)
 
