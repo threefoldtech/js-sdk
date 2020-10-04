@@ -21,9 +21,8 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
     query = {"cru": 2, "mru": 1, "sru": 6}
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         self.database_name = "gitea"
         self.database_user = "root"
         self.database_password = uuid.uuid4().hex
@@ -56,7 +55,8 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=subdomain_wid,
             )
 
         self.resv_id = deployer.deploy_container(
@@ -98,6 +98,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(self.reverse_proxy_id)

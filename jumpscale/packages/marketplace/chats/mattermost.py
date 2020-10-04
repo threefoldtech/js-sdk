@@ -26,9 +26,8 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         self.vol_size = self.flavor_resources["sru"]
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         var_dict = {
             "MYSQL_ROOT_PASSWORD": "mostest",
             "MYSQL_USER": "mmuser",
@@ -59,7 +58,9 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
         if not success:
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway"
-                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments."
+                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=_id,
+                solution_uuid=self.solution_id,
             )
         self.solution_url = f"https://{self.domain}"
 
@@ -122,6 +123,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)

@@ -15,6 +15,7 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from jumpscale.sals.zos.zos import Zosv2
 
 
 GATEWAY_WORKLOAD_TYPES = [
@@ -27,6 +28,40 @@ GATEWAY_WORKLOAD_TYPES = [
 
 pool_factory = StoredFactory(PoolConfig)
 pool_factory.always_reload = True
+
+NODE_BLOCKING_WORKLOAD_TYPES = [
+    WorkloadType.Container,
+    WorkloadType.Network_resource,
+    WorkloadType.Volume,
+    WorkloadType.Zdb,
+]
+
+
+class DeploymentFailed(StopChatFlow):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
+        super().__init__(msg, **kwargs)
+        self.solution_uuid = solution_uuid
+        self.wid = wid
+
+
+class deployment_context(ContextDecorator):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, exc_tb):
+        if exc_type != DeploymentFailed:
+            return
+        if exc.solution_uuid:
+            # cancel related workloads
+            j.logger.info(f"canceling workload ids of solution_uuid: {exc.solution_uuid}")
+            j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(exc.solution_uuid)
+        if exc.wid:
+            # block the failed node if the workload is network or container
+            zos = Zosv2()
+            workload = zos.workloads.get(exc.wid)
+            if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
+                j.logger.info(f"blocking node {workload.info.node_id} for failed workload {workload.id}")
+                j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
 
 
 class NetworkView:
@@ -1210,6 +1245,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         enforce_https=False,
         node_id=None,
         proxy_pool_id=None,
+        log_config=None,
         bot=None,
         public_key="",
         **metadata,
@@ -1235,9 +1271,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 
-        self.create_proxy(
+        proxy_id = self.create_proxy(
             pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
         )
+        success = self.wait_workload(proxy_id)
+        if not success:
+            raise DeploymentFailed(
+                f"failed to create reverse proxy on gateway {gateway_id} workload {proxy_id}",
+                wid=proxy_id,
+                solution_uuid=metadata.get("solution_uuid"),
+            )
 
         tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {
@@ -1262,7 +1305,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             for wid in res["ids"]:
                 success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
                 if not success:
-                    j.sals.reservation_chatflows.solutions.cancel_solution([wid])
+                    raise DeploymentFailed(
+                        f"failed to add node {node.node_id} to network workload {wid}",
+                        wid=wid,
+                        solution_uuid=metadata.get("solution_uuid"),
+                    )
         network_view = NetworkView(network_name)
         network_view = network_view.copy()
         ip_address = network_view.get_free_ip(node)
@@ -1271,12 +1318,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-prestart.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-nginx-certbot-zinit.flist",
             disk_type=DiskType.HDD,
             disk_size=512,
-            entrypoint="bash /usr/local/bin/startup.sh",
             secret_env=secret_env,
             public_ipv6=False,
+            log_config=log_config,
             **metadata,
         )
         return resv_id
@@ -1295,6 +1342,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         proxy_pool_id=None,
         domain_name=None,
         bot=None,
+        log_config=None,
         **metadata,
     ):
         proxy_pool_id = proxy_pool_id or pool_id
@@ -1306,10 +1354,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             resv_id = self.create_proxy(
                 pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain_name, trc_secret=trc_secret, **metadata
             )
+            success = self.wait_workload(resv_id)
+            if not success:
+                raise DeploymentFailed(
+                    f"failed to create reverse proxy on gateway {gateway_id} to network workload {resv_id}",
+                    wid=resv_id,
+                    solution_uuid=metadata.get("solution_uuid"),
+                )
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         secret_env = {"TRC_SECRET": trc_secret}
-        entry_point = f"/bin/trc -local {local_ip}:{port} -local-tls {local_ip}:{tls_port}" f" -remote {remote}"
         if not node_id:
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
@@ -1322,23 +1376,35 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
                 if not success:
                     if reserve_proxy:
-                        j.sals.reservation_chatflows.solutions.cancel_solution([wid])
-                    raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+                        j.sals.reservation_chatflow.solutions.cancel([resv_id])
+                    raise DeploymentFailed(
+                        f"Failed to add node {node.node_id} to network {wid}",
+                        wid=wid,
+                        solution_uuid=metadata.get("solution_uuid"),
+                    )
         network_view = NetworkView(network_name)
         network_view = network_view.copy()
         network_view.used_ips.append(local_ip)
         ip_address = network_view.get_free_ip(node)
-
+        env = {
+            "SOLUTION_IP": local_ip,
+            "HTTP_PORT": str(port),
+            "HTTPS_PORT": str(tls_port),
+            "REMOTE_IP": gateway.dns_nameserver[0],
+            "REMOTE_PORT": str(gateway.tcp_router_port),
+        }
+        print(log_config)
         resv_id = self.deploy_container(
             pool_id=pool_id,
             node_id=node_id,
             network_name=network_name,
             ip_address=ip_address,
-            flist="https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist",
+            flist="https://hub.grid.tf/omar0.3bot/omarelawady-trc-zinit.flist",
             disk_type=DiskType.HDD,
-            entrypoint=entry_point,
             secret_env=secret_env,
+            env=env,
             public_ipv6=False,
+            log_config=log_config,
             **metadata,
         )
         return resv_id
@@ -1446,8 +1512,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         master_volume_id = self.deploy_volume(pool_id, minio_nodes[0], disk_size, disk_type, **metadata)
         success = self.wait_workload(master_volume_id, bot)
         if not success:
-            raise StopChatFlow(
-                f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}"
+            raise DeploymentFailed(
+                f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}",
+                wid=master_volume_id,
+                solution_uuid=metadata.get("solution_uuid"),
             )
         master_cont_id = self.deploy_container(
             pool_id=pool_id,
@@ -1470,8 +1538,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             slave_volume_id = self.deploy_volume(pool_id, minio_nodes[1], disk_size, disk_type, **metadata)
             success = self.wait_workload(slave_volume_id, bot)
             if not success:
-                raise StopChatFlow(
-                    f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}"
+                raise DeploymentFailed(
+                    f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}",
+                    solution_uuid=metadata.get("solution_uuid"),
+                    wid=slave_volume_id,
                 )
             slave_cont_id = self.deploy_container(
                 pool_id=secondary_pool_id,

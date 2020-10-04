@@ -17,7 +17,7 @@ class Publisher(MarketPlaceAppsChatflow):
         "configuration",
         "payment_currency",
         "infrastructure_setup",
-        "deploy",
+        "reservation",
         "initializing",
         "success",
     ]
@@ -61,9 +61,8 @@ class Publisher(MarketPlaceAppsChatflow):
             "EMAIL": self.user_email,
         }
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def deploy(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": self.SOLUTION_TYPE},
@@ -104,7 +103,8 @@ class Publisher(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
             )
 
         # 3- reserve tcp proxy

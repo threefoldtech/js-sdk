@@ -45,9 +45,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
@@ -70,7 +69,8 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
 
         if not subdomain_wid:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=subdomain_wid,
             )
 
         private_key = PrivateKey.generate().encode(Base64Encoder).decode()
@@ -129,6 +129,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
 

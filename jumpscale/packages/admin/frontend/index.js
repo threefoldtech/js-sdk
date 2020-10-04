@@ -10,11 +10,14 @@ const vuetify = new Vuetify({
     theme: {
         themes: {
             dark: {
-                navbar: '#363636'
+                navbar: '#363636',
+                logo: '#363636',
+                primary: '#a793d1'
             },
             light: {
                 primary: '#1B4F72',
                 navbar: '#1B4F72',
+                logo: '#1B4F72',
                 secondary: '#CCCBCA',
                 accent: '#59B88C',
                 success: "#17A589",
