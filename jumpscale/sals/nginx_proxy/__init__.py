@@ -1,7 +1,7 @@
 HEADER_PREFIX = "proxy_set_header "
 
 
-class CertbotConfig:
+class NginxReverseProxyConfig:
     def __init__(self):
         self.http_options = {
             "proxy_set_header X-Real-IP": "$remote_addr",
