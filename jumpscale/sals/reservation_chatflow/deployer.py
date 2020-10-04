@@ -37,6 +37,11 @@ NODE_BLOCKING_WORKLOAD_TYPES = [
 ]
 
 
+DOMAINS_DISALLOW_PREFIX = "TFGATEWAY:DOMAINS:DISALLOWED"
+DOMAINS_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
+DOMAINS_COUNT_KEY = "TFGATEWAY:DOMAINS:FAILURE_COUNT"
+
+
 class DeploymentFailed(StopChatFlow):
     def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
         super().__init__(msg, **kwargs)
@@ -1691,7 +1696,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return False
 
     def get_payment_info(self, pool):
-
         escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
         escrow_address = escrow_info.address
@@ -1724,6 +1728,48 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
 
         return msg_text, qr_code
+
+    def test_managed_domain(self, gateway_id, managed_domain, pool_id, gateway=None):
+        gateway = gateway or self._explorer.gateway.get(gateway_id)
+        subdomain = f"{uuid.uuid4().hex}.{managed_domain}"
+        addresses = [j.sals.nettools.get_host_by_name(gateway.dns_nameserver[0])]
+        subdomain_id = self.create_subdomain(pool_id, gateway_id, subdomain, addresses)
+        success = self.wait_workload(subdomain_id)
+        if not success:
+            return False
+        try:
+            j.sals.nettools.get_host_by_name(subdomain)
+        except Exception as e:
+            j.logger.error(f"managed domain test failed for {managed_domain} due to error {str(e)}")
+            j.sals.zos.workloads.decomission(subdomain_id)
+            return False
+        j.sals.zos.workloads.decomission(subdomain_id)
+        return True
+
+    def block_managed_domain(self, managed_domain):
+        count = j.core.db.hincrby(DOMAINS_COUNT_KEY, managed_domain)
+        expiration = count * DOMAINS_DISALLOW_EXPIRATION
+        domain_key = f"{DOMAINS_DISALLOW_PREFIX}:{managed_domain}"
+        j.core.db.set(domain_key, expiration, ex=expiration)
+
+    def unblock_managed_domain(self, managed_domain, reset=True):
+        domain_key = f"{DOMAINS_DISALLOW_PREFIX}:{managed_domain}"
+        j.core.db.delete(domain_key)
+        if reset:
+            j.core.db.hdel(DOMAINS_COUNT_KEY, managed_domain)
+
+    def list_blocked_managed_domains(self):
+        blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
+        failure_count_dict = j.core.db.hgetall(DOMAINS_COUNT_KEY)
+        blocked_domains_values = j.core.db.mget(blocked_domains_keys)
+        result = {}
+        for idx, key in enumerate(blocked_domains_keys):
+            key = key[len(DOMAINS_DISALLOW_PREFIX) + 1 :]
+            node_id = key.decode()
+            expiration = int(blocked_domains_values[idx])
+            failure_count = int(failure_count_dict[key])
+            result[node_id] = {"expiration": expiration, "failure_count": failure_count}
+        return result
 
 
 deployer = ChatflowDeployer()
