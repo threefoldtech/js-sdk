@@ -1,0 +1,36 @@
+name: Frontend
+
+on:
+  push:
+    branches: [ development_frontend_tests ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@master
+      - name: Gathering deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron unzip
+          sudo service redis stop
+          sudo service nginx stop
+          pip3 install poetry
+          poetry run pip3 install pytest
+
+          # install Chrome and its driver.
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+          LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+          wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
+      - name: Install
+        run: |
+          poetry install
+      - name: Run tests
+        env:
+          TNAME: ${{ secrets.TNAME }}
+          EMAIL: ${{ secrets.EMAIL }}
+          WORDS: ${{ secrets.WORDS }}
+        run: |
+          poetry run pytest -s tests/frontend/tests
