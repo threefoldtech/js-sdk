@@ -14,10 +14,6 @@ bad_nodes = [
     "J7twE8kmwkeph5WeKGcDoo1mUFgyYiWANFHtvE79L6Fp",  # times out -> about five minutes y3ne
     "FVamMByotQxr5azHA9xLoo99qP7FNi1ukysMxpm6apNG",
     "CBDY1Fu4CuxGpdU3zLL9QT5DGaRkxjpuJmzV6V5CBWg4",  # Bad access node
-    "Hb6oVe2B5v9UBzDcDeQfZGn5bwFeM2R3rJh6U93AWfiN",  # Can't install curl
-    "54S1qFXxWgnjmvEFVvqUbR7dHhvCshLbQrp2UpmE7GhZ",  # Can't install curl
-    "9WhwSbM2xBNb9E3ws3PNJfyeajnKXWDZAMBLZMXCA9jf",  # Can't install curl
-    "2hgRioV9ZKe8Apnm84TZn8Bn5XczyPU2nkPmozUY4rYw",  # Can't install curl
 ]
 DOMAIN = "mydomain.com"
 SUBDOMAIN1 = f"testa.{DOMAIN}"
@@ -33,11 +29,7 @@ SECRET = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 zos = j.sals.zos
 
 
-def create_pool(currency="TFT", wallet_name="wallet"):
-    ### FOR TESTING
-    return zos.pools.get(465)
-    ###
-
+def create_pool(currency="TFT", wallet_name="main"):
     payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=[currency])
     print(payment_detail)
 
@@ -73,13 +65,6 @@ def create_network(pool, network_name):
     return network, wg_quick
 
 
-def enable_wg(wg_quick):
-    with open("/tmp/wg-demo.conf", "w") as f:
-        f.write(wg_quick)
-
-    j.sals.process.execute("wg-quick up /tmp/wg-demo.conf")
-
-
 def get_deploymnet_node(pool):
     available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=0, mru=0, pool_id=pool.pool_id))
     available_nodes = [node for node in available_nodes if node.node_id not in bad_nodes]
@@ -102,18 +87,18 @@ def get_ssh_key():
 
 
 def deploy_ubuntu_server(node, pool, ssh_key):
-    env = {"pub_key": ssh_key}
+    env = {"pub_key": ssh_key, "DOMAIN": SUBDOMAIN1}
 
     container = zos.container.create(
         node_id=node.node_id,
         network_name=NETWORK_NAME,
         ip_address=SOLUTION_IP_ADDRESS,
-        flist="https://hub.grid.tf/tf-bootable/3bot-ubuntu-20.04.flist",
+        flist="https://hub.grid.tf/omar0.3bot/omarelawady-k_https_server-latest.flist",
         capacity_pool_id=pool.pool_id,
         cpu=1,
         memory=1024,
         disk_size=1024,
-        entrypoint="/bin/bash /start.sh",
+        entrypoint="/usr/local/bin/run_server.sh",
         env=env,
         interactive=False,
     )
@@ -169,36 +154,11 @@ def create_proxy(node, gateway, pool, ip_address, domain):
     return wid
 
 
-def initialize_webserver():
-    key = j.clients.sshkey.get("omar")
-    key.private_key_path = os.path.expanduser("~/.ssh/id_rsa")
-    key.save()
-
-    localclient = j.clients.sshclient.get("ubuntu_client")
-    localclient.host = SOLUTION_IP_ADDRESS
-    localclient.sshkey = "omar"
-    localclient.connect_timeout = 5 * 60
-    cmds = f"""mv /var/lib/dpkg/info/libc-bin.* /tmp/
-    apt update
-    apt -y install curl psmisc
-    export DEBIAN_FRONTEND=noninteractive
-    curl -L https://github.com/caddyserver/caddy/releases/download/v2.1.1/caddy_2.1.1_linux_amd64.deb > ./caddy_2.1.1_linux_amd64.deb
-    dpkg -i ./caddy_2.1.1_linux_amd64.deb
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/threefoldfoundation/grid_testscripts/master/tools/install.sh)"
-    cd ~/code/github/threefoldfoundation/grid_testscripts
-    source start.sh
-    export DOMAIN={SUBDOMAIN1}
-    echo "tls internal" >> /root/code/github/threefoldfoundation/grid_testscripts/templates/caddy_proxy
-    web_run &"""
-    localclient.sshclient.run(cmds)
-
-
 pool = create_pool()
 gateway1, gateway2 = get_gateways(pool)
 gateway1_ip = j.sals.nettools.get_host_by_name(gateway1.dns_nameserver[0])
 gateway2_ip = j.sals.nettools.get_host_by_name(gateway2.dns_nameserver[0])
 network, wg_quick = create_network(pool, NETWORK_NAME)
-enable_wg(wg_quick)
 
 deployment_node = get_deploymnet_node(pool)
 add_node_to_network(deployment_node, network, pool)
@@ -206,10 +166,12 @@ ssh_key = get_ssh_key()
 
 
 deploy_ubuntu_server(deployment_node, pool, ssh_key)
-initialize_webserver()
+j.logger.info(f"Reserving the proxy on the gateway {gateway1_ip}")
 first_proxy = create_proxy(deployment_node, gateway1, pool, TRC1_IP_ADDRESS, SUBDOMAIN1)
+j.logger.info(f"Reserving the proxy on the gateway {gateway2_ip}")
 second_proxy = create_proxy(deployment_node, gateway2, pool, TRC2_IP_ADDRESS, SUBDOMAIN1)
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway1_ip} in /etc/hosts")
-zos.workloads.decomision(first_proxy)
-input(f"Check https://{SUBDOMAIN1} is no longer reachable, might take up to 5 minutes.")
+j.logger.info(f"Decommisioning the proxy workload from the first gateway")
+zos.workloads.decomission(first_proxy)
+input(f"Check https://{SUBDOMAIN1} is no longer reachable.")
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway2_ip} in /etc/hosts")
