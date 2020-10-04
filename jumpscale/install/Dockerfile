@@ -1,4 +1,4 @@
-FROM threefoldtech/phusion:19.10
+FROM threefoldtech/phusion:20.04
 
 ARG BRANCH
 RUN apt-get update && apt-get install curl wget git python3-pip python3-venv redis-server tmux nginx restic musl musl-tools -y
