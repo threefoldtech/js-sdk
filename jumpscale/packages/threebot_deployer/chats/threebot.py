@@ -154,7 +154,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         success = deployer.wait_workload(self.workload_ids[0])
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments."
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
             )
         test_cert = j.config.get("TEST_CERT")
 
