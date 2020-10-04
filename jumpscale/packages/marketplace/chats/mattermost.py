@@ -122,6 +122,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             proxy_pool_id=self.gateway_pool.pool_id,
             solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)

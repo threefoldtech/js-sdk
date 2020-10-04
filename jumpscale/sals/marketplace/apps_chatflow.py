@@ -302,6 +302,17 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
 
+    def _config_logs(self):
+        self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.solution_log_config:
+            self.solution_log_config["channel_name"] = self.solution_name
+        self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.nginx_log_config:
+            self.nginx_log_config["channel_name"] = self.solution_name + "-nginx"
+        self.trc_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.trc_log_config:
+            self.trc_log_config["channel_name"] = self.solution_name + "-trc"
+
     @chatflow_step(title="Solution Name")
     def get_solution_name(self):
         self._init_solution()
@@ -342,6 +353,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 else:
                     raise e
         self._get_domain()
+        self._config_logs()
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

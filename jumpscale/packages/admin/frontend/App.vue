@@ -62,7 +62,7 @@
     </v-app-bar>
 
     <v-navigation-drawer color="navbar" class="elevation-3" :mini-variant="mini" app permanent dark>
-      <v-sheet color="#148F77">
+      <v-sheet color="logo">
         <v-list class="text-center">
           <img src="./assets/3bot.png" :width="mini ? 40 : 128" />
           <br />
@@ -83,7 +83,7 @@
         </v-list>
       </v-sheet>
 
-      <div style="background-color: #ABB2B9; width:100%; height:5px"></div>
+      <div style="width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
         <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
