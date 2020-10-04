@@ -215,7 +215,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 is_managed_domains = True
                 if domain in blocked_domains:
                     continue
-                success = deployer.test_managed_domain(gateway.node_id, domain, self.gateway_pool.pool_id, gateway)
+                success = deployer.test_managed_domain(gateway.node_id, domain, gw_dict["pool"], gateway)
                 if not success:
                     j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
                     deployer.block_managed_domain(domain)
