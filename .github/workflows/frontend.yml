@@ -19,7 +19,7 @@ jobs:
           sudo apt-get install -y git tmux redis restic nginx cron unzip
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest
+          poetry run pip3 install pytest selenium
 
       - name: Install chrome driver
         run: |
