@@ -553,7 +553,9 @@ class ThreebotServer(Base):
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
-        redis_running = self.redis.cmd.is_running()
+        redis_running = self.redis.cmd.is_running() or j.sals.nettools.wait_connection_test(
+            "127.0.0.1", 6379, timeout=1
+        )
         gedis_running = j.sals.nettools.wait_connection_test("127.0.0.1", 16000, timeout=1)
         return nginx_running and redis_running and gedis_running
 
