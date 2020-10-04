@@ -15,10 +15,10 @@ jobs:
           sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron unzip
           sudo service redis stop
           sudo service nginx stop
-          pip3 install launchpadlib poetry
+          pip3 install keyring launchpadlib poetry
           poetry run pip3 install pytest
 
-          # install Chrome and its driver.
+          # Install Chrome and its driver.
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
           LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
