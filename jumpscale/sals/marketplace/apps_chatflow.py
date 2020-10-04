@@ -8,6 +8,7 @@ import requests
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from jumpscale.sals.reservation_chatflow.deployer import GATEWAY_WORKLOAD_TYPES
 
 from .chatflow import MarketPlaceChatflow
 from .deployer import deployer
@@ -205,7 +206,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         domains = dict()
         is_http_failure = False
         is_managed_domains = False
-        for gw_dict in gateways.values():
+        gateway_keys = list(gateways.values())
+        random.shuffle(gateway_keys)
+        for gw_dict in gateway_keys:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
@@ -400,8 +403,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     self.md_show_update(
                         f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
                     )
-                    self.ip_address = None
-                    self._deploy_network()
+                    failed_workload = j.sals.zos.workloads.get(e.wid)
+                    if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
+                        self.addresses = []
+                        self._get_domain()
+                    else:
+                        self.ip_address = None
+                        self._deploy_network()
                 else:
                     raise e
 

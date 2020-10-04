@@ -66,6 +66,7 @@ class Peertube(MarketPlaceAppsChatflow):
                 f"Failed to create subdomain {self.domain} on gateway"
                 f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
+                wid=_id,
             )
         self.threebot_url = f"http://{self.domain}"
 

@@ -49,6 +49,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         if not success:
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
             )
 
         # deploy volume
