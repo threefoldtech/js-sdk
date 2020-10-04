@@ -9,22 +9,26 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@master
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - uses: dschep/install-poetry-action@v1.3
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron unzip
+          sudo apt-get install -y git tmux redis restic nginx cron unzip
           sudo service redis stop
           sudo service nginx stop
-          pip3 install keyring launchpadlib poetry
           poetry run pip3 install pytest
 
-          # Install Chrome and its driver.
+      - name: Install chrome driver
+        run: |
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
           LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
           wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
           unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
-      - name: Install
+      - name: Install js-sdk
         run: |
           poetry install
       - name: Run tests
