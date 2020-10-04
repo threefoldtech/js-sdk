@@ -11,10 +11,14 @@ class DigitalOcean(TestCase):
         self.ssh_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         self.dg_client_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
         ssh = j.clients.sshkey.get(name=self.ssh_client_name)
-        ssh.private_key_path = os.environ.get("SSH_PRIVATE_KEY_PATH")
-        ssh.load_from_file_system()
+
         self.dg = j.clients.digitalocean.get(self.dg_client_name)
-        self.dg.token = os.environ.get("DIGITAL_OCEAN_ACCESS_TOKEN")
+        if os.getenv("SSH_PRIVATE_KEY_PATH") and os.getenv("DIGITAL_OCEAN_ACCESS_TOKEN"):
+            ssh.private_key_path = os.getenv("SSH_PRIVATE_KEY_PATH")
+            self.dg.token = os.getenv("DIGITAL_OCEAN_ACCESS_TOKEN")
+        else:
+            raise Exception("Please add (SSH_PRIVATE_KEY_PATH, DIGITAL_OCEAN_ACCESS_TOKEN)  as environment variables ")
+        ssh.load_from_file_system()
         self.dg.set_default_sshkey(ssh)
         self.dg_instances = list()
 
