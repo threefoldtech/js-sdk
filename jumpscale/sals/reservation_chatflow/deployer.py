@@ -1741,9 +1741,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             j.sals.nettools.get_host_by_name(subdomain)
         except Exception as e:
             j.logger.error(f"managed domain test failed for {managed_domain} due to error {str(e)}")
-            j.sals.zos.decomission(subdomain_id)
+            j.sals.zos.workloads.decomission(subdomain_id)
             return False
-        j.sals.zos.decomission(subdomain_id)
+        j.sals.zos.workloads.decomission(subdomain_id)
         return True
 
     def block_managed_domain(self, managed_domain):
