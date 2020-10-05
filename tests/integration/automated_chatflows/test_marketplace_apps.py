@@ -125,7 +125,7 @@ class AutomatedChatflows(TestCase):
         self.assertEqual(request.status_code, 200)
 
     def test06_gitea(self):
-        """Test case for testing cryptpad.
+        """Test case for testing gitea.
 
         **Test Scenario**
         #. Deploy Gitea

@@ -25,9 +25,7 @@ class AutomatedChatflows(TestCase):
         cls.network_name = base.random_string()
         cls.wg_name = base.random_string()
         network = deployer.create_network(solution_name=cls.network_name)
-        import pdb
 
-        pdb.set_trace()
         _, wireguard, _ = j.sals.process.execute("sudo wg")
         if cls.wg_name in wireguard:
             j.sals.process.execute(f"sudo wg-quick down /tmp/{cls.wg_name}.conf")
@@ -37,26 +35,30 @@ class AutomatedChatflows(TestCase):
         j.sals.process.execute(f"sudo wg-quick up /tmp/{cls.wg_name}.conf")
 
         # prepare ssh
-        cls.ssh_client = base.random_string()
+        cls.ssh_client_name = base.random_string()
         if not j.sals.fs.exists("/tmp/.ssh"):
             j.core.executors.run_local('mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" ')
-        cls.ssh_cl = j.clients.sshkey.get(cls.ssh_client)
+        cls.ssh_cl = j.clients.sshkey.get(cls.ssh_client_name)
         cls.ssh_cl.private_key_path = "/tmp/.ssh/id_rsa"
         cls.ssh_cl.load_from_file_system()
         cls.ssh_cl.save()
+        cls.solution_uuid = ""
 
     @classmethod
     def tearDownClass(cls):
         # should stop threebot server.
-        j.sals.process.execute(f"sudo wg-quick down /tmp/{cls.wg_name}.conf")
-        j.clients.sshkey.delete(cls.ssh_client)
-        j.clients.sshclient.delete(cls.ssh_client)
-        j.sals.fs.rmtree(path=f"/tmp/{cls.wg_name}.conf")
+        pass
 
     def tearDown(self):
-        j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
+        if self.solution_uuid:
+            j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
+        j.sals.process.execute(f"sudo wg-quick down /tmp/{self.wg_name}.conf")
+        j.clients.sshkey.delete(self.ssh_client_name)
+        j.clients.sshclient.delete(self.ssh_client_name)
+        j.sals.fs.rmtree(path=f"/tmp/{self.wg_name}.conf")
+        j.sals.fs.rmtree(path=f"/tmp/.ssh")
 
-    def wait_for_server_to_stop(self, host, port, timeout):
+    def wait_for_server_to_access(self, host, port, timeout):
         for _ in range(timeout):
             if j.sals.nettools.tcp_connection_test(host, port, 1):
                 sleep(1)
@@ -81,20 +83,20 @@ class AutomatedChatflows(TestCase):
         self.solution_uuid = ubuntu.solution_id
 
         base.info("connect to ubuntu")
-        localclient = j.clients.sshclient.get(self.ssh_client)
-        localclient.sshkey = self.ssh_client
+        localclient = j.clients.sshclient.get(self.ssh_client_name)
+        localclient.sshkey = self.ssh_client_name
         localclient.host = ubuntu.ip_address
         localclient.save()
         self.solution_uuid = ubuntu.solution_id
 
         base.info("check that ubuntu is accessed")
-        if self.wait_for_server_to_stop(host=ubuntu.ip_address, port="", timeout=30):
-            _, res, _ = localclient.sshclient.run("cat /etc/os-release")
-
-            self.assertIn("successfully", ubuntu.success())
-            self.assertIn('VERSION_ID="18.04"', res)
-        else:
-            raise TimeoutError
+        self.assertTrue(
+            self.wait_for_server_to_access(host=ubuntu.ip_address, port="", timeout=30),
+            " Ubuntu is not reached after 30 second",
+        )
+        _, res, _ = localclient.sshclient.run("cat /etc/os-release")
+        self.assertIn("successfully", ubuntu.success())
+        self.assertIn('VERSION_ID="18.04"', res)
 
     def test02_kubernetes(self):
         """Test case for create kubernetes.
@@ -111,17 +113,18 @@ class AutomatedChatflows(TestCase):
         )
         self.solution_uuid = kubernetes.solution_id
 
-        localclient = j.clients.sshclient.get(self.ssh_client)
-        localclient.sshkey = self.ssh_client
+        localclient = j.clients.sshclient.get(self.ssh_client_name)
+        localclient.sshkey = self.ssh_client_name
         localclient.host = f"{kubernetes.ip_addresses[0]}"
         localclient.user = "rancher"
         localclient.save()
-        if self.wait_for_server_to_stop(host=kubernetes.ip_addresses[0], port="", timeout=30):
-            _, res, _ = localclient.sshclient.run("kubectl get nodes")
-            self.assertIn("successfully", kubernetes.success())
-            self.assertIn(15, len(res.split()))
-        else:
-            raise TimeoutError
+        self.assertTrue(
+            self.wait_for_server_to_access(host=kubernetes.ip_addresses[0], port="", timeout=30),
+            "master is not reached after 30 second",
+        )
+        _, res, _ = localclient.sshclient.run("kubectl get nodes")
+        self.assertIn("successfully", kubernetes.success())
+        self.assertIn(15, len(res.split()))
 
     def test03_create_pool(self):
         """Test case for create pool.
@@ -135,7 +138,6 @@ class AutomatedChatflows(TestCase):
         name = base.random_string()
         wallet_name = os.environ.get("WALLET_NAME")
         pool = deployer.create_pool(solution_name=name, wallet_name=wallet_name,)
-        # self.solution_uuid = pool.solution_id
 
         base.info("check that create pool is successful")
         reservation_id = pool.pool_data.reservation_id
@@ -165,6 +167,10 @@ class AutomatedChatflows(TestCase):
         self.solution_uuid = minio.solution_id
 
         base.info("check that create minio is successful")
+        self.assertTrue(
+            self.wait_for_server_to_access(host=minio.ip_addresses[0], port=9000, timeout=30),
+            "minio is not reached after 30 second",
+        )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
         self.assertEqual(request.status_code, 200)
 
@@ -192,14 +198,12 @@ class AutomatedChatflows(TestCase):
         self.assertIn("login", request.content.decode())
 
         base.info("check access redis")
-        if self.wait_for_server_to_stop(host=monitoring.ip_addresses[0], port="", timeout=30):
-            redis = Redis(host=monitoring.ip_addresses[0])
-            self.assertEqual(redis.ping(), True)
-        else:
-            raise TimeoutError
-        import pdb
-
-        pdb.set_trace()
+        self.assertTrue(
+            self.wait_for_server_to_access(host=monitoring.ip_addresses[0], port="", timeout=30),
+            "redis is not reached after 30 second",
+        )
+        redis = Redis(host=monitoring.ip_addresses[0])
+        self.assertEqual(redis.ping(), True)
 
     def test06_generic_flist(self):
         """Test case for deploy generic flist.
@@ -225,13 +229,22 @@ class AutomatedChatflows(TestCase):
         """Test case for exposed flist.
 
         **Test Scenario**
+        #. create flist
         #. create exposed
         #. check access exposed
         """
+        base.info("create generic flist")
+        flist_name = base.random_string()
+        deployer.deploy_generic_flist(
+            solution_name=flist_name,
+            flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
+            network=self.network_name,
+        )
+
         base.info("create exposed")
         sub_domain = base.random_string()
         exposed = deployer.deploy_exposed(
-            type="flist", solution_to_expose="choose_random", sub_domain=sub_domain, tls_port="7681", port="7681"
+            type="flist", solution_to_expose=flist_name, sub_domain=sub_domain, tls_port="7681", port="7681"
         )
         self.solution_uuid = exposed.solution_id
 
@@ -290,11 +303,19 @@ class AutomatedChatflows(TestCase):
         """Test case for extend threebot
 
         **Test Scenario**
+        #. create pool
         #. extend threebot
         #. check expiration
         """
+        base.info("create pool")
+        name = base.random_string()
+        wallet_name = os.environ.get("WALLET_NAME")
+        deployer.create_pool(
+            solution_name=name, wallet_name=wallet_name,
+        )
+
         base.info("extend threebot")
-        threebot = deployer.extend_threebot(name="choose_random", expiration=time() + 60 * 15,)
+        threebot = deployer.extend_threebot(name=name, expiration=time() + 60 * 15,)
         self.solution_uuid = threebot.solution_id
 
         base.info("check expiration")
