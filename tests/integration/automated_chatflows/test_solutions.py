@@ -47,16 +47,16 @@ class AutomatedChatflows(TestCase):
     @classmethod
     def tearDownClass(cls):
         # should stop threebot server.
-        pass
+        j.sals.process.execute(f"sudo wg-quick down /tmp/{self.wg_name}.conf")
+        j.sals.fs.rmtree(path=f"/tmp/{self.wg_name}.conf")
+        j.sals.fs.rmtree(path=f"/tmp/.ssh")
 
     def tearDown(self):
         if self.solution_uuid:
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
-        j.sals.process.execute(f"sudo wg-quick down /tmp/{self.wg_name}.conf")
+
         j.clients.sshkey.delete(self.ssh_client_name)
         j.clients.sshclient.delete(self.ssh_client_name)
-        j.sals.fs.rmtree(path=f"/tmp/{self.wg_name}.conf")
-        j.sals.fs.rmtree(path=f"/tmp/.ssh")
 
     def wait_for_server_to_access(self, host, port, timeout):
         for _ in range(timeout):
