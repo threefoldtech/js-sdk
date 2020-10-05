@@ -38,4 +38,5 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
+          sudo pkill geckodriver
           poetry run pytest -s tests/frontend/tests
