@@ -260,21 +260,26 @@ class TaigaClient(Client):
         """
         return self.api.user_stories.list(assigned_to=user_id)
 
-    def get_issues_export_text(self, prepend_text="Issues", issues=None):
+    def render_issues_with_details(self, text="Issues", issues=None):
         """Get issues subject and append them to text
         
         Args:
-            prepend_text (str): the text that the method will append to it.
+            text (str): the text that the method will append to it.
             issues (List): list of all issues that we will get the subject from .
             
         Returns:
             str: string contains the issues subject.
         """
         for issue in issues:
-            prepend_text += f"- {issue.subject} \n"
-        return prepend_text
+            text += f"- **Subject:** {issue.subject} \n"
+            text += f"  - **Created Date:** {issue.created_date} \n"
+            text += f"  - **Due Date:** {issue.due_date} \n"
+            text += f"  - **Owner Name:** {issue.owner_extra_info.get('full_name_display','unknown')} \n"
+            text += f"  - **Owner Email:** {issue.owner_extra_info.get('email','unknown')} \n"
+            text += f"  - **Project:** {issue.project_extra_info.get('name','unknown')} \n"
+        return text
 
-    def export_all_issues_subjects(self, path="/tmp/issues_titles.md"):
+    def export_all_issues_details(self, path="/tmp/issues_titles.md"):
         """Export all the issues subjects in a markdown file
         
         Args:
@@ -285,7 +290,7 @@ class TaigaClient(Client):
 ### Issues \n
 """
         issues = self.list_all_issues()
-        text = self.get_issues_export_text(prepend_text=text, issues=issues)
+        text = self.render_issues_with_details(text=text, issues=issues)
 
         j.sals.fs.write_file(path=path, data=text)
 
@@ -302,7 +307,7 @@ class TaigaClient(Client):
 """
         for project in projects:
             text += f"##### {project.name} \n"
-            # text += self.get_issues_export_text(prepend_text=text, issues=project.list_issues())
+            # text += self.render_issues_with_details(title=text, issues=project.list_issues())
             for issue in project.list_issues():
                 text += f"- {issue.subject} \n"
 
@@ -326,7 +331,7 @@ class TaigaClient(Client):
 ### {selected_user_name} Issues \n
 """
         issues = self.list_all_issues(user_id=user_id)
-        text = self.get_issues_export_text(prepend_text=text, issues=issues)
+        text = self.render_issues_with_details(text=text, issues=issues)
         j.sals.fs.write_file(path=path, data=text)
 
     def export_all_user_stories(self, path="/tmp/all_stories.md"):
