@@ -47,24 +47,16 @@ class AutomatedChatflows(TestCase):
     @classmethod
     def tearDownClass(cls):
         # should stop threebot server.
-        j.sals.process.execute(f"sudo wg-quick down /tmp/{self.wg_name}.conf")
-        j.sals.fs.rmtree(path=f"/tmp/{self.wg_name}.conf")
+        j.sals.process.execute(f"sudo wg-quick down /tmp/{cls.wg_name}.conf")
+        j.sals.fs.rmtree(path=f"/tmp/{cls.wg_name}.conf")
         j.sals.fs.rmtree(path=f"/tmp/.ssh")
+        j.clients.sshkey.delete(cls.ssh_client_name)
 
     def tearDown(self):
         if self.solution_uuid:
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
 
-        j.clients.sshkey.delete(self.ssh_client_name)
         j.clients.sshclient.delete(self.ssh_client_name)
-
-    def wait_for_server_to_access(self, host, port, timeout):
-        for _ in range(timeout):
-            if j.sals.nettools.tcp_connection_test(host, port, 1):
-                sleep(1)
-            else:
-                return True
-        return False
 
     def test01_ubuntu(self):
         """Test case for create ubuntu.
@@ -77,9 +69,7 @@ class AutomatedChatflows(TestCase):
 
         base.info("create ubuntu.")
         name = base.random_string()
-        ubuntu = deployer.deploy_ubuntu(
-            solution_name=name, network=self.network_name, ssh=f"{self.ssh_cl.private_key_path}.pub"
-        )
+        ubuntu = deployer.deploy_ubuntu(solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path)
         self.solution_uuid = ubuntu.solution_id
 
         base.info("connect to ubuntu")
@@ -90,9 +80,12 @@ class AutomatedChatflows(TestCase):
         self.solution_uuid = ubuntu.solution_id
 
         base.info("check that ubuntu is accessed")
+        import pdb
+
+        pdb.set_trace()
         self.assertTrue(
-            self.wait_for_server_to_access(host=ubuntu.ip_address, port="", timeout=30),
-            " Ubuntu is not reached after 30 second",
+            j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=40),
+            "Ubuntu is not reached after 30 second",
         )
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn("successfully", ubuntu.success())
@@ -109,7 +102,7 @@ class AutomatedChatflows(TestCase):
         name = base.random_string()
         secret = base.random_string()
         kubernetes = deployer.deploy_kubernetes(
-            solution_name=name, secret=secret, network=self.network_name, ssh=f"{self.ssh_cl.private_key_path}.pub",
+            solution_name=name, secret=secret, network=self.network_name, ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = kubernetes.solution_id
 
@@ -119,12 +112,11 @@ class AutomatedChatflows(TestCase):
         localclient.user = "rancher"
         localclient.save()
         self.assertTrue(
-            self.wait_for_server_to_access(host=kubernetes.ip_addresses[0], port="", timeout=30),
+            j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=40),
             "master is not reached after 30 second",
         )
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
-        self.assertIn("successfully", kubernetes.success())
-        self.assertIn(15, len(res.split()))
+        self.assertIn(3, len(res.splitlines()))
 
     def test03_create_pool(self):
         """Test case for create pool.
@@ -162,13 +154,13 @@ class AutomatedChatflows(TestCase):
             username=username,
             password=password,
             network=self.network_name,
-            ssh=f"{self.ssh_cl.private_key_path}.pub",
+            ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = minio.solution_id
 
         base.info("check that create minio is successful")
         self.assertTrue(
-            self.wait_for_server_to_access(host=minio.ip_addresses[0], port=9000, timeout=30),
+            j.sals.nettools.tcp_connection_test(minio.ip_addresses[0], port=9000, timeout=40),
             "minio is not reached after 30 second",
         )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
@@ -199,7 +191,7 @@ class AutomatedChatflows(TestCase):
 
         base.info("check access redis")
         self.assertTrue(
-            self.wait_for_server_to_access(host=monitoring.ip_addresses[0], port="", timeout=30),
+            j.sals.nettools.tcp_connection_test(monitoring.ip_addresses[0], port=6379, timeout=40),
             "redis is not reached after 30 second",
         )
         redis = Redis(host=monitoring.ip_addresses[0])
@@ -263,7 +255,7 @@ class AutomatedChatflows(TestCase):
         name = base.random_string()
         secret = base.random_string()
         threebot = deployer.deploy_threebot(
-            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=f"{self.ssh_cl.private_key_path}.pub"
+            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
         )
         self.solution_uuid = threebot.solution_id
 
@@ -284,14 +276,11 @@ class AutomatedChatflows(TestCase):
         name = base.random_string()
         secret = base.random_string()
         threebot = deployer.deploy_threebot(
-            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=f"{self.ssh_cl.private_key_path}.pub"
+            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
         )
         base.info("recover threebot")
         threebot = deployer.recover_threebot(
-            solution_name=name,
-            recover_password=secret,
-            ssh=f"{self.ssh_cl.private_key_path}.pub",
-            expiration=time() + 60 * 15,
+            solution_name=name, recover_password=secret, ssh=self.ssh_cl.public_key_path, expiration=time() + 60 * 15,
         )
         self.solution_uuid = threebot.solution_id
 
