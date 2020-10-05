@@ -17,14 +17,11 @@ jobs:
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git tmux redis restic nginx cron unzip 
+          sudo apt-get install -y git tmux redis restic nginx cron unzip
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest selenium seleniumbase
-      - name: Chrome
-        run: |
-          sudo apt install google-chrome-stable
-          seleniumbase install chromedriver
+          poetry run pip3 install pytest selenium
+
 #       - name: Install chrome driver
 #         run: |
 #           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
