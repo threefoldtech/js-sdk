@@ -3,6 +3,7 @@ import string
 import gevent
 import imaplib
 import email
+import pytest
 from unittest import TestCase
 from jumpscale.loader import j
 
