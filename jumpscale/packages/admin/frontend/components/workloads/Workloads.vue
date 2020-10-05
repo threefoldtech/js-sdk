@@ -13,7 +13,6 @@
           :headers="headers"
           :items="data.reverse()"
           @click:row="open"
-          :page.sync="page"
         >
           <template slot="no-data">No workloads available</p></template>
           <template v-slot:item.epoch="{ item }">{{ new Date(item.epoch * 1000).toLocaleString() }}</template>
@@ -80,7 +79,6 @@ module.exports = {
       types: [],
       pools: [],
       actions: [],
-      page: 1,
       filters: {
         id: null,
         pool_id: null,
