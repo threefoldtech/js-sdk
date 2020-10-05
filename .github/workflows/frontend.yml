@@ -20,7 +20,7 @@ jobs:
           sudo apt-get install -y git tmux redis restic nginx cron unzip 
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest selenium
+          poetry run pip3 install pytest selenium seleniumbase
       - name: Chrome
         run: |
           sudo apt install google-chrome-stable
