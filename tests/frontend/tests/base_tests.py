@@ -4,7 +4,7 @@ from unittest import TestCase
 from urllib.parse import urljoin
 
 from selenium import webdriver
-from selenium.webdriver import ChromeOptions
+from selenium.webdriver.chrome.options import Options
 
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -63,11 +63,11 @@ class BaseTest(TestCase):
 
     def setUp(self):
         # Configure chrome driver and go to the entrypoint.
-        options = ChromeOptions()
-        options.add_argument("--no-sandbox")
-        options.add_argument("--headless")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--disable-dev-shm-usage")
+        options = Options()
+        # options.add_argument("--no-sandbox")
+        options.add_argument("headless")
+        # options.add_argument("--disable-gpu")
+        # options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
         self.driver = webdriver.Chrome(chrome_options=options)
         self.driver.implicitly_wait(10)
