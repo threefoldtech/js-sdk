@@ -13,9 +13,11 @@ class DigitalOcean(TestCase):
         ssh = j.clients.sshkey.get(name=self.ssh_client_name)
 
         self.dg = j.clients.digitalocean.get(self.dg_client_name)
-        if os.getenv("SSH_PRIVATE_KEY_PATH") and os.getenv("DIGITAL_OCEAN_ACCESS_TOKEN"):
-            ssh.private_key_path = os.getenv("SSH_PRIVATE_KEY_PATH")
-            self.dg.token = os.getenv("DIGITAL_OCEAN_ACCESS_TOKEN")
+        SSH_PRIVATE_KEY_PATH = os.getenv("SSH_PRIVATE_KEY_PATH")
+        DIGITAL_OCEAN_ACCESS_TOKEN = os.getenv("DIGITAL_OCEAN_ACCESS_TOKEN")
+        if SSH_PRIVATE_KEY_PATH and DIGITAL_OCEAN_ACCESS_TOKEN:
+            ssh.private_key_path = SSH_PRIVATE_KEY_PATH
+            self.dg.token = DIGITAL_OCEAN_ACCESS_TOKEN
         else:
             raise Exception("Please add (SSH_PRIVATE_KEY_PATH, DIGITAL_OCEAN_ACCESS_TOKEN)  as environment variables ")
         ssh.load_from_file_system()
