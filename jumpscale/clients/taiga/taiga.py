@@ -260,7 +260,7 @@ class TaigaClient(Client):
         """
         return self.api.user_stories.list(assigned_to=user_id)
 
-    def render_issues_with_details(self, text="Issues", issues=None):
+    def __render_issues_with_details(self, text="Issues", issues=None):
         """Get issues subject and append them to text
         
         Args:
@@ -271,15 +271,33 @@ class TaigaClient(Client):
             str: string contains the issues subject.
         """
         for issue in issues:
-            text += f"- **Subject:** {issue.subject} \n"
-            text += f"  - **Created Date:** {issue.created_date} \n"
-            text += f"  - **Due Date:** {issue.due_date} \n"
-            text += f"  - **Owner Name:** {issue.owner_extra_info.get('full_name_display','unknown')} \n"
-            text += f"  - **Owner Email:** {issue.owner_extra_info.get('email','unknown')} \n"
-            text += f"  - **Project:** {issue.project_extra_info.get('name','unknown')} \n"
+            text += f"- **Subject:** {issue.get('subject')} \n"
+            text += f"  - **Created Date:** {issue.get('created_date')} \n"
+            text += f"  - **Due Date:** {issue.get('due_date')} \n"
+            text += f"  - **Owner Name:** {issue.get('owner_name','unknown')} \n"
+            text += f"  - **Owner Email:** {issue.get('owner_mail','unknown')} \n"
+            text += f"  - **Project:** {issue.get('project','unknown')} \n"
         return text
 
-    def export_all_issues_details(self, path="/tmp/issues_titles.md"):
+    def __get_issues_required_data(self, issues):
+        """Get the required data from issues to be used later in export(render)
+
+        Returns:
+            List: List of issues required details to be used in export(render).
+        """
+        ALL_ISSUES_TEMPLATES = list()
+        for issue in issues:
+            SINGLE_PROJECT_TEMPLATE = dict()
+            SINGLE_PROJECT_TEMPLATE["subject"] = issue.subject
+            SINGLE_PROJECT_TEMPLATE["created_date"] = issue.created_date
+            SINGLE_PROJECT_TEMPLATE["due_date"] = issue.due_date
+            SINGLE_PROJECT_TEMPLATE["owner_name"] = issue.owner_extra_info.get("full_name_display", "unknown")
+            SINGLE_PROJECT_TEMPLATE["owner_mail"] = issue.owner_extra_info.get("email", "unknown")
+            SINGLE_PROJECT_TEMPLATE["project"] = issue.project_extra_info.get("name", "unknown")
+            ALL_ISSUES_TEMPLATES.append(SINGLE_PROJECT_TEMPLATE)
+        return ALL_ISSUES_TEMPLATES
+
+    def export_all_issues_details(self, path="/tmp/issues_details.md"):
         """Export all the issues subjects in a markdown file
         
         Args:
@@ -290,7 +308,9 @@ class TaigaClient(Client):
 ### Issues \n
 """
         issues = self.list_all_issues()
-        text = self.render_issues_with_details(text=text, issues=issues)
+        ALL_ISSUES_TEMPLATES = self.__get_issues_required_data(issues)
+
+        text = self.__render_issues_with_details(text=text, issues=ALL_ISSUES_TEMPLATES)
 
         j.sals.fs.write_file(path=path, data=text)
 
@@ -305,10 +325,15 @@ class TaigaClient(Client):
         text = """
 ### Issues  Per Project \n
 """
+        ALL_PROJECTS_TEMPLATES = list()
         for project in projects:
-            text += f"##### {project.name} \n"
-            # text += self.render_issues_with_details(title=text, issues=project.list_issues())
-            for issue in project.list_issues():
+            SINGLE_PROJECT_TEMPLATE = dict()
+            SINGLE_PROJECT_TEMPLATE["name"] = project.name
+            SINGLE_PROJECT_TEMPLATE["issues"] = project.list_issues()
+            ALL_PROJECTS_TEMPLATES.append(SINGLE_PROJECT_TEMPLATE)
+        for project in ALL_PROJECTS_TEMPLATES:
+            text += f"##### {project.get('name')} \n"
+            for issue in project.get("issues"):
                 text += f"- {issue.subject} \n"
 
         j.sals.fs.write_file(path=path, data=text)
@@ -331,8 +356,30 @@ class TaigaClient(Client):
 ### {selected_user_name} Issues \n
 """
         issues = self.list_all_issues(user_id=user_id)
-        text = self.render_issues_with_details(text=text, issues=issues)
+        ALL_ISSUES_TEMPLATES = self.__get_issues_required_data(issues)
+        text = self.__render_issues_with_details(text=text, issues=ALL_ISSUES_TEMPLATES)
         j.sals.fs.write_file(path=path, data=text)
+
+    def __get_stories_required_data(self):
+        """Get the required data from user stories to be used later in export(render)
+
+        Returns:
+            List: List of stories required details to be used in export(render).
+        """
+        All_STORIES_TEMPLATE = list()
+        users_stories = self.list_all_user_stories()
+        for story in users_stories:
+            SINGLE_STORY_TEMPLATE = dict()
+            SINGLE_STORY_TEMPLATE["subject"] = story.subject
+            if story.assigned_to_extra_info:
+                SINGLE_STORY_TEMPLATE["assigned"] = story.assigned_to_extra_info.get("full_name_display", "unassigned")
+                SINGLE_STORY_TEMPLATE["is_active"] = story.assigned_to_extra_info.get("is_active", "unknown")
+            tasks = list()
+            for task in story.list_tasks():
+                tasks.append(task.subject)
+            SINGLE_STORY_TEMPLATE["tasks"] = tasks
+            All_STORIES_TEMPLATE.append(SINGLE_STORY_TEMPLATE)
+        return All_STORIES_TEMPLATE
 
     def export_all_user_stories(self, path="/tmp/all_stories.md"):
         """Export all the user stories in a markdown file
@@ -341,18 +388,19 @@ class TaigaClient(Client):
             path (str): The path of exported markdown file.
             
         """
-        users_stories = self.list_all_user_stories()
         text = f"""
 ### All User Stories \n
 """
-        for story in users_stories:
-            text += f"#### {story.subject} \n"
-            if story.assigned_to_extra_info:
-                text += f"- **Assigned to:** {story.assigned_to_extra_info.get('full_name_display','unassigned')} \n"
-                text += f"- **Is Active:** {story.assigned_to_extra_info.get('is_active','unknown')} \n"
+        All_STORIES_TEMPLATE = list()
+        All_STORIES_TEMPLATE = self.__get_stories_required_data()
+
+        for story in All_STORIES_TEMPLATE:
+            text += f"#### {story.get('subject')} \n"
+            text += f"- **Assigned to:** {story.get('assigned','unassigned')} \n"
+            text += f"- **Is Active:** {story.get('is_active','unknown')} \n"
             text += f"- **Tasks** \n"
-            for task in story.list_tasks():
-                text += f"  - {task.subject} \n"
+            for task_subject in story.get("tasks"):
+                text += f"  - {task_subject} \n"
 
         j.sals.fs.write_file(path=path, data=text)
 
