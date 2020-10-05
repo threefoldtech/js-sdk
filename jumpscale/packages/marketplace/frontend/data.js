@@ -97,6 +97,14 @@ const SECTIONS = {
         helpLink: "https://now10.threefold.io/docs",
         description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
       },
+      meetings: {
+        name: "Meetings",
+        type: "meetings",
+        image: "./assets/mattermost.png",
+        disable: false,
+        helpLink: "TODO",
+        description: "Decentralized meetings software."
+      }
     },
   },
 }
