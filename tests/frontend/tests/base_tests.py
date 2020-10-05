@@ -69,7 +69,7 @@ class BaseTest(TestCase):
         # options.add_argument("--disable-gpu")
         # options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
-        self.driver = webdriver.Chrome(chrome_options=options)
+        self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(10)
         self.driver.maximize_window()
         self.login_endpoint = "/auth/auto_login"
@@ -79,7 +79,7 @@ class BaseTest(TestCase):
         # Take screenshot for failure test.
         if self._outcome.errors:
             self.driver.save_screenshot(f"{self._testMethodName}.png")
-        self.driver.close()
+        # self.driver.close()
         self.driver.quit()
 
     def info(self, msg):
