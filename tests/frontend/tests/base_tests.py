@@ -64,20 +64,16 @@ class BaseTest(TestCase):
     def setUp(self):
         # Configure chrome driver and go to the entrypoint.
         options = Options()
-        # options.add_argument("--no-sandbox")
+        options.add_argument("--no-sandbox")
         options.add_argument("headless")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
-        for _ in range(3):
-            try:
-                self.driver = webdriver.Chrome(options=options)
-                self.driver.implicitly_wait(10)
-                self.driver.maximize_window()
-                self.login_endpoint = "/auth/auto_login"
-                self.driver.get(urljoin(Base.base_url, self.login_endpoint))
-            except:
-                pass
+        self.driver = webdriver.Chrome(options=options)
+        self.driver.implicitly_wait(10)
+        self.driver.maximize_window()
+        self.login_endpoint = "/auth/auto_login"
+        self.driver.get(urljoin(Base.base_url, self.login_endpoint))
 
     def tearDown(self):
         # Take screenshot for failure test.
