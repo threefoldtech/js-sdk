@@ -31,7 +31,7 @@ def count_solutions():
 def cancel_solution():
     user_info = j.data.serializers.json.loads(get_user_info())
     data = j.data.serializers.json.loads(request.body.read())
-    j.sals.marketplace.solutions.cancel_solution(user_info["username"], data["wids"], delete_pool=True)
+    j.sals.marketplace.solutions.cancel_solution(user_info["username"], data["wids"], delete_pool=False)
     return j.data.serializers.json.dumps({"result": True})
 
 
