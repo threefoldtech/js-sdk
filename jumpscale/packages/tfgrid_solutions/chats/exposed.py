@@ -35,6 +35,7 @@ class SolutionExpose(GedisChatBot):
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
+        self.md_show_update("Initializing chatflow....")
         self._deployment_start()
 
         available_solutions = {}
