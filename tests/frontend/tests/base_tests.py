@@ -69,11 +69,15 @@ class BaseTest(TestCase):
         # options.add_argument("--disable-gpu")
         # options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
-        self.driver = webdriver.Chrome(options=options)
-        self.driver.implicitly_wait(10)
-        self.driver.maximize_window()
-        self.login_endpoint = "/auth/auto_login"
-        self.driver.get(urljoin(Base.base_url, self.login_endpoint))
+        for _ in range(3):
+            try:
+                self.driver = webdriver.Chrome(options=options)
+                self.driver.implicitly_wait(10)
+                self.driver.maximize_window()
+                self.login_endpoint = "/auth/auto_login"
+                self.driver.get(urljoin(Base.base_url, self.login_endpoint))
+            except:
+                pass
 
     def tearDown(self):
         # Take screenshot for failure test.
