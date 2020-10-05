@@ -72,6 +72,7 @@ class BaseTest(TestCase):
         self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(10)
         self.driver.maximize_window()
+        self.driver.get("https://demo2.testnet.grid.tf/")
         self.login_endpoint = "/auth/auto_login"
         self.driver.get(urljoin(Base.base_url, self.login_endpoint))
 
