@@ -14,7 +14,7 @@ jobs:
         with:
           python-version: '3.8'
       - uses: dschep/install-poetry-action@v1.3
-      - uses: nanasess/setup-chromedriver@master
+ #      - uses: nanasess/setup-chromedriver@master
       - name: Gathering deps
         run: |
           sudo apt-get update
@@ -23,13 +23,13 @@ jobs:
           sudo service nginx stop
           poetry run pip3 install pytest selenium
 
-#       - name: Install chrome driver
-#         run: |
-#           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-#           sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
-#           LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-#           wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
-#           unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
+      - name: Install chrome driver
+        run: |
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
+          LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+          wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
       - name: Install js-sdk
         run: |
           poetry install
