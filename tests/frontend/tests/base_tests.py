@@ -74,11 +74,12 @@ class BaseTest(TestCase):
         self.driver.maximize_window()
         self.driver.get("https://demo2.testnet.grid.tf/")
         self.login_endpoint = "/auth/auto_login"
-        j.sals.nettools.tcp_connection_test("127.0.0.1", port=80, timeout=3)
+        # j.sals.nettools.tcp_connection_test("127.0.0.1", port=80, timeout=3)
         # j.sals.nettools.tcp_connection_test("127.0.0.1", port=443, timeout=3)
-        r = j.tools.http.get(urljoin(Base.base_url, self.login_endpoint), verify=False)
+        print(Base.base_url) 
+        r = j.tools.http.get(urljoin("https://localhost", self.login_endpoint), verify=False)
         print(r.content.decode())
-        self.driver.get(urljoin(Base.base_url, self.login_endpoint))
+        self.driver.get(urljoin("https://localhost", self.login_endpoint))
 
     def tearDown(self):
         # Take screenshot for failure test.
