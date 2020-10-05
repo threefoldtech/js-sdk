@@ -72,7 +72,7 @@ class SolutionExpose(GedisChatBot):
     def expose_type(self):
         choices = ["TRC", "NGINX"]
         self.proxy_type = self.single_choice(
-            "Select how you want to expose your solution (TRC forwards the traffic as is to the specified HTTP/HTTPS ports while NGINX reverse proxies the http requests to an HTTP port)",
+            "Select how you want to expose your solution (TRC forwards the traffic as is to the specified HTTP/HTTPS ports while NGINX reverse proxies the HTTP/HTTPS requests to an HTTP port)",
             choices,
         )
         if self.proxy_type == "NGINX":
