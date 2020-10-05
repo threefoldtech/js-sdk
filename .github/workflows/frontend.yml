@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.8'
       - uses: dschep/install-poetry-action@v1.3
-      - uses: nanasess/setup-chromedriver@master
+      # - uses: nanasess/setup-chromedriver@master
       - name: Gathering deps
         run: |
           sudo apt-get update
@@ -38,7 +38,4 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
-          export DISPLAY=:99
-          chromedriver --url-base=/wd/hub &
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           poetry run pytest -s tests/frontend/tests
