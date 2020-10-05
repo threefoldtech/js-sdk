@@ -30,6 +30,11 @@ jobs:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
+          SEND_GRID_API_KEY_TOKEN: ${{ secrets.SENDGRID_TOKEN }}
+          RECIPIENT_MAIL: ${{ secrets.FAKE_EMAIL }}
+          RECIPIENT_PASS: ${{ secrets.FAKE_EMAIL_PASSWORD }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \ 
+          --preserve-env=SEND_GRID_API_KEY_TOKEN --preserve-env=RECIPIENT_MAIL \
+          --preserve-env=RECIPIENT_PASS \
           poetry run pytest tests -s -m "unittests"
