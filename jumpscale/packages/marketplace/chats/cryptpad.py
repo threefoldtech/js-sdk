@@ -4,7 +4,7 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-cryptpad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     steps = [
@@ -70,9 +70,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
