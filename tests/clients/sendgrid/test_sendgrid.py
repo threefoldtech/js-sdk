@@ -12,19 +12,20 @@ def generate_rand_text(char_count, choices):
 
 
 class Sendgrid(TestCase):
+    SMTP_SERVER = "imap.gmail.com"
+
     def setUp(self):
         self.sendgird_client_name = generate_rand_text(10, string.ascii_letters)
         self.sendgrid_client = j.clients.sendgrid.get(name=self.sendgird_client_name)
         self.send_gird_api_key_token = os.getenv("SEND_GRID_API_KEY_TOKEN")
         self.recipient_mail = os.getenv("RECIPIENT_MAIL")
-        self.smtp_server = os.getenv("SMTP_SERVER")
         self.recipient_pass = os.getenv("RECIPIENT_PASS")
-        if self.send_gird_api_key_token and self.recipient_mail and self.smtp_server and self.recipient_pass:
+        if self.send_gird_api_key_token and self.recipient_mail and self.recipient_pass:
             self.sendgrid_client.apikey = self.send_gird_api_key_token
             self.recipient_mail = self.recipient_mail
         else:
             raise Exception(
-                "Please add (SEND_GRID_API_KEY_TOKEN, RECIPIENT_MAIL, SMTP_SERVER, RECIPIENT_PASS) as environment variables "
+                "Please add (SEND_GRID_API_KEY_TOKEN, RECIPIENT_MAIL, RECIPIENT_PASS) as environment variables "
             )
 
         self.sender_mail = j.data.fake.email()
@@ -64,7 +65,7 @@ class Sendgrid(TestCase):
 
     def read_email_from_gmail(self, validate_attachment=True, attachment_type=None):
         try:
-            mail = imaplib.IMAP4_SSL(self.smtp_server)
+            mail = imaplib.IMAP4_SSL(self.SMTP_SERVER)
             mail.login(self.recipient_mail, self.recipient_pass)
             mail.select("inbox")
             _, data = mail.search(None, "ALL")
