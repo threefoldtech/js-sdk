@@ -11,6 +11,7 @@ def generate_rand_text(char_count, choices):
     return j.data.idgenerator.nfromchoices(10, string.ascii_letters)
 
 
+@pytest.mark.integration
 class Sendgrid(TestCase):
     SMTP_SERVER = "imap.gmail.com"
 
