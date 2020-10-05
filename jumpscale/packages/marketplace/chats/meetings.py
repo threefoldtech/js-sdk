@@ -4,7 +4,7 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 
 
 class MeetingsDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/tobias.3bot/jimbersoftware-freeflowconnect_grid-0.4.flist"
+    FLIST_URL = "https://hub.grid.tf/tobias.3bot/jimbersoftware-freeflowconnect_grid-latest.flist"
     SOLUTION_TYPE = "meetings"
     title = "Meetings"
     steps = [
