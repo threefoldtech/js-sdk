@@ -295,7 +295,15 @@ def add_access_to_network(
 
 
 def deploy_exposed(
-    type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
+    type,
+    solution_to_expose,
+    sub_domain,
+    domain="choose_random",
+    tls_port=6443,
+    port=6443,
+    debug=True,
+    proxy_type="TRC",
+    force_https="NO",
 ):
     return SolutionExposeDeployAutomated(
         type=type,
@@ -305,6 +313,8 @@ def deploy_exposed(
         tls_port=tls_port,
         port=port,
         debug=debug,
+        proxy_type=proxy_type,
+        force_https=force_https,
     )
 
 

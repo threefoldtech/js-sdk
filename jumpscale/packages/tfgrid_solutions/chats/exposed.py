@@ -74,9 +74,10 @@ class SolutionExpose(GedisChatBot):
         self.proxy_type = self.single_choice(
             "Select how you want to expose your solution (TRC forwards the traffic as is to the specified HTTP/HTTPS ports while NGINX reverse proxies the HTTP/HTTPS requests to an HTTP port)",
             choices,
+            default="TRC",
         )
         if self.proxy_type == "NGINX":
-            force_https = self.single_choice("Do you want to force HTTPS?", ["YES", "NO"])
+            force_https = self.single_choice("Do you want to force HTTPS?", ["YES", "NO"], default="NO")
             self.force_https = force_https == "YES"
 
     @chatflow_step(title="Ports")
