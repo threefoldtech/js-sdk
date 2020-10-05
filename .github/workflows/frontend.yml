@@ -31,6 +31,7 @@ jobs:
           LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
           wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
           unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
+          which chromedriver
       - name: Install js-sdk
         run: |
           poetry install
@@ -40,6 +41,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
+          which chromedriver
           export DISPLAY=:99
           chromedriver --url-base=/wd/hub &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
