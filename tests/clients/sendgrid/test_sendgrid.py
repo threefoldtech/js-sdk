@@ -14,19 +14,25 @@ def generate_rand_text(char_count, choices):
 class Sendgrid(TestCase):
     def setUp(self):
         self.sendgird_client_name = generate_rand_text(10, string.ascii_letters)
-        self.test = j.clients.sendgrid.get(name=self.sendgird_client_name)
-        if os.getenv("SEND_GRID_API_KEY_TOKEN") and os.getenv("RECIPIENT_MAIL"):
-            self.test.apikey = os.getenv("SEND_GRID_API_KEY_TOKEN")
-            self.recipient_mail = os.getenv("RECIPIENT_MAIL")
+        self.sendgrid_client = j.clients.sendgrid.get(name=self.sendgird_client_name)
+        self.send_gird_api_key_token = os.getenv("SEND_GRID_API_KEY_TOKEN")
+        self.recipient_mail = os.getenv("RECIPIENT_MAIL")
+        self.smtp_server = os.getenv("SMTP_SERVER")
+        self.recipient_pass = os.getenv("RECIPIENT_PASS")
+        if self.send_gird_api_key_token and self.recipient_mail and self.smtp_server and self.recipient_pass:
+            self.sendgrid_client.apikey = self.send_gird_api_key_token
+            self.recipient_mail = self.recipient_mail
         else:
-            raise Exception("Please add (SEND_GRID_API_KEY_TOKEN, RECIPIENT_MAIL) as environment variables ")
+            raise Exception(
+                "Please add (SEND_GRID_API_KEY_TOKEN, RECIPIENT_MAIL, SMTP_SERVER, RECIPIENT_PASS) as environment variables "
+            )
 
         self.sender_mail = j.data.fake.email()
         self.subject = j.data.fake.sentence()
         self.attachment_type = "application/txt"
         file_name = generate_rand_text(10, string.ascii_letters)
         self.attachment_path = f"/tmp/{file_name}.txt"
-        # Writing pdf to be used in attachemt
+        # Writing txt to be used in attachemt
         j.sals.fs.write_file(path=self.attachment_path, data="i am testing")
 
     def test01_test_sendgrid_send_mail(self):
@@ -37,8 +43,7 @@ class Sendgrid(TestCase):
         #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
         #. Delete the send email from the receiver mail inbox.
         """
-        res = self.test.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
-        self.assertIsNone(res)
+        res = self.sendgrid_client.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
         self.assertTrue(self.await_validate_mail(validate_attachment=False))
 
     def test02_test_sendgrid_send_mail_with_attachment(self):
@@ -51,20 +56,16 @@ class Sendgrid(TestCase):
         #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
         #. Delete the send email from the receiver mail inbox.
         """
-        attach = self.test.build_attachment(filepath=self.attachment_path, typ=self.attachment_type)
-        res = self.test.send(
+        attach = self.sendgrid_client.build_attachment(filepath=self.attachment_path, typ=self.attachment_type)
+        res = self.sendgrid_client.send(
             sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail], attachments=[attach]
         )
-        self.assertIsNone(res)
         self.assertTrue(self.await_validate_mail(validate_attachment=False, attachment_type=self.attachment_type))
 
     def read_email_from_gmail(self, validate_attachment=True, attachment_type=None):
         try:
-            if os.getenv("SMTP_SERVER") and os.getenv("RECIPIENT_MAIL") and os.getenv("RECIPIENT_PASS"):
-                mail = imaplib.IMAP4_SSL(os.getenv("SMTP_SERVER"))
-                mail.login(os.getenv("RECIPIENT_MAIL"), os.getenv("RECIPIENT_PASS"))
-            else:
-                raise Exception("Please add (SMTP_SERVER, RECIPIENT_MAIL, RECIPIENT_PASS)  as environment variables ")
+            mail = imaplib.IMAP4_SSL(self.smtp_server)
+            mail.login(self.recipient_mail, self.recipient_pass)
             mail.select("inbox")
             _, data = mail.search(None, "ALL")
             mail_ids = data[0]
