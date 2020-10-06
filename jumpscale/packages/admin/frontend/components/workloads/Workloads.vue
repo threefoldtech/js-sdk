@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Workloads" icon="mdi-clipboard-list-outline" :loading="loading">
+    <base-component title="Workloads" icon="mdi-clipboard-list-outline">
       <template #actions>
         <v-btn color="primary" :disabled="!delete_enabled" @click="cancelSelected">
           <v-icon left>mdi-delete</v-icon>Delete Selected
@@ -14,9 +14,10 @@
           :items="data.reverse()"
           @click:row="open"
           :page.sync="page"
+          :loading="loading"
         >
           <template slot="no-data">No workloads available</p></template>
-          <template v-slot:item.epoch="{ item }">{{ new Date(item.epoch * 1000).toLocaleString() }}</template>
+          <template v-slot:item.epoch="{ item }">{{ new Date(item.epoch * 1000).toLocaleString('en-GB') }}</template>
           <template v-slot:body.prepend="{ headers }">
             <tr>
               <td></td>

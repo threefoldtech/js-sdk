@@ -160,7 +160,7 @@ module.exports = {
       });
     },
     setTimeLocal() {
-      this.timenow = new Date().toLocaleString();
+      this.timenow = new Date().toLocaleString('en-GB');
     },
     getCookie(cname) {
       var name = cname + "=";
