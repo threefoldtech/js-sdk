@@ -264,7 +264,7 @@ class TaigaClient(Client):
         """
         return self.api.user_stories.list(assigned_to=user_id)
 
-    def __render_issues_with_details(self, text="Issues", issues=None):
+    def __render_issues_with_details(self, text="Issues", issues=None, with_description=False):
         """Get issues details and append them to text to be written in markdown files
         
         Args:
@@ -281,9 +281,11 @@ class TaigaClient(Client):
             text += f"  - **Owner Name:** {issue.get('owner_name','unknown')} \n"
             text += f"  - **Owner Email:** {issue.get('owner_mail','unknown')} \n"
             text += f"  - **Project:** {issue.get('project','unknown')} \n"
+            if with_description:
+                text += f"  - **Description:** \n```\n{issue.get('description','unknown')}\n``` \n"
         return text
 
-    def __get_issues_required_data(self, issues):
+    def __get_issues_required_data(self, issues, with_description=False):
         """Get the required data from issues to be used later in export(render)
 
         Returns:
@@ -298,6 +300,8 @@ class TaigaClient(Client):
             single_project_template["owner_name"] = issue.owner_extra_info.get("full_name_display", "unknown")
             single_project_template["owner_mail"] = issue.owner_extra_info.get("email", "unknown")
             single_project_template["project"] = issue.project_extra_info.get("name", "unknown")
+            if with_description:
+                single_project_template["description"] = self.get_issue_description(issue.id)
             all_issues_templates.append(single_project_template)
         return all_issues_templates
 
@@ -337,12 +341,13 @@ class TaigaClient(Client):
             all_projects_template.append(single_project_template)
         for project in all_projects_template:
             text += f"##### {project.get('name')} \n"
+            # Check on details flag
             for issue in project.get("issues"):
                 text += f"- {issue.subject} \n"
 
         j.sals.fs.write_file(path=path, data=text)
 
-    def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md"):
+    def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md", with_description=False):
         """Export all the issues per specif user in a markdown file, if no user given
         the method export issues for the current logged in user
         
@@ -360,8 +365,10 @@ class TaigaClient(Client):
 ### {selected_user_name} Issues \n
 """
         issues = self.list_all_issues(user_id=user_id)
-        all_issues_templates = self.__get_issues_required_data(issues)
-        text = self.__render_issues_with_details(text=text, issues=all_issues_templates)
+        all_issues_templates = self.__get_issues_required_data(issues, with_description)
+        text = self.__render_issues_with_details(
+            text=text, issues=all_issues_templates, with_description=with_description
+        )
         j.sals.fs.write_file(path=path, data=text)
 
     def __get_stories_required_data(self):
@@ -407,3 +414,12 @@ class TaigaClient(Client):
 
         j.sals.fs.write_file(path=path, data=text)
 
+    def get_issue_description(self, issue_id):
+        """Get issue description
+        Args:
+            issue_id: the id of the desired issue
+
+        Returns:
+            str: issue description
+        """
+        return self.api.issues.get(issue_id).description
