@@ -91,8 +91,32 @@ restic check &
 wait $!
 """
 
+WATCHDOG_SCRIPT = """
+epoch=$(date +%s)
+
+export RESTIC_REPOSITORY={repo}
+export RESTIC_PASSWORD={password}
+export AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID}
+export AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY}
+
+
+latest_backup=`restic snapshots --last -c -q | sed -n 3p |cut -d " " -f3`
+latest_backup_epoch=`date "+%s" -d "$latest_backup"`
+wait $!
+
+current_date=`date +"%s"`
+
+if [[ $(( (current_date - latest_backup_epoch) / 86400 )) > 2 ]]
+then
+    echo "send mail"
+    # send mail
+fi
+
+"""
+
 
 class ResticRepo(Base):
+
     repo = fields.String(required=True)
     password = fields.Secret(required=True)
     extra_env = fields.Typed(dict, default={})
@@ -109,10 +133,9 @@ class ResticRepo(Base):
 
     @property
     def env(self):
-        if not self._env:
-            self.validate()
-            self._env = os.environ.copy()
-            self._env.update({"RESTIC_PASSWORD": self.password, "RESTIC_REPOSITORY": self.repo}, **self.extra_env)
+        self.validate()
+        self._env = os.environ.copy()
+        self._env.update({"RESTIC_PASSWORD": self.password, "RESTIC_REPOSITORY": self.repo}, **self.extra_env)
         return self._env
 
     def _run_cmd(self, cmd, check=True):
@@ -258,3 +281,42 @@ class ResticRepo(Base):
         proc_res = proc.communicate(input=cron_cmd.encode())
         if proc.returncode > 0:
             raise Runtime(f"Couldn't remove cron job, failed with {proc_res[1]}")
+
+    def backup_watchdog_running(self, script_path) -> bool:
+        """watches a cronjob to watch backups using last snapshot time
+
+        Args:
+            script_path (str): path to the script to run the cronjob
+        Returns:
+            bool: True if the backup watchdog running
+        """
+        script_path = self._get_script_path(script_path)
+        cronjobs = self._get_crons_jobs()
+        return cronjobs.find(script_path) >= 0
+
+    def start_watch_backup(self, path):
+        """Runs a cron job that backups the repo and prunes the last specified backups
+
+        Args:
+            path (str): local path to backup
+            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+        """
+        self._check_install("crontab")
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        if not self.backup_watchdog_running(path):  # Check if cron job already running
+            cron_script = WATCHDOG_SCRIPT.format(
+                repo=self.repo,
+                password=self.password,
+                path=path,
+                AWS_SECRET_ACCESS_KEY=self.extra_env.get("AWS_SECRET_ACCESS_KEY"),
+                AWS_ACCESS_KEY_ID=self.extra_env.get("AWS_ACCESS_KEY_ID"),
+            )
+            with open(script_path, "w") as rfd:
+                rfd.write(cron_script)
+
+            cron_cmd = cronjobs + f"0 0 */2 * * bash {script_path} \n"
+            proc = subprocess.Popen(["crontab", "-"], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc_res = proc.communicate(input=cron_cmd.encode())
+            if proc.returncode > 0:
+                raise Runtime(f"Couldn't start cron job, failed with {proc_res[1]}")
