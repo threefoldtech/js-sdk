@@ -468,6 +468,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         escrow_address = escrow_info.address
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
+        if not total_amount:
+            return
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
         total_amount = "{0:f}".format(total_amount_dec)
 
@@ -483,7 +485,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         <br><hr><br>
         <h3> Choose a wallet name to use for payment or proceed with payment through External wallet (QR Code) </h3>
         """
-        result = bot.single_choice(message, wallet_names, html=True)
+        result = bot.single_choice(message, wallet_names, html=True, required=True)
         if result == "External Wallet (QR Code)":
             msg_text = f"""
             <h3>Make a Payment</h3>
