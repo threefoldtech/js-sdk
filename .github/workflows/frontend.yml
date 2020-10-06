@@ -23,15 +23,6 @@ jobs:
           sudo service nginx stop
           poetry run pip3 install pytest selenium
 
-      # - name: Install chrome driver
-      #   run: |
-      #     sudo rm /usr/bin/chromedriver
-      #     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-      #     sudo dpkg -i --force-depends google-chrome-stable_current_amd64.deb
-      #     LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-      #     wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
-      #     unzip chromedriver_linux64.zip && sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
-      #     which chromedriver
       - name: Install js-sdk
         run: |
           poetry install
@@ -41,8 +32,8 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
-          which chromedriver
-          # curl http://localhost
+          threebot start --background
           ps aux
           ss -tlnp
+          curl http://localhost
           poetry run pytest -s tests/frontend/tests
