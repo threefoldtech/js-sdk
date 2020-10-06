@@ -494,7 +494,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     self.md_show_update(
                         f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
                     )
-                    failed_workload = j.sals.zos.workloads.get(e.wid)
+                    failed_workload = j.sals.zos.get().workloads.get(e.wid)
                     if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
                         self.addresses = []
                         if self.custom_domain:
