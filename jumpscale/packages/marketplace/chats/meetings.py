@@ -16,18 +16,16 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 1, "mru": 1, "sru": 1}
+    query = {"cru": 2, "mru": 2, "sru": 0}
 
     @chatflow_step(title="Meetings Information")
     def meetings_info(self):
         self.user_email = self.user_info()["email"]
         self._choose_flavor()
-        self.vol_size = self.flavor_resources["sru"]
-        self.query["sru"] += self.vol_size
+        self.query["sru"] += self.flavor_resources["sru"]
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {
@@ -65,7 +63,7 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
             flist=self.FLIST_URL,
             cpu=self.query["cru"],
             memory=self.query["mru"] * 1024,
-            disk_size=(self.query["sru"] - self.vol_size) * 1024,
+            disk_size=self.query["sru"] * 1024,
             interactive=False,
             entrypoint="/entrypoint.sh",
             public_ipv6=True,
