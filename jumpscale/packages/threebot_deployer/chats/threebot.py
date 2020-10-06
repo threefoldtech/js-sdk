@@ -45,7 +45,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.expiration = 60 * 60  # 60 minutes for 3bot
         self.ip_version = "IPv6"
         self.retries = 3
-        self.allow_custom_domain = True
+        self.allow_custom_domain = False
+        self.custom_domain = False
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
