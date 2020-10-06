@@ -468,6 +468,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         escrow_address = escrow_info.address
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
+        if not total_amount:
+            return
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
         total_amount = "{0:f}".format(total_amount_dec)
 
