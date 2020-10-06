@@ -1,5 +1,5 @@
 class Base:
-    base_url = "https://localhost:443"
+    base_url = "https://localhost"
 
     def __init__(self, *args, **kwargs):
         pass

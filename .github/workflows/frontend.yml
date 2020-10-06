@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@master
-     #  - uses: docker://ubuntu:20.04
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
@@ -26,6 +25,7 @@ jobs:
       - name: Install js-sdk
         run: |
           poetry install
+
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
@@ -33,9 +33,4 @@ jobs:
           WORDS: ${{ secrets.WORDS }}
         run: |
           sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)
-          poetry run python3 tests/frontend/tests/config_threebot.py
-          poetry run threebot start --background
-          ps aux
-          ss -tlnp
-          curl http://localhost
           poetry run pytest -s tests/frontend/tests
