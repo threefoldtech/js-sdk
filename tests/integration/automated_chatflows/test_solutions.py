@@ -324,7 +324,7 @@ class AutomatedChatflows(TestCase):
         **Test Scenario**
         #. create pool
         #. extend pool
-        #. check expiration
+        #. check that cu and su as reserved
         """
         base.info("create pool")
         name = base.random_string()
@@ -334,7 +334,7 @@ class AutomatedChatflows(TestCase):
         base.info("extend pool")
         extent_pool = deployer.extend_pool(pool_name=name, wallet_name=wallet_name, cu=2, su=2)
 
-        base.info("check that extend pool is successful")
+        base.info("check that cu and su as reserved")
         reservation_id = extent_pool.pool_data.reservation_id
         pool_data = j.sals.zos.pools.get(reservation_id)
 
