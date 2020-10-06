@@ -32,6 +32,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
+          sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)
           poetry run python3 tests/frontend/tests/config_threebot.py
           poetry run threebot start --background
           ps aux
