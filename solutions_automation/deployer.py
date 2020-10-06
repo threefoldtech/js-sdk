@@ -340,9 +340,17 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(
+    solution_name, secret, expiration, debug=True, domain_type="Automatically Get a Domain", domain_name=None
+):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Create",
+        solution_name=solution_name,
+        secret=secret,
+        expiration=expiration,
+        debug=debug,
+        domain_type=domain_type,
+        domain_name=domain_name,
     )
 
 

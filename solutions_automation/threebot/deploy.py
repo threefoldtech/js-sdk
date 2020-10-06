@@ -9,6 +9,8 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
     SECRET = "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
     RECOVER_PASSWORD = "Please enter the recovery password"
     EXPIRATION = "Please enter the solution's expiration time"
+    DOMAIN_TYPE = "Do you want to manage the domain for the container or automatically get a domain of ours?"
+    DOMAIN_NAME = "Please specify the domain name you wish to bind to"
     QS = {
         TYPE: "type",
         NAME: "get_name",
@@ -16,6 +18,8 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
         RECOVER_PASSWORD: "recover_password",
         SECRET: "secret",
         EXPIRATION: "expiration",
+        DOMAIN_TYPE: "domain_type",
+        DOMAIN_NAME: "domain_name",
     }
 
     def ask(self, msg, *args, **kwargs):

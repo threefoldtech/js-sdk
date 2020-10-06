@@ -225,7 +225,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             if self.addresses:
                 self.gateway = gateway
                 self.gateway_pool = gw_dict["pool"]
-                self.domain = self.string_ask("Please specify the domain name you wish to bind to:", required=True)
+                self.domain = self.string_ask("Please specify the domain name you wish to bind to", required=True)
                 self.domain = j.sals.zos.gateway.correct_domain(self.domain)
                 res = """\
                 ## Waiting for DNS Population...
