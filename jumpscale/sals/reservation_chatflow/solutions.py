@@ -57,8 +57,6 @@ class ChatflowSolutions:
     def list_mattermost_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx")
 
-    def list_meetings_solutions(self, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("meetings", next_action, sync, None)
         
     def list_publisher_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("publisher", next_action, sync, None)
