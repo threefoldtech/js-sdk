@@ -13,7 +13,6 @@ cd ${SDK_PATH}
 git fetch --all
 git reset --hard origin/${SDK_VERSION}
 
-poetry update
 poetry install
 
 echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc

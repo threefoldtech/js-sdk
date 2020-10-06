@@ -125,10 +125,13 @@ class ContainerGenerator:
 
         cont_logs = ContainerLogs()
         cont_logs.type = channel_type
-        cont_logs.data.secret_stdout = self.encrypt_secret(
-            container.info.node_id, stdout)
-        cont_logs.data.secret_stderr = self.encrypt_secret(
-            container.info.node_id, stderr)
+
+        # TODO: Remove stdout, stderr when merged on mainnet FIXME
+        cont_logs.data.stdout = stdout
+        cont_logs.data.stderr = stderr
+
+        cont_logs.data.secret_stdout = self.encrypt_secret(container.info.node_id, stdout)
+        cont_logs.data.secret_stderr = self.encrypt_secret(container.info.node_id, stderr)
         container.logs.append(cont_logs)
 
         return cont_logs

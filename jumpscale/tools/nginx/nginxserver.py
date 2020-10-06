@@ -4,11 +4,11 @@ import shutil
 
 
 class NginxServer(Base):
-    name = fields.String(default="main")
+    server_name = fields.String(default="main")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.name, "nginx.conf")
+        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "nginx", self.server_name, "nginx.conf")
 
     @property
     def check_command_string(self):
@@ -27,10 +27,10 @@ class NginxServer(Base):
         """
         start nginx server using your config path
         """
-        nginx = j.sals.nginx.get(self.name)
+        nginx = j.sals.nginx.get(self.server_name)
         nginx.configure()
         nginx.save()
-        cmd = j.tools.startupcmd.get(f"nginx_{self.name}")
+        cmd = j.tools.startupcmd.get(f"nginx_{self.server_name}")
         cmd.start_cmd = f"nginx -c {self.config_path}"
         cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.path = nginx.cfg_dir
@@ -44,14 +44,14 @@ class NginxServer(Base):
         """
         stop nginx server
         """
-        cmd = j.tools.startupcmd.get(f"nginx_{self.name}")
+        cmd = j.tools.startupcmd.get(f"nginx_{self.server_name}")
         cmd.stop()
 
     def is_running(self):
         """
         Check if nginxserver is running
         """
-        return j.tools.startupcmd.get(f"nginx_{self.name}").is_running()
+        return j.tools.startupcmd.get(f"nginx_{self.server_name}").is_running()
 
     def reload(self):
         """

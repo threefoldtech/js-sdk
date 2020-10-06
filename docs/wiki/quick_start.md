@@ -45,7 +45,6 @@ This version of the SDK tries to be isolated as possible in case of developers o
 
   ```bash
   cd js-sdk
-  poetry update
   poetry install
   poetry shell
   ```

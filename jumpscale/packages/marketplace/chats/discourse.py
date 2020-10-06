@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.loader import j
 import nacl
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
@@ -37,9 +37,8 @@ class Discourse(MarketPlaceAppsChatflow):
         self.smtp_username = self.smtp_username.value
         self.smtp_password = self.smtp_password.value
 
-    @chatflow_step(title="Reservation", disable_previous=True)
     @deployment_context()
-    def reservation(self):
+    def _deploy(self):
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
@@ -81,7 +80,8 @@ class Discourse(MarketPlaceAppsChatflow):
         if not success:
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway"
-                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments."
+                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=_id,
             )
         self.threebot_url = f"https://{self.domain}"
 
@@ -125,6 +125,7 @@ class Discourse(MarketPlaceAppsChatflow):
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
             proxy_pool_id=self.gateway_pool.pool_id,
+            log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
         success = deployer.wait_workload(_id, self)

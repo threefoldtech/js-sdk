@@ -7,7 +7,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot
 
 from .errors import DuplicateSolutionNameException, MissingMessageException, MissingValueException
 from .form import Form
-from .utils import is_message_matched, read_file
+from .utils import is_message_matched, read_file, write_file
 
 
 class GedisChatBotPatch(GedisChatBot):
@@ -138,3 +138,6 @@ class GedisChatBotPatch(GedisChatBot):
 
     def multi_values_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
+
+    def download_file(self, msg, data, filename, **kwargs):
+        return write_file(filename, data)
