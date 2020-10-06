@@ -9,12 +9,16 @@ from functools import lru_cache
 
 class TaigaClient(Client):
     host = fields.String(default="https://projects.threefold.me")
-    username = fields.String()
-    password = fields.Secret()
-    token = fields.Secret()
 
-    def __init__(self, **kwargs):
-        super().__init__()
+    def credential_updated(self, value):
+        self._api = None
+
+    username = fields.String(on_update=credential_updated)
+    password = fields.Secret(on_update=credential_updated)
+    token = fields.Secret(on_update=credential_updated)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._api = None
 
     def __hash__(self):
