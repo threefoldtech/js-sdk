@@ -43,10 +43,11 @@ DOMAINS_COUNT_KEY = "TFGATEWAY:DOMAINS:FAILURE_COUNT"
 
 
 class DeploymentFailed(StopChatFlow):
-    def __init__(self, msg=None, solution_uuid=None, wid=None, **kwargs):
+    def __init__(self, msg=None, solution_uuid=None, wid=None, identity_name=None, **kwargs):
         super().__init__(msg, **kwargs)
         self.solution_uuid = solution_uuid
         self.wid = wid
+        self.identity_name = identity_name
 
 
 class deployment_context(ContextDecorator):
@@ -62,7 +63,7 @@ class deployment_context(ContextDecorator):
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(exc.solution_uuid)
         if exc.wid:
             # block the failed node if the workload is network or container
-            zos = Zosv2()
+            zos = j.sals.zos.get(exc.identity_name)
             workload = zos.workloads.get(exc.wid)
             if workload.info.workload_type in NODE_BLOCKING_WORKLOAD_TYPES:
                 j.logger.info(f"blocking node {workload.info.node_id} for failed workload {workload.id}")
