@@ -61,7 +61,9 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_proxied_solution("website", next_action, sync, None, owner=username)
 
     def list_threebot_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("threebot", next_action, sync, owner=username)
+        return self._list_proxied_solution("threebot", next_action, sync, owner=username) + self._list_proxied_solution(
+            "threebot", next_action, False, owner=username, custom_domain=True
+        )
 
     def list_gollum_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_single_container_solution("gollum", next_action, sync, owner=username)
