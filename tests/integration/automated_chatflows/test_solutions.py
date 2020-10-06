@@ -25,7 +25,6 @@ class AutomatedChatflows(TestCase):
         cls.network_name = base.random_string()
         cls.wg_name = base.random_string()
         network = deployer.create_network(solution_name=cls.network_name)
-
         _, wireguard, _ = j.sals.process.execute("sudo wg")
         if cls.wg_name in wireguard:
             j.sals.process.execute(f"sudo wg-quick down /tmp/{cls.wg_name}.conf")
@@ -51,6 +50,11 @@ class AutomatedChatflows(TestCase):
         j.sals.fs.rmtree(path=f"/tmp/{cls.wg_name}.conf")
         j.sals.fs.rmtree(path=f"/tmp/.ssh")
         j.clients.sshkey.delete(cls.ssh_client_name)
+
+        # delete network
+        nv = j.sals.reservation_chatflow.deployer.get_network_view(cls.network_name)
+        wids = [w.id for w in nv.network_workloads]
+        j.sals.zos.workloads.decomission(workload_id=wids[0])
 
     def tearDown(self):
         if self.solution_uuid:
@@ -80,9 +84,6 @@ class AutomatedChatflows(TestCase):
         self.solution_uuid = ubuntu.solution_id
 
         base.info("check that ubuntu is accessed")
-        import pdb
-
-        pdb.set_trace()
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=40),
             "Ubuntu is not reached after 30 second",
