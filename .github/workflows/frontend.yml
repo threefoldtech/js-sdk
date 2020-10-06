@@ -42,7 +42,7 @@ jobs:
           WORDS: ${{ secrets.WORDS }}
         run: |
           which chromedriver
-          curl http://localhost
+          # curl http://localhost
           ps aux
           ss -tlnp
           poetry run pytest -s tests/frontend/tests
