@@ -1,5 +1,6 @@
 from jumpscale.packages.threebot_deployer.chats.threebot import ThreebotDeploy
 from utils.gedispatch import GedisChatBotPatch, read_file
+from textwrap import dedent
 
 
 class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
@@ -12,6 +13,12 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
     DOMAIN_TYPE = "Do you want to manage the domain for the container or automatically get a domain of ours?"
     DOMAIN_NAME = "Please specify the domain name you wish to bind to"
     PUBLIC_KEY = "Please upload your public ssh key, this will allow you to access your threebot container using ssh"
+    WIREGUARD = dedent(
+        """
+        <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
+        <h3> Make sure you have <a target="_blank" href="https://www.wireguard.com/install/">wireguard</a> installed </h3>
+        <br /><br />*"""
+    )
     QS = {
         TYPE: "type",
         NAME: "get_name",
