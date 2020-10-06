@@ -65,6 +65,7 @@ class BaseTest(TestCase):
         # Configure chrome driver and go to the entrypoint.
         options = Options()
         options.add_argument("--no-sandbox")
+        # For browser's head mode comment the next 3 lines
         options.add_argument("headless")
         options.add_argument("--disable-gpu")
         options.add_argument("--disable-dev-shm-usage")
