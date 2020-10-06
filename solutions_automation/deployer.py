@@ -276,7 +276,13 @@ def deploy_monitoring(
 
 
 def create_network(
-    solution_name, ip_version="IPv4", ip_select="Choose ip range for me", ip_range="", debug=True,
+    solution_name,
+    ip_version="IPv4",
+    ip_select="Choose ip range for me",
+    ip_range="",
+    access_node="choose_random",
+    pool="choose_random",
+    debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
@@ -284,6 +290,8 @@ def create_network(
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
+        access_node=access_node,
+        pool=pool,
         debug=True,
     )
 
@@ -340,17 +348,18 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(solution_name, secret, ssh, expiration, debug=True):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Create", solution_name=solution_name, ssh=ssh, secret=secret, expiration=expiration, debug=debug
     )
 
 
-def recover_threebot(solution_name, recover_password, expiration, debug=True):
+def recover_threebot(solution_name, recover_password, ssh, expiration, debug=True):
     return ThreebotDeployAutomated(
         type="Recover",
         solution_name=solution_name,
         recover_password=recover_password,
+        ssh=ssh,
         expiration=expiration,
         debug=debug,
     )
