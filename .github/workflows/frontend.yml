@@ -1,14 +1,16 @@
 name: Frontend
 
 on:
-  push:
-    branches: [ development_frontend_tests ]
+  schedule:
+    - cron:  '0 0 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
+        with:
+          ref: development
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
