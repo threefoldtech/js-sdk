@@ -32,7 +32,8 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
         run: |
-          threebot start --background
+          poetry run python3 tests/frontend/tests/config_threebot.py
+          poetry run threebot start --background
           ps aux
           ss -tlnp
           curl http://localhost
