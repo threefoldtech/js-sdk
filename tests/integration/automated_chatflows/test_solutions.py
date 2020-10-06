@@ -52,8 +52,8 @@ class AutomatedChatflows(TestCase):
         j.clients.sshkey.delete(cls.ssh_client_name)
 
         # delete network
-        nv = j.sals.reservation_chatflow.deployer.get_network_view(cls.network_name)
-        wids = [w.id for w in nv.network_workloads]
+        network_view = j.sals.reservation_chatflow.deployer.get_network_view(cls.network_name)
+        wids = [w.id for w in network_view.network_workloads]
         j.sals.zos.workloads.decomission(workload_id=wids[0])
 
     def tearDown(self):
@@ -86,10 +86,9 @@ class AutomatedChatflows(TestCase):
         base.info("check that ubuntu is accessed")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=40),
-            "Ubuntu is not reached after 30 second",
+            "Ubuntu is not reached after 40 second",
         )
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
-        self.assertIn("successfully", ubuntu.success())
         self.assertIn('VERSION_ID="18.04"', res)
 
     def test02_kubernetes(self):
@@ -102,22 +101,30 @@ class AutomatedChatflows(TestCase):
         base.info("create kubernetes")
         name = base.random_string()
         secret = base.random_string()
+        workernodes = 1
         kubernetes = deployer.deploy_kubernetes(
-            solution_name=name, secret=secret, network=self.network_name, ssh=self.ssh_cl.public_key_path,
+            solution_name=name,
+            secret=secret,
+            network=self.network_name,
+            workernodes=workernodes,
+            ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = kubernetes.solution_id
 
         localclient = j.clients.sshclient.get(self.ssh_client_name)
         localclient.sshkey = self.ssh_client_name
-        localclient.host = f"{kubernetes.ip_addresses[0]}"
+        localclient.host = kubernetes.ip_addresses[0]
         localclient.user = "rancher"
         localclient.save()
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=40),
-            "master is not reached after 30 second",
+            "master is not reached after 40 second",
         )
+
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
-        self.assertIn(3, len(res.splitlines()))
+        res = res.splitlines()
+        res = res[2:]  # remove master node and header
+        self.assertEqual(workernodes, len(res))
 
     def test03_create_pool(self):
         """Test case for create pool.
@@ -162,7 +169,7 @@ class AutomatedChatflows(TestCase):
         base.info("check that create minio is successful")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(minio.ip_addresses[0], port=9000, timeout=40),
-            "minio is not reached after 30 second",
+            "minio is not reached after 40 second",
         )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
         self.assertEqual(request.status_code, 200)
@@ -193,7 +200,7 @@ class AutomatedChatflows(TestCase):
         base.info("check access redis")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(monitoring.ip_addresses[0], port=6379, timeout=40),
-            "redis is not reached after 30 second",
+            "redis is not reached after 40 second",
         )
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)
@@ -293,20 +300,43 @@ class AutomatedChatflows(TestCase):
         """Test case for extend threebot
 
         **Test Scenario**
-        #. create pool
+        #. create threebot
         #. extend threebot
+        #. check expiration
+        """
+        base.info("create threebot")
+        name = base.random_string()
+        secret = base.random_string()
+        threebot = deployer.deploy_threebot(
+            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
+        )
+
+        base.info("extend threebot")
+        extend_threebot = deployer.extend_threebot(name=name, expiration=time() + 60 * 15,)
+        self.solution_uuid = threebot.solution_id
+
+        base.info("check expiration")
+        self.assertEqual(time() + 60 * 15, extend_threebot.expiration)
+
+    def test11_extend_pool(self):
+        """Test case for extend pool
+
+        **Test Scenario**
+        #. create pool
+        #. extend pool
         #. check expiration
         """
         base.info("create pool")
         name = base.random_string()
         wallet_name = os.environ.get("WALLET_NAME")
-        deployer.create_pool(
-            solution_name=name, wallet_name=wallet_name,
-        )
+        pool = deployer.create_pool(solution_name=name, wallet_name=wallet_name,)
 
-        base.info("extend threebot")
-        threebot = deployer.extend_threebot(name=name, expiration=time() + 60 * 15,)
-        self.solution_uuid = threebot.solution_id
+        base.info("extend pool")
+        extent_pool = deployer.extend_pool(pool_name=name, wallet_name=wallet_name, cu=2, su=2)
 
-        base.info("check expiration")
-        self.assertEqual(time() + 60 * 15, threebot.expiration)
+        base.info("check that extend pool is successful")
+        reservation_id = extent_pool.pool_data.reservation_id
+        pool_data = j.sals.zos.pools.get(reservation_id)
+
+        self.assertEqual(pool_data.cus, 172800.0)
+        self.assertEqual(pool_data.sus, 172800.0)
