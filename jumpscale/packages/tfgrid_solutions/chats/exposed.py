@@ -16,16 +16,26 @@ ports = {"minio": 9000, "kubernetes": 6443, "gitea": 3000}
 
 
 class SolutionExpose(GedisChatBot):
-    steps = ["solution_type", "exposed_solution", "exposed_ports", "domain_selection", "reservation", "success"]
+    steps = [
+        "solution_type",
+        "exposed_solution",
+        "expose_type",
+        "exposed_ports",
+        "domain_selection",
+        "reservation",
+        "success",
+    ]
     title = "Solution Expose"
 
     def _deployment_start(self):
         self.solution_id = uuid.uuid4().hex
         self.user_form_data = {}
         self.solution_metadata = {}
+        self.email = self.user_info()["email"]
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
+        self.md_show_update("Initializing chatflow....")
         self._deployment_start()
 
         available_solutions = {}
@@ -58,15 +68,30 @@ class SolutionExpose(GedisChatBot):
         else:
             self.pool_id = self.solution["Pool"]
 
+    @chatflow_step(title="Expose Type")
+    def expose_type(self):
+        choices = ["TRC", "NGINX"]
+        self.proxy_type = self.single_choice(
+            "Select how you want to expose your solution (TRC forwards the traffic as is to the specified HTTP/HTTPS ports while NGINX reverse proxies the HTTP/HTTPS requests to an HTTP port)",
+            choices,
+            default="TRC",
+        )
+        if self.proxy_type == "NGINX":
+            force_https = self.single_choice("Do you want to force HTTPS?", ["YES", "NO"], default="NO")
+            self.force_https = force_https == "YES"
+
     @chatflow_step(title="Ports")
     def exposed_ports(self):
         port = ports.get(self.kind)
-        form = self.new_form()
-        tlsport = form.int_ask("Which tls port you want to expose", default=port or 443, required=True, min=1)
-        port = form.int_ask("Which port you want to expose", default=port or 80, required=True, min=1)
-        form.ask()
-        self.port = port.value
-        self.tls_port = tlsport.value
+        if self.proxy_type == "TRC":
+            form = self.new_form()
+            tlsport = form.int_ask("Which tls port you want to expose", default=port or 443, required=True, min=1)
+            port = form.int_ask("Which port you want to expose", default=port or 80, required=True, min=1)
+            form.ask()
+            self.port = port.value
+            self.tls_port = tlsport.value
+        elif self.proxy_type == "NGINX":
+            self.port = self.int_ask("Which port you want to expose", default=port or 80, required=True, min=1)
         if self.kind == "kubernetes":
             self.solution_ip = self.solution["Master IP"]
         elif self.kind == "minio":
@@ -192,37 +217,55 @@ class SolutionExpose(GedisChatBot):
                     f"Failed to reserve sub-domain workload {self.dom_id}", solution_uuid=self.solution_id
                 )
 
-        self.proxy_id = deployer.create_proxy(
-            pool_id=self.domain_pool.pool_id,
-            gateway_id=self.domain_gateway.node_id,
-            domain_name=self.domain,
-            trc_secret=self.secret,
-            **self.solution_metadata,
-            solution_uuid=self.solution_id,
-        )
-        success = deployer.wait_workload(self.proxy_id, self)
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to reserve reverse proxy workload {self.proxy_id}", solution_uuid=self.solution_id
+        if self.proxy_type == "TRC":
+            self.proxy_id = deployer.create_proxy(
+                pool_id=self.domain_pool.pool_id,
+                gateway_id=self.domain_gateway.node_id,
+                domain_name=self.domain,
+                trc_secret=self.secret,
+                **self.solution_metadata,
+                solution_uuid=self.solution_id,
             )
+            success = deployer.wait_workload(self.proxy_id, self)
+            if not success:
+                raise DeploymentFailed(
+                    f"Failed to reserve reverse proxy workload {self.proxy_id}", solution_uuid=self.solution_id
+                )
 
         trc_log_config = j.core.config.get("LOGGING_SINK", {})
         if trc_log_config:
             trc_log_config["channel_name"] = self.solution_name + "-trc"
 
-        self.tcprouter_id = deployer.expose_address(
-            pool_id=self.pool_id,
-            gateway_id=self.domain_gateway.node_id,
-            network_name=self.network_name,
-            local_ip=self.solution_ip,
-            port=self.port,
-            tls_port=self.tls_port,
-            trc_secret=self.secret,
-            bot=self,
-            log_config=trc_log_config,
-            **self.solution_metadata,
-            solution_uuid=self.solution_id,
-        )
+        if self.proxy_type == "NGINX":
+            self.tcprouter_id = deployer.expose_and_create_certificate(
+                domain=self.domain,
+                email=self.email,
+                pool_id=self.pool_id,
+                gateway_id=self.domain_gateway.node_id,
+                network_name=self.network_name,
+                solution_ip=self.solution_ip,
+                solution_port=self.port,
+                trc_secret=self.secret,
+                bot=self,
+                enforce_https=self.force_https,
+                log_config=trc_log_config,
+                **self.solution_metadata,
+                solution_uuid=self.solution_id,
+            )
+        else:
+            self.tcprouter_id = deployer.expose_address(
+                pool_id=self.pool_id,
+                gateway_id=self.domain_gateway.node_id,
+                network_name=self.network_name,
+                local_ip=self.solution_ip,
+                port=self.port,
+                tls_port=self.tls_port,
+                trc_secret=self.secret,
+                bot=self,
+                log_config=trc_log_config,
+                **self.solution_metadata,
+                solution_uuid=self.solution_id,
+            )
         success = deployer.wait_workload(self.tcprouter_id, self)
         if not success:
             raise DeploymentFailed(
