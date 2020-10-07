@@ -13,8 +13,8 @@ class TaigaClient(Client):
     password = fields.Secret()
     token = fields.Secret()
 
-    def __init__(self, **kwargs):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._api = None
 
     def __hash__(self):
