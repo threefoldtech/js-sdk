@@ -22,7 +22,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     ]
 
     # main container + nginx container
-    query = {"cru": 2, "mru": 2, "sru": 2.5}
+    query = {"cru": 2, "mru": 2, "sru": 1.5}
 
     resources = {"cru": 1, "mru": 1, "sru": 1}
 
@@ -59,7 +59,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         aws_secret_access_key = form.secret_ask("AWS secret access key", required=True)
         restic_password = form.secret_ask("Restic Password", required=True)
         restic_repository = form.string_ask(
-            "Restic Repository Example: `s3:s3backup.tfgw-testnet-01.gateway.tf/test_bucket`", required=True, md=True
+            "Restic Repository Example: `s3:s3backup.tfgw-testnet-01.gateway.tf/testbucket`", required=True, md=True
         )
         form.ask("These credentials will be used to backup your solution.", md=True)
         self.aws_access_key_id = aws_access_key_id.value
