@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 
+
 class MailClient(Client):
     name = fields.String()
     smtp_server = fields.String()
@@ -18,9 +19,6 @@ class MailClient(Client):
     login = fields.String()
     password = fields.String()
     sender_email = fields.String()
-
-    def __init__(self):
-        super().__init__()
 
     @property
     def is_ssl(self):
