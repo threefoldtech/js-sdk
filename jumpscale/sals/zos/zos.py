@@ -14,7 +14,6 @@ from .kubernetes import KubernetesGenerator
 from .network import NetworkGenerator
 from .node_finder import NodeFinder
 from .pools import Pools
-from .reservation import Reservation
 from .signature import sign_workload
 from .volumes import VolumesGenerator
 from .workloads import Workloads
