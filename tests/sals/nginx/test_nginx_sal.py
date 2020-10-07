@@ -21,7 +21,7 @@ def wait_connection_lost_test(url, timeout):
 
 
 def request_content(url, verify=False):
-    return requests.get(url, verify).content.decode()
+    return requests.get(url, verify=verify).content.decode()
 
 
 class HTTPServer:
