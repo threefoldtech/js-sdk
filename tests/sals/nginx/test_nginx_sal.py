@@ -241,6 +241,9 @@ class TestNginxSal(TestCase):
         self.assertTrue(request_content(hello_world_http_page).find("Hello") != -1)
         self.assertTrue(request_content(hello_world_https_page).find("Hello") != -1)
 
+        PORTS.HTTP = 80
+        PORTS.HTTPS = 443
+
     def tearDown(self):
         if self.nginx_server.is_running():
             self.nginx_server.stop()
