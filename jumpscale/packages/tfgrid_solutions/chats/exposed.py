@@ -231,12 +231,27 @@ class SolutionExpose(GedisChatBot):
                 wid=self.tcprouter_id,
             )
 
+    def _determine_solution_protocol(self, timeout=60):
+        def _get_protocol():
+            prots = ["https", "http"]
+            for prot in prots:
+                if j.sals.nettools.wait_http_test(f"{prot}://{self.domain}", 5, verify=False):
+                    return prot
+            return None
+
+        start_time = j.data.time.now()
+        while (j.data.time.now() - start_time).seconds < timeout:
+            if _get_protocol() is not None:
+                return _get_protocol()
+        return "https"
+
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
+        protocol = self._determine_solution_protocol()
         message = f"""\
         # Congratulations! Your solution has been exposed successfully:
         <br />\n
-        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        - You can access it via the browser using: <a href="{protocol}://{self.domain}" target="_blank">{protocol}://{self.domain}</a>
         """
         self.md_show(dedent(message), md=True)
 
