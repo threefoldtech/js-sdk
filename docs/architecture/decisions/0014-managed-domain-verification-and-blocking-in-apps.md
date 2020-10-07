@@ -1,4 +1,4 @@
-# 9. managed domain verification and blocking in apps
+# 14. managed domain verification and blocking in apps
 
 Date: 2020-10-04
 
