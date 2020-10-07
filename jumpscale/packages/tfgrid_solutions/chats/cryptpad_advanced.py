@@ -11,6 +11,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "upload_public_key",
+        "set_expiration",
         "cryptpad_info",
         "backup_credentials",
         "infrastructure_setup",
@@ -20,7 +21,14 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 1, "mru": 1, "sru": 1}
+    # main container + nginx container
+    query = {"cru": 2, "mru": 2, "sru": 2.5}
+
+    resources = {"cru": 1, "mru": 1, "sru": 1}
+
+    def _init_solution(self):
+        super()._init_solution()
+        self.allow_custom_domain = True
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
@@ -39,6 +47,10 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             or ""
         )
         self.public_key = self.public_key.strip()
+
+    @chatflow_step(title="New Expiration")
+    def set_expiration(self):
+        self.expiration = deployer.ask_expiration(self)
 
     @chatflow_step(title="Backup credentials")
     def backup_credentials(self):
@@ -63,23 +75,24 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
-        # reserve subdomain
-        self.workload_ids.append(
-            deployer.create_subdomain(
-                pool_id=self.gateway_pool.pool_id,
-                gateway_id=self.gateway.node_id,
-                subdomain=self.domain,
-                addresses=self.addresses,
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
+        if self.custom_domain:
+            # reserve subdomain
+            self.workload_ids.append(
+                deployer.create_subdomain(
+                    pool_id=self.gateway_pool.pool_id,
+                    gateway_id=self.gateway.node_id,
+                    subdomain=self.domain,
+                    addresses=self.addresses,
+                    solution_uuid=self.solution_id,
+                    **self.solution_metadata,
+                )
             )
-        )
-        success = deployer.wait_workload(self.workload_ids[0], self)
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
-                wid=self.workload_ids[0],
-            )
+            success = deployer.wait_workload(self.workload_ids[0], self)
+            if not success:
+                raise DeploymentFailed(
+                    f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                    wid=self.workload_ids[0],
+                )
 
         # deploy volume
         vol_id = deployer.deploy_volume(
@@ -115,9 +128,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL,
-                cpu=self.query["cru"],
-                memory=self.query["mru"] * 1024,
-                disk_size=(self.query["sru"] - self.vol_size) * 1024,
+                cpu=self.resources["cru"],
+                memory=self.resources["mru"] * 1024,
+                disk_size=self.resources["sru"] * 1024,
                 volumes=volume_config,
                 env=var_dict,
                 secret_env=secret_env,
