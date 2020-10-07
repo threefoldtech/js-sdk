@@ -75,7 +75,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
-        if self.custom_domain:
+        if not self.custom_domain:
             # reserve subdomain
             self.workload_ids.append(
                 deployer.create_subdomain(
