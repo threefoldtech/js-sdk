@@ -1,6 +1,6 @@
 from jumpscale.loader import j
 from unittest import TestCase
-from time import time, sleep
+from time import time
 from jumpscale.sals.nginx.nginx import LocationType
 import requests
 import os
@@ -15,14 +15,13 @@ NGINX_CONFIG_FILE = "nginx.conf"
 def wait_connection_lost_test(url, timeout):
     start_time = time()
     while time() - start_time <= timeout:
-        rem = time() - start_time
         if not j.sals.nettools.wait_http_test(url, math.ceil(time() - start_time)):
             return True
     return False
 
 
-def request_content(url):
-    return requests.get(url, verify=False).content.decode()
+def request_content(url, verify=False):
+    return requests.get(url, verify).content.decode()
 
 
 class HTTPServer:
