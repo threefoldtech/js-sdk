@@ -6,6 +6,7 @@ from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from functools import lru_cache
 from collections import defaultdict
+import gevent
 
 
 class TaigaClient(Client):
@@ -21,6 +22,7 @@ class TaigaClient(Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._api = None
+        self.text = ""
 
     def __hash__(self):
         return hash(str(self))
@@ -287,6 +289,16 @@ class TaigaClient(Client):
         return text
 
     def __render_issues_with_subjects(self, text="", issues=None):
+        """Render issues with subject only to be written to markdown file
+
+        Args:
+            text (str): this is text that we will append to it the issus subjects
+            issues (list): list of issues
+        
+        Returns:
+            text(str): the rendered text to be written to markdown file
+            
+        """
         for issue in issues:
             text += f"- {issue.subject} \n"
         return text
@@ -331,6 +343,14 @@ class TaigaClient(Client):
         j.sals.fs.write_file(path=path, data=text)
 
     def __get_project_required_data(self, projects):
+        """Get the required data from the projects 
+        Args:
+            projects(list): list of projects
+
+        Returns:
+            all_projects_template (dic): dict of the data required from project object
+
+        """
         all_projects_template = list()
         for project in projects:
             single_project_template = dict()
@@ -342,9 +362,18 @@ class TaigaClient(Client):
         return all_projects_template
 
     def __render_projects(self, text="", projects=None, with_details=False):
+        """Do all the render for project details that will written in markdown files.
+
+        Args:
+            text(str): the text will be used to append data to it.
+            projects (list): list of projects will be used in render
+            with_details (bool): flag used to get the issue details in case of true.
+
+        Returns:
+            text (str): the rendered text that will be writted to markdown file.
+        """
         for project in projects:
             text += f"##### {project.get('name')} \n"
-            # Check on details flag
             issues = project.get("issues")
 
             if with_details:
@@ -355,6 +384,22 @@ class TaigaClient(Client):
 
         return text
 
+    def map_render_issues_per_project(self, with_details):
+        """Map the desired data from issues per project and render them to be used in markdown files.
+
+        Args:
+            with_details (bool): flag used to get the issue details in case of true.
+        """
+        projects = self.list_all_projects()
+        all_projects_template = self.__get_project_required_data(projects)
+        grouped_projects = self.__group_data(data=all_projects_template, grouping_attribute="owner")
+
+        for owner, projects_per_owner in grouped_projects.items():
+            self.text += f"## Owner: {owner} \n"
+            # Sort the issues per group
+            sorted_list = sorted(projects_per_owner, key=lambda x: x.get("created_date"), reverse=True)
+            self.text = self.__render_projects(text=self.text, projects=sorted_list, with_details=with_details)
+
     def export_issues_per_project(self, path="/tmp/issues_per_project.md", with_details=False):
         """Export issues per project in a markdown file
         
@@ -362,24 +407,32 @@ class TaigaClient(Client):
             path (str): The path of exported markdown file.
             
         """
-        projects = self.list_all_projects()
-        text = """
+        self.text = """
 ### Issues  Per Project \n
 """
-        # batch_size = 50
-        # count = 0
 
-        # TODO remove the 20 after applying genevent
-        all_projects_template = self.__get_project_required_data(projects[:20])
-        grouped_projects = self.__group_data(data=all_projects_template, grouping_attribute="owner")
+        greenlet = gevent.spawn(self.map_render_issues_per_project, with_details)
+        gevent.joinall([greenlet])
+        j.sals.fs.write_file(path=path, data=self.text)
 
-        for owner, projects_per_owner in grouped_projects.items():
-            text += f"## Owner: {owner} \n"
+    def map_render_issues_per_user(self, user_id, with_description):
+        """Map the desired data from issues per user and render them to be used in markdown files.
+
+        Args:
+            user_id (int): the id of the used that we will use to get his issues
+            with_description (bool): flag used to get the issue description in case of true.
+        """
+        issues = self.list_all_issues(user_id=user_id)
+        all_issues_templates = self.__get_issues_required_data(issues, with_description)
+        grouped_issues = self.__group_data(data=all_issues_templates, grouping_attribute="project")
+
+        for group, issues_per_group in grouped_issues.items():
+            self.text += f"##### Project: {group} \n"
             # Sort the issues per group
-            sorted_list = sorted(projects_per_owner, key=lambda x: x.get("created_date"), reverse=True)
-            text = self.__render_projects(text=text, projects=sorted_list, with_details=with_details)
-
-        j.sals.fs.write_file(path=path, data=text)
+            sorted_list = sorted(issues_per_group, key=lambda x: x.get("created_date"), reverse=True)
+            self.text = self.__render_issues_with_details(
+                text=self.text, issues=sorted_list, with_description=with_description
+            )
 
     def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md", with_description=False):
         """Export all the issues per specif user in a markdown file, if no user given
@@ -395,22 +448,24 @@ class TaigaClient(Client):
         else:
             selected_user_name = self.username
         user_id = self._get_user_id(selected_user_name)
-        text = f"""
+        self.text = f"""
 ### {selected_user_name} Issues \n
 """
-        issues = self.list_all_issues(user_id=user_id)
-        all_issues_templates = self.__get_issues_required_data(issues, with_description)
-        grouped_issues = self.__group_data(data=all_issues_templates, grouping_attribute="project")
+        greenlet = gevent.spawn(self.map_render_issues_per_user, user_id, with_description)
+        gevent.joinall([greenlet])
 
-        for group, issues_per_group in grouped_issues.items():
-            text += f"##### Project: {group} \n"
-            # Sort the issues per group
-            sorted_list = sorted(issues_per_group, key=lambda x: x.get("created_date"), reverse=True)
-            text = self.__render_issues_with_details(text=text, issues=sorted_list, with_description=with_description)
-
-        j.sals.fs.write_file(path=path, data=text)
+        j.sals.fs.write_file(path=path, data=self.text)
 
     def __group_data(self, data, grouping_attribute="project"):
+        """Get similar objects together with same specific attribute.
+        
+        Args:
+            data(list): list of data to be grouped
+            grouping_attribute (str): the property used to group the data together
+        
+        Returns:
+            grouped_data(defaultdict) : dict of list containing the data which are similar grouped together 
+        """
         grouped_data = defaultdict(list)
         for obj in data:
             grouped_data[obj.get(grouping_attribute)].append(obj)
