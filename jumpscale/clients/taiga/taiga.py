@@ -5,6 +5,7 @@ from jumpscale.loader import j
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 from functools import lru_cache
+from collections import defaultdict
 
 
 class TaigaClient(Client):
@@ -275,14 +276,19 @@ class TaigaClient(Client):
             str: string contains the issues details to be used in markdown.
         """
         for issue in issues:
-            text += f"- **Subject:** {issue.get('subject')} \n"
-            text += f"  - **Created Date:** {issue.get('created_date')} \n"
-            text += f"  - **Due Date:** {issue.get('due_date')} \n"
+            text += f"- **Subject:** {issue.get('subject','unknown')} \n"
+            text += f"  - **Created Date:** {issue.get('created_date','unknown')} \n"
+            text += f"  - **Due Date:** {issue.get('due_date','unknown')} \n"
             text += f"  - **Owner Name:** {issue.get('owner_name','unknown')} \n"
             text += f"  - **Owner Email:** {issue.get('owner_mail','unknown')} \n"
-            text += f"  - **Project:** {issue.get('project','unknown')} \n"
+            # text += f"  - **Project:** {issue.get('project','unknown')} \n"
             if with_description:
                 text += f"  - **Description:** \n```\n{issue.get('description','unknown')}\n``` \n"
+        return text
+
+    def __render_issues_with_subjects(self, text="", issues=None):
+        for issue in issues:
+            text += f"- {issue.subject} \n"
         return text
 
     def __get_issues_required_data(self, issues, with_description=False):
@@ -305,7 +311,7 @@ class TaigaClient(Client):
             all_issues_templates.append(single_project_template)
         return all_issues_templates
 
-    def export_all_issues_details(self, path="/tmp/issues_details.md"):
+    def export_all_issues_details(self, path="/tmp/issues_details.md", with_description=False):
         """Export all the issues subjects in a markdown file
         
         Args:
@@ -316,13 +322,40 @@ class TaigaClient(Client):
 ### Issues \n
 """
         issues = self.list_all_issues()
-        all_issues_templates = self.__get_issues_required_data(issues)
+        all_issues_templates = self.__get_issues_required_data(issues, with_description)
 
-        text = self.__render_issues_with_details(text=text, issues=all_issues_templates)
+        text = self.__render_issues_with_details(
+            text=text, issues=all_issues_templates, with_description=with_description
+        )
 
         j.sals.fs.write_file(path=path, data=text)
 
-    def export_issues_per_project(self, path="/tmp/issues_per_project.md"):
+    def __get_project_required_data(self, projects):
+        all_projects_template = list()
+        for project in projects:
+            single_project_template = dict()
+            single_project_template["name"] = project.name
+            single_project_template["created_date"] = project.created_date
+            single_project_template["owner"] = project.owner.get("full_name_display")
+            single_project_template["issues"] = project.list_issues()
+            all_projects_template.append(single_project_template)
+        return all_projects_template
+
+    def __render_projects(self, text="", projects=None, with_details=False):
+        for project in projects:
+            text += f"##### {project.get('name')} \n"
+            # Check on details flag
+            issues = project.get("issues")
+
+            if with_details:
+                all_issues_templates = self.__get_issues_required_data(issues, with_description=True)
+                text = self.__render_issues_with_details(text=text, issues=all_issues_templates, with_description=True)
+            else:
+                text = self.__render_issues_with_subjects(text=text, issues=issues)
+
+        return text
+
+    def export_issues_per_project(self, path="/tmp/issues_per_project.md", with_details=False):
         """Export issues per project in a markdown file
         
         Args:
@@ -333,17 +366,18 @@ class TaigaClient(Client):
         text = """
 ### Issues  Per Project \n
 """
-        all_projects_template = list()
-        for project in projects:
-            single_project_template = dict()
-            single_project_template["name"] = project.name
-            single_project_template["issues"] = project.list_issues()
-            all_projects_template.append(single_project_template)
-        for project in all_projects_template:
-            text += f"##### {project.get('name')} \n"
-            # Check on details flag
-            for issue in project.get("issues"):
-                text += f"- {issue.subject} \n"
+        # batch_size = 50
+        # count = 0
+
+        # TODO remove the 20 after applying genevent
+        all_projects_template = self.__get_project_required_data(projects[:20])
+        grouped_projects = self.__group_data(data=all_projects_template, grouping_attribute="owner")
+
+        for owner, projects_per_owner in grouped_projects.items():
+            text += f"## Owner: {owner} \n"
+            # Sort the issues per group
+            sorted_list = sorted(projects_per_owner, key=lambda x: x.get("created_date"), reverse=True)
+            text = self.__render_projects(text=text, projects=sorted_list, with_details=with_details)
 
         j.sals.fs.write_file(path=path, data=text)
 
@@ -366,10 +400,21 @@ class TaigaClient(Client):
 """
         issues = self.list_all_issues(user_id=user_id)
         all_issues_templates = self.__get_issues_required_data(issues, with_description)
-        text = self.__render_issues_with_details(
-            text=text, issues=all_issues_templates, with_description=with_description
-        )
+        grouped_issues = self.__group_data(data=all_issues_templates, grouping_attribute="project")
+
+        for group, issues_per_group in grouped_issues.items():
+            text += f"##### Project: {group} \n"
+            # Sort the issues per group
+            sorted_list = sorted(issues_per_group, key=lambda x: x.get("created_date"), reverse=True)
+            text = self.__render_issues_with_details(text=text, issues=sorted_list, with_description=with_description)
+
         j.sals.fs.write_file(path=path, data=text)
+
+    def __group_data(self, data, grouping_attribute="project"):
+        grouped_data = defaultdict(list)
+        for obj in data:
+            grouped_data[obj.get(grouping_attribute)].append(obj)
+        return grouped_data
 
     def __get_stories_required_data(self):
         """Get the required data from user stories to be used later in export(render)
