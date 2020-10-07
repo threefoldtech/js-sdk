@@ -18,8 +18,8 @@ class ChatflowSolutions:
         nodes = {}
         farms = {}
         if networks:
-            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
-            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos.get()._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos.get()._explorer.farms.list()}
         for n in networks.values():
             if not n.network_workloads:
                 continue
@@ -295,19 +295,19 @@ class ChatflowSolutions:
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
         """
-        workload = j.sals.zos.workloads.get(solution_wids[0])
+        workload = j.sals.zos.get().workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+            for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
                 if solution_uuid == self.get_solution_uuid(workload):
                     ids_to_delete.append(workload.id)
         else:
             ids_to_delete = solution_wids
 
         for wid in ids_to_delete:
-            j.sals.zos.workloads.decomission(wid)
+            j.sals.zos.get().workloads.decomission(wid)
 
     def count_solutions(self, next_action=NextAction.DEPLOY):
         count_dict = {
@@ -601,7 +601,7 @@ class ChatflowSolutions:
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
-                    pool = j.sals.zos.pools.get(c_dict["pool"])
+                    pool = j.sals.zos.get().pools.get(c_dict["pool"])
                     solution_dict.update(
                         {
                             "IPv4 Address": c_dict["ipv4"],
@@ -651,13 +651,13 @@ class ChatflowSolutions:
 
     def cancel_solution_by_uuid(self, solution_uuid):
         # Get workloads with specific UUID
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
             if solution_uuid == self.get_solution_uuid(workload):
-                j.sals.zos.workloads.decomission(workload.id)
+                j.sals.zos.get().workloads.decomission(workload.id)
 
     def get_workloads_by_uuid(self, solution_uuid, next_action=None):
         workloads = []
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
+        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action=next_action):
             if solution_uuid == self.get_solution_uuid(workload):
                 workloads.append(workload)
         return workloads

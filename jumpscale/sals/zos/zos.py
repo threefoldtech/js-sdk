@@ -24,13 +24,20 @@ from .zdb import ZDBGenerator
 class Zosv2:
     """ """
 
+    def __init__(self, identity):
+        self.__identity = identity
+
+    @property
+    def _identity(self):
+        return self.__identity
+
     @property
     def _explorer(self):
-        return j.core.identity.me.explorer
+        return self._identity.explorer
 
     @property
     def network(self):
-        return NetworkGenerator(self._explorer)
+        return NetworkGenerator(self._identity)
 
     @property
     def container(self):
@@ -42,19 +49,19 @@ class Zosv2:
 
     @property
     def zdb(self):
-        return ZDBGenerator(self._explorer)
+        return ZDBGenerator(self._identity)
 
     @property
     def kubernetes(self):
-        return KubernetesGenerator(self._explorer)
+        return KubernetesGenerator(self._identity)
 
     @property
     def nodes_finder(self):
-        return NodeFinder(self._explorer)
+        return NodeFinder(self._identity)
 
     @property
     def gateways_finder(self):
-        return GatewayFinder(self._explorer)
+        return GatewayFinder(self._identity)
 
     @property
     def billing(self):
@@ -62,18 +69,18 @@ class Zosv2:
 
     @property
     def pools(self):
-        return Pools(self._explorer)
+        return Pools(self._identity)
 
     @property
     def workloads(self):
-        return Workloads(self._explorer)
+        return Workloads(self._identity)
 
     @property
     def gateway(self):
-        return GatewayGenerator(self._explorer)
+        return GatewayGenerator(self._identity)
 
     def conversion(self):
-        me = j.core.identity.me
+        me = self._identity
 
         try:
             raw = self._explorer.conversion.initialize()
@@ -110,7 +117,7 @@ class Zosv2:
           list[int]: list of workload ID provisionned
 
         """
-        reservation.customer_tid = j.core.identity.me.tid
+        reservation.customer_tid = self._identity.tid
 
         ids = []
         for workload in reservation.sorted:
