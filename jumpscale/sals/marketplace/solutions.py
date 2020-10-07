@@ -231,12 +231,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if metadata.get("owner") != username:
                     continue
                 result.append(
-                    {
-                        "wids": [dom.id],
-                        "Name": dom.domain,
-                        "Gateway": dom.info.node_id,
-                        "Pool": dom.info.pool_id,
-                    }
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
                 )
         return result
 
@@ -266,10 +261,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "Pool": proxy.info.pool_id,
                         "Domain": proxy.domain,
                     }
-                    name = metadata.get(
-                        "Solution name",
-                        metadata.get("form_info", {}).get("Solution name"),
-                    )
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
                     name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
@@ -285,8 +277,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name",
-                    metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
                 )
                 if not solution_name:
                     continue
@@ -313,8 +304,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name",
-                    metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
                 )
                 if not solution_name:
                     continue
