@@ -46,7 +46,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
 
     def list_meetings_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("meetings", next_action, sync, 'nginx' ,owner=username)
+        return self._list_proxied_solution("meetings", next_action, sync, "nginx", owner=username)
 
     def list_publisher_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("publisher", next_action, sync, None, owner=username)
