@@ -100,7 +100,7 @@ const SECTIONS = {
       meetings: {
         name: "Meetings",
         type: "meetings",
-        image: "./assets/mattermost.png",
+        image: "./assets/meetings.png",
         disable: false,
         helpLink: "TODO",
         description: "Decentralized meetings software."

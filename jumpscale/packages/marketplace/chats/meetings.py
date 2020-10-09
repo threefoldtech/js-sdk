@@ -16,7 +16,7 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 2, "mru": 2, "sru": 0}
+    query = {"cru": 1, "mru": 1, "sru": 0.5}
 
     @chatflow_step(title="Meetings Information")
     def meetings_info(self):
@@ -51,6 +51,7 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway"
                 f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments."
+                wid=_id,
             )
         self.solution_url = f"https://{self.domain}"
 
@@ -70,7 +71,6 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )
-        # import ipdb; ipdb.set_trace()
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
