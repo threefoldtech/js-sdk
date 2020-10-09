@@ -50,7 +50,7 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
         if not success:
             raise DeploymentFailed(
                 f"Failed to create subdomain {self.domain} on gateway"
-                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments."
+                f" {self.gateway.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 wid=_id,
             )
         self.solution_url = f"https://{self.domain}"
