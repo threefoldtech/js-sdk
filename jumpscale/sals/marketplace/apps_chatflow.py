@@ -88,6 +88,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
 
+        if not available_farms:
+            raise StopChatFlow("Failed to find farm with the requested resources")
+
         self.farm_name = random.choice(available_farms)
 
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
