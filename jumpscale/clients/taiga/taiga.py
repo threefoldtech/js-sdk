@@ -228,7 +228,7 @@ class TaigaClient(Client):
     def list_all_issues(self, user_id=""):
         """
         List all issues for specific user if you didn't pass user_id will list all the issues
-        
+
         Args:
             user_id (int): id of the user.
 
@@ -240,7 +240,7 @@ class TaigaClient(Client):
     def list_all_projects(self):
         """
         List all projects
-        
+
         Returns:
             List: List of taiga.models.models.Project.
         """
@@ -249,7 +249,7 @@ class TaigaClient(Client):
     def list_all_milestones(self):
         """
         List all milestones
-        
+
         Returns:
             List: List of taiga.models.models.Milestone.
         """
@@ -258,10 +258,10 @@ class TaigaClient(Client):
     def list_all_user_stories(self, user_id=""):
         """
         List all user stories for specific user if you didn't pass user_id will list all the available user stories
-        
+
         Args:
             user_id (int): id of the user.
-            
+
         Returns:
             List: List of taiga.models.models.UserStory.
         """
@@ -269,11 +269,11 @@ class TaigaClient(Client):
 
     def __render_issues_with_details(self, text="Issues", issues=None, with_description=False):
         """Get issues details and append them to text to be written in markdown files
-        
+
         Args:
             text (str): the text that the method will append to it.
             issues (List): list of all issues that we will get the subject from .
-            
+
         Returns:
             str: string contains the issues details to be used in markdown.
         """
@@ -294,10 +294,10 @@ class TaigaClient(Client):
         Args:
             text (str): this is text that we will append to it the issus subjects
             issues (list): list of issues
-        
+
         Returns:
             text(str): the rendered text to be written to markdown file
-            
+
         """
         for issue in issues:
             text += f"- {issue.subject} \n"
@@ -325,10 +325,10 @@ class TaigaClient(Client):
 
     def export_all_issues_details(self, path="/tmp/issues_details.md", with_description=False):
         """Export all the issues subjects in a markdown file
-        
+
         Args:
             path (str): The path of exported markdown file.
-            
+
         """
         text = f"""
 ### Issues \n
@@ -342,8 +342,16 @@ class TaigaClient(Client):
 
         j.sals.fs.write_file(path=path, data=text)
 
+    def __get_single_project_required_data(self, project):
+        single_project_template = dict()
+        single_project_template["name"] = project.name
+        single_project_template["created_date"] = project.created_date
+        single_project_template["owner"] = project.owner.get("full_name_display")
+        single_project_template["issues"] = project.list_issues()
+        return single_project_template
+
     def __get_project_required_data(self, projects):
-        """Get the required data from the projects 
+        """Get the required data from the projects
         Args:
             projects(list): list of projects
 
@@ -351,14 +359,9 @@ class TaigaClient(Client):
             all_projects_template (dic): dict of the data required from project object
 
         """
-        all_projects_template = list()
-        for project in projects:
-            single_project_template = dict()
-            single_project_template["name"] = project.name
-            single_project_template["created_date"] = project.created_date
-            single_project_template["owner"] = project.owner.get("full_name_display")
-            single_project_template["issues"] = project.list_issues()
-            all_projects_template.append(single_project_template)
+        threads = [gevent.spawn(self.__get_single_project_required_data, project) for project in projects]
+        gevent.joinall(threads)
+        all_projects_template = [thread.value for thread in threads]
         return all_projects_template
 
     def __render_projects(self, text="", projects=None, with_details=False):
@@ -402,17 +405,16 @@ class TaigaClient(Client):
 
     def export_issues_per_project(self, path="/tmp/issues_per_project.md", with_details=False):
         """Export issues per project in a markdown file
-        
+
         Args:
             path (str): The path of exported markdown file.
-            
+
         """
         self.text = """
 ### Issues  Per Project \n
 """
 
-        greenlet = gevent.spawn(self.map_render_issues_per_project, with_details)
-        gevent.joinall([greenlet])
+        self.map_render_issues_per_project(with_details)
         j.sals.fs.write_file(path=path, data=self.text)
 
     def map_render_issues_per_user(self, user_id, with_description):
@@ -435,13 +437,13 @@ class TaigaClient(Client):
             )
 
     def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md", with_description=False):
-        """Export all the issues per specif user in a markdown file, if no user given
+        """Export all the issues per specific user in a markdown file, if no user given
         the method export issues for the current logged in user
-        
+
         Args:
             path (str): The path of exported markdown file.
             user_name (str): The name of the user we want to get his issues.
-            
+
         """
         if user_name:
             selected_user_name = user_name
@@ -458,13 +460,13 @@ class TaigaClient(Client):
 
     def __group_data(self, data, grouping_attribute="project"):
         """Get similar objects together with same specific attribute.
-        
+
         Args:
             data(list): list of data to be grouped
             grouping_attribute (str): the property used to group the data together
-        
+
         Returns:
-            grouped_data(defaultdict) : dict of list containing the data which are similar grouped together 
+            grouped_data(defaultdict) : dict of list containing the data which are similar grouped together
         """
         grouped_data = defaultdict(list)
         for obj in data:
@@ -494,10 +496,10 @@ class TaigaClient(Client):
 
     def export_all_user_stories(self, path="/tmp/all_stories.md"):
         """Export all the user stories in a markdown file
-        
+
         Args:
             path (str): The path of exported markdown file.
-            
+
         """
         text = f"""
 ### All User Stories \n
