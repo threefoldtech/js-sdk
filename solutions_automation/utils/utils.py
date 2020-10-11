@@ -18,4 +18,4 @@ def read_file(filename):
 
 
 def write_file(filename, content):
-    return j.sals.fs.read_file(j.sals.fs.expanduser(filename), content)
+    return j.sals.fs.write_file(j.sals.fs.expanduser(filename), content)
