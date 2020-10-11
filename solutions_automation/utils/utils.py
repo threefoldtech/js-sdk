@@ -14,8 +14,8 @@ def is_message_matched(msg, pattern):
 
 
 def read_file(filename):
-    return j.sals.fs.read_file(j.sals.j.sals.fs.expanduser(filename))
+    return j.sals.fs.read_file(j.sals.fs.expanduser(filename))
 
 
 def write_file(filename, content):
-    return j.sals.fs.read_file(j.sals.j.sals.fs.expanduser(filename), content)
+    return j.sals.fs.read_file(j.sals.fs.expanduser(filename), content)
