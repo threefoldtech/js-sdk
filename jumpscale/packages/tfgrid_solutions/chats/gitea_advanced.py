@@ -1,4 +1,3 @@
-from jumpscale.packages.marketplace.chats.gitea import GiteaDeploy
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
@@ -33,12 +32,14 @@ class Gitea(MarketPlaceAppsChatflow):
     @chatflow_step(title="Cryptpad Information")
     def gitea_info(self):
         form = self.new_form()
-        self.database_name = form.string_ask("Enter a database name", required=True, is_identifier=True)
-        self.database_user = form.string_ask("Enter a database username", required=True, is_identifier=True)
-        self.database_password = form.secret_ask("Enter a database user password", required=True)
-        self.repository_name = form.string_ask(
-            "Enter a repository name", required=True, is_identifier=True, default=self.solution_name
+        self.database_name = form.string_ask(
+            "Enter a database name", default="gitea", required=True, is_identifier=True
         )
+        self.database_user = form.string_ask(
+            "Enter a database username", default="root", required=True, is_identifier=True
+        )
+        self.database_password = form.secret_ask("Enter a database user password", required=True)
+        self.repository_name = form.string_ask("Enter a repository name", required=True, default=self.solution_name)
         form.ask("Setup Information")
         self.database_name = self.database_name.value
         self.database_user = self.database_user.value
@@ -197,4 +198,4 @@ class Gitea(MarketPlaceAppsChatflow):
         self.md_show(dedent(message), md=True)
 
 
-chat = GiteaDeploy
+chat = Gitea
