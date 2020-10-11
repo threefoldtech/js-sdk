@@ -29,7 +29,7 @@ r = zos.reservation_create()
 network = zos.network.create(r, ip_range="10.80.0.0/16", network_name="<network_name>")
 
 # find all node from farm with id <farm_id>
-nodes = list(j.sals.zos.nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT"))
+nodes = list(j.sals.zos.get().nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT"))
 
 # add each node into the network
 for i, node in enumerate(nodes):
@@ -174,7 +174,7 @@ wallet.get_balance()
 ```
 ## Pay for your ubuntu container
 ```python
-j.sals.zos.billing.payout_farmers(wallet,reservation_response= registered_reservation)
+j.sals.zos.get().billing.payout_farmers(wallet,reservation_response= registered_reservation)
 
 result = zos.reservation_result(registered_reservation.reservation_id)
 

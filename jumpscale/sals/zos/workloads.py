@@ -22,7 +22,9 @@ from .signature import sign_delete_request, sign_workload
 class Workloads:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = self._identity.explorer
         self._workloads = explorer.workloads
 
     def list(
@@ -136,7 +138,7 @@ class Workloads:
           int: the workload ID
 
         """
-        me = j.core.identity.me
+        me = self._identity
         workload.info.customer_tid = me.tid
         workload.info.workload_id = 1
         workload.info.epoch = j.data.time.now().timestamp
@@ -159,7 +161,7 @@ class Workloads:
         Returns:
 
         """
-        me = j.core.identity.me
+        me = self._identity
         workload = self.get(workload_id)
         signature = sign_delete_request(workload, me.tid, me.nacl.signing_key)
         return self._workloads.sign_delete(workload_id, me.tid, signature)

@@ -9,7 +9,9 @@ from .crypto import encrypt_for_node
 class KubernetesGenerator:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = identity.explorer
         self._nodes = explorer.nodes
 
     def add_master(

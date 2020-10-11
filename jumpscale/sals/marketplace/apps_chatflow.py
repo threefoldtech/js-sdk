@@ -2,6 +2,7 @@ import math
 import random
 import uuid
 from textwrap import dedent
+import gevent
 
 import requests
 
@@ -44,6 +45,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
         self.retries = 3
+        self.custom_domain = False
+        self.allow_custom_domain = False
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -71,18 +74,21 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         available_farms = []
-        farm_names = [f.name for f in j.sals.zos._explorer.farms.list()]
+        farm_names = [f.name for f in j.sals.zos.get()._explorer.farms.list()]
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm_name in farm_names:
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+                farm_name, currencies=[self.currency], ip_version="IPv4"
             )
             available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
                 farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
             )
             if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
+
+        if not available_farms:
+            raise StopChatFlow("Failed to find farm with the requested resources")
 
         self.farm_name = random.choice(available_farms)
 
@@ -103,7 +109,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
-                    pool_info = j.sals.zos.pools.extend(
+                    pool_info = j.sals.zos.get().pools.extend(
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
@@ -195,6 +201,71 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             self.ip_address = self.network_view.get_free_ip(self.selected_node)
         return self.ip_address
 
+    def _get_custom_domain(self):
+        self.md_show_update("Preparing gateways ...")
+        gateways = deployer.list_all_gateways(self.username, self.farm_name)
+        if not gateways:
+            raise StopChatFlow(
+                "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
+            )
+        gateway_values = list(gateways.values())
+        random.shuffle(gateway_values)
+        self.addresses = []
+        for gw_dict in gateway_values:
+            gateway = gw_dict["gateway"]
+            if not gateway.dns_nameserver:
+                continue
+            self.addresses = []
+            for ns in gateway.dns_nameserver:
+                try:
+                    ip_address = j.sals.nettools.get_host_by_name(ns)
+                except Exception as e:
+                    j.logger.error(
+                        f"failed to resolve nameserver {ns} of gateway {gateway.node_id} due to error {str(e)}"
+                    )
+                    continue
+                self.addresses.append(ip_address)
+
+            if self.addresses:
+                self.gateway = gateway
+                self.gateway_pool = gw_dict["pool"]
+                self.domain = self.string_ask("Please specify the domain name you wish to bind to", required=True)
+                self.domain = j.sals.zos.gateway.correct_domain(self.domain)
+                res = """\
+                ## Waiting for DNS Population...
+                Please create an `A` record in your DNS manager for domain: `{{domain}}` pointing to:
+                {% for ip in addresses -%}
+                - {{ ip }}
+                {% endfor %}
+                """
+                res = j.tools.jinja2.render_template(template_text=res, addresses=self.addresses, domain=self.domain)
+                self.md_show_update(dedent(res), md=True)
+
+                # wait for domain name to be created
+                if not self.wait_domain(self.domain, self.addresses):
+                    raise StopChatFlow(
+                        "The specified domain name is not pointing to the gateway properly! Please bind it and try again. The resource you paid for will be re-used for your next deployment."
+                    )
+                return self.domain
+        raise StopChatFlow("No available gateways. The resource you paid for will be re-used for your next deployment")
+
+    def wait_domain(self, domain, ip_addresses=None, timeout=10):
+        # preferably specify more than 5 minutes timeout for ttl changes
+        end = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < end:
+            try:
+                address = j.sals.nettools.get_host_by_name(domain)
+                if ip_addresses:
+                    if address in ip_addresses:
+                        return True
+                    continue
+                else:
+                    return True
+            except Exception as e:
+                j.logger.error(f"failed to resolve domain {domain} due to error {str(e)}")
+                gevent.sleep(1)
+        return False
+
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
@@ -207,10 +278,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         domains = dict()
         is_http_failure = False
         is_managed_domains = False
-        gateway_keys = list(gateways.values())
-        random.shuffle(gateway_keys)
+        gateway_values = list(gateways.values())
+        random.shuffle(gateway_values)
         blocked_domains = deployer.list_blocked_managed_domains()
-        for gw_dict in gateway_keys:
+        for gw_dict in gateway_values:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
                 is_managed_domains = True
@@ -299,8 +370,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         if not self.addresses:
             raise RuntimeError("No valid gateways found, Please contact support")
-
-        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         return self.domain
 
     def _config_logs(self):
@@ -353,7 +422,19 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     self._deploy_network()
                 else:
                     raise e
-        self._get_domain()
+        if self.allow_custom_domain:
+            self.custom_domain = (
+                self.single_choice(
+                    "Do you want to manage the domain for the container or automatically get a domain of ours?",
+                    ["Manage the Domain", "Automatically Get a Domain"],
+                    default="Automatically Get a Domain",
+                )
+                == "Manage the Domain"
+            )
+        if self.custom_domain:
+            self._get_custom_domain()
+        else:
+            self._get_domain()
         self._config_logs()
 
     @chatflow_step(title="Payment currency")
@@ -383,7 +464,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
         DURATION_MAX = 9223372036854775807
-        self.pool = j.sals.zos.pools.get(self.pool_id)
+        self.pool = j.sals.zos.get().pools.get(self.pool_id)
         if self.pool.empty_at < DURATION_MAX:
             # Pool currently being consumed (compute or storage), default is current pool empty at + 65 mins
             min_timestamp_fromnow = self.pool.empty_at - j.data.time.utcnow().timestamp
@@ -420,6 +501,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
+        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
         success = False
         while not success:
             try:
@@ -432,10 +514,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     self.md_show_update(
                         f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
                     )
-                    failed_workload = j.sals.zos.workloads.get(e.wid)
+                    failed_workload = j.sals.zos.get().workloads.get(e.wid)
                     if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
                         self.addresses = []
-                        self._get_domain()
+                        if self.custom_domain:
+                            self._get_custom_domain()
+                        else:
+                            self._get_domain()
                     else:
                         self.ip_address = None
                         self._deploy_network()

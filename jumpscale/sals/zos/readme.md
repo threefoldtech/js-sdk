@@ -10,7 +10,7 @@
 
 ## Create capacity pool
 
-The first step before being able to deploy some workloads on the grid is to reserve some capacity. 
+The first step before being able to deploy some workloads on the grid is to reserve some capacity.
 You reserve capacity by creating a pool of capacity on a certain farm.
 
 ```python

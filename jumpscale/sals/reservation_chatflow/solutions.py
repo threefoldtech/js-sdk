@@ -18,8 +18,8 @@ class ChatflowSolutions:
         nodes = {}
         farms = {}
         if networks:
-            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
-            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos.get()._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos.get()._explorer.farms.list()}
         for n in networks.values():
             if not n.network_workloads:
                 continue
@@ -295,19 +295,19 @@ class ChatflowSolutions:
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
         """
-        workload = j.sals.zos.workloads.get(solution_wids[0])
+        workload = j.sals.zos.get().workloads.get(solution_wids[0])
         solution_uuid = self.get_solution_uuid(workload)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+            for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
                 if solution_uuid == self.get_solution_uuid(workload):
                     ids_to_delete.append(workload.id)
         else:
             ids_to_delete = solution_wids
 
         for wid in ids_to_delete:
-            j.sals.zos.workloads.decomission(wid)
+            j.sals.zos.get().workloads.decomission(wid)
 
     def count_solutions(self, next_action=NextAction.DEPLOY):
         count_dict = {
@@ -541,7 +541,13 @@ class ChatflowSolutions:
         return result
 
     def _list_proxied_solution(
-        self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="tcprouter", owner=None
+        self,
+        chatflow,
+        next_action=NextAction.DEPLOY,
+        sync=True,
+        proxy_type="tcprouter",
+        owner=None,
+        custom_domain=False,
     ):
         def meta_filter(metadata):
             if metadata.get("owner") != owner:
@@ -568,18 +574,23 @@ class ChatflowSolutions:
         for name in container_workloads:
             subdomain_dicts = subdomain_workloads.get(name)
             proxy_dicts = proxy_workloads.get(name)
-            if not subdomain_dicts or not proxy_dicts:
+            if not custom_domain and not subdomain_dicts:
                 continue
-            subdomain_dict = subdomain_dicts[-1]
+            if not proxy_dicts:
+                continue
             proxy_dict = proxy_dicts[-1]
+            wids = [proxy_dict["wid"]]
+            if not custom_domain:
+                subdomain_dict = subdomain_dicts[-1]
+                wids.append(subdomain_dict["wid"])
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
                     sol_name = name[len(owner) + 1 :]
             solution_dict = {
-                "wids": [subdomain_dict["wid"], proxy_dict["wid"]],
+                "wids": wids,
                 "Name": sol_name,
-                "Domain": subdomain_dict["domain"],
+                "Domain": proxy_dict["domain"],
             }
             if chatflow == "threebot":
                 solution_dict.update(
@@ -590,7 +601,7 @@ class ChatflowSolutions:
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
-                    pool = j.sals.zos.pools.get(c_dict["pool"])
+                    pool = j.sals.zos.get().pools.get(c_dict["pool"])
                     solution_dict.update(
                         {
                             "IPv4 Address": c_dict["ipv4"],
@@ -640,13 +651,13 @@ class ChatflowSolutions:
 
     def cancel_solution_by_uuid(self, solution_uuid):
         # Get workloads with specific UUID
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
+        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
             if solution_uuid == self.get_solution_uuid(workload):
-                j.sals.zos.workloads.decomission(workload.id)
+                j.sals.zos.get().workloads.decomission(workload.id)
 
     def get_workloads_by_uuid(self, solution_uuid, next_action=None):
         workloads = []
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
+        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action=next_action):
             if solution_uuid == self.get_solution_uuid(workload):
                 workloads.append(workload)
         return workloads

@@ -58,7 +58,9 @@ class MarketplaceSolutions(ChatflowSolutions):
         return self._list_proxied_solution("website", next_action, sync, None, owner=username)
 
     def list_threebot_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        return self._list_proxied_solution("threebot", next_action, sync, owner=username)
+        return self._list_proxied_solution("threebot", next_action, sync, owner=username) + self._list_proxied_solution(
+            "threebot", next_action, False, owner=username, custom_domain=True
+        )
 
     def list_gollum_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_single_container_solution("gollum", next_action, sync, owner=username)
@@ -352,7 +354,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         valid = True
         pool_id = None
         for wid in solution_wids:
-            workload = j.sals.zos.workloads.get(wid)
+            workload = j.sals.zos.get().workloads.get(wid)
             if workload.info.workload_type == WorkloadType.Container:
                 pool_id = workload.info.pool_id
             metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)

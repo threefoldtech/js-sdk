@@ -45,7 +45,7 @@ class FourToSixGateway(GedisChatBot):
         success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise StopChatFlow(f"Failed to deploy workload {self.resv_id}")
-        self.reservation_result = j.sals.zos.workloads.get(self.resv_id).info.result
+        self.reservation_result = j.sals.zos.get().workloads.get(self.resv_id).info.result
 
     @chatflow_step(title="Wireguard Configuration", disable_previous=True, final_step=True)
     def success(self):

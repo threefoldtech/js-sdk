@@ -11,6 +11,8 @@ class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
     PORT_EXPOSE = "Which port you want to expose"
     DOMAIN = "Please choose the domain you wish to use"
     SUB_DOMAIN = r"^Please specify the sub domain name you wish to bind to. will .*"
+    PROXY_TYPE = "Select how you want to expose your solution (TRC forwards the traffic as is to the specified HTTP/HTTPS ports while NGINX reverse proxies the HTTP/HTTPS requests to an HTTP port)"
+    FORCE_HTTPS = "Do you want to force HTTPS?"
 
     QS = {
         TYPE: "type",
@@ -19,6 +21,8 @@ class SolutionExposeDeployAutomated(GedisChatBotPatch, SolutionExpose):
         PORT_EXPOSE: "port",
         DOMAIN: "domain",
         SUB_DOMAIN: "sub_domain",
+        PROXY_TYPE: "proxy_type",
+        FORCE_HTTPS: "force_https",
     }
 
     # to ignorE Custom Domain option

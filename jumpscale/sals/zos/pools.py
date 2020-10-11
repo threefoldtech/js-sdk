@@ -7,7 +7,9 @@ from typing import List, Iterator
 class Pools:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        explorer = identity.explorer
+        self._identity = identity
         self._model_create = PoolCreated
         self._pools = explorer.pools
         self._farms = explorer.farms
@@ -15,7 +17,7 @@ class Pools:
         self._gateways = explorer.gateway
 
     def _reserve(self, pool):
-        me = j.core.identity.me
+        me = self._identity
         pool.customer_tid = me.tid
         pool.json = j.data.serializers.json.dumps(pool.data_reservation.to_dict())
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()

@@ -23,7 +23,9 @@ class Network:
 
 
 class NetworkGenerator:
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        explorer = identity.explorer
+        self._identity = identity
         self._nodes = explorer.nodes
         self._farms = explorer.farms
         self._workloads = explorer.workloads
@@ -237,7 +239,7 @@ class NetworkGenerator:
           Network: Network object
 
         """
-        tid = j.core.identity.me.tid
+        tid = self._identity.tid
         nrs = {}
         # first gather all the latest version of each network resource for this network
         for w in self._workloads.iter(customer_tid=tid, next_action=NextAction.DEPLOY.name):
