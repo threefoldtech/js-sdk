@@ -1,4 +1,6 @@
+import string
 from unittest import TestCase
+
 from jumpscale.loader import j
 
 
@@ -7,12 +9,14 @@ class BaseTests(TestCase):
         print("\t")
         self.info("Test case : {}".format(self._testMethodName))
 
-    def tearDown(self):
-        pass
-
     @staticmethod
-    def generate_random_text():
+    def random_string():
         return j.data.idgenerator.chars(10)
 
-    def info(self, message):
+    @staticmethod
+    def random_name():
+        j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+
+    @staticmethod
+    def info(message):
         j.logger.info(message)
