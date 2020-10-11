@@ -3,6 +3,8 @@ from typing import List, Union
 
 import base58
 import netaddr
+from nacl import public, signing
+
 from jumpscale.clients.explorer.models import (
     Container,
     ContainerLogs,
@@ -11,10 +13,6 @@ from jumpscale.clients.explorer.models import (
     WorkloadType,
 )
 from jumpscale.core.exceptions import Input
-from jumpscale.loader import j
-from nacl import public, signing
-from nacl.bindings import crypto_scalarmult
-from nacl.secret import SecretBox
 
 
 class ContainerGenerator:
@@ -52,7 +50,7 @@ class ContainerGenerator:
           entrypoint(str, optional): Command to start in the container, defaults to ""
           interactive(bool, optional): Enable CoreX, web based process manager in the container. If enabled, entrypoint is not automatically started in the container, default to False
           secret_env(dict, optional): Same as env argument, but here the value are encrypted with the public key of the node. Use this to send sensitive information to the container, defaults to {}
-          public_ipv6(bool, optional): requires a public IPv6 address in the container, defaults to False
+          public_ipv6(bool, optional): requres a public IPv6 address in the container, defaults to False
           storage_url(str, optional): Address of the server where the data of the flist are stored, defaults to "zdb://hub.grid.tf:9900"
 
         Returns:
@@ -97,18 +95,14 @@ class ContainerGenerator:
           str: encrypted string
 
         """
-        user_private = j.core.identity.me.nacl.signing_key.to_curve25519_private_key().encode()
-
         key = base58.b58decode(node_id)
         pk = signing.VerifyKey(key)
-        node_public = pk.to_curve25519_public_key().encode()
+        encryption_key = pk.to_curve25519_public_key()
 
-        shared_secret = crypto_scalarmult(user_private, node_public)
+        box = public.SealedBox(encryption_key)
+        result = box.encrypt(value.encode())
 
-        box = SecretBox(shared_secret)
-        encrypted = box.encrypt(value.encode())
-
-        return binascii.hexlify(encrypted).decode()
+        return binascii.hexlify(result).decode()
 
     def add_logs(
         self, container: Container, channel_type: str, channel_host: str, channel_port: str, channel_name: str

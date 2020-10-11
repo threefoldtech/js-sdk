@@ -1,10 +1,7 @@
 import binascii
 from typing import Union
 
-from jumpscale.loader import j
-from nacl.bindings import crypto_scalarmult
 from nacl.public import SealedBox
-from nacl.secret import SecretBox
 from nacl.signing import VerifyKey
 
 
@@ -20,18 +17,12 @@ def encrypt_for_node(public_key: str, payload: Union[str, bytes]) -> str:
       str: hex-encoded encrypted data. you can use this safely into your reservation data
 
     """
-    user_private = j.core.identity.me.nacl.signing_key.to_curve25519_private_key().encode()
-
-    node_verify_bin = binascii.unhexlify(public_key)
-    node_public = VerifyKey(node_verify_bin).to_curve25519_public_key()
-    node_public = node_public.encode()
-
-    shared_secret = crypto_scalarmult(user_private, node_public)
+    node_public_bin = binascii.unhexlify(public_key)
+    node_public = VerifyKey(node_public_bin)
+    box = SealedBox(node_public.to_curve25519_public_key())
 
     if isinstance(payload, str):
         payload = payload.encode()
 
-    box = SecretBox(shared_secret)
     encrypted = box.encrypt(payload)
-
     return binascii.hexlify(encrypted)
