@@ -80,7 +80,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         for farm_name in farm_names:
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+                farm_name, currencies=[self.currency], ip_version="IPv4"
             )
             available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
                 farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
