@@ -11,12 +11,12 @@ from gevent import sleep
 from os import path
 
 from jumpscale.loader import j
+from tests.base_tests import BaseTests as base
 
 
 class GithubClientTest(TestCase):
     def setUp(self):
         super().setUp()
-
         self.instance_name = j.data.random_names.random_name()
 
         self.username = "tfttesting"
@@ -33,12 +33,8 @@ class GithubClientTest(TestCase):
         j.clients.github.delete(self.instance_name)
         if self.repo_name:
             self.client.delete_repo(repo_name=self.repo_name)
-
-    def random_string(self):
-        return j.data.idgenerator.nfromchoices(10, string.ascii_lowercase)
-
-    def info(self, msg):
-        j.logger.info(msg)
+        if j.sals.fs.exists(path="/tmp/tfttesting/"):
+            j.sals.fs.rmtree("/tmp/tfttesting/")
 
     def wait(self, sec):
         while sec:
@@ -46,128 +42,139 @@ class GithubClientTest(TestCase):
             sec -= 1
 
     def test01_github_client_get_access(self):
+        """Test case for get access to client.
+
+        **Test Scenario**
+        #. Check client email
+        """
         self.assertEqual(self.client.get_userdata()["emails"][0]["email"], self.email)
 
     def test02_github_create_repo(self):
         """Test case for create repo.
 
         **Test Scenario**
-        #. create repo.
+        #. Create repo.
         #. Check if repo is created.
         """
-        self.info("create repo")
-        self.repo_name = self.random_string()
+        base.info(self, "Create repo")
+
+        self.repo_name = base.generate_random_text()
         repo = self.client.create_repo(name=self.repo_name)
 
-        self.info("Check if repo is created")
-        self.assertIn(repo.full_name, str(self.client.get_repos()))
+        base.info(self, "Check if repo is created")
+        self.assertIn(self.repo_name, repo.full_name)
 
     def test03_github_delete_repo(self):
         """Test case for delete repo.
 
         **Test Scenario**
-        #. create repo.
+        #. Create repo.
         #. Delete this repo.
-        #. check that this repo is deleted.
+        #. Check that this repo is deleted.
         """
-        self.info("create repo")
-        repo_name = self.random_string()
+        base.info(self, "create repo")
+        repo_name = base.generate_random_text()
         repo = self.client.create_repo(name=repo_name,)
 
-        self.info("Delete this repo")
+        base.info(self, "Delete this repo")
         self.client.delete_repo(repo_name=repo.name)
 
-        self.wait(3)  # wait 3 second to get repos
-        self.info("chrck that this repo is deleted")
+        if repo.full_name in str(self.client.get_repos()):
+            self.wait(3)
+        base.info(self, "Check that this repo is deleted")
         self.assertNotIn(repo.full_name, str(self.client.get_repos()))
 
     def test04_github_set_file(self):
         """Test case for set file.
 
         **Test Scenario**
-        #. create repo with auto init.
-        #. create file and set to repo
-        #. download dir.
-        #. check if file is sent.
+        #. Create repo with auto init.
+        #. Create file and set to repo
+        #. Download dir.
+        #. Check if file is sent.
+        #. Check content
         """
 
-        self.info("create repo")
-        self.repo_name = self.random_string()
-        dir_name = self.random_string()
-        f_name = self.random_string()
-        repo = self.client.create_repo(name=self.repo_name, auto_init=True)
-        repo = self.client.get_repo(repo_full_name=repo.full_name)
+        base.info(self, "Create repo")
+        self.repo_name = base.generate_random_text()
+        dir_name = base.generate_random_text()
+        f_name = base.generate_random_text()
+        content = base.generate_random_text() * 3
+        self.client.create_repo(name=self.repo_name, auto_init=True)
+        repo = self.client.get_repo(repo_full_name=f"tfttesting/{self.repo_name}")
 
-        self.info("set file to repo")
-        repo.set_file(path=f"{dir_name}/{f_name}.txt", content="test set file to repo")
+        base.info(self, "Set file to repo")
+        repo.set_file(path=f"{dir_name}/{f_name}.txt", content=content)
 
-        self.info("download dir")
-        repo.download_directory(src="", download_dir="")
-        self.assertEqual(j.sals.fs.is_file(f"./tfttesting/{repo.name}/{dir_name}/{f_name}.txt"), True)
-        j.sals.fs.rmtree("./tfttesting")
+        base.info(self, "Download dir")
+        repo.download_directory(src="", download_dir="/tmp")
+
+        base.info(self, "Check if file is sent")
+        self.assertEqual(j.sals.fs.is_file(f"/tmp/tfttesting/{repo.name}/{dir_name}/{f_name}.txt"), True)
+
+        base.info(self, "Check content")
+        self.assertEqual(content, j.sals.fs.read_file(f"/tmp/tfttesting/{repo.name}/{dir_name}/{f_name}.txt"))
 
     def test05_github_create_milestoes(self):
         """Test case for create milestones.
 
         **Test Scenario**
-        #. create repo with auto init.
-        #. create milestones
-        #. check if milestones is created
-        #. delete milestones
-        #. check if milestones id deleted
+        #. Create repo with auto init.
+        #. Create milestones
+        #. Check if milestones is created
         """
-        self.info("create repo with auto init.")
-        self.repo_name = self.random_string()
-        title = self.random_string()
+        base.info(self, "Create repo with auto init.")
+        self.repo_name = base.generate_random_text()
+        title = base.generate_random_text()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
 
-        self.info("create milestones")
+        base.info(self, "Create milestones")
         ceated_milestone = repo.create_milestone(title=title)
 
-        self.info("check if milestones is created")
+        base.info(self, "Check if milestones is created")
         milestone = repo.get_milestone(number=ceated_milestone.number)
-        self.assertEqual(milestone.title, ceated_milestone.title)
+        self.assertEqual(title, milestone.title)
 
     def test06_github_create_issue(self):
         """Test case for create issue.
 
         **Test Scenario**
-        #. create repo with auto init.
-        #. create issue
-        #. check if issue is created
+        #. Create repo with auto init.
+        #. Create issue
+        #. Check if issue is created
         """
 
-        self.info("create repo with auto init")
-        self.repo_name = self.random_string()
-        issue_title = self.random_string()
+        base.info(self, "Create repo with auto init")
+        self.repo_name = base.generate_random_text()
+        issue_title = base.generate_random_text()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
-        self.info("create issue")
+        base.info(self, "Create issue")
         issue_created = repo.create_issue(title=issue_title)
 
-        self.info("check if issue is created")
-        self.assertEqual(issue_created.title, repo.get_issue(issue_created.number).title)
+        base.info(self, "Check if issue is created")
+        self.assertEqual(issue_created.title, issue_title)
 
     def test06_github_issue_with_milestone(self):
         """Test case for create issue with milestone.
 
         **Test Scenario**
-        #. create repo with auto init.
-        #. create milestone
-        #. create issue with milestone
-        #. check if issue has milestone
+        #. Create repo with auto init.
+        #. Create milestone
+        #. Create issue with milestone
+        #. Check if issue has milestone
         """
 
-        self.info("create repo with auto init")
-        self.repo_name = self.random_string()
-        issue_title = self.random_string()
-        milestone_title = self.random_string()
+        base.info(self, "Create repo with auto init")
+        self.repo_name = base.generate_random_text()
+        issue_title = base.generate_random_text()
+        milestone_title = base.generate_random_text()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
 
-        self.info("create milestone")
+        base.info(self, "Create milestone")
         milestone = repo.create_milestone(title=milestone_title)
 
-        self.info("create issue with milestone")
+        base.info(self, "Create issue with milestone")
         issue_created = repo.create_issue(title=issue_title, milestone=milestone)
 
-        self.info("check if issue has milestone")
-        self.assertEqual(milestone.title, issue_created.milestone.title)
+        base.info(self, "Check if issue has milestone")
+        self.assertEqual(milestone_title, issue_created.milestone.title)
