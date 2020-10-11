@@ -303,24 +303,27 @@ class TaigaClient(Client):
             text += f"- {issue.subject} \n"
         return text
 
+    def _get_single_issue_required_data(self, issue, with_description=False):
+        single_project_template = dict()
+        single_project_template["subject"] = issue.subject
+        single_project_template["created_date"] = issue.created_date
+        single_project_template["due_date"] = issue.due_date
+        single_project_template["owner_name"] = issue.owner_extra_info.get("full_name_display", "unknown")
+        single_project_template["owner_mail"] = issue.owner_extra_info.get("email", "unknown")
+        single_project_template["project"] = issue.project_extra_info.get("name", "unknown")
+        if with_description:
+            single_project_template["description"] = self.get_issue_description(issue.id)
+        return single_project_template
+
     def __get_issues_required_data(self, issues, with_description=False):
         """Get the required data from issues to be used later in export(render)
 
         Returns:
             List: List of issues required details to be used in export(render).
         """
-        all_issues_templates = list()
-        for issue in issues:
-            single_project_template = dict()
-            single_project_template["subject"] = issue.subject
-            single_project_template["created_date"] = issue.created_date
-            single_project_template["due_date"] = issue.due_date
-            single_project_template["owner_name"] = issue.owner_extra_info.get("full_name_display", "unknown")
-            single_project_template["owner_mail"] = issue.owner_extra_info.get("email", "unknown")
-            single_project_template["project"] = issue.project_extra_info.get("name", "unknown")
-            if with_description:
-                single_project_template["description"] = self.get_issue_description(issue.id)
-            all_issues_templates.append(single_project_template)
+        greenlets = [gevent.spawn(self._get_single_issue_required_data, issue, with_description) for issue in issues]
+        gevent.joinall(greenlets)
+        all_issues_templates = [greenlet.value for greenlet in greenlets if greenlet.successful()]
         return all_issues_templates
 
     def export_all_issues_details(self, path="/tmp/issues_details.md", with_description=False):
@@ -455,8 +458,7 @@ class TaigaClient(Client):
         self.text = f"""
 ### {selected_user_name} Issues \n
 """
-        greenlet = gevent.spawn(self.map_render_issues_per_user, user_id, with_description)
-        gevent.joinall([greenlet])
+        self.map_render_issues_per_user(user_id, with_description)
 
         j.sals.fs.write_file(path=path, data=self.text)
 
