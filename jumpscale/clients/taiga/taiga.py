@@ -362,7 +362,7 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(self.__get_single_project_required_data, project) for project in projects]
         gevent.joinall(greenlets)
         all_projects_template = [
-            greenlet.value for greenlet in greenlets if greenlet.successful
+            greenlet.value for greenlet in greenlets if greenlet.successful()
         ]  # Filtering out the failed ones
         return all_projects_template
 
