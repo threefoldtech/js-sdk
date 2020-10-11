@@ -1,4 +1,4 @@
-#### test001_redis_restart
+### test001_redis_restart
 Test case for start redis and restart it.
 
 **Test Scenario**
@@ -6,7 +6,7 @@ Test case for start redis and restart it.
 - Check about port, pid and process.
 - Restart redis server.
 - Check about port, pid and process.
-#### test001_redis_start_stop
+### test001_redis_start_stop
 Test case for start redis and stop it.
 
 **Test Scenario**

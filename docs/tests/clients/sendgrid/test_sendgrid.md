@@ -1,4 +1,4 @@
-#### test01_test_sendgrid_send_mail
+### test01_test_sendgrid_send_mail
 Test for sending an email without attachment.
 
 **Test Scenario**
@@ -6,7 +6,7 @@ Test for sending an email without attachment.
 - Send the email.
 - Validate that the email send by accessing the receiver mail and check the inbox for the send email.
 - Delete the send email from the receiver mail inbox.
-#### test02_test_sendgrid_send_mail_with_attachment
+### test02_test_sendgrid_send_mail_with_attachment
 Test for sending an email without attachment.
 
 **Test Scenario**

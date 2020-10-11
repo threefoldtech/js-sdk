@@ -1,4 +1,4 @@
-#### test01_backup_restore
+### test01_backup_restore
 Test case for simple directory backup and restore.
 
 **Test Scenario**
@@ -7,7 +7,7 @@ Test case for simple directory backup and restore.
 - Use restic to back it up.
 - Use restic to restore it to the backup directory.
 - Check that the restored content and the original are the same.
-#### test02_multiple_restores
+### test02_multiple_restores
 Test case for directory backup and restore with modifications.
 
 **Test Scenario**
@@ -22,7 +22,7 @@ Test case for directory backup and restore with modifications.
 - Check that the backup and the old version are the same.
 - Restore the latest backup using host name.
 - Check that the backup and the new version are the same.
-#### test03_snapshot_listing
+### test03_snapshot_listing
 Test case for snapshots listing.
 
 **Test Scenario**
@@ -31,7 +31,7 @@ Test case for snapshots listing.
 - List the snapshots using the tag name [(tag1), (tag2), (tag3), (tag1, tag3)].
 - Check that any snapshot that had a tag that was passed is included in the result.
 - Check listing with the path.
-#### test04_autobackup
+### test04_autobackup
 Test case for auto backup.
 
 **Test Scenario**
@@ -39,7 +39,7 @@ Test case for auto backup.
 - Check that there's no backup running.
 - Turn on auto backup and check it's turned on.
 - Turn it off and check it's off.
-#### test05_remove_snapshots
+### test05_remove_snapshots
 Test case for snapshot removal.
 
 **Test Scenario**
@@ -47,7 +47,7 @@ Test case for snapshot removal.
 - Check all of them are created.
 - Remove all but the last one.
 - Check only one snapshot remains.
-#### test06_raises
+### test06_raises
 Test case for unusual inputs.
 
 **Test Scenario**

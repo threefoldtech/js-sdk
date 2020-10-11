@@ -1,4 +1,4 @@
-#### test001_nginx_start_stop
+### test001_nginx_start_stop
 Test case for starting NGINX server and stop it.
 
 **Test Scenario**
@@ -6,7 +6,7 @@ Test case for starting NGINX server and stop it.
 - Check if it's running.
 - Stop nginx server server .
 - Check if it's running.
-#### test002_nginx_restart
+### test002_nginx_restart
 Test case for starting NGINX server and stop it.
 
 **Test Scenario**
