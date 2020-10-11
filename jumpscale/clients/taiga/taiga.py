@@ -359,9 +359,11 @@ class TaigaClient(Client):
             all_projects_template (dic): dict of the data required from project object
 
         """
-        threads = [gevent.spawn(self.__get_single_project_required_data, project) for project in projects]
-        gevent.joinall(threads)
-        all_projects_template = [thread.value for thread in threads]
+        greenlets = [gevent.spawn(self.__get_single_project_required_data, project) for project in projects]
+        gevent.joinall(greenlets)
+        all_projects_template = [
+            greenlet.value for greenlet in greenlets if greenlet.value
+        ]  # Filtering out the failed ones
         return all_projects_template
 
     def __render_projects(self, text="", projects=None, with_details=False):
