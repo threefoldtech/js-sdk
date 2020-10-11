@@ -15,7 +15,7 @@ class BaseTests(TestCase):
 
     @staticmethod
     def random_name():
-        j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+        return j.data.idgenerator.nfromchoices(10, string.ascii_letters)
 
     @staticmethod
     def info(message):
