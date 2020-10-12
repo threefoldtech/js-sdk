@@ -756,7 +756,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     j.tools.alerthandler.alert_raise(
                         appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
                     )
-                else:
+                elif workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.reservation_chatflow.unblock_node(workload.info.node_id)
                 return success
             if expiration_provisioning < j.data.time.get().timestamp:

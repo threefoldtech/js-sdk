@@ -80,13 +80,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         for farm_name in farm_names:
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+                farm_name, currencies=[self.currency], ip_version="IPv4"
             )
             available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
                 farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
             )
             if available_ipv4 and available_ipv6:
                 available_farms.append(farm_name)
+
+        if not available_farms:
+            raise StopChatFlow("Failed to find farm with the requested resources")
 
         self.farm_name = random.choice(available_farms)
 
