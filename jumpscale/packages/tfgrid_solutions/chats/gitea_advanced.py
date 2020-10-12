@@ -6,7 +6,7 @@ from jumpscale.loader import j
 
 
 class Gitea(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/omar0.3bot/omarelawady-gitea_all_in_one-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-gitea-test.flist"
     SOLUTION_TYPE = "gitea"
     title = "Gitea"
     steps = [
@@ -115,6 +115,7 @@ class Gitea(MarketPlaceAppsChatflow):
             "name": self.solution_name,
             "form_info": {"Solution name": self.solution_name, "chatflow": "gitea",},
         }
+
         self.solution_metadata.update(metadata)
         # reserve subdomain
         if not self.custom_domain:
@@ -133,21 +134,29 @@ class Gitea(MarketPlaceAppsChatflow):
                     f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=subdomain_wid,
                 )
-
+        secret_env = {
+            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+            "RESTIC_PASSWORD": self.restic_password,
+            "RESTIC_REPOSITORY": self.restic_repository,
+            "BACKUP_PATHS": "/persistent_data",
+            "CRON_FREQUENCY": "0 0 * * *",  # every 1 day
+            "POSTGRES_PASSWORD": self.database_password,
+        }
         self.resv_id = deployer.deploy_container(
             pool_id=self.pool_id,
             node_id=self.selected_node.node_id,
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.query["cru"],
-            memory=self.query["mru"] * 1024,
+            cpu=self.resources["cru"],
+            memory=self.resources["mru"] * 1024,
             env=var_dict,
-            interactive=False,
+            interactive=True,
             entrypoint="/start_gitea.sh",
             public_ipv6=True,
-            disk_size=self.query["sru"] * 1024,
-            secret_env={"POSTGRES_PASSWORD": self.database_password},
+            disk_size=self.resources["sru"] * 1024,
+            secret_env=secret_env,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )
@@ -184,6 +193,29 @@ class Gitea(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_id,
                 wid=self.reverse_proxy_id,
             )
+
+    @chatflow_step(title="Initializing backup")
+    def init_backup(self):
+        solution_name = self.solution_name.replace(".", "_").replace("-", "_")
+        self.md_show_update("Setting container backup")
+        SOLUTIONS_WATCHDOG_PATHS = j.sals.fs.join_paths(j.core.dirs.VARDIR, "solutions_watchdog")
+        if not j.sals.fs.exists(SOLUTIONS_WATCHDOG_PATHS):
+            j.sals.fs.mkdirs(SOLUTIONS_WATCHDOG_PATHS)
+
+        restic_instance = j.tools.restic.get(solution_name)
+        restic_instance.password = self.restic_password
+        restic_instance.repo = self.restic_repository
+        restic_instance.extra_env = {
+            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+        }
+        restic_instance.save()
+        try:
+            restic_instance.init_repo()
+        except Exception as e:
+            j.tools.restic.delete(solution_name)
+            raise j.exceptions.Input(f"Error: Failed to reach repo {self.restic_repository} due to {str(e)}")
+        restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
