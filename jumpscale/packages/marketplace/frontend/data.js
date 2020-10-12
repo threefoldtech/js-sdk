@@ -102,8 +102,8 @@ const SECTIONS = {
         type: "meetings",
         image: "./assets/meetings.png",
         disable: false,
-        helpLink: "TODO",
-        description: "Decentralized meetings software."
+        helpLink: "https://now10.threefold.io/docs",
+        description: "A decentralized meeting app that enables you to have video calls and chat with colleagues or friends."
       }
     },
   },
