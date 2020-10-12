@@ -3,8 +3,7 @@
     <v-app-bar app>
       <router-link to="/" style="text-decoration: none;">
         <v-row>
-          <img class="ml-2" src="./assets/3bot.png" height="50" width="50" />
-          <h2 class="ml-4 mt-2">TF Grid Demo</h2>
+          <img class="ml-2" src="./assets/TFNOW-Recovered.png" height="50" max-width="266" />
         </v-row>
       </router-link>
       <v-spacer></v-spacer>
@@ -13,11 +12,13 @@
           <v-chip
             v-bind="attrs"
             v-on="on"
-            class="ma-2 mr-4"
+            class="d-none d-md-inline ma-2 ml-4"
             color="#ea5455"
             label
             text-color="white"
-          ><b>Demo staged on testnet</b></v-chip>
+          >
+            <b>Demo staged on testnet</b>
+          </v-chip>
         </template>
         <pre>
 This is for demo purposes to showcase grid usage.
