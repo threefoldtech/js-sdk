@@ -12,22 +12,24 @@ class GithubClientTest(BaseTests):
         super().setUp()
         self.instance_name = j.data.random_names.random_name()
 
-        self.username = getenv("USERNAME")
-        self.password = getenv("PASSWORD")
-        self.email = getenv("EMAIL")
+        self.FAKE_EMAIL = getenv("FAKE_EMAIL")
+        self.FAKE_GITHUB_TOKEN = getenv("FAKE_GITHUB_TOKEN")
 
         self.client = j.clients.github.get(self.instance_name)
 
-        self.client.username = self.username
-        self.client.password = self.password
+        self.client.accesstoken = self.FAKE_GITHUB_TOKEN
         self.repo_name = ""
+        self.directory_name = ""
+
+        if not (self.FAKE_EMAIL and self.FAKE_GITHUB_TOKEN):
+            raise Exception("Please add (FAKE_EMAIL, FAKE_GITHUB_TOKEN) as environment variables")
 
     def tearDown(self):
         j.clients.github.delete(self.instance_name)
         if self.repo_name:
             self.client.delete_repo(repo_name=self.repo_name)
-        if j.sals.fs.exists(path=f"/tmp/{self.username}/"):
-            j.sals.fs.rmtree(f"/tmp/{self.username}/")
+        if self.directory_name and j.sals.fs.exists(path=f"/tmp/{self.directory_name}/"):
+            j.sals.fs.rmtree(f"/tmp/{self.directory_name}/")
 
     def wait_for_deleting_repo(self, sec, repo):
         while sec:
@@ -44,7 +46,7 @@ class GithubClientTest(BaseTests):
         **Test Scenario**
         - Check client email
         """
-        self.assertEqual(self.client.get_userdata()["emails"][0]["email"], self.email)
+        self.assertEqual(self.client.get_userdata()["emails"][0]["email"], self.FAKE_EMAIL)
 
     def test02_github_create_repo(self):
         """Test case for create repo.
@@ -96,14 +98,15 @@ class GithubClientTest(BaseTests):
         dir_name = self.generate_random_text()
         f_name = self.generate_random_text()
         content = self.generate_random_text()
-        self.client.create_repo(name=self.repo_name, auto_init=True)
-        repo = self.client.get_repo(repo_full_name=f"{self.username}/{self.repo_name}")
+        created_repo = self.client.create_repo(name=self.repo_name, auto_init=True)
+        repo = self.client.get_repo(repo_full_name=created_repo.full_name)
 
         self.info("Set file to repo")
         repo.set_file(path=f"{dir_name}/{f_name}.txt", content=content)
 
         self.info("Download dir")
         repo.download_directory(src="", download_dir="/tmp")
+        self.directory_name = repo.fullname.split("/")[0]
 
         self.info("Check if file is sent")
         self.assertEqual(j.sals.fs.is_file(f"/tmp/{repo.fullname}/{dir_name}/{f_name}.txt"), True)
