@@ -8,6 +8,8 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 
+from requests.exceptions import HTTPError
+
 from .models import UserPool
 
 pool_factory = StoredFactory(UserPool)
@@ -128,6 +130,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
+    def _check_pool_factory_owner(self, instance_name, tid):
+        pool_id = pool_factory.get(instance_name).pool_id
+        try:
+            return j.sals.zos.get().pools.get(pool_id).customer_tid == tid
+        except HTTPError:
+            return False
+
     def _get_gateways_pools(self, farm_name):
         """
         Returns:
@@ -143,7 +152,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
-            if gw_pool_name not in pool_factory.list_all():
+            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
+                gw_pool_name, j.core.identity.me.tid
+            ):
                 gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
@@ -306,7 +317,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_gateway_emptypool(self, gwpool_name, farm_name):
         pool_info = j.sals.zos.get().pools.create(0, 0, farm_name, ["TFT"])
-        user_pool = pool_factory.new(gwpool_name)
+        user_pool = pool_factory.get(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
         user_pool.save()
