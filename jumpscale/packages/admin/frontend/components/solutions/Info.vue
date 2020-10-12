@@ -45,7 +45,8 @@ module.exports = {
         this.data["Last updated"] = new Date(this.data["Last updated"] * 1000);
       if (this.data["Empty at"] !== undefined)
         this.data["Empty at"] = new Date(this.data["Empty at"] * 1000);
-      this.data.Volumes = this.data.Volumes[0]
+      if (this.data.Volumes !== undefined)
+        this.data.Volumes = this.data.Volumes[0]
       return this.data;
     },
     title() {
