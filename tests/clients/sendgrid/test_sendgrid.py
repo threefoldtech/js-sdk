@@ -1,23 +1,20 @@
+import email
+import imaplib
 import os
 import string
+
 import gevent
-import imaplib
-import email
 import pytest
-from unittest import TestCase
 from jumpscale.loader import j
-
-
-def generate_rand_text(char_count, choices):
-    return j.data.idgenerator.nfromchoices(10, string.ascii_letters)
+from tests.base_tests import BaseTests
 
 
 @pytest.mark.integration
-class Sendgrid(TestCase):
+class Sendgrid(BaseTests):
     SMTP_SERVER = "imap.gmail.com"
 
     def setUp(self):
-        self.sendgird_client_name = generate_rand_text(10, string.ascii_letters)
+        self.sendgird_client_name = self.random_name()
         self.sendgrid_client = j.clients.sendgrid.get(name=self.sendgird_client_name)
         self.send_gird_api_key_token = os.getenv("SEND_GRID_API_KEY_TOKEN")
         self.recipient_mail = os.getenv("RECIPIENT_MAIL")
@@ -33,34 +30,36 @@ class Sendgrid(TestCase):
         self.sender_mail = j.data.fake.email()
         self.subject = j.data.fake.sentence()
         self.attachment_type = "application/txt"
-        file_name = generate_rand_text(10, string.ascii_letters)
+        file_name = self.random_name()
         self.attachment_path = f"/tmp/{file_name}.txt"
         # Writing txt to be used in attachemt
         j.sals.fs.write_file(path=self.attachment_path, data="i am testing")
 
     def test01_test_sendgrid_send_mail(self):
-        """Test for sending an email without attachment
-        **.Test Scenario**
-        #. Get sendgrid object
-        #. Send the email
-        #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
-        #. Delete the send email from the receiver mail inbox.
+        """Test for sending an email without attachment.
+
+        **Test Scenario**
+        - Get sendgrid object.
+        - Send the email.
+        - Validate that the email send by accessing the receiver mail and check the inbox for the send email.
+        - Delete the send email from the receiver mail inbox.
         """
-        res = self.sendgrid_client.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
+        self.sendgrid_client.send(sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail])
         self.assertTrue(self.await_validate_mail(validate_attachment=False))
 
     def test02_test_sendgrid_send_mail_with_attachment(self):
-        """Test for sending an email without attachment
-        **.Test Scenario**
-        #. Get sendgrid object
-        #. Create attachment
-        #. Add the attachment to sendgrid object
-        #. Send the email
-        #. Validate that the email send by accessing the receiver mail and check the inbox for the send email.
-        #. Delete the send email from the receiver mail inbox.
+        """Test for sending an email without attachment.
+
+        **Test Scenario**
+        - Get sendgrid object.
+        - Create attachment.
+        - Add the attachment to sendgrid object.
+        - Send the email.
+        - Validate that the email send by accessing the receiver mail and check the inbox for the send email.
+        - Delete the send email from the receiver mail inbox.
         """
         attach = self.sendgrid_client.build_attachment(filepath=self.attachment_path, typ=self.attachment_type)
-        res = self.sendgrid_client.send(
+        self.sendgrid_client.send(
             sender=self.sender_mail, subject=self.subject, recipients=[self.recipient_mail], attachments=[attach]
         )
         self.assertTrue(self.await_validate_mail(validate_attachment=False, attachment_type=self.attachment_type))
