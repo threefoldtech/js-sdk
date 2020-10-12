@@ -36,16 +36,20 @@ class GithubClientTest(TestCase):
         if j.sals.fs.exists(path="/tmp/tfttesting/"):
             j.sals.fs.rmtree("/tmp/tfttesting/")
 
-    def wait(self, sec):
+    def wait(self, sec, repo):
         while sec:
-            sleep(1)
-            sec -= 1
+            if repo.full_name in str(self.client.get_repos()):
+                sleep(1)
+                sec -= 1
+            else:
+                return True
+        return False
 
     def test01_github_client_get_access(self):
         """Test case for get access to client.
 
         **Test Scenario**
-        #. Check client email
+        - Check client email
         """
         self.assertEqual(self.client.get_userdata()["emails"][0]["email"], self.email)
 
@@ -53,8 +57,8 @@ class GithubClientTest(TestCase):
         """Test case for create repo.
 
         **Test Scenario**
-        #. Create repo.
-        #. Check if repo is created.
+        - Create repo.
+        - Check if repo is created.
         """
         base.info(self, "Create repo")
 
@@ -68,9 +72,9 @@ class GithubClientTest(TestCase):
         """Test case for delete repo.
 
         **Test Scenario**
-        #. Create repo.
-        #. Delete this repo.
-        #. Check that this repo is deleted.
+        - Create repo.
+        - Delete this repo.
+        - Check that this repo is deleted.
         """
         base.info(self, "create repo")
         repo_name = base.generate_random_text()
@@ -79,8 +83,7 @@ class GithubClientTest(TestCase):
         base.info(self, "Delete this repo")
         self.client.delete_repo(repo_name=repo.name)
 
-        if repo.full_name in str(self.client.get_repos()):
-            self.wait(3)
+        self.assertTrue(self.wait(3, repo), "repo is not deleted after 3 second")
         base.info(self, "Check that this repo is deleted")
         self.assertNotIn(repo.full_name, str(self.client.get_repos()))
 
@@ -88,11 +91,11 @@ class GithubClientTest(TestCase):
         """Test case for set file.
 
         **Test Scenario**
-        #. Create repo with auto init.
-        #. Create file and set to repo
-        #. Download dir.
-        #. Check if file is sent.
-        #. Check content
+        - Create repo with auto init.
+        - Create file and set to repo
+        - Download dir.
+        - Check if file is sent.
+        - Check content
         """
 
         base.info(self, "Create repo")
@@ -119,9 +122,9 @@ class GithubClientTest(TestCase):
         """Test case for create milestones.
 
         **Test Scenario**
-        #. Create repo with auto init.
-        #. Create milestones
-        #. Check if milestones is created
+        - Create repo with auto init.
+        - Create milestones
+        - Check if milestones is created
         """
         base.info(self, "Create repo with auto init.")
         self.repo_name = base.generate_random_text()
@@ -139,9 +142,9 @@ class GithubClientTest(TestCase):
         """Test case for create issue.
 
         **Test Scenario**
-        #. Create repo with auto init.
-        #. Create issue
-        #. Check if issue is created
+        - Create repo with auto init.
+        - Create issue
+        - Check if issue is created
         """
 
         base.info(self, "Create repo with auto init")
@@ -158,10 +161,10 @@ class GithubClientTest(TestCase):
         """Test case for create issue with milestone.
 
         **Test Scenario**
-        #. Create repo with auto init.
-        #. Create milestone
-        #. Create issue with milestone
-        #. Check if issue has milestone
+        - Create repo with auto init.
+        - Create milestone
+        - Create issue with milestone
+        - Check if issue has milestone
         """
 
         base.info(self, "Create repo with auto init")
@@ -177,4 +180,4 @@ class GithubClientTest(TestCase):
         issue_created = repo.create_issue(title=issue_title, milestone=milestone)
 
         base.info(self, "Check if issue has milestone")
-        self.assertEqual(milestone_title, issue_created.milestone.title)
+        self.assertEqual(issue_created.milestone.title, milestone_title)
