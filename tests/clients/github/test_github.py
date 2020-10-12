@@ -57,7 +57,7 @@ class GithubClientTest(BaseTests):
         """
         self.info("Create repo")
 
-        self.repo_name = self.generate_random_text()
+        self.repo_name = self.random_name()
         self.client.create_repo(name=self.repo_name)
 
         self.info("Check if repo is created")
@@ -72,7 +72,7 @@ class GithubClientTest(BaseTests):
         - Check that this repo is deleted.
         """
         self.info("create repo")
-        repo_name = self.generate_random_text()
+        repo_name = self.random_name()
         repo = self.client.create_repo(name=repo_name,)
 
         self.info("Delete this repo")
@@ -94,10 +94,10 @@ class GithubClientTest(BaseTests):
         """
 
         self.info("Create repo")
-        self.repo_name = self.generate_random_text()
-        dir_name = self.generate_random_text()
-        f_name = self.generate_random_text()
-        content = self.generate_random_text()
+        self.repo_name = self.random_name()
+        dir_name = self.random_name()
+        f_name = self.random_name()
+        content = self.random_name()
         created_repo = self.client.create_repo(name=self.repo_name, auto_init=True)
         repo = self.client.get_repo(repo_full_name=created_repo.full_name)
 
@@ -123,8 +123,8 @@ class GithubClientTest(BaseTests):
         - Check if milestones is created
         """
         self.info("Create repo with auto init.")
-        self.repo_name = self.generate_random_text()
-        title = self.generate_random_text()
+        self.repo_name = self.random_name()
+        title = self.random_name()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
 
         self.info("Create milestones")
@@ -144,8 +144,8 @@ class GithubClientTest(BaseTests):
         """
 
         self.info("Create repo with auto init")
-        self.repo_name = self.generate_random_text()
-        issue_title = self.generate_random_text()
+        self.repo_name = self.random_name()
+        issue_title = self.random_name()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
         self.info("Create issue")
         issue_created = repo.create_issue(title=issue_title)
@@ -153,7 +153,7 @@ class GithubClientTest(BaseTests):
         self.info("Check if issue is created")
         self.assertEqual(issue_created.title, issue_title)
 
-    def test06_github_issue_with_milestone(self):
+    def test07_github_issue_with_milestone(self):
         """Test case for create issue with milestone.
 
         **Test Scenario**
@@ -164,9 +164,9 @@ class GithubClientTest(BaseTests):
         """
 
         self.info("Create repo with auto init")
-        self.repo_name = self.generate_random_text()
-        issue_title = self.generate_random_text()
-        milestone_title = self.generate_random_text()
+        self.repo_name = self.random_name()
+        issue_title = self.random_name()
+        milestone_title = self.random_name()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
 
         self.info("Create milestone")
