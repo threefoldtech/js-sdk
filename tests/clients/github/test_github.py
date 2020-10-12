@@ -1,7 +1,5 @@
-from unittest import TestCase
-import string
 from gevent import sleep
-from os import path, getenv
+from os import getenv
 
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
