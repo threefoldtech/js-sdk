@@ -5,7 +5,6 @@ import imaplib
 import email
 from unittest import TestCase
 from jumpscale.loader import j
-import pytest
 
 
 def generate_rand_text(char_count, choices):
