@@ -447,7 +447,9 @@ class ChatflowSolutions:
                         container_dict["vol_ids"].append(vol_id)
                         vol_workload = volumes_dict.get(vol_id)
                         if vol_workload:
-                            container_dict["volumes_capacity"].append(self.get_workload_capacity(vol_workload))
+                            volume_data = self.get_workload_capacity(vol_workload)
+                            volume_data["Volume Id"] = vol_id
+                            container_dict["volumes_capacity"].append(volume_data)
                 if name not in result:
                     result[name] = [container_dict]
                 else:
@@ -598,15 +600,9 @@ class ChatflowSolutions:
             if owner:
                 if len(name) > len(owner) + 1:
                     sol_name = name[len(owner) + 1 :]
-            solution_dict = {
-                "wids": wids,
-                "Name": sol_name,
-                "Domain": proxy_dict["domain"],
-            }
+            solution_dict = {"wids": wids, "Name": sol_name, "Domain": proxy_dict["domain"]}
             if chatflow == "threebot":
-                solution_dict.update(
-                    {"Owner": owner,}
-                )
+                solution_dict.update({"Owner": owner})
             if len(container_workloads[name]) != containers_len:
                 continue
             for c_dict in container_workloads[name]:
