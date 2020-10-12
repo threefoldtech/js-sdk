@@ -18,6 +18,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         "upload_public_key",
         "set_backup_password",
+        "choose_location",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -47,6 +48,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.retries = 3
         self.allow_custom_domain = False
         self.custom_domain = False
+        self.currency = "TFT"
+        self._get_available_farms()
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):

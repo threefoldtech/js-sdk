@@ -47,6 +47,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.retries = 3
         self.custom_domain = False
         self.allow_custom_domain = False
+        self.currency = "TFT"
+        self._get_available_farms()
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -73,26 +75,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
-        self.currency = "TFT"
-        available_farms = []
-        farm_names = [f.name for f in j.sals.zos.get()._explorer.farms.list()]
-        # farm_names = ["freefarm"]  # DEUBGGING ONLY
-
-        for farm_name in farm_names:
-            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4"
-            )
-            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
-            )
-            if available_ipv4 and available_ipv6:
-                available_farms.append(farm_name)
-
-        if not available_farms:
-            raise StopChatFlow("Failed to find farm with the requested resources")
-
-        self.farm_name = random.choice(available_farms)
-
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
@@ -403,9 +385,43 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
 
+    def _get_available_farms(self):
+        self.available_farms = []
+        farms = j.sals.zos.get()._explorer.farms.list()
+        # farm_names = ["freefarm"]  # DEUBGGING ONLY
+
+        for farm in farms:
+            farm_name = farm.name
+            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+            )
+            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
+            )
+            if available_ipv4 and available_ipv6:
+                self.available_farms.append(farm)
+        j.logger.info("Should be gotten")
+
+    @chatflow_step(title="Deployment location")
+    def choose_location(self):
+        locations = list(set([farm.location.country for farm in self.available_farms if farm.location.country]))
+        ANY_LOCATION = "Any location"
+        locations = [ANY_LOCATION] + locations
+        location = self.single_choice(
+            "Choose the farm location you want to deploy your solution on",
+            locations,
+            md=True,
+            required=True,
+            default=locations[0],
+        )
+        self.available_farms = [
+            farm for farm in self.available_farms if location == ANY_LOCATION or location == farm.location.country
+        ]
+
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
         self.md_show_update("Preparing Infrastructure...")
+        self.farm_name = random.choice(self.available_farms).name
         self._get_pool()
         success = False
         while not success:
