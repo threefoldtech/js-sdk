@@ -386,6 +386,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
 
     def _get_available_farms(self):
+        farm_message = f"""\
+        Fetching available farms..
+        """
+        self.md_show_update(dedent(farm_message))
+
         self.available_farms = []
         farms = j.sals.zos.get()._explorer.farms.list()
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
@@ -401,6 +406,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             if available_ipv4 and available_ipv6:
                 self.available_farms.append(farm)
         j.logger.info("Should be gotten")
+        import pdb
+
+        pdb.set_trace()
 
     @chatflow_step(title="Deployment location")
     def choose_location(self):
