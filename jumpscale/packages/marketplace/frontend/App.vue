@@ -17,7 +17,7 @@
             label
             text-color="white"
           >
-            <b>Demo on testnet</b>
+            <b>Demo on Testnet</b>
           </v-chip>
         </template>
         <pre>
