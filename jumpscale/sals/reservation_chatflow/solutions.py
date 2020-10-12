@@ -407,6 +407,12 @@ class ChatflowSolutions:
         metadata_filters = metadata_filters or []
         result = {}
         values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container].values()
+        volume_values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Volume].values()
+        volumes_dict = {}
+        for volume_workloads in volume_values:
+            for workload in volume_workloads:
+                volumes_dict[workload.id] = workload
+
         for container_workloads in values:
             for workload in container_workloads:
                 metadata = self._validate_workload_metadata(chatflow, workload)
@@ -431,12 +437,17 @@ class ChatflowSolutions:
                     "farm": self.get_node_farm(workload.info.node_id),
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
+                    "volumes_capacity": [],
                     "capacity": self.get_workload_capacity(workload),
                     "owner": metadata.get("owner"),
                 }
                 if workload.volumes:
                     for vol in workload.volumes:
-                        container_dict["vol_ids"].append(int(vol.volume_id.split("-")[0]))
+                        vol_id = int(vol.volume_id.split("-")[0])
+                        container_dict["vol_ids"].append(vol_id)
+                        vol_workload = volumes_dict.get(vol_id)
+                        if vol_workload:
+                            container_dict["volumes_capacity"].append(self.get_workload_capacity(vol_workload))
                 if name not in result:
                     result[name] = [container_dict]
                 else:
@@ -647,6 +658,7 @@ class ChatflowSolutions:
                 }
             )
             result[-1].update(c_dict["capacity"])
+            result[-1]["Volumes"] = c_dict["volumes_capacity"]
         return result
 
     def cancel_solution_by_uuid(self, solution_uuid):
