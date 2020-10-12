@@ -654,7 +654,10 @@ class ChatflowSolutions:
                 }
             )
             result[-1].update(c_dict["capacity"])
-            result[-1]["Volumes"] = c_dict["volumes_capacity"]
+            if c_dict["volumes_capacity"]:
+                result[-1]["Volumes"] = c_dict["volumes_capacity"]
+            if c_dict["vol_ids"]:
+                result[-1]["wids"] += c_dict["vol_ids"]
         return result
 
     def cancel_solution_by_uuid(self, solution_uuid):
