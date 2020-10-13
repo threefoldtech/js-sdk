@@ -36,7 +36,7 @@ module.exports = {
         cancelSolution: false,
       },
       KeysWithTypeList: ["Node ids", "wids", "Active workload ids"],
-      KeysWithTypeDict: ["nodes", "volumes"]
+      KeysWithTypeDict: ["nodes", "Volumes"]
     };
   },
   computed: {
