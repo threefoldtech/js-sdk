@@ -3,6 +3,22 @@
     <v-app-bar app>
       <v-switch v-model="darkTheme" hide-details inset label="Dark mode"></v-switch>
       <v-spacer></v-spacer>
+      <v-menu offset-y>
+        <template v-slot:activator="{ attrs, on }">
+          <v-icon v-if="notifications.length" v-bind="attrs" v-on="on" color="primary" left>mdi-bell-ring</v-icon>
+          <v-icon v-else v-bind="attrs" v-on="on" color="primary" left>mdi-bell-outline</v-icon>
+        </template>
+
+        <v-list v-if="notifications.length">
+          <v-list-item
+            v-for="item in notifications"
+            :key="item"
+            link
+          >
+            <v-list-item-title v-text="item"></v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <v-chip label flat color="transparent" class="pr-5">
         <v-icon color="primary" left>mdi-clock-outline</v-icon>
         {{ timenow }}
@@ -124,6 +140,8 @@ module.exports = {
       menu: false,
       mini: false,
       timenow: null,
+      notifications: [],
+      notificationInterval: null,
       clockInterval: null,
       dialogs: {
         identity: false,
@@ -192,9 +210,16 @@ module.exports = {
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);
+    this.notificationInterval = setInterval(() =>{
+      console.log("Checking new notifications...")
+      this.$api.admins.getNotifications().then((response) => {
+        this.notifications = response.data;
+      });
+    },10000);
   },
   destroyed() {
     clearInterval(this.clockInterval);
+    clearInterval(this.notificationInterval);
   },
 };
 </script>

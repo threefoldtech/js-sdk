@@ -135,5 +135,10 @@ class Admin(BaseActor):
         j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
+    @actor_method
+    def get_notifications(self) -> list:
+        # get data from redis
+        return []
+
 
 Actor = Admin
