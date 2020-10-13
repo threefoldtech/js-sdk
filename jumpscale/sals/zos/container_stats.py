@@ -38,7 +38,7 @@ class ContainerStatsMonitor:
         return self.endpoint(reservation['stats'][0]['data']['endpoint'])
 
     def connect(self):
-        print("[+] connecting: [%s:%s / %s]" % (self.host, self.port, self.channel))
+        j.logger.debug("connecting [%s:%s / %s]" % (self.host, self.port, self.channel))
 
         self.redis = redis.Redis(self.host, self.port)
         if not self.redis.ping():
@@ -64,9 +64,7 @@ class ContainerStatsMonitor:
 
         self.previous = stats
 
-        print("CPU Usage: %0.2f%% / RAM: %.2f MB" % (computed, stats['memory_usage'] / 1000000))
-
-        pass
+        j.logger.info("CPU Usage: %0.2f%% / RAM: %.2f MB" % (computed, stats['memory_usage'] / 1000000))
 
     #
     # Monitoring
@@ -85,7 +83,7 @@ class ContainerStatsMonitor:
         self.dump(stats)
 
     def monitor(self):
-        print("[+] waiting for statistics")
+        j.logger.debug("waiting for statistics")
 
         while True:
             self.monitor_once()

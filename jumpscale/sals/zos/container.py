@@ -141,12 +141,11 @@ class ContainerGenerator:
         """Enable statistics forwarding for the container
 
         Args:
-          cont(tfgrid.workloads.reservation.container.1): container instance
-          channel_type(str): type of channel the stats will be streamed to
-          channel_host(str): endpoint where to push stats (eg: redis://user:pwd@host:port/channel)
+          container(Container): container instance
+          redis_endpoint(str): redis endpoint (redis://host:port/channel)
 
         Returns:
-          tfgrid.workloads.reservation.container.stats.1: stats object added to the container
+          ContainerStats: stats object added to the container
 
         """
         cont_stats = ContainerStats()
@@ -165,6 +164,16 @@ class ContainerGenerator:
 
         stats = ContainerStatsMonitor()
         stats.endpoint(container.stats[0].data.endpoint)
+        stats.monitor()
+
+        return True
+
+    def monitor_reservation(self, reservation):
+        """
+        Try to reach endpoint from container reservation data and monitor stats
+        """
+        stats = ContainerStatsMonitor()
+        stats.reservation(reservation)
         stats.monitor()
 
         return True
