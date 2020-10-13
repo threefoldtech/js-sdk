@@ -74,6 +74,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         self._get_available_farms()
+        self.farm_name = random.choice(self.available_farms).name
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
@@ -418,7 +419,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
         self.md_show_update("Preparing Infrastructure...")
-        self.farm_name = random.choice(self.available_farms).name
         self._get_pool()
         success = False
         while not success:
