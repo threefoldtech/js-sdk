@@ -159,7 +159,7 @@ class GedisChatBot:
 
             except Exception as e:
                 message = "Something wrong happened"
-                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and "op_underfunded" in e.extras.get(["result_codes"], {}).get(["operations"], []):
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and "op_underfunded" in e.extras.get("result_codes", {}).get("operations", []):
                     message = "Not enough funds"
                 internal_error = True
                 j.logger.exception("error", exception=e)
