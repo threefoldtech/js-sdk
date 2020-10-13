@@ -88,7 +88,7 @@ class GithubClientTest(BaseTests):
         **Test Scenario**
         - Get a github client.
         - Create repository with auto init.
-        - Create file and set to repository
+        - Create file and set to repository.
         - Download directory.
         - Check if file has been sent.
         - Check downloaded file content.
@@ -140,7 +140,7 @@ class GithubClientTest(BaseTests):
         """Test case for creating issue.
 
         **Test Scenario**
-        - Get a github client
+        - Get a github client.
         - Create repository with auto init.
         - Create issue.
         - Check if issue has been created.
@@ -162,9 +162,9 @@ class GithubClientTest(BaseTests):
 
         **Test Scenario**
         - Create repository with auto init.
-        - Create milestone
-        - Create issue with milestone
-        - Check if issue have a milestone
+        - Create milestone.
+        - Create issue with milestone.
+        - Check if issue have a milestone.
         """
 
         self.info("Create repository with auto init")
