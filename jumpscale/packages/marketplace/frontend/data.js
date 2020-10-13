@@ -102,7 +102,7 @@ const SECTIONS = {
         type: "meetings",
         image: "./assets/meetings.png",
         disable: false,
-        helpLink: "https://now10.threefold.io/docs",
+        helpLink: "https://now10.threefold.io/video-conf",
         description: "A decentralized meeting app that enables you to have video calls and chat with colleagues or friends."
       }
     },
