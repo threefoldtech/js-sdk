@@ -50,7 +50,7 @@ class GithubClientTest(BaseTests):
     def test02_github_create_repo(self):
         """Test case for creating a repository.
 
-        Test Scenario
+        **Test Scenario**
         - Get a github client.
         - Create a repository.
         - Check that this repository has been created.
@@ -65,7 +65,7 @@ class GithubClientTest(BaseTests):
     def test03_github_delete_repo(self):
         """Test case for deleting a repository.
 
-        Test Scenario
+        **Test Scenario**
         - Get a github client.
         - Create a repository.
         - Delete this repository.
@@ -85,7 +85,7 @@ class GithubClientTest(BaseTests):
     def test04_github_set_file(self):
         """Test case for set a file to repository.
 
-        Test Scenario
+        **Test Scenario**
         - Get a github client.
         - Create repository with auto init.
         - Create file and set to repository
@@ -118,7 +118,7 @@ class GithubClientTest(BaseTests):
     def test05_github_create_milestoes(self):
         """Test case for creating a milestones.
 
-        Test Scenario
+        **Test Scenario**
         - Get a github client.
         - Create repository with auto init.
         - Create milestones.
@@ -139,7 +139,7 @@ class GithubClientTest(BaseTests):
     def test06_github_create_issue(self):
         """Test case for creating issue.
 
-        Test Scenario
+        **Test Scenario**
         - Get a github client
         - Create repository with auto init.
         - Create issue.
@@ -160,7 +160,7 @@ class GithubClientTest(BaseTests):
     def test07_github_issue_with_milestone(self):
         """Test case for creating issue with milestone.
 
-        Test Scenario
+        **Test Scenario**
         - Create repository with auto init.
         - Create milestone
         - Create issue with milestone

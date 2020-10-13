@@ -11,7 +11,8 @@ Test case for get access to client.
 
 Test case for creating a repository.
 
-Test Scenario
+**Test Scenario**
+
 - Get a github client.
 - Create a repository.
 - Check that this repository has been created.
@@ -20,7 +21,8 @@ Test Scenario
 
 Test case for deleting a repository.
 
-Test Scenario
+**Test Scenario**
+
 - Get a github client.
 - Create a repository.
 - Delete this repository.
@@ -30,7 +32,8 @@ Test Scenario
 
 Test case for set a file to repository.
 
-Test Scenario
+**Test Scenario**
+
 - Get a github client.
 - Create repository with auto init.
 - Create file and set to repository
@@ -42,7 +45,8 @@ Test Scenario
 
 Test case for creating a milestones.
 
-Test Scenario
+**Test Scenario**
+
 - Get a github client.
 - Create repository with auto init.
 - Create milestones.
@@ -52,7 +56,8 @@ Test Scenario
 
 Test case for creating issue.
 
-Test Scenario
+**Test Scenario**
+
 - Get a github client
 - Create repository with auto init.
 - Create issue.
@@ -62,7 +67,8 @@ Test Scenario
 
 Test case for creating issue with milestone.
 
-Test Scenario
+**Test Scenario**
+
 - Create repository with auto init.
 - Create milestone
 - Create issue with milestone
