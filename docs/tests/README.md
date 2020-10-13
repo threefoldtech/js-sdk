@@ -1,6 +1,7 @@
 ### Clients
 
 - [test_digitalocean](clients/digitalocean/test_digitalocean.md)
+- [test_github](clients/github/test_github.md)
 - [test_sendgrid](clients/sendgrid/test_sendgrid.md)
 
 ### Core
