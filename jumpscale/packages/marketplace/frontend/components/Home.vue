@@ -7,7 +7,7 @@
           <v-col md="4" offset-md="4">
             <v-autocomplete
               auto-select-first
-              
+
               solo
               v-model="selectedObject"
               :items="autoCompleteList"
@@ -15,7 +15,7 @@
               color="grey"
               item-text="name"
               :item-value="(obj) => obj"
-              label="Find a solutions"
+              label="Find a solution"
               append-icon="mdi-magnify"
               @change="viewWorkloads()"
             >
