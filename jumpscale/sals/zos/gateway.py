@@ -140,7 +140,7 @@ class GatewayGenerator:
         p.info.workload_type = WorkloadType.Reverse_proxy
         p.domain = domain
         node = self._gateways.get(gateway_id)
-        p.secret = encrypt_for_node(node.public_key_hex, secret).decode()
+        p.secret = encrypt_for_node(self._identity, node.public_key_hex, secret).decode()
         return p
 
     def gateway_4to6(self, gateway_id: str, public_key: str, pool_id: int) -> Gateway4to6:
