@@ -42,56 +42,59 @@ class GithubClientTest(BaseTests):
         """Test case for get access to client.
 
         **Test Scenario**
-        - Check client email
+        - Get client userdata.
+        - Check client email.
         """
         self.assertEqual(self.client.get_userdata()["emails"][0]["email"], self.FAKE_EMAIL)
 
     def test02_github_create_repo(self):
-        """Test case for create repo.
+        """Test case for creating a repository.
 
-        **Test Scenario**
-        - Create repo.
-        - Check if repo is created.
+        Test Scenario
+        - Get a github client.
+        - Create a repository.
+        - Check that this repository has been created.
         """
-        self.info("Create repo")
-
+        self.info("Create a repository")
         self.repo_name = self.random_name()
         self.client.create_repo(name=self.repo_name)
 
-        self.info("Check if repo is created")
+        self.info("Check that this repository has been created")
         self.assertIn(self.repo_name, str(self.client.get_repos()))
 
     def test03_github_delete_repo(self):
-        """Test case for delete repo.
+        """Test case for deleting a repository.
 
-        **Test Scenario**
-        - Create repo.
-        - Delete this repo.
-        - Check that this repo is deleted.
+        Test Scenario
+        - Get a github client.
+        - Create a repository.
+        - Delete this repository.
+        - Check that this repository has been deleted.
         """
-        self.info("create repo")
+        self.info("Create a repository")
         repo_name = self.random_name()
         repo = self.client.create_repo(name=repo_name,)
 
-        self.info("Delete this repo")
+        self.info("Delete this repository")
         self.client.delete_repo(repo_name=repo.name)
 
-        self.assertTrue(self.wait_for_deleting_repo(3, repo), "repo is not deleted after 3 second")
-        self.info("Check that this repo is deleted")
+        self.assertTrue(self.wait_for_deleting_repo(3, repo), "repository is not deleted after 3 second")
+        self.info("Check that this repository has been deleted")
         self.assertNotIn(str(self.client.get_repos()), self.repo_name)
 
     def test04_github_set_file(self):
-        """Test case for set file.
+        """Test case for set a file to repository.
 
-        **Test Scenario**
-        - Create repo with auto init.
-        - Create file and set to repo
-        - Download dir.
-        - Check if file is sent.
-        - Check content
+        Test Scenario
+        - Get a github client.
+        - Create repository with auto init.
+        - Create file and set to repository
+        - Download directory.
+        - Check if file has been sent.
+        - Check downloaded file content.
         """
 
-        self.info("Create repo")
+        self.info("Create repository with auto init")
         self.repo_name = self.random_name()
         dir_name = self.random_name()
         f_name = self.random_name()
@@ -99,28 +102,29 @@ class GithubClientTest(BaseTests):
         created_repo = self.client.create_repo(name=self.repo_name, auto_init=True)
         repo = self.client.get_repo(repo_full_name=created_repo.full_name)
 
-        self.info("Set file to repo")
+        self.info("Create file and set to repository")
         repo.set_file(path=f"{dir_name}/{f_name}.txt", content=content)
 
-        self.info("Download dir")
+        self.info("Download directory")
         repo.download_directory(src="", download_dir="/tmp")
         self.directory_name = repo.fullname.split("/")[0]
 
-        self.info("Check if file is sent")
+        self.info("Check if file has been sent")
         self.assertEqual(j.sals.fs.is_file(f"/tmp/{repo.fullname}/{dir_name}/{f_name}.txt"), True)
 
-        self.info("Check content")
+        self.info("Check downloaded file content")
         self.assertEqual(content, j.sals.fs.read_file(f"/tmp/{repo.fullname}/{dir_name}/{f_name}.txt"))
 
     def test05_github_create_milestoes(self):
-        """Test case for create milestones.
+        """Test case for creating a milestones.
 
-        **Test Scenario**
-        - Create repo with auto init.
-        - Create milestones
-        - Check if milestones is created
+        Test Scenario
+        - Get a github client.
+        - Create repository with auto init.
+        - Create milestones.
+        - Check if milestones has been created.
         """
-        self.info("Create repo with auto init.")
+        self.info("Create repository with auto init")
         self.repo_name = self.random_name()
         title = self.random_name()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
@@ -128,40 +132,42 @@ class GithubClientTest(BaseTests):
         self.info("Create milestones")
         ceated_milestone = repo.create_milestone(title=title)
 
-        self.info("Check if milestones is created")
+        self.info("Check if milestones has been created")
         milestone = repo.get_milestone(number=ceated_milestone.number)
         self.assertEqual(title, milestone.title)
 
     def test06_github_create_issue(self):
-        """Test case for create issue.
+        """Test case for creating issue.
 
-        **Test Scenario**
-        - Create repo with auto init.
-        - Create issue
-        - Check if issue is created
+        Test Scenario
+        - Get a github client
+        - Create repository with auto init.
+        - Create issue.
+        - Check if issue has been created.
         """
 
-        self.info("Create repo with auto init")
+        self.info("Create repository with auto init")
         self.repo_name = self.random_name()
         issue_title = self.random_name()
         repo = self.client.create_repo(name=self.repo_name, auto_init=True)
+
         self.info("Create issue")
         issue_created = repo.create_issue(title=issue_title)
 
-        self.info("Check if issue is created")
+        self.info("Check if issue has been created")
         self.assertEqual(issue_created.title, issue_title)
 
     def test07_github_issue_with_milestone(self):
-        """Test case for create issue with milestone.
+        """Test case for creating issue with milestone.
 
-        **Test Scenario**
-        - Create repo with auto init.
+        Test Scenario
+        - Create repository with auto init.
         - Create milestone
         - Create issue with milestone
-        - Check if issue has milestone
+        - Check if issue have a milestone
         """
 
-        self.info("Create repo with auto init")
+        self.info("Create repository with auto init")
         self.repo_name = self.random_name()
         issue_title = self.random_name()
         milestone_title = self.random_name()
@@ -173,5 +179,5 @@ class GithubClientTest(BaseTests):
         self.info("Create issue with milestone")
         issue_created = repo.create_issue(title=issue_title, milestone=milestone)
 
-        self.info("Check if issue has milestone")
+        self.info("Check if issue have a milestone")
         self.assertEqual(issue_created.milestone.title, milestone_title)
