@@ -47,8 +47,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.retries = 3
         self.custom_domain = False
         self.allow_custom_domain = False
-        self.currency = "TFT"
-        self._get_available_farms()
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -75,18 +73,23 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor_resources = flavors[self.flavor]
 
     def _get_pool(self):
+        self._get_available_farms()
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
             # old user
             self.md_show_update("Checking for free resources .....")
-            free_pools = deployer.get_free_pools(self.solution_metadata["owner"], **self.query)
+            free_pools = deployer.get_free_pools(
+                self.solution_metadata["owner"], farm_name=self.farm_name, **self.query
+            )
             if free_pools:
                 self.md_show_update(
                     "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
                 )
                 # select free pool and extend if required
-                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(
+                    free_pools, self.expiration, farm_name=self.farm_name, **self.query
+                )
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
@@ -154,13 +157,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         return self.pool_id
 
+    def _select_node(self):
+        self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
+
     @deployment_context()
     def _deploy_network(self):
         # get ip address
         self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
+            self._select_node()
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
@@ -386,6 +392,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
 
     def _get_available_farms(self):
+        if getattr(self, "available_farms", None) is not None:
+            return
+        self.currency = getattr(self, "currency", "TFT")
         farm_message = f"""\
         Fetching available farms..
         """
@@ -405,26 +414,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
             if available_ipv4 and available_ipv6:
                 self.available_farms.append(farm)
-        j.logger.info("Should be gotten")
-        import pdb
-
-        pdb.set_trace()
-
-    @chatflow_step(title="Deployment location")
-    def choose_location(self):
-        locations = list(set([farm.location.country for farm in self.available_farms if farm.location.country]))
-        ANY_LOCATION = "Any location"
-        locations = [ANY_LOCATION] + locations
-        location = self.single_choice(
-            "Choose the farm location you want to deploy your solution on",
-            locations,
-            md=True,
-            required=True,
-            default=locations[0],
-        )
-        self.available_farms = [
-            farm for farm in self.available_farms if location == ANY_LOCATION or location == farm.location.country
-        ]
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
