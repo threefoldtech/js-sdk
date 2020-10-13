@@ -6,7 +6,7 @@ from jumpscale.loader import j
 
 
 class Gitea(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-gitea-test.flist"
+    FLIST_URL = "https://hub.grid.tf/magidentfinal.3bot/mmotawea-gitea-restic-latest.flist"
     SOLUTION_TYPE = "gitea"
     title = "Gitea"
     steps = [
@@ -139,7 +139,6 @@ class Gitea(MarketPlaceAppsChatflow):
             "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
             "RESTIC_PASSWORD": self.restic_password,
             "RESTIC_REPOSITORY": self.restic_repository,
-            "BACKUP_PATHS": "/persistent_data",
             "CRON_FREQUENCY": "0 0 * * *",  # every 1 day
             "POSTGRES_PASSWORD": self.database_password,
         }
