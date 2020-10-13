@@ -151,7 +151,7 @@ class Gitea(MarketPlaceAppsChatflow):
             cpu=self.resources["cru"],
             memory=self.resources["mru"] * 1024,
             env=var_dict,
-            interactive=True,
+            interactive=False,
             entrypoint="/start_gitea.sh",
             public_ipv6=True,
             disk_size=self.resources["sru"] * 1024,
