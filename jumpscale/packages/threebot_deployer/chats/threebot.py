@@ -17,6 +17,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     steps = [
         "create_or_recover",
         "get_solution_name",
+        "deployer_info",
         "upload_public_key",
         "set_backup_password",
         "choose_location",
@@ -85,6 +86,13 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 valid = False
                 self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
+
+    @chatflow_step(title="Deployer Information")
+    def deployer_info(self):
+        self.user_email = self.user_info()["email"]
+        self._choose_flavor()
+        self.vol_size = self.flavor_resources["sru"]
+        self.container_resources["sru"] += self.vol_size
 
     @chatflow_step(title="SSH key (Optional)")
     def upload_public_key(self):
