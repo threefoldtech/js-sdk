@@ -118,6 +118,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "HTTP_PORT": "80",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
+            "public_key": self.public_key,
         }
         secret_env = {
             "AWS_ACCESS_KEY_ID": self.aws_access_key_id,

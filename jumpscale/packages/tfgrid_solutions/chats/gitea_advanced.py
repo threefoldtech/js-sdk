@@ -109,7 +109,7 @@ class Gitea(MarketPlaceAppsChatflow):
             "ROOT_URL": f"https://{self.domain}",
             "HTTP_PORT": "3000",
             "DOMAIN": f"{self.domain}",
-            "SSH_KEY": self.public_key,
+            "pub_key": self.public_key,
         }
         metadata = {
             "name": self.solution_name,
