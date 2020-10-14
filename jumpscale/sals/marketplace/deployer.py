@@ -130,10 +130,14 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
-    def _check_pool_factory_owner(self, instance_name, tid):
-        pool_id = pool_factory.get(instance_name).pool_id
+    def _check_pool_factory_owner(self, instance_name):
+        pool_instance = pool_factory.get(instance_name)
+        pool_id = pool_instance.pool_id
+        pool_tid = j.sals.zos.get().pools.get(pool_id).customer_tid
+        pool_explorer_url = pool_instance.explorer_url
+        me = j.core.identity.me
         try:
-            return j.sals.zos.get().pools.get(pool_id).customer_tid == tid
+            return pool_tid == me.tid and pool_explorer_url == me.explorer_url
         except HTTPError:
             return False
 
@@ -152,9 +156,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
-            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
-                gw_pool_name, j.core.identity.me.tid
-            ):
+            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(gw_pool_name):
                 gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
@@ -320,6 +322,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool = pool_factory.get(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
+        user_pool.explorer_url = j.core.identity.me.explorer_url
         user_pool.save()
         return pool_info
 
