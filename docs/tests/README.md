@@ -22,7 +22,3 @@
 - [test_nginx](tools/nginx/test_nginx.md)
 - [test_redis](tools/redis/test_redis.md)
 - [test_restic](tools/restic/test_restic.md)
-
-### Frontend
-
-- [test_wallets](frontend/tests/test_wallets.md)
