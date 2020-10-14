@@ -30,6 +30,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+    getAllThreebots: () =>{
+      return axios({
+        url:`/threebot_deployer/api/threebots/list-all`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+    },
     cancelReservation: (wids) => {
       return axios({
         url: `/threebot_deployer/api/solutions/cancel`,
@@ -45,7 +53,7 @@ const apiClient = {
         data: { "threebot_name": threebotName },
         method: "post"
       })
-    }
+    },
   },
   license: {
     accept: () => {

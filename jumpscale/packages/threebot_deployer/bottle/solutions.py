@@ -1,10 +1,12 @@
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.packages.threebot_deployer.actors.backup import Backup
 
 app = Bottle()
 
@@ -16,6 +18,44 @@ def list_threebots() -> str:
     user_info = j.data.serializers.json.loads(get_user_info())
     solutions = j.sals.marketplace.solutions.list_solutions(user_info["username"], "threebot")
     return j.data.serializers.json.dumps({"data": solutions})
+
+
+@app.route("/api/threebots/list-all")
+@login_required
+def list_threebots() -> str:
+    def update_status(item, status):
+        item["Status"] = status
+        return item
+
+    actor = Backup()
+    backups = actor.list_backup()
+
+    user_info = j.data.serializers.json.loads(get_user_info())
+    # solutions = j.sals.marketplace.solutions.list_solutions(user_info["username"], "threebot")
+    deployed_threebots = j.sals.marketplace.solutions.list_threebot_solutions(
+        username=user_info["username"], next_action=NextAction.DEPLOY
+    )
+    deployed_threebots = list(map(lambda x: update_status(item=x, status="Running"), deployed_threebots))
+
+    deleted_threebots = j.sals.marketplace.solutions.list_threebot_solutions(
+        username=user_info["username"], next_action=NextAction.DELETED
+    )
+
+    for threebot in deleted_threebots:
+        owner = threebot.get("Owner")
+        name = threebot.get("Name")
+        threebot_name = f"{owner.split('.')[0]}_{name}"
+        if threebot_name in backups:
+            threebot["Status"] = "Stopped"
+        else:
+            threebot["Status"] = "Destroyed"
+
+    # deleted_threebots = list(map(lambda x: update_status(item=x, status="Stopped"), deleted_threebots))
+
+    # TODO: we need to check backup for stopped solutions
+    threebots = deployed_threebots + deleted_threebots
+
+    return j.data.serializers.json.dumps({"data": threebots})
 
 
 @app.route("/api/solutions/cancel", method="POST")

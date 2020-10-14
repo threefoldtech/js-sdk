@@ -24,6 +24,9 @@
           <template v-slot:item.Expiration="{ item }">
             <div :class="`${item.class}`">{{ item.Expiration }}</div>
           </template>
+          <template v-slot:item.Status="{ item }">
+            <div :class="`${item.class}`">{{ item.Status }}</div>
+          </template>
           <template v-slot:item.actions="{ item }">
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
@@ -77,6 +80,7 @@ module.exports = {
         { text: "Name", value: "Name" },
         { text: "URL", value: "domain" },
         { text: "Expiration", value: "expiration" },
+        { text: "Status", value: "Status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
@@ -103,7 +107,7 @@ module.exports = {
       let alert_time = new Date();
       alert_time.setDate(today.getDate() + 2);
       this.$api.solutions
-        .getDeployed()
+        .getAllThreebots()
         .then((response) => {
           this.deployed3Bots = [...response.data.data];
           for (let i = 0; i < this.deployed3Bots.length; i++) {
@@ -123,7 +127,8 @@ module.exports = {
               deployed3Bot.Expiration = "-";
             }
           }
-        }).finally(() => {
+        })
+        .finally(() => {
           this.loading = false;
         });
     },
