@@ -15,7 +15,8 @@ from jumpscale.clients.explorer.models import (
 )
 
 from jumpscale.core.exceptions import Input
-from .container_stats import ContainerStatsMonitor
+from jumpscale.tools.zos.monitor import ContainerStatsMonitor
+
 
 class ContainerGenerator:
     """ """
@@ -127,17 +128,13 @@ class ContainerGenerator:
 
         cont_logs = ContainerLogs()
         cont_logs.type = channel_type
-        cont_logs.data.secret_stdout = self.encrypt_secret(
-            container.info.node_id, stdout)
-        cont_logs.data.secret_stderr = self.encrypt_secret(
-            container.info.node_id, stderr)
+        cont_logs.data.secret_stdout = self.encrypt_secret(container.info.node_id, stdout)
+        cont_logs.data.secret_stderr = self.encrypt_secret(container.info.node_id, stderr)
         container.logs.append(cont_logs)
 
         return cont_logs
 
-    def add_stats(
-        self, container: Container, redis_endpoint: str
-    ) -> ContainerStats:
+    def add_stats(self, container: Container, redis_endpoint: str) -> ContainerStats:
         """Enable statistics forwarding for the container
 
         Args:
@@ -156,9 +153,7 @@ class ContainerGenerator:
         return cont_stats
 
     def monitor(self, container):
-        """
-        Try to reach endpoint from container statistics and fetch stats when available
-        """
+        """Try to reach endpoint from container statistics and fetch stats when available"""
         if not container.stats:
             return False
 
@@ -167,9 +162,7 @@ class ContainerGenerator:
         stats.monitor()
 
     def monitor_reservation(self, reservation):
-        """
-        Try to reach endpoint from container reservation data and monitor stats
-        """
+        """Try to reach endpoint from container reservation data and monitor stats"""
         stats = ContainerStatsMonitor()
         stats.reservation(reservation)
         stats.monitor()
