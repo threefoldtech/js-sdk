@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 
+
 class MailClient(Client):
     name = fields.String()
     smtp_server = fields.String()
@@ -19,12 +20,12 @@ class MailClient(Client):
     password = fields.String()
     sender_email = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def is_ssl(self):
-        self.smtp_port in [465, 587]
+        return self.smtp_port in [465, 587]
 
     def send(self, recipients, sender="", subject="", message="", files=None, mimetype=None):
         """ Send an email to the recipients from the sender containing the message required and any attached files given by the paths in files
@@ -47,7 +48,7 @@ class MailClient(Client):
             recipients = [recipients]
         server = smtplib.SMTP(self.smtp_server, self.smtp_port)
         server.ehlo()
-        if self._ssl:
+        if self.is_ssl:
             server.starttls()
         if self.login:
             server.login(self.login, self.password)

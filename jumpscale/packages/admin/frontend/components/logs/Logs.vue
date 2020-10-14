@@ -15,7 +15,7 @@
           </template>
 
           <template v-slot:item.epoch="{ item }">
-            {{ new Date(item.epoch * 1000).toLocaleString() }}
+            {{ new Date(item.epoch * 1000).toLocaleString('en-GB') }}
           </template>
 
           <template v-slot:item.level="{ item }">

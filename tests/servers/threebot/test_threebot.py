@@ -71,14 +71,12 @@ class Test3BotServer(BaseTests):
         self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 5), "gedis still running")
 
     def test01_start_threebot(self):
-        """
-        Test start threebot server.
+        """Test start threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
+        **Test Scenario**
+        - Start threebot server.
+        - Check it works correctly.
         """
-
         self.info("Start threebot server")
         j.servers.threebot.start_default()
 
@@ -86,16 +84,14 @@ class Test3BotServer(BaseTests):
         self.check_threebot_main_running_servers()
 
     def test02_stop_threebot(self):
-        """
-        Test stop threebot server.
+        """Test stop threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
-        #. Stop threebot server.
-        #. Check it stopped correctly.
+        **Test Scenario**
+        - Start threebot server.
+        - Check it works correctly.
+        - Stop threebot server.
+        - Check it stopped correctly.
         """
-
         self.info("Start threebot server")
         j.servers.threebot.start_default()
 
@@ -109,16 +105,15 @@ class Test3BotServer(BaseTests):
         self.check_threebot_main_running_servers_stopped_correctly()
 
     def test03_is_running(self):
-        """
-        Test is_running method.
+        """Test is_running method.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
-        #. Use is_running, The output should be True.
-        #. Stop threebot server.
-        #. Check it stopped correctly.
-        #. Use is_running, The output should be False.
+        **Test Scenario**
+        - Start threebot server.
+        - Check it works correctly.
+        - Use is_running, The output should be True.
+        - Stop threebot server.
+        - Check it stopped correctly.
+        - Use is_running, The output should be False.
         """
         self.info("Start threebot server")
         j.servers.threebot.start_default()
@@ -139,12 +134,11 @@ class Test3BotServer(BaseTests):
         self.assertFalse(j.servers.threebot.default.is_running())
 
     def test04_check_default_package_list(self):
-        """
-        Test default package list with threebot server.
+        """Test default package list with threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check the package list that should be started by default with threebot server.
+        **Test Scenario**
+        - Start threebot server.
+        - Check the package list that should be started by default with threebot server.
         ['auth', 'chatflows', 'admin', 'weblibs', 'tfgrid_solutions', 'backup']
         """
         self.info("Start threebot server")
@@ -156,16 +150,15 @@ class Test3BotServer(BaseTests):
         self.assertTrue(set(default_packages_list).issubset(packages_list), "not all default packages exist")
 
     def test05_package_add_and_delete(self):
-        """
-        Test case for adding and deleting package in threebot server
+        """Test case for adding and deleting package in threebot server
 
-        **Test scenario**
-        #. Add a package.
-        #. Check that the package has been added.
-        #. Try to add wrong package, and make sure that the error has been raised.
-        #. Delete a package.
-        #. Check that the package is deleted correctly.
-        #. Try to delete non exists package, and make sure that the error has been raised.
+        **Test Scenario**
+        - Add a package.
+        - Check that the package has been added.
+        - Try to add wrong package, and make sure that the error has been raised.
+        - Delete a package.
+        - Check that the package is deleted correctly.
+        - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
         marketplace = j.servers.threebot.default.packages.add(

@@ -38,7 +38,7 @@ Deployment will be cancelled if payment is not successful {remaning_time}
                     res += f"\n### {x.category}: ```{x.message}```\n"
             link = f"{self._explorer.url}/reservations/{reservation.id}"
             res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-            j.sals.zos.reservation_cancel(rid)
+            j.sals.zos.get().reservation_cancel(rid)
             break
         time.sleep(5)
         reservation = self._explorer.reservations.get(rid)
@@ -72,7 +72,6 @@ def get_ip_range():
 
 
 class Network_child(Network):
-
     def update(self, tid, currency=None, client=None):
         """create reservations and update status and show payments stuff
         Args:
@@ -83,7 +82,7 @@ class Network_child(Network):
             bool: True if successful
         """
         if self._is_dirty:
-            reservation = j.sals.zos.reservation_create()
+            reservation = j.sals.zos.get().reservation_create()
             reservation.data_reservation.networks.append(self._network)
             form_info = {
                 "chatflow": "network",
@@ -97,13 +96,11 @@ class Network_child(Network):
             metadata["parent_network"] = self.resv_id
             self._sal.add_reservation_metadata(reservation, metadata)
 
-            reservation_create = self._sal.register_reservation(
-                reservation, self._expiration, tid, currency=currency
-            )
+            reservation_create = self._sal.register_reservation(reservation, self._expiration, tid, currency=currency)
             rid = reservation_create.reservation_id
 
             # payout farmer
-            j.sals.zos.billing.payout_farmers(client, reservation_create)
+            j.sals.zos.get().billing.payout_farmers(client, reservation_create)
         return True
 
     def ask_ip_from_node(self, node):
@@ -165,7 +162,7 @@ class GiteaDeploy:
     access_node = j.sals.reservation_chatflow.get_nodes(1, currency=user_form_data["Currency"], ip_version=ipversion)[0]
     print("Get access node")
 
-    reservation = j.sals.zos.reservation_create()
+    reservation = j.sals.zos.get().reservation_create()
     print("Intialize network reservation")
     ip_range = get_ip_range()
     print("Get IpRange")
@@ -183,14 +180,14 @@ class GiteaDeploy:
         currency=user_form_data["Currency"],
     )
 
-    #change wallet name for one used and make sure have TFT or FreeTFT
+    # change wallet name for one used and make sure have TFT or FreeTFT
     client = j.clients.stellar.get(name="my_wallet", network="TEST")
     client.activate_through_friendbot()
     client.add_known_trustline("TFT")
     # if you don't have a trustline to the issuer of TFT on stellar
     client.add_known_trustline("FreeTFT")
     # payout farmer
-    j.sals.zos.billing.payout_farmers(client, config["reservation_create"])
+    j.sals.zos.get().billing.payout_farmers(client, config["reservation_create"])
 
     print("Wireguard configuration")
     print(config["wg"])
@@ -210,11 +207,11 @@ class GiteaDeploy:
 
     user_form_data["Public key"] = "Puplic_key".split("\n")[0]
 
-    #add your expiration time
+    # add your expiration time
     expiration = j.data.time.get().timestamp + 9900
     user_form_data["Solution expiration"] = j.data.time.get(expiration).humanize()
 
-    #configuration of oddo and postgres
+    # configuration of oddo and postgres
     database_name = "postgres"
     database_user = "postgres"
     database_password = "postgres"
@@ -227,7 +224,7 @@ class GiteaDeploy:
 
     query = {"mru": math.ceil(1024 / 1024), "cru": 2, "sru": 6}
     # create new reservation
-    reservation = j.sals.zos.reservation_create()
+    reservation = j.sals.zos.get().reservation_create()
 
     query["currency"] = currency
 
@@ -245,7 +242,7 @@ class GiteaDeploy:
         "APP_NAME": user_form_data["Repository"],
         "ROOT_URL": f"http://{ip_address}:3000",
     }
-    database_password_encrypted = j.sals.zos.container.encrypt_secret(
+    database_password_encrypted = j.sals.zos.get().container.encrypt_secret(
         node_selected.node_id, user_form_data["Database Password"]
     )
     secret_env = {"POSTGRES_PASSWORD": database_password_encrypted}
@@ -254,7 +251,7 @@ class GiteaDeploy:
     entry_point = "/start_gitea.sh"
 
     # create container
-    cont = j.sals.zos.container.create(
+    cont = j.sals.zos.get().container.create(
         reservation=reservation,
         node_id=node_selected.node_id,
         network_name=network.name,
@@ -290,7 +287,7 @@ class GiteaDeploy:
     )
     print(f"Register gitea reservation with id {reservation.reservation_id}")
     print(f"payout farmer")
-    j.sals.zos.billing.payout_farmers(client, reservation)
+    j.sals.zos.get().billing.payout_farmers(client, reservation)
     print(f"payout farmer")
     j.sals.reservation_chatflow.save_reservation(
         reservation.reservation_id, user_form_data["Solution name"], SolutionType.Gitea, user_form_data

@@ -20,7 +20,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    resources = {"cru": 1, "mru": 1, "sru": 4}
+    container_resources = {"cru": 1, "mru": 1, "sru": 4}
     # main container + nginx container
     query = {"cru": 2, "mru": 2, "sru": 4.25}
 
@@ -89,9 +89,9 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.resources["cru"],
-            memory=self.resources["mru"] * 1024,
-            disk_size=self.resources["sru"] * 1024,
+            cpu=self.container_resources["cru"],
+            memory=self.container_resources["mru"] * 1024,
+            disk_size=self.container_resources["sru"] * 1024,
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",

@@ -295,7 +295,15 @@ def add_access_to_network(
 
 
 def deploy_exposed(
-    type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
+    type,
+    solution_to_expose,
+    sub_domain,
+    domain="choose_random",
+    tls_port=6443,
+    port=6443,
+    debug=True,
+    proxy_type="TRC",
+    force_https="NO",
 ):
     return SolutionExposeDeployAutomated(
         type=type,
@@ -305,6 +313,8 @@ def deploy_exposed(
         tls_port=tls_port,
         port=port,
         debug=debug,
+        proxy_type=proxy_type,
+        force_https=force_https,
     )
 
 
@@ -340,9 +350,24 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(
+    solution_name,
+    secret,
+    expiration,
+    debug=True,
+    domain_type="Automatically Get a Domain",
+    domain_name=None,
+    public_key="",
+):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
+        type="Create",
+        solution_name=solution_name,
+        secret=secret,
+        expiration=expiration,
+        debug=debug,
+        domain_type=domain_type,
+        domain_name=domain_name,
+        public_key=public_key,
     )
 
 

@@ -17,3 +17,15 @@ pytest . -sv -m "integration"
 ```bash
 pytest . -sv
 ```
+
+### Generate tests docs from scratch
+
+```bash
+pytest tests -sv --generate-docs --docs-from-scratch
+```
+
+### Generate tests docs and append on the existing one
+
+```bash
+pytest tests -sv --generate-docs
+```

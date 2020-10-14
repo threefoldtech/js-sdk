@@ -4,7 +4,7 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/bola.3bot/3bot-cryptopad-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-cryptpad-latest.flist"
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     steps = [
@@ -16,7 +16,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 1, "mru": 1, "sru": 1}
+    container_resources = {"cru": 1, "mru": 1, "sru": 1}
+    # main container + nginx container
+    query = {"cru": 2, "mru": 2, "sru": 1.5}
 
     @chatflow_step(title="Cryptpad Information")
     def cryptpad_info(self):
@@ -70,9 +72,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         volume_config = {self.vol_mount_point: vol_id}
 
         # deploy container
-        var_dict = {
-            "size": str(self.vol_size * 1024),  # in MBs
-        }
+        var_dict = {"size": str(self.vol_size * 1024)}  # in MBs
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -80,9 +80,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL,
-                cpu=self.query["cru"],
-                memory=self.query["mru"] * 1024,
-                disk_size=(self.query["sru"] - self.vol_size) * 1024,
+                cpu=self.container_resources["cru"],
+                memory=self.container_resources["mru"] * 1024,
+                disk_size=self.container_resources["sru"] * 1024,
                 volumes=volume_config,
                 env=var_dict,
                 interactive=False,

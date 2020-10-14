@@ -21,7 +21,7 @@ jobs:
           sudo service redis stop
           sudo service nginx stop
           sudo pip3 install poetry
-          sudo poetry run pip3 install pytest
+          sudo poetry run pip3 install pytest selenium
       - name: Install
         run: |
           sudo poetry install
@@ -30,6 +30,8 @@ jobs:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
+          FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
+          FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS \
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
           poetry run pytest tests -s -m "unittests"

@@ -35,7 +35,7 @@
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title v-html="snapshot.id"></v-list-item-title>
-              <v-list-item-subtitle>{{new Date(snapshot.time).toLocaleString()}}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{new Date(snapshot.time).toLocaleString('en-GB')}}</v-list-item-subtitle>
               <v-list-item-subtitle>
                 <v-chip
                   v-for="tag in snapshot.tags"
