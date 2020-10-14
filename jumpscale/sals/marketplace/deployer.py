@@ -323,6 +323,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         hru=0,
         ip_version="IPv6",
         farm_name=None,
+        node_id=None,
     ):
         def is_pool_free(pool, nodes_dict):
             for node_id in pool.node_ids:
@@ -340,6 +341,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             nodes = {node.node_id: node for node in j.sals.zos.get()._explorer.nodes.list()}
         for pool in user_pools:
             if farm_name and self.get_pool_farm_name(pool.pool_id) != farm_name:
+                continue
+            if node_id and node_id not in pool.node_ids:
                 continue
             valid = True
             try:
@@ -373,7 +376,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         pool_id = pool_id or pool.pool_id
         return self.get_farm_name(self.get_pool_farm_id(pool_id=pool_id))
 
-    def get_best_fit_pool(self, pools, expiration, farm_name=None, cru=0, mru=0, sru=0, hru=0):
+    def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, farm_name=None, node_id=None):
         cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
         required_cu = cu * expiration
         required_su = su * expiration
@@ -381,8 +384,12 @@ class MarketPlaceDeployer(ChatflowDeployer):
         over_fit_pools = []  # contains pools that have higher cus AND sus than the required resources
         under_fit_pools = []  # contains pools that have lower cus OR sus than the required resources
         for pool in pools:
-            if self.get_pool_farm_name(pool.pool_id) != farm_name:
+            if farm_name and self.get_pool_farm_name(pool.pool_id) != farm_name:
                 continue
+
+            if node_id and node_id not in pool.node_ids:
+                continue
+
             if pool.cus == required_cu and pool.sus == required_su:
                 exact_fit_pools.append(pool)
             else:

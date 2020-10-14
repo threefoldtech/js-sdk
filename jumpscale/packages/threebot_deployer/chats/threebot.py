@@ -1,4 +1,5 @@
 import uuid
+import random
 from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
@@ -49,6 +50,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.retries = 3
         self.allow_custom_domain = False
         self.custom_domain = False
+        self.currency = "TFT"
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -111,10 +113,21 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         return pubkey == user.pubkey
 
     def _select_node(self):
-        if self.node_policy == "Specific node":
-            return self.selected_node
-        else:
+        if self.node_policy != "Specific node":
             return super()._select_node()
+
+    def _select_pool_node(self):
+        if self.node_policy == "Specific node":
+            self.pool_node_id = self.selected_node
+        else:
+            super()._select_pool_node()
+
+    def _select_farm(self):
+        if self.node_policy == "Automatic":
+            super()._select_farms()
+        else:
+            self.farm_name = random.choice(self.available_farms).name
+            self.pool_farm_name = self.farm_name
 
     @chatflow_step(title="Deployment location policy")
     def choose_location(self):
@@ -153,16 +166,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Deployment location")
     def choose_deployment_location(self):
-        if self.node_policy == "Automatic":
-            pass
-        elif self.node_policy == "Continent":
+        if self.node_policy == "Continent":
             self._ask_for_continent()
         elif self.node_policy == "Farm":
             self._ask_for_farm()
         elif self.node_policy == "Specific node":
             self._ask_for_node()
-        else:
-            assert False
 
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
