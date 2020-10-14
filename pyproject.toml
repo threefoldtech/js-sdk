@@ -2,7 +2,7 @@
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
 
-version = "11.0b9"
+version = "11.1a1"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
