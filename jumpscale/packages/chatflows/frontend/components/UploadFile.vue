@@ -1,7 +1,7 @@
 <template>
   <div>
     <Message :payload="payload"></Message>
-    <v-file-input @change="readFile" prepend-icon="" prepend-inner-icon="mdi-paperclip" :rules="rules" validate-on-blur outlined></v-file-input>
+    <v-file-input @change="readFile" prepend-icon="mdi-paperclip" label="File input" show-size :rules="rules" validate-on-blur outlined></v-file-input>
     <v-sheet v-if="val" color="accent" class="pa-5">
       <pre>{{val}}</pre>
     </v-sheet><br><br>

@@ -110,7 +110,7 @@ module.exports = {
             deployed3Bot = this.deployed3Bots[i];
             if (deployed3Bot.Expiration < DURATION_MAX) {
               let expiration = new Date(deployed3Bot.Expiration * 1000);
-              deployed3Bot.Expiration = expiration.toLocaleString();
+              deployed3Bot.Expiration = expiration.toLocaleString('en-GB');
               if (expiration < today) {
                 deployed3Bot.class = "red--text";
                 deployed3Bot.Expiration = "EXPIRED";
