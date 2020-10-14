@@ -141,7 +141,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
 
     def _ask_for_continent(self):
-        continent = self.single_choice(
+        continent = self.drop_down_choice(
             "Please select the continent you would like to deploy your 3Bot in.",
             list(self.farms_by_continent.keys()),
             required=True,
@@ -150,7 +150,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _ask_for_farm(self):
         farm_name_dict = {farm.name: farm for farm in self.available_farms}
-        farm_name = self.single_choice(
+        farm_name = self.drop_down_choice(
             "Please select the farm you would like to deploy your 3Bot in.", list(farm_name_dict.keys()), required=True
         )
         self.available_farms = [farm_name_dict[farm_name]]
@@ -158,7 +158,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def _ask_for_node(self):
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
         node_id_dict = {node.node_id: node for node in nodes}
-        node_id = self.single_choice(
+        node_id = self.drop_down_choice(
             "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True
         )
         self.selected_node = node_id_dict[node_id]
