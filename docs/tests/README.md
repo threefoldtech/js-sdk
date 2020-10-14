@@ -14,7 +14,7 @@
 
 ### Sals
 
-- [test_nginx_sal](sals/nginx/test_nginx_sal.md)
+- [test_nginx](sals/nginx/test_nginx.md)
 - [test_pools](sals/zos/test_pools.md)
 
 ### Servers
