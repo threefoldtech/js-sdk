@@ -1,10 +1,9 @@
-from jumpscale.sals.nginx.nginx import LocationType
-from jumpscale.sals.nginx.nginx import PORTS
-from tests.base_tests import BaseTests
-from jumpscale.loader import j
-from unittest import TestCase
-from time import time
 import math
+from time import time
+
+from jumpscale.loader import j
+from jumpscale.sals.nginx.nginx import PORTS, LocationType
+from tests.base_tests import BaseTests
 
 HOST = "127.0.0.1"
 NGINX_CONFIG_FILE = "nginx.conf"
