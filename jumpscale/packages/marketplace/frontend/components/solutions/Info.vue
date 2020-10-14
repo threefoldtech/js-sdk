@@ -16,7 +16,7 @@
                       <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
                     </td>
                     <td v-else-if="key === 'Expiration'">
-                      {{ new Date(item * 1000).toLocaleString() }}
+                      {{ new Date(item * 1000).toLocaleString('en-GB') }}
                     </td>
                     <td v-else>{{ item }}</td>
                   </tr>

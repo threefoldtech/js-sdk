@@ -15,7 +15,7 @@
            </template>
 
            <template v-slot:item.last_occurrence="{ item }">
-            {{ new Date(item.last_occurrence * 1000).toLocaleString() }}
+            {{ new Date(item.last_occurrence * 1000).toLocaleString('en-GB') }}
           </template>
 
           <template v-slot:body.prepend="{ headers }">

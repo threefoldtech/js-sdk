@@ -89,11 +89,10 @@ import gevent
 
 
 class TaigaClient(Client):
-    host = fields.String(default="https://projects.threefold.me")
-
     def credential_updated(self, value):
         self._api = None
 
+    host = fields.String(default="https://projects.threefold.me")
     username = fields.String(on_update=credential_updated)
     password = fields.Secret(on_update=credential_updated)
     token = fields.Secret(on_update=credential_updated)

@@ -76,12 +76,12 @@ module.exports = {
         this.date && this.time
           ? new Date(`${this.date} ${this.time}`)
           : new Date();
-      this.dateTime = datetime.toLocaleString();
+      this.dateTime = datetime.toLocaleString('en-GB');
       this.val = Math.floor(datetime.getTime() / 1000);
     },
     setDateTimeValue() {
       let value = this.val; // value here in seconds
-      this.dateTime = new Date(value * 1000).toLocaleString();
+      this.dateTime = new Date(value * 1000).toLocaleString('en-GB');
     },
     update() {
       if (this.date && this.time) this.setValue();

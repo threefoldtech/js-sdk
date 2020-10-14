@@ -18,7 +18,9 @@ class Discourse(MarketPlaceAppsChatflow):
     ]
 
     title = "Discourse"
-    query = {"cru": 1, "mru": 2, "sru": 2}
+    container_resources = {"cru": 1, "mru": 2, "sru": 2}
+    # main container + nginx container
+    query = {"cru": 2, "mru": 3, "sru": 2.5}
 
     @chatflow_step(title="Discourse Setup")
     def discourse_smtp_info(self):
@@ -94,9 +96,9 @@ class Discourse(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.query["cru"],
-            memory=self.query["mru"] * 1024,
-            disk_size=self.query["sru"] * 1024,
+            cpu=self.container_resources["cru"],
+            memory=self.container_resources["mru"] * 1024,
+            disk_size=self.container_resources["sru"] * 1024,
             entrypoint=entrypoint,
             env=env,
             secret_env=secret_env,
