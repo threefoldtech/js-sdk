@@ -53,7 +53,9 @@ class ContainerStatsMonitor:
     # Reservation Parser
     #
     def reservation(self, url):
-        reservation = requests.get(url).json()
+        resp = requests.get(url)
+        resp.raise_for_status()
+        reservation = resp.json()
 
         if not reservation["stats"]:
             raise RuntimeError("No statistics endpoint defined")
