@@ -68,7 +68,7 @@ class Gitea(MarketPlaceAppsChatflow):
         restic_password = form.secret_ask("Restic Password", required=True)
         restic_repository = form.string_ask(
             "Restic Repository Example: `s3:s3backup.tfgw-testnet-01.gateway.tf/testbucket`", required=True, md=True
-        )
+        )  # TODO: AUTOMATE THAT
         form.ask("These credentials will be used to backup your solution.", md=True)
         self.aws_access_key_id = aws_access_key_id.value
         self.aws_secret_access_key = aws_secret_access_key.value

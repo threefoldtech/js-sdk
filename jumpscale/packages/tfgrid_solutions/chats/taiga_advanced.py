@@ -1,19 +1,22 @@
+from nacl.encoding import Base64Encoder
+from nacl.public import PrivateKey
+
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 
 
-class CryptpadDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-cryptpad-latest.flist"
-    SOLUTION_TYPE = "cryptpad"
-    title = "Cryptpad"
+class TaigaDeploy(MarketPlaceAppsChatflow):
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
+    SOLUTION_TYPE = "taiga"
+    title = "Taiga"
     steps = [
         "get_solution_name",
+        "taiga_credentials",
         "upload_public_key",
-        "set_expiration",
-        "cryptpad_info",
         "backup_credentials",
+        "set_expiration",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -21,22 +24,33 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
+    resources = {"cru": 1, "mru": 1, "sru": 4}
     # main container + nginx container
-    query = {"cru": 2, "mru": 2, "sru": 1.5}
-
-    resources = {"cru": 1, "mru": 1, "sru": 1}
+    query = {"cru": 2, "mru": 2, "sru": 4.25}
 
     def _init_solution(self):
         super()._init_solution()
         self.allow_custom_domain = True
 
-    @chatflow_step(title="Cryptpad Information")
-    def cryptpad_info(self):
-        self.user_email = self.user_info()["email"]
-        self._choose_flavor()
-        self.vol_size = self.flavor_resources["sru"]
-        self.vol_mount_point = "/persistent-data"
-        self.query["sru"] += self.vol_size
+    @chatflow_step(title="Taiga Setup")
+    def taiga_credentials(self):
+        user_info = self.user_info()
+        self.user_email = user_info["email"]
+        self.username = user_info["username"]
+        form = self.new_form()
+        EMAIL_HOST_USER = form.string_ask("Please add the host e-mail address for your solution", required=True)
+        EMAIL_HOST = form.string_ask(
+            "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", required=True, md=True
+        )
+        EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
+
+        SECRET_KEY = form.secret_ask("Please add a secret key for your solution", required=True)
+
+        form.ask()
+        self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
+        self.EMAIL_HOST = EMAIL_HOST.value
+        self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
+        self.SECRET_KEY = SECRET_KEY.value
 
     @chatflow_step(title="SSH key (Optional)")
     def upload_public_key(self):
@@ -47,10 +61,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             or ""
         )
         self.public_key = self.public_key.strip()
-
-    @chatflow_step(title="New Expiration")
-    def set_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
 
     @chatflow_step(title="Backup credentials")
     def backup_credentials(self):
@@ -67,88 +77,87 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.restic_password = restic_password.value
         self.restic_repository = restic_repository.value
 
+    @chatflow_step(title="New Expiration")
+    def set_expiration(self):
+        self.expiration = deployer.ask_expiration(self)
+
     @deployment_context()
     def _deploy(self):
-        self.workload_ids = []
         metadata = {
             "name": self.solution_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.solution_name},
         }
         self.solution_metadata.update(metadata)
-        if not self.custom_domain:
-            # reserve subdomain
-            self.workload_ids.append(
-                deployer.create_subdomain(
-                    pool_id=self.gateway_pool.pool_id,
-                    gateway_id=self.gateway.node_id,
-                    subdomain=self.domain,
-                    addresses=self.addresses,
-                    solution_uuid=self.solution_id,
-                    **self.solution_metadata,
-                )
-            )
-            success = deployer.wait_workload(self.workload_ids[0], self)
-            if not success:
-                raise DeploymentFailed(
-                    f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
-                    wid=self.workload_ids[0],
-                )
 
-        # deploy volume
-        vol_id = deployer.deploy_volume(
-            self.pool_id,
-            self.selected_node.node_id,
-            self.vol_size,
+        self.workload_ids = []
+
+        # reserve subdomain
+        subdomain_wid = deployer.create_subdomain(
+            pool_id=self.gateway_pool.pool_id,
+            gateway_id=self.gateway.node_id,
+            subdomain=self.domain,
+            addresses=self.addresses,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )
-        success = deployer.wait_workload(vol_id, self)
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to deploy volume on node {self.selected_node.node_id} {vol_id}. The resources you paid for will be re-used in your upcoming deployments.",
-                solution_uuid=self.solution_id,
-                wid=vol_id,
-            )
-        volume_config = {self.vol_mount_point: vol_id}
 
-        # deploy container
-        var_dict = {"size": str(self.vol_size * 1024), "pub_key": self.public_key}  # in MBs
+        subdomain_wid = deployer.wait_workload(subdomain_wid, self)
+
+        if not subdomain_wid:
+            raise DeploymentFailed(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {subdomain_wid}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=subdomain_wid,
+            )
+
+        private_key = PrivateKey.generate().encode(Base64Encoder).decode()
+        flask_secret = j.data.idgenerator.chars(10)
+        var_dict = {
+            "EMAIL_HOST_USER": self.EMAIL_HOST_USER,
+            "EMAIL_HOST": self.EMAIL_HOST,
+            "TAIGA_HOSTNAME": self.domain,
+            "HTTP_PORT": "80",
+            "THREEBOT_URL": "https://login.threefold.me",
+            "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
+        }
         secret_env = {
             "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
             "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
             "RESTIC_PASSWORD": self.restic_password,
             "RESTIC_REPOSITORY": self.restic_repository,
-            "BACKUP_PATHS": "/persistent_data",
             "CRON_FREQUENCY": "0 0 * * *",  # every 1 day
+            "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
+            "PRIVATE_KEY": private_key,
+            "SECRET_KEY": self.SECRET_KEY,
+            "FLASK_SECRET_KEY": flask_secret,
         }
-        self.workload_ids.append(
-            deployer.deploy_container(
-                pool_id=self.pool_id,
-                node_id=self.selected_node.node_id,
-                network_name=self.network_view.name,
-                ip_address=self.ip_address,
-                flist=self.FLIST_URL,
-                cpu=self.resources["cru"],
-                memory=self.resources["mru"] * 1024,
-                disk_size=self.resources["sru"] * 1024,
-                volumes=volume_config,
-                env=var_dict,
-                secret_env=secret_env,
-                interactive=False,
-                entrypoint="/start.sh",
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
-            )
+
+        self.resv_id = deployer.deploy_container(
+            pool_id=self.pool_id,
+            node_id=self.selected_node.node_id,
+            network_name=self.network_view.name,
+            ip_address=self.ip_address,
+            flist=self.FLIST_URL,
+            cpu=self.resources["cru"],
+            memory=self.resources["mru"] * 1024,
+            disk_size=self.resources["sru"] * 1024,
+            env=var_dict,
+            interactive=False,
+            entrypoint="/start_taiga.sh",
+            public_ipv6=True,
+            secret_env=secret_env,
+            **self.solution_metadata,
+            solution_uuid=self.solution_id,
         )
-        self.resv_id = self.workload_ids[-1]
-        success = deployer.wait_workload(self.workload_ids[-1], self)
+
+        success = deployer.wait_workload(self.resv_id, self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to deploy workload {self.resv_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
+                wid=self.resv_id,
             )
-        # expose solution on nginx container
+
+        # expose taiga container
         _id = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
@@ -157,22 +166,21 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             domain=self.domain,
             email=self.user_email,
             solution_ip=self.ip_address,
-            solution_port=3000,
-            enforce_https=False,
-            proxy_pool_id=self.gateway_pool.pool_id,
+            solution_port=80,
+            enforce_https=True,
             node_id=self.selected_node.node_id,
             solution_uuid=self.solution_id,
+            proxy_pool_id=self.gateway_pool.pool_id,
             log_config=self.nginx_log_config,
             **self.solution_metadata,
         )
+
         success = deployer.wait_workload(_id, self)
         if not success:
-            # solutions.cancel_solution(self.workload_ids)
             raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id}"
-                f" {_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to create TRC container on node {self.selected_node.node_id} {_id}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
+                wid=_id,
             )
 
     @chatflow_step(title="Initializing backup")
@@ -199,4 +207,4 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
 
 
-chat = CryptpadDeploy
+chat = TaigaDeploy
