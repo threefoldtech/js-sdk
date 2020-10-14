@@ -1,11 +1,37 @@
 import pytest
 from chatflows_base import ChatflowsBase
+from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
+from jumpscale.packages.marketplace.bottle.models import UserEntry
 from solutions_automation import deployer
 
 
 @pytest.mark.integration
-class AutomatedChatflows(ChatflowsBase):
+class MarketplaceChatflows(ChatflowsBase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        # Accept Marketplace T&C for testing identity.
+        explorer_url = j.core.identity.me.explorer.url
+        if "testnet" in explorer_url:
+            explorer_name = "testnet"
+        elif "devnet" in explorer_url:
+            explorer_name = "devnet"
+        elif "explorer.grid.tf" in explorer_url:
+            explorer_name = "mainnet"
+        instance_name = f"{explorer_name}_{cls.tname.replace('.3bot', '')}"
+        marketplace_user_factory = StoredFactory(UserEntry)
+        marketplace_user_entry = marketplace_user_factory.get(instance_name)
+        marketplace_user_entry.has_agreed = True
+        marketplace_user_entry.tname = cls.tname
+        marketplace_user_entry.save()
+
+    @classmethod
+    def tearDownClass(cls):
+        # TODO: remove userEntry for accepting T&C
+        pass
+
     def tearDown(self):
         j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
 

@@ -1,18 +1,28 @@
 import os
 from time import time
 
-from chatflows_base import ChatflowsBase
 import pytest
+from chatflows_base import ChatflowsBase
+from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
+from jumpscale.packages.admin.bottle.models import UserEntry
 from redis import Redis
 from solutions_automation import deployer
 
 
 @pytest.mark.integration
-class AutomatedChatflows(ChatflowsBase):
+class TFGridSolutionChatflows(ChatflowsBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+
+        # Accept admin T&C for testing identity.
+        admin_user_factory = StoredFactory(UserEntry)
+        admin_user_entry = admin_user_factory.get(f"{cls.tname.replace('.3bot', '')}")
+        admin_user_entry.has_agreed = True
+        admin_user_entry.tname = cls.tname
+        admin_user_entry.save()
+
         # Create Network
         cls.network_name = cls.random_name()
         cls.wg_conf_path = f"/tmp/{cls.random_name()}.conf"
@@ -42,6 +52,8 @@ class AutomatedChatflows(ChatflowsBase):
         network_view = j.sals.reservation_chatflow.deployer.get_network_view(cls.network_name)
         wids = [w.id for w in network_view.network_workloads]
         j.sals.zos.workloads.decomission(workload_id=wids[0])
+
+        # TODO: remove userEntry for accepting T&C
         super().tearDownClass()
 
     def tearDown(self):

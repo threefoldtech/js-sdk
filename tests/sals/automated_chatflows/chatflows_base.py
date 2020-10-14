@@ -1,8 +1,6 @@
 import os
 
-from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.admin.bottle.models import UserEntry
 from tests.base_tests import BaseTests
 
 
@@ -35,20 +33,14 @@ class ChatflowsBase(BaseTests):
         if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
             cls.me = j.core.identity.me
 
-        # Accept T&C for testing identity.
-        user_factory = StoredFactory(UserEntry)
-        user_entry = user_factory.get(f"{cls.tname.replace('.3bot', '')}")
-        user_entry.has_agreed = True
-        user_entry.tname = cls.tname
-        user_entry.save()
-
         # Configure test identity and start threebot server.
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
         )
         identity.register()
-        j.core.identity.set_default(cls.identity_name)
+        identity.set_default()
+
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
 

@@ -61,6 +61,8 @@ class BaseTest(BaseTests):
         if cls.me:
             cls.me.set_default()
 
+        # TODO: remove userEntry for accepting T&C
+
     def setUp(self):
         # Configure chrome driver and go to the entrypoint.
         options = Options()
