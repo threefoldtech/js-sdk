@@ -15,14 +15,16 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
         "initializing",
         "success",
     ]
+    # main container + nginx container
+    query = {"cru": 2, "mru": 2, "sru": 1.5}
 
-    query = {"cru": 1, "mru": 1, "sru": 0.5}
+    resources = {"cru": 1, "mru": 1, "sru": 1}
 
     @chatflow_step(title="Meetings Information")
     def meetings_info(self):
         self.user_email = self.user_info()["email"]
         self._choose_flavor()
-        self.query["sru"] += self.flavor_resources["sru"]
+        self.resources["sru"] += self.flavor_resources["sru"]
 
     @deployment_context()
     def _deploy(self):
@@ -62,9 +64,9 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.query["cru"],
-            memory=self.query["mru"] * 1024,
-            disk_size=self.query["sru"] * 1024,
+            cpu=self.resources["cru"],
+            memory=self.resources["mru"] * 1024,
+            disk_size=self.resources["sru"] * 1024,
             interactive=False,
             entrypoint="/entrypoint.sh",
             public_ipv6=True,
