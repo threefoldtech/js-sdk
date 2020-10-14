@@ -1,4 +1,5 @@
 import uuid
+import random
 from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
@@ -18,6 +19,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         "upload_public_key",
         "set_backup_password",
+        "choose_location",
+        "choose_deployment_location",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -47,6 +50,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.retries = 3
         self.allow_custom_domain = False
         self.custom_domain = False
+        self.currency = "TFT"
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -107,6 +111,67 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         seed = j.data.encryption.mnemonic_to_key(words)
         pubkey = NACL(seed).get_verify_key_hex()
         return pubkey == user.pubkey
+
+    def _select_node(self):
+        if self.node_policy != "Specific node":
+            return super()._select_node()
+
+    def _select_pool_node(self):
+        if self.node_policy == "Specific node":
+            self.pool_node_id = self.selected_node
+        else:
+            super()._select_pool_node()
+
+    def _select_farm(self):
+        if self.node_policy == "Automatic":
+            super()._select_farms()
+        else:
+            self.farm_name = random.choice(self.available_farms).name
+            self.pool_farm_name = self.farm_name
+
+    @chatflow_step(title="Deployment location policy")
+    def choose_location(self):
+        self._get_available_farms()
+        self.farms_by_continent = deployer.group_farms_by_continent(self.available_farms)
+        choices = ["Automatic", "Farm", "Specific node"]
+        if self.farms_by_continent:
+            choices.insert(1, "Continent")
+        self.node_policy = self.single_choice(
+            "Please select the deployment location policy.", choices, required=True, default="Automatic"
+        )
+
+    def _ask_for_continent(self):
+        continent = self.drop_down_choice(
+            "Please select the continent you would like to deploy your 3Bot in.",
+            list(self.farms_by_continent.keys()),
+            required=True,
+        )
+        self.available_farms = self.farms_by_continent[continent]
+
+    def _ask_for_farm(self):
+        farm_name_dict = {farm.name: farm for farm in self.available_farms}
+        farm_name = self.drop_down_choice(
+            "Please select the farm you would like to deploy your 3Bot in.", list(farm_name_dict.keys()), required=True
+        )
+        self.available_farms = [farm_name_dict[farm_name]]
+
+    def _ask_for_node(self):
+        nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
+        node_id_dict = {node.node_id: node for node in nodes}
+        node_id = self.drop_down_choice(
+            "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True
+        )
+        self.selected_node = node_id_dict[node_id]
+        self.available_farms = [farm for farm in self.available_farms if farm.id == self.selected_node.farm_id]
+
+    @chatflow_step(title="Deployment location")
+    def choose_deployment_location(self):
+        if self.node_policy == "Continent":
+            self._ask_for_continent()
+        elif self.node_policy == "Farm":
+            self._ask_for_farm()
+        elif self.node_policy == "Specific node":
+            self._ask_for_node()
 
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
