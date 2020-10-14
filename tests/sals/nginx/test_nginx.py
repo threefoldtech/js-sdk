@@ -29,7 +29,7 @@ class HTTPServer:
 
     def run(self, port=9090):
         self.instance = j.tools.startupcmd.new(self.instance_name)
-        self.instance.start_cmd = f"python -m http.server {port}"
+        self.instance.start_cmd = f"python3 -m http.server {port}"
         self.instance.start()
         self.instance.save()
 
