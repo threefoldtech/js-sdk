@@ -150,8 +150,8 @@ class ZerotierClient(Client):
     base_url = fields.String(default="https://my.zerotier.com/api")
     token = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._session = None
 
     def _send_request(self, path, method="get", data=None, return_json=True):

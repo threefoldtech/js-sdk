@@ -6,7 +6,9 @@ from .crypto import encrypt_for_node
 
 
 class ZDBGenerator:
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = self._identity.explorer
         self._nodes = explorer.nodes
 
     def create(

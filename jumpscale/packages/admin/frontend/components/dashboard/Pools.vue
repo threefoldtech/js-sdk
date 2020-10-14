@@ -49,7 +49,7 @@
             pool = this.pools[i];
             if (pool.empty_at < 9223372036854775807) {
               let pool_expiration = new Date(pool.empty_at * 1000);
-              pool.empty_at = pool_expiration.toLocaleString();
+              pool.empty_at = pool_expiration.toLocaleString('en-GB');
               if (pool_expiration < today){
                 pool.class = "red--text";
                 pool.empty_at = "EXPIRED"

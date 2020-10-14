@@ -178,6 +178,22 @@ def access_denied():
     return env.get_template("access_denied.html").render(email=email, next_url=next_url)
 
 
+@app.route("/auto_login")
+def auto_login():
+    """Auto login is used for testing for skipping login and use the current user's info instead.
+
+    Returns:
+        Redirect to the admin dashboard.
+    """
+    if j.core.config.get("AUTO_LOGIN"):
+        session = request.environ.get("beaker.session", {})
+        session["username"] = j.core.identity.me.tname
+        session["email"] = j.core.identity.me.email
+        session["authorized"] = True
+
+    return redirect("/admin")
+
+
 def get_user_info():
     """Parse user information from the session object
 

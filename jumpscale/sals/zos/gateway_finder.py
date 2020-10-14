@@ -6,7 +6,9 @@ from typing import List
 class GatewayFinder:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = self._identity.explorer
         self._gateway = explorer.gateway
 
     def filter_is_up(self, gw):

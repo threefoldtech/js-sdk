@@ -3,6 +3,9 @@
 tests:
 	pytest tests -sv
 
+tests-docs:
+	pytest tests -sv --generate-docs --docs-from-scratch
+
 integrationtests:
 	pytest tests -sv -m "integration"
 

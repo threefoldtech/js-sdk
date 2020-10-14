@@ -18,7 +18,9 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    query = {"cru": 2, "mru": 1, "sru": 6}
+    container_resources = {"cru": 2, "mru": 1, "sru": 6}
+    # main container + nginx container
+    query = {"cru": 3, "mru": 2, "sru": 6.5}
 
     @deployment_context()
     def _deploy(self):
@@ -64,13 +66,13 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.query["cru"],
-            memory=self.query["mru"] * 1024,
+            cpu=self.container_resources["cru"],
+            memory=self.container_resources["mru"] * 1024,
             env=var_dict,
             interactive=False,
             entrypoint="/start_gitea.sh",
             public_ipv6=True,
-            disk_size=self.query["sru"] * 1024,
+            disk_size=self.container_resources["sru"] * 1024,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
             solution_uuid=self.solution_id,
             **self.solution_metadata,
