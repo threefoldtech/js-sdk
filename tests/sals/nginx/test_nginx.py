@@ -1,9 +1,10 @@
+from jumpscale.sals.nginx.nginx import LocationType
+from jumpscale.sals.nginx.nginx import PORTS
+from tests.base_tests import BaseTests
 from jumpscale.loader import j
 from unittest import TestCase
 from time import time
-from jumpscale.sals.nginx.nginx import LocationType
 import math
-from jumpscale.sals.nginx.nginx import PORTS
 
 HOST = "127.0.0.1"
 NGINX_CONFIG_FILE = "nginx.conf"
@@ -22,14 +23,10 @@ def request_content(url, verify=False):
     return j.tools.http.get(url, verify=verify).content.decode()
 
 
-def random_name():
-    return j.data.random_names.random_name()
-
-
 class HTTPServer:
     def __init__(self):
         self.instance = None
-        self.instance_name = random_name()
+        self.instance_name = j.data.random_names.random_name()
 
     def run(self, port=9090):
         self.instance = j.tools.startupcmd.new(self.instance_name)
@@ -45,7 +42,7 @@ class HTTPServer:
         self.instance = None
 
 
-class TestNginxSal(TestCase):
+class TestNginxSal(BaseTests):
     def setUp(self):
         self.nginx_conf = j.sals.nginx.get("testing")
         self.config_base_dir = self.nginx_conf.cfg_dir
@@ -66,19 +63,19 @@ class TestNginxSal(TestCase):
 
         http_link = f"http://{HOST}:8999"
 
-        j.logger.info("Configuring the nginx server")
+        self.info("Configuring the nginx server")
         self.nginx_conf.configure()
-        j.logger.info("Starting the nginx server")
+        self.info("Starting the nginx server")
         self.nginx_server.start()
-        j.logger.info("Checking the config is stored and the server is started")
+        self.info("Checking the config is stored and the server is started")
         self.assertTrue(j.sals.fs.is_file(j.sals.fs.join_paths(self.config_base_dir, NGINX_CONFIG_FILE)))
         self.assertTrue(j.sals.nettools.wait_http_test(http_link, 5))
         self.assertIn("Welcome to 3Bot", request_content(http_link))
-        j.logger.info("Cleaning up the config and stoping the server")
+        self.info("Cleaning up the config and stoping the server")
         self.nginx_server.stop()
         self.nginx_conf.clean()
 
-        j.logger.info("Checking the server is stopped")
+        self.info("Checking the server is stopped")
         self.assertFalse(j.sals.fs.is_file(j.sals.fs.join_paths(self.config_base_dir, NGINX_CONFIG_FILE)))
         self.assertTrue(wait_connection_lost_test(http_link, 5))
 
@@ -91,7 +88,7 @@ class TestNginxSal(TestCase):
         - Check they're served.
         """
         static_website = self.nginx_conf.get_website("http_website")
-        endpoint = random_name()
+        endpoint = self.random_name()
         static_location = static_website.locations.get(
             "static",
             path_url=f"/{endpoint}",
@@ -100,19 +97,19 @@ class TestNginxSal(TestCase):
             is_auth=False,
             is_admin=False,
         )
-        j.logger.info("Starting the nginx server")
+        self.info("Starting the nginx server")
         self.nginx_server.start()
-        j.logger.info("Configuring the website")
+        self.info("Configuring the website")
         static_website.configure()
-        j.logger.info("Configuring the location to serve the static website")
+        self.info("Configuring the location to serve the static website")
         static_location.configure()
-        j.logger.info("Reloading the nginx server config")
+        self.info("Reloading the nginx server config")
         self.nginx_server.reload()
 
         hello_world_page = f"http://{HOST}/{endpoint}/"
         another_hello_world_page = f"http://{HOST}/{endpoint}/another.html"
 
-        j.logger.info("Checking the two web pages are served correctly")
+        self.info("Checking the two web pages are served correctly")
         self.assertIn("Hello", request_content(hello_world_page))
         self.assertIn("Another", request_content(another_hello_world_page))
 
@@ -127,10 +124,10 @@ class TestNginxSal(TestCase):
         """
         proxy_website = self.nginx_conf.get_website("http_website")
 
-        j.logger.info("Initializing a minimal http server")
+        self.info("Initializing a minimal http server")
         http_port = j.data.idgenerator.random_int(8000, 9000)
         self.server.run(http_port)
-        endpoint = random_name()
+        endpoint = self.random_name()
         proxy_location = proxy_website.locations.get(
             "proxy",
             path_url=f"/{endpoint}/",
@@ -140,17 +137,17 @@ class TestNginxSal(TestCase):
             is_auth=False,
             is_admin=False,
         )
-        j.logger.info("Starting nginx server")
+        self.info("Starting nginx server")
         self.nginx_server.start()
-        j.logger.info("Configuring the website")
+        self.info("Configuring the website")
         proxy_website.configure()
-        j.logger.info("Configuring the location to serve as a proxy for the http server")
+        self.info("Configuring the location to serve as a proxy for the http server")
         proxy_location.configure()
-        j.logger.info("Reloading nginx server config")
+        self.info("Reloading nginx server config")
         self.nginx_server.reload()
 
         proxy_url = f"http://{HOST}/{endpoint}/"
-        j.logger.info("Checking the http is served")
+        self.info("Checking the http is served")
         self.assertIn("Directory listing for", request_content(proxy_url))
 
     def test04_custom_location(self):
@@ -164,7 +161,7 @@ class TestNginxSal(TestCase):
         custom_website = self.nginx_conf.get_website("http_website")
         custom_location = custom_website.locations.get("custom", location_type=LocationType.CUSTOM)
         static_url = j.sals.fs.join_paths(DIR_PATH, "static")
-        endpoint = random_name()
+        endpoint = self.random_name()
         custom_location.custom_config = f"""
         location /{endpoint} {{
             set $req_host $host;
@@ -176,17 +173,17 @@ class TestNginxSal(TestCase):
             index another.html;
         }}
         """
-        j.logger.info("Starting nginx server")
+        self.info("Starting nginx server")
         self.nginx_server.start()
-        j.logger.info("Configuring the website")
+        self.info("Configuring the website")
         custom_website.configure()
-        j.logger.info("Configuring the custom location to serve a static website")
+        self.info("Configuring the custom location to serve a static website")
         custom_location.configure()
-        j.logger.info("Reloading nginx server config")
+        self.info("Reloading nginx server config")
         self.nginx_server.reload()
 
         proxy_url = f"http://{HOST}/{endpoint}/"
-        j.logger.info("Checking the two website are served correctly")
+        self.info("Checking the two website are served correctly")
         self.assertIn("Another hello world", request_content(proxy_url))
 
     def test05_ssl_location(self):
@@ -199,7 +196,7 @@ class TestNginxSal(TestCase):
         ssl_website.ssl = True
         ssl_website.port = 443
         ssl_website.domain = "localhost"
-        j.logger.info("Starting a minimal http server")
+        self.info("Starting a minimal http server")
         http_port = j.data.idgenerator.random_int(8000, 9000)
         self.server.run(http_port)
         proxy_location = ssl_website.locations.get(
@@ -211,19 +208,19 @@ class TestNginxSal(TestCase):
             is_auth=False,
             is_admin=False,
         )
-        j.logger.info("Starting nginx server")
+        self.info("Starting nginx server")
         self.nginx_server.start()
-        j.logger.info("Configuring a website serving over https")
+        self.info("Configuring a website serving over https")
         ssl_website.configure()
-        j.logger.info("Configuring the location to serve as a proxy for the http server")
+        self.info("Configuring the location to serve as a proxy for the http server")
         proxy_location.configure()
-        j.logger.info("Reloading nginx server config")
+        self.info("Reloading nginx server config")
         self.nginx_server.reload()
 
         proxy_url = f"https://localhost/"
-        j.logger.info("Checking the website is served correctly")
+        self.info("Checking the website is served correctly")
         self.assertIn("Directory listing for", request_content(proxy_url))
-        j.logger.info("Stopping the http server")
+        self.info("Stopping the http server")
 
     def test06_local_server(self):
         """Test case for serving a site over https using on a local port.
@@ -231,10 +228,10 @@ class TestNginxSal(TestCase):
         **Test Scenario**
         - Same scenario as the https scenario served over local https port.
         """
-        j.logger.info("Finding a free local port")
+        self.info("Finding a free local port")
         PORTS.init_default_ports(local=True)
         port = PORTS.HTTPS
-        endpoint = random_name()
+        endpoint = self.random_name()
         static_website = self.nginx_conf.get_website("http_website")
         static_website.ssl = True
         static_website.port = port
@@ -247,18 +244,18 @@ class TestNginxSal(TestCase):
             is_auth=False,
             is_admin=False,
         )
-        j.logger.info("Starting the nginx server")
+        self.info("Starting the nginx server")
         self.nginx_server.start()
-        j.logger.info("Configuring the website")
+        self.info("Configuring the website")
         static_website.configure()
-        j.logger.info("Configuring the location to serve the static website")
+        self.info("Configuring the location to serve the static website")
         static_location.configure()
-        j.logger.info("Reloading the nginx server config")
+        self.info("Reloading the nginx server config")
         self.nginx_server.reload()
 
         hello_world_http_page = f"https://localhost:{port}/{endpoint}/"
         hello_world_https_page = f"https://localhost:{port}/{endpoint}/"
-        j.logger.info("Checking the two web pages are served correctly")
+        self.info("Checking the two web pages are served correctly")
         self.assertIn("Hello", request_content(hello_world_http_page))
         self.assertIn("Hello", request_content(hello_world_https_page))
 
