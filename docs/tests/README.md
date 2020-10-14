@@ -8,10 +8,14 @@
 
 - [test_identity](core/identity/test_identity.md)
 
+### Frontend
+
+- [test_wallets](frontend/tests/test_wallets.md)
+
 ### Sals
 
-- [test_pools](sals/zos/test_pools.md)
 - [test_nginx_sal](sals/nginx/test_nginx_sal.md)
+- [test_pools](sals/zos/test_pools.md)
 
 ### Servers
 
