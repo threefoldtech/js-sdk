@@ -6,11 +6,21 @@ import os
 import requests
 from jumpscale.loader import j
 from jumpscale.packages.backup.actors.threebot_deployer import Backup
+from jumpscale.packages.admin.actors.wallet import Wallet
+
+EXTENSION_WALLET = "extension_wallet"
+
+
+def create_mainnet_wallet(wallet_name):
+    wallet_actor = Wallet()
+    try:
+        wallet_actor.create_wallet(wallet_name)
+    except Exception:
+        pass
 
 
 def main():
     BACKUP_ACTOR = Backup()
-
     instance_name = os.environ.get("INSTANCE_NAME")
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
@@ -42,6 +52,7 @@ def main():
         identity.save()
 
     j.core.identity.set_default("main")
+    create_mainnet_wallet(EXTENSION_WALLET)
 
     if backup_password:
         # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
