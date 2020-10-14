@@ -15,9 +15,9 @@ class S3Client(Client):
     secret_key = fields.String()
     bucket = fields.String()
     create_bucket = fields.Boolean()
-    
-    def __init__(self):
-        super().__init__()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # Create the http client to be able to set timeout
         http_client = urllib3.PoolManager(
             timeout=5,
@@ -34,7 +34,7 @@ class S3Client(Client):
             http_client=http_client,
         )
 
-        if self.bucket_create:
+        if self.create_bucket:
             self._bucket_create(self.bucket)
 
     def _bucket_create(self, name):
@@ -77,7 +77,7 @@ class S3Client(Client):
         :type object_name: str
         :param file_path: local path to which object data will be written
         :type file_path: str
-        :return: object stat info (includes: size, etag, content_type,last_modified, metadata) 
+        :return: object stat info (includes: size, etag, content_type,last_modified, metadata)
         :rtype: Object
         """
 
@@ -93,7 +93,7 @@ class S3Client(Client):
 
     def list_objects(self, bucket_name, prefix=None, recursive=None):
         """List objects in a specific bucket
-        
+
         :param bucket_name: name of bucket
         :type bucket_name: str
         :param prefix: prefix of the objects that should be listed, defaults to None
@@ -116,7 +116,7 @@ class S3Client(Client):
 
     def remove_object(self, bucket_name, object_name):
         """Remove object from bucket
-        
+
         :param bucket_name: name of bucket
         :type bucket_name: str
         :param object_name: name of object to be removed
