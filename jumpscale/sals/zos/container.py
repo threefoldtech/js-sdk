@@ -98,9 +98,9 @@ class ContainerGenerator:
           str: encrypted string
         """
         bkey = base58.b58decode(node_id)
-        node_public = binascii.hexlify(bkey)
+        node_public_hex = binascii.hexlify(bkey)
 
-        encrypted = encrypt_for_node(self._identity, node_public, value)
+        encrypted = encrypt_for_node(self._identity, node_public_hex, value)
         return encrypted.decode()
 
     def add_logs(
