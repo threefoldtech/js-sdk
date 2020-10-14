@@ -55,8 +55,9 @@ class TestNginxSal(TestCase):
         self.server = HTTPServer()
 
     def test01_basic(self):
-        """ # Test case for server initialization with default config
-        Test Scenario
+        """Test case for server initialization with default config.
+
+        **Test Scenario:**
         1. Start the nginx server.
         2. Check the config is stored and the server is started.
         3. Clean up the config and stop the server.

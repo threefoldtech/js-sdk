@@ -11,6 +11,7 @@
 ### Sals
 
 - [test_pools](sals/zos/test_pools.md)
+- [test_nginx_sal](sals/nginx/test_nginx_sal.md)
 
 ### Servers
 
@@ -21,3 +22,7 @@
 - [test_nginx](tools/nginx/test_nginx.md)
 - [test_redis](tools/redis/test_redis.md)
 - [test_restic](tools/restic/test_restic.md)
+
+### Frontend
+
+- [test_wallets](frontend/tests/test_wallets.md)
