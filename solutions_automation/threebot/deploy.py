@@ -1,6 +1,7 @@
-from jumpscale.packages.threebot_deployer.chats.threebot import ThreebotDeploy
-from utils.gedispatch import GedisChatBotPatch, read_file
 from textwrap import dedent
+
+from jumpscale.packages.threebot_deployer.chats.threebot import ThreebotDeploy
+from solutions_automation.utils.gedispatch import GedisChatBotPatch, read_file
 
 
 class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):

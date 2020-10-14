@@ -1,5 +1,5 @@
 from jumpscale.packages.threebot_deployer.chats.extend import ExtendThreebot
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class ThreebotExtendAutomated(GedisChatBotPatch, ExtendThreebot):

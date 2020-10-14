@@ -1,5 +1,5 @@
 from jumpscale.packages.tfgrid_solutions.chats.pools import PoolReservation
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class PoolAutomated(GedisChatBotPatch, PoolReservation):

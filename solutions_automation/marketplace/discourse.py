@@ -1,5 +1,5 @@
 from jumpscale.packages.marketplace.chats.discourse import Discourse
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class DiscourseAutomated(GedisChatBotPatch, Discourse):

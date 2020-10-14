@@ -1,5 +1,5 @@
 from jumpscale.packages.tfgrid_solutions.chats.network import NetworkDeploy
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):

@@ -1,5 +1,5 @@
 from jumpscale.packages.tfgrid_solutions.chats.delegated_domain import DomainDelegation
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class DomainDelegationAutomated(GedisChatBotPatch, DomainDelegation):

@@ -9,13 +9,13 @@ class WalletTests(BaseTest):
         """Test case for creating a wallet and deleting it.
 
         **Test Scenario**
-        #. Create a wallet.
-        #. Check that the wallet has been created in the wallets cards.
-        #. Delete the wallet.
-        #. Check that the wallet has been deleted from the wallets cards.
+        - Create a wallet.
+        - Check that the wallet has been created in the wallets cards.
+        - Delete the wallet.
+        - Check that the wallet has been deleted from the wallets cards.
         """
         self.info("Create a wallet.")
-        wallet_name = self.random_str()
+        wallet_name = self.random_name()
         wallets = Wallets(self.driver)
         wallets.load()
         wallets.create(wallet_name)

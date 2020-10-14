@@ -1,8 +1,9 @@
 from os import environ
 from random import randint
+
+from gevent import sleep
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
-from gevent import sleep
 
 
 class Test3BotServer(BaseTests):
@@ -15,7 +16,7 @@ class Test3BotServer(BaseTests):
 
     @classmethod
     def setUpClass(cls):
-        if not (cls.tname and cls.email and cls.words):
+        if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
         cls.me = None
         if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
@@ -24,7 +25,7 @@ class Test3BotServer(BaseTests):
             cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
         )
         myid.register()
-        j.core.identity.set_default(cls.MYID_NAME)
+        myid.set_default()
         myid.save()
 
     def tearDown(self):
@@ -34,7 +35,7 @@ class Test3BotServer(BaseTests):
     def tearDownClass(cls):
         j.core.identity.delete(cls.MYID_NAME)
         if cls.me:
-            j.core.identity.set_default(cls.me.instance_name)
+            cls.me.set_default()
 
     def wait_for_server_to_stop(self, host, port, timeout):
         for _ in range(timeout):
