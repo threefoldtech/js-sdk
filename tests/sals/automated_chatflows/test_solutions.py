@@ -315,11 +315,10 @@ class AutomatedChatflows(ChatflowsBase):
         """
         self.info("create pool")
         name = self.random_name()
-        wallet_name = os.environ.get("WALLET_NAME")
-        pool = deployer.create_pool(solution_name=name, wallet_name=wallet_name,)
+        deployer.create_pool(solution_name=name, wallet_name="demos_wallet")
 
         self.info("extend pool")
-        extent_pool = deployer.extend_pool(pool_name=name, wallet_name=wallet_name, cu=2, su=2)
+        extent_pool = deployer.extend_pool(pool_name=name, wallet_name="demos_wallet", cu=2, su=2)
 
         self.info("check that cu and su as reserved")
         reservation_id = extent_pool.pool_data.reservation_id
