@@ -159,14 +159,12 @@ class ContainerGenerator:
         """
         Try to reach endpoint from container statistics and fetch stats when available
         """
-        if len(container.stats) == 0:
+        if not container.stats:
             return False
 
         stats = ContainerStatsMonitor()
         stats.endpoint(container.stats[0].data.endpoint)
         stats.monitor()
-
-        return True
 
     def monitor_reservation(self, reservation):
         """
@@ -175,5 +173,3 @@ class ContainerGenerator:
         stats = ContainerStatsMonitor()
         stats.reservation(reservation)
         stats.monitor()
-
-        return True

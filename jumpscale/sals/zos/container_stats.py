@@ -1,3 +1,4 @@
+from jumpscale.loader import j
 from urllib.parse import urlparse
 import requests
 import json
@@ -29,7 +30,7 @@ class ContainerStatsMonitor:
     def reservation(self, url):
         reservation = requests.get(url).json()
 
-        if len(reservation['stats']) == 0:
+        if not reservation['stats']:
             raise RuntimeError("No statistics endpoint defined")
 
         if reservation['stats'][0]['type'] != "redis":
@@ -54,7 +55,7 @@ class ContainerStatsMonitor:
     #
     def dump(self, stats):
         # initial message
-        if self.previous == None:
+        if not self.previous:
             self.previous = stats
             return
 
@@ -71,7 +72,7 @@ class ContainerStatsMonitor:
     #
     def monitor_once(self):
         data = self.pubsub.get_message(timeout=1)
-        if data == None:
+        if not data:
             return
 
         if data['type'] != 'message':
@@ -88,12 +89,3 @@ class ContainerStatsMonitor:
         while True:
             self.monitor_once()
 
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        raise RuntimeError("Missing reservation url argument")
-
-    # url = "https://explorer.maxux.net/api/v1/reservations/workloads/103"
-    url = sys.argv[1]
-
-    s = ContainerStats(url)
-    s.monitor()
