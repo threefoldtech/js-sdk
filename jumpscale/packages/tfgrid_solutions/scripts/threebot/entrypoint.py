@@ -8,7 +8,7 @@ from jumpscale.loader import j
 from jumpscale.packages.backup.actors.threebot_deployer import Backup
 from jumpscale.packages.admin.actors.wallet import Wallet
 
-EXTENSION_WALLET = "extension_wallet"
+EXTENSION_WALLET = "mainnet_Wallet"
 
 
 def create_mainnet_wallet(wallet_name):

@@ -114,7 +114,7 @@
      <v-dialog
       v-model="announcement_dialog"
       persistent
-      max-width="290"
+      max-width="500"
     >
 
       <v-card>
@@ -122,7 +122,9 @@
           Quick start guide
         </v-card-title>
         <v-card-text>
-        We've created a wallet named extension_wallet. Make sure it's well funded enough to extend the 3Bot in case its expiration date approaches.
+        We've created a wallet named mainnet_Wallet. Make sure it's well funded enough to extend the 3Bot in case its expiration date approaches.
+        <br />
+        Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
