@@ -122,7 +122,7 @@
           Quick start guide
         </v-card-title>
         <v-card-text>
-        We've created a wallet named mainnet_Wallet. Make sure it's well funded enough to extend the 3Bot in case its expiration date approaches.
+        We've created a test and a main wallet. Make sure they're funded enough to extend the 3Bot in case its expiration date approaches.
         <br />
         Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
         </v-card-text>

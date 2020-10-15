@@ -6,17 +6,6 @@ import os
 import requests
 from jumpscale.loader import j
 from jumpscale.packages.backup.actors.threebot_deployer import Backup
-from jumpscale.packages.admin.actors.wallet import Wallet
-
-EXTENSION_WALLET = "mainnet_Wallet"
-
-
-def create_mainnet_wallet(wallet_name):
-    wallet_actor = Wallet()
-    try:
-        wallet_actor.create_wallet(wallet_name)
-    except Exception:
-        pass
 
 
 def main():
@@ -52,17 +41,8 @@ def main():
         identity.save()
 
     j.core.identity.set_default("main")
-    create_mainnet_wallet(EXTENSION_WALLET)
-    j.config.set("HOSTED_3BOT", True)
-    j.config.set("ANNOUNCED", False)
-    if backup_password:
-        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
-        # Create a funded wallet to the threebot testnet
-        try:
-            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
-        except Exception as e:
-            j.logger.error(str(e))
 
+    if backup_password:
         # Sanitation for the case user deleted his old backups!
         try:
             BACKUP_ACTOR.init(backup_password, new=False)
