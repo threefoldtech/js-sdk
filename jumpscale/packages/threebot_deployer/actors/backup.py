@@ -57,10 +57,10 @@ class Backup(BaseActor):
         else:
             try:
                 self.ssh_server1.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    f"cd /root/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
                 self.ssh_server2.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    f"cd /root/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
             except:
                 raise j.exceptions.Value(f"3Bot name or password is incorrect")
@@ -89,10 +89,10 @@ class Backup(BaseActor):
 
         try:
             _, res, _ = self.ssh_server1.sshclient.run(
-                f"cd /home/backup_config;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
+                f"cd /root/backup;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
             )
             _, res, _ = self.ssh_server2.sshclient.run(
-                f"cd /home/backup_config;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
+                f"cd /root/backup;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
             )
         except:
             raise j.exceptions.Value("failed to check 3bot deployer backup is exist or not")
@@ -100,15 +100,17 @@ class Backup(BaseActor):
         return True if res.strip() == "yes" else False
 
     @actor_method
-    def list_backup(self) -> set:
+    def list_backup(self) -> list:
         """List all backups
 
         Returns:
             list : list of string of all available backups
         """
-        backup_path = "/root/home/backup"
+        backup_path = "/root/backup"
+        res = []
         try:
             _, res1, _ = self.ssh_server1.sshclient.run(f"ls {backup_path}")
+            res.extend(res1.strip().split("\n"))
         except:
             msg = "failed to check 3bot deployer backup is exist or not on server 1"
             j.logger.warning(msg)
@@ -117,14 +119,14 @@ class Backup(BaseActor):
             )
         try:
             _, res2, _ = self.ssh_server2.sshclient.run(f"ls {backup_path}")
+            res.extend(res2.strip().split("\n"))
         except:
             msg = "failed to check 3bot deployer backup is exist or not on server 2"
             j.logger.warning(msg)
             j.tools.alerthandler.alert_raise(
                 appname="backup", category="internal_errors", message=msg, alert_type="exception"
             )
-        res = res1.strip().split("\n") + res2.strip().split("\n")
-        return set(res)
+        return list(set(res))
 
 
 Actor = Backup
