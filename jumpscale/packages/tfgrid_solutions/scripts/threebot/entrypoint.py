@@ -53,7 +53,8 @@ def main():
 
     j.core.identity.set_default("main")
     create_mainnet_wallet(EXTENSION_WALLET)
-
+    j.config.set("HOSTED_3BOT", True)
+    j.config.set("ANNOUNCED", False)
     if backup_password:
         # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
         # Create a funded wallet to the threebot testnet

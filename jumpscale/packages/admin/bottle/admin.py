@@ -8,6 +8,7 @@ from jumpscale.core.base import StoredFactory
 
 app = Bottle()
 
+
 @app.route("/api/allowed", method="GET")
 @login_required
 def allowed():
@@ -42,6 +43,27 @@ def accept():
         return HTTPResponse(
             j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
+
+
+@app.route("/api/announced", method="GET")
+@login_required
+def announced():
+    hosted = j.config.get("HOSTED_3BOT") == True
+    announced_conf = j.config.get("ANNOUNCED") == True
+    result = not hosted or hosted and announced_conf
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"announced": result}), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
+@app.route("/api/announce", method="GET")
+@login_required
+def announce():
+    j.config.set("ANNOUNCED", True)
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"announced": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
