@@ -48,9 +48,7 @@ def accept():
 @app.route("/api/announced", method="GET")
 @login_required
 def announced():
-    hosted = j.config.get("HOSTED_3BOT") == True
-    announced_conf = j.config.get("ANNOUNCED") == True
-    result = not hosted or hosted and announced_conf
+    result = bool(j.config.get("ANNOUNCED"))
 
     return HTTPResponse(
         j.data.serializers.json.dumps({"announced": result}), status=200, headers={"Content-Type": "application/json"}
