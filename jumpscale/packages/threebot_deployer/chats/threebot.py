@@ -8,6 +8,12 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
+FLAVORS = {
+    "Silver": {"cru": 1, "mru": 2, "sru": 2},
+    "Gold": {"cru": 2, "mru": 4, "sru": 4},
+    "Platinum": {"cru": 4, "mru": 8, "sru": 8},
+}
+
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-js-sdk-latest.flist"
@@ -87,15 +93,15 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Deployer Information")
     def deployer_info(self):
         self.user_email = self.user_info()["email"]
-        self._choose_flavor()
+        self._choose_flavor(FLAVORS)
         self.vol_size = self.flavor_resources["sru"]
-        self.container_resources["sru"] += self.vol_size
+        self.container_resources = self.flavor_resources
 
     @chatflow_step(title="SSH key (Optional)")
     def upload_public_key(self):
         self.public_key = (
             self.upload_file(
-                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh"
             )
             or ""
         )
