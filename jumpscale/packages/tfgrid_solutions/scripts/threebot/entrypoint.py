@@ -10,7 +10,6 @@ from jumpscale.packages.backup.actors.threebot_deployer import Backup
 
 def main():
     BACKUP_ACTOR = Backup()
-
     instance_name = os.environ.get("INSTANCE_NAME")
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
@@ -44,13 +43,6 @@ def main():
     j.core.identity.set_default("main")
 
     if backup_password:
-        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
-        # Create a funded wallet to the threebot testnet
-        try:
-            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
-        except Exception as e:
-            j.logger.error(str(e))
-
         # Sanitation for the case user deleted his old backups!
         try:
             BACKUP_ACTOR.init(backup_password, new=False)

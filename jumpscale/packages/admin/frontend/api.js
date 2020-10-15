@@ -463,5 +463,19 @@ const apiClient = {
                 method: "get"
             })
         },
+    },
+    announcement: {
+      announced: () => {
+        return axios({
+          url: `/admin/api/announced`,
+          method: "get"
+        })
+      },
+      announce: () => {
+        return axios({
+          url: `/admin/api/announce`,
+          method: "get"
+        })
+      },
     }
 }
