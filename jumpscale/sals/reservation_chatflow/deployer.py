@@ -621,14 +621,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         encrypted_metadata = base64.b85encode(box.encrypt(metadata.encode())).decode()
         return encrypted_metadata
 
-    def deploy_network(self, name, access_node, ip_range, ip_version, pool_id, **metadata):
-        network = j.sals.zos.get().network.create(ip_range, name)
+    def deploy_network(self, name, access_node, ip_range, ip_version, pool_id, identity_name=None, **metadata):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        network = j.sals.zos.get(identity_name).network.create(ip_range, name)
         node_subnets = netaddr.IPNetwork(ip_range).subnet(24)
         network_config = dict()
         use_ipv4 = ip_version == "IPv4"
 
-        j.sals.zos.get().network.add_node(network, access_node.node_id, str(next(node_subnets)), pool_id)
-        wg_quick = j.sals.zos.get().network.add_access(
+        j.sals.zos.get(identity_name).network.add_node(network, access_node.node_id, str(next(node_subnets)), pool_id)
+        wg_quick = j.sals.zos.get(identity_name).network.add_access(
             network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4
         )
 
@@ -642,7 +643,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
             workload.info.metadata = self.encrypt_metadata(metadata)
-            ids.append(j.sals.zos.get().workloads.deploy(workload))
+            ids.append(j.sals.zos.get(identity_name).workloads.deploy(workload))
             parent_id = ids[-1]
         network_config["ids"] = ids
         network_config["rid"] = ids[0]

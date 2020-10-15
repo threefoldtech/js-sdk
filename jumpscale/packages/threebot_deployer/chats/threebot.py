@@ -35,7 +35,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _threebot_start(self):
         self._validate_user()
-        self.branch = "development"
+        self.branch = "development_3botdeployer_identity_usage"
         self.solution_id = uuid.uuid4().hex
         self.username = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
@@ -51,6 +51,72 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.allow_custom_domain = False
         self.custom_domain = False
         self.currency = "TFT"
+
+    def _create_identities(self):
+        instance_name = self.solution_name
+        threebot_name = self.threebot_name
+        tname = f"{threebot_name}_{instance_name}"
+        email = f"{tname}@threefold.me"
+        words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
+        self.mainnet_identity_name = f"{tname}_main"
+        self.testnet_identity_name = f"{tname}_test"
+        try:
+            identity_main = j.core.identity.get(
+                self.mainnet_identity_name,
+                tname=tname,
+                email=email,
+                words=words,
+                explorer_url="https://explorer.grid.tf/api/v1",
+            )
+            identity_test = j.core.identity.get(
+                self.testnet_identity_name,
+                tname=tname,
+                email=email,
+                words=words,
+                explorer_url="https://explorer.testnet.grid.tf/api/v1",
+            )
+            identities = [identity_main, identity_test]
+            for identity in identities:
+                identity.admins.append(f"{threebot_name}.3bot")
+                identity.register()
+                identity.save()
+
+        except:
+            raise StopChatFlow(
+                "Couldn't register new identites with the given name. Make sure you entered the correct password."
+            )
+
+    def _get_pool(self):
+        self._get_available_farms()
+        self._select_farms()
+        self._select_pool_node()
+        self.pool_info = deployer.create_3bot_pool(
+            self.farm_name,
+            self.expiration,
+            currency=self.currency,
+            identity_name=self.mainnet_identity_name,
+            **self.query,
+        )
+        if not all(
+            [
+                self.pool_info.escrow_information.address.strip() != "",
+                self.pool_info.escrow_information.address.strip() != "",
+            ]
+        ):
+            raise StopChatFlow(
+                f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
+            )
+        deployer.pay_for_pool(self.pool_info)
+        result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+        if not result:
+            raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+        self.wgcfg = deployer.init_new_user_network(
+            self,
+            self.solution_metadata["owner"],
+            self.pool_info.reservation_id,
+            identity_name=self.mainnet_identity_name,
+        )
+        self.pool_id = self.pool_info.reservation_id
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -172,6 +238,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             self._ask_for_farm()
         elif self.node_policy == "Specific node":
             self._ask_for_node()
+        self._create_identities()
 
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):

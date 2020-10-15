@@ -23,10 +23,6 @@ def main():
 
     new = True
 
-    resp = requests.get("https://explorer.grid.tf/api/v1/users", params={"name": tname})
-    if resp.json():
-        new = False
-
     j.logger.info("Generating guest identity ...")
     identity_main = j.core.identity.get(
         "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"

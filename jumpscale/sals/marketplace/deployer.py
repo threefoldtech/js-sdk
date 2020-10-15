@@ -317,6 +317,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool.save()
         return pool_info
 
+    def create_3bot_pool(self, farm_name, expiration, currency, identity_name, **resources):
+        cu, su = self.calculate_capacity_units(**resources)
+        pool_info = j.sals.zos.get(identity_name).pools.create(
+            int(cu * expiration), int(su * expiration), farm_name, [currency]
+        )
+        return pool_info
+
     def create_gateway_emptypool(self, gwpool_name, farm_name):
         pool_info = j.sals.zos.get().pools.create(0, 0, farm_name, ["TFT"])
         user_pool = pool_factory.get(gwpool_name)
@@ -429,17 +436,18 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4"):
+    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4", identity_name=None):
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, pool_ids=[pool_id], ip_version=ip_version
         )[0]
-
+        identity_name = identity_name or j.core.identity.me.instance_name
         result = self.deploy_network(
             name=f"{username}_apps",
             access_node=access_node,
             ip_range="10.100.0.0/16",
             ip_version="IPv4",
             pool_id=pool_id,
+            identity_name=identity_name,
             owner=username,
         )
         for wid in result["ids"]:
@@ -447,11 +455,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 success = self.wait_workload(wid, bot=bot)
             except StopChatFlow as e:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.get().workloads.decomission(sol_wid)
+                    j.sals.zos.get(identity_name).workloads.decomission(sol_wid)
                 raise e
             if not success:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.get().workloads.decomission(sol_wid)
+                    j.sals.zos.get(identity_name).workloads.decomission(sol_wid)
                 raise DeploymentFailed(
                     f"Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=wid,
