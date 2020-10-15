@@ -18,7 +18,7 @@ GEDIS = "gedis"
 GEDIS_HTTP = "gedis_http"
 GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
-NOTIFICATION_SERVICE = "notification_service"
+SERVICE_MANAGER = "service_manager"
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {
@@ -612,14 +612,14 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
-        self._notification_service = None
+        self._services = None
         self._packages = None
         self._started = False
         self._nginx = None
         self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
-        self.rack.add(NOTIFICATION_SERVICE, self.notification_service)
+        self.rack.add(SERVICE_MANAGER, self.services)
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
@@ -670,10 +670,10 @@ class ThreebotServer(Base):
         return self._gedis_http
 
     @property
-    def notification_service(self):
-        if self._notification_service is None:
-            self._notification_service = j.tools.notifications.get("threebot")
-        return self._notification_service
+    def services(self):
+        if self._services is None:
+            self._services = j.tools.servicemanager.get("threebot")
+        return self._services
 
     @property
     def chatbot(self):
