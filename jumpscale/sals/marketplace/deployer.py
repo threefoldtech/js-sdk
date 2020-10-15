@@ -20,9 +20,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     WALLET_NAME = "demos_wallet"
 
-    def list_user_pool_ids(self, username):
+    def list_user_pool_ids(self, username, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
         user_pools = self.list_user_pools(username)
-        user_pool_ids = [p.pool_id for p in user_pools]
+        user_pool_ids = [p.pool_id for p in user_pools if p.customer_tid == identity.tid]
         return user_pool_ids
 
     def list_user_pools(self, username):
@@ -130,22 +132,24 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
-    def _check_pool_factory_owner(self, instance_name):
+    def _check_pool_factory_owner(self, instance_name, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
         pool_instance = pool_factory.get(instance_name)
         pool_id = pool_instance.pool_id
         pool_tid = j.sals.zos.get().pools.get(pool_id).customer_tid
         pool_explorer_url = pool_instance.explorer_url
-        me = j.core.identity.me
+        me = j.core.identity.get(identity_name)
         try:
             return pool_tid == me.tid and pool_explorer_url == me.explorer_url
         except HTTPError:
             return False
 
-    def _get_gateways_pools(self, farm_name):
+    def _get_gateways_pools(self, farm_name, identity_name=None):
         """
         Returns:
             List : will return pool ids for pools on farms with gateways
         """
+        identity_name = identity_name or j.core.identity.me.instance_name
         gateways_pools_ids = []
         farms_ids_with_gateways = [
             gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
@@ -156,19 +160,22 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
-            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(gw_pool_name):
-                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
+            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
+                gw_pool_name, identity_name
+            ):
+                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name, identity_name)
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
                 pool_id = pool_factory.get(gw_pool_name).pool_id
                 gateways_pools_ids.append(pool_id)
         return gateways_pools_ids
 
-    def list_all_gateways(self, username, farm_name=None):
-        pool_ids = self.list_user_pool_ids(username)
-        gateways_pools = self._get_gateways_pools(farm_name)  # Empty pools contains the gateways only
+    def list_all_gateways(self, username, farm_name=None, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        pool_ids = self.list_user_pool_ids(username, identity_name)
+        gateways_pools = self._get_gateways_pools(farm_name, identity_name)  # Empty pools contains the gateways only
         pool_ids.extend(gateways_pools)
-        return super().list_all_gateways(pool_ids=pool_ids)
+        return super().list_all_gateways(pool_ids=pool_ids, identity_name=identity_name)
 
     def select_gateway(self, username, bot):
         """
@@ -324,8 +331,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         )
         return pool_info
 
-    def create_gateway_emptypool(self, gwpool_name, farm_name):
-        pool_info = j.sals.zos.get().pools.create(0, 0, farm_name, ["TFT"])
+    def create_gateway_emptypool(self, gwpool_name, farm_name, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        pool_info = j.sals.zos.get(identity_name).pools.create(0, 0, farm_name, ["TFT"])
         user_pool = pool_factory.get(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id

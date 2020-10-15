@@ -51,6 +51,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.allow_custom_domain = False
         self.custom_domain = False
         self.currency = "TFT"
+        self.identity_name = j.core.identity.me.instance_name
 
     def _create_identities(self):
         instance_name = self.solution_name
@@ -60,6 +61,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
+        self.identity_name = self.mainnet_identity_name
         try:
             identity_main = j.core.identity.get(
                 self.mainnet_identity_name,
@@ -111,12 +113,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.wgcfg = deployer.init_new_user_network(
-            self,
-            self.solution_metadata["owner"],
-            self.pool_info.reservation_id,
-            identity_name=self.mainnet_identity_name,
+            self, self.mainnet_identity_name, self.pool_info.reservation_id, identity_name=self.mainnet_identity_name,
         )
         self.pool_id = self.pool_info.reservation_id
+        self.network_view = deployer.get_network_view(
+            f"{self.mainnet_identity_name}_apps", identity_name=self.identity_name
+        )
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -282,6 +284,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     subdomain=self.domain,
                     addresses=self.addresses,
                     solution_uuid=self.solution_id,
+                    identity_name=self.mainnet_identity_name,
                     **self.solution_metadata,
                 )
             )
@@ -291,6 +294,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 raise DeploymentFailed(
                     f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=self.workload_ids[-1],
+                    identity_name=self.mainnet_identity_name,
                 )
         test_cert = j.config.get("TEST_CERT")
 
@@ -331,6 +335,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 interactive=False,
                 log_config=log_config,
                 solution_uuid=self.solution_id,
+                identity_name=self.mainnet_identity_name,
                 **self.solution_metadata,
             )
         )
@@ -340,6 +345,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
+                identity_name=self.mainnet_identity_name,
             )
 
         # 4- expose threebot container
@@ -358,6 +364,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 proxy_pool_id=self.gateway_pool.pool_id,
                 solution_uuid=self.solution_id,
                 log_config=self.trc_log_config,
+                identity_name=self.mainnet_identity_name,
                 **self.solution_metadata,
             )
         )
@@ -367,6 +374,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
+                identity_name=self.mainnet_identity_name,
             )
         self.threebot_url = f"https://{self.domain}/admin"
 

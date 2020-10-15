@@ -48,6 +48,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.custom_domain = False
         self.allow_custom_domain = False
         self.currency = "TFT"
+        self.identity_name = j.core.identity.me.instance_name
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -166,6 +167,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
             self.pool_id = self.pool_info.reservation_id
 
+        self.network_view = deployer.get_network_view(
+            f"{self.solution_metadata['owner']}_apps", identity_name=self.identity_name
+        )
         return self.pool_id
 
     def _select_node(self):
@@ -174,7 +178,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @deployment_context()
     def _deploy_network(self):
         # get ip address
-        self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
             self._select_node()
@@ -184,6 +187,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 self.pool_id,
                 self.network_view,
                 bot=self,
+                identity_name=self.identity_name,
                 owner=self.solution_metadata.get("owner"),
             )
             if result:
@@ -267,7 +271,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.username, self.farm_name)
+        gateways = deployer.list_all_gateways(self.username, self.farm_name, identity_name=self.identity_name)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
@@ -285,7 +289,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 is_managed_domains = True
                 if domain in blocked_domains:
                     continue
-                success = deployer.test_managed_domain(gateway.node_id, domain, gw_dict["pool"].pool_id, gateway)
+                success = deployer.test_managed_domain(
+                    gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
+                )
                 if not success:
                     j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
                     deployer.block_managed_domain(domain)
@@ -507,7 +513,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
-        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
+        identity_tid = j.core.identity.get(self.identity_name).tid
+        self.secret = f"{identity_tid}:{uuid.uuid4().hex}"
         success = False
         while not success:
             try:
