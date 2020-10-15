@@ -14,9 +14,12 @@ from jumpscale.clients.explorer.models import (
 )
 from jumpscale.core.exceptions import Input
 
+from .crypto import encrypt_for_node
+
 
 class ContainerGenerator:
-    """ """
+    def __init__(self, identity):
+        self._identity = identity
 
     def create(
         self,
@@ -93,16 +96,12 @@ class ContainerGenerator:
 
         Returns:
           str: encrypted string
-
         """
-        key = base58.b58decode(node_id)
-        pk = signing.VerifyKey(key)
-        encryption_key = pk.to_curve25519_public_key()
+        bkey = base58.b58decode(node_id)
+        node_public_hex = binascii.hexlify(bkey)
 
-        box = public.SealedBox(encryption_key)
-        result = box.encrypt(value.encode())
-
-        return binascii.hexlify(result).decode()
+        encrypted = encrypt_for_node(self._identity, node_public_hex, value)
+        return encrypted.decode()
 
     def add_logs(
         self, container: Container, channel_type: str, channel_host: str, channel_port: str, channel_name: str
