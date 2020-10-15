@@ -2,10 +2,10 @@
 ## Initialization
 
 Using username and  password:
-> client = j.clients.taiga.new('test', username='7mada', password='123456')
+> client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", username='7mada', password='123456')
 
 OR using a token
-> client = j.clients.taiga.new('test', token='extra secret token string')
+> client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", token='extra secret token string')
 
 ## Listing
 

@@ -49,6 +49,6 @@ class ZDBGenerator:
         zdb.mode = mode
         if password:
             node = self._nodes.get(node_id)
-            zdb.password = encrypt_for_node(node.public_key_hex, password).decode()
+            zdb.password = encrypt_for_node(self._identity, node.public_key_hex, password).decode()
         zdb.disk_type = disk_type
         return zdb
