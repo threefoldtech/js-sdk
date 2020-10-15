@@ -258,15 +258,18 @@ def have_wallets():
 
 
 def create_test_wallet(wallet_name):
-    j.clients.stellar.create_testnet_funded_wallet(wallet_name)
+    try:
+        j.clients.stellar.create_testnet_funded_wallet(wallet_name)
+    except Exception as e:
+        j.logger.error(str(e))
 
 
 def create_main_wallet(wallet_name):
     wallet_actor = Wallet()
     try:
         wallet_actor.create_wallet(wallet_name)
-    except Exception:
-        pass
+    except Exception as e:
+        j.logger.error(str(e))
 
 
 def create_wallets_if_not_exists():
