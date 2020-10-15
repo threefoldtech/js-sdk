@@ -8,11 +8,14 @@ from nacl import public, signing
 from jumpscale.clients.explorer.models import (
     Container,
     ContainerLogs,
+    ContainerStats,
     ContainerNetworkConnection,
     DiskType,
     WorkloadType,
 )
+
 from jumpscale.core.exceptions import Input
+from jumpscale.tools.zos.monitor import ContainerStatsMonitor
 
 from .crypto import encrypt_for_node
 
@@ -129,3 +132,36 @@ class ContainerGenerator:
         container.logs.append(cont_logs)
 
         return cont_logs
+
+    def add_stats(self, container: Container, redis_endpoint: str) -> ContainerStats:
+        """Enable statistics forwarding for the container
+
+        Args:
+          container(Container): container instance
+          redis_endpoint(str): redis endpoint (redis://host:port/channel)
+
+        Returns:
+          ContainerStats: stats object added to the container
+
+        """
+        cont_stats = ContainerStats()
+        cont_stats.type = "redis"
+        cont_stats.data.endpoint = redis_endpoint
+        container.stats.append(cont_stats)
+
+        return cont_stats
+
+    def monitor(self, container):
+        """Try to reach endpoint from container statistics and fetch stats when available"""
+        if not container.stats:
+            return False
+
+        stats = ContainerStatsMonitor()
+        stats.endpoint(container.stats[0].data.endpoint)
+        stats.monitor()
+
+    def monitor_reservation(self, reservation):
+        """Try to reach endpoint from container reservation data and monitor stats"""
+        stats = ContainerStatsMonitor()
+        stats.reservation(reservation)
+        stats.monitor()
