@@ -86,6 +86,7 @@ from jumpscale.core.base import fields
 from functools import lru_cache
 from collections import defaultdict
 import gevent
+from .models import User, Story, Issue, Task, Project, Circle
 
 
 class TaigaClient(Client):
@@ -303,16 +304,17 @@ class TaigaClient(Client):
         self.api.user_stories.delete(story_id)
         return migrate_story.id
 
-    def list_all_issues(self, user_id=""):
+    def list_all_issues(self, username=""):
         """
         List all issues for specific user if you didn't pass user_id will list all the issues
 
         Args:
-            user_id (int): id of the user.
+            username (str): username.
 
         Returns:
             List: List of taiga.models.models.Issue.
         """
+        user_id = self._get_user_id(username)
         return self.api.issues.list(assigned_to=user_id)
 
     def list_all_projects(self):
@@ -333,16 +335,18 @@ class TaigaClient(Client):
         """
         return self.api.milestones.list()
 
-    def list_all_user_stories(self, user_id=""):
+    def list_all_user_stories(self, username=""):
         """
         List all user stories for specific user if you didn't pass user_id will list all the available user stories
 
         Args:
-            user_id (int): id of the user.
+            username (str): username.
 
         Returns:
             List: List of taiga.models.models.UserStory.
         """
+        user_id = self._get_user_id(username)
+
         return self.api.user_stories.list(assigned_to=user_id)
 
     def __render_issues_with_details(self, text="Issues", issues=None, with_description=False):
@@ -470,7 +474,7 @@ class TaigaClient(Client):
 
         return text
 
-    def map_render_issues_per_project(self, with_details):
+    def _map_render_issues_per_project(self, with_details):
         """Map the desired data from issues per project and render them to be used in markdown files.
 
         Args:
@@ -497,10 +501,10 @@ class TaigaClient(Client):
 ### Issues  Per Project \n
 """
 
-        self.map_render_issues_per_project(with_details)
+        self._map_render_issues_per_project(with_details)
         j.sals.fs.write_file(path=path, data=self.text)
 
-    def map_render_issues_per_user(self, user_id, with_description):
+    def _map_render_issues_per_user(self, user_id, with_description):
         """Map the desired data from issues per user and render them to be used in markdown files.
 
         Args:
@@ -519,24 +523,24 @@ class TaigaClient(Client):
                 text=self.text, issues=sorted_list, with_description=with_description
             )
 
-    def export_issues_per_user(self, user_name=None, path="/tmp/issues_per_user.md", with_description=False):
+    def export_issues_per_user(self, username=None, path="/tmp/issues_per_user.md", with_description=False):
         """Export all the issues per specific user in a markdown file, if no user given
         the method export issues for the current logged in user
 
         Args:
             path (str): The path of exported markdown file.
-            user_name (str): The name of the user we want to get his issues.
+            username (str): The name of the user we want to get his issues.
 
         """
-        if user_name:
-            selected_user_name = user_name
+        if username:
+            selected_username = username
         else:
-            selected_user_name = self.username
-        user_id = self._get_user_id(selected_user_name)
+            selected_username = self.username
+        user_id = self._get_user_id(selected_username)
         self.text = f"""
-### {selected_user_name} Issues \n
+### {selected_username} Issues \n
 """
-        self.map_render_issues_per_user(user_id, with_description)
+        self._map_render_issues_per_user(user_id, with_description)
 
         j.sals.fs.write_file(path=path, data=self.text)
 
