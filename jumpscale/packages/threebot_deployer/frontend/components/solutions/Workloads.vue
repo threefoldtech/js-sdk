@@ -42,7 +42,7 @@
                   <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
                 </v-btn>
               </template>
-              <span>Delete</span>
+              <span>Destroy</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
@@ -52,12 +52,29 @@
               </template>
               <span>Show Information</span>
             </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="stop3Bot(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-stop-circle</v-icon>
+                </v-btn>
+              </template>
+              <span>Stop</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="start3Bot(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-reload</v-icon>
+                </v-btn>
+              </template>
+              <span>Start</span>
+            </v-tooltip>
           </template>
         </v-data-table>
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
     <cancel-workload v-if="selected" v-model="dialogs.cancelWorkload" :data="selected"></cancel-workload>
+    <stop-workload v-if="selected" v-model="dialogs.stopWorkload" :data="selected"></stop-workload>
   </div>
 </template>
 
@@ -66,6 +83,7 @@ module.exports = {
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
     "cancel-workload": httpVueLoader("./Delete.vue"),
+    "stop-workload": httpVueLoader("./Stop.vue"),
   },
   data() {
     return {
@@ -73,6 +91,8 @@ module.exports = {
       dialogs: {
         info: false,
         cancelWorkload: false,
+        stopWorkload: false,
+        startWorkload: false,
       },
       selected: null,
       loading: true,
@@ -95,10 +115,19 @@ module.exports = {
       this.selected = record;
       this.dialogs.cancelWorkload = true;
     },
-    openChatflow(type) {
+    stop3Bot(record) {
+      this.selected = record;
+      this.dialogs.stopWorkload = true;
+    },
+    start3Bot(record) {
+      this.selected = record;
+      this.dialogs.startWorkload = true;
+      this.openChatflow("restart_threebot", this.selected.Name);
+    },
+    openChatflow(type, tname = "") {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: type },
+        params: { topic: type, tname: tname },
       });
     },
     getDeployedSolutions() {
@@ -114,7 +143,7 @@ module.exports = {
             deployed3Bot = this.deployed3Bots[i];
             if (deployed3Bot.Expiration < DURATION_MAX) {
               let expiration = new Date(deployed3Bot.Expiration * 1000);
-              deployed3Bot.Expiration = expiration.toLocaleString('en-GB');
+              deployed3Bot.Expiration = expiration.toLocaleString("en-GB");
               if (expiration < today) {
                 deployed3Bot.class = "red--text";
                 deployed3Bot.Expiration = "EXPIRED";

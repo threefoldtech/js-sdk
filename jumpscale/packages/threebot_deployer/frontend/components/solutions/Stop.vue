@@ -1,7 +1,7 @@
 <template>
   <base-dialog
     v-if="data"
-    title="Destroy Workload"
+    title="Stop Workload"
     v-model="dialog"
     :error="error"
     :info="info"
@@ -9,7 +9,7 @@
     :loading="loading"
   >
     <template #default>
-      Are you sure you want to Destroy {{ data.Name }}?
+      Are you sure you want to stop {{ data.Name }}?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -34,16 +34,8 @@ module.exports = {
       this.$api.solutions
         .cancelReservation(this.data.wids)
         .then((response) => {
-          this.$api.solutions
-            .destroyBackup(`${this.data.Owner.split(".")[0]}_${this.data.Name}`)
-            .then((response) => {
-              this.alert("Cancelled 3Bot with delete its backup", "success");
-              this.$router.go(0);
-            })
-            .catch((err) => {
-              this.alert("Cancelled 3But but failed to delete backup", "error");
-              this.$router.go("Workloads");
-            });
+          this.alert("Cancelled 3Bot", "success");
+          this.$router.go(0);
         })
         .catch((err) => {
           this.alert("Failed to cancel 3Bot", "error");
