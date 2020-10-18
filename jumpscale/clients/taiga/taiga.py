@@ -86,7 +86,9 @@ from jumpscale.core.base import fields
 from functools import lru_cache
 from collections import defaultdict
 import gevent
-from .models import User, Story, Issue, Task, Project, Circle
+
+# from .models import User, Story, Issue, Task, Project, Circle
+import copy
 
 
 class TaigaClient(Client):
@@ -134,8 +136,13 @@ class TaigaClient(Client):
 
     @lru_cache(maxsize=128)
     def _get_assignee(self, assignee_id):
-        if assignee_id:
-            return self.api.users.get(assignee_id)
+        return self.api.users.get(assignee_id)
+
+    _get_user_by_id = _get_assignee
+
+    def _get_users_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_user_by_id(x) for x in ids]
 
     @lru_cache(maxsize=128)
     def _get_issue_status(self, status_id):
@@ -159,7 +166,7 @@ class TaigaClient(Client):
             raise j.exceptions.Input("Couldn't find user with username: {}".format(username))
 
     def get_user_circles(self, username):
-        """Get circles owner by user
+        """Get circles owned by user
 
         Args:
             username (str): Name of the user
@@ -169,7 +176,7 @@ class TaigaClient(Client):
         user_circles = []
         for circle in circles:
             if circle.owner["id"] == user_id:
-                user_circles.append(circle)
+                user_circles.append(self._resolve_object(circle))
         return user_circles
 
     def get_circles_issues(self, project_id):
@@ -193,7 +200,7 @@ class TaigaClient(Client):
             issue.priority = self._get_priority(issue.priority)
             issue.assignee = self._get_assignee(issue.assigned_to)
             issue.status = self._get_issue_status(issue.status)
-            circle_issues.append(issue)
+            circle_issues.append(self._resolve_objectissue)
         return circle_issues
 
     def get_user_stories(self, username):
@@ -206,10 +213,10 @@ class TaigaClient(Client):
         user_stories = self.api.user_stories.list(assigned_to=user_id)
         user_stories = []
         for user_story in user_stories:
-            user_story.project = self._get_project(user_story.project)
-            user_story.milestone = self._get_milestone(user_story.milestone)
+            # user_story.project = self._get_project(user_story.project)
+            # user_story.milestone = self._get_milestone(user_story.milestone)
             user_story.status = self._get_user_stories_status(user_story.status)
-            user_stories.append(user_story)
+            user_stories.append(self._resolve_objectuser_story)
         return user_stories
 
     def get_user_tasks(self, username):
@@ -222,10 +229,10 @@ class TaigaClient(Client):
         user_tasks = self.api.tasks.list(assigned_to=user_id)
         user_tasks = []
         for user_task in user_tasks:
-            user_task.project = self._get_project(user_task.project)
-            user_task.milestone = self._get_milestone(user_task.milestone)
+            # user_task.project = self._get_project(user_task.project)
+            # user_task.milestone = self._get_milestone(user_task.milestone)
             user_task.status = self._get_task_status(user_task.status)
-            user_tasks.append(user_task)
+            user_tasks.append(self._resolve_object(user_task))
 
         return user_tasks
 
@@ -315,7 +322,7 @@ class TaigaClient(Client):
             List: List of taiga.models.models.Issue.
         """
         user_id = self._get_user_id(username)
-        return self.api.issues.list(assigned_to=user_id)
+        return [self._resolve_object(x) for x in self.api.issues.list(assigned_to=user_id)]
 
     def list_all_projects(self):
         """
@@ -324,7 +331,7 @@ class TaigaClient(Client):
         Returns:
             List: List of taiga.models.models.Project.
         """
-        return self.api.projects.list()
+        return [self._resolve_object(x) for x in self.api.projects.list()]
 
     def list_all_milestones(self):
         """
@@ -333,7 +340,7 @@ class TaigaClient(Client):
         Returns:
             List: List of taiga.models.models.Milestone.
         """
-        return self.api.milestones.list()
+        return [self._resolve_object(x) for x in self.api.milestones.list()]
 
     def list_all_user_stories(self, username=""):
         """
@@ -347,7 +354,7 @@ class TaigaClient(Client):
         """
         user_id = self._get_user_id(username)
 
-        return self.api.user_stories.list(assigned_to=user_id)
+        return [self._resolve_object(x) for x in self.api.user_stories.list(assigned_to=user_id)]
 
     def __render_issues_with_details(self, text="Issues", issues=None, with_description=False):
         """Get issues details and append them to text to be written in markdown files
@@ -611,3 +618,43 @@ class TaigaClient(Client):
             str: issue description
         """
         return self.api.issues.get(issue_id).description
+
+    def _resolve_object(self, obj):
+        print("resolving obj ", obj)
+        resolvers = {
+            "owners": self._get_users_by_ids,
+            "watchers": self._get_users_by_ids,
+            "members": self._get_users_by_ids,
+            "project": self._get_project,
+            "circle": self._get_project,
+            "milestone": self._get_milestone,
+            "task_status": self._get_task_status,
+            "assigned_to": self._get_user_by_id,
+            "owner": self._get_user_by_id,
+        }
+        newobj = copy.deepcopy(obj)
+        for k in dir(newobj):
+            v = getattr(newobj, k)
+            if isinstance(v, int) or isinstance(v, list) and v and isinstance(v[0], int):
+                if k in resolvers:
+                    resolved = None
+                    resolver = resolvers[k]
+                    try:
+                        print(f"resolver {resolver}")
+                        resolved = resolver(v)
+
+                        if isinstance(v, list):
+                            print(f"setting {k} to {resolved}")
+                            setattr(newobj, f"{k}_objects", resolved)
+                        else:
+                            print(f"setting {k} to {resolved}")
+                            setattr(newobj, f"{k}_object", resolved)
+
+                    except Exception as e:
+                        import traceback
+
+                        traceback.print_exc()
+
+                        print(f"error {e}")
+
+        return newobj

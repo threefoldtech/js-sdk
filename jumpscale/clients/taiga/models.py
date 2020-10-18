@@ -1,5 +1,9 @@
 class User:
-    pass
+    def get_stories(self):
+        pass
+
+    def get_projects(self):
+        pass
 
 
 class Issue:
