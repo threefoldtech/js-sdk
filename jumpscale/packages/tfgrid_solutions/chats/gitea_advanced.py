@@ -1,8 +1,8 @@
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
-from textwrap import dedent
-from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 
 class Gitea(MarketPlaceAppsChatflow):

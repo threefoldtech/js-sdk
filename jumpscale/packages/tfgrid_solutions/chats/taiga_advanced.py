@@ -1,10 +1,9 @@
-from nacl.encoding import Base64Encoder
-from nacl.public import PrivateKey
-
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.loader import j
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from nacl.encoding import Base64Encoder
+from nacl.public import PrivateKey
 
 
 class TaigaDeploy(MarketPlaceAppsChatflow):
