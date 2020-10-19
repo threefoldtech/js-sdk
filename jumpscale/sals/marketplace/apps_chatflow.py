@@ -43,7 +43,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
         self.ip_version = "IPv6"
-        self.expiration = 60 * 60 * 0.25  # expiration 3 hours
+        self.expiration = 60 * 60 * 3  # expiration 3 hours
         self.retries = 3
         self.custom_domain = False
         self.allow_custom_domain = False
