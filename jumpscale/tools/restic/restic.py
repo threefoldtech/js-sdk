@@ -108,8 +108,8 @@ current_date=`date +"%s"`
 
 if [[ $(( (current_date - latest_backup_epoch) / 86400 )) > 2 ]]
 then
-    echo "send mail"
-    # send mail
+    echo "No backups is being taken since 2 days, sending escalation mail..."
+    jsng 'j.clients.mail.escalation_instance.send("{ESCALATION_MAIL}", subject="{THREEBOT_NAME} 3Bot backups warning", message="We noticed that there were no backups taken since 2 days for {THREEBOT_NAME} 3Bot. Please check the support")'
 fi
 
 """
@@ -311,7 +311,10 @@ class ResticRepo(Base):
                 path=path,
                 AWS_SECRET_ACCESS_KEY=self.extra_env.get("AWS_SECRET_ACCESS_KEY"),
                 AWS_ACCESS_KEY_ID=self.extra_env.get("AWS_ACCESS_KEY_ID"),
+                THREEBOT_NAME=os.environ.get("THREEBOT_NAME"),
+                ESCALATION_MAIL=os.environ.get("ESCALATION_MAIL"),
             )
+
             with open(script_path, "w") as rfd:
                 rfd.write(cron_script)
 

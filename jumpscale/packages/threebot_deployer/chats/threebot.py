@@ -18,6 +18,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "get_solution_name",
         "upload_public_key",
         "set_backup_password",
+        "email_settings",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -120,6 +121,23 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
+    @chatflow_step(title="Email settings (Optional)")
+    def email_settings(self):
+        form = self.new_form()
+        email_host_user = form.string_ask("Please add the host e-mail address for your solution")
+        email_host = form.string_ask(
+            "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", md=True
+        )
+        email_host_password = form.secret_ask("Please add the host e-mail password")
+
+        escalation_mail_address = form.string_ask("Please add the email address to receive email notifications on")
+
+        form.ask()
+        self.email_host_user = email_host_user.value
+        self.email_host = email_host.value
+        self.email_host_password = email_host_password.value
+        self.escalation_mail_address = escalation_mail_address.value
+
     @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
@@ -167,6 +185,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.backup_model.token = backup_token
         self.backup_model.tname = self.solution_metadata["owner"]
         self.backup_model.save()
+
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -176,6 +195,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
+            # email settings
+            "EMAIL_HOST": self.email_host,
+            "EMAIL_HOST_USER": self.email_host_user,
+            "EMAIL_HOST_PASSWORD": self.email_host_password,
+            "ESCALATION_MAIL": self.escalation_mail_address,
         }
         self.network_view = self.network_view.copy()
 

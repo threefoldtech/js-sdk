@@ -88,7 +88,7 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
             "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
             "RESTIC_PASSWORD": self.restic_password,
             "RESTIC_REPOSITORY": self.restic_repository,
-            "BACKUP_PATHS": "/persistent_data",
+            "BACKUP_PATHS": "/persistent-data",
             "CRON_FREQUENCY": "0 0 * * *",  # every 1 day
         }
         self.workload_ids.append(
