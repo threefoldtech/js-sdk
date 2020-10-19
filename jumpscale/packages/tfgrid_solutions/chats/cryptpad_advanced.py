@@ -1,7 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
-from jumpscale.loader import j
 
 
 class CryptpadDeploy(MarketPlaceAppsChatflow):
@@ -38,34 +37,9 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="SSH key (Optional)")
-    def upload_public_key(self):
-        self.public_key = (
-            self.upload_file(
-                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
-            )
-            or ""
-        )
-        self.public_key = self.public_key.strip()
-
     @chatflow_step(title="New Expiration")
     def set_expiration(self):
         self.expiration = deployer.ask_expiration(self)
-
-    @chatflow_step(title="Backup credentials")
-    def backup_credentials(self):
-        form = self.new_form()
-        aws_access_key_id = form.string_ask("AWS access key id", required=True)
-        aws_secret_access_key = form.secret_ask("AWS secret access key", required=True)
-        restic_password = form.secret_ask("Restic Password", required=True)
-        restic_repository = form.string_ask(
-            "Restic Repository Example: `s3:s3backup.tfgw-testnet-01.gateway.tf/testbucket`", required=True, md=True
-        )  # TODO: AUTOMATE THAT
-        form.ask("These credentials will be used to backup your solution.", md=True)
-        self.aws_access_key_id = aws_access_key_id.value
-        self.aws_secret_access_key = aws_secret_access_key.value
-        self.restic_password = restic_password.value
-        self.restic_repository = restic_repository.value
 
     @deployment_context()
     def _deploy(self):
@@ -174,29 +148,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
             )
-
-    @chatflow_step(title="Initializing backup")
-    def init_backup(self):
-        solution_name = self.solution_name.replace(".", "_").replace("-", "_")
-        self.md_show_update("Setting container backup")
-        SOLUTIONS_WATCHDOG_PATHS = j.sals.fs.join_paths(j.core.dirs.VARDIR, "solutions_watchdog")
-        if not j.sals.fs.exists(SOLUTIONS_WATCHDOG_PATHS):
-            j.sals.fs.mkdirs(SOLUTIONS_WATCHDOG_PATHS)
-
-        restic_instance = j.tools.restic.get(solution_name)
-        restic_instance.password = self.restic_password
-        restic_instance.repo = self.restic_repository
-        restic_instance.extra_env = {
-            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-        }
-        restic_instance.save()
-        try:
-            restic_instance.init_repo()
-        except Exception as e:
-            j.tools.restic.delete(solution_name)
-            raise j.exceptions.Input(f"Error: Failed to reach repo {self.restic_repository} due to {str(e)}")
-        restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
 
 
 chat = CryptpadDeploy
