@@ -74,9 +74,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         self.currency = "TFT"
-        available_farms = []
         farm_names = [f.name for f in j.sals.zos.get()._explorer.farms.list()]
+        random.shuffle(farm_names)
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
+        self.farm_name = None
 
         for farm_name in farm_names:
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
@@ -86,12 +87,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
             )
             if available_ipv4 and available_ipv6:
-                available_farms.append(farm_name)
+                self.farm_name = farm_name
+                break
 
-        if not available_farms:
+        if not self.farm_name:
             raise StopChatFlow("Failed to find farm with the requested resources")
-
-        self.farm_name = random.choice(available_farms)
 
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
@@ -283,6 +283,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         for gw_dict in gateway_values:
             gateway = gw_dict["gateway"]
             for domain in gateway.managed_domains:
+                self.addresses = []
                 is_managed_domains = True
                 if domain in blocked_domains:
                     continue
@@ -300,76 +301,67 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     is_http_failure = True
                     continue
                 domains[domain] = gw_dict
+                self.gateway_pool = gw_dict["pool"]
+                self.gateway = gw_dict["gateway"]
+                managed_domain = domain
 
-        if not domains:
-            if is_http_failure:
-                raise StopChatFlow(
-                    'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
-                )
-            elif not is_managed_domains:
-                raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
-            else:
-                raise StopChatFlow(
-                    "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
-                )
+                solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
+                owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
+                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
+                # check if domain name is free or append random number
+                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
 
-        self.addresses = []
+                metafilter = lambda metadata: metadata.get("owner") == self.username
+                # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+                user_subdomains = {}
+                all_domains = solutions._list_subdomain_workloads(
+                    self.SOLUTION_TYPE, metadata_filters=[metafilter]
+                ).values()
+                for dom_list in all_domains:
+                    for dom in dom_list:
+                        user_subdomains[dom["domain"]] = dom
 
-        while not self.addresses and domains:
-            managed_domain = random.choice(list(domains.keys()))
-            self.gateway = domains[managed_domain]["gateway"]
-            self.gateway_pool = domains[managed_domain]["pool"]
+                while True:
+                    if full_domain in user_subdomains:
+                        # check if related container workloads still exist
+                        dom = user_subdomains[full_domain]
+                        sol_uuid = dom["uuid"]
+                        if sol_uuid:
+                            workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                            is_free = True
+                            for w in workloads:
+                                if w.info.workload_type == WorkloadType.Container:
+                                    is_free = False
+                                    break
+                            if is_free:
+                                solutions.cancel_solution_by_uuid(sol_uuid)
 
-            solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-            owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-            solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
-            # check if domain name is free or append random number
-            full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+                    if j.tools.dnstool.is_free(full_domain):
+                        self.domain = full_domain
+                        break
+                    else:
+                        random_number = random.randint(1000, 100000)
+                        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
 
-            metafilter = lambda metadata: metadata.get("owner") == self.username
-            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
-            user_subdomains = {}
-            all_domains = solutions._list_subdomain_workloads(
-                self.SOLUTION_TYPE, metadata_filters=[metafilter]
-            ).values()
-            for dom_list in all_domains:
-                for dom in dom_list:
-                    user_subdomains[dom["domain"]] = dom
+                for ns in self.gateway.dns_nameserver:
+                    try:
+                        self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+                    except Exception as e:
+                        j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
+                if not self.addresses:
+                    continue
+                return self.domain
 
-            while True:
-                if full_domain in user_subdomains:
-                    # check if related container workloads still exist
-                    dom = user_subdomains[full_domain]
-                    sol_uuid = dom["uuid"]
-                    if sol_uuid:
-                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
-                        is_free = True
-                        for w in workloads:
-                            if w.info.workload_type == WorkloadType.Container:
-                                is_free = False
-                                break
-                        if is_free:
-                            solutions.cancel_solution_by_uuid(sol_uuid)
-
-                if j.tools.dnstool.is_free(full_domain):
-                    self.domain = full_domain
-                    break
-                else:
-                    random_number = random.randint(1000, 100000)
-                    full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
-
-            for ns in self.gateway.dns_nameserver:
-                try:
-                    self.addresses.append(j.sals.nettools.get_host_by_name(ns))
-                except Exception as e:
-                    j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
-
-            if not self.addresses:
-                domains.pop(managed_domain)
-
-        if not self.addresses:
-            raise RuntimeError("No valid gateways found, Please contact support")
-        return self.domain
+        if is_http_failure:
+            raise StopChatFlow(
+                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+            )
+        elif not is_managed_domains:
+            raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+        else:
+            raise StopChatFlow(
+                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+            )
 
     def _config_logs(self):
         self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
