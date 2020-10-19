@@ -47,33 +47,6 @@ class Gitea(MarketPlaceAppsChatflow):
         self.repository_name = self.repository_name.value
         self.user_email = self.user_info()["email"]
 
-    @chatflow_step(title="New Expiration")
-    def set_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
-
-    @chatflow_step(title="Initializing backup")
-    def init_backup(self):
-        solution_name = self.solution_name.replace(".", "_").replace("-", "_")
-        self.md_show_update("Setting container backup")
-        SOLUTIONS_WATCHDOG_PATHS = j.sals.fs.join_paths(j.core.dirs.VARDIR, "solutions_watchdog")
-        if not j.sals.fs.exists(SOLUTIONS_WATCHDOG_PATHS):
-            j.sals.fs.mkdirs(SOLUTIONS_WATCHDOG_PATHS)
-
-        restic_instance = j.tools.restic.get(solution_name)
-        restic_instance.password = self.restic_password
-        restic_instance.repo = self.restic_repository
-        restic_instance.extra_env = {
-            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
-            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
-        }
-        restic_instance.save()
-        try:
-            restic_instance.init_repo()
-        except Exception as e:
-            j.tools.restic.delete(solution_name)
-            raise j.exceptions.Input(f"Error: Failed to reach repo {self.restic_repository} due to {str(e)}")
-        restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
-
     @deployment_context()
     def _deploy(self):
         var_dict = {

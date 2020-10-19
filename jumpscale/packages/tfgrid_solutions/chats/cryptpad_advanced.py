@@ -37,10 +37,6 @@ class CryptpadDeploy(MarketPlaceAppsChatflow):
         self.vol_mount_point = "/persistent-data"
         self.query["sru"] += self.vol_size
 
-    @chatflow_step(title="New Expiration")
-    def set_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
-
     @deployment_context()
     def _deploy(self):
         self.workload_ids = []

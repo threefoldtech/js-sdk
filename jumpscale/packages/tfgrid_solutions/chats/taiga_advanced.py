@@ -52,10 +52,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
         self.SECRET_KEY = SECRET_KEY.value
 
-    @chatflow_step(title="New Expiration")
-    def set_expiration(self):
-        self.expiration = deployer.ask_expiration(self)
-
     @deployment_context()
     def _deploy(self):
         metadata = {
