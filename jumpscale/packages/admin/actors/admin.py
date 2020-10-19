@@ -145,10 +145,14 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
     @actor_method
-    def get_notifications(self) -> list:
+    def get_notifications(self) -> str:
         notifications = j.tools.notificationsqueue.fetch()
         ret = [notification.dumps() for notification in notifications]
-        return ret
+        return j.data.serializers.json.dumps({"data": ret})
+
+    @actor_method
+    def get_notifications_count(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.tools.notificationsqueue.count()})
 
 
 Actor = Admin

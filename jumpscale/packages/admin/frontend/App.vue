@@ -5,13 +5,20 @@
       <v-spacer></v-spacer>
       <v-menu offset-y>
         <template v-slot:activator="{ attrs, on }">
-          <v-icon v-if="notifications.length" v-bind="attrs" v-on="on" color="primary" left>mdi-bell-ring</v-icon>
-          <v-icon v-else v-bind="attrs" v-on="on" color="primary" left>mdi-bell-outline</v-icon>
+          <div v-if="notificationsCount">
+            <v-badge color="red" offset-x="17" offset-y="12" class="mr-4" :content="notificationsCount">
+              <v-icon v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-ring</v-icon>
+            </v-badge>
+          </div>
+          <div v-else>
+              <v-icon v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-ring</v-icon>
+          </div>
         </template>
 
         <v-list v-if="notifications.length">
           <v-list-item
             v-for="item in notifications"
+            :items="notifications"
             :key="item"
             link
           >
@@ -141,6 +148,8 @@ module.exports = {
       mini: false,
       timenow: null,
       notifications: [],
+      notificationsCount: null,
+      notificationsListOpen: false,
       notificationInterval: null,
       clockInterval: null,
       dialogs: {
@@ -201,6 +210,18 @@ module.exports = {
         this.$vuetify.theme.dark = this.darkTheme =
           cookie == "1" ? true : false;
     },
+    notificationsClick() {
+      if (this.notificationsListOpen) {
+        this.notificationsListOpen = false;
+      }
+      else {
+        this.notificationsListOpen = true;
+        this.$api.admins.getNotifications().then((response) => {
+          this.notifications = JSON.parse(response.data).data;
+          this.notificationsCount = 0;
+        });
+      }
+    },
   },
   mounted() {
     this.checkDarkMode();
@@ -211,9 +232,13 @@ module.exports = {
       this.setTimeLocal();
     }, 1000);
     this.notificationInterval = setInterval(() =>{
-      console.log("Checking new notifications...")
-      this.$api.admins.getNotifications().then((response) => {
-        this.notifications = response.data;
+      this.$api.admins.getNotificationsCount().then((response) => {
+        this.notificationsCount = JSON.parse(response.data).data;
+        if (this.notificationsCount && this.notificationsListOpen) {
+          this.$api.admins.getNotifications().then((response) => {
+          this.notifications = [...this.notifications, ...JSON.parse(response.data).data];
+        });
+      }
       });
     },10000);
   },
