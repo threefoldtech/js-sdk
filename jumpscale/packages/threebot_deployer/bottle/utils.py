@@ -89,7 +89,7 @@ def list_threebot_solutions(owner):
         compute_pool = user_pools.get(solution_info["compute_pool"])
         if not compute_pool:
             continue
-        if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at < j.data.time.utcnow().timestamp:
+        if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at == 9223372036854775807:
             solution_info["state"] = ThreebotState.STOPPED.value
         result.append(solution_info)
     return result
