@@ -117,7 +117,7 @@ class Admin(BaseActor):
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
-        escalation_emails = j.core.config.set_default("ESCALATION_EMAILS", False)
+        escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -136,7 +136,7 @@ class Admin(BaseActor):
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
-        j.core.config.set("ESCALATION_EMAILS", escalation_emails)
+        j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -152,6 +152,27 @@ class Admin(BaseActor):
     def clear_blocked_nodes(self) -> str:
         j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
+
+    @actor_method
+    def list_escalation_emails(self) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        return j.data.serializers.json.dumps({"data": escalation_emails})
+
+    @actor_method
+    def add_escalation_email(self, email) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        if email not in escalation_emails:
+            escalation_emails.append(email)
+            j.core.config.set("ESCALATION_EMAILS", escalation_emails)
+        return j.data.serializers.json.dumps({"data": escalation_emails})
+
+    @actor_method
+    def delete_escalation_email(self, email) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        if email in escalation_emails:
+            escalation_emails.remove(email)
+            j.core.config.set("ESCALATION_EMAILS", escalation_emails)
+        return j.data.serializers.json.dumps({"data": escalation_emails})
 
 
 Actor = Admin

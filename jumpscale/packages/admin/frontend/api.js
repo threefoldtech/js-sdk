@@ -182,6 +182,30 @@ const apiClient = {
             })
         }
     },
+    escalationEmails:{
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_escalation_emails`
+            })
+        },
+        add: (email) => {
+            return axios({
+                url: `${baseURL}/admin/add_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        },
+        delete: (email) => {
+            return axios({
+                url: `${baseURL}/admin/delete_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        }
+
+    },
     explorers: {
         get: () => {
             return axios({
