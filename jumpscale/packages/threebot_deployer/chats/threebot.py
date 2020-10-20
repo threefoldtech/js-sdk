@@ -380,12 +380,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         user_threebot.owner_tname = self.threebot_name
         user_threebot.compute_pool_id = self.pool_id
         user_threebot.gateway_pool_id = self.gateway_pool.pool_id
-        if self.custom_domain:
+        if not self.custom_domain:
             user_threebot.subdomain_wid = self.workload_ids[-3]
         user_threebot.threebot_wid = self.workload_ids[-2]
         user_threebot.trc_wid = self.workload_ids[-1]
         user_threebot.farm_name = self.farm_name
-        user_threebot.save()
+        USER_THREEBOT_FACTORY.save(user_threebot)
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
