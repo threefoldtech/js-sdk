@@ -1,7 +1,8 @@
 from collections import defaultdict
+from jumpscale.sals.marketplace import solutions
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
-from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.clients.explorer.models import WorkloadType, NextAction
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.data.serializers import json
 from jumpscale.data import text
@@ -83,6 +84,7 @@ def list_threebot_solutions(owner):
         solution_info = build_solution_info(workloads, threebot.identity_name)
         if "ipv4" not in solution_info or "domain" not in solution_info:
             continue
+        solution_info["solution_uuid"] = threebot.solution_uuid
         solution_info["farm"] = threebot.farm_name
         solution_info["state"] = threebot.state.value
         solution_info["continent"] = threebot.continent
@@ -91,5 +93,56 @@ def list_threebot_solutions(owner):
             continue
         if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at == 9223372036854775807:
             solution_info["state"] = ThreebotState.STOPPED.value
+            threebot.state = ThreebotState.STOPPED
+            threebot.save()
         result.append(solution_info)
     return result
+
+
+def get_threebot_workloads_by_uuid(solution_uuid, identity_name):
+    result = []
+    workloads = solutions.get_workloads_by_uuid(solution_uuid, NextAction.DEPLOY, identity_name=identity_name)
+    for workload in workloads:
+        decrypted_metadata = deployer.decrypt_metadata(workload.info.metadata, identity_name)
+        metadata = json.loads(decrypted_metadata)
+        if metadata.get("form_info", {}).get("chatflow") != "threebot":
+            continue
+        result.append(workload)
+    return result
+
+
+def stop_threebot_solution(owner, solution_uuid):
+    owner = text.removesuffix(owner, ".3bot")
+    threebot = USER_THREEBOT_FACTORY.find(f"threebot_{solution_uuid}")
+    if not threebot:
+        raise j.exceptions.NotFound(f"Threebot with uuid {solution_uuid} does not exist")
+    if threebot.owner_tname != owner:
+        raise j.exceptions.Permission(f"user {owner} does not own threebot with uuid {solution_uuid}")
+    zos = j.sals.zos.get(threebot.identity_name)
+    solution_workloads = get_threebot_workloads_by_uuid(solution_uuid, threebot.identity_name)
+    for workload in solution_workloads:
+        zos.workloads.decomission(workload.id)
+    threebot.state = ThreebotState.STOPPED
+    threebot.save()
+    return threebot
+
+
+def delete_threebot_solution(owner, solution_uuid):
+    threebot = stop_threebot_solution(owner, solution_uuid)
+    threebot_name = threebot.name
+    status = "Failed to destroy backups, 3Bot name doesn't exist"
+    ssh_server1 = j.clients.sshclient.get("backup_server1")
+    ssh_server2 = j.clients.sshclient.get("backup_server2")
+    try:
+        ssh_server1.sshclient.run(
+            f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
+        )
+        ssh_server2.sshclient.run(
+            f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
+        )
+        status = "Destroyed successfully"
+    except:
+        raise j.exceptions.Value(status)
+    threebot.state = ThreebotState.DELETED
+    threebot.save()
+    return True
