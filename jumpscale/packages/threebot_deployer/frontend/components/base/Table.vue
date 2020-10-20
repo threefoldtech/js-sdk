@@ -14,9 +14,6 @@
           <template v-slot:item.Expiration="{ item }">
             <div :class="`${item.class}`">{{ item.Expiration }}</div>
           </template>
-          <template v-slot:item.Status="{ item }">
-            <div :class="`${item.class}`">{{ item.Status }}</div>
-          </template>
           <template v-slot:item.actions="{ item }">
             <v-tooltip top v-if="deployed3botsStatus[item.Status] === 3" >
               <template v-slot:activator="{ on, attrs }">
@@ -72,9 +69,9 @@
 module.exports = {
   props: ["data", "headers", "loading"],
   components: {
-    "solution-info": httpVueLoader("./Info.vue"),
-    "cancel-workload": httpVueLoader("./Delete.vue"),
-    "stop-workload": httpVueLoader("./Stop.vue"),
+    "solution-info": httpVueLoader("../solutions/Info.vue"),
+    "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
+    "stop-workload": httpVueLoader("../solutions/Stop.vue"),
   },
   data() {
     return {

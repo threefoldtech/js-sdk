@@ -13,15 +13,50 @@
           <v-icon left>mdi-plus</v-icon>New
         </v-btn>
       </template>
+      <!-- Running 3bots -->
+      <div class="mt-5">
+        <div>
+          <h4 class="my-4">RUNNING</h4>
+        </div>
+        <template>
+          <deployer-data-table
+            :data="running3bots"
+            :headers="headersRunning3obts"
+            :loading="loading"
+          >
+          </deployer-data-table>
+        </template>
+      </div>
 
-      <template #default>
-        <deployer-data-table
-          :data="deployed3Bots"
-          :headers="headers"
-          :loading="loading"
-        >
-        </deployer-data-table>
-      </template>
+      <!-- Stopped 3bots -->
+      <div class="mt-5">
+        <div>
+          <h4 class="my-4">STOPPED</h4>
+        </div>
+
+        <template>
+          <deployer-data-table
+            :data="stopped3bots"
+            :headers="headersNotRunning3obts"
+            :loading="loading"
+          >
+          </deployer-data-table>
+        </template>
+      </div>
+      <!-- Destroyed 3bots -->
+      <div class="mt-5">
+        <div>
+          <h4 class="my-4">DESTROYED</h4>
+        </div>
+        <template>
+          <deployer-data-table
+            :data="destroyed3bots"
+            :headers="headersNotRunning3obts"
+            :loading="loading"
+          >
+          </deployer-data-table>
+        </template>
+      </div>
     </base-component>
   </div>
 </template>
@@ -35,14 +70,21 @@ module.exports = {
     return {
       threebot_data: APPS["threebot"],
       loading: true,
-      headers: [
+      headersRunning3obts: [
         { text: "Name", value: "Name" },
         { text: "URL", value: "domain" },
         { text: "Expiration", value: "expiration" },
+        { text: "Actions", value: "actions", sortable: false },
+      ],
+      headersNotRunning3obts: [
+        { text: "Name", value: "Name" },
         { text: "Status", value: "Status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
+      running3bots: [],
+      stopped3bots: [],
+      destroyed3bots: [],
     };
   },
   methods: {
@@ -98,6 +140,9 @@ module.exports = {
             this.deployed3Bots,
             (bot) => bot.Status
           );
+          this.running3bots = this.deployed3Botsgrouped.get("Running");
+          this.stopped3bots = this.deployed3Botsgrouped.get("Stopped");
+          this.destroyed3bots = this.deployed3Botsgrouped.get("Destroyed");
         });
     },
   },

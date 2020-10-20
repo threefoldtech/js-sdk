@@ -22,12 +22,12 @@ class Backup(BaseActor):
             j.sals.fs.mkdirs(packages_path)
         return packages_path
 
-    @property
-    def ssh_dir_path(self):
-        ssh_path = "/root/.ssh"
-        if not j.sals.fs.exists(ssh_path):
-            j.sals.fs.mkdir(ssh_path)
-        return ssh_path
+    # @property
+    # def ssh_dir_path(self):
+    #     ssh_path = "/root/.ssh"
+    #     if not j.sals.fs.exists(ssh_path):
+    #         j.sals.fs.mkdir(ssh_path)
+    #     return ssh_path
 
     @property
     def user_code_path(self):
@@ -86,7 +86,8 @@ class Backup(BaseActor):
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
             repo.backup(self.downloaded_packages_path, tags=tags)
             repo.backup(self.user_code_path, tags=tags)
-            repo.backup(self.ssh_dir_path, tags=tags)
+            # TODO: Check the issue in this path
+            # repo.backup(self.ssh_dir_path, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
 
     @actor_method
