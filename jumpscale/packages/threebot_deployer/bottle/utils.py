@@ -48,7 +48,6 @@ def build_solution_info(workloads, identity_name):
 
 
 def group_threebot_workloads_by_uuid(identity_name):
-    print(identity_name)
     solutions = defaultdict(list)
     identity = j.core.identity.get(identity_name)
     zos = j.sals.zos.get(identity_name)
@@ -74,17 +73,14 @@ def list_threebot_solutions(owner):
     while cursor:
         cursor, _, result = USER_THREEBOT_FACTORY.find_many(cursor, owner_tname=owner)
         threebots += list(result)
-    print(threebots)
     for threebot in threebots:
         grouped_identity_workloads = group_threebot_workloads_by_uuid(threebot.identity_name)
         zos = j.sals.zos.get(threebot.identity_name)
         workloads = grouped_identity_workloads.get(threebot.solution_uuid)
-        # print("Workloads", workloads)
         if not workloads:
             continue
         user_pools = {p.pool_id: p for p in zos.pools.list()}
         solution_info = build_solution_info(workloads, threebot.identity_name)
-        print(solution_info)
         if "ipv4" not in solution_info or "domain" not in solution_info:
             continue
         solution_info["farm"] = threebot.farm_name
