@@ -427,24 +427,20 @@ class ChatflowSolutions:
                     continue
 
                 name = name_identitfier(metadata)
-                container_dict = {}
-                try:
-                    container_dict = {
-                        "wid": workload.id,
-                        "flist": workload.flist,
-                        "ipv4": workload.network_connection[0].ipaddress,
-                        "ipv6": self.get_ipv6_address(workload),
-                        "network": workload.network_connection[0].network_id,
-                        "node": workload.info.node_id,
-                        "farm": self.get_node_farm(workload.info.node_id),
-                        "pool": workload.info.pool_id,
-                        "vol_ids": [],
-                        "volumes_capacity": [],
-                        "capacity": self.get_workload_capacity(workload),
-                        "owner": metadata.get("owner"),
-                    }
-                except:
-                    print("error happened")
+                container_dict = {
+                    "wid": workload.id,
+                    "flist": workload.flist,
+                    "ipv4": workload.network_connection[0].ipaddress,
+                    "ipv6": self.get_ipv6_address(workload),
+                    "network": workload.network_connection[0].network_id,
+                    "node": workload.info.node_id,
+                    "farm": self.get_node_farm(workload.info.node_id),
+                    "pool": workload.info.pool_id,
+                    "vol_ids": [],
+                    "volumes_capacity": [],
+                    "capacity": self.get_workload_capacity(workload),
+                    "owner": metadata.get("owner"),
+                }
                 if workload.volumes:
                     for vol in workload.volumes:
                         vol_id = int(vol.volume_id.split("-")[0])
