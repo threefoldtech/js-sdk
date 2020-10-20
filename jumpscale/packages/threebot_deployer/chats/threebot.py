@@ -5,6 +5,7 @@ from textwrap import dedent
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY, USER_THREEBOT_FACTORY
+from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
@@ -61,7 +62,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
-        self.identity_name = self.mainnet_identity_name
+        # self.identity_name = self.mainnet_identity_name
+        self.identity_name = self.testnet_identity_name  # TODO: remove this line and bring back the line above
         try:
             identity_main = j.core.identity.get(
                 self.mainnet_identity_name,
@@ -203,12 +205,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         )
 
     def _ask_for_continent(self):
-        continent = self.drop_down_choice(
+        self.continent = self.drop_down_choice(
             "Please select the continent you would like to deploy your 3Bot in.",
             list(self.farms_by_continent.keys()),
             required=True,
         )
-        self.available_farms = self.farms_by_continent[continent]
+        self.available_farms = self.farms_by_continent[self.continent]
 
     def _ask_for_farm(self):
         farm_name_dict = {farm.name: farm for farm in self.available_farms}
@@ -374,16 +376,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
         instance_name = f"threebot_{self.solution_id}"
         user_threebot = USER_THREEBOT_FACTORY.get(instance_name)
-        user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+        user_threebot.solution_uuid = self.solution_id
+        user_threebot.identity_name = self.identity_name
         user_threebot.name = self.solution_name
         user_threebot.owner_tname = self.threebot_name
-        user_threebot.compute_pool_id = self.pool_id
-        user_threebot.gateway_pool_id = self.gateway_pool.pool_id
-        if not self.custom_domain:
-            user_threebot.subdomain_wid = self.workload_ids[-3]
-        user_threebot.threebot_wid = self.workload_ids[-2]
-        user_threebot.trc_wid = self.workload_ids[-1]
         user_threebot.farm_name = self.farm_name
+        user_threebot.state = ThreebotState.RUNNING
+        if hasattr(self, "continent"):
+            user_threebot.continent = self.continent
         user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)
