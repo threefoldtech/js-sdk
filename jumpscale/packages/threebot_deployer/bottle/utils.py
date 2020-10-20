@@ -53,7 +53,7 @@ def group_threebot_workloads_by_uuid(identity_name):
     identity = j.core.identity.get(identity_name)
     zos = j.sals.zos.get(identity_name)
     for workload in zos.workloads.list(identity.tid):
-        if workload.info.workload_type not in THREEBOT_WORKLOAD_TYPES:
+        if workload.info.workload_type not in THREEBOT_WORKLOAD_TYPES or not workload.info.metadata:
             continue
         decrypted_metadata = deployer.decrypt_metadata(workload.info.metadata, identity_name)
         metadata = json.loads(decrypted_metadata)
@@ -145,4 +145,4 @@ def delete_threebot_solution(owner, solution_uuid):
         raise j.exceptions.Value(status)
     threebot.state = ThreebotState.DELETED
     threebot.save()
-    return True
+    return threebot
