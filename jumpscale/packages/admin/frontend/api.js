@@ -224,6 +224,11 @@ const apiClient = {
                 data: { identity_instance_name: identity_instance_name }
             })
         },
+        currentIdentity: () => {
+            return axios({
+                url: `${baseURL}/admin/get_current_identity_name`
+            })
+        },
         deleteIdentity: (identity_instance_name) => {
             return axios({
                 url: `${baseURL}/admin/delete_identity`,
