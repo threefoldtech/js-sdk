@@ -83,6 +83,13 @@
                 :label="`Enable explorer logs`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="escalationEmails"
+                :label="`Enable sending escalation emails`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -144,6 +151,7 @@ module.exports = {
       testCert: false,
       overProvision: false,
       explorerLogs: false,
+      escalationEmails: false,
     };
   },
   methods: {
@@ -215,6 +223,7 @@ module.exports = {
           this.testCert = developerOptions["test_cert"];
           this.overProvision = developerOptions["over_provision"];
           this.explorerLogs = developerOptions["explorer_logs"];
+          this.escalationEmails = developerOptions["escalation_emails"];
         })
         .finally(() => {
           this.loading.developerOptions = false;
@@ -225,7 +234,8 @@ module.exports = {
         .setDeveloperOptions(
           this.testCert,
           this.overProvision,
-          this.explorerLogs
+          this.explorerLogs,
+          this.escalationEmails
         )
         .then((response) => {
           this.alert("Developer options updated", "success");

@@ -117,17 +117,35 @@ class Admin(BaseActor):
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
+        escalation_emails = j.core.config.set_default("ESCALATION_EMAILS", False)
         return j.data.serializers.json.dumps(
-            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+            {
+                "data": {
+                    "test_cert": test_cert,
+                    "over_provision": over_provision,
+                    "explorer_logs": explorer_logs,
+                    "escalation_emails": escalation_emails,
+                }
+            }
         )
 
     @actor_method
-    def set_developer_options(self, test_cert: bool, over_provision: bool, explorer_logs: bool) -> str:
+    def set_developer_options(
+        self, test_cert: bool, over_provision: bool, explorer_logs: bool, escalation_emails: bool
+    ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
+        j.core.config.set("ESCALATION_EMAILS", escalation_emails)
         return j.data.serializers.json.dumps(
-            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+            {
+                "data": {
+                    "test_cert": test_cert,
+                    "over_provision": over_provision,
+                    "explorer_logs": explorer_logs,
+                    "escalation_emails": escalation_emails,
+                }
+            }
         )
 
     @actor_method
