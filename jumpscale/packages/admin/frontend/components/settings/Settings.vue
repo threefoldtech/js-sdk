@@ -81,6 +81,13 @@
                 hide-details
                 class="my-2 ml-2"
                 small
+                color="info"
+                @click="showConfig()"
+              >Show 3Bot configrations</v-btn>
+              <v-btn
+                hide-details
+                class="my-2 ml-2"
+                small
                 color="success"
                 @click="clearBlockedNodes()"
               >Clear blocked nodes</v-btn>
@@ -94,6 +101,7 @@
     <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
     <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
     <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
+    <config-view v-if="configrations" v-model="dialogs.configrations" :data="configrations"></config-view>
   </div>
 </template>
 
@@ -104,6 +112,7 @@ module.exports = {
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
+    "config-view": httpVueLoader("./ConfigrationsInfo.vue"),
   },
   data() {
     return {
@@ -118,11 +127,13 @@ module.exports = {
         removeAdmin: false,
         identityInfo: false,
         addIdentity: false,
+        configrations: false,
       },
       admins: [],
       identity: null,
       selectedIdentity: null,
       identities: [],
+      configrations: null,
       testCert: false,
       overProvision: false,
       explorerLogs: false,
@@ -188,6 +199,18 @@ module.exports = {
       } else {
         return "";
       }
+    },
+    showConfig() {
+      this.loading.developerOptions = true;
+      this.$api.admins
+        .getConfig()
+        .then((response) => {
+          this.configrations = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.dialogs.configrations = true;
+          this.loading.developerOptions = false;
+        });
     },
     getDeveloperOptions() {
       this.loading.developerOptions = true;
