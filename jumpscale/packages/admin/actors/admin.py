@@ -74,6 +74,10 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
+    def get_current_identity_name(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.core.identity.me.instance_name})
+
+    @actor_method
     def set_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
