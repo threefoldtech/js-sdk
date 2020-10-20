@@ -1,9 +1,9 @@
 <template>
   <div>
-    <base-dialog title="3Bot Configrations" v-model="dialog" :loading="loading">
+    <base-dialog title="3Bot Configurations" v-model="dialog" :loading="loading">
       <template #default>
         <json-renderer
-          title="Configrations"
+          title="Configurations"
           :jsonobj="data"
           :ignored="KeysIgnored"
           :typedict="KeysWithTypeDict"

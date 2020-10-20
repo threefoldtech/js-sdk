@@ -83,7 +83,7 @@
                 small
                 color="info"
                 @click="showConfig()"
-              >Show 3Bot configrations</v-btn>
+              >Show 3Bot configurations</v-btn>
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -101,7 +101,7 @@
     <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
     <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
     <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
-    <config-view v-if="configrations" v-model="dialogs.configrations" :data="configrations"></config-view>
+    <config-view v-if="configurations" v-model="dialogs.configurations" :data="configurations"></config-view>
   </div>
 </template>
 
@@ -112,7 +112,7 @@ module.exports = {
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
-    "config-view": httpVueLoader("./ConfigrationsInfo.vue"),
+    "config-view": httpVueLoader("./ConfigurationsInfo.vue"),
   },
   data() {
     return {
@@ -127,13 +127,13 @@ module.exports = {
         removeAdmin: false,
         identityInfo: false,
         addIdentity: false,
-        configrations: false,
+        configurations: false,
       },
       admins: [],
       identity: null,
       selectedIdentity: null,
       identities: [],
-      configrations: null,
+      configurations: null,
       testCert: false,
       overProvision: false,
       explorerLogs: false,
@@ -205,10 +205,10 @@ module.exports = {
       this.$api.admins
         .getConfig()
         .then((response) => {
-          this.configrations = JSON.parse(response.data).data;
+          this.configurations = JSON.parse(response.data).data;
         })
         .finally(() => {
-          this.dialogs.configrations = true;
+          this.dialogs.configurations = true;
           this.loading.developerOptions = false;
         });
     },
