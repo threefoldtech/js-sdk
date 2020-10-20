@@ -27,31 +27,24 @@ class MarketPlaceDeployer(ChatflowDeployer):
         user_pool_ids = [p.pool_id for p in user_pools if p.customer_tid == identity.tid]
         return user_pool_ids
 
-    def list_user_pools(self, username):
-
+    def list_user_pools(self, username, identity_name=None):
         _, _, user_pools = pool_factory.find_many(owner=username)
-        all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
+        all_pools = [p for p in j.sals.zos.get(identity_name).pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
         result = [p for p in all_pools if p.pool_id in user_pool_ids]
         return result
 
-    def list_networks(self, username, next_action=NextAction.DEPLOY, sync=True):
-        if sync:
-            self.load_user_workloads(next_action=next_action)
-        networks = {}  # name: last child network resource
-        for pool_id in self.workloads[next_action][WorkloadType.Network_resource]:
-            for workload in self.workloads[next_action][WorkloadType.Network_resource][pool_id]:
-                metadata = j.data.serializers.json.loads(workload.info.metadata)
-                if metadata.get("owner") == username:
-                    networks[workload.name] = workload
-        all_workloads = []
-        workload_values = self.workloads[next_action].values()
-        for pools_workloads in workload_values:
-            for pool_id, workload_list in pools_workloads.items():
-                for workload in workload_list:
-                    metadata = j.data.serializers.json.loads(workload.info.metadata)
-                    if metadata.get("owner") == username:
-                        all_workloads.append(workload)
+    def list_networks(self, username, next_action=NextAction.DEPLOY, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
+        zos = j.sals.zos.get(identity_name)
+        all_workloads = zos.workloads.list(identity.tid, next_action)
+        networks = set()
+        for workload in all_workloads:
+            decrypted_metadata = j.sals.reservation.deployer.decrypted_metadata(workload.info.metadata)
+            metadata = j.data.serializers.json.loads(decrypted_metadata)
+            if metadata.get("owner") == username and workload.info.wokrkload_type == WorkloadType.Network_resource:
+                networks.add(workload.name)
         network_views = {}
         if all_workloads:
             for network_name in networks:

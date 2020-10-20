@@ -4,7 +4,7 @@ from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
+from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY, USER_THREEBOT_FACTORY
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
@@ -61,7 +61,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
-        self.identity_name = self.mainnet_identity_name
+        # self.identity_name = self.mainnet_identity_name
+        self.identity_name = self.testnet_identity_name  # TODO: remove this line and bring back the line above
         try:
             identity_main = j.core.identity.get(
                 self.mainnet_identity_name,
@@ -93,11 +94,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
-            self.farm_name,
-            self.expiration,
-            currency=self.currency,
-            identity_name=self.mainnet_identity_name,
-            **self.query,
+            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query,
         )
         if not all(
             [
@@ -113,12 +110,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.wgcfg = deployer.init_new_user_network(
-            self, self.mainnet_identity_name, self.pool_info.reservation_id, identity_name=self.mainnet_identity_name,
+            self, self.identity_name, self.pool_info.reservation_id, identity_name=self.identity_name,
         )
         self.pool_id = self.pool_info.reservation_id
-        self.network_view = deployer.get_network_view(
-            f"{self.mainnet_identity_name}_apps", identity_name=self.identity_name
-        )
+        self.network_view = deployer.get_network_view(f"{self.identity_name}_apps", identity_name=self.identity_name)
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
@@ -284,7 +279,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     subdomain=self.domain,
                     addresses=self.addresses,
                     solution_uuid=self.solution_id,
-                    identity_name=self.mainnet_identity_name,
+                    identity_name=self.identity_name,
                     **self.solution_metadata,
                 )
             )
@@ -294,7 +289,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 raise DeploymentFailed(
                     f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=self.workload_ids[-1],
-                    identity_name=self.mainnet_identity_name,
+                    identity_name=self.identity_name,
                 )
         test_cert = j.config.get("TEST_CERT")
 
@@ -335,7 +330,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 interactive=False,
                 log_config=log_config,
                 solution_uuid=self.solution_id,
-                identity_name=self.mainnet_identity_name,
+                identity_name=self.identity_name,
                 **self.solution_metadata,
             )
         )
@@ -345,7 +340,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
-                identity_name=self.mainnet_identity_name,
+                identity_name=self.identity_name,
             )
 
         # 4- expose threebot container
@@ -364,7 +359,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 proxy_pool_id=self.gateway_pool.pool_id,
                 solution_uuid=self.solution_id,
                 log_config=self.trc_log_config,
-                identity_name=self.mainnet_identity_name,
+                identity_name=self.identity_name,
                 **self.solution_metadata,
             )
         )
@@ -374,9 +369,23 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                 solution_uuid=self.solution_id,
                 wid=self.workload_ids[-1],
-                identity_name=self.mainnet_identity_name,
+                identity_name=self.identity_name,
             )
         self.threebot_url = f"https://{self.domain}/admin"
+
+        instance_name = self.solution_id
+        user_threebot = USER_THREEBOT_FACTORY.get(instance_name)
+        user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+        user_threebot.name = self.solution_name
+        user_threebot.owner_tname = self.threebot_name
+        user_threebot.compute_pool_id = self.pool_id
+        user_threebot.gateway_pool_id = self.gateway_pool.pool_id
+        if self.custom_domain:
+            user_threebot.subdomain_wid = self.workload_ids[-3]
+        user_threebot.threebot_wid = self.workload_ids[-2]
+        user_threebot.trc_wid = self.workload_ids[-1]
+        user_threebot.farm_name = self.farm_name
+        user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

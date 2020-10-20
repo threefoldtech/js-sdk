@@ -347,7 +347,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     dom = user_subdomains[full_domain]
                     sol_uuid = dom["uuid"]
                     if sol_uuid:
-                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                        workloads = solutions.get_workloads_by_uuid(
+                            sol_uuid, "DEPLOY", identity_name=self.identity_name
+                        )
                         is_free = True
                         for w in workloads:
                             if w.info.workload_type == WorkloadType.Container:
