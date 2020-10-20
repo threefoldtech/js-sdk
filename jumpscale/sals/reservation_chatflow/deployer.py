@@ -300,11 +300,12 @@ class ChatflowDeployer:
         identity_name = identity_name or j.core.identity.me.instance_name
         identity = j.core.identity.get(identity_name)
         try:
-            pk = identity.me.nacl.signing_key.verify_key.to_curve25519_public_key()
-            sk = identity.me.nacl.signing_key.to_curve25519_private_key()
+            pk = identity.nacl.signing_key.verify_key.to_curve25519_public_key()
+            sk = identity.nacl.signing_key.to_curve25519_private_key()
             box = Box(sk, pk)
             return box.decrypt(base64.b85decode(encrypted_metadata.encode())).decode()
-        except:
+        except Exception as e:
+            j.logger.error(f"error when decrypting metadata. {str(e)}")
             return "{}"
 
     def list_networks(self, next_action=NextAction.DEPLOY, sync=True):
