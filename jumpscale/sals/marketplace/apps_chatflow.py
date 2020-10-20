@@ -282,6 +282,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         blocked_domains = deployer.list_blocked_managed_domains()
         for gw_dict in gateway_values:
             gateway = gw_dict["gateway"]
+            random.shuffle(gateway.managed_domains)
             for domain in gateway.managed_domains:
                 self.addresses = []
                 is_managed_domains = True
