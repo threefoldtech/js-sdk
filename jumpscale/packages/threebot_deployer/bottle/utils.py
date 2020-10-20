@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Container
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.clients.explorer.models import WorkloadType
@@ -22,7 +21,7 @@ def build_solution_info(workloads, identity_name):
         solution_info["wids"].append(workload.id)
         if workload.info.workload_type in [WorkloadType.Reverse_proxy, WorkloadType.Subdomain]:
             solution_info["domain"] = workload.domain
-        elif workload.info.workload_type == Container:
+        elif workload.info.workload_type == WorkloadType.Container:
             decrypted_metadata = deployer.decrypt_metadata(workload.info.metadata, identity_name)
             metadata = json.loads(decrypted_metadata)
             name = metadata.get("form_info", {}).get("Solution name")
@@ -49,9 +48,7 @@ def build_solution_info(workloads, identity_name):
 
 
 def group_threebot_workloads_by_uuid(identity_name):
-    import pdb
-
-    pdb.set_trace()
+    print(identity_name)
     solutions = defaultdict(list)
     identity = j.core.identity.get(identity_name)
     zos = j.sals.zos.get(identity_name)
@@ -63,7 +60,7 @@ def group_threebot_workloads_by_uuid(identity_name):
         solution_uuid = metadata.get("solution_uuid")
         if not solution_uuid:
             continue
-        if not metadata.get("form_info", {}).get("chatflow") != "threebot":
+        if metadata.get("form_info", {}).get("chatflow") != "threebot":
             continue
         solutions[solution_uuid].append(workload)
     return solutions
@@ -77,15 +74,17 @@ def list_threebot_solutions(owner):
     while cursor:
         cursor, _, result = USER_THREEBOT_FACTORY.find_many(cursor, owner_tname=owner)
         threebots += list(result)
-
+    print(threebots)
     for threebot in threebots:
         grouped_identity_workloads = group_threebot_workloads_by_uuid(threebot.identity_name)
         zos = j.sals.zos.get(threebot.identity_name)
         workloads = grouped_identity_workloads.get(threebot.solution_uuid)
+        # print("Workloads", workloads)
         if not workloads:
             continue
         user_pools = {p.pool_id: p for p in zos.pools.list()}
         solution_info = build_solution_info(workloads, threebot.identity_name)
+        print(solution_info)
         if "ipv4" not in solution_info or "domain" not in solution_info:
             continue
         solution_info["farm"] = threebot.farm_name
