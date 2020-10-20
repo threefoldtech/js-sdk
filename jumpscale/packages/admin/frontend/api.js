@@ -163,6 +163,11 @@ const apiClient = {
                 url: `/auth/authenticated/`
             })
         },
+        getConfig: () => {
+            return axios({
+                url: `${baseURL}/admin/get_config`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`

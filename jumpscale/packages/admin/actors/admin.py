@@ -100,6 +100,11 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
+    def get_config(self) -> str:
+        config_obj = j.core.config.get_config()
+        return j.data.serializers.json.dumps({"data": config_obj})
+
+    @actor_method
     def delete_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
