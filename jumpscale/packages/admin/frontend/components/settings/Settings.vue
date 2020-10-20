@@ -6,11 +6,7 @@
       <template #default>
         <v-row align="start" justify="start">
           <v-col class="mt-0 pt-0" cols="12" md="4">
-            <base-section
-              title="Admins"
-              icon="mdi-account-lock"
-              :loading="loading.admins"
-            >
+            <base-section title="Admins" icon="mdi-account-lock" :loading="loading.admins">
               <template #actions>
                 <v-btn text @click.stop="dialogs.addAdmin = true">
                   <v-icon left>mdi-plus</v-icon>Add
@@ -28,8 +24,7 @@
                 label
                 close
                 close-icon="mdi-close-circle-outline"
-                >{{ admin }}</v-chip
-              >
+              >{{ admin }}</v-chip>
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="4">
@@ -51,8 +46,7 @@
                 :key="i"
                 :color="getColor(identity.instance_name)"
                 @click="openIdentity(identity.instance_name)"
-                >{{ identity.instance_name }}</v-chip
-              >
+              >{{ identity.instance_name }}</v-chip>
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="3">
@@ -89,8 +83,7 @@
                 small
                 color="success"
                 @click="clearBlockedNodes()"
-                >Clear blocked nodes</v-btn
-              >
+              >Clear blocked nodes</v-btn>
             </base-section>
           </v-col>
         </v-row>
@@ -98,20 +91,9 @@
     </base-component>
 
     <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
-    <remove-admin
-      v-model="dialogs.removeAdmin"
-      :name="selectedAdmin"
-      @done="listAdmins"
-    ></remove-admin>
-    <identity-info
-      v-model="dialogs.identityInfo"
-      :name="selectedIdentity"
-      @done="listIdentities"
-    ></identity-info>
-    <add-identity
-      v-model="dialogs.addIdentity"
-      @done="listIdentities"
-    ></add-identity>
+    <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
+    <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
+    <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
   </div>
 </template>
 
@@ -183,7 +165,7 @@ module.exports = {
       this.$api.admins
         .getCurrentUser()
         .then((response) => {
-          this.identity = response.username;
+          this.identity = response.data.username;
         })
         .finally(() => {
           this.loading.identities = false;
@@ -200,6 +182,7 @@ module.exports = {
         });
     },
     getColor(identityInstanceName) {
+      this.identity = this.identity.replace(".3bot", "");
       if (identityInstanceName == this.identity) {
         return "primary";
       } else {

@@ -49,26 +49,26 @@ class Test3BotServer(BaseTests):
         self.info("*** nginx server ***")
         self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
         self.info(" * Check that nginx server connection works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 2))
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 5))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 5))
 
         self.info("*** redis server ***")
         self.assertTrue(j.sals.process.get_pids("redis"), "redis didn't start correctly")
         self.info(" * Check that redis server connection  works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 5))
 
         self.info("*** gedis server ***")
         self.info(" * Check that gedis server connection  works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 16000, 2))
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 8000, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 16000, 5))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 8000, 5))
 
     def check_threebot_main_running_servers_stopped_correctly(self):
         self.info("Check servers stopped successfully.")
         self.info("Make sure that server stopped successfully by check nginx_main, redis_default and gedis don't work.")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 80, 3), "Nginx still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 443, 3), "Nginx still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 16000, 3), "gedis still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 3), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 80, 5), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 443, 5), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 16000, 5), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 5), "gedis still running")
 
     def test01_start_threebot(self):
         """Test start threebot server.

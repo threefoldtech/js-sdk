@@ -90,7 +90,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             )
 
     def _get_pool(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=False, identity_name=self.identity_name)
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
