@@ -373,7 +373,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             )
         self.threebot_url = f"https://{self.domain}/admin"
 
-        instance_name = self.solution_id
+        instance_name = f"threebot_{self.solution_id}"
         user_threebot = USER_THREEBOT_FACTORY.get(instance_name)
         user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
         user_threebot.name = self.solution_name
