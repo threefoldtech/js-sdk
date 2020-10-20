@@ -145,7 +145,7 @@ module.exports = {
       this.dialogs.removeAdmin = true;
     },
     listIdentities() {
-      this.getCurrentIdentity();
+      this.getIdentity();
       this.loading.identities = true;
       this.$api.identities
         .list()
@@ -159,6 +159,17 @@ module.exports = {
     openIdentity(identity) {
       this.selectedIdentity = identity;
       this.dialogs.identityInfo = true;
+    },
+    getIdentity() {
+      this.loading.identities = true;
+      this.$api.identity
+        .get()
+        .then((response) => {
+          this.identity = JSON.parse(response.data);
+        })
+        .finally(() => {
+          this.loading.identities = false;
+        });
     },
     getCurrentIdentity() {
       this.loading.identities = true;
@@ -182,8 +193,8 @@ module.exports = {
         });
     },
     getColor(identityInstanceName) {
-      this.identity = this.identity.replace(".3bot", "");
-      if (identityInstanceName == this.identity) {
+      let identityName = this.identity.name.replace(".3bot", "");
+      if (identityInstanceName == identityName) {
         return "primary";
       } else {
         return "";
@@ -230,7 +241,7 @@ module.exports = {
   },
   mounted() {
     this.listAdmins();
-    this.getCurrentIdentity();
+    this.getIdentity();
     this.listIdentities();
     this.getDeveloperOptions();
   },
