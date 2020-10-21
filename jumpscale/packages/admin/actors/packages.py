@@ -63,5 +63,16 @@ class Packages(BaseActor):
     def delete_package(self, name: str) -> str:
         return j.data.serializers.json.dumps({"data": self.threebot.packages.delete(name)})
 
+    @actor_method
+    def list_chat_urls(self, name: str) -> str:
+        package_chats = []
+        if name in self.threebot.packages.packages:
+            package = self.threebot.packages.get(name)
+            str = "{0}/chats/{1}".format(package.base_url, "{0}")
+            if name in self.threebot.chatbot.chats:
+                for chat_name in self.threebot.chatbot.chats[name].keys():
+                    package_chats.append({"name": chat_name, "url": f"{package.base_url}/chats/{chat_name}"})
+        return j.data.serializers.json.dumps({"data": package_chats})
+
 
 Actor = Packages
