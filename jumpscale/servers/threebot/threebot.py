@@ -343,10 +343,7 @@ class PackageManager(Base):
             package = self.get(pkg)
             if package:
                 if j.sals.fs.exists(package.path):
-                    if package.chats_dir:
-                        chatflows = True
-                    else:
-                        chatflows = False
+                    chatflows = True if package.chats_dir else False
                     all_packages.append(
                         {
                             "name": pkg,

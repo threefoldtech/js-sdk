@@ -68,9 +68,9 @@ class Packages(BaseActor):
         package_chats = []
         if name in self.threebot.packages.packages:
             package = self.threebot.packages.get(name)
-            str = "{0}/chats/{1}".format(package.base_url, "{0}")
             if name in self.threebot.chatbot.chats:
-                for chat_name in self.threebot.chatbot.chats[name].keys():
+                package_chat_names = self.threebot.chatbot.chats[name].keys()
+                for chat_name in package_chat_names:
                     package_chats.append({"name": chat_name, "url": f"{package.base_url}/chats/{chat_name}"})
         return j.data.serializers.json.dumps({"data": package_chats})
 
