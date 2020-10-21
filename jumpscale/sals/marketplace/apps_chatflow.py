@@ -493,6 +493,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Payment")
     def solution_extension(self):
+        self.md_show_update("Extending pool...")
         self.currencies = ["TFT"]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
