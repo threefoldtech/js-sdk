@@ -168,12 +168,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, escalation_emails:escalationEmails }
             })
         },
         clearBlockedNodes: () => {
@@ -181,6 +181,30 @@ const apiClient = {
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
         }
+    },
+    escalationEmails:{
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_escalation_emails`
+            })
+        },
+        add: (email) => {
+            return axios({
+                url: `${baseURL}/admin/add_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        },
+        delete: (email) => {
+            return axios({
+                url: `${baseURL}/admin/delete_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        }
+
     },
     explorers: {
         get: () => {
