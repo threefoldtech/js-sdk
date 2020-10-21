@@ -59,7 +59,8 @@ module.exports = {
     return {
       form: { extras: {} },
       k: null,
-      v: null
+      v: null,
+      show: null
     };
   },
   methods: {
