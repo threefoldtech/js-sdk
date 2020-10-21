@@ -146,7 +146,6 @@ def delete_threebot_solution(owner, solution_uuid):
         ssh_server2.sshclient.run(
             f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
         )
-        status = "Destroyed successfully"
     except:
         raise j.exceptions.Value(status)
     threebot.state = ThreebotState.DELETED
