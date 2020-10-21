@@ -146,7 +146,11 @@ class Admin(BaseActor):
 
     @actor_method
     def get_notifications(self) -> str:
-        notifications = j.tools.notificationsqueue.fetch()
+        notifications = []
+        if j.tools.notificationsqueue.count() >= 10:
+            notifications = j.tools.notificationsqueue.fetch()
+        else:
+            notifications = j.tools.notificationsqueue.fetch(10)
         ret = [notification.json for notification in notifications]
         return j.data.serializers.json.dumps({"data": ret})
 

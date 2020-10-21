@@ -228,7 +228,7 @@ module.exports = {
     },
     notificationsClick() {
         this.$api.admins.getNotifications().then((response) => {
-          this.notifications = JSON.parse(response.data).data.reverse();
+          this.notifications = JSON.parse(response.data).data;
           console.log(this.notifications)
           this.notificationsCount = 0;
         });

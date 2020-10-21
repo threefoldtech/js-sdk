@@ -38,6 +38,7 @@ class NotificationsQueue:
         self._rkey = "queue:notifications"
         self._rkey_incr = "queue:notifications:id:incr"
         self._rkey_seen = "list:notifications:seen"
+        self._seen_list_max_size = 10
         self._db = None
 
     @property
@@ -70,41 +71,43 @@ class NotificationsQueue:
         notification.date = j.data.time.now().timestamp
         notification.id = self.db.incr(self._rkey_incr)
 
-        self.db.rpush(self._rkey, notification.dumps())
+        self.db.lpush(self._rkey, notification.dumps())
 
     def fetch(self, count: int = -1) -> list:
         """Fetch notifications from queue
 
         Keyword Arguments:
-            count {int} -- number of notifications to fetch (default: {-1} = all notifications)
+            count {int} -- number of new notifications to fetch (default: {-1} = new notifications only)
+                           if new notifications < count => will return list of (new notifications + old notifications) with length = count
 
         Returns:
             list on Notification objects
         """
+        get_all_new = count == -1
+        new_notifications_count = 0
 
-        # Transactional pipeline to fetch notifications and trim them from the queue
-        # TODO: better implementation of if/elses
-        ret_notifications = []
-        if count == -1:
-            new_notifications = self.db.lrange(self._rkey, 0, -1)
-            self.db.delete(self._rkey)
-            self.db.ltrim(self._rkey_seen, 0, 9)
-            # check if new notifications count less than 10 to append the old
-            if len(new_notifications) < 10:
-                old_notifications = self.db.lrange(self._rkey_seen, len(new_notifications) - 10, -1)
-                ret_notifications += old_notifications[::-1]
-            ret_notifications += new_notifications
-            # update the old notifications list with the new
-            if new_notifications:
-                self.db.lpush(self._rkey_seen, *new_notifications)
+        if get_all_new:
+            new_notifications_count = self.count()
+            if new_notifications_count == 0:
+                return []
         else:
-            ret_notifications = self.db.lrange(self._rkey, 0, count - 1)  # -1 => See https://redis.io/commands/lrange
-            if self.count() == 1:
-                self.db.delete(self._rkey)
-            else:
-                self.db.ltrim(self._rkey, count, -1)
+            new_notifications_count = count
 
-        return [Notification.loads(notification) for notification in ret_notifications]
+        # Transactional pipeline to fetch notifications from the queue and save them in the seen list
+        p = self.db.pipeline()
+        p.multi()
+
+        for i in range(new_notifications_count):
+            p.rpoplpush(self._rkey, self._rkey_seen)
+        if get_all_new:
+            p.lrange(self._rkey_seen, 0, new_notifications_count - 1)
+        else:
+            p.lrange(self._rkey_seen, 0, count - 1)
+        p.ltrim(self._rkey_seen, 0, self._seen_list_max_size - 1)
+
+        notifications = p.execute()
+
+        return [Notification.loads(notification) for notification in notifications[-2]]  # -2 = result of lrange command
 
     def count(self) -> int:
         """Get notifications count
