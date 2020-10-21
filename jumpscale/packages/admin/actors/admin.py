@@ -155,12 +155,12 @@ class Admin(BaseActor):
 
     @actor_method
     def list_escalation_emails(self) -> str:
-        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
         return j.data.serializers.json.dumps({"data": escalation_emails})
 
     @actor_method
     def add_escalation_email(self, email) -> str:
-        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
         if email not in escalation_emails:
             escalation_emails.append(email)
             j.core.config.set("ESCALATION_EMAILS", escalation_emails)
@@ -168,7 +168,7 @@ class Admin(BaseActor):
 
     @actor_method
     def delete_escalation_email(self, email) -> str:
-        escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
         if email in escalation_emails:
             escalation_emails.remove(email)
             j.core.config.set("ESCALATION_EMAILS", escalation_emails)
