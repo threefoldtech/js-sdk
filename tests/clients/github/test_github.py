@@ -30,7 +30,7 @@ class GithubClientTest(BaseTests):
             j.sals.fs.rmtree(f"/tmp/{self.directory_name}/")
 
     def wait_for_deleting_repo(self, sec, repo):
-        for i in range(sec):
+        for _ in range(sec):
             if repo.name in str(self.client.get_repos()):
                 sleep(1)
             else:
@@ -38,7 +38,7 @@ class GithubClientTest(BaseTests):
         return False
 
     def wait_for_creating_repo(self, sec, repo):
-        for i in range(sec):
+        for _ in range(sec):
             if repo.name not in str(self.client.get_repos()):
                 sleep(1)
             else:
