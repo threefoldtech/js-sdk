@@ -17,8 +17,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         super().setUpClass()
 
         # Accept admin T&C for testing identity.
-        admin_user_factory = StoredFactory(UserEntry)
-        admin_user_entry = admin_user_factory.get(f"{cls.tname.replace('.3bot', '')}")
+        cls.user_entry_name = f"{cls.tname.replace('.3bot', '')}"
+        cls.admin_user_factory = StoredFactory(UserEntry)
+        admin_user_entry = cls.admin_user_factory.get(cls.user_entry_name)
         admin_user_entry.has_agreed = True
         admin_user_entry.tname = cls.tname
         admin_user_entry.save()
@@ -53,7 +54,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
         wids = [w.id for w in network_view.network_workloads]
         j.sals.zos.workloads.decomission(workload_id=wids[0])
 
-        # TODO: remove userEntry for accepting T&C
+        # Remove userEntry for accepting T&C
+        cls.admin_user_factory.delete(cls.user_entry_name)
         super().tearDownClass()
 
     def tearDown(self):

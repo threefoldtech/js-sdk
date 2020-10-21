@@ -1,9 +1,12 @@
+import string
+
 import pytest
-from chatflows_base import ChatflowsBase
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from solutions_automation import deployer
+
+from chatflows_base import ChatflowsBase
 
 
 @pytest.mark.integration
@@ -20,20 +23,31 @@ class MarketplaceChatflows(ChatflowsBase):
             explorer_name = "devnet"
         elif "explorer.grid.tf" in explorer_url:
             explorer_name = "mainnet"
-        instance_name = f"{explorer_name}_{cls.tname.replace('.3bot', '')}"
-        marketplace_user_factory = StoredFactory(UserEntry)
-        marketplace_user_entry = marketplace_user_factory.get(instance_name)
+        cls.user_entry_name = f"{explorer_name}_{cls.tname.replace('.3bot', '')}"
+        cls.marketplace_user_factory = StoredFactory(UserEntry)
+        marketplace_user_entry = cls.marketplace_user_factory.get(cls.user_entry_name)
         marketplace_user_entry.has_agreed = True
         marketplace_user_entry.tname = cls.tname
         marketplace_user_entry.save()
 
     @classmethod
     def tearDownClass(cls):
-        # TODO: remove userEntry for accepting T&C
-        pass
+        # Remove userEntry for accepting T&C.
+        cls.marketplace_user_factory.delete(cls.user_entry_name)
+        super().tearDownClass()
+
+    def setUp(self):
+        super().setUp()
+        self.solution_uuid = None
 
     def tearDown(self):
-        j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
+        if self.solution_uuid:
+            j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
+        super().tearDown()
+
+    def random_name(self):
+        # Only lower case for subdomain.
+        return j.data.idgenerator.nfromchoices(10, string.ascii_lowercase)
 
     def test01_wiki(self):
         """Test case for testing wiki.
@@ -53,7 +67,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.info("Check that wiki is accessed.")
         request = j.tools.http.get(f"https://{wiki.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-        self.assertIn("TF Grid 2.1 Manual", request.content.decode())
+        self.assertIn("TF Grid", request.content.decode())
 
     def test02_blog(self):
         """Test case for testing blog.
@@ -74,7 +88,6 @@ class MarketplaceChatflows(ChatflowsBase):
         self.info("Check if blog is accessed..")
         request = j.tools.http.get(f"https://{blog.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-        self.assertIn("TF Grid 2.1 Manual", request.content.decode())
 
     def test03_website(self):
         """Test case for testing website.
@@ -111,9 +124,7 @@ class MarketplaceChatflows(ChatflowsBase):
 
         self.info("Check if Mattermost is accessed")
         request = j.tools.http.get(f"http://{mattermost.domain}", verify=False)
-
         self.assertEqual(request.status_code, 200)
-        self.assertIn("By proceeding to create your account and use Mattermost", request.content.decode())
 
     def test05_cryptpad(self):
         """Test case for testing cryptpad.

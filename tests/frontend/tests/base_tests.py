@@ -32,8 +32,9 @@ class BaseTest(BaseTests):
             cls.me = j.core.identity.me
 
         # Accept T&C for testing identity.
-        user_factory = StoredFactory(UserEntry)
-        user_entry = user_factory.get(f"{cls.tname.replace('.3bot', '')}")
+        cls.user_entry_name = f"{cls.tname.replace('.3bot', '')}"
+        cls.user_factory = StoredFactory(UserEntry)
+        user_entry = cls.user_factory.get(cls.user_entry_name)
         user_entry.has_agreed = True
         user_entry.tname = cls.tname
         user_entry.save()
@@ -61,7 +62,8 @@ class BaseTest(BaseTests):
         if cls.me:
             cls.me.set_default()
 
-        # TODO: remove userEntry for accepting T&C
+        # Remove userEntry for accepting T&C
+        cls.user_factory.delete(cls.user_entry_name)
 
     def setUp(self):
         # Configure chrome driver and go to the entrypoint.
