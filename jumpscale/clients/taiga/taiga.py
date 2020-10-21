@@ -693,7 +693,7 @@ class TaigaClient(Client):
         name,
         type_="team",
         description="desc",
-        severties=None,
+        severities=None,
         issues_statuses=None,
         priorities=None,
         issues_types=None,
@@ -701,7 +701,7 @@ class TaigaClient(Client):
         tasks_statuses=None,
         **attrs,
     ):
-        severties = severties or ["Low", "Mid", "High"]
+        severities = severities or ["Low", "Mid", "High"]
         priorities = priorities or ["Wishlist", "Minor", "Normal", "Important", "Critical"]
         issues_statuses = issues_statuses or [
             "New",
@@ -733,7 +733,7 @@ class TaigaClient(Client):
                 # check if duplicated
                 print(f"skipping prio {t} {e}")
 
-        for t in severties:
+        for t in severities:
             try:
                 p.add_severity(t)
             except Exception as e:
@@ -763,7 +763,7 @@ class TaigaClient(Client):
 
         # list(map(p.add_task_status, tasks_statuses))
         # list(map(p.add_priority, priorities))
-        # list(map(p.add_severity, severties))
+        # list(map(p.add_severity, severities))
         # list(map(p.add_issue_status, statuses))
         # list(map(p.add_user_status, user_stories_statuses))
         # list(map(p.add_issue_type, issues_types))
@@ -773,7 +773,7 @@ class TaigaClient(Client):
         self,
         name,
         description="",
-        severties=None,
+        severities=None,
         issues_statuses=None,
         priorities=None,
         issues_types=None,
@@ -792,7 +792,7 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
-        severties = None
+        severities = None
         priorities = None
         statuses = None
         issues_types = None
@@ -802,7 +802,7 @@ class TaigaClient(Client):
                 name,
                 type_="project",
                 description=description,
-                severties=severties,
+                severities=severities,
                 issues_statuses=statuses,
                 priorities=priorities,
                 issues_types=issues_types,
@@ -825,7 +825,7 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
-        severties = None
+        severities = None
         priorities = None
         statuses = None
         issues_types = None
@@ -835,7 +835,7 @@ class TaigaClient(Client):
                 name,
                 type_="team",
                 description=description,
-                severties=severties,
+                severities=severities,
                 issues_statuses=statuses,
                 priorities=priorities,
                 issues_types=issues_types,
@@ -875,7 +875,7 @@ class TaigaClient(Client):
         # Closed
         # Needs info
 
-        severties = None
+        severities = None
         priorities = None
         statuses = None
         issues_types = None
@@ -890,7 +890,7 @@ class TaigaClient(Client):
                 name,
                 type_="funnel",
                 description=description,
-                severties=severties,
+                severities=severities,
                 issues_statuses=issues_statuses,
                 priorities=priorities,
                 issues_types=issues_types,
