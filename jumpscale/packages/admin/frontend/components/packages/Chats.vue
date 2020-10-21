@@ -4,7 +4,8 @@
       <v-chip
         class="mr-2 mb-2"
         outlined
-        v-for="endpoint in chatflowEndpoints"
+        v-for="(endpoint,i) in chatflowEndpoints"
+        :key="i"
         :href="endpoint.url"
       >{{ endpoint.name }}</v-chip>
 
