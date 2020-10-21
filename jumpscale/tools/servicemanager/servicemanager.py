@@ -6,9 +6,10 @@ from .services import StellarService, DiskCheckService
 from jumpscale.loader import j
 from jumpscale.core.base import Base
 
-DEFAULT_SERVICES = {"stellar": StellarService(), "test": DiskCheckService()}
+DEFAULT_SERVICES = {"stellar": StellarService(), "disk-check": DiskCheckService()}
 
 # TODO: add support for non-periodic tasks
+# TODO: save services in config manager
 
 
 class ServiceManager(Base):

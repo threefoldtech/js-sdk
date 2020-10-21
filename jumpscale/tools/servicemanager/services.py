@@ -9,8 +9,14 @@ from jumpscale.tools.notificationsqueue.queue import LEVEL
 
 class BackgroundService(ABC):
     def __init__(self, service_name, interval=60, *args, **kwargs):
+        """Abstract base class for background services managed by the service manager
+
+        Arguments:
+            service_name {str} -- identifier of the service
+            interval {int} -- scheduled job is executed every interval (in seconds)
+        """
         self.name = service_name
-        self.interval = interval  # in seconds
+        self.interval = interval
 
     @abstractmethod
     def job(self):
@@ -33,7 +39,7 @@ class StellarService(BackgroundService):
         while retries:
             try:
                 current_state = j.clients.stellar.check_stellar_service()
-            except:
+            except Exception:
                 current_state = False
             if current_state:
                 break
