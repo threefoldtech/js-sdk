@@ -6,7 +6,7 @@
         <v-text-field v-model="form.tname" label="3Bot name" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
         <v-text-field v-model="form.words" label="Words" dense></v-text-field>
-        <v-select v-model="form.explorer_type" label="Explorer type" :items="explorer_labels" dense></v-select>
+        <v-select v-model="selected_explorer" label="Explorer type" :items="Object.keys(explorers)" dense></v-select>
       </v-form>
     </template>
     <template #actions>
@@ -26,19 +26,19 @@ module.exports = {
           "Main Network": {url: "https://explorer.grid.tf", type: "main"},
           "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"}
         },
-        explorer_labels:["Main Network","Test Network"]
+        selected_explorer: "Main Network",
       }
     },
     methods: {
         submit () {
             this.loading = true
             this.error = null
-            if(!this.form.instance_name || !this.form.tname || !this.form.email || !this.form.words || !this.form.explorer_type){
+            if(!this.form.instance_name || !this.form.tname || !this.form.email || !this.form.words || !this.selected_explorer){
                 this.error = "All fields required"
                 this.loading = false
             }
             else{
-                this.$api.identities.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.form.explorer_type].type).then((response) => {
+                this.$api.identities.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.selected_explorer].type).then((response) => {
                     responseMessage = JSON.parse(response.data).data
                     if(responseMessage == "Identity with the same instance name already exists"){
                         this.error = responseMessage

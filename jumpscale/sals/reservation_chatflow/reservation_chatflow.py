@@ -1377,6 +1377,7 @@ class ReservationChatflow:
         ip_version=None,
         pool_ids=None,
         filter_blocked=True,
+        identity_name=None,
     ):
         """get available nodes to deploy solutions on
 
@@ -1418,7 +1419,7 @@ class ReservationChatflow:
             nodes_number = nodes_distribution[pool_id]
             if not pool_ids:
                 pool_id = None
-            nodes = j.sals.zos.get().nodes_finder.nodes_by_capacity(
+            nodes = j.sals.zos.get(identity_name).nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)

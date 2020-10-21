@@ -21,8 +21,6 @@ from .zdb import ZDBGenerator
 
 
 class Zosv2:
-    """ """
-
     def __init__(self, identity):
         self.__identity = identity
 
@@ -40,7 +38,7 @@ class Zosv2:
 
     @property
     def container(self):
-        return ContainerGenerator()
+        return ContainerGenerator(self._identity)
 
     @property
     def volume(self):

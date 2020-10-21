@@ -29,8 +29,7 @@
                 label
                 close
                 close-icon="mdi-close-circle-outline"
-                >{{ admin }}</v-chip
-              >
+              >{{ admin }}</v-chip>
             </base-section>
             <!-- List-Escalation-Emails -->
             <base-section
@@ -79,8 +78,7 @@
                 :key="i"
                 :color="getColor(identity.instance_name)"
                 @click="openIdentity(identity.instance_name)"
-                >{{ identity.instance_name }}</v-chip
-              >
+              >{{ identity.instance_name }}</v-chip>
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="3">
@@ -124,8 +122,7 @@
                 small
                 color="success"
                 @click="clearBlockedNodes()"
-                >Clear blocked nodes</v-btn
-              >
+              >Clear blocked nodes</v-btn>
             </base-section>
           </v-col>
         </v-row>
@@ -250,7 +247,7 @@ module.exports = {
       this.$api.admins
         .getCurrentUser()
         .then((response) => {
-          this.identity = response.username;
+          this.identity = response.data.username;
         })
         .finally(() => {
           this.loading.identities = false;
@@ -267,6 +264,7 @@ module.exports = {
         });
     },
     getColor(identityInstanceName) {
+      this.identity = this.identity.replace(".3bot", "");
       if (identityInstanceName == this.identity) {
         return "primary";
       } else {
