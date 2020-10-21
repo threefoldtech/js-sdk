@@ -36,7 +36,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _threebot_start(self):
         self._validate_user()
-        self.branch = "development_3botdeployer_identity_usage"
+        self.branch = "development_3botdeployer"
         self.solution_id = uuid.uuid4().hex
         self.username = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
@@ -81,13 +81,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             )
             identities = [identity_main, identity_test]
             for identity in identities:
+                tname = identity.tname
                 identity.admins.append(f"{threebot_name}.3bot")
                 identity.register()
                 identity.save()
 
         except:
             raise StopChatFlow(
-                "Couldn't register new identites with the given name. Make sure you entered the correct password."
+                f"Couldn't register new identites with the given name {tname}. Make sure you entered the correct password."
             )
 
     def _get_pool(self):
@@ -97,12 +98,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.pool_info = deployer.create_3bot_pool(
             self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query,
         )
-        if not all(
-            [
-                self.pool_info.escrow_information.address.strip() != "",
-                self.pool_info.escrow_information.address.strip() != "",
-            ]
-        ):
+        if self.pool_info.escrow_information.address.strip() == "":
             raise StopChatFlow(
                 f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
             )

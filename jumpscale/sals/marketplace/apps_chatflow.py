@@ -149,12 +149,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
-            if not all(
-                [
-                    self.pool_info.escrow_information.address.strip() != "",
-                    self.pool_info.escrow_information.address.strip() != "",
-                ]
-            ):
+            if self.pool_info.escrow_information.address.strip() == "":
                 raise StopChatFlow(
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
