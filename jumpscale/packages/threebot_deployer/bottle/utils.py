@@ -111,13 +111,19 @@ def get_threebot_workloads_by_uuid(solution_uuid, identity_name):
     return result
 
 
-def stop_threebot_solution(owner, solution_uuid):
+def get_threebot_config_instance(owner, solution_uuid):
     owner = text.removesuffix(owner, ".3bot")
     threebot = USER_THREEBOT_FACTORY.find(f"threebot_{solution_uuid}")
     if not threebot:
         raise j.exceptions.NotFound(f"Threebot with uuid {solution_uuid} does not exist")
     if threebot.owner_tname != owner:
         raise j.exceptions.Permission(f"user {owner} does not own threebot with uuid {solution_uuid}")
+    return threebot
+
+
+def stop_threebot_solution(owner, solution_uuid):
+    owner = text.removesuffix(owner, ".3bot")
+    threebot = get_threebot_config_instance(owner, solution_uuid)
     zos = j.sals.zos.get(threebot.identity_name)
     solution_workloads = get_threebot_workloads_by_uuid(solution_uuid, threebot.identity_name)
     for workload in solution_workloads:
