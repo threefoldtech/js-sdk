@@ -6,7 +6,12 @@
       <template #default>
         <v-row align="start" justify="start">
           <v-col class="mt-0 pt-0" cols="12" md="4">
-            <base-section title="Admins" icon="mdi-account-lock" :loading="loading.admins">
+            <!-- List-Admins -->
+            <base-section
+              title="Admins"
+              icon="mdi-account-lock"
+              :loading="loading.admins"
+            >
               <template #actions>
                 <v-btn text @click.stop="dialogs.addAdmin = true">
                   <v-icon left>mdi-plus</v-icon>Add
@@ -25,6 +30,33 @@
                 close
                 close-icon="mdi-close-circle-outline"
               >{{ admin }}</v-chip>
+            </base-section>
+            <!-- List-Escalation-Emails -->
+            <base-section
+              class="mt-3"
+              title="Escalation Emails"
+              icon="mdi-account-lock"
+              :loading="loading.escalationEmails"
+            >
+              <template #actions>
+                <v-btn text @click.stop="dialogs.escalationEmail = true">
+                  <v-icon left>mdi-plus</v-icon>Add
+                </v-btn>
+              </template>
+
+              <v-chip
+                class="ma-2"
+                color="primary"
+                min-width="50"
+                v-for="email in escalationEmails"
+                :key="email"
+                @click:close="removeEscalationEmail(email)"
+                outlined
+                label
+                close
+                close-icon="mdi-close-circle-outline"
+                >{{ email }}</v-chip
+              >
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="4">
@@ -77,6 +109,13 @@
                 :label="`Enable explorer logs`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="escalationEmailsEnabled"
+                :label="`Enable sending escalation emails`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -91,9 +130,24 @@
     </base-component>
 
     <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
-    <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
-    <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
-    <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
+    <add-escaltion-email
+      v-model="dialogs.escalationEmail"
+      @done="listEscaltionEmails"
+    ></add-escaltion-email>
+    <remove-admin
+      v-model="dialogs.removeAdmin"
+      :name="selectedAdmin"
+      @done="listAdmins"
+    ></remove-admin>
+    <identity-info
+      v-model="dialogs.identityInfo"
+      :name="selectedIdentity"
+      @done="listIdentities"
+    ></identity-info>
+    <add-identity
+      v-model="dialogs.addIdentity"
+      @done="listIdentities"
+    ></add-identity>
   </div>
 </template>
 
@@ -101,6 +155,7 @@
 module.exports = {
   components: {
     "add-admin": httpVueLoader("./AddAdmin.vue"),
+    "add-escaltion-email": httpVueLoader("./AddEscalationEmail.vue"),
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
@@ -111,6 +166,7 @@ module.exports = {
         admins: false,
         identities: false,
         developerOptions: false,
+        escalationEmails: false,
       },
       selectedAdmin: null,
       dialogs: {
@@ -118,14 +174,17 @@ module.exports = {
         removeAdmin: false,
         identityInfo: false,
         addIdentity: false,
+        escalationEmail: false,
       },
       admins: [],
+      escalationEmails: [],
       identity: null,
       selectedIdentity: null,
       identities: [],
       testCert: false,
       overProvision: false,
       explorerLogs: false,
+      escalationEmailsEnabled: false,
     };
   },
   methods: {
@@ -138,6 +197,29 @@ module.exports = {
         })
         .finally(() => {
           this.loading.admins = false;
+        });
+    },
+    listEscaltionEmails() {
+      this.loading.escalationEmails = true;
+      this.$api.escalationEmails
+        .list()
+        .then((response) => {
+          this.escalationEmails = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.escalationEmails = false;
+        });
+    },
+    removeEscalationEmail(email) {
+      console.log("this email should be removed", email);
+      this.loading.escalationEmails = true;
+      this.$api.escalationEmails
+        .delete(email)
+        .then((response) => {
+          this.escalationEmails = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.escalationEmails = false;
         });
     },
     removeAdmin(name) {
@@ -198,6 +280,7 @@ module.exports = {
           this.testCert = developerOptions["test_cert"];
           this.overProvision = developerOptions["over_provision"];
           this.explorerLogs = developerOptions["explorer_logs"];
+          this.escalationEmailsEnabled = developerOptions["escalation_emails"];
         })
         .finally(() => {
           this.loading.developerOptions = false;
@@ -208,7 +291,8 @@ module.exports = {
         .setDeveloperOptions(
           this.testCert,
           this.overProvision,
-          this.explorerLogs
+          this.explorerLogs,
+          this.escalationEmailsEnabled
         )
         .then((response) => {
           this.alert("Developer options updated", "success");
@@ -233,6 +317,7 @@ module.exports = {
     this.getCurrentIdentity();
     this.listIdentities();
     this.getDeveloperOptions();
+    this.listEscaltionEmails();
   },
 };
 </script>
