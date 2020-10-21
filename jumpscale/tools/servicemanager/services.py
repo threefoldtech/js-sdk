@@ -10,7 +10,7 @@ from jumpscale.tools.notificationsqueue.queue import LEVEL
 class BackgroundService(ABC):
     def __init__(self, service_name, interval=60, *args, **kwargs):
         self.name = service_name
-        self.interval = interval
+        self.interval = interval  # in seconds
 
     @abstractmethod
     def job(self):
@@ -42,4 +42,15 @@ class StellarService(BackgroundService):
             j.tools.notificationsqueue.push("Stellar service is now up", level=LEVEL.INFO)
         else:
             j.tools.notificationsqueue.push("Stellar service is now down", level=LEVEL.ERROR)
-        print("[Stellar Service] Done")
+
+
+class DiskCheckService(BackgroundService):
+    def __init__(self, name="disk-check", interval=60 * 60, *args, **kwargs):
+        super().__init__(name, interval, *args, **kwargs)
+
+    def job(self):
+        disk_obj = j.sals.fs.shutil.disk_usage("/")
+        free_disk_space = disk_obj.free // (1024.0 ** 3)
+        if free_disk_space <= 10:
+            j.logger.warning("Your free disk space <= 10 GBs")
+            j.tools.notificationsqueue.push("Your free disk space <= 10 GBs", level=LEVEL.WARNING)

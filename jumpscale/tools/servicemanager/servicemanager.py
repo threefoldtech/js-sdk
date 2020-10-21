@@ -1,13 +1,12 @@
 import gevent
 from signal import SIGTERM, SIGKILL
 
-from .services import StellarService
+from .services import StellarService, DiskCheckService
 
 from jumpscale.loader import j
 from jumpscale.core.base import Base
 
-MAX_SERVICES = 10
-DEFAULT_SERVICES = {"stellar": StellarService()}
+DEFAULT_SERVICES = {"stellar": StellarService(), "test": DiskCheckService()}
 
 # TODO: add support for non-periodic tasks
 
