@@ -9,21 +9,21 @@
         >
           <template slot="no-data">No 3Bot instances available</p></template>
           <template v-slot:item.domain="{ item }" >
-            <a v-if="deployed3botsStatus[item.Status] === 3"  :href="`https://${item.Domain}/admin`">{{item.Domain}}</a>
+            <a v-if="deployed3botsStatus[item.state] === 3"  :href="`https://${item.domain}/admin`">{{item.domain}}</a>
           </template>
-          <template v-slot:item.Expiration="{ item }">
-            <div :class="`${item.class}`">{{ item.Expiration }}</div>
+          <template v-slot:item.expiration="{ item }">
+            <div :class="`${item.class}`">{{ item.expiration }}</div>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip top v-if="deployed3botsStatus[item.Status] === 3" >
+            <v-tooltip top v-if="deployed3botsStatus[item.state] === 3" >
               <template v-slot:activator="{ on, attrs }">
-                <v-btn icon :href="`https://${item.Domain}/admin`">
+                <v-btn icon :href="`https://${item.domain}/admin`">
                   <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
                 </v-btn>
               </template>
               <span>Open in browser</span>
             </v-tooltip>
-            <v-tooltip top  v-if="deployed3botsStatus[item.Status] !== 1">
+            <v-tooltip top  v-if="deployed3botsStatus[item.state] !== 1">
               <template v-slot:activator="{ on, attrs }">
                     
                 <v-btn icon @click.stop="delete3Bot(item)">
@@ -40,7 +40,7 @@
               </template>
               <span>Show Information</span>
             </v-tooltip>
-            <v-tooltip top v-if="deployed3botsStatus[item.Status] == 3">
+            <v-tooltip top v-if="deployed3botsStatus[item.state] == 3">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn icon @click.stop="stop3Bot(item)">
                   <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-stop-circle</v-icon>
@@ -48,7 +48,7 @@
               </template>
               <span>Stop</span>
             </v-tooltip>
-            <v-tooltip top v-if="deployed3botsStatus[item.Status] !== 3">
+            <v-tooltip top v-if="deployed3botsStatus[item.state] !== 3">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn icon @click.stop="start3Bot(item)">
                   <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-reload</v-icon>
@@ -83,9 +83,9 @@ module.exports = {
       },
       selected: null,
       deployed3botsStatus: {
-        Destroyed: 1,
-        Stopped: 2,
-        Running: 3,
+        DELETED: 1,
+        STOPPED: 2,
+        RUNNING: 3,
       },
     };
   },
@@ -105,7 +105,7 @@ module.exports = {
     start3Bot(record) {
       this.selected = record;
       this.dialogs.startWorkload = true;
-      this.openChatflow("restart_threebot", this.selected.Name);
+      this.openChatflow("restart_threebot", this.selected.name);
     },
     openChatflow(type, tname = "") {
       this.$router.push({

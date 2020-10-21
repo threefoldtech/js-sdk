@@ -71,14 +71,13 @@ module.exports = {
       threebot_data: APPS["threebot"],
       loading: true,
       headersRunning3obts: [
-        { text: "Name", value: "Name" },
+        { text: "Name", value: "name" },
         { text: "URL", value: "domain" },
-        { text: "Expiration", value: "expiration" },
+        { text: "expiration", value: "expiration" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       headersNotRunning3obts: [
-        { text: "Name", value: "Name" },
-        { text: "Status", value: "Status" },
+        { text: "Name", value: "name" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
@@ -118,19 +117,19 @@ module.exports = {
           this.deployed3Bots = [...response.data.data];
           for (let i = 0; i < this.deployed3Bots.length; i++) {
             deployed3Bot = this.deployed3Bots[i];
-            if (deployed3Bot.Expiration < DURATION_MAX) {
-              let expiration = new Date(deployed3Bot.Expiration * 1000);
-              deployed3Bot.Expiration = expiration.toLocaleString("en-GB");
+            if (deployed3Bot.expiration < DURATION_MAX) {
+              let expiration = new Date(deployed3Bot.expiration * 1000);
+              deployed3Bot.expiration = expiration.toLocaleString("en-GB");
               if (expiration < today) {
                 deployed3Bot.class = "red--text";
-                deployed3Bot.Expiration = "EXPIRED";
+                deployed3Bot.expiration = "EXPIRED";
               } else if (expiration < alert_time) {
                 deployed3Bot.class = "red--text";
               } else {
                 deployed3Bot.class = "";
               }
             } else {
-              deployed3Bot.Expiration = "-";
+              deployed3Bot.expiration = "-";
             }
           }
         })
@@ -138,11 +137,11 @@ module.exports = {
           this.loading = false;
           this.deployed3Botsgrouped = this.groupBy(
             this.deployed3Bots,
-            (bot) => bot.Status
+            (bot) => bot.state
           );
-          this.running3bots = this.deployed3Botsgrouped.get("Running");
-          this.stopped3bots = this.deployed3Botsgrouped.get("Stopped");
-          this.destroyed3bots = this.deployed3Botsgrouped.get("Destroyed");
+          this.running3bots = this.deployed3Botsgrouped.get("RUNNING");
+          this.stopped3bots = this.deployed3Botsgrouped.get("STOPPED");
+          this.destroyed3bots = this.deployed3Botsgrouped.get("DELETED");
         });
     },
   },
