@@ -116,7 +116,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.wgcfg = deployer.init_new_user_network(
-            self, self.identity_name, self.pool_info.reservation_id, identity_name=self.identity_name,
+            self,
+            self.identity_name,
+            self.pool_info.reservation_id,
+            identity_name=self.identity_name,
+            network_name="management",
         )
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view(f"{self.identity_name}_apps", identity_name=self.identity_name)
