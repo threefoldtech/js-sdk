@@ -16,7 +16,8 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "enter_password",
         "new_expiration",
         "solution_extension",
-        "deploy" "initializing",
+        "deploy",
+        "initializing",
     ]
 
     @chatflow_step(title="Choose 3Bot")
