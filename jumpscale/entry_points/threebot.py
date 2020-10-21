@@ -11,6 +11,7 @@ import subprocess
 from jumpscale.loader import j
 from jumpscale.threesdk.identitymanager import IdentityManager
 from jumpscale.sals.nginx.nginx import PORTS
+from jumpscale.packages.admin.actors.wallet import Wallet
 
 SERVICES_PORTS = {"nginx": 8999, "nginx_http": 80, "nginx_https": 443, "gedis": 16000}
 
@@ -80,6 +81,9 @@ def start(identity=None, background=False, local=False, development=False, domai
         identity (str, optional): threebot name. Defaults to None.
         explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
+    if j.config.get("ANNOUNCED") is None:
+        j.config.set("ANNOUNCED", False)
+    create_wallets_if_not_exists()
     check_for_bins()
     PORTS.init_default_ports(local)
     SERVICES_PORTS["nginx_http"] = PORTS.HTTP
@@ -227,7 +231,7 @@ def clean(all=False):
                 print(f"exception was {e} for debugging")
 
             answer = j.tools.console.ask_yes_no(f"Do you want to remove {config_root} ? ")
-            if answer=="y":
+            if answer == "y":
                 j.sals.fs.rmtree(config_root)
                 print("Previous configuration is deleted.")
 
@@ -236,12 +240,44 @@ def clean(all=False):
             print(f"exception for debugging {e}")
 
 
-
 @click.group()
 def cli():
     pass
 
 
+def have_wallets():
+    wallets = j.clients.stellar.list_all()
+    test, main = False, False
+    for wallet_name in wallets:
+        wallet = j.clients.stellar.get(wallet_name)
+        if wallet.network.value == "TEST":
+            test = True
+        elif wallet.network.value == "STD":
+            main = True
+    return test, main
+
+
+def create_test_wallet(wallet_name):
+    try:
+        j.clients.stellar.create_testnet_funded_wallet(wallet_name)
+    except Exception as e:
+        j.logger.error(str(e))
+
+
+def create_main_wallet(wallet_name):
+    wallet_actor = Wallet()
+    try:
+        wallet_actor.create_wallet(wallet_name)
+    except Exception as e:
+        j.logger.error(str(e))
+
+
+def create_wallets_if_not_exists():
+    test, main = have_wallets()
+    if not test:
+        create_test_wallet("test")
+    if not main:
+        create_main_wallet("main")
 
 
 cli.add_command(start)
