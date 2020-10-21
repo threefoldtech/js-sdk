@@ -9,7 +9,7 @@
     :loading="loading"
   >
     <template #default>
-      Are you sure you want to stop {{ data.Name }}?
+      Are you sure you want to stop {{ data.name }}?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -32,21 +32,21 @@ module.exports = {
       this.loading = true;
       this.error = null;
       this.$api.solutions
-        .cancelReservation(this.data.wids)
+        .stopThreebot(this.data.solution_uuid)
         .then((response) => {
-          this.alert("Cancelled 3Bot", "success");
+          this.alert("Stopped 3Bot", "success");
           this.$router.go(0);
         })
         .catch((err) => {
-          this.alert("Failed to cancel 3Bot", "error");
+          this.alert("Failed to Stop 3Bot", "error");
           this.close();
         });
     },
   },
   updated() {
-    if (this.lastThreebotSelected !== this.data.Name) {
+    if (this.lastThreebotSelected !== this.data.name) {
       this.warning = "";
-      this.lastThreebotSelected = this.data.Name;
+      this.lastThreebotSelected = this.data.name;
     }
   },
 };

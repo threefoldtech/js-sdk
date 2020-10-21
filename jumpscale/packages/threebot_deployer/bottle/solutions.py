@@ -33,14 +33,24 @@ def list_threebots() -> str:
     return j.data.serializers.json.dumps({"data": threebots})
 
 
-@app.route("/api/threebots/stop")
+@app.route("/api/threebots/stop", method="POST")
 @login_required
 def stop_threebot() -> str:
     data = j.data.serializers.json.loads(request.body.read())
     user_info = j.data.serializers.json.loads(get_user_info())
     threebot = stop_threebot_solution(owner=user_info["username"], solution_uuid=data.get("uuid"))
 
-    return j.data.serializers.json.dumps({"data": threebot})
+    return j.data.serializers.json.dumps({"data": True})
+
+
+@app.route("/api/threebots/destroy", method="POST")
+@login_required
+def destroy_threebot() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    user_info = j.data.serializers.json.loads(get_user_info())
+    threebot = delete_threebot_solution(owner=user_info["username"], solution_uuid=data.get("uuid"))
+
+    return j.data.serializers.json.dumps({"data": True})
 
 
 @app.route("/api/solutions/cancel", method="POST")

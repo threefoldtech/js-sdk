@@ -145,7 +145,6 @@ def stop_threebot_solution(owner, solution_uuid):
 def delete_threebot_solution(owner, solution_uuid):
     threebot = stop_threebot_solution(owner, solution_uuid)
     threebot_name = threebot.name
-    status = "Failed to destroy backups, 3Bot name doesn't exist"
     ssh_server1 = j.clients.sshclient.get("backup_server1")
     ssh_server2 = j.clients.sshclient.get("backup_server2")
     try:
@@ -156,7 +155,7 @@ def delete_threebot_solution(owner, solution_uuid):
             f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
         )
     except:
-        raise j.exceptions.Value(status)
+       j.logger.warning(f"Couldn't find backup for uuid {solution_uuid} and owner {owner}")
     threebot.state = ThreebotState.DELETED
     threebot.save()
     return threebot

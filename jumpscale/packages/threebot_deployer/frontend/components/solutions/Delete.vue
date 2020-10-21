@@ -32,29 +32,21 @@ module.exports = {
       this.loading = true;
       this.error = null;
       this.$api.solutions
-        .cancelReservation(this.data.wids)
+        .destroyThreebot(this.data.solution_uuid)
         .then((response) => {
-          this.$api.solutions
-            .destroyBackup(`${this.data.Owner.split(".")[0]}_${this.data.Name}`)
-            .then((response) => {
-              this.alert("Cancelled 3Bot with delete its backup", "success");
-              this.$router.go(0);
-            })
-            .catch((err) => {
-              this.alert("Cancelled 3But but failed to delete backup", "error");
-              this.$router.go("Workloads");
-            });
+          this.alert("3bot Destroyed", "success");
+          this.$router.go(0);
         })
         .catch((err) => {
-          this.alert("Failed to cancel 3Bot", "error");
+          this.alert("Failed to destroy 3Bot", "error");
           this.close();
         });
     },
   },
   updated() {
-    if (this.lastThreebotSelected !== this.data.Name) {
+    if (this.lastThreebotSelected !== this.data.name) {
       this.warning = "";
-      this.lastThreebotSelected = this.data.Name;
+      this.lastThreebotSelected = this.data.name;
     }
   },
 };
