@@ -77,6 +77,7 @@ To export all user stories to the file /tmp/stories.md:
 > client.move_story_to_cirlce(789, 123) # story id, project id
 
 """
+from jumpscale.clients.taiga.models import FunnelCircle, ProjectCircle, TeamCircle
 import dateutil
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
@@ -143,6 +144,10 @@ class TaigaClient(Client):
     def _get_users_by_ids(self, ids=None):
         ids = ids or []
         return [self._get_user_by_id(x) for x in ids]
+
+    def _get_issues_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_issue_by_id(x) for x in ids]
 
     @lru_cache(maxsize=128)
     def _get_issue_status(self, status_id):
@@ -236,7 +241,7 @@ class TaigaClient(Client):
 
         return user_tasks
 
-    def move_story_to_cirlce(self, story_id, project_id):
+    def move_story_to_circle(self, story_id, project_id):
         """Moves a story to another circle/project
 
         Args:
@@ -609,6 +614,16 @@ class TaigaClient(Client):
 
         j.sals.fs.write_file(path=path, data=text)
 
+    def get_issue_by_id(self, issue_id):
+        """Get issue
+        Args:
+            issue_id: the id of the desired issue
+
+        Returns:
+            Issue object: issue
+        """
+        return self.api.issues.get(issue_id).description
+
     def get_issue_description(self, issue_id):
         """Get issue description
         Args:
@@ -617,7 +632,7 @@ class TaigaClient(Client):
         Returns:
             str: issue description
         """
-        return self.api.issues.get(issue_id).description
+        return self.get_issue_by_id(issue_id).description
 
     def _resolve_object(self, obj):
         print("resolving obj ", obj)
@@ -631,6 +646,7 @@ class TaigaClient(Client):
             "task_status": self._get_task_status,
             "assigned_to": self._get_user_by_id,
             "owner": self._get_user_by_id,
+            "issues": self._get_issues_by_ids,
         }
         newobj = copy.deepcopy(obj)
         for k in dir(newobj):
@@ -641,13 +657,14 @@ class TaigaClient(Client):
                     resolver = resolvers[k]
                     try:
                         print(f"resolver {resolver}")
-                        resolved = resolver(v)
+                        copied_v = copy.deepcopy(v)
+                        resolved = lambda: resolver(copied_v)
 
                         if isinstance(v, list):
-                            print(f"setting {k} to {resolved}")
+                            # print(f"setting {k} to {resolved}")
                             setattr(newobj, f"{k}_objects", resolved)
                         else:
-                            print(f"setting {k} to {resolved}")
+                            # print(f"setting {k} to {resolved}")
                             setattr(newobj, f"{k}_object", resolved)
 
                     except Exception as e:
@@ -658,3 +675,227 @@ class TaigaClient(Client):
                         print(f"error {e}")
 
         return newobj
+
+    def list_projects_by(self, fn=lambda x: True):
+        return [p for p in self.list_all_projects() if fn(p)]
+
+    def list_team_circles(self):
+        return [TeamCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))]
+
+    def list_project_circles(self):
+        return [ProjectCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("PROJECT_"))]
+
+    def list_funnel_circles(self):
+        return [FunnelCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))]
+
+    def _create_new_circle(
+        self,
+        name,
+        type_="team",
+        description="desc",
+        severties=None,
+        issues_statuses=None,
+        priorities=None,
+        issues_types=None,
+        user_stories_statuses=None,
+        tasks_statuses=None,
+        **attrs,
+    ):
+        severties = severties or ["Low", "Mid", "High"]
+        priorities = priorities or ["Wishlist", "Minor", "Normal", "Important", "Critical"]
+        issues_statuses = issues_statuses or [
+            "New",
+            "In progress",
+            "Ready for test",
+            "Closed",
+            "Needs Info",
+            "Rejected",
+            "Postponed",
+        ]
+        issues_types = issues_types or []
+        user_stories_statuses = user_stories_statuses or []
+        tasks_statuses = tasks_statuses or []
+
+        type_ = type_.upper()
+        project_name = f"{type_}_{name}"
+        p = self.api.projects.create(project_name, description=description)
+        for t in tasks_statuses:
+            try:
+                p.add_task_status(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping task {t} {e}")
+
+        for t in priorities:
+            try:
+                p.add_priority(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping prio {t} {e}")
+
+        for t in severties:
+            try:
+                p.add_severity(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping sever {t} {e}")
+
+        for t in issues_statuses:
+            try:
+                p.add_issue_status(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping status {t} {e}")
+
+        for t in user_stories_statuses:
+            try:
+                p.add_user_story_status(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping user status {t} {e}")
+
+        for t in issues_types:
+            try:
+                p.add_issue_type(t)
+            except Exception as e:
+                # check if duplicated
+                print(f"skipping issue type {t} {e}")
+
+        # list(map(p.add_task_status, tasks_statuses))
+        # list(map(p.add_priority, priorities))
+        # list(map(p.add_severity, severties))
+        # list(map(p.add_issue_status, statuses))
+        # list(map(p.add_user_status, user_stories_statuses))
+        # list(map(p.add_issue_type, issues_types))
+        return p
+
+    def create_new_project_circle(
+        self,
+        name,
+        description="",
+        severties=None,
+        issues_statuses=None,
+        priorities=None,
+        issues_types=None,
+        user_stories_statuses=None,
+        tasks_statuses=None,
+        **attrs,
+    ):
+        # is a circle starting with name: PROJECT_
+        # is structured as kanban
+        # its a task management system for managing a project, not people
+        # there are no custom fields
+        attrs = {
+            "is_backlog_activated": False,
+            "is_issues_activated": True,
+            "is_kanban_activated": True,
+            "is_private": False,
+            "is_wiki_activated": True,
+        }
+        severties = None
+        priorities = None
+        statuses = None
+        issues_types = None
+        return ProjectCircle(
+            self._api,
+            self._create_new_circle(
+                name,
+                type_="project",
+                description=description,
+                severties=severties,
+                issues_statuses=statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=None,
+                tasks_statuses=None,
+                **attrs,
+            ),
+        )
+
+    def create_new_team_circle(self, name, description="", **attrs):
+        # starts with TEAM_ ...
+        # represents a group of people working together on aligned journey
+        # is using sprints & timeline (does not use kanban)
+        # no custom fields
+        # see the TEMPLATE_TEAM as example on circles.threefold.me
+        attrs = {
+            "is_backlog_activated": True,
+            "is_issues_activated": True,
+            "is_kanban_activated": False,
+            "is_private": False,
+            "is_wiki_activated": True,
+        }
+        severties = None
+        priorities = None
+        statuses = None
+        issues_types = None
+        return TeamCircle(
+            self.api,
+            self._create_new_circle(
+                name,
+                type_="team",
+                description=description,
+                severties=severties,
+                issues_statuses=statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=None,
+                tasks_statuses=None,
+                **attrs,
+            ),
+        )
+
+    def create_new_funnel_circle(self, name, description="", **attrs):
+        attrs = {
+            "is_backlog_activated": False,
+            "is_issues_activated": True,
+            "is_kanban_activated": True,
+            "is_private": False,
+            "is_wiki_activated": True,
+        }
+
+        # #issue
+        # New
+        # Interested
+        # Deal (means moved to story)
+        # Blocked / Need Info (something to be done to ublock)
+        # Lost
+        # Postponed
+        # Won
+        # # story (is a deal)
+        # New (means is a deal, we need to make a proposal, or customer said yes so we can continue)
+        # Proposal
+        # Contract
+        # Blocked / Need Info (something to be done to ublock)
+        # Project (once project, will go out of funnel and will be dealt with as a PROJECT_ ...) = closed
+        # # item (is a task or checklist on the story)
+        # New
+        # In progress
+        # Verification
+        # Closed
+        # Needs info
+
+        severties = None
+        priorities = None
+        statuses = None
+        issues_types = None
+
+        issues_statuses = ["New", "Interested", "Deal", "Blocked", "Lost", "Postponed", "Won"]
+        story_statuses = ["New", "Proposal", "Contract", "Blocked / Needs info", "Project"]
+        task_statuses = ["New", "In progress", "Verification", "Needs info", "Closed"]
+
+        return FunnelCircle(
+            self.api,
+            self._create_new_circle(
+                name,
+                type_="funnel",
+                description=description,
+                severties=severties,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=task_statuses,
+                **attrs,
+            ),
+        )
