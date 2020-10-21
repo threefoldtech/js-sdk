@@ -174,7 +174,7 @@ def access_denied():
         Renders access denied page
     """
     email = request.environ.get("beaker.session").get("email")
-    next_url = request.query.get("next_url")
+    next_url = request.query.get("next_url", "/")
     return env.get_template("access_denied.html").render(email=email, next_url=next_url)
 
 
