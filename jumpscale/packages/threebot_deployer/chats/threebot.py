@@ -124,19 +124,19 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Email settings (Optional)")
     def email_settings(self):
         form = self.new_form()
-        email_host_user = form.string_ask("Please add the host e-mail address for your solution")
+        email_host_user = form.string_ask("E-mail address for your solution")
         email_host = form.string_ask(
             "Please add the smtp host example: `smtp.gmail.com`", default="smtp.gmail.com", md=True
         )
-        email_host_password = form.secret_ask("Please add the host e-mail password")
+        email_host_password = form.secret_ask("Host e-mail password")
 
-        escalation_mail_address = form.string_ask("Please add the email address to receive email notifications on")
+        escalation_mail_address = form.string_ask("Email address to receive email notifications on")
 
-        form.ask()
-        self.email_host_user = email_host_user.value
-        self.email_host = email_host.value
-        self.email_host_password = email_host_password.value
-        self.escalation_mail_address = escalation_mail_address.value
+        form.ask("Please fill in these email configuration settings if you want to receive notifications on")
+        self.email_host_user = email_host_user.value or ""
+        self.email_host = email_host.value or ""
+        self.email_host_password = email_host_password.value or ""
+        self.escalation_mail_address = escalation_mail_address.value or ""
 
     @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):

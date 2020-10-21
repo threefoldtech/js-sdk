@@ -24,6 +24,13 @@ def destroy():
     current_username = threebot_name.split("_")[0]
     logged_in_username = user_info["username"].split(".")[0]
 
+    # check if the user in explorer
+    explorer = j.core.identity.me.explorer
+    try:
+        explorer.users.get(name=threebot_name)
+    except j.exceptions.NotFound:
+        abort(403, "Forbidden")
+
     if current_username != logged_in_username:
         abort(401, "Unauthorized")
 
