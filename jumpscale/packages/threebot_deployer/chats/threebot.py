@@ -4,6 +4,7 @@ from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
+from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions
 from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY, USER_THREEBOT_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
@@ -140,10 +141,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         name_message = self.RECOVER_NAME_MESSAGE if self.action == "Recover" else self.CREATE_NAME_MESSAGE
         while not valid:
             self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True)
-            threebot_solutions = solutions.list_threebot_solutions(self.solution_metadata["owner"], sync=False)
+            threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
             valid = True
             for sol in threebot_solutions:
-                if sol["Name"] == self.solution_name:
+                if sol["name"] == self.solution_name:
                     valid = False
                     self.md_show("The specified 3Bot name already exists. please choose another name.")
                     break
