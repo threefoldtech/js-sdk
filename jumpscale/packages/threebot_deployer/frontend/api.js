@@ -30,9 +30,9 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    getAllThreebots: () =>{
+    getAllThreebots: () => {
       return axios({
-        url:`/threebot_deployer/api/threebots/list-all`,
+        url: `/threebot_deployer/api/threebots/list-all`,
         method: "get",
         headers: { 'Content-Type': 'application/json' }
       })
@@ -49,6 +49,14 @@ const apiClient = {
     stopThreebot: (uuid) => {
       return axios({
         url: `/threebot_deployer/api/threebots/stop`,
+        headers: { 'Content-Type': 'application/json' },
+        data: { uuid: uuid },
+        method: "post"
+      })
+    },
+    destroyThreebot: (uuid) => {
+      return axios({
+        url: `/threebot_deployer/api/threebots/destroy`,
         headers: { 'Content-Type': 'application/json' },
         data: { uuid: uuid },
         method: "post"
