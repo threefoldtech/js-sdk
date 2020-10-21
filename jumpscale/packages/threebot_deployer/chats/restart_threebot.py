@@ -4,8 +4,8 @@ from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
+from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 

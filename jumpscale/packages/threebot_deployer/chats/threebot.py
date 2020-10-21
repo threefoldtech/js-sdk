@@ -69,7 +69,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
-        self.identity_name = self.mainnet_identity_name
+        if "testnet" in j.core.identity.me.explorer_url:
+            self.identity_name = self.testnet_identity_name
+        else:
+            self.identity_name = self.mainnet_identity_name
         try:
             identity_main = j.core.identity.get(
                 self.mainnet_identity_name,
