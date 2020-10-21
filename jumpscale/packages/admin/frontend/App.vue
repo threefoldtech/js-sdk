@@ -11,18 +11,20 @@
             </v-badge>
           </div>
           <div v-else>
-              <v-icon v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-ring</v-icon>
+              <v-icon class="pr-2" v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-outline</v-icon>
           </div>
         </template>
 
-        <v-list v-if="notifications.length">
-          <v-list-item
-            v-for="item in notifications"
-            :items="notifications"
-            :key="item"
-            link
-          >
-            <v-list-item-title v-text="item"></v-list-item-title>
+        <v-list class="notificationlist" v-if="notifications.length">
+          <v-list-item v-for="item in notifications" :items="notifications" :key="item.id" link>
+            <v-list-item-icon>
+              <v-icon :color="notificationsIcons[item.level].color" class="ml-2" large>{{notificationsIcons[item.level].icon}}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+            <v-list-item-title v-text="item.category"></v-list-item-title>
+            <v-list-item-subtitle v-text="new Date(item.date * 1000).toLocaleString('en-GB')"></v-list-item-subtitle>
+              <v-list-item-title class="font-weight-bold" v-text="item.message"></v-list-item-title>
+            </v-list-item-content>
           </v-list-item>
         </v-list>
       </v-menu>
@@ -148,6 +150,20 @@ module.exports = {
       mini: false,
       timenow: null,
       notifications: [],
+      notificationsIcons:{
+        info: {
+          icon: "mdi-information-outline",
+          color : "green"
+        },
+        warning: {
+          icon: "mdi-alert-circle",
+          color : "orange"
+        },
+        error: {
+          icon: "mdi-close-circle-outline",
+          color : "red"
+        },
+      },
       notificationsCount: null,
       notificationsListOpen: false,
       notificationInterval: null,
@@ -211,16 +227,11 @@ module.exports = {
           cookie == "1" ? true : false;
     },
     notificationsClick() {
-      if (this.notificationsListOpen) {
-        this.notificationsListOpen = false;
-      }
-      else {
-        this.notificationsListOpen = true;
         this.$api.admins.getNotifications().then((response) => {
-          this.notifications = JSON.parse(response.data).data;
+          this.notifications = JSON.parse(response.data).data.reverse();
+          console.log(this.notifications)
           this.notificationsCount = 0;
         });
-      }
     },
   },
   mounted() {
@@ -234,11 +245,6 @@ module.exports = {
     this.notificationInterval = setInterval(() =>{
       this.$api.admins.getNotificationsCount().then((response) => {
         this.notificationsCount = JSON.parse(response.data).data;
-        if (this.notificationsCount && this.notificationsListOpen) {
-          this.$api.admins.getNotifications().then((response) => {
-          this.notifications = [...this.notifications, ...JSON.parse(response.data).data];
-        });
-      }
       });
     },10000);
   },
@@ -248,3 +254,9 @@ module.exports = {
   },
 };
 </script>
+<style>
+  .notificationlist{
+    height:400px;
+    overflow-y:auto
+  }
+</style>

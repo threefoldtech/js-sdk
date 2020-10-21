@@ -22,7 +22,7 @@ class BackgroundService(ABC):
 
 
 class StellarService(BackgroundService):
-    def __init__(self, name="stellar", interval=15, *args, **kwargs):
+    def __init__(self, name="stellar", interval=60, *args, **kwargs):
         super().__init__(name, interval, *args, **kwargs)
         self.stellar_state = True
 
@@ -31,17 +31,22 @@ class StellarService(BackgroundService):
         retries = 3
         current_state = None
         while retries:
-            # TODO: handle this request failure -> on internet down raises exception
-            current_state = j.clients.stellar.check_stellar_service()
+            try:
+                current_state = j.clients.stellar.check_stellar_service()
+            except:
+                current_state = False
             if current_state:
                 break
             retries -= 1
 
-        # if current_state != self.stellar_state:
-        if current_state:
-            j.tools.notificationsqueue.push("Stellar service is now up", level=LEVEL.INFO)
-        else:
-            j.tools.notificationsqueue.push("Stellar service is now down", level=LEVEL.ERROR)
+        if current_state != self.stellar_state:
+            self.stellar_state = current_state
+            if current_state:
+                j.logger.info("[Stellar Service] Stellar service is now up")
+                j.tools.notificationsqueue.push("Stellar service is now up", category="Stellar", level=LEVEL.INFO)
+            else:
+                j.logger.error("[Stellar Service] Stellar service is now down")
+                j.tools.notificationsqueue.push("Stellar service is now down", category="Stellar", level=LEVEL.ERROR)
 
 
 class DiskCheckService(BackgroundService):
@@ -52,5 +57,7 @@ class DiskCheckService(BackgroundService):
         disk_obj = j.sals.fs.shutil.disk_usage("/")
         free_disk_space = disk_obj.free // (1024.0 ** 3)
         if free_disk_space <= 10:
-            j.logger.warning("Your free disk space <= 10 GBs")
-            j.tools.notificationsqueue.push("Your free disk space <= 10 GBs", level=LEVEL.WARNING)
+            j.logger.warning("[Disk Check Service] Your free disk space is less than 10 GBs")
+            j.tools.notificationsqueue.push(
+                "Your free disk space is less than 10 GBs", category="Health check", level=LEVEL.WARNING
+            )

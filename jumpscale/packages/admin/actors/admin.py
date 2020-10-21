@@ -147,7 +147,7 @@ class Admin(BaseActor):
     @actor_method
     def get_notifications(self) -> str:
         notifications = j.tools.notificationsqueue.fetch()
-        ret = [notification.dumps() for notification in notifications]
+        ret = [notification.json for notification in notifications]
         return j.data.serializers.json.dumps({"data": ret})
 
     @actor_method

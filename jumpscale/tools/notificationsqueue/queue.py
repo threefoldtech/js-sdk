@@ -35,8 +35,9 @@ class Notification:
 
 class NotificationsQueue:
     def __init__(self, *args, **kwargs):
-        self._rkey = f"queue:notifications"
-        self._rkey_incr = f"queue:notifications:id:incr"
+        self._rkey = "queue:notifications"
+        self._rkey_incr = "queue:notifications:id:incr"
+        self._rkey_seen = "list:notifications:seen"
         self._db = None
 
     @property
@@ -83,20 +84,27 @@ class NotificationsQueue:
 
         # Transactional pipeline to fetch notifications and trim them from the queue
         # TODO: better implementation of if/elses
-        p = self.db.pipeline()
-        p.multi()
+        ret_notifications = []
         if count == -1:
-            p.lrange(self._rkey, 0, -1)
-            p.delete(self._rkey)
+            new_notifications = self.db.lrange(self._rkey, 0, -1)
+            self.db.delete(self._rkey)
+            self.db.ltrim(self._rkey_seen, 0, 9)
+            # check if new notifications count less than 10 to append the old
+            if len(new_notifications) < 10:
+                old_notifications = self.db.lrange(self._rkey_seen, len(new_notifications) - 10, -1)
+                ret_notifications += old_notifications[::-1]
+            ret_notifications += new_notifications
+            # update the old notifications list with the new
+            if new_notifications:
+                self.db.lpush(self._rkey_seen, *new_notifications)
         else:
-            p.lrange(self._rkey, 0, count - 1)  # -1 => See https://redis.io/commands/lrange
+            ret_notifications = self.db.lrange(self._rkey, 0, count - 1)  # -1 => See https://redis.io/commands/lrange
             if self.count() == 1:
-                p.delete(self._rkey)
+                self.db.delete(self._rkey)
             else:
-                p.ltrim(self._rkey, count, -1)
-        notifications = p.execute()
+                self.db.ltrim(self._rkey, count, -1)
 
-        return [Notification.loads(notification) for notification in notifications[0]]
+        return [Notification.loads(notification) for notification in ret_notifications]
 
     def count(self) -> int:
         """Get notifications count
@@ -110,3 +118,4 @@ class NotificationsQueue:
         """Delete all notifications
         """
         self.db.delete(self._rkey)
+        self.db.delete(self._rkey_seen)
