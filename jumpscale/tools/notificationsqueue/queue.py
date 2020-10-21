@@ -84,25 +84,22 @@ class NotificationsQueue:
             list on Notification objects
         """
         get_all_new = count == -1
-        new_notifications_count = 0
+        ret_notifications_count = 0
 
         if get_all_new:
-            new_notifications_count = self.count()
-            if new_notifications_count == 0:
+            ret_notifications_count = self.count()
+            if ret_notifications_count == 0:
                 return []
         else:
-            new_notifications_count = count
+            ret_notifications_count = count
 
         # Transactional pipeline to fetch notifications from the queue and save them in the seen list
         p = self.db.pipeline()
         p.multi()
 
-        for i in range(new_notifications_count):
+        for i in range(ret_notifications_count):
             p.rpoplpush(self._rkey, self._rkey_seen)
-        if get_all_new:
-            p.lrange(self._rkey_seen, 0, new_notifications_count - 1)
-        else:
-            p.lrange(self._rkey_seen, 0, count - 1)
+        p.lrange(self._rkey_seen, 0, ret_notifications_count - 1)
         p.ltrim(self._rkey_seen, 0, self._seen_list_max_size - 1)
 
         notifications = p.execute()
