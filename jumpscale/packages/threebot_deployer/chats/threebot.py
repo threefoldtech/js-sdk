@@ -124,7 +124,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             network_name="management",
         )
         self.pool_id = self.pool_info.reservation_id
-        self.network_view = deployer.get_network_view(f"{self.identity_name}_apps", identity_name=self.identity_name)
+        self.network_view = deployer.get_network_view("management", identity_name=self.identity_name)
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
