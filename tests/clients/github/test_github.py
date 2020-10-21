@@ -33,7 +33,6 @@ class GithubClientTest(BaseTests):
         for i in range(sec):
             if repo.name in str(self.client.get_repos()):
                 sleep(1)
-                sec -= 1
             else:
                 return True
         return False
@@ -42,7 +41,6 @@ class GithubClientTest(BaseTests):
         for i in range(sec):
             if repo.name not in str(self.client.get_repos()):
                 sleep(1)
-                sec -= 1
             else:
                 return True
         return False
