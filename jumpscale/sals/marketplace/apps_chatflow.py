@@ -83,7 +83,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.pool_node_id = None
 
     def _get_pool(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=True)
         self._select_farms()
         self._select_pool_node()
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
