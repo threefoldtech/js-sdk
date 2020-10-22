@@ -7,15 +7,6 @@ explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
 
 class Admin(BaseActor):
-    def __init__(self):
-        self._threebot = None
-
-    @property
-    def threebot(self):
-        if not self._threebot:
-            self._threebot = j.servers.threebot.get()
-        return self._threebot
-
     @actor_method
     def list_admins(self) -> str:
         admins = list(set(j.core.identity.me.admins))
