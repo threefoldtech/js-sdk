@@ -50,8 +50,10 @@ class StellarService(BackgroundService):
         if current_state != self.stellar_state:
             self.stellar_state = current_state
             if current_state:
-                j.logger.info("[Stellar Service] Stellar can now be reached")
-                j.tools.notificationsqueue.push("Stellar can now be reached", category="Stellar", level=LEVEL.INFO)
+                j.logger.info("[Stellar Service] Stellar services are now reachable")
+                j.tools.notificationsqueue.push(
+                    "Stellar services are now reachable", category="Stellar", level=LEVEL.INFO
+                )
             else:
                 j.logger.error("[Stellar Service] Could not reach stellar")
                 j.tools.notificationsqueue.push("Could not reach stellar", category="Stellar", level=LEVEL.ERROR)

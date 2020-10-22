@@ -67,7 +67,7 @@ class NotificationsQueue:
         notification.message = message
         notification.level = level.value
         notification.category = category
-        notification.date = j.data.time.now().timestamp
+        notification.date = j.data.time.utcnow().timestamp
         notification.id = self.db.incr(self._rkey_incr)
 
         self.db.lpush(self._rkey, notification.dumps())
