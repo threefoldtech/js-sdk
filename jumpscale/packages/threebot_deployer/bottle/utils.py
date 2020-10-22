@@ -1,4 +1,6 @@
+import time
 from collections import defaultdict
+from decimal import Decimal
 from jumpscale.sals.marketplace import solutions
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
@@ -151,3 +153,84 @@ def delete_threebot_solution(owner, solution_uuid):
     threebot.state = ThreebotState.DELETED
     threebot.save()
     return threebot
+
+
+def get_payment_amount(pool):
+    escrow_info = pool.escrow_information
+    resv_id = pool.reservation_id
+    escrow_address = escrow_info.address
+    escrow_asset = escrow_info.asset
+    total_amount = escrow_info.amount
+    if not total_amount:
+        return
+    total_amount_dec = Decimal(total_amount) / Decimal(1e7)
+    total_amount = "{0:f}".format(total_amount_dec)
+    return resv_id, escrow_address, escrow_asset, total_amount
+
+
+# TODO we need to find when this pool is going to expire(filter the pools that are less then 2 weeks to expire)
+
+
+def pay_pool(pool_info):
+    # Get the amount of payment
+    resv_id, escrow_address, escrow_asset, total_amount = get_payment_amount(pool_info)
+    # Get the user wallets
+    wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
+    for wallet in wallets:
+        try:
+            wallet.transfer(
+                destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}"
+            )
+            return True
+        except:
+            pass
+    return False
+
+
+def check_pool_expiration(pool):
+    remaining_days = (pool.empty_at - time.time()) / 86400  # converting seconds to days
+    if remaining_days < 14 and remaining_days > 0:
+        return True
+    return False
+
+
+def calculate_pool_units(pool, days=14):
+    cu = pool.active_cu * 60 * 60 * 24 * days
+    su = pool.active_su * 60 * 60 * 24 * days
+    return cu, su
+
+
+def auto_extend_pools():
+    pools = j.sals.zos.get().pools.list()
+    for pool in pools:
+        import pdb
+
+        pdb.set_trace()
+        if check_pool_expiration(pool):
+            cu, su = calculate_pool_units(pool)
+            auto_extend_pool(pool.pool_id, cu, su)
+
+
+def auto_extend_pool(pool_id, cu, su, currencies=["TFT"]):
+    try:
+        pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currencies=currencies)
+    except Exception as e:
+        raise j.exceptions.Runtime(f"Error happend during extending the pool, {str(e)}")
+    if not pay_pool(pool_info):
+        send_mail(pool_info)
+
+
+def send_mail(pool_info, sender=""):
+    """
+    This method send mail in case the auto extend fail
+    """
+    recipients_emails = []
+    user_mail = j.core.identity.me.email
+    recipients_emails.append(user_mail)
+    escalation_emails = j.core.config.get("ESCALATION_EMAILS")
+    recipients_emails.extend(escalation_emails)
+    mail = j.clients.mail.get("mail")
+    mail.smtp_server = "localhost"
+    mail.smtp_port = "1025"
+    mail.send(recipients_emails, sender=sender, message="We are not apple to extend")
+

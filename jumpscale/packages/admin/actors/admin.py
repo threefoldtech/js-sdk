@@ -118,6 +118,7 @@ class Admin(BaseActor):
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
+        auto_pool_extend = j.core.config.set_default("AUTO_POOL_EXTEND_ENABLED", False)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -125,18 +126,25 @@ class Admin(BaseActor):
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
+                    "auto_pool_extend": auto_pool_extend,
                 }
             }
         )
 
     @actor_method
     def set_developer_options(
-        self, test_cert: bool, over_provision: bool, explorer_logs: bool, escalation_emails: bool
+        self,
+        test_cert: bool,
+        over_provision: bool,
+        explorer_logs: bool,
+        escalation_emails: bool,
+        auto_pool_extend: bool,
     ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
         j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
+        j.core.config.set("AUTO_POOL_EXTEND_ENABLED", auto_pool_extend)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -144,6 +152,7 @@ class Admin(BaseActor):
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
+                    "auto_pool_extend": auto_pool_extend,
                 }
             }
         )

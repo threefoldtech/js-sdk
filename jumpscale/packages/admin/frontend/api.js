@@ -168,12 +168,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails,autoPoolExtend) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, escalation_emails:escalationEmails }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, escalation_emails:escalationEmails, auto_pool_extend: autoPoolExtend }
             })
         },
         clearBlockedNodes: () => {

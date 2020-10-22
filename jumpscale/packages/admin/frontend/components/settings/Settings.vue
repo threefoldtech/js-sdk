@@ -29,7 +29,8 @@
                 label
                 close
                 close-icon="mdi-close-circle-outline"
-              >{{ admin }}</v-chip>
+                >{{ admin }}</v-chip
+              >
             </base-section>
             <!-- List-Escalation-Emails -->
             <base-section
@@ -78,7 +79,8 @@
                 :key="i"
                 :color="getColor(identity.instance_name)"
                 @click="openIdentity(identity.instance_name)"
-              >{{ identity.instance_name }}</v-chip>
+                >{{ identity.instance_name }}</v-chip
+              >
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="3">
@@ -116,13 +118,21 @@
                 :label="`Enable sending escalation emails`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="autoPoolExtend"
+                :label="`Enable auto pool extention`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
               <v-btn
                 hide-details
                 class="my-2 ml-2"
                 small
                 color="success"
                 @click="clearBlockedNodes()"
-              >Clear blocked nodes</v-btn>
+                >Clear blocked nodes</v-btn
+              >
             </base-section>
           </v-col>
         </v-row>
@@ -185,6 +195,7 @@ module.exports = {
       overProvision: false,
       explorerLogs: false,
       escalationEmailsEnabled: false,
+      autoPoolExtend: false,
     };
   },
   methods: {
@@ -281,6 +292,7 @@ module.exports = {
           this.overProvision = developerOptions["over_provision"];
           this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
+          this.autoPoolExtend = developerOptions["auto_pool_extend"];
         })
         .finally(() => {
           this.loading.developerOptions = false;
@@ -292,7 +304,8 @@ module.exports = {
           this.testCert,
           this.overProvision,
           this.explorerLogs,
-          this.escalationEmailsEnabled
+          this.escalationEmailsEnabled,
+          this.autoPoolExtend
         )
         .then((response) => {
           this.alert("Developer options updated", "success");
