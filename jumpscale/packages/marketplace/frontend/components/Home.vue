@@ -87,6 +87,7 @@ module.exports = {
     autoCompleteList() {
       let ret = [];
       for (section in this.filteredSections) {
+        if (section === "All Solutions") continue;
         const apps = Object.values(this.filteredSections[section].apps);
         ret.push({ header: section });
         for (let i = 0; i < apps.length; i++) {

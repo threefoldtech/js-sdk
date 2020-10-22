@@ -46,13 +46,16 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn text medium @click.stop="openChatflow(app.type)">New</v-btn>
-          <v-btn text medium @click.stop="viewWorkloads(app)">My Workloads</v-btn>
+          <v-btn v-if="app.disable" text medium color="red" disabled>Coming Soon</v-btn>
+          <div v-else>
+            <v-btn text medium color="green" @click.stop="openChatflow(app.type)">Deploy</v-btn>
+            <v-btn text medium @click.stop="viewWorkloads(app)">My Workloads</v-btn>
+          </div>
         </v-card-actions>
       </v-card>
     </v-row>
   </div>
-</template> 
+</template>
 
 
 <script>
@@ -72,7 +75,7 @@ module.exports = {
   },
   computed: {
     filteredApps() {
-      return Object.values(this.apps).filter((app) => !app.disable);
+      return Object.values(this.apps);
     },
   },
   methods: {
