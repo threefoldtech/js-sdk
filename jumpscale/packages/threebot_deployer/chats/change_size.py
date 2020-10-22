@@ -30,17 +30,15 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    @chatflow_step(title="Choose 3Bot")
+    @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.non_running_3bots = [
-            threebot for threebot in all_3bot_solutions if threebot["state"] != ThreebotState.RUNNING.value
+            threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value
         ]
         self.non_running_names = {threebot["name"]: threebot for threebot in self.non_running_3bots}
-        self.name = self.drop_down_choice(
-            "Please select the 3Bot you want to start.", list(self.non_running_names.keys()), required=True
-        )
+        self.name = self.kwargs["tname"]
         self.threebot_info = self.non_running_names[self.name]
         self.pool_id = self.threebot_info["compute_pool"]
 
@@ -108,7 +106,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     def success(self):
         display_name = self.threebot_info["name"]
         message = f"""\
-        # Your 3Bot instance {display_name} has been resurrected
+        # Your 3Bot instance {display_name} has started
         <br />\n
         - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
         """

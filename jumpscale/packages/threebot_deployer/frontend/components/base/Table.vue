@@ -25,7 +25,7 @@
             </v-tooltip>
             <v-tooltip top  v-if="deployed3botsStatus[item.state] !== 1">
               <template v-slot:activator="{ on, attrs }">
-                    
+
                 <v-btn icon @click.stop="delete3Bot(item)">
                   <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
                 </v-btn>
@@ -55,6 +55,22 @@
                 </v-btn>
               </template>
               <span>Start</span>
+            </v-tooltip>
+            <v-tooltip top v-if="deployed3botsStatus[item.state] === 2">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="change3BotLocation(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-map-marker-radius</v-icon>
+                </v-btn>
+              </template>
+              <span>Change location</span>
+            </v-tooltip>
+            <v-tooltip top v-if="deployed3botsStatus[item.state] === 2">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="change3BotSize(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-arrow-expand-all</v-icon>
+                </v-btn>
+              </template>
+              <span>Change size</span>
             </v-tooltip>
           </template>
         </v-data-table>
@@ -106,6 +122,12 @@ module.exports = {
       this.selected = record;
       this.dialogs.startWorkload = true;
       this.openChatflow("restart_threebot", this.selected.name);
+    },
+    change3BotSize(record) {
+      this.openChatflow("change_size", record.name);
+    },
+    change3BotLocation(record) {
+      this.openChatflow("change_location", record.name);
     },
     openChatflow(type, tname = "") {
       this.$router.push({
