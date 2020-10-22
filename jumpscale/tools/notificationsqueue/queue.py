@@ -1,7 +1,6 @@
 from enum import Enum
 
 from jumpscale.loader import j
-from jumpscale.core.base import Base
 
 
 class LEVEL(Enum):

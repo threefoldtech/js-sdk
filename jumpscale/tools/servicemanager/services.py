@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import gevent
 
 from jumpscale.loader import j
 from jumpscale.tools.notificationsqueue.queue import LEVEL
