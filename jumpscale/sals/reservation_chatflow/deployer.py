@@ -484,7 +484,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 continue
             for balance in balances:
                 if balance.asset_code in escrow_asset:
-                    if balance.balance > total_amount:
+                    if float(balance.balance) > float(total_amount):
                         wallet_names.append(w)
                     else:
                         break
