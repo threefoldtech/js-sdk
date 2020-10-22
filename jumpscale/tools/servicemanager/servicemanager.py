@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 import gevent
 from signal import SIGTERM, SIGKILL
+import os
 
 from jumpscale.loader import j
-from jumpscale.core.base import Base
-
-DEFAULT_SERVICES = {}
+from jumpscale.core.base import Base, fields
 
 
 class BackgroundService(ABC):
@@ -29,11 +28,11 @@ class BackgroundService(ABC):
 
 
 # TODO: add support for non-periodic tasks
-# TODO: save services in config manager
 class ServiceManager(Base):
+    services = fields.Typed(dict, default={})
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.services = DEFAULT_SERVICES.copy()
         self._greenlets = {}
 
     def __callback(self, greenlet):
@@ -89,12 +88,13 @@ class ServiceManager(Base):
 
         # TODO: check if instance of the service is already running -> kill greenlet and spawn a new one?
         for service_obj in self.services.values():
-            # TODO: better way?
+            # better way?
             if isinstance(service, type(service_obj)):
                 raise j.exceptions.Value(f"A {type(service).__name__} instance is already running")
 
         self._schedule_service(service)
-        self.services[service.name] = service
+        self.services[service.name] = dict(path=service_path)
+        self.save()
 
     def stop_service(self, service_name):
         """Stop a background service
