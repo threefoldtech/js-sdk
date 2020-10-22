@@ -322,7 +322,7 @@ class ChatflowDeployer:
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
-            "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month",
+            "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month"
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
@@ -477,7 +477,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
         wallet_names = []
         for w in wallets.keys():
-            wallet_names.append(w)
+            wallet = j.clients.stellar.get(w)
+            try:
+                balances = wallet.get_balance().balances
+            except:
+                continue
+            for balance in balances:
+                if balance.asset_code in escrow_asset:
+                    if balance.balance > total_amount:
+                        wallet_names.append(w)
+                    else:
+                        break
         wallet_names.append("External Wallet (QR Code)")
         self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
         message = f"""
@@ -1071,7 +1081,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None, ip_version=None,
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None, ip_version=None
     ):
         """
         Ask and schedule workloads accross multiple pools
