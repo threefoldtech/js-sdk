@@ -1428,6 +1428,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         proxy_pool_id = proxy_pool_id or pool_id
         gateway = self._explorer.gateway.get(gateway_id)
 
+        reverse_id = None
         if reserve_proxy:
             if not domain_name:
                 raise StopChatFlow("you must pass domain_name when you ise reserv_proxy")
@@ -1439,6 +1440,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 identity_name=identity_name,
                 **metadata,
             )
+            reverse_id = resv_id
             success = self.wait_workload(resv_id)
             if not success:
                 raise DeploymentFailed(
@@ -1493,7 +1495,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             identity_name=identity_name,
             **metadata,
         )
-        return resv_id
+        return resv_id, reverse_id
 
     def deploy_minio_zdb(
         self,

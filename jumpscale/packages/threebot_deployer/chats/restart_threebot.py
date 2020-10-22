@@ -1,9 +1,14 @@
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, start_threebot_solution
+from jumpscale.packages.threebot_deployer.bottle.utils import (
+    list_threebot_solutions,
+    start_threebot_solution,
+    get_threebot_zos,
+)
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from textwrap import dedent
+from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 
 
@@ -55,13 +60,16 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
 
     def _verify_password(self, password):
         instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
-        identity_words = j.core.identity.get(instance.identity_name).words
+        zos = get_threebot_zos(instance)
+        user = zos._explorer.users.get(instance.identity_tid)
         words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
-        return words == identity_words
+        seed = j.data.encryption.mnemonic_to_key(words)
+        pubkey = NACL(seed).get_verify_key_hex()
+        return pubkey == user.pubkey
 
     @chatflow_step(title="Password")
     def enter_password(self):
-        message = "Please create the 3Bot password."
+        message = "Please enter the 3Bot password."
         self.password = self.secret_ask(message, required=True, max_length=32)
         while not self._verify_password(self.password):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"

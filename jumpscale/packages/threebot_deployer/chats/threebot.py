@@ -4,11 +4,11 @@ from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions
+from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, threebot_identity_context
 from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY, USER_THREEBOT_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
 
 FLAVORS = {
@@ -277,93 +277,93 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @deployment_context()
     def _deploy(self):
-        # 1- add node to network
-        metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
-        self.solution_metadata.update(metadata)
-        self.workload_ids = []
-        deploying_message = f"""\
-        # Deploying your 3Bot...\n\n
-        <br>It will usually take a few minutes to succeed. Please wait patiently.\n
-        You will be automatically redirected to the next step once succeeded.
-        """
-        self.md_show_update(dedent(deploying_message), md=True)
+        with threebot_identity_context(self.identity_name):
+            # 1- add node to network
+            metadata = {"form_info": {"Solution name": self.solution_name, "chatflow": "threebot"}}
+            self.solution_metadata.update(metadata)
+            self.workload_ids = []
+            deploying_message = f"""\
+            # Deploying your 3Bot...\n\n
+            <br>It will usually take a few minutes to succeed. Please wait patiently.\n
+            You will be automatically redirected to the next step once succeeded.
+            """
+            self.md_show_update(dedent(deploying_message), md=True)
 
-        # 2- reserve subdomain
-        if not self.custom_domain:
+            # 2- reserve subdomain
+            if not self.custom_domain:
+                self.workload_ids.append(
+                    deployer.create_subdomain(
+                        pool_id=self.gateway_pool.pool_id,
+                        gateway_id=self.gateway.node_id,
+                        subdomain=self.domain,
+                        addresses=self.addresses,
+                        solution_uuid=self.solution_id,
+                        identity_name=self.identity_name,
+                        **self.solution_metadata,
+                    )
+                )
+
+                success = deployer.wait_workload(self.workload_ids[-1])
+                if not success:
+                    raise DeploymentFailed(
+                        f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                        wid=self.workload_ids[-1],
+                        identity_name=self.identity_name,
+                    )
+            test_cert = j.config.get("TEST_CERT")
+
+            # Generate a one-time token to create a user for backup
+            backup_token = str(j.data.idgenerator.idgenerator.uuid.uuid4())
+            self.backup_model.token = backup_token
+            self.backup_model.tname = self.solution_metadata["owner"]
+            self.backup_model.save()
+            # 3- deploy threebot container
+            environment_vars = {
+                "SDK_VERSION": self.branch,
+                "INSTANCE_NAME": self.solution_name,
+                "THREEBOT_NAME": self.threebot_name,
+                "DOMAIN": self.domain,
+                "SSHKEY": self.public_key,
+                "TEST_CERT": "true" if test_cert else "false",
+                "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
+            }
+            self.network_view = self.network_view.copy()
+
+            ## Container logs
+            log_config = j.core.config.get("LOGGING_SINK", {})
+            if log_config:
+                log_config["channel_name"] = self.solution_name
+
             self.workload_ids.append(
-                deployer.create_subdomain(
-                    pool_id=self.gateway_pool.pool_id,
-                    gateway_id=self.gateway.node_id,
-                    subdomain=self.domain,
-                    addresses=self.addresses,
+                deployer.deploy_container(
+                    pool_id=self.pool_id,
+                    node_id=self.selected_node.node_id,
+                    network_name=self.network_view.name,
+                    ip_address=self.ip_address,
+                    flist=self.FLIST_URL,
+                    env=environment_vars,
+                    cpu=self.container_resources["cru"],
+                    memory=self.container_resources["mru"] * 1024,
+                    disk_size=self.container_resources["sru"] * 1024,
+                    secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
+                    interactive=False,
+                    log_config=log_config,
                     solution_uuid=self.solution_id,
                     identity_name=self.identity_name,
                     **self.solution_metadata,
                 )
             )
-
             success = deployer.wait_workload(self.workload_ids[-1])
             if not success:
                 raise DeploymentFailed(
-                    f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                    f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                    solution_uuid=self.solution_id,
                     wid=self.workload_ids[-1],
                     identity_name=self.identity_name,
                 )
-        test_cert = j.config.get("TEST_CERT")
 
-        # Generate a one-time token to create a user for backup
-        backup_token = str(j.data.idgenerator.idgenerator.uuid.uuid4())
-        self.backup_model.token = backup_token
-        self.backup_model.tname = self.solution_metadata["owner"]
-        self.backup_model.save()
-        # 3- deploy threebot container
-        environment_vars = {
-            "SDK_VERSION": self.branch,
-            "INSTANCE_NAME": self.solution_name,
-            "THREEBOT_NAME": self.threebot_name,
-            "DOMAIN": self.domain,
-            "SSHKEY": self.public_key,
-            "TEST_CERT": "true" if test_cert else "false",
-            "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
-        }
-        self.network_view = self.network_view.copy()
-
-        ## Container logs
-        log_config = j.core.config.get("LOGGING_SINK", {})
-        if log_config:
-            log_config["channel_name"] = self.solution_name
-
-        self.workload_ids.append(
-            deployer.deploy_container(
-                pool_id=self.pool_id,
-                node_id=self.selected_node.node_id,
-                network_name=self.network_view.name,
-                ip_address=self.ip_address,
-                flist=self.FLIST_URL,
-                env=environment_vars,
-                cpu=self.container_resources["cru"],
-                memory=self.container_resources["mru"] * 1024,
-                disk_size=self.container_resources["sru"] * 1024,
-                secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
-                interactive=False,
-                log_config=log_config,
-                solution_uuid=self.solution_id,
-                identity_name=self.identity_name,
-                **self.solution_metadata,
-            )
-        )
-        success = deployer.wait_workload(self.workload_ids[-1])
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
-                solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
-                identity_name=self.identity_name,
-            )
-
-        # 4- expose threebot container
-        self.workload_ids.append(
-            deployer.expose_address(
+            # 4- expose threebot container
+            wid, _ = deployer.expose_address(
                 pool_id=self.pool_id,
                 gateway_id=self.gateway.node_id,
                 network_name=self.network_view.name,
@@ -380,28 +380,34 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 identity_name=self.identity_name,
                 **self.solution_metadata,
             )
-        )
-        success = deployer.wait_workload(self.workload_ids[-1])
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
-                solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
-                identity_name=self.identity_name,
-            )
-        self.threebot_url = f"https://{self.domain}/admin"
+            self.workload_ids.append(wid)
+            success = deployer.wait_workload(self.workload_ids[-1])
+            if not success:
+                raise DeploymentFailed(
+                    f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                    solution_uuid=self.solution_id,
+                    wid=self.workload_ids[-1],
+                    identity_name=self.identity_name,
+                )
+            self.threebot_url = f"https://{self.domain}/admin"
 
-        instance_name = f"threebot_{self.solution_id}"
-        user_threebot = USER_THREEBOT_FACTORY.get(instance_name)
-        user_threebot.solution_uuid = self.solution_id
-        user_threebot.identity_name = self.identity_name
-        user_threebot.name = self.solution_name
-        user_threebot.owner_tname = self.threebot_name
-        user_threebot.farm_name = self.farm_name
-        user_threebot.state = ThreebotState.RUNNING
-        if hasattr(self, "continent"):
-            user_threebot.continent = self.continent
-        user_threebot.save()
+            instance_name = f"threebot_{self.solution_id}"
+            user_threebot = USER_THREEBOT_FACTORY.get(instance_name)
+            user_threebot.solution_uuid = self.solution_id
+            user_threebot.identity_tid = j.core.identity.get(self.identity_name).tid
+            user_threebot.name = self.solution_name
+            user_threebot.owner_tname = self.threebot_name
+            user_threebot.farm_name = self.farm_name
+            user_threebot.state = ThreebotState.RUNNING
+            if hasattr(self, "continent"):
+                user_threebot.continent = self.continent
+            if not self.custom_domain:
+                user_threebot.subdomain_wid = self.workload_ids[-4]
+            user_threebot.threebot_container_wid = self.workload_ids[-3]
+            user_threebot.trc_container_wid = self.workload_ids[-2]
+            user_threebot.reverse_proxy_wid = self.workload_ids[-1]
+            user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+            user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

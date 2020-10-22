@@ -46,19 +46,19 @@ const apiClient = {
         method: "post"
       })
     },
-    stopThreebot: (uuid) => {
+    stopThreebot: (uuid, password) => {
       return axios({
         url: `/threebot_deployer/api/threebots/stop`,
         headers: { 'Content-Type': 'application/json' },
-        data: { uuid: uuid },
+        data: { uuid: uuid , password: password },
         method: "post"
       })
     },
-    destroyThreebot: (uuid) => {
+    destroyThreebot: (uuid, password) => {
       return axios({
         url: `/threebot_deployer/api/threebots/destroy`,
         headers: { 'Content-Type': 'application/json' },
-        data: { uuid: uuid },
+        data: { uuid: uuid, password: password },
         method: "post"
       })
     },

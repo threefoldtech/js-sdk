@@ -9,7 +9,10 @@
     :loading="loading"
   >
     <template #default>
-      Are you sure you want to stop {{ data.name }}?
+      Please enter the password of {{ data.name }}?
+      <v-form>
+        <v-text-field :type="'password'" v-model="form.password" dense></v-text-field>
+      </v-form>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -32,7 +35,7 @@ module.exports = {
       this.loading = true;
       this.error = null;
       this.$api.solutions
-        .stopThreebot(this.data.solution_uuid)
+        .stopThreebot(this.data.solution_uuid, this.form.password)
         .then((response) => {
           this.alert("Stopped 3Bot", "success");
           this.$router.go(0);
