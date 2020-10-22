@@ -29,6 +29,9 @@ class BackgroundService(ABC):
 
 class StellarService(BackgroundService):
     def __init__(self, name="stellar", interval=60, *args, **kwargs):
+        """
+            Check stellar service state every 1 min
+        """
         super().__init__(name, interval, *args, **kwargs)
         self.stellar_state = True
 
@@ -56,7 +59,10 @@ class StellarService(BackgroundService):
 
 
 class DiskCheckService(BackgroundService):
-    def __init__(self, name="disk-check", interval=60 * 60, *args, **kwargs):
+    def __init__(self, name="disk-check", interval=60 * 60 * 12, *args, **kwargs):
+        """
+            Check disk space every 12 hours
+        """
         super().__init__(name, interval, *args, **kwargs)
 
     def job(self):
