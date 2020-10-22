@@ -358,6 +358,8 @@ def redeploy_threebot_solution(
         j.logger.debug(f"threebot container workload {workload_ids[-1]} deployed successfuly")
 
         trc_log_config = j.core.config.get("LOGGING_SINK", {})
+        if trc_log_config:
+            trc_log_config["channel_name"] = new_solution_info["name"] + "-trc"
         identity_tid = identity.tid
         secret = f"{identity_tid}:{uuid.uuid4().hex}"
         j.logger.debug(f"deploying trc container with secret {secret}")
