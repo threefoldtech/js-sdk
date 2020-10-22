@@ -46,7 +46,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn v-if="app.disable" text medium color="red" disabled>Coming Soon</v-btn>
+          <v-btn v-if="app.disable" text medium disabled>Coming Soon</v-btn>
           <div v-else>
             <v-btn text medium color="green" @click.stop="openChatflow(app.type)">Deploy</v-btn>
             <v-btn text medium @click.stop="viewWorkloads(app)">My Workloads</v-btn>
@@ -103,5 +103,9 @@ a.chatflowInfo {
   text-decoration: none;
   position: absolute;
   right: 10px;
+}
+
+.theme--light.v-btn.v-btn--disabled {
+  color: #f44336 !important;
 }
 </style>

@@ -28,7 +28,7 @@ const COLLAB_TOOLS = {
         crm: {
             name: "CRM",
             type: "crm",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
             description: "Full featured Customer Relationship Management system."
@@ -36,7 +36,7 @@ const COLLAB_TOOLS = {
         zeroci: {
             name: "ZeroCI",
             type: "zeroci",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
             description: "description: Continuous integration system useful for all programming languages."
@@ -44,7 +44,7 @@ const COLLAB_TOOLS = {
         commento: {
             name: "Commento",
             type: "commento",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
             description: "Collaborate on online content without giving up your privacy."
@@ -100,7 +100,7 @@ const WEB_SOCIAL = {
         videochat: {
             name: "Video Chat",
             type: "videochat",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
@@ -108,7 +108,7 @@ const WEB_SOCIAL = {
         virtualspaces: {
             name: "Virtual Spaces",
             type: "virtualspaces",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/virtual-spaces/",
             description: "Meetup experiences and collaboration in virtual reality."
@@ -116,7 +116,7 @@ const WEB_SOCIAL = {
         knowledgebase: {
             name: "Knowledge Base",
             type: "knowledgebase",
-            image: "./assets/4to6.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/",
             description: "A simple, self-hosted, easy-to-use platform for organising and storing information."
@@ -139,7 +139,7 @@ const DEV_TOOLS = {
         serverless: {
             name: "Serverless",
             type: "serverless",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Collaborate on online content without giving up your privacy."
@@ -147,7 +147,7 @@ const DEV_TOOLS = {
         gridsome: {
             name: "Gridsome",
             type: "gridsome",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
@@ -155,7 +155,7 @@ const DEV_TOOLS = {
         gridsome: {
             name: "Gridsome",
             type: "gridsome",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: ""
@@ -170,23 +170,23 @@ const BC_SOLUTIONS = {
         dash: {
             name: "Dash",
             type: "dash",
-            image: "./assets/gitea.png",
+            image: "./assets/dash.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/",
+            helpLink: "https://wiki.threefold.io/#/dash",
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
         digibyte: {
             name: "Digibyte",
             type: "digibyte",
-            image: "./assets/gitea.png",
+            image: "./assets/digibyte.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://www.consciousinternet.org/#/projects/DigiBytes",
             description: "Safest, fastest, longest and most decentralised UTXO blockchains in existence."
         },
         elrond: {
             name: "Elrond",
             type: "elrond",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "The internet-scale blockchain, designed from scratch to bring a 1000-fold cumulative improvement in throughput and execution speed."
@@ -194,15 +194,15 @@ const BC_SOLUTIONS = {
         harmony: {
             name: "Harmony",
             type: "harmony",
-            image: "./assets/gitea.png",
+            image: "./assets/harmony.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://wiki.threefold.io/#/harmony",
             description: "Fast and open blockchain for decentralised applications."
         },
         Matic: {
             name: "Matic",
             type: "Matic",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Decentralised scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
@@ -210,7 +210,7 @@ const BC_SOLUTIONS = {
         neo: {
             name: "Neo",
             type: "neo",
-            image: "./assets/gitea.png",
+            image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Scalable, fast, and ultra-secure Blockchain driven by a global community of developers and node operators."
@@ -218,7 +218,7 @@ const BC_SOLUTIONS = {
         scale: {
             name: "Scale",
             type: "scale",
-            image: "./assets/gitea.png",
+            image: "./assets/Skale.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "An elastic blockchain network that gives developers the ability to easily provision highly configurable chains compatible with Ethereum."
@@ -226,17 +226,17 @@ const BC_SOLUTIONS = {
         tomochain: {
             name: "TomoChain",
             type: "tomochain",
-            image: "./assets/gitea.png",
+            image: "./assets/TomoChain.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://wiki.threefold.io/#/tomochain",
             description: "Scalable blockchain-powered via Proof-of-Stake Voting consensus and used commercially by companies globally."
         },
         waykichain: {
             name: "WaykiChain",
             type: "waykichain",
-            image: "./assets/gitea.png",
+            image: "./assets/WaykiChain.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://wiki.threefold.io/#/waykichain",
             description: "Prominent blockchain platform based in China with a global community."
         },
     },
@@ -255,5 +255,5 @@ const SECTIONS = {
     "Collaboration Tools": COLLAB_TOOLS,
     "Web & Social": WEB_SOCIAL,
     "Developer Tools": DEV_TOOLS,
-    "Blockchain Solutions":BC_SOLUTIONS,
+    "Blockchain Solutions": BC_SOLUTIONS,
 }
