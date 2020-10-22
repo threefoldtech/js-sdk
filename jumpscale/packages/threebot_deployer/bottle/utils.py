@@ -314,7 +314,7 @@ def redeploy_threebot_solution(
 
         environment_vars = {
             "SDK_VERSION": new_solution_info["branch"],
-            "INSTANCE_NAME": solution_name,
+            "INSTANCE_NAME": new_solution_info["name"],
             "THREEBOT_NAME": owner,
             "DOMAIN": domain,
             "SSHKEY": new_solution_info["public_key"],
@@ -325,7 +325,7 @@ def redeploy_threebot_solution(
 
         log_config = j.core.config.get("LOGGING_SINK", {})
         if log_config:
-            log_config["channel_name"] = solution_name
+            log_config["channel_name"] = new_solution_info["name"]
 
         workload_ids.append(
             deployer.deploy_container(
