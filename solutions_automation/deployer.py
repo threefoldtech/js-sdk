@@ -370,6 +370,7 @@ def deploy_threebot(
 ):
     return ThreebotDeployAutomated(
         type="Create",
+        ssh=ssh,
         solution_name=solution_name,
         secret=secret,
         expiration=expiration,

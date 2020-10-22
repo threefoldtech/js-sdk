@@ -1,6 +1,11 @@
 import os
+import string
 
+from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
+from jumpscale.packages.admin.bottle.models import UserEntry as AdminUserEntry
+from jumpscale.packages.marketplace.bottle.models import UserEntry as MarkerplaceUserEntry
+
 from tests.base_tests import BaseTests
 
 
@@ -61,3 +66,28 @@ class ChatflowsBase(BaseTests):
     @staticmethod
     def get_wallet(name, secret):
         return j.clients.stellar.get(name, network="TEST", secret=secret)
+
+    @staticmethod
+    def random_name():
+        # Only lower case for subdomain.
+        return j.data.idgenerator.nfromchoices(10, string.ascii_lowercase)
+
+    @classmethod
+    def accept_terms_conditions(cls, type_):
+        if type_ == "marketplace":
+            explorer_url = j.core.identity.me.explorer.url
+            if "testnet" in explorer_url:
+                explorer_name = "testnet"
+            elif "devnet" in explorer_url:
+                explorer_name = "devnet"
+            elif "explorer.grid.tf" in explorer_url:
+                explorer_name = "mainnet"
+            cls.user_entry_name = f"{explorer_name}_{cls.tname.replace('.3bot', '')}"
+            cls.user_factory = StoredFactory(MarkerplaceUserEntry)
+        else:
+            cls.user_entry_name = f"{cls.tname.replace('.3bot', '')}"
+            cls.user_factory = StoredFactory(AdminUserEntry)
+        admin_user_entry = cls.user_factory.get(cls.user_entry_name)
+        admin_user_entry.has_agreed = True
+        admin_user_entry.tname = cls.tname
+        admin_user_entry.save()

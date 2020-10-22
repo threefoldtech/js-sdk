@@ -1,12 +1,8 @@
-import string
-
 import pytest
-from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.marketplace.bottle.models import UserEntry
 from solutions_automation import deployer
 
-from chatflows_base import ChatflowsBase
+from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 
 
 @pytest.mark.integration
@@ -14,26 +10,13 @@ class MarketplaceChatflows(ChatflowsBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-
         # Accept Marketplace T&C for testing identity.
-        explorer_url = j.core.identity.me.explorer.url
-        if "testnet" in explorer_url:
-            explorer_name = "testnet"
-        elif "devnet" in explorer_url:
-            explorer_name = "devnet"
-        elif "explorer.grid.tf" in explorer_url:
-            explorer_name = "mainnet"
-        cls.user_entry_name = f"{explorer_name}_{cls.tname.replace('.3bot', '')}"
-        cls.marketplace_user_factory = StoredFactory(UserEntry)
-        marketplace_user_entry = cls.marketplace_user_factory.get(cls.user_entry_name)
-        marketplace_user_entry.has_agreed = True
-        marketplace_user_entry.tname = cls.tname
-        marketplace_user_entry.save()
+        cls.accept_terms_conditions(type_="marketplace")
 
     @classmethod
     def tearDownClass(cls):
         # Remove userEntry for accepting T&C.
-        cls.marketplace_user_factory.delete(cls.user_entry_name)
+        cls.user_factory.delete(cls.user_entry_name)
         super().tearDownClass()
 
     def setUp(self):
@@ -44,10 +27,6 @@ class MarketplaceChatflows(ChatflowsBase):
         if self.solution_uuid:
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
         super().tearDown()
-
-    def random_name(self):
-        # Only lower case for subdomain.
-        return j.data.idgenerator.nfromchoices(10, string.ascii_lowercase)
 
     def test01_wiki(self):
         """Test case for testing wiki.

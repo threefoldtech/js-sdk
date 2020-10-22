@@ -2,12 +2,11 @@ import os
 from time import time
 
 import pytest
-from chatflows_base import ChatflowsBase
-from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.admin.bottle.models import UserEntry
 from redis import Redis
 from solutions_automation import deployer
+
+from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 
 
 @pytest.mark.integration
@@ -17,12 +16,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         super().setUpClass()
 
         # Accept admin T&C for testing identity.
-        cls.user_entry_name = f"{cls.tname.replace('.3bot', '')}"
-        cls.admin_user_factory = StoredFactory(UserEntry)
-        admin_user_entry = cls.admin_user_factory.get(cls.user_entry_name)
-        admin_user_entry.has_agreed = True
-        admin_user_entry.tname = cls.tname
-        admin_user_entry.save()
+        cls.accept_terms_conditions(type_="admin")
 
         # Create Network
         cls.network_name = cls.random_name()
@@ -31,10 +25,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         j.sals.fs.write_file(cls.wg_conf_path, network.wgconf)
         j.sals.process.execute(f"sudo wg-quick up {cls.wg_conf_path}")
 
-        # prepare ssh
+        # Prepare ssh
         cls.ssh_client_name = cls.random_name()
         if not j.sals.fs.exists("/tmp/.ssh"):
-            j.core.executors.run_local('mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" ')
+            j.core.executors.run_local(
+                'mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" '
+            )  # TODO: Fix me use ssh generate method
         cls.ssh_cl = j.clients.sshkey.get(cls.ssh_client_name)
         cls.ssh_cl.private_key_path = "/tmp/.ssh/id_rsa"
         cls.ssh_cl.load_from_file_system()
@@ -52,17 +48,17 @@ class TFGridSolutionChatflows(ChatflowsBase):
         # delete network
         network_view = j.sals.reservation_chatflow.deployer.get_network_view(cls.network_name)
         wids = [w.id for w in network_view.network_workloads]
-        j.sals.zos.workloads.decomission(workload_id=wids[0])
+        j.sals.zos.get().workloads.decomission(workload_id=wids[0])
 
         # Remove userEntry for accepting T&C
-        cls.admin_user_factory.delete(cls.user_entry_name)
+        cls.user_factory.delete(cls.user_entry_name)
         super().tearDownClass()
 
     def tearDown(self):
         if self.solution_uuid:
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
-
         j.clients.sshclient.delete(self.ssh_client_name)
+        super().tearDown()
 
     def test01_ubuntu(self):
         """Test case for create ubuntu.
@@ -124,30 +120,10 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
         res = res.splitlines()
-        res = res[2:]  # remove master node and header
+        res = res[2:]  # Remove master node and header
         self.assertEqual(workernodes, len(res))
 
-    def test03_create_pool(self):
-        """Test case for create pool.
-
-        **Test Scenario**
-        - create pool
-        - check that create pool is successful
-        - check that cu and su as reserved
-        """
-        self.info("create pool")
-        name = self.random_name()
-        wallet_name = os.environ.get("WALLET_NAME")
-        pool = deployer.create_pool(solution_name=name, wallet_name=wallet_name,)
-
-        self.info("check that create pool is successful")
-        reservation_id = pool.pool_data.reservation_id
-        pool_data = j.sals.zos.pools.get(reservation_id)
-
-        self.assertEqual(pool_data.cus, 86400.0)
-        self.assertEqual(pool_data.sus, 86400.0)
-
-    def test04_minio(self):
+    def test03_minio(self):
         """Test case for create minio.
 
         **Test Scenario**
@@ -175,7 +151,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
         self.assertEqual(request.status_code, 200)
 
-    def test05_monitoring(self):
+    def test04_monitoring(self):
         """Test case for create monitoring.
 
         **Test Scenario**
@@ -206,7 +182,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)
 
-    def test06_generic_flist(self):
+    def test05_generic_flist(self):
         """Test case for deploy generic flist.
 
         **Test Scenario**
@@ -226,7 +202,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{generic_flist.ip_address}:7681", verify=False)
         self.assertEqual(request.status_code, 200)
 
-    def test07_exposed_flist(self):
+    def test06_exposed_flist(self):
         """Test case for exposed flist.
 
         **Test Scenario**
@@ -252,91 +228,3 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("check access exposed")
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
-
-    def test08_deploy_threebot(self):
-        """Test case for deploy threebot
-
-        **Test Scenario**
-        - create threebot
-        - check access threebot
-        """
-        self.info("create threebot")
-        name = self.random_name()
-        secret = self.random_name()
-        threebot = deployer.deploy_threebot(
-            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
-        )
-        self.solution_uuid = threebot.solution_id
-
-        self.info("check access threebot")
-        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
-        self.assertEqual(request.status_code, 200)
-
-    def test09_recover_threebot(self):
-        """Test case for recover threebot
-
-        **Test Scenario**
-        - create threebot
-        - recover threebot
-        - check access recoverd threebot
-        """
-
-        self.info("create threebot")
-        name = self.random_name()
-        secret = self.random_name()
-        threebot = deployer.deploy_threebot(
-            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
-        )
-        self.info("recover threebot")
-        threebot = deployer.recover_threebot(
-            solution_name=name, recover_password=secret, ssh=self.ssh_cl.public_key_path, expiration=time() + 60 * 15,
-        )
-        self.solution_uuid = threebot.solution_id
-
-        self.info("check access recoverd threebot")
-        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
-        self.assertEqual(request.status_code, 200)
-
-    def test010_extend_threebot(self):
-        """Test case for extend threebot
-
-        **Test Scenario**
-        - create threebot
-        - extend threebot
-        - check expiration
-        """
-        self.info("create threebot")
-        name = self.random_name()
-        secret = self.random_name()
-        threebot = deployer.deploy_threebot(
-            solution_name=name, secret=secret, expiration=time() + 60 * 15, ssh=self.ssh_cl.public_key_path
-        )
-
-        self.info("extend threebot")
-        extend_threebot = deployer.extend_threebot(name=name, expiration=time() + 60 * 15,)
-        self.solution_uuid = threebot.solution_id
-
-        self.info("check expiration")
-        self.assertEqual(time() + 60 * 15, extend_threebot.expiration)
-
-    def test11_extend_pool(self):
-        """Test case for extend pool
-
-        **Test Scenario**
-        - create pool
-        - extend pool
-        - check that cu and su as reserved
-        """
-        self.info("create pool")
-        name = self.random_name()
-        deployer.create_pool(solution_name=name, wallet_name="demos_wallet")
-
-        self.info("extend pool")
-        extent_pool = deployer.extend_pool(pool_name=name, wallet_name="demos_wallet", cu=2, su=2)
-
-        self.info("check that cu and su as reserved")
-        reservation_id = extent_pool.pool_data.reservation_id
-        pool_data = j.sals.zos.pools.get(reservation_id)
-
-        self.assertEqual(pool_data.cus, 172800.0)
-        self.assertEqual(pool_data.sus, 172800.0)
