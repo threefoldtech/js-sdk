@@ -96,7 +96,7 @@ class NotificationsQueue:
         p = self.db.pipeline()
         p.multi()
 
-        for i in range(ret_notifications_count):
+        for _ in range(ret_notifications_count):
             p.rpoplpush(self._rkey, self._rkey_seen)
         p.lrange(self._rkey_seen, 0, ret_notifications_count - 1)
         p.ltrim(self._rkey_seen, 0, self._seen_list_max_size - 1)

@@ -66,10 +66,10 @@ class ServiceManager(Base):
             raise j.exceptions.Value(f"Service with name {service.name} already exists")
 
         # TODO: check if instance of the service is already running -> kill greenlet and spawn a new one?
-        for service_obj in self.services:
+        for service_obj in self.services.values():
             # TODO: better way?
-            if type(service) == type(service_obj):
-                raise j.exceptions.Value(f"Service {service.name} is already running")
+            if isinstance(service, type(service_obj)):
+                raise j.exceptions.Value(f"A {type(service).__name__} instance is already running")
 
         self._schedule_service(service)
         self.services[service.name] = service
