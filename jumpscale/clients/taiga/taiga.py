@@ -77,7 +77,15 @@ To export all user stories to the file /tmp/stories.md:
 > client.move_story_to_cirlce(789, 123) # story id, project id
 
 """
-from jumpscale.clients.taiga.models import FunnelCircle, ProjectCircle, TeamCircle
+from jumpscale.clients.taiga.models import (
+    Circle,
+    FunnelCircle,
+    ProjectCircle,
+    TeamCircle,
+    CircleIssue,
+    CircleStory,
+    CircleUser,
+)
 import dateutil
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
@@ -137,7 +145,7 @@ class TaigaClient(Client):
 
     @lru_cache(maxsize=128)
     def _get_assignee(self, assignee_id):
-        return self.api.users.get(assignee_id)
+        return CircleUser(self, self.api.users.get(assignee_id))
 
     _get_user_by_id = _get_assignee
 
@@ -169,6 +177,11 @@ class TaigaClient(Client):
             return user.id
         else:
             raise j.exceptions.Input("Couldn't find user with username: {}".format(username))
+
+    @lru_cache(maxsize=128)
+    def _get_user_by_name(self, username):
+        theid = self._get_user_id(username)
+        return self._get_user_by_id(theid)
 
     def get_user_circles(self, username):
         """Get circles owned by user
@@ -327,7 +340,7 @@ class TaigaClient(Client):
             List: List of taiga.models.models.Issue.
         """
         user_id = self._get_user_id(username)
-        return [self._resolve_object(x) for x in self.api.issues.list(assigned_to=user_id)]
+        return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
 
     def list_all_projects(self):
         """
@@ -336,7 +349,7 @@ class TaigaClient(Client):
         Returns:
             List: List of taiga.models.models.Project.
         """
-        return [self._resolve_object(x) for x in self.api.projects.list()]
+        return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
 
     def list_all_milestones(self):
         """
@@ -359,260 +372,7 @@ class TaigaClient(Client):
         """
         user_id = self._get_user_id(username)
 
-        return [self._resolve_object(x) for x in self.api.user_stories.list(assigned_to=user_id)]
-
-    def __render_issues_with_details(self, text="Issues", issues=None, with_description=False):
-        """Get issues details and append them to text to be written in markdown files
-
-        Args:
-            text (str): the text that the method will append to it.
-            issues (List): list of all issues that we will get the subject from .
-
-        Returns:
-            str: string contains the issues details to be used in markdown.
-        """
-        for issue in issues:
-            text += f"- **Subject:** {issue.get('subject','unknown')} \n"
-            text += f"  - **Created Date:** {issue.get('created_date','unknown')} \n"
-            text += f"  - **Due Date:** {issue.get('due_date','unknown')} \n"
-            text += f"  - **Owner Name:** {issue.get('owner_name','unknown')} \n"
-            text += f"  - **Owner Email:** {issue.get('owner_mail','unknown')} \n"
-            # text += f"  - **Project:** {issue.get('project','unknown')} \n"
-            if with_description:
-                text += f"  - **Description:** \n```\n{issue.get('description','unknown')}\n``` \n"
-        return text
-
-    def __render_issues_with_subjects(self, text="", issues=None):
-        """Render issues with subject only to be written to markdown file
-
-        Args:
-            text (str): this is text that we will append to it the issus subjects
-            issues (list): list of issues
-
-        Returns:
-            text(str): the rendered text to be written to markdown file
-
-        """
-        for issue in issues:
-            text += f"- {issue.subject} \n"
-        return text
-
-    def _get_single_issue_required_data(self, issue, with_description=False):
-        single_project_template = dict()
-        single_project_template["subject"] = issue.subject
-        single_project_template["created_date"] = issue.created_date
-        single_project_template["due_date"] = issue.due_date
-        single_project_template["owner_name"] = issue.owner_extra_info.get("full_name_display", "unknown")
-        single_project_template["owner_mail"] = issue.owner_extra_info.get("email", "unknown")
-        single_project_template["project"] = issue.project_extra_info.get("name", "unknown")
-        if with_description:
-            single_project_template["description"] = self.get_issue_description(issue.id)
-        return single_project_template
-
-    def __get_issues_required_data(self, issues, with_description=False):
-        """Get the required data from issues to be used later in export(render)
-
-        Returns:
-            List: List of issues required details to be used in export(render).
-        """
-        greenlets = [gevent.spawn(self._get_single_issue_required_data, issue, with_description) for issue in issues]
-        gevent.joinall(greenlets)
-        all_issues_templates = [greenlet.value for greenlet in greenlets if greenlet.successful()]
-        return all_issues_templates
-
-    def export_all_issues_details(self, path="/tmp/issues_details.md", with_description=False):
-        """Export all the issues subjects in a markdown file
-
-        Args:
-            path (str): The path of exported markdown file.
-
-        """
-        text = f"""
-### Issues \n
-"""
-        issues = self.list_all_issues()
-        all_issues_templates = self.__get_issues_required_data(issues, with_description)
-
-        text = self.__render_issues_with_details(
-            text=text, issues=all_issues_templates, with_description=with_description
-        )
-
-        j.sals.fs.write_file(path=path, data=text)
-
-    def __get_single_project_required_data(self, project):
-        single_project_template = dict()
-        single_project_template["name"] = project.name
-        single_project_template["created_date"] = project.created_date
-        single_project_template["owner"] = project.owner.get("full_name_display")
-        single_project_template["issues"] = project.list_issues()
-        return single_project_template
-
-    def __get_project_required_data(self, projects):
-        """Get the required data from the projects
-        Args:
-            projects(list): list of projects
-
-        Returns:
-            all_projects_template (dic): dict of the data required from project object
-
-        """
-        greenlets = [gevent.spawn(self.__get_single_project_required_data, project) for project in projects]
-        gevent.joinall(greenlets)
-        all_projects_template = [
-            greenlet.value for greenlet in greenlets if greenlet.successful()
-        ]  # Filtering out the failed ones
-        return all_projects_template
-
-    def __render_projects(self, text="", projects=None, with_details=False):
-        """Do all the render for project details that will written in markdown files.
-
-        Args:
-            text(str): the text will be used to append data to it.
-            projects (list): list of projects will be used in render
-            with_details (bool): flag used to get the issue details in case of true.
-
-        Returns:
-            text (str): the rendered text that will be writted to markdown file.
-        """
-        for project in projects:
-            text += f"##### {project.get('name')} \n"
-            issues = project.get("issues")
-
-            if with_details:
-                all_issues_templates = self.__get_issues_required_data(issues, with_description=True)
-                text = self.__render_issues_with_details(text=text, issues=all_issues_templates, with_description=True)
-            else:
-                text = self.__render_issues_with_subjects(text=text, issues=issues)
-
-        return text
-
-    def _map_render_issues_per_project(self, with_details):
-        """Map the desired data from issues per project and render them to be used in markdown files.
-
-        Args:
-            with_details (bool): flag used to get the issue details in case of true.
-        """
-        projects = self.list_all_projects()
-        all_projects_template = self.__get_project_required_data(projects)
-        grouped_projects = self.__group_data(data=all_projects_template, grouping_attribute="owner")
-
-        for owner, projects_per_owner in grouped_projects.items():
-            self.text += f"## Owner: {owner} \n"
-            # Sort the issues per group
-            sorted_list = sorted(projects_per_owner, key=lambda x: x.get("created_date"), reverse=True)
-            self.text = self.__render_projects(text=self.text, projects=sorted_list, with_details=with_details)
-
-    def export_issues_per_project(self, path="/tmp/issues_per_project.md", with_details=False):
-        """Export issues per project in a markdown file
-
-        Args:
-            path (str): The path of exported markdown file.
-
-        """
-        self.text = """
-### Issues  Per Project \n
-"""
-
-        self._map_render_issues_per_project(with_details)
-        j.sals.fs.write_file(path=path, data=self.text)
-
-    def _map_render_issues_per_user(self, user_id, with_description):
-        """Map the desired data from issues per user and render them to be used in markdown files.
-
-        Args:
-            user_id (int): the id of the used that we will use to get his issues
-            with_description (bool): flag used to get the issue description in case of true.
-        """
-        issues = self.list_all_issues(user_id=user_id)
-        all_issues_templates = self.__get_issues_required_data(issues, with_description)
-        grouped_issues = self.__group_data(data=all_issues_templates, grouping_attribute="project")
-
-        for group, issues_per_group in grouped_issues.items():
-            self.text += f"##### Project: {group} \n"
-            # Sort the issues per group
-            sorted_list = sorted(issues_per_group, key=lambda x: x.get("created_date"), reverse=True)
-            self.text = self.__render_issues_with_details(
-                text=self.text, issues=sorted_list, with_description=with_description
-            )
-
-    def export_issues_per_user(self, username=None, path="/tmp/issues_per_user.md", with_description=False):
-        """Export all the issues per specific user in a markdown file, if no user given
-        the method export issues for the current logged in user
-
-        Args:
-            path (str): The path of exported markdown file.
-            username (str): The name of the user we want to get his issues.
-
-        """
-        if username:
-            selected_username = username
-        else:
-            selected_username = self.username
-        user_id = self._get_user_id(selected_username)
-        self.text = f"""
-### {selected_username} Issues \n
-"""
-        self._map_render_issues_per_user(user_id, with_description)
-
-        j.sals.fs.write_file(path=path, data=self.text)
-
-    def __group_data(self, data, grouping_attribute="project"):
-        """Get similar objects together with same specific attribute.
-
-        Args:
-            data(list): list of data to be grouped
-            grouping_attribute (str): the property used to group the data together
-
-        Returns:
-            grouped_data(defaultdict) : dict of list containing the data which are similar grouped together
-        """
-        grouped_data = defaultdict(list)
-        for obj in data:
-            grouped_data[obj.get(grouping_attribute)].append(obj)
-        return grouped_data
-
-    def __get_stories_required_data(self):
-        """Get the required data from user stories to be used later in export(render)
-
-        Returns:
-            List: List of stories required details to be used in export(render).
-        """
-        all_stories_template = list()
-        users_stories = self.list_all_user_stories()
-        for story in users_stories:
-            single_story_template = dict()
-            single_story_template["subject"] = story.subject
-            if story.assigned_to_extra_info:
-                single_story_template["assigned"] = story.assigned_to_extra_info.get("full_name_display", "unassigned")
-                single_story_template["is_active"] = story.assigned_to_extra_info.get("is_active", "unknown")
-            tasks = list()
-            for task in story.list_tasks():
-                tasks.append(task.subject)
-            single_story_template["tasks"] = tasks
-            all_stories_template.append(single_story_template)
-        return all_stories_template
-
-    def export_all_user_stories(self, path="/tmp/all_stories.md"):
-        """Export all the user stories in a markdown file
-
-        Args:
-            path (str): The path of exported markdown file.
-
-        """
-        text = f"""
-### All User Stories \n
-"""
-        all_stories_template = self.__get_stories_required_data()
-
-        for story in all_stories_template:
-            text += f"#### {story.get('subject')} \n"
-            text += f"- **Assigned to:** {story.get('assigned','unassigned')} \n"
-            text += f"- **Is Active:** {story.get('is_active','unknown')} \n"
-            text += f"- **Tasks** \n"
-            for task_subject in story.get("tasks"):
-                text += f"  - {task_subject} \n"
-
-        j.sals.fs.write_file(path=path, data=text)
+        return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)]
 
     def get_issue_by_id(self, issue_id):
         """Get issue
@@ -622,20 +382,10 @@ class TaigaClient(Client):
         Returns:
             Issue object: issue
         """
-        return self.api.issues.get(issue_id).description
-
-    def get_issue_description(self, issue_id):
-        """Get issue description
-        Args:
-            issue_id: the id of the desired issue
-
-        Returns:
-            str: issue description
-        """
-        return self.get_issue_by_id(issue_id).description
+        return CircleIssue(self, self.api.issues.get(issue_id))
 
     def _resolve_object(self, obj):
-        print("resolving obj ", obj)
+        # print("resolving obj ", obj)
         resolvers = {
             "owners": self._get_users_by_ids,
             "watchers": self._get_users_by_ids,
@@ -656,7 +406,7 @@ class TaigaClient(Client):
                     resolved = None
                     resolver = resolvers[k]
                     try:
-                        print(f"resolver {resolver}")
+                        # print(f"resolver {resolver}")
                         copied_v = copy.deepcopy(v)
                         resolved = lambda: resolver(copied_v)
 
@@ -680,13 +430,13 @@ class TaigaClient(Client):
         return [p for p in self.list_all_projects() if fn(p)]
 
     def list_team_circles(self):
-        return [TeamCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))]
+        return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))]
 
     def list_project_circles(self):
-        return [ProjectCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("PROJECT_"))]
+        return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("PROJECT_"))]
 
     def list_funnel_circles(self):
-        return [FunnelCircle(self.api, p) for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))]
+        return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))]
 
     def _create_new_circle(
         self,
@@ -770,17 +520,17 @@ class TaigaClient(Client):
         return p
 
     def create_new_project_circle(
-        self,
-        name,
-        description="",
-        severities=None,
-        issues_statuses=None,
-        priorities=None,
-        issues_types=None,
-        user_stories_statuses=None,
-        tasks_statuses=None,
-        **attrs,
+        self, name, description="", **attrs,
     ):
+        """Creates a new project circle
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to "".
+
+        Returns:
+            [ProjectCircle]: Project circle
+        """
         # is a circle starting with name: PROJECT_
         # is structured as kanban
         # its a task management system for managing a project, not people
@@ -792,27 +542,28 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
-        severities = None
-        priorities = None
-        statuses = None
-        issues_types = None
+
         return ProjectCircle(
-            self._api,
-            self._create_new_circle(
-                name,
-                type_="project",
-                description=description,
-                severities=severities,
-                issues_statuses=statuses,
-                priorities=priorities,
-                issues_types=issues_types,
-                user_stories_statuses=None,
-                tasks_statuses=None,
-                **attrs,
-            ),
+            self._api, self._create_new_circle(name, type_="project", description=description, **attrs,),
         )
 
     def create_new_team_circle(self, name, description="", **attrs):
+        """Creates a new team circle. using sprints & timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to "".
+            severities (List[str], optional): list of strings to represent severities. Defaults to None.
+            issues_statuses (List[str], optional): list of strings to represent issues_stauses. Defaults to None.
+            priorities (List[str], optional): list of strings to represent priorities. Defaults to None.
+            issues_types (List[str], optional): list of strings to represent issues types. Defaults to None.
+            user_stories_statuses (List[str], optional): list of strings to represent user stories. Defaults to None.
+            tasks_statuses (List[str], optional): list of strings to represent task statuses. Defaults to None.
+
+        Returns:
+            [TeamCircle]: team circle
+        """
+
         # starts with TEAM_ ...
         # represents a group of people working together on aligned journey
         # is using sprints & timeline (does not use kanban)
@@ -830,7 +581,7 @@ class TaigaClient(Client):
         statuses = None
         issues_types = None
         return TeamCircle(
-            self.api,
+            self,
             self._create_new_circle(
                 name,
                 type_="team",
@@ -846,6 +597,15 @@ class TaigaClient(Client):
         )
 
     def create_new_funnel_circle(self, name, description="", **attrs):
+        """Creates a new funnel circle. using sprints & timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to "".
+
+        Returns:
+            [FunnelCircle]: funnel circle
+        """
         attrs = {
             "is_backlog_activated": False,
             "is_issues_activated": True,
@@ -885,7 +645,7 @@ class TaigaClient(Client):
         task_statuses = ["New", "In progress", "Verification", "Needs info", "Closed"]
 
         return FunnelCircle(
-            self.api,
+            self,
             self._create_new_circle(
                 name,
                 type_="funnel",
@@ -899,3 +659,74 @@ class TaigaClient(Client):
                 **attrs,
             ),
         )
+
+    def export_circles(self, wikipath="/tmp/taigawiki"):
+        """export circles into {wikipath}/src/circles
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+        """
+        path = j.sals.fs.join_paths(wikipath, "src", "circles")
+
+        j.sals.fs.mkdirs(path)
+        circles = self.list_all_projects()
+
+        def write_md_for_circle(circle):
+            # print(f"Writing {circle}")
+            circle_mdpath = j.sals.fs.join_paths(path, f"{circle.clean_name}.md")
+            j.sals.fs.write_ascii(circle_mdpath, circle.as_md)
+
+        circles_mdpath = j.sals.fs.join_paths(path, "circles.md")
+        circles_mdcontent = "# circles\n"
+        for c in circles:
+            circles_mdcontent += f"[{c.name}](./{c.clean_name}.md)\n"
+
+        j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
+        gevent.joinall(greenlets)
+
+    def export_users(self, wikipath="/tmp/taigawiki"):
+        """export users into {wikipath}/src/users
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+        """
+
+        path = j.sals.fs.join_paths(wikipath, "src", "users")
+        j.sals.fs.mkdirs(path)
+        circles = self.list_all_projects()
+        users = set()
+        for c in circles:
+            for m in c.members:
+                users.add(m)
+
+        # now we have all users
+        users_objects = []
+        for uid in users:
+            users_objects.append(self._get_user_by_id(uid))
+
+        users_mdpath = j.sals.fs.join_paths(path, "users.md")
+        users_mdcontent = "# users\n"
+
+        def write_md_for_user(user):
+            # print(f"Writing {user}")
+            user_mdpath = j.sals.fs.join_paths(path, f"{user.clean_name}.md")
+            j.sals.fs.write_ascii(user_mdpath, user.as_md)
+
+        for u in users_objects:
+            users_mdcontent += f"[{u.username}](./{u.clean_name}.md)\n"
+
+        j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
+        gevent.joinall(greenlets)
+
+    def export_as_md(self, wiki_src_path="/tmp/taigawiki"):
+        """export taiga instance into a wiki  showing users and circles
+
+        Args:
+            wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+        """
+        self.export_circles(wiki_src_path)
+        self.export_users(wiki_src_path)
