@@ -93,11 +93,41 @@ class NodeIface(Base):
     gateway = fields.List(fields.IPRange())
 
 
+class CloudUnits(Base):
+    # compute units
+    cu = fields.Float()
+    # storage units
+    su = fields.Float()
+
+    def cost(self, cu_price, su_price, duration):
+        """
+        compute the total cost
+
+        Args:
+            cu_price (float): number of compute unit
+            su_price (float): number of storage unit
+            duration (int): duration in second
+
+        Returns:
+            [float]: price
+        """
+        price_per_second = self.cu * cu_price + self.su * su_price
+        return price_per_second * duration
+
+
 class ResourceUnitAmount(Base):
-    cru = fields.Integer()
-    mru = fields.Integer()
-    hru = fields.Integer()
-    sru = fields.Integer()
+    cru = fields.Float()
+    mru = fields.Float()
+    hru = fields.Float()
+    sru = fields.Float()
+
+    def cloud_units(self) -> CloudUnits:
+        # converts resource units to cloud units. Cloud units are rounded to 3
+        # decimal places
+        cloud_units = CloudUnits()
+        cloud_units.cu = round(min(self.mru / 4, self.cru / 2) * 1000) / 1000
+        cloud_units.su = round((self.hru / 1200 + self.sru / 300) * 1000) / 1000
+        return cloud_units
 
 
 class NicType(Enum):
@@ -309,12 +339,18 @@ class GatewayProxy(Base):
     port_tls = fields.Integer()
     info = fields.Object(ReservationInfo)
 
+    def resource_units(self):
+        return ResourceUnitAmount()
+
 
 class GatewayReverseProxy(Base):
     id = fields.Integer()
     domain = fields.String(default="")
     secret = fields.String(default="")
     info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        return ResourceUnitAmount()
 
 
 class GatewaySubdomain(Base):
@@ -323,11 +359,17 @@ class GatewaySubdomain(Base):
     ips = fields.List(fields.String())
     info = fields.Object(ReservationInfo)
 
+    def resource_units(self):
+        return ResourceUnitAmount()
+
 
 class GatewayDelegate(Base):
     id = fields.Integer()
     domain = fields.String(default="")
     info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        return ResourceUnitAmount()
 
 
 class Gateway4to6(Base):
@@ -335,14 +377,19 @@ class Gateway4to6(Base):
     public_key = fields.String(default="")
     info = fields.Object(ReservationInfo)
 
+    def resource_units(self):
+        return ResourceUnitAmount()
+
 
 class Statsaggregator(Base):
     addr = fields.String(default="")
     port = fields.Integer()
     secret = fields.String(default="")
 
+
 class ContainerStatsRedis(Base):
     endpoint = fields.String(default="")
+
 
 class ContainerStats(Base):
     type = fields.String(default="")
@@ -359,6 +406,18 @@ class K8s(Base):
     ssh_keys = fields.List(fields.String())
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        resource_units = ResourceUnitAmount()
+        if self.size == 1:
+            resource_units.cru += 1
+            resource_units.mru += 2
+            resource_units.sru += 50
+        elif self.size == 2:
+            resource_units.cru += 2
+            resource_units.mru += 4
+            resource_units.sru += 100
+        return resource_units
 
 
 class WireguardPeer(Base):
@@ -412,6 +471,19 @@ class Container(Base):
     capacity = fields.Object(ContainerCapacity)
     info = fields.Object(ReservationInfo)
 
+    def resource_units(self):
+        cap = self.capacity
+        resource_units = ResourceUnitAmount()
+        resource_units.cru = cap.cpu
+        resource_units.mru = round(cap.memory / 1024)
+        storage_size = round(cap.disk_size / 1024 * 10000) / 10000
+        storage_size = max(0, storage_size - 50)  # we offer the 50 first GB of storage for container root filesystem
+        if cap.disk_type == DiskType.HDD:
+            resource_units.hru += storage_size
+        elif cap.disk_type == DiskType.SSD:
+            resource_units.sru += storage_size
+        return resource_units
+
 
 class NetworkResource(Base):
     id = fields.Integer()
@@ -424,6 +496,9 @@ class NetworkResource(Base):
     peers = fields.List(fields.Object(WireguardPeer))
     info = fields.Object(ReservationInfo)
 
+    def resource_units(self):
+        return ResourceUnitAmount()
+
 
 class Network(Base):
     name = fields.String(default="")
@@ -433,6 +508,9 @@ class Network(Base):
     network_resources = fields.List(fields.Object(NetworkResource))
     farmer_tid = fields.Integer()
 
+    def resource_units(self):
+        return ResourceUnitAmount()
+
 
 class Volume(Base):
     id = fields.Integer()
@@ -440,6 +518,14 @@ class Volume(Base):
     type = fields.Enum(DiskType)
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        resource_units = ResourceUnitAmount()
+        if self.type == DiskType.HDD:
+            resource_units.hru += self.size
+        elif self.type == DiskType.SSD:
+            resource_units.sru += self.size
+        return resource_units
 
 
 class ZdbNamespace(Base):
@@ -452,6 +538,14 @@ class ZdbNamespace(Base):
     public = fields.Boolean(default=False)
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        resource_units = ResourceUnitAmount()
+        if self.disk_type == DiskType.HDD:
+            resource_units.hru += self.size
+        elif self.disk_type == DiskType.SSD:
+            resource_units.sru += self.size
+        return resource_units
 
 
 class ReservationData(Base):
