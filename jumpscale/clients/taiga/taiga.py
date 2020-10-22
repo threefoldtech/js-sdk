@@ -5,7 +5,7 @@ Taiga client
 
 Using username and  password:
 ```
-client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", username='7mada', password='123456')
+client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", username='admin', password='123456')
 ```
 OR using a token
 
