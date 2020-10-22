@@ -195,7 +195,14 @@ def delete_threebot_solution(owner, solution_uuid, password):
 
 @deployment_context()
 def redeploy_threebot_solution(
-    owner, solution_uuid, backup_password, compute_pool_id=None, gateway_pool_id=None, solution_info=None, bot=None
+    owner,
+    solution_uuid,
+    backup_password,
+    compute_pool_id=None,
+    gateway_pool_id=None,
+    solution_info=None,
+    node_id=None,
+    bot=None,
 ):
     """
     Args:
@@ -230,13 +237,16 @@ def redeploy_threebot_solution(
         j.logger.debug(f"fetching network {new_solution_info['network']}")
         network_view = deployer.get_network_view(new_solution_info["network"], identity_name=identity.instance_name)
         j.logger.debug(f"searching for available node within pool {compute_pool_id}")
-        selected_node = deployer.schedule_container(
-            pool_id=compute_pool_id,
-            cru=new_solution_info["cpu"] + 1,
-            mru=(new_solution_info["memory"] / 1024) + 1,
-            sru=(new_solution_info["disk_size"] / 1024) + 0.25,
-            ip_version="IPv6",
-        )
+        if node_id:
+            selected_node = zos._explorer.nodes.get(node_id)
+        else:
+            selected_node = deployer.schedule_container(
+                pool_id=compute_pool_id,
+                cru=new_solution_info["cpu"] + 1,
+                mru=(new_solution_info["memory"] / 1024) + 1,
+                sru=(new_solution_info["disk_size"] / 1024) + 0.25,
+                ip_version="IPv6",
+            )
         j.logger.debug(f"found node with enough capacity {selected_node.node_id}")
         j.logger.debug(f"adding node {selected_node.node_id} to network {network_view.name}")
         result = deployer.add_network_node(
