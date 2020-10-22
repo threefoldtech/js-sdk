@@ -10,19 +10,63 @@
             <v-simple-table>
               <template v-slot:default>
                 <tbody>
-                  <tr v-for="(item, key)  in json" :key="key">
-                    <th>{{ key }}</th>
-                    <td v-if="KeysWithTypeList.includes(key)" class="pt-2">
-                      <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
+                  <tr>
+                    <th>Workload IDs</th>
+                    <td class="pt-2">
+                    <v-chip class="ma-1" v-for="node in json['wids']" :key="node">{{ node }}</v-chip>
                     </td>
-                    <td v-else-if="key === 'nodes'">
-                      <v-chip
-                        class="ma-1"
-                        v-for="(ip, node) in item"
-                        :key="node"
-                      >{{ ip }} / ({{ node }})</v-chip>
-                    </td>
-                    <td v-else>{{ item }}</td>
+                  </tr>
+                  <tr>
+                    <th>3Bot Name</th>
+                    <td> {{ json["name"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Solution UUID</th>
+                    <td> {{ json["solution_uuid"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Domain</th>
+                    <td> {{ json["domain"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>IPv4 Address</th>
+                    <td> {{ json["ipv4"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Network</th>
+                    <td> {{ json["network"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>IPv6 Address</th>
+                    <td> {{ json["ipv6"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>CPU</th>
+                    <td> {{ json["cpu"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Memory</th>
+                    <td> {{ json["memory"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Disk Size</th>
+                    <td> {{ json["disk_size"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Farm</th>
+                    <td> {{ json["farm"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Continent</th>
+                    <td> {{ json["continent"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Node ID</th>
+                    <td> {{ json["node"] }} </td>
+                  </tr>
+                  <tr>
+                    <th>Expiration</th>
+                    <td> {{ json["expiration"] }} </td>
                   </tr>
                 </tbody>
               </template>

@@ -363,7 +363,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 )
 
             # 4- expose threebot container
-            wid, _ = deployer.expose_address(
+            wid, proxy_id = deployer.expose_address(
                 pool_id=self.pool_id,
                 gateway_id=self.gateway.node_id,
                 network_name=self.network_view.name,
@@ -381,6 +381,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 **self.solution_metadata,
             )
             self.workload_ids.append(wid)
+            self.workload_ids.append(proxy_id)
             success = deployer.wait_workload(self.workload_ids[-1])
             if not success:
                 raise DeploymentFailed(

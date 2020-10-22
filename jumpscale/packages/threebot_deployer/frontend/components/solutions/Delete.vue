@@ -9,7 +9,7 @@
     :loading="loading"
   >
     <template #default>
-      Please enter the password of {{ data.name }}?
+      Please enter the password of {{ data.name }}. This will stop your running 3Bot and delete all backups.
       <v-form>
         <v-text-field :type="'password'" v-model="form.password" dense></v-text-field>
       </v-form>
