@@ -74,9 +74,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     def _get_pool(self):
         self.currency = "TFT"
-        available_farms = []
         farm_names = [f.name for f in j.sals.zos.get()._explorer.farms.list()]
+        random.shuffle(farm_names)
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
+        self.farm_name = None
 
         for farm_name in farm_names:
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
@@ -86,12 +87,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
             )
             if available_ipv4 and available_ipv6:
-                available_farms.append(farm_name)
+                self.farm_name = farm_name
+                break
 
-        if not available_farms:
+        if not self.farm_name:
             raise StopChatFlow("Failed to find farm with the requested resources")
-
-        self.farm_name = random.choice(available_farms)
 
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
@@ -172,6 +172,36 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         return self.pool_id
 
+    @chatflow_step(title="New Expiration")
+    def set_expiration(self):
+        self.expiration = deployer.ask_expiration(self)
+
+    @chatflow_step(title="SSH key (Optional)")
+    def upload_public_key(self):
+        self.public_key = (
+            self.upload_file(
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+            )
+            or ""
+        )
+        self.public_key = self.public_key.strip()
+
+    @chatflow_step(title="Backup credentials")
+    def backup_credentials(self):
+        form = self.new_form()
+        aws_access_key_id = form.string_ask("AWS access key id", required=True)
+        aws_secret_access_key = form.secret_ask("AWS secret access key", required=True)
+        restic_password = form.secret_ask("Restic Password", required=True)
+        restic_repository = form.string_ask(
+            "Restic URL. Example: `s3backup.tfgw-testnet-01.gateway.tf`", required=True, md=True
+        )
+        form.ask("These credentials will be used to backup your solution.", md=True)
+        self.aws_access_key_id = aws_access_key_id.value
+        self.aws_secret_access_key = aws_secret_access_key.value
+        self.restic_password = restic_password.value
+        repo_name = self.solution_name.replace(".", "").replace("-", "")
+        self.restic_repository = f"s3:{restic_repository.value}/{repo_name}"
+
     @deployment_context()
     def _deploy_network(self):
         # get ip address
@@ -229,7 +259,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 self.gateway = gateway
                 self.gateway_pool = gw_dict["pool"]
                 self.domain = self.string_ask("Please specify the domain name you wish to bind to", required=True)
-                self.domain = j.sals.zos.gateway.correct_domain(self.domain)
+                self.domain = j.sals.zos.get().gateway.correct_domain(self.domain)
                 res = """\
                 ## Waiting for DNS Population...
                 Please create an `A` record in your DNS manager for domain: `{{domain}}` pointing to:
@@ -282,7 +312,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         blocked_domains = deployer.list_blocked_managed_domains()
         for gw_dict in gateway_values:
             gateway = gw_dict["gateway"]
+            random.shuffle(gateway.managed_domains)
             for domain in gateway.managed_domains:
+                self.addresses = []
                 is_managed_domains = True
                 if domain in blocked_domains:
                     continue
@@ -300,76 +332,67 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     is_http_failure = True
                     continue
                 domains[domain] = gw_dict
+                self.gateway_pool = gw_dict["pool"]
+                self.gateway = gw_dict["gateway"]
+                managed_domain = domain
 
-        if not domains:
-            if is_http_failure:
-                raise StopChatFlow(
-                    'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
-                )
-            elif not is_managed_domains:
-                raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
-            else:
-                raise StopChatFlow(
-                    "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
-                )
+                solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
+                owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
+                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
+                # check if domain name is free or append random number
+                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
 
-        self.addresses = []
+                metafilter = lambda metadata: metadata.get("owner") == self.username
+                # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+                user_subdomains = {}
+                all_domains = solutions._list_subdomain_workloads(
+                    self.SOLUTION_TYPE, metadata_filters=[metafilter]
+                ).values()
+                for dom_list in all_domains:
+                    for dom in dom_list:
+                        user_subdomains[dom["domain"]] = dom
 
-        while not self.addresses and domains:
-            managed_domain = random.choice(list(domains.keys()))
-            self.gateway = domains[managed_domain]["gateway"]
-            self.gateway_pool = domains[managed_domain]["pool"]
+                while True:
+                    if full_domain in user_subdomains:
+                        # check if related container workloads still exist
+                        dom = user_subdomains[full_domain]
+                        sol_uuid = dom["uuid"]
+                        if sol_uuid:
+                            workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                            is_free = True
+                            for w in workloads:
+                                if w.info.workload_type == WorkloadType.Container:
+                                    is_free = False
+                                    break
+                            if is_free:
+                                solutions.cancel_solution_by_uuid(sol_uuid)
 
-            solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-            owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-            solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
-            # check if domain name is free or append random number
-            full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+                    if j.tools.dnstool.is_free(full_domain):
+                        self.domain = full_domain
+                        break
+                    else:
+                        random_number = random.randint(1000, 100000)
+                        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
 
-            metafilter = lambda metadata: metadata.get("owner") == self.username
-            # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
-            user_subdomains = {}
-            all_domains = solutions._list_subdomain_workloads(
-                self.SOLUTION_TYPE, metadata_filters=[metafilter]
-            ).values()
-            for dom_list in all_domains:
-                for dom in dom_list:
-                    user_subdomains[dom["domain"]] = dom
+                for ns in self.gateway.dns_nameserver:
+                    try:
+                        self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+                    except Exception as e:
+                        j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
+                if not self.addresses:
+                    continue
+                return self.domain
 
-            while True:
-                if full_domain in user_subdomains:
-                    # check if related container workloads still exist
-                    dom = user_subdomains[full_domain]
-                    sol_uuid = dom["uuid"]
-                    if sol_uuid:
-                        workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
-                        is_free = True
-                        for w in workloads:
-                            if w.info.workload_type == WorkloadType.Container:
-                                is_free = False
-                                break
-                        if is_free:
-                            solutions.cancel_solution_by_uuid(sol_uuid)
-
-                if j.tools.dnstool.is_free(full_domain):
-                    self.domain = full_domain
-                    break
-                else:
-                    random_number = random.randint(1000, 100000)
-                    full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
-
-            for ns in self.gateway.dns_nameserver:
-                try:
-                    self.addresses.append(j.sals.nettools.get_host_by_name(ns))
-                except Exception as e:
-                    j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
-
-            if not self.addresses:
-                domains.pop(managed_domain)
-
-        if not self.addresses:
-            raise RuntimeError("No valid gateways found, Please contact support")
-        return self.domain
+        if is_http_failure:
+            raise StopChatFlow(
+                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+            )
+        elif not is_managed_domains:
+            raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+        else:
+            raise StopChatFlow(
+                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+            )
 
     def _config_logs(self):
         self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
@@ -509,6 +532,29 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         self._deploy_network()
                 else:
                     raise e
+
+    @chatflow_step(title="Initializing backup")
+    def init_backup(self):
+        solution_name = self.solution_name.replace(".", "_").replace("-", "_")
+        self.md_show_update("Setting container backup")
+        SOLUTIONS_WATCHDOG_PATHS = j.sals.fs.join_paths(j.core.dirs.VARDIR, "solutions_watchdog")
+        if not j.sals.fs.exists(SOLUTIONS_WATCHDOG_PATHS):
+            j.sals.fs.mkdirs(SOLUTIONS_WATCHDOG_PATHS)
+
+        restic_instance = j.tools.restic.get(solution_name)
+        restic_instance.password = self.restic_password
+        restic_instance.repo = self.restic_repository
+        restic_instance.extra_env = {
+            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+        }
+        restic_instance.save()
+        try:
+            restic_instance.init_repo()
+        except Exception as e:
+            j.tools.restic.delete(solution_name)
+            raise j.exceptions.Input(f"Error: Failed to reach repo {self.restic_repository} due to {str(e)}")
+        restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

@@ -344,6 +344,7 @@ class PackageManager(Base):
             package = self.get(pkg)
             if package:
                 if j.sals.fs.exists(package.path):
+                    chatflows = True if package.chats_dir else False
                     all_packages.append(
                         {
                             "name": pkg,
@@ -352,6 +353,7 @@ class PackageManager(Base):
                             "system_package": pkg in DEFAULT_PACKAGES.keys(),
                             "installed": True,
                             "frontend": package.config.get("frontend", False),
+                            "chatflows": chatflows,
                         }
                     )
                 else:

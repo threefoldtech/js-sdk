@@ -1,10 +1,9 @@
-from nacl.encoding import Base64Encoder
-from nacl.public import PrivateKey
-
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.loader import j
-from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from nacl.encoding import Base64Encoder
+from nacl.public import PrivateKey
 
 
 class TaigaDeploy(MarketPlaceAppsChatflow):
@@ -14,15 +13,23 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     steps = [
         "get_solution_name",
         "taiga_credentials",
+        "upload_public_key",
+        "backup_credentials",
+        "set_expiration",
         "infrastructure_setup",
         "reservation",
         "initializing",
+        "init_backup",
         "success",
     ]
 
-    container_resources = {"cru": 1, "mru": 1, "sru": 4}
+    resources = {"cru": 1, "mru": 1, "sru": 4}
     # main container + nginx container
-    query = {"cru": 2, "mru": 2, "sru": 4.25}
+    query = {"cru": 2, "mru": 2, "sru": 4.5}
+
+    def _init_solution(self):
+        super()._init_solution()
+        self.allow_custom_domain = True
 
     @chatflow_step(title="Taiga Setup")
     def taiga_credentials(self):
@@ -81,6 +88,18 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             "HTTP_PORT": "80",
             "THREEBOT_URL": "https://login.threefold.me",
             "OPEN_KYC_URL": "https://openkyc.live/verification/verify-sei",
+            "pub_key": self.public_key,
+        }
+        secret_env = {
+            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+            "RESTIC_PASSWORD": self.restic_password,
+            "RESTIC_REPOSITORY": self.restic_repository,
+            "CRON_FREQUENCY": "0 0 * * *",  # every 1 day
+            "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
+            "PRIVATE_KEY": private_key,
+            "SECRET_KEY": self.SECRET_KEY,
+            "FLASK_SECRET_KEY": flask_secret,
         }
 
         self.resv_id = deployer.deploy_container(
@@ -89,19 +108,14 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.container_resources["cru"],
-            memory=self.container_resources["mru"] * 1024,
-            disk_size=self.container_resources["sru"] * 1024,
+            cpu=self.resources["cru"],
+            memory=self.resources["mru"] * 1024,
+            disk_size=self.resources["sru"] * 1024,
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",
             public_ipv6=True,
-            secret_env={
-                "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
-                "PRIVATE_KEY": private_key,
-                "SECRET_KEY": self.SECRET_KEY,
-                "FLASK_SECRET_KEY": flask_secret,
-            },
+            secret_env=secret_env,
             **self.solution_metadata,
             solution_uuid=self.solution_id,
         )

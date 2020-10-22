@@ -26,7 +26,6 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return user_pool_ids
 
     def list_user_pools(self, username):
-
         _, _, user_pools = pool_factory.find_many(owner=username)
         all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
@@ -350,7 +349,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
                 )
             except StopChatFlow as e:
-                j.logger.error(
+                j.logger.warning(
                     f"Failed to find resources for this reservation in this pool: {pool}, {e}. We will use another one."
                 )
                 continue

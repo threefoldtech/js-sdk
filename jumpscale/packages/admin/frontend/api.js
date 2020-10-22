@@ -134,6 +134,14 @@ const apiClient = {
             return axios({
                 url: `${baseURL}/packages/packages_names`
             })
+        },
+        listChatEndpoints: (name) => {
+            return axios({
+                url: `${baseURL}/packages/list_chat_urls`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
+            })
         }
     },
     admins: {
@@ -161,6 +169,11 @@ const apiClient = {
         getCurrentUser: () => {
             return axios({
                 url: `/auth/authenticated/`
+            })
+        },
+        getConfig: () => {
+            return axios({
+                url: `${baseURL}/admin/get_config`
             })
         },
         getDeveloperOptions: () => {

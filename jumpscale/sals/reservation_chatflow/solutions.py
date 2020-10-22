@@ -596,6 +596,8 @@ class ChatflowSolutions:
             if not custom_domain:
                 subdomain_dict = subdomain_dicts[-1]
                 wids.append(subdomain_dict["wid"])
+            elif subdomain_dicts:
+                continue
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
