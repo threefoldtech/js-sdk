@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import gevent
 from signal import SIGTERM, SIGKILL
-import os
 
 from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
