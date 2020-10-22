@@ -1,9 +1,9 @@
-from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer, solutions
+from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, start_threebot_solution
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
-from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
-from jumpscale.data.nacl.jsnacl import NACL
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from textwrap import dedent
 from jumpscale.loader import j
 
 
@@ -18,6 +18,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "solution_extension",
         "deploy",
         "initializing",
+        "success",
     ]
 
     @chatflow_step(title="Choose 3Bot")
