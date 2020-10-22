@@ -63,11 +63,14 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="ZDB Storage")
     def zdb_storage_type(self):
-        self.zdb_disk_type = DiskType[
-            self.drop_down_choice(
-                "Please choose a the type of disk for zdb", ["SSD", "HDD"], required=True, default="SSD"
-            )
-        ]
+        form = self.new_form()
+        disk_type = form.drop_down_choice(
+            "Please choose the type of disk for zdb", ["SSD", "HDD"], required=True, default="SSD"
+        )
+        disk_size = form.int_ask("Please specify the size for zdb", default=10, required=True, min=1)
+        form.ask()
+        self.zdb_disk_type = DiskType[disk_type.value]
+        self.zdb_disk_size = disk_size.value
 
     @chatflow_step(title="Container resources")
     def container_resources(self):
@@ -97,7 +100,7 @@ class MinioDeploy(GedisChatBot):
         query = {"sru": 10}
         workload_name = "ZDB workloads"
         self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
-            self, self.zdb_number, query, workload_name=workload_name, ip_version="IPv6",
+            self, self.zdb_number, query, workload_name=workload_name, ip_version="IPv6"
         )
 
     @chatflow_step(title="Global IPv6 Address")
@@ -121,7 +124,7 @@ class MinioDeploy(GedisChatBot):
         if self.mode == "Master/Slave":
             workload_names.append("Secondary")
         self.minio_nodes, self.minio_pool_ids = deployer.ask_multi_pool_placement(
-            self, len(queries), queries, workload_names=workload_names, ip_version=self.ip_version,
+            self, len(queries), queries, workload_names=workload_names, ip_version=self.ip_version
         )
 
     @chatflow_step(title="Network")
@@ -233,6 +236,7 @@ class MinioDeploy(GedisChatBot):
             zdb_no=self.zdb_number,
             pool_ids=self.zdb_pool_ids,
             solution_uuid=self.solution_id,
+            disk_size=self.zdb_disk_size,
             **self.solution_metadata,
         )
         for resv_id in self.zdb_result:
@@ -251,7 +255,7 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0],},
+            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0]},
         }
         self.solution_metadata.update(metadata)
 
