@@ -208,6 +208,13 @@ class Package:
         self.default_email = default_email
         self.kwargs = kwargs or {}
 
+    def _load_files(self, dir):
+        for file_path in j.sals.fs.walk_files(dir, recursive=False):
+            file_name = j.sals.fs.basename(file_path)
+            if file_name.endswith(".py"):
+                name = f"{self.name}_{file_name[:-3]}"
+                yield dict(name=name, path=file_path)
+
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
 
@@ -246,6 +253,12 @@ class Package:
             return chats_dir
 
     @property
+    def services_dir(self):
+        services_dir = j.sals.fs.join_paths(self.path, self.config.get("services_dir", "services"))
+        if j.sals.fs.exists(services_dir):
+            return services_dir
+
+    @property
     def static_dirs(self):
         return self.config.get("static_dirs", [])
 
@@ -255,11 +268,11 @@ class Package:
 
     @property
     def actors(self):
-        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name = j.sals.fs.basename(file_path)
-            if file_name.endswith(".py"):
-                actor_name = f"{self.name}_{file_name[:-3]}"
-                yield dict(name=actor_name, path=file_path)
+        return self._load_files(self.actors_dir)
+
+    @property
+    def services(self):
+        return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         """Resolves path for static location in case we need it
@@ -528,6 +541,12 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
+
+        # add services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.add_service(service["path"])
+
         # start servers
         self.threebot.rack.start()
 

@@ -1,17 +1,35 @@
+from abc import ABC, abstractmethod
 import gevent
 from signal import SIGTERM, SIGKILL
-
-from .services import StellarService, DiskCheckService
 
 from jumpscale.loader import j
 from jumpscale.core.base import Base
 
-DEFAULT_SERVICES = {"stellar": StellarService(), "disk-check": DiskCheckService()}
+DEFAULT_SERVICES = {}
+
+
+class BackgroundService(ABC):
+    def __init__(self, service_name, interval=60, *args, **kwargs):
+        """Abstract base class for background services managed by the service manager
+
+        Arguments:
+            service_name {str} -- identifier of the service
+            interval {int} -- scheduled job is executed every interval (in seconds)
+        """
+        self.name = service_name
+        self.interval = interval
+
+    @abstractmethod
+    def job(self):
+        """
+        Background job to be scheduled.
+        Should be implemented by any service that inherits from this class
+        """
+        pass
+
 
 # TODO: add support for non-periodic tasks
 # TODO: save services in config manager
-
-
 class ServiceManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -56,12 +74,16 @@ class ServiceManager(Base):
         for service in self.services:
             self.stop_service(service)
 
-    def add_service(self, service):
+    def add_service(self, service_path):
         """Add a new background service to be managed and scheduled by the service manager
 
         Arguments:
-            service {BackgroundService} -- background service object to be scheduled
+            service_path {str} -- absolute path of the service file
         """
+
+        module = j.tools.codeloader.load_python_module(service_path)
+        service = module.service
+
         if service.name in self.services:
             raise j.exceptions.Value(f"Service with name {service.name} already exists")
 
