@@ -136,14 +136,17 @@ def stop_threebot_solution(owner, solution_uuid):
     zos = j.sals.zos.get(threebot.identity_name)
     solution_workloads = get_threebot_workloads_by_uuid(solution_uuid, threebot.identity_name)
     for workload in solution_workloads:
-        zos.workloads.decomission(workload.id)
+        if workload.next_action in [NextAction.DEPLOY, NextAction.CREATE, NextAction.SIGN, NextAction.PAY]:
+            zos.workloads.decomission(workload.id)
     threebot.state = ThreebotState.STOPPED
     threebot.save()
     return threebot
 
 
 def delete_threebot_solution(owner, solution_uuid):
-    threebot = stop_threebot_solution(owner, solution_uuid)
+    threebot = get_threebot_config_instance(owner, solution_uuid)
+    if threebot.state == ThreebotState.RUNNING:
+        threebot = stop_threebot_solution(owner, solution_uuid)
     threebot_name = threebot.name
     ssh_server1 = j.clients.sshclient.get("backup_server1")
     ssh_server2 = j.clients.sshclient.get("backup_server2")
