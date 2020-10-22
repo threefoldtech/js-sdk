@@ -4,7 +4,7 @@ from jumpscale.sals.marketplace import solutions
 from jumpscale.sals.reservation_chatflow.deployer import deployment_context, DeploymentFailed
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY, BACKUP_MODEL_FACTORY
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
-from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.clients.explorer.models import WorkloadType, NextAction
 from jumpscale.sals.marketplace import deployer
 from jumpscale.data.serializers import json
 from jumpscale.data import text
@@ -167,7 +167,8 @@ def stop_threebot_solution(owner, solution_uuid, password):
     with threebot_identity_context(identity.instance_name):
         solution_workloads = get_threebot_workloads_by_uuid(solution_uuid, identity.instance_name)
         for workload in solution_workloads:
-            zos.workloads.decomission(workload.id)
+            if workload.info.next_action == NextAction.DEPLOY:
+                zos.workloads.decomission(workload.id)
         threebot.state = ThreebotState.STOPPED
         threebot.save()
     return threebot
