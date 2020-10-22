@@ -788,11 +788,21 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
         gevent.joinall(greenlets)
 
-    def export_as_md(self, wiki_src_path="/tmp/taigawiki"):
+    def export_as_md(self, wiki_path="/tmp/taigawiki"):
         """export taiga instance into a wiki  showing users and circles
 
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
-        self.export_circles(wiki_src_path)
-        self.export_users(wiki_src_path)
+        self.export_circles(wiki_path)
+        self.export_users(wiki_path)
+        readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "readme.md")
+        content = f"""
+
+# Taiga overview
+
+- [circles](./circles/circles.md)
+- [usuers](./users/users.md)
+
+        """
+        j.sals.fs.write_ascii(readme_md_path, content)
