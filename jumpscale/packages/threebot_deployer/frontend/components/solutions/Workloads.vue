@@ -6,9 +6,6 @@
       :loading="loading"
     >
       <template #actions>
-        <v-btn color="primary" text @click.stop="openChatflow('extend')">
-          <v-icon left>mdi-upload</v-icon>Extend 3Bot
-        </v-btn>
         <v-btn color="primary" text @click.stop="openChatflow('threebot')">
           <v-icon left>mdi-plus</v-icon>New
         </v-btn>
