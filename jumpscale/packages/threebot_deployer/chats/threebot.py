@@ -95,6 +95,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 identity.admins.append(f"{threebot_name}.3bot")
                 identity.register()
                 identity.save()
+                if identity.instance_name != self.identity_name:
+                    j.core.identity.delete(identity.instance_name)
 
         except:
             raise StopChatFlow(
