@@ -139,7 +139,7 @@ const DEV_TOOLS = {
         serverless: {
             name: "Serverless",
             type: "serverless",
-            image: "./assets/3bot.png",
+            image: "./assets/serverless.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Collaborate on online content without giving up your privacy."
@@ -147,20 +147,11 @@ const DEV_TOOLS = {
         gridsome: {
             name: "Gridsome",
             type: "gridsome",
-            image: "./assets/3bot.png",
+            image: "./assets/gridsome.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
-        gridsome: {
-            name: "Gridsome",
-            type: "gridsome",
-            image: "./assets/3bot.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
-            description: ""
-        },
-
     },
 }
 
@@ -202,7 +193,7 @@ const BC_SOLUTIONS = {
         Matic: {
             name: "Matic",
             type: "Matic",
-            image: "./assets/3bot.png",
+            image: "./assets/matic.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Decentralised scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
@@ -210,7 +201,7 @@ const BC_SOLUTIONS = {
         neo: {
             name: "Neo",
             type: "neo",
-            image: "./assets/3bot.png",
+            image: "./assets/neo.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "Scalable, fast, and ultra-secure Blockchain driven by a global community of developers and node operators."
