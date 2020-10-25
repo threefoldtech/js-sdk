@@ -10,45 +10,11 @@
           <v-icon left>mdi-plus</v-icon>New
         </v-btn>
       </template>
-      <!-- Running 3bots -->
       <div class="mt-5">
-        <div>
-          <h4 class="my-4">RUNNING</h4>
-        </div>
         <template>
           <deployer-data-table
-            :data="running3bots"
-            :headers="headersRunning3obts"
-            :loading="loading"
-          >
-          </deployer-data-table>
-        </template>
-      </div>
-
-      <!-- Stopped 3bots -->
-      <div class="mt-5">
-        <div>
-          <h4 class="my-4">STOPPED</h4>
-        </div>
-
-        <template>
-          <deployer-data-table
-            :data="stopped3bots"
-            :headers="headersNotRunning3obts"
-            :loading="loading"
-          >
-          </deployer-data-table>
-        </template>
-      </div>
-      <!-- Destroyed 3bots -->
-      <div class="mt-5">
-        <div>
-          <h4 class="my-4">DESTROYED</h4>
-        </div>
-        <template>
-          <deployer-data-table
-            :data="destroyed3bots"
-            :headers="headersNotRunning3obts"
+            :data="deployed3Bots"
+            :headers="headers3Bots"
             :loading="loading"
           >
           </deployer-data-table>
@@ -67,20 +33,13 @@ module.exports = {
     return {
       threebot_data: APPS["threebot"],
       loading: true,
-      headersRunning3obts: [
+      headers3Bots: [
         { text: "Name", value: "name" },
-        { text: "URL", value: "domain" },
-        { text: "expiration", value: "expiration" },
+        { text: "Expiration", value: "expiration" },
         { text: "Actions", value: "actions", sortable: false },
-      ],
-      headersNotRunning3obts: [
-        { text: "Name", value: "name" },
-        { text: "Actions", value: "actions", sortable: false },
+        { text: "State", value: "state"},
       ],
       deployed3Bots: [],
-      running3bots: [],
-      stopped3bots: [],
-      destroyed3bots: [],
     };
   },
   methods: {
@@ -132,13 +91,6 @@ module.exports = {
         })
         .finally(() => {
           this.loading = false;
-          this.deployed3Botsgrouped = this.groupBy(
-            this.deployed3Bots,
-            (bot) => bot.state
-          );
-          this.running3bots = this.deployed3Botsgrouped.get("RUNNING");
-          this.stopped3bots = this.deployed3Botsgrouped.get("STOPPED");
-          this.destroyed3bots = this.deployed3Botsgrouped.get("DELETED");
         });
     },
   },
