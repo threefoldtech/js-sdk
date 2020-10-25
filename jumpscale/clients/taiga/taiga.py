@@ -486,7 +486,6 @@ class TaigaClient(Client):
         return CircleIssue(self, self.api.issues.get(issue_id))
 
     def _resolve_object(self, obj):
-        # print("resolving obj ", obj)
         resolvers = {
             "owners": self._get_users_by_ids,
             "watchers": self._get_users_by_ids,
@@ -507,15 +506,12 @@ class TaigaClient(Client):
                     resolved = None
                     resolver = resolvers[k]
                     try:
-                        # print(f"resolver {resolver}")
                         copied_v = copy.deepcopy(v)
                         resolved = lambda: resolver(copied_v)
 
                         if isinstance(v, list):
-                            # print(f"setting {k} to {resolved}")
                             setattr(newobj, f"{k}_objects", resolved)
                         else:
-                            # print(f"setting {k} to {resolved}")
                             setattr(newobj, f"{k}_object", resolved)
 
                     except Exception as e:
@@ -523,7 +519,7 @@ class TaigaClient(Client):
 
                         traceback.print_exc()
 
-                        print(f"error {e}")
+                        j.logger.error(f"error {e}")
 
         return newobj
 
@@ -575,55 +571,49 @@ class TaigaClient(Client):
                 p.add_task_status(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping task {t} {e}")
+                j.logger.debug(f"skipping task {t} {e}")
 
         for t in priorities:
             try:
                 p.add_priority(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping prio {t} {e}")
+                j.logger.debug(f"skipping prio {t} {e}")
 
         for t in severities:
             try:
                 p.add_severity(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping sever {t} {e}")
+                j.logger.debug(f"skipping sever {t} {e}")
 
         for t in issues_statuses:
             try:
                 p.add_issue_status(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping status {t} {e}")
+                j.logger.debug(f"skipping status {t} {e}")
 
         for t in user_stories_statuses:
             try:
                 p.add_user_story_status(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping user status {t} {e}")
+                j.logger.debug(f"skipping user status {t} {e}")
 
         for t in issues_types:
             try:
                 p.add_issue_type(t)
             except Exception as e:
                 # check if duplicated
-                print(f"skipping issue type {t} {e}")
+                j.logger.debug(f"skipping issue type {t} {e}")
 
-        # list(map(p.add_task_status, tasks_statuses))
-        # list(map(p.add_priority, priorities))
-        # list(map(p.add_severity, severities))
-        # list(map(p.add_issue_status, statuses))
-        # list(map(p.add_user_status, user_stories_statuses))
-        # list(map(p.add_issue_type, issues_types))
         return p
 
     def create_new_project_circle(
         self, name, description="", **attrs,
     ):
-        """Creates a new project circle
+        """Creates a new project circle.
 
         Args:
             name (str): circle name
@@ -810,7 +800,6 @@ class TaigaClient(Client):
         users_mdcontent = "# users\n\n"
 
         def write_md_for_user(user):
-            # print(f"Writing {user}")
             user_mdpath = j.sals.fs.join_paths(path, f"{user.clean_name}.md")
             j.sals.fs.write_ascii(user_mdpath, user.as_md)
 
