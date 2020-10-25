@@ -22,7 +22,7 @@ const COLLAB_TOOLS = {
             type: "mattermost",
             image: "./assets/mattermost.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs",
+            helpLink: "https://now.threefold.io/now/docs/mattermost/",
             description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
         },
         crm: {
@@ -30,7 +30,7 @@ const COLLAB_TOOLS = {
             type: "crm",
             image: "./assets/crm.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs",
+            helpLink: "https://now.threefold.io/now/docs/dmcustomers/",
             description: "Full featured Customer Relationship Management system."
         },
         zeroci: {
@@ -38,7 +38,7 @@ const COLLAB_TOOLS = {
             type: "zeroci",
             image: "./assets/zero-ci-dark.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs",
+            helpLink: "https://now.threefold.io/now/docs/zeroci/",
             description: "Continuous integration system useful for all programming languages."
         },
         commento: {
@@ -46,7 +46,7 @@ const COLLAB_TOOLS = {
             type: "commento",
             image: "./assets/commento.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs",
+            helpLink: "https://now.threefold.io/now/docs/commento/",
             description: "Collaborate on online content without giving up your privacy."
         },
     },
@@ -61,7 +61,7 @@ const WEB_SOCIAL = {
             type: "blog",
             image: "./assets/blog.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/blog-publisher/",
+            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Blog is a P2P alternative to centralized blogging platforms like Tumblr or Blogspot."
         },
         website: {
@@ -69,7 +69,7 @@ const WEB_SOCIAL = {
             type: "website",
             image: "./assets/web.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/website-publisher/",
+            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Website is a P2P alternative to centralized cloud-hosted websites. Host your own website with access via a public web address."
         },
 
@@ -78,7 +78,7 @@ const WEB_SOCIAL = {
             type: "wiki",
             image: "./assets/doc-flat.svg",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/wiki-publisher/",
+            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Wiki is a versatile online encyclopedia builder, accessible via a public web address."
         },
         discourse: {
@@ -86,7 +86,7 @@ const WEB_SOCIAL = {
             type: "discourse",
             image: "./assets/discourse.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs",
+            helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },
         peertube: {
@@ -94,7 +94,7 @@ const WEB_SOCIAL = {
             type: "peertube",
             image: "./assets/peertube.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/video-sharing/",
+            helpLink: "https://now.threefold.io/now/docs/video-sharing/",
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
         },
         videochat: {
@@ -102,7 +102,7 @@ const WEB_SOCIAL = {
             type: "videochat",
             image: "./assets/video_chat.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/",
+            helpLink: "https://now.threefold.io/now/docs/video-conf/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
         },
         virtualspaces: {
@@ -118,8 +118,8 @@ const WEB_SOCIAL = {
             type: "knowledgebase",
             image: "./assets/_base.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/",
-            description: "A simple, self-hosted, easy-to-use platform for organising and storing information."
+            helpLink: "https://now.threefold.io/now/docs/knowledge-base/",
+            description: "A simple, self-hosted, easy-to-use platform for organizing and storing information."
         },
 
     },
@@ -133,7 +133,7 @@ const DEV_TOOLS = {
             type: "gitea",
             image: "./assets/gitea.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://now.threefold.io/now/docs/gitea/",
             description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
         },
         serverless: {
@@ -141,7 +141,7 @@ const DEV_TOOLS = {
             type: "serverless",
             image: "./assets/serverless.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://now.threefold.io/now/docs/serverless/",
             description: "Collaborate on online content without giving up your privacy."
         },
         gridsome: {
@@ -149,7 +149,7 @@ const DEV_TOOLS = {
             type: "gridsome",
             image: "./assets/gridsome.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://now.threefold.io/now/docs/gridsome/",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
     },
@@ -163,7 +163,7 @@ const BC_SOLUTIONS = {
             type: "dash",
             image: "./assets/dash.png",
             disable: true,
-            helpLink: "https://wiki.threefold.io/#/dash",
+            helpLink: "https://now.threefold.io/now/docs/dash/",
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
         digibyte: {
@@ -171,15 +171,15 @@ const BC_SOLUTIONS = {
             type: "digibyte",
             image: "./assets/digibyte.png",
             disable: true,
-            helpLink: "https://www.consciousinternet.org/#/projects/DigiBytes",
-            description: "Safest, fastest, longest and most decentralised UTXO blockchains in existence."
+            helpLink: "https://now.threefold.io/now/docs/digibyte/",
+            description: "Safest, fastest, longest, and most decentralized UTXO blockchains in existence."
         },
         elrond: {
             name: "Elrond",
             type: "elrond",
             image: "./assets/elrond.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://now.threefold.io/now/docs/elrond/",
             description: "The internet-scale blockchain, designed from scratch to bring a 1000-fold cumulative improvement in throughput and execution speed."
         },
         harmony: {
@@ -187,31 +187,31 @@ const BC_SOLUTIONS = {
             type: "harmony",
             image: "./assets/harmony.png",
             disable: true,
-            helpLink: "https://wiki.threefold.io/#/harmony",
-            description: "Fast and open blockchain for decentralised applications."
+            helpLink: "https://now.threefold.io/now/docs/harmony/",
+            description: "Fast and open blockchain for decentralized applications."
         },
         Matic: {
             name: "Matic",
             type: "Matic",
             image: "./assets/matic.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
-            description: "Decentralised scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
+            helpLink: "https://now.threefold.io/now/docs/matic/",
+            description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
         },
         neo: {
             name: "Neo",
             type: "neo",
             image: "./assets/neo.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
-            description: "Scalable, fast, and ultra-secure Blockchain driven by a global community of developers and node operators."
+            helpLink: "https://now.threefold.io/now/docs/neo/",
+            description: "Scalable, fast, and ultra-secure Blockchain drove by a global community of developers and node operators."
         },
         scale: {
             name: "Scale",
             type: "scale",
             image: "./assets/Skale.png",
             disable: true,
-            helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
+            helpLink: "https://now.threefold.io/now/docs/skalelabs/",
             description: "An elastic blockchain network that gives developers the ability to easily provision highly configurable chains compatible with Ethereum."
         },
         tomochain: {
@@ -219,7 +219,7 @@ const BC_SOLUTIONS = {
             type: "tomochain",
             image: "./assets/TomoChain.png",
             disable: true,
-            helpLink: "https://wiki.threefold.io/#/tomochain",
+            helpLink: "https://now.threefold.io/now/docs/tomochain/",
             description: "Scalable blockchain-powered via Proof-of-Stake Voting consensus and used commercially by companies globally."
         },
         waykichain: {
@@ -227,7 +227,7 @@ const BC_SOLUTIONS = {
             type: "waykichain",
             image: "./assets/WaykiChain.png",
             disable: true,
-            helpLink: "https://wiki.threefold.io/#/waykichain",
+            helpLink: "https://now.threefold.io/now/docs/waykichain/",
             description: "Prominent blockchain platform based in China with a global community."
         },
     },
