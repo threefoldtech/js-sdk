@@ -1835,7 +1835,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         count = j.core.db.hincrby(DOMAINS_COUNT_KEY, managed_domain)
         expiration = count * DOMAINS_DISALLOW_EXPIRATION
         domain_key = f"{DOMAINS_DISALLOW_PREFIX}:{managed_domain}"
-        j.core.db.set(domain_key, expiration, ex=expiration)
+        j.core.db.set(domain_key, j.data.time.utcnow().timestamp + expiration, ex=expiration)
 
     def unblock_managed_domain(self, managed_domain, reset=True):
         domain_key = f"{DOMAINS_DISALLOW_PREFIX}:{managed_domain}"
