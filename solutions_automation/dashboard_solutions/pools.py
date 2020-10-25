@@ -30,5 +30,4 @@ class PoolAutomated(GedisChatBotPatch, PoolReservation):
         for m in args[0]:
             if selected in m:
                 return m
-        else:
-            return selected
+        return selected

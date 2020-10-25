@@ -1,7 +1,6 @@
 import pytest
 from jumpscale.loader import j
 from solutions_automation import deployer
-
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 
 

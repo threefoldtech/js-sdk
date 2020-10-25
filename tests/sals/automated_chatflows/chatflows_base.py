@@ -5,7 +5,6 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.admin.bottle.models import UserEntry as AdminUserEntry
 from jumpscale.packages.marketplace.bottle.models import UserEntry as MarkerplaceUserEntry
-
 from tests.base_tests import BaseTests
 
 
