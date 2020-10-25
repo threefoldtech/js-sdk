@@ -141,3 +141,6 @@ class GedisChatBotPatch(GedisChatBot):
 
     def download_file(self, msg, data, filename, **kwargs):
         return write_file(filename, data)
+
+    def send_error(self, message, **kwargs):
+        pass

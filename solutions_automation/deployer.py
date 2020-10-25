@@ -1,23 +1,23 @@
-from dashboard_solutions.delegated_domain import DomainDelegationAutomated
-from dashboard_solutions.exposed import SolutionExposeDeployAutomated
-from dashboard_solutions.generic_flist import FlistAutomated
-from dashboard_solutions.kubernetes import KubernetesAutomated
-from dashboard_solutions.minio import MinioAutomated
-from dashboard_solutions.monitoring import MonitoringAutomated
-from dashboard_solutions.network import NetworkDeployAutomated
-from dashboard_solutions.pools import PoolAutomated
-from dashboard_solutions.ubuntu import UbuntuAutomated
-from marketplace.blog import BlogAutomated
-from marketplace.cryptpad import CryptpadAutomated
-from marketplace.discourse import DiscourseAutomated
-from marketplace.gitea import GiteaAutomated
-from marketplace.mattermost import MattermostAutomated
-from marketplace.peertube import PeertubeAutomated
-from marketplace.taiga import TaigaAutomated
-from marketplace.website import WebsiteAutomated
-from marketplace.wiki import WikiAutomated
-from threebot.deploy import ThreebotDeployAutomated
-from threebot.extend import ThreebotExtendAutomated
+from solutions_automation.dashboard_solutions.delegated_domain import DomainDelegationAutomated
+from solutions_automation.dashboard_solutions.exposed import SolutionExposeDeployAutomated
+from solutions_automation.dashboard_solutions.generic_flist import FlistAutomated
+from solutions_automation.dashboard_solutions.kubernetes import KubernetesAutomated
+from solutions_automation.dashboard_solutions.minio import MinioAutomated
+from solutions_automation.dashboard_solutions.monitoring import MonitoringAutomated
+from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
+from solutions_automation.dashboard_solutions.pools import PoolAutomated
+from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
+from solutions_automation.marketplace.blog import BlogAutomated
+from solutions_automation.marketplace.cryptpad import CryptpadAutomated
+from solutions_automation.marketplace.discourse import DiscourseAutomated
+from solutions_automation.marketplace.gitea import GiteaAutomated
+from solutions_automation.marketplace.mattermost import MattermostAutomated
+from solutions_automation.marketplace.peertube import PeertubeAutomated
+from solutions_automation.marketplace.taiga import TaigaAutomated
+from solutions_automation.marketplace.website import WebsiteAutomated
+from solutions_automation.marketplace.wiki import WikiAutomated
+from solutions_automation.threebot.deploy import ThreebotDeployAutomated
+from solutions_automation.threebot.extend import ThreebotExtendAutomated
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -50,11 +50,11 @@ def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     )
 
 
-def deploy_discourse(solution_name, host_email, stmp_host, host_email_password, wg_config="NO", debug=True):
+def deploy_discourse(solution_name, host_email, smtp_host, host_email_password, wg_config="NO", debug=True):
     return DiscourseAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         wg_config=wg_config,
         debug=debug,
@@ -65,11 +65,11 @@ def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
     return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
 
 
-def deploy_taiga(solution_name, host_email, stmp_host, host_email_password, secret, wg_config="NO", debug=True):
+def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         secret=secret,
         wg_config=wg_config,
@@ -276,7 +276,13 @@ def deploy_monitoring(
 
 
 def create_network(
-    solution_name, ip_version="IPv4", ip_select="Choose ip range for me", ip_range="", debug=True,
+    solution_name,
+    ip_version="IPv4",
+    ip_select="Choose ip range for me",
+    ip_range="",
+    access_node="choose_random",
+    pool="choose_random",
+    debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
@@ -284,6 +290,8 @@ def create_network(
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
+        access_node=access_node,
+        pool=pool,
         debug=True,
     )
 
@@ -352,6 +360,7 @@ def extend_pool(
 
 def deploy_threebot(
     solution_name,
+    ssh,
     secret,
     expiration,
     debug=True,
@@ -365,6 +374,7 @@ def deploy_threebot(
 ):
     return ThreebotDeployAutomated(
         type="Create",
+        ssh=ssh,
         solution_name=solution_name,
         secret=secret,
         expiration=expiration,
@@ -379,11 +389,12 @@ def deploy_threebot(
     )
 
 
-def recover_threebot(solution_name, recover_password, expiration, debug=True):
+def recover_threebot(solution_name, recover_password, ssh, expiration, debug=True):
     return ThreebotDeployAutomated(
         type="Recover",
         solution_name=solution_name,
         recover_password=recover_password,
+        ssh=ssh,
         expiration=expiration,
         debug=debug,
     )

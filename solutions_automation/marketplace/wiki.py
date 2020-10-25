@@ -1,5 +1,5 @@
 from jumpscale.packages.marketplace.chats.wiki import WikiDeploy
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class WikiAutomated(GedisChatBotPatch, WikiDeploy):
