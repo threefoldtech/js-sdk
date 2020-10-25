@@ -1,4 +1,4 @@
-# Taiga client
+#Taiga client
 
 ## Initialization
 
@@ -118,11 +118,11 @@ client.export_as_md("/tmp/taigawiki")
 ### Export users
 
 ```
-client.export_users("/tmp/taigawiki")
+client.export_users_as_md("/tmp/taigawiki")
 ```
 ### Export circles
 ```
-client.export_circles("/tmp/taigawiki")
+client.export_circles_as_md("/tmp/taigawiki")
 ```
 ## Operations
 
@@ -139,3 +139,13 @@ project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object
 
 ### Resources urls
 All of resources e.g (user, issue, user_story, circle) have `url` property
+
+
+## Export objects as yaml
+to export All objects as yaml all you need is
+
+```
+client.export_as_yaml("/tmp/exported_taiga_dir")
+
+```
+this will export resources (users, projects, issues, stories, milestones) in `/tmp/exported_taiga_dir/$object_type/$object_id.yaml`
