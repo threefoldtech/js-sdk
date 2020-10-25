@@ -158,7 +158,7 @@ const DEV_TOOLS = {
             image: "./assets/3bot.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
-            description: ""
+            description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
 
     },
