@@ -186,7 +186,7 @@ const BC_SOLUTIONS = {
         elrond: {
             name: "Elrond",
             type: "elrond",
-            image: "./assets/3bot.png",
+            image: "./assets/elrond.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/gitea/#what-is-gitea-",
             description: "The internet-scale blockchain, designed from scratch to bring a 1000-fold cumulative improvement in throughput and execution speed."
