@@ -164,6 +164,7 @@ import gevent
 
 # from .models import User, Story, Issue, Task, Project, Circle
 import copy
+import yaml
 
 
 class TaigaClient(Client):
@@ -196,20 +197,20 @@ class TaigaClient(Client):
             self._api = api
         return self._api
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_project(self, project_id):
         return self.api.projects.get(project_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_milestone(self, milestone_id):
         if milestone_id:
             return self.api.milestones.get(milestone_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_priority(self, priority_id):
         return self.api.priorities.get(priority_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_assignee(self, assignee_id):
         return CircleUser(self, self.api.users.get(assignee_id))
 
@@ -223,19 +224,19 @@ class TaigaClient(Client):
         ids = ids or []
         return [self._get_issue_by_id(x) for x in ids]
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_issue_status(self, status_id):
         return self.api.issue_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_stories_status(self, status_id):
         return self.api.user_story_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_task_status(self, status_id):
         return self.api.task_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_id(self, username):
         user = self.api.users.list(username=username)
         if user:
@@ -244,7 +245,7 @@ class TaigaClient(Client):
         else:
             raise j.exceptions.Input("Couldn't find user with username: {}".format(username))
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_by_name(self, username):
         theid = self._get_user_id(username)
         return self._get_user_by_id(theid)
@@ -405,8 +406,11 @@ class TaigaClient(Client):
         Returns:
             List: List of taiga.models.models.Issue.
         """
-        user_id = self._get_user_id(username)
-        return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+        if username:
+            user_id = self._get_user_id(username)
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+        else:
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
 
     def list_all_projects(self):
         """
@@ -434,11 +438,32 @@ class TaigaClient(Client):
             username (str): username.
 
         Returns:
-            List: List of taiga.models.models.UserStory.
+            List: List of CircleStory.
         """
-        user_id = self._get_user_id(username)
+        if username:
+            user_id = self._get_user_id(username)
 
-        return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)]
+            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)]
+        else:
+            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+
+    def list_all_users(self):
+        """
+        List all user stories for specific user if you didn't pass user_id will list all the available user stories
+
+        Args:
+            username (str): username.
+
+        Returns:
+            List: List of CircleUser.
+        """
+        circles = self.list_all_projects()
+        users = set()
+        for c in circles:
+            for m in c.members:
+                users.add(m)
+
+        return [CircleUser(self, self._get_user_by_id(uid)) for uid in users]
 
     def get_issue_by_id(self, issue_id):
         """Get issue
@@ -703,7 +728,6 @@ class TaigaClient(Client):
 
         severities = None
         priorities = None
-        statuses = None
         issues_types = None
 
         issues_statuses = ["New", "Interested", "Deal", "Blocked", "Lost", "Postponed", "Won"]
@@ -726,7 +750,7 @@ class TaigaClient(Client):
             ),
         )
 
-    def export_circles(self, wikipath="/tmp/taigawiki"):
+    def export_circles_as_md(self, wikipath="/tmp/taigawiki"):
         """export circles into {wikipath}/src/circles
 
         Args:
@@ -752,7 +776,7 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
         gevent.joinall(greenlets)
 
-    def export_users(self, wikipath="/tmp/taigawiki"):
+    def export_users_as_md(self, wikipath="/tmp/taigawiki"):
         """export users into {wikipath}/src/users
 
         Args:
@@ -794,8 +818,8 @@ class TaigaClient(Client):
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
-        self.export_circles(wiki_path)
-        self.export_users(wiki_path)
+        self.export_circles_as_md(wiki_path)
+        self.export_users_as_md(wiki_path)
         readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "readme.md")
         content = f"""
 
@@ -806,3 +830,28 @@ class TaigaClient(Client):
 
         """
         j.sals.fs.write_ascii(readme_md_path, content)
+
+    def export_as_yaml(self, export_dir="/tmp/export_dir"):
+        def _export_objects_to_dir(objects_dir, objects_fun):
+            j.sals.fs.mkdirs(objects_dir)
+            objects = objects_fun()
+            for obj in objects:
+                outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
+                with open(outpath, "w") as f:
+                    yaml.dump(obj.to_dict, f)
+
+        projects_path = j.sals.fs.join_paths(export_dir, "projects")
+        stories_path = j.sals.fs.join_paths(export_dir, "stories")
+        issues_path = j.sals.fs.join_paths(export_dir, "issues")
+        # tasks_path = j.sals.fs.join_paths(export_dir, "tasks")
+        milestones_path = j.sals.fs.join_paths(export_dir, "milestones")
+        users_path = j.sals.fs.join_paths(export_dir, "users")
+
+        gs = []
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_projects))
+        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
+        gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
+        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
+
+        gevent.joinall(gs)
