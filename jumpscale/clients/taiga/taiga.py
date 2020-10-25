@@ -58,7 +58,7 @@ client.list_all_user_stories()
 ### List team circles
 
 ```
-client.ist_team_circles()
+client.list_team_circles()
 ```
 
 
@@ -95,6 +95,8 @@ def _create_new_circle(
     **attrs,
 ):
 ```
+otherwise you can use `create_new_project_circle,`, `create_new_team_circle`, `create_new_funnel_circle`
+
 
 ### Create new story
 
