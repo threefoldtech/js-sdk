@@ -31,7 +31,7 @@ Forgive any instability you might encounter while our developers work out the ki
               <v-icon left>mdi-account</v-icon>
               {{user.username}}
             </v-btn>
-            <v-btn v-else text href="/auth/login">
+            <v-btn v-else text href="/auth/login?next_url=/marketplace/">
               <v-icon color="primary" class="mr-2" right>mdi-login-variant</v-icon>Login
             </v-btn>
           </template>
