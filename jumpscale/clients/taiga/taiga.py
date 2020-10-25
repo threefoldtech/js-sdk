@@ -297,7 +297,7 @@ class TaigaClient(Client):
             issue.priority = self._get_priority(issue.priority)
             issue.assignee = self._get_assignee(issue.assigned_to)
             issue.status = self._get_issue_status(issue.status)
-            circle_issues.append(self._resolve_objectissue)
+            circle_issues.append(issue)
         return circle_issues
 
     def get_user_stories(self, username):
@@ -313,7 +313,7 @@ class TaigaClient(Client):
             # user_story.project = self._get_project(user_story.project)
             # user_story.milestone = self._get_milestone(user_story.milestone)
             user_story.status = self._get_user_stories_status(user_story.status)
-            user_stories.append(self._resolve_objectuser_story)
+            user_stories.append(user_story)
         return user_stories
 
     def get_user_tasks(self, username):
