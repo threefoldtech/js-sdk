@@ -68,7 +68,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         message = "Please enter the 3Bot password."
         self.password = self.secret_ask(message, required=True, max_length=32)
         while not self._verify_password(self.password):
-            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
+            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.name}</code>"
             self.password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     def _ask_for_continent(self):
