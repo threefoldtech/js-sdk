@@ -22,7 +22,8 @@
                   </tr>
                   <tr>
                     <th>Domain</th>
-                    <td> {{ json["domain"] }} </td>
+                    <td v-if="json['state'] === 'RUNNING'"> <a :href="`https://${json['domain']}/admin`" target="_blank"> {{ json["domain"] }} </a> </td>
+                    <td v-else> {{ json["domain"] }} </td>
                   </tr>
                   <tr>
                     <th>IPv4 Address</th>
