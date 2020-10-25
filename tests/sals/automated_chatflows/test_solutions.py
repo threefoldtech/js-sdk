@@ -61,44 +61,45 @@ class TFGridSolutionChatflows(ChatflowsBase):
         super().tearDown()
 
     def test01_ubuntu(self):
-        """Test case for create ubuntu.
+        """Test case for deploying Ubuntu.
 
         **Test Scenario**
-        - create ubuntu
-        - connect to ubuntu
-        - check that ubuntu is accessed
+        - Deploy Ubuntu.
+        - Check that Ubuntu is reachable.
+        - Check that Ubuntu has been deployed with the same version.
         """
-        self.info("create ubuntu.")
+        self.info("Deploy Ubuntu.")
         name = self.random_name()
         ubuntu = deployer.deploy_ubuntu(solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path)
         self.solution_uuid = ubuntu.solution_id
 
-        self.info("connect to ubuntu")
+        self.info("Check that Ubuntu is reachable.")
+        self.assertTrue(
+            j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=40),
+            "Ubuntu is not reached after 40 second",
+        )
+
+        self.info("Check that Ubuntu has been deployed with the same version.")
         localclient = j.clients.sshclient.get(self.ssh_client_name)
         localclient.sshkey = self.ssh_client_name
         localclient.host = ubuntu.ip_address
         localclient.save()
         self.solution_uuid = ubuntu.solution_id
-
-        self.info("check that ubuntu is accessed")
-        self.assertTrue(
-            j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=40),
-            "Ubuntu is not reached after 40 second",
-        )
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
     def test02_kubernetes(self):
-        """Test case for create kubernetes.
+        """Test case for Deploying a kubernetes.
 
         **Test Scenario**
-        - create kubernetes
-        - check connection to master
+        - Deploy kubernetes.
+        - Check that kubernetes is reachable.
+        - Check that kubernetes has been deployed with the same number of workers.
         """
-        self.info("create kubernetes")
+        self.info("Deploy kubernetes.")
         name = self.random_name()
         secret = self.random_name()
-        workernodes = 1
+        workernodes = j.data.idgenerator.random_int(1, 2)
         kubernetes = deployer.deploy_kubernetes(
             solution_name=name,
             secret=secret,
@@ -108,29 +109,31 @@ class TFGridSolutionChatflows(ChatflowsBase):
         )
         self.solution_uuid = kubernetes.solution_id
 
-        localclient = j.clients.sshclient.get(self.ssh_client_name)
-        localclient.sshkey = self.ssh_client_name
-        localclient.host = kubernetes.ip_addresses[0]
-        localclient.user = "rancher"
-        localclient.save()
+        self.info("Check that kubernetes is reachable.")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=40),
             "master is not reached after 40 second",
         )
 
+        self.info("Check that kubernetes has been deployed with the same number of workers.")
+        localclient = j.clients.sshclient.get(self.ssh_client_name)
+        localclient.sshkey = self.ssh_client_name
+        localclient.host = kubernetes.ip_addresses[0]
+        localclient.user = "rancher"
+        localclient.save()
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
         res = res.splitlines()
-        res = res[2:]  # Remove master node and header
+        res = res[2:]  # Remove master node and table's head.
         self.assertEqual(workernodes, len(res))
 
     def test03_minio(self):
-        """Test case for create minio.
+        """Test case for deploying Minio.
 
         **Test Scenario**
-        - create minio
-        - check that create minio is successful"
+        - Deploy Minio.
+        - Check that Minio is reachable.
         """
-        self.info("create minio")
+        self.info("Deploy Minio.")
         name = self.random_name()
         username = self.random_name()
         password = self.random_name()
@@ -143,7 +146,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         )
         self.solution_uuid = minio.solution_id
 
-        self.info("check that create minio is successful")
+        self.info("Check that Minio is reachable.")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(minio.ip_addresses[0], port=9000, timeout=40),
             "minio is not reached after 40 second",
@@ -152,29 +155,29 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.assertEqual(request.status_code, 200)
 
     def test04_monitoring(self):
-        """Test case for create monitoring.
+        """Test case for deploying a monitoring solution.
 
         **Test Scenario**
-        - create monitoring
-        - check access prometheus UI
-        - check access grafana UI
-        - check access redis
+        - Deploy a monitoring solution.
+        - Check that Prometheus UI is reachable.
+        - Check that Grafana UI is reachable.
+        - Check that Redis is reachable.
         """
-        self.info("create monitoring")
+        self.info("Deploy a monitoring solution.")
         name = self.random_name()
         monitoring = deployer.deploy_monitoring(solution_name=name, network=self.network_name,)
         self.solution_uuid = monitoring.solution_id
 
-        self.info("check access prometheus UI")
+        self.info("Check that Prometheus UI is reachable. ")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False)
         self.assertEqual(request.status_code, 200)
 
-        self.info("check access grafana UI")
+        self.info("Check that Grafana UI is reachable.")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("login", request.content.decode())
 
-        self.info("check access redis")
+        self.info("Check that Redis is reachable.")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(monitoring.ip_addresses[0], port=6379, timeout=40),
             "redis is not reached after 40 second",
@@ -183,13 +186,13 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.assertEqual(redis.ping(), True)
 
     def test05_generic_flist(self):
-        """Test case for deploy generic flist.
+        """Test case for deploying a container with a generic flist.
 
         **Test Scenario**
-        - create flist
-        - check access flist
+        - Deploy a container with a flist.
+        - Check that the container coreX is reachable.
         """
-        self.info("create generic flist")
+        self.info("Deploy a container with a flist.")
         name = self.random_name()
         generic_flist = deployer.deploy_generic_flist(
             solution_name=name,
@@ -198,19 +201,19 @@ class TFGridSolutionChatflows(ChatflowsBase):
         )
         self.solution_uuid = generic_flist.solution_id
 
-        self.info("check access flist")
+        self.info("Check that the container coreX is reachable.")
         request = j.tools.http.get(f"http://{generic_flist.ip_address}:7681", verify=False)
         self.assertEqual(request.status_code, 200)
 
     def test06_exposed_flist(self):
-        """Test case for exposed flist.
+        """Test case for exposing a container with generic flist.
 
         **Test Scenario**
-        - create flist
-        - create exposed
-        - check access exposed
+        - Deploy a container with a flist.
+        - Expose this container's coreX endpoint to a subdomain.
+        - Check that the container coreX is reachable through the subdomain.
         """
-        self.info("create generic flist")
+        self.info("Deploy a container with a flist.")
         flist_name = self.random_name()
         deployer.deploy_generic_flist(
             solution_name=flist_name,
@@ -218,13 +221,13 @@ class TFGridSolutionChatflows(ChatflowsBase):
             network=self.network_name,
         )
 
-        self.info("create exposed")
+        self.info("Expose this container's coreX endpoint to a subdomain.")
         sub_domain = self.random_name()
         exposed = deployer.deploy_exposed(
             type="flist", solution_to_expose=flist_name, sub_domain=sub_domain, tls_port="7681", port="7681"
         )
         self.solution_uuid = exposed.solution_id
 
-        self.info("check access exposed")
+        self.info("Check that the container coreX is reachable through the subdomain.")
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False)
         self.assertEqual(request.status_code, 200)

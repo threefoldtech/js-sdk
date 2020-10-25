@@ -29,13 +29,13 @@ class MarketplaceChatflows(ChatflowsBase):
         super().tearDown()
 
     def test01_wiki(self):
-        """Test case for testing wiki.
+        """Test case for deploying a wiki.
 
         **Test Scenario**
-        - Deploy wiki.
-        - Check that wiki is accessed.
+        - Deploy a wiki.
+        - Check that the wiki is reachable.
         """
-        self.info("Deploy wiki.")
+        self.info("Deploy a wiki.")
         name = self.random_name()
         title = self.random_name()
         repo = "https://github.com/threefoldfoundation/info_gridmanual"
@@ -43,20 +43,19 @@ class MarketplaceChatflows(ChatflowsBase):
         wiki = deployer.deploy_wiki(solution_name=name, title=title, repo=repo, branch=branch)
         self.solution_uuid = wiki.solution_id
 
-        self.info("Check that wiki is accessed.")
+        self.info("Check that the wiki is reachable.")
         request = j.tools.http.get(f"https://{wiki.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("TF Grid", request.content.decode())
 
     def test02_blog(self):
-        """Test case for testing blog.
+        """Test case for deploying a blog.
 
         **Test Scenario**
-        - Deploy Blog
-        - Check if blog is accessed
-
+        - Deploy a Blog.
+        - Check that the blog is reachable.
         """
-        self.info("Deploy blog...")
+        self.info("Deploy blog.")
         name = self.random_name()
         title = self.random_name()
         repo = "https://github.com/threefoldfoundation/blog_threefold"
@@ -64,19 +63,18 @@ class MarketplaceChatflows(ChatflowsBase):
         blog = deployer.deploy_blog(solution_name=name, title=title, repo=repo, branch=branch)
         self.solution_uuid = blog.solution_id
 
-        self.info("Check if blog is accessed..")
+        self.info("Check that the blog is reachable.")
         request = j.tools.http.get(f"https://{blog.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
 
     def test03_website(self):
-        """Test case for testing website.
+        """Test case for deploying a website.
 
         **Test Scenario**
-        - Deploy Website
-        - Check if website is accessed
-
+        - Deploy a website.
+        - Check that the website is reachable.
         """
-        self.info("Deploy Website")
+        self.info("Deploy a website")
         name = self.random_name()
         title = self.random_name()
         repo = "https://github.com/xmonader/www_incubaid"
@@ -84,67 +82,67 @@ class MarketplaceChatflows(ChatflowsBase):
         website = deployer.deploy_website(solution_name=name, title=title, repo=repo, branch=branch)
         self.solution_uuid = website.solution_id
 
-        self.info("Check if website is accessed")
+        self.info("Check that the website is reachable.")
         request = j.tools.http.get(f"https://{website.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("We are building companies", request.content.decode())
 
     def test04_mattermost(self):
-        """Test case for testing mattermost.
-        **Test Scenario**
-        - Deploy Mattermost
-        - Check if Mattermost is accessed
+        """Test case for deploying Mattermost.
 
+        **Test Scenario**
+        - Deploy Mattermost.
+        - Check that Mattermost is reachable.
         """
-        self.info("Deploy Mattermost")
+        self.info("Deploy Mattermost.")
         name = self.random_name()
         mattermost = deployer.deploy_mattermost(solution_name=name)
         self.solution_uuid = mattermost.solution_id
 
-        self.info("Check if Mattermost is accessed")
+        self.info("Check that Mattermost is reachable.")
         request = j.tools.http.get(f"http://{mattermost.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
 
     def test05_cryptpad(self):
-        """Test case for testing cryptpad.
+        """Test case for deploying Cryptpad.
 
         **Test Scenario**
-        - Deploy Cryptpad
-        - Check if Cryptpad is accessed
+        - Deploy Cryptpad.
+        - Check that Cryptpad is reachable.
         """
         self.info("Deploy Cryptpad")
         name = self.random_name()
         cryptpad = deployer.deploy_cryptpad(solution_name=name)
         self.solution_uuid = cryptpad.solution_id
 
-        self.info("Check if Crypted is accessed")
+        self.info("Check that Cryptpad is reachable")
         request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
 
     def test06_gitea(self):
-        """Test case for testing gitea.
+        """Test case for deploying Gitea.
 
         **Test Scenario**
-        - Deploy Gitea
-        - Check if Gitea is accessed
+        - Deploy Gitea.
+        - Check that Gitea is reachable.
         """
         self.info("Deploy Gitea")
         name = self.random_name()
         gitea = deployer.deploy_gitea(solution_name=name)
         self.solution_uuid = gitea.solution_id
 
-        self.info("Check if Gitea is accessed")
+        self.info("Check that Gitea is reachable.")
         request = j.tools.http.get(f"https://{gitea.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
 
     def test07_discourse(self):
-        """Test case for testing discourse.
+        """Test case for deploy Discourse.
 
         **Test Scenario**
-        - Deploy Discourse
-        - Check if Discourse is accessed
+        - Deploy Discourse.
+        - Check that Discourse is reachable.
         """
-        self.info("Deploy Discourse")
+        self.info("Deploy Discourse.")
         name = self.random_name()
         host_email = j.data.fake.email()
         smtp_host = j.data.fake.email()
@@ -154,36 +152,36 @@ class MarketplaceChatflows(ChatflowsBase):
         )
         self.solution_uuid = discourse.solution_id
 
-        self.info("Check if Discourse is accessed")
+        self.info("Check that Discourse is reachable.")
         request = j.tools.http.get(f"https://{discourse.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("Congratulations, you installed TFT Forum!", request.content.decode())
 
     def test08_peertube(self):
-        """Test case for testing peertube.
+        """Test case for deploying Peertube.
 
         **Test Scenario**
         - Deploy Peertube
-        - Check if Peertube is accessed
+        - Check that Peertube is reachable.
         """
-        self.info("Deploy Peertube")
+        self.info("Deploy Peertube.")
         name = self.random_name()
         peertube = deployer.deploy_peertube(solution_name=name)
         self.solution_uuid = peertube.solution_id
 
-        self.info("Check if Peertube is accessed")
+        self.info("Check that Peertube is reachable.")
         request = j.tools.http.get(f"https://{peertube.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
         self.assertIn("PeerTube", request.content.decode())
 
     def test09_taiga(self):
-        """Test case for testing taiga.
+        """Test case for deploying Taiga.
 
         **Test Scenario**
-        - Deploy Taiga
-        - Check if Taiga is accessed
+        - Deploy Taiga.
+        - Check that Taiga is reachable.
         """
-        self.info("Deploy Taiga")
+        self.info("Deploy Taiga.")
         name = self.random_name()
         host_email = j.data.fake.email()
         smtp_host = j.data.fake.email()
@@ -198,6 +196,6 @@ class MarketplaceChatflows(ChatflowsBase):
         )
         self.solution_uuid = taiga.solution_id
 
-        self.info("Check if Taiga is accessed")
+        self.info("Check that Taiga is reachable.")
         request = j.tools.http.get(f"https://{taiga.domain}", verify=False)
         self.assertEqual(request.status_code, 200)
