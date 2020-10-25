@@ -10,7 +10,6 @@
           <template v-slot:body.prepend="{ headers }">
             <tr>
               <td></td>
-              <td></td>
               <td>
                 <v-select
                   v-model="filters.state"
@@ -89,6 +88,15 @@
                 </v-btn>
               </template>
               <span>Change size</span>
+            </v-tooltip>
+
+            <v-tooltip top v-if="item.alert === true">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon>
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-bell-outline</v-icon>
+                </v-btn>
+              </template>
+              <span>This 3Bot expires in less than 2 days. Please go to your admin dashboard and extend pool {{ item.compute_pool }}</span>
             </v-tooltip>
           </template>
         </v-data-table>

@@ -811,7 +811,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if expiration_provisioning < j.data.time.get().timestamp:
                 j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
-                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
+                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
                     return True
                 raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")

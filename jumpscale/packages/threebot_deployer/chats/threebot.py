@@ -305,7 +305,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                         )
                     )
 
-                    success = deployer.wait_workload(self.workload_ids[-1])
+                    success = deployer.wait_workload(self.workload_ids[-1], identity_name=self.identity_name)
                     if not success:
                         raise DeploymentFailed(
                             f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
@@ -356,7 +356,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                         **self.solution_metadata,
                     )
                 )
-                success = deployer.wait_workload(self.workload_ids[-1])
+                success = deployer.wait_workload(self.workload_ids[-1], identity_name=self.identity_name)
                 if not success:
                     raise DeploymentFailed(
                         f"Failed to create container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
@@ -385,7 +385,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 )
                 self.workload_ids.append(wid)
                 self.workload_ids.append(proxy_id)
-                success = deployer.wait_workload(self.workload_ids[-1])
+                success = deployer.wait_workload(self.workload_ids[-1], identity_name=self.identity_name)
                 if not success:
                     raise DeploymentFailed(
                         f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",

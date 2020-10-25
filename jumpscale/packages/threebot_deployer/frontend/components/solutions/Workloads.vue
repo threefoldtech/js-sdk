@@ -35,7 +35,6 @@ module.exports = {
       loading: true,
       headers3Bots: [
         { text: "Name", value: "name" },
-        { text: "Expiration", value: "expiration" },
         { text: "State", value: "state"},
         { text: "Actions", value: "actions", sortable: false },
       ],
@@ -73,16 +72,12 @@ module.exports = {
           this.deployed3Bots = [...response.data.data];
           for (let i = 0; i < this.deployed3Bots.length; i++) {
             deployed3Bot = this.deployed3Bots[i];
+            deployed3Bot.alert = false;
             if (deployed3Bot.expiration < DURATION_MAX) {
               let expiration = new Date(deployed3Bot.expiration * 1000);
               deployed3Bot.expiration = expiration.toLocaleString("en-GB");
-              if (expiration < today) {
-                deployed3Bot.class = "red--text";
-                deployed3Bot.expiration = "EXPIRED";
-              } else if (expiration < alert_time) {
-                deployed3Bot.class = "red--text";
-              } else {
-                deployed3Bot.class = "";
+              if (expiration < alert_time) {
+                deployed3Bot.alert = true;
               }
             } else {
               deployed3Bot.expiration = "-";

@@ -259,7 +259,9 @@ def redeploy_threebot_solution(
             )
             if result:
                 for wid in result["ids"]:
-                    success = deployer.wait_workload(wid, bot, breaking_node_id=selected_node.node_id)
+                    success = deployer.wait_workload(
+                        wid, bot, breaking_node_id=selected_node.node_id, identity_name=identity.instance_name
+                    )
                     if not success:
                         raise DeploymentFailed(f"Failed to add node {selected_node.node_id} to network {wid}", wid=wid)
                 j.logger.debug(f"node {selected_node.node_id} added to network {network_view.name} successfuly")
@@ -296,7 +298,7 @@ def redeploy_threebot_solution(
                 )
             )
             j.logger.debug(f"waiting for domain workload {workload_ids[-1]} to deploy")
-            success = deployer.wait_workload(workload_ids[-1])
+            success = deployer.wait_workload(workload_ids[-1], identity_name=identity.instance_name)
             if not success:
                 raise DeploymentFailed(
                     f"Failed to create subdomain {domain} on gateway {gateway.node_id} {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
@@ -348,7 +350,7 @@ def redeploy_threebot_solution(
                 )
             )
             j.logger.debug(f"wating for threebot container workload {workload_ids[-1]} to be deployed")
-            success = deployer.wait_workload(workload_ids[-1])
+            success = deployer.wait_workload(workload_ids[-1], identity_name=identity.instance_name)
             if not success:
                 raise DeploymentFailed(
                     f"Failed to create container on node {selected_node.node_id} {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
@@ -384,7 +386,7 @@ def redeploy_threebot_solution(
                 )
             )
             j.logger.debug(f"wating for trc container workload {workload_ids[-1]} to be deployed")
-            success = deployer.wait_workload(workload_ids[-1])
+            success = deployer.wait_workload(workload_ids[-1], identity_name=identity.instance_name)
             if not success:
                 raise DeploymentFailed(
                     f"Failed to create TRC container on node {selected_node.node_id} {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
