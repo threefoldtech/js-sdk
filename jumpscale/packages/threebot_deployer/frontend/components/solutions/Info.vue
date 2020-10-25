@@ -21,10 +21,6 @@
                     <td> {{ json["name"] }} </td>
                   </tr>
                   <tr>
-                    <th>Solution UUID</th>
-                    <td> {{ json["solution_uuid"] }} </td>
-                  </tr>
-                  <tr>
                     <th>Domain</th>
                     <td> {{ json["domain"] }} </td>
                   </tr>

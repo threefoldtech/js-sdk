@@ -757,6 +757,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return result
 
     def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None, identity_name=None):
+        j.logger.info(f"waiting workload {workload_id} to finish deployment")
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
 
