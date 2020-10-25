@@ -93,7 +93,7 @@
             <v-tooltip top v-if="item.alert === true">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn icon>
-                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-bell-outline</v-icon>
+                  <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-alert</v-icon>
                 </v-btn>
               </template>
               <span>This 3Bot expires in less than 2 days. Please go to your admin dashboard and extend pool {{ item.compute_pool }}</span>
