@@ -4,9 +4,27 @@
         <v-data-table
           :loading="loading"
           :headers="headers"
-          :items="data"
+          :items="filteredBots"
           class="elevation-1"
         >
+          <template v-slot:body.prepend="{ headers }">
+            <tr>
+              <td></td>
+              <td></td>
+              <td>
+                <v-select
+                  v-model="filters.state"
+                  :items="states"
+                  clearable
+                  filled
+                  hide-details
+                  dense
+                  class="table-colomns-max"
+                ></v-select>
+              </td>
+              <td></td>
+            </tr>
+          </template>
           <template slot="no-data">No 3Bot instances available</p></template>
           <template v-slot:item.domain="{ item }" >
             <a v-if="deployed3botsStatus[item.state] === 3"  :href="`https://${item.domain}/admin`">{{item.domain}}</a>
@@ -83,7 +101,7 @@
 
 <script>
 module.exports = {
-  props: ["data", "headers", "loading"],
+  props: ["deployed", "headers", "loading"],
   components: {
     "solution-info": httpVueLoader("../solutions/Info.vue"),
     "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
@@ -102,6 +120,10 @@ module.exports = {
         DELETED: 1,
         STOPPED: 2,
         RUNNING: 3,
+      },
+      states:["RUNNING","STOPPED","DELETED"],
+      filters: {
+        state: null,
       },
     };
   },
@@ -136,5 +158,19 @@ module.exports = {
       });
     },
   },
+  computed:{
+    filteredBots(){
+      return this.deployed.filter((record) => {
+        let result = [];
+        Object.keys(this.filters).forEach((key) => {
+          result.push(
+            !this.filters[key] ||
+              String(record[key]).includes(this.filters[key])
+          );
+        });
+        return result.every(Boolean);
+      });
+    }
+  }
 };
 </script>

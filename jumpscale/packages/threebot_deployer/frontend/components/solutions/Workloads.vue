@@ -13,7 +13,7 @@
       <div class="mt-5">
         <template>
           <deployer-data-table
-            :data="deployed3Bots"
+            :deployed="deployed3Bots"
             :headers="headers3Bots"
             :loading="loading"
           >
@@ -36,8 +36,8 @@ module.exports = {
       headers3Bots: [
         { text: "Name", value: "name" },
         { text: "Expiration", value: "expiration" },
-        { text: "Actions", value: "actions", sortable: false },
         { text: "State", value: "state"},
+        { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],
     };
