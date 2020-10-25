@@ -63,6 +63,14 @@ router.beforeEach((to, from, next) => {
     if (to.name !== "License" && !agreed) {
       next("/license");
     }
+  }).catch((e) => {
+    if (to.path.startsWith("/solutions/")){
+      let nextUrl = encodeURIComponent(`/marketplace/#${to.path}`)
+      window.location.href = `/auth/login?next_url=${nextUrl}`
+    }
+    else{
+      next();
+    }
   })
   next();
 })

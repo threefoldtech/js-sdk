@@ -1,6 +1,6 @@
 from functools import wraps
 from json import JSONDecodeError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
@@ -32,7 +32,7 @@ def login():
     """
     session = request.environ.get("beaker.session")
     provider = request.query.get("provider")
-    next_url = request.query.get("next_url", session.get("next_url"))
+    next_url = quote(request.query.get("next_url", session.get("next_url", "/")))
 
     if provider and provider == "3bot":
         state = j.data.idgenerator.chars(20)
@@ -145,8 +145,7 @@ def callback():
         j.logger.warning(
             f"Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}"
         )
-
-    return redirect(session.get("next_url", "/"))
+    return redirect(unquote(session.get("next_url", "/")))
 
 
 @app.route("/logout")
