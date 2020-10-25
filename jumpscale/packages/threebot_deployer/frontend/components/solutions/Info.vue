@@ -21,11 +21,15 @@
                     <td> {{ json["name"] }} </td>
                   </tr>
                   <tr>
+                    <th>State</th>
+                    <td> {{ json["state"] }} </td>
+                  </tr>
+                  <tr>
                     <th>Domain</th>
                     <td v-if="json['state'] === 'RUNNING'"> <a :href="`https://${json['domain']}/admin`" target="_blank"> {{ json["domain"] }} </a> </td>
                     <td v-else> {{ json["domain"] }} </td>
                   </tr>
-                  <tr>
+                  <tr v-if="json['state'] === 'RUNNING'">
                     <th>IPv4 Address</th>
                     <td> {{ json["ipv4"] }} </td>
                   </tr>
@@ -33,7 +37,7 @@
                     <th>Network</th>
                     <td> {{ json["network"] }} </td>
                   </tr>
-                  <tr>
+                  <tr v-if="json['state'] === 'RUNNING'">
                     <th>IPv6 Address</th>
                     <td> {{ json["ipv6"] }} </td>
                   </tr>
@@ -61,7 +65,7 @@
                     <th>Node ID</th>
                     <td> {{ json["node"] }} </td>
                   </tr>
-                  <tr>
+                  <tr v-if="json['state'] === 'RUNNING'">
                     <th>Expiration</th>
                     <td> {{ json["expiration"] }} </td>
                   </tr>
