@@ -143,7 +143,6 @@ All of resources e.g (user, issue, user_story, circle) have `url` property
 
 
 """
-# from .models import User, Story, Issue, Task, Project, Circle
 import copy
 from collections import defaultdict
 from functools import lru_cache

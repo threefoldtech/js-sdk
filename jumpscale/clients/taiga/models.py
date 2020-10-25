@@ -1,6 +1,7 @@
 from functools import lru_cache
-from jumpscale.loader import j
 from textwrap import dedent
+
+from jumpscale.loader import j
 
 
 class CircleResource:
