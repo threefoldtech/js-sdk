@@ -1,5 +1,6 @@
 from functools import lru_cache
 from jumpscale.loader import j
+from textwrap import dedent
 
 
 class CircleResource:
@@ -26,14 +27,16 @@ class CircleIssue(CircleResource):
 
     @property
     def as_md(self):
-        TEMPLATE = """
-- **Subject:** [{{issue.subject}}]({{issue.url}})
-- **Created Date:** {{issue.created_date or 'unknown' }}
-- **Due Date:** {{issue.due_date or 'unknown' }}
-- **Owner Name:** {{issue.owner_extra_info.get('username', 'unknown')}}
-- **Owner Email:** {{issue.owner_extra_info.get('email', 'unknown')}}
-- **Project:** {{issue.project_extra_info.get('name', 'unknown')}}
+        TEMPLATE = dedent(
+            """
+            - **Subject:** [{{issue.subject}}]({{issue.url}})
+            - **Created Date:** {{issue.created_date or 'unknown' }}
+            - **Due Date:** {{issue.due_date or 'unknown' }}
+            - **Owner Name:** {{issue.owner_extra_info.get('username', 'unknown')}}
+            - **Owner Email:** {{issue.owner_extra_info.get('email', 'unknown')}}
+            - **Project:** {{issue.project_extra_info.get('name', 'unknown')}}
     """
+        )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
 
     def __dir__(self):
@@ -57,13 +60,15 @@ class CircleStory(CircleResource):
 
     @property
     def as_md(self):
-        TEMPLATE = """
-- **Subject:** [{{story.subject}}]({{story.url}})
-- **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get('username', 'not assigned') or 'not assigned' }}
-- **Watchers:** {{story.watchers or 'no watchers'}}
-- **Tasks**:
+        TEMPLATE = dedent(
+            """
+            - **Subject:** [{{story.subject}}]({{story.url}})
+            - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get('username', 'not assigned') or 'not assigned' }}
+            - **Watchers:** {{story.watchers or 'no watchers'}}
+            - **Tasks**:
 
-"""
+            """
+        )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)
 
     def tasks(self):
@@ -144,46 +149,47 @@ class CircleUser(CircleResource):
     @property
     def as_md(self):
 
-        TEMPLATE = """
+        TEMPLATE = dedent(
+            """
+            # {{user.username}}
 
-# {{user.username}}
+            User profile is at: [{{user.url}}]({{user.url}})
 
-User profile is at: [{{user.url}}]({{user.url}})
+            {% if user.circles %}
+            ## Circles
 
-{% if user.circles %}
-## Circles
+            {% for c in user.circles %}
 
-{% for c in user.circles %}
+            - [{{c.name}}]({{c.clean_name}}.md) [{{c.url}}]({{c.url}})
+            {% endfor %}
 
-- [{{c.name}}]({{c.clean_name}}.md) [{{c.url}}]({{c.url}})
-{% endfor %}
+            {% endif %}
 
-{% endif %}
+            {% if user.stories %}
+            ## User stories
+            {% for story in user.stories %}
 
-{% if user.stories %}
-## User stories
-{% for story in user.stories %}
+            ### {{story.subject}}
 
-### {{story.subject}}
+            {{story.as_md}}
 
-{{story.as_md}}
+            {% endfor %}
 
-{% endfor %}
-
-{% endif %}
+            {% endif %}
 
 
-{% if user.issues %}
-## Issues
+            {% if user.issues %}
+            ## Issues
 
-{% for issue in user.issues %}
-### {{issue.subject}}
+            {% for issue in user.issues %}
+            ### {{issue.subject}}
 
-{{issue.as_md}}
+            {{issue.as_md}}
 
-{% endfor %}
-{% endif %}
-    """
+            {% endfor %}
+            {% endif %}
+                """
+        )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
 
 
@@ -283,39 +289,40 @@ class Circle(CircleResource):
     @property
     def as_md(self):
 
-        TEMPLATE = """
+        TEMPLATE = dedent(
+            """
+            # Circle {{project.name}}
 
-# Circle {{project.name}}
+            Homepage: {{project.url}}
 
-Homepage: {{project.url}}
+            {% if project.stories %}
+            ## Stories
 
-{% if project.stories %}
-## Stories
+            {% for story in project.stories %}
 
-{% for story in project.stories %}
+            ### {{story.subject}}
+            {{story.as_md}}
 
-### {{story.subject}}
-{{story.as_md}}
+            {% endfor %}
 
-{% endfor %}
-
-{% endif %}
+            {% endif %}
 
 
-{% if project.issues %}
-## Issues
+            {% if project.issues %}
+            ## Issues
 
-{% for issue in project.issues %}
+            {% for issue in project.issues %}
 
-### {{issue.subject}}
+            ### {{issue.subject}}
 
-{{issue.as_md}}
+            {{issue.as_md}}
 
-{% endfor %}
+            {% endfor %}
 
-{% endif %}
+            {% endif %}
 
-"""
+            """
+        )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)
 
 

@@ -143,28 +143,30 @@ All of resources e.g (user, issue, user_story, circle) have `url` property
 
 
 """
+# from .models import User, Story, Issue, Task, Project, Circle
+import copy
+from collections import defaultdict
+from functools import lru_cache
+from textwrap import dedent
+
+import dateutil
+import gevent
+import yaml
+from jumpscale.clients.base import Client
 from jumpscale.clients.taiga.models import (
     Circle,
-    FunnelCircle,
-    ProjectCircle,
-    TeamCircle,
     CircleIssue,
     CircleStory,
     CircleUser,
+    FunnelCircle,
+    ProjectCircle,
+    TeamCircle,
 )
-import dateutil
+from jumpscale.core.base import fields
+from jumpscale.loader import j
+
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
-from jumpscale.loader import j
-from jumpscale.clients.base import Client
-from jumpscale.core.base import fields
-from functools import lru_cache
-from collections import defaultdict
-import gevent
-
-# from .models import User, Story, Issue, Task, Project, Circle
-import copy
-import yaml
 
 
 class TaigaClient(Client):
@@ -767,7 +769,7 @@ class TaigaClient(Client):
             j.sals.fs.write_ascii(circle_mdpath, circle.as_md)
 
         circles_mdpath = j.sals.fs.join_paths(path, "circles.md")
-        circles_mdcontent = "# circles\n"
+        circles_mdcontent = "# circles\n\n"
         for c in circles:
             circles_mdcontent += f"[{c.name}](./{c.clean_name}.md)\n"
 
@@ -797,7 +799,7 @@ class TaigaClient(Client):
             users_objects.append(self._get_user_by_id(uid))
 
         users_mdpath = j.sals.fs.join_paths(path, "users.md")
-        users_mdcontent = "# users\n"
+        users_mdcontent = "# users\n\n"
 
         def write_md_for_user(user):
             # print(f"Writing {user}")
@@ -818,17 +820,19 @@ class TaigaClient(Client):
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
-        self.export_circles_as_md(wiki_path)
-        self.export_users_as_md(wiki_path)
+        gs = []
+        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path))
+        gs.append(gevent.spawn(self.export_users_as_md, wiki_path))
+        gevent.joinall(gs)
         readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "readme.md")
-        content = f"""
+        content = dedent(
+            f"""
+            # Taiga overview
 
-# Taiga overview
-
-- [circles](./circles/circles.md)
-- [usuers](./users/users.md)
-
+            - [circles](./circles/circles.md)
+            - [usuers](./users/users.md)
         """
+        )
         j.sals.fs.write_ascii(readme_md_path, content)
 
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
