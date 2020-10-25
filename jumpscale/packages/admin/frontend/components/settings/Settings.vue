@@ -59,6 +59,52 @@
                 >{{ email }}</v-chip
               >
             </base-section>
+            <!-- Email Server Config start -->
+            <base-section
+              class="mt-3"
+              title="Email Sever config"
+              icon="mdi-account-lock"
+              :loading="loading.emailServerConfig"
+            >
+              <template #actions>
+                <v-btn text @click.stop="dialogs.emailServerConfig = true">
+                  <v-icon left>mdi-lead-pencil</v-icon>Edit
+                </v-btn>
+              </template>
+
+              <template>
+                <v-simple-table>
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">Property</th>
+                        <th class="text-left">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Host</td>
+                        <td>{{ emailServerConfig.host }}</td>
+                      </tr>
+
+                      <tr>
+                        <td>Port</td>
+                        <td>{{ emailServerConfig.port }}</td>
+                      </tr>
+                      <tr>
+                        <td>Username</td>
+                        <td>{{ emailServerConfig.username }}</td>
+                      </tr>
+                      <tr>
+                        <td>Password</td>
+                        <td>{{ emailServerConfig.password }}</td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </template>
+            </base-section>
+            <!-- end of Email server config-->
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="4">
             <base-section
@@ -144,6 +190,13 @@
       v-model="dialogs.escalationEmail"
       @done="listEscaltionEmails"
     ></add-escaltion-email>
+
+    <set-email-server-config
+      v-model="dialogs.emailServerConfig"
+      :emailServerConfig="emailServerConfig"
+      @done="getEmailServerConfig"
+    >
+    </set-email-server-config>
     <remove-admin
       v-model="dialogs.removeAdmin"
       :name="selectedAdmin"
@@ -166,6 +219,7 @@ module.exports = {
   components: {
     "add-admin": httpVueLoader("./AddAdmin.vue"),
     "add-escaltion-email": httpVueLoader("./AddEscalationEmail.vue"),
+    "set-email-server-config": httpVueLoader("./EmailServerConfig.vue"),
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
@@ -177,6 +231,7 @@ module.exports = {
         identities: false,
         developerOptions: false,
         escalationEmails: false,
+        emailServerConfig: false,
       },
       selectedAdmin: null,
       dialogs: {
@@ -185,9 +240,11 @@ module.exports = {
         identityInfo: false,
         addIdentity: false,
         escalationEmail: false,
+        emailServerConfig: false,
       },
       admins: [],
       escalationEmails: [],
+      emailServerConfig: {},
       identity: null,
       selectedIdentity: null,
       identities: [],
@@ -219,6 +276,22 @@ module.exports = {
         })
         .finally(() => {
           this.loading.escalationEmails = false;
+        });
+    },
+    getEmailServerConfig() {
+      this.$api.emailServerConfig.get().then((response) => {
+        this.emailServerConfig = JSON.parse(response.data).data;
+      });
+    },
+    setEmailServerConfig(hostname, port, username, password) {
+      this.loading.emailServerConfig = true;
+      this.$api.emailServerConfig
+        .set(host, port, username, password)
+        .then((response) => {
+          this.emailServerConfig = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.emailServerConfig = false;
         });
     },
     removeEscalationEmail(email) {
@@ -311,7 +384,7 @@ module.exports = {
           this.alert("Developer options updated", "success");
         })
         .catch((error) => {
-          this.alert("Failed to update developer options", "error");
+          this.alert("Failed to update developer options, " + error, "error");
         });
     },
     clearBlockedNodes() {
@@ -327,6 +400,7 @@ module.exports = {
   },
   mounted() {
     this.listAdmins();
+    this.getEmailServerConfig();
     this.getCurrentIdentity();
     this.listIdentities();
     this.getDeveloperOptions();

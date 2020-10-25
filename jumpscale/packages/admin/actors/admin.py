@@ -145,6 +145,7 @@ class Admin(BaseActor):
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
         j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
         j.core.config.set("AUTO_POOL_EXTEND_ENABLED", auto_pool_extend)
+
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -161,6 +162,22 @@ class Admin(BaseActor):
     def clear_blocked_nodes(self) -> str:
         j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
+
+    @actor_method
+    def get_email_server_config(self) -> str:
+        email_server_config = j.core.config.get("EMAIL_SERVER_CONFIG", {})
+        email_server_config.setdefault("host", "")
+        email_server_config.setdefault("port", "")
+        email_server_config.setdefault("username", "")
+        email_server_config.setdefault("password", "")
+        return j.data.serializers.json.dumps({"data": email_server_config})
+
+    @actor_method
+    def set_email_server_config(self, host="", port="", username="", password="") -> str:
+        email_server_config = j.core.config.get("EMAIL_SERVER_CONFIG", {})
+        email_server_config = {"host": host, "port": port, "username": username, "password": password}
+        j.core.config.set("EMAIL_SERVER_CONFIG", email_server_config)
+        return j.data.serializers.json.dumps({"data": email_server_config})
 
     @actor_method
     def list_escalation_emails(self) -> str:
