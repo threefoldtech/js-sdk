@@ -11,32 +11,26 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: development
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - uses: dschep/install-poetry-action@v1.3
-      - uses: nanasess/setup-chromedriver@master
       - name: Gathering deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y git tmux redis restic nginx cron unzip
+          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest selenium
-
-      - name: Install js-sdk
+          sudo pip3 install poetry
+          sudo poetry run pip3 install pytest selenium pytest-cov
+      - name: Install
         run: |
-          poetry install
-
+          sudo poetry install
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
+          WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
         run: |
-          sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)
-          poetry run pytest -sv tests/frontend/tests --cov=jumpscale --cov-report=xml
-
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET \
+          poetry run pytest -sv tests/sals/automated_chatflows --cov=jumpscale --cov-report=xml
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v1
