@@ -47,11 +47,11 @@ class Billing:
             if f"{balance.asset_code}:{balance.asset_issuer}" == asset:
                 if total_amount_dec > Decimal(balance.balance):
                     raise InsufficientFunds(
-                        f"Wallet {wallet.name} does not have enough funds to pay for {total_amount_dec:0f} {asset}"
+                        f"Wallet {wallet.instance_name} does not have enough funds to pay for {total_amount_dec:0f} {asset}"
                     )
                 break
         else:
-            raise MissingTrustLine(f"Wallet {wallet.name} does not have a valid trustline to pay for {asset}")
+            raise MissingTrustLine(f"Wallet {wallet.instance_name} does not have a valid trustline to pay for {asset}")
 
         transaction_hashes = []
         try:

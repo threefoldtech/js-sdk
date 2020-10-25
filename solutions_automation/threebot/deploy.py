@@ -14,6 +14,10 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
     EXPIRATION = "Please enter the solution's expiration time"
     DOMAIN_TYPE = "Do you want to manage the domain for the container or automatically get a domain of ours?"
     DOMAIN_NAME = "Please specify the domain name you wish to bind to"
+    EMAIL_HOST_USER = "E-mail address for your solution"
+    EMAIL_HOST = "SMTP host example: `smtp.gmail.com`"
+    EMAIL_HOST_PASSWORD = "Host e-mail password"
+    ESCALATION_MAIL_ADDRESS = "Email address to receive email notifications on"
     WIREGUARD = dedent(
         """
         <h3> Use the following template to configure your wireguard connection. This will give you access to your network. </h3>
@@ -30,6 +34,10 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
         EXPIRATION: "expiration",
         DOMAIN_TYPE: "domain_type",
         DOMAIN_NAME: "domain_name",
+        EMAIL_HOST_USER: "email_host_user",
+        EMAIL_HOST: "email_host",
+        EMAIL_HOST_PASSWORD: "email_host_password",
+        ESCALATION_MAIL_ADDRESS: "escalation_mail_address",
     }
 
     def ask(self, msg, *args, **kwargs):

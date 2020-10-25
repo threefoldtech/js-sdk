@@ -322,7 +322,7 @@ class ChatflowDeployer:
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
-            "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month",
+            "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month"
         )
         ttl = form.int_ask("Please specify the pools time-to-live", required=True, min=1, default=0)
         form.ask(
@@ -388,7 +388,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             ] = farm
         if not farm_messages:
             raise StopChatFlow(f"There are no farms available that the support {currencies[0]} currency")
-        selected_farm = bot.single_choice(
+        selected_farm = bot.drop_down_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
             required=True,
@@ -477,7 +477,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
         wallet_names = []
         for w in wallets.keys():
-            wallet_names.append(w)
+            wallet = j.clients.stellar.get(w)
+            try:
+                balances = wallet.get_balance().balances
+            except:
+                continue
+            for balance in balances:
+                if balance.asset_code in escrow_asset:
+                    if float(balance.balance) > float(total_amount):
+                        wallet_names.append(w)
+                    else:
+                        break
         wallet_names.append("External Wallet (QR Code)")
         self.msg_payment_info, qr_code = self.get_qr_code_payment_info(pool)
         message = f"""
@@ -563,7 +573,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "Please select a pool"
         if workload_name:
             msg += f" for {workload_name}"
-        pool = bot.single_choice(msg, list(pool_messages.keys()), required=True)
+        pool = bot.drop_down_choice(msg, list(pool_messages.keys()), required=True)
         return pool_messages[pool]
 
     def get_pool_farm_id(self, pool_id=None, pool=None):
@@ -1071,7 +1081,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return result
 
     def ask_multi_pool_placement(
-        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None, ip_version=None,
+        self, bot, number_of_nodes, resource_query_list=None, pool_ids=None, workload_names=None, ip_version=None
     ):
         """
         Ask and schedule workloads accross multiple pools

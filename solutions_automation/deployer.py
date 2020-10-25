@@ -367,6 +367,10 @@ def deploy_threebot(
     domain_type="Automatically Get a Domain",
     domain_name=None,
     public_key="",
+    email_host_user="",
+    email_host="",
+    email_host_password="",
+    escalation_mail_address="",
 ):
     return ThreebotDeployAutomated(
         type="Create",
@@ -378,6 +382,10 @@ def deploy_threebot(
         domain_type=domain_type,
         domain_name=domain_name,
         public_key=public_key,
+        email_host_user=email_host_user,
+        email_host=email_host,
+        email_host_password=email_host_password,
+        escalation_mail_address=escalation_mail_address,
     )
 
 
