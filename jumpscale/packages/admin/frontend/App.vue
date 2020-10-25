@@ -122,7 +122,7 @@
           Quick start guide
         </v-card-title>
         <v-card-text>
-        we've created two wallets for you; main and test. These are to be used for mainnet and testnet respectively. Make sure your wallets are funded to extend your 3Bots before they expire.
+        We've created two wallets for you; main and test. These are to be used for mainnet and testnet respectively. Make sure your wallets are funded to extend your 3Bots before they expire.
         <br />
         Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
         </v-card-text>
