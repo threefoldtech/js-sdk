@@ -28,7 +28,7 @@ const COLLAB_TOOLS = {
         crm: {
             name: "CRM",
             type: "crm",
-            image: "./assets/3bot.png",
+            image: "./assets/crm.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
             description: "Full featured Customer Relationship Management system."
@@ -36,15 +36,15 @@ const COLLAB_TOOLS = {
         zeroci: {
             name: "ZeroCI",
             type: "zeroci",
-            image: "./assets/3bot.png",
+            image: "./assets/zero-ci-dark.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
-            description: "description: Continuous integration system useful for all programming languages."
+            description: "Continuous integration system useful for all programming languages."
         },
         commento: {
             name: "Commento",
             type: "commento",
-            image: "./assets/3bot.png",
+            image: "./assets/commento.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs",
             description: "Collaborate on online content without giving up your privacy."
@@ -100,7 +100,7 @@ const WEB_SOCIAL = {
         videochat: {
             name: "Video Chat",
             type: "videochat",
-            image: "./assets/3bot.png",
+            image: "./assets/video_chat.png",
             disable: true,
             helpLink: "https://now.threefold.io/docs/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
@@ -108,7 +108,7 @@ const WEB_SOCIAL = {
         virtualspaces: {
             name: "Virtual Spaces",
             type: "virtualspaces",
-            image: "./assets/3bot.png",
+            image: "./assets/virtual_spaces.png",
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/virtual-spaces/",
             description: "Meetup experiences and collaboration in virtual reality."
@@ -116,7 +116,7 @@ const WEB_SOCIAL = {
         knowledgebase: {
             name: "Knowledge Base",
             type: "knowledgebase",
-            image: "./assets/3bot.png",
+            image: "./assets/_base.png",
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/",
             description: "A simple, self-hosted, easy-to-use platform for organising and storing information."
