@@ -74,59 +74,5 @@ class Backup(BaseActor):
     def public_key(self) -> str:
         return self.pub_key
 
-    @actor_method
-    def backup_exists(self, threebot_name) -> bool:
-        """Check if the deployer backup exists on the two backup server
-
-        Args:
-            threebot_name(str): name of the threebot that used during backup 
-        
-        Returns:
-            bool: return true if the backup is found else it returns false
-        """
-        if not threebot_name:
-            raise j.exceptions.Value("threebot_name doesn't have value")
-
-        try:
-            _, res, _ = self.ssh_server1.sshclient.run(
-                f"cd /root/backup;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
-            )
-            _, res, _ = self.ssh_server2.sshclient.run(
-                f"cd /root/backup;  if [ -f {threebot_name} ] ; then echo 'yes' ; else echo 'no' ; fi"
-            )
-        except:
-            raise j.exceptions.Value("failed to check 3bot deployer backup is exist or not")
-
-        return True if res.strip() == "yes" else False
-
-    @actor_method
-    def list_backup(self) -> list:
-        """List all backups
-
-        Returns:
-            list : list of string of all available backups
-        """
-        backup_path = "/root/backup"
-        res = []
-        try:
-            _, res1, _ = self.ssh_server1.sshclient.run(f"ls {backup_path}")
-            res.extend(res1.strip().split("\n"))
-        except:
-            msg = "failed to check 3bot deployer backup is exist or not on server 1"
-            j.logger.warning(msg)
-            j.tools.alerthandler.alert_raise(
-                appname="backup", category="internal_errors", message=msg, alert_type="exception"
-            )
-        try:
-            _, res2, _ = self.ssh_server2.sshclient.run(f"ls {backup_path}")
-            res.extend(res2.strip().split("\n"))
-        except:
-            msg = "failed to check 3bot deployer backup is exist or not on server 2"
-            j.logger.warning(msg)
-            j.tools.alerthandler.alert_raise(
-                appname="backup", category="internal_errors", message=msg, alert_type="exception"
-            )
-        return list(set(res))
-
 
 Actor = Backup
