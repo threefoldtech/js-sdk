@@ -8,15 +8,21 @@ from nacl import public, signing
 from jumpscale.clients.explorer.models import (
     Container,
     ContainerLogs,
+    ContainerStats,
     ContainerNetworkConnection,
     DiskType,
     WorkloadType,
 )
+
 from jumpscale.core.exceptions import Input
+from jumpscale.tools.zos.monitor import ContainerStatsMonitor
+
+from .crypto import encrypt_for_node
 
 
 class ContainerGenerator:
-    """ """
+    def __init__(self, identity):
+        self._identity = identity
 
     def create(
         self,
@@ -93,16 +99,12 @@ class ContainerGenerator:
 
         Returns:
           str: encrypted string
-
         """
-        key = base58.b58decode(node_id)
-        pk = signing.VerifyKey(key)
-        encryption_key = pk.to_curve25519_public_key()
+        bkey = base58.b58decode(node_id)
+        node_public_hex = binascii.hexlify(bkey)
 
-        box = public.SealedBox(encryption_key)
-        result = box.encrypt(value.encode())
-
-        return binascii.hexlify(result).decode()
+        encrypted = encrypt_for_node(self._identity, node_public_hex, value)
+        return encrypted.decode()
 
     def add_logs(
         self, container: Container, channel_type: str, channel_host: str, channel_port: str, channel_name: str
@@ -125,13 +127,41 @@ class ContainerGenerator:
 
         cont_logs = ContainerLogs()
         cont_logs.type = channel_type
-
-        # TODO: Remove stdout, stderr when merged on mainnet FIXME
-        cont_logs.data.stdout = stdout
-        cont_logs.data.stderr = stderr
-
         cont_logs.data.secret_stdout = self.encrypt_secret(container.info.node_id, stdout)
         cont_logs.data.secret_stderr = self.encrypt_secret(container.info.node_id, stderr)
         container.logs.append(cont_logs)
 
         return cont_logs
+
+    def add_stats(self, container: Container, redis_endpoint: str) -> ContainerStats:
+        """Enable statistics forwarding for the container
+
+        Args:
+          container(Container): container instance
+          redis_endpoint(str): redis endpoint (redis://host:port/channel)
+
+        Returns:
+          ContainerStats: stats object added to the container
+
+        """
+        cont_stats = ContainerStats()
+        cont_stats.type = "redis"
+        cont_stats.data.endpoint = redis_endpoint
+        container.stats.append(cont_stats)
+
+        return cont_stats
+
+    def monitor(self, container):
+        """Try to reach endpoint from container statistics and fetch stats when available"""
+        if not container.stats:
+            return False
+
+        stats = ContainerStatsMonitor()
+        stats.endpoint(container.stats[0].data.endpoint)
+        stats.monitor()
+
+    def monitor_reservation(self, reservation):
+        """Try to reach endpoint from container reservation data and monitor stats"""
+        stats = ContainerStatsMonitor()
+        stats.reservation(reservation)
+        stats.monitor()

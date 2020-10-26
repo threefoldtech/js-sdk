@@ -14,7 +14,6 @@ from .farms import Farms
 from .gateways import Gateways
 from .nodes import Nodes
 from .pools import Pools
-from .reservations import Reservations
 from .users import Users
 from .workloads import Workloads
 
@@ -52,7 +51,6 @@ class Explorer(Client):
         self.nodes = Nodes(self)
         self.users = Users(self)
         self.farms = Farms(self)
-        self.reservations = Reservations(self)
         self.gateway = Gateways(self)
         self.pools = Pools(self)
         self.workloads = Workloads(self)

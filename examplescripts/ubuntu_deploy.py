@@ -20,9 +20,7 @@ while pool.cus == 0:
     sleep(1)
 
 if not j.sals.fs.exists("/tmp/.ssh"):
-    j.core.executors.run_local(
-        'mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" '
-    )
+    j.core.executors.run_local('mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" ')
 
 ssh_cl = j.clients.sshkey.get("ubuntu_script")
 ssh_cl.private_key_path = "/tmp/.ssh/id_rsa"
@@ -42,9 +40,7 @@ network = zos.network.create(ip_range, network_name)
 nodes = zos.nodes_finder.nodes_by_capacity(pool_id=pool.pool_id)
 access_node = list(filter(zos.nodes_finder.filter_public_ip4, nodes))[0]
 zos.network.add_node(network, access_node.node_id, "10.110.2.0/24", pool.pool_id)
-wg_quick = zos.network.add_access(
-    network, access_node.node_id, "10.110.3.0/24", ipv4=True
-)
+wg_quick = zos.network.add_access(network, access_node.node_id, "10.110.3.0/24", ipv4=True)
 
 node_workloads = {}
 for workload in network.network_resources:
@@ -61,10 +57,8 @@ cpu = 1
 mem = 1024
 disk = 256
 
-available_nodes = list(
-    zos.nodes_finder.nodes_by_capacity(cru=0, sru=2, mru=2, pool_id=pool.pool_id)
-)
-available_nodes = list(filter(j.sals.zos.nodes_finder.filter_is_up, available_nodes))
+available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=2, mru=2, pool_id=pool.pool_id))
+available_nodes = list(filter(j.sals.zos.get().nodes_finder.filter_is_up, available_nodes))
 deployment_node = random.choice(available_nodes)
 zos.network.add_node(network, deployment_node.node_id, "10.110.4.0/24", pool.pool_id)
 
@@ -142,17 +136,9 @@ localclient2.sshkey = "ubuntu_script"
 localclient2.host = ip_container_2
 localclient2.save()
 
-print(
-    localclient.sshclient.run(
-        f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} -A ls /'
-    )
-)
+print(localclient.sshclient.run(f'ssh -o "StrictHostKeyChecking=no" root@{ip_container_2} -A ls /'))
 
 
-print(
-    localclient2.sshclient.run(
-        f'ssh -o "StrictHostKeyChecking=no"  root@{ip_container_1} -A ls /'
-    )
-)
+print(localclient2.sshclient.run(f'ssh -o "StrictHostKeyChecking=no"  root@{ip_container_1} -A ls /'))
 
 print("Congratulations, SUCCESS")

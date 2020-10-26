@@ -8,8 +8,8 @@ class SyncthingClient(Client):
     port = fields.Integer()
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__url = None
         self.__session = None
         self.__config = None
@@ -101,14 +101,7 @@ class SyncthingClient(Client):
             return self.set_config(self.config)
 
     def add_folder(
-        self,
-        name,
-        path,
-        ignore_perms=False,
-        read_only=False,
-        rescan_intervals=10,
-        devices=None,
-        overwrite=False,
+        self, name, path, ignore_perms=False, read_only=False, rescan_intervals=10, devices=None, overwrite=False,
     ):
         folders = self.get_folders()
         idx = self._get_folder(name)
@@ -142,9 +135,7 @@ class SyncthingClient(Client):
         folders.append(folder)
         return self.set_config(self.config)
 
-    def add_device(
-        self, name, device_id, introducer=False, compression="always", overwrite=False
-    ):
+    def add_device(self, name, device_id, introducer=False, compression="always", overwrite=False):
         devices = self.get_devices()
         idx = self._get_device(name)
         if idx:

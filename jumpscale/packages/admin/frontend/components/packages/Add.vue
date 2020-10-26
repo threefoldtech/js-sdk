@@ -18,7 +18,18 @@
             </v-btn>
           </v-col>
         </v-row>
-
+        <v-row>
+          <v-subheader><strong> Package Parameters </strong></v-subheader>
+          <v-tooltip v-model="show" top>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon color="grey lighten-1"> mdi-help-circle </v-icon>
+              </v-btn>
+            </template>
+            <span>If the package requires extra parameters during installation
+              provide it in the following fields</span>
+          </v-tooltip>
+        </v-row>
         <v-row>
           <v-col cols="12" md="4">
             <v-text-field v-model="k" label="Key" dense required></v-text-field>
@@ -48,7 +59,8 @@ module.exports = {
     return {
       form: { extras: {} },
       k: null,
-      v: null
+      v: null,
+      show: null
     };
   },
   methods: {

@@ -1,5 +1,5 @@
 from jumpscale.packages.marketplace.chats.taiga import TaigaDeploy
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class TaigaAutomated(GedisChatBotPatch, TaigaDeploy):

@@ -8,6 +8,8 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 
+from requests.exceptions import HTTPError
+
 from .models import UserPool
 
 pool_factory = StoredFactory(UserPool)
@@ -24,9 +26,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return user_pool_ids
 
     def list_user_pools(self, username):
-
         _, _, user_pools = pool_factory.find_many(owner=username)
-        all_pools = [p for p in j.sals.zos.pools.list() if p.node_ids]
+        all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
         user_pool_ids = [p.pool_id for p in user_pools]
         result = [p for p in all_pools if p.pool_id in user_pool_ids]
         return result
@@ -128,6 +129,17 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_name = bot.single_choice("Please select a network", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
+    def _check_pool_factory_owner(self, instance_name):
+        pool_instance = pool_factory.get(instance_name)
+        pool_id = pool_instance.pool_id
+        pool_tid = j.sals.zos.get().pools.get(pool_id).customer_tid
+        pool_explorer_url = pool_instance.explorer_url
+        me = j.core.identity.me
+        try:
+            return pool_tid == me.tid and pool_explorer_url == me.explorer_url
+        except HTTPError:
+            return False
+
     def _get_gateways_pools(self, farm_name):
         """
         Returns:
@@ -143,7 +155,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
-            if gw_pool_name not in pool_factory.list_all():
+            if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(gw_pool_name):
                 gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name)
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
@@ -207,7 +219,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
                     continue
-                nodes = j.sals.zos.nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
+                nodes = j.sals.zos.get().nodes_finder.nodes_by_capacity(pool_id=p, **resource_query_list[i])
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
@@ -261,7 +273,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         pool_ids = {}
         node_to_pool = {}
         for p in pool_choices:
-            pool = pool_ids.get(messages[p], j.sals.zos.pools.get(messages[p]))
+            pool = pool_ids.get(messages[p], j.sals.zos.get().pools.get(messages[p]))
             pool_ids[messages[p]] = pool.pool_id
             for node_id in pool.node_ids:
                 node_to_pool[node_id] = pool
@@ -289,7 +301,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
-            pool_info = j.sals.zos.pools.extend(pool_id, cu, su, currency)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currency)
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
@@ -297,7 +309,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
+        pool_info = j.sals.zos.get().pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -305,10 +317,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return pool_info
 
     def create_gateway_emptypool(self, gwpool_name, farm_name):
-        pool_info = j.sals.zos.pools.create(0, 0, farm_name, ["TFT"])
-        user_pool = pool_factory.new(gwpool_name)
+        pool_info = j.sals.zos.get().pools.create(0, 0, farm_name, ["TFT"])
+        user_pool = pool_factory.get(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
+        user_pool.explorer_url = j.core.identity.me.explorer_url
         user_pool.save()
         return pool_info
 
@@ -328,7 +341,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         workload_types = workload_types or [WorkloadType.Container]
         nodes = {}
         if free_to_use:
-            nodes = {node.node_id: node for node in j.sals.zos._explorer.nodes.list()}
+            nodes = {node.node_id: node for node in j.sals.zos.get()._explorer.nodes.list()}
         for pool in user_pools:
             valid = True
             try:
@@ -336,7 +349,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
                     1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
                 )
             except StopChatFlow as e:
-                j.logger.error(
+                j.logger.warning(
                     f"Failed to find resources for this reservation in this pool: {pool}, {e}. We will use another one."
                 )
                 continue
@@ -407,11 +420,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 success = self.wait_workload(wid, bot=bot)
             except StopChatFlow as e:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.workloads.decomission(sol_wid)
+                    j.sals.zos.get().workloads.decomission(sol_wid)
                 raise e
             if not success:
                 for sol_wid in result["ids"]:
-                    j.sals.zos.workloads.decomission(sol_wid)
+                    j.sals.zos.get().workloads.decomission(sol_wid)
                 raise DeploymentFailed(
                     f"Failed to deploy apps network in workload {wid}. The resources you paid for will be re-used in your upcoming deployments.",
                     wid=wid,

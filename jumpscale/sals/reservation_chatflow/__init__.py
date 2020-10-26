@@ -1,7 +1,8 @@
+from time import time
+
 from .reservation_chatflow import reservation_chatflow
 from .deployer import deployer, deployment_context, DeploymentFailed
 from .solutions import solutions
-
 
 # TODO: remove the below on releasing jsng 11.0.0a3
 
@@ -22,7 +23,8 @@ def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -> bool:
     Returns:
         bool: true if the test succeeds
     """
-    for _ in range(timeout):
+    start = time()
+    while time() - start < timeout:
         try:
             if check_url_reachable(url, timeout=1, verify=verify):
                 return True

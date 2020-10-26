@@ -1,13 +1,13 @@
 <template>
   <base-dialog
-    title="Patch Cancel Workloads"
+    title="Cancel selected workloads"
     v-model="dialog"
     :error="error"
     :info="info"
     :warning="warning"
     :loading="loading"
   >
-    <template #default>Are you sure you want to cancel all {{ selected.length }} selected workloads?</template>
+    <template #default v-if="!deleted">Are you sure you want to cancel all {{ selected.length }} selected workloads?</template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text color="error" @click="submit">Confirm</v-btn>
@@ -19,6 +19,11 @@
 module.exports = {
   mixins: [dialog],
   props: ["selected"],
+  data(){
+    return {
+      deleted : false
+    };
+  },
   methods: {
     submit() {
       this.loading = true;
@@ -38,8 +43,12 @@ module.exports = {
       }
       if (wids.length === 0) {
         this.loading = false;
+        this.deleted = true;
         this.warning = "All selected workloads are already deleted";
-        setTimeout(() => this.close(), 3000);
+        setTimeout(() => {
+          this.deleted = false;
+          this.close();
+        }, 2000);
       }
       else {
         this.$api.solutions
@@ -50,8 +59,13 @@ module.exports = {
           }
 
           this.loading = false;
+          this.deleted = true;
           this.info = "workloads successfully deleted";
-          setTimeout(() => this.close(), 3000);
+          setTimeout(() => {
+            this.deleted = false;
+            this.close();
+          }, 3000);
+          this.deleted = false;
         })
         .catch((err) => {
           console.log(err);

@@ -9,7 +9,9 @@ from .crypto import encrypt_for_node
 class KubernetesGenerator:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = identity.explorer
         self._nodes = explorer.nodes
 
     def add_master(
@@ -49,7 +51,7 @@ class KubernetesGenerator:
         master.info.pool_id = pool_id
 
         node = self._nodes.get(node_id)
-        master.cluster_secret = encrypt_for_node(node.public_key_hex, cluster_secret).decode()
+        master.cluster_secret = encrypt_for_node(self._identity, node.public_key_hex, cluster_secret).decode()
         master.network_id = network_name
         master.ipaddress = ip_address
         master.size = size
