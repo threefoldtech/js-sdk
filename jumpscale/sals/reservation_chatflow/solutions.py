@@ -185,7 +185,7 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
-    def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+    def list_gw4to6_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6]:
@@ -318,7 +318,7 @@ class ChatflowSolutions:
             "monitoring": 0,
             "flist": 0,
             "gitea": 0,
-            "4to6gw": 0,
+            "gw4to6": 0,
             "delegated_domain": 0,
             "exposed": 0,
             "threebot": 0,
