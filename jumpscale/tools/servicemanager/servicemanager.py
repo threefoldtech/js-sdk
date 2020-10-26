@@ -27,11 +27,12 @@ class BackgroundService(ABC):
 
 
 # TODO: add support for non-periodic tasks
+# TODO: configurable services
+# TODO: add support for services not in packages
 class ServiceManager(Base):
-    services = fields.Typed(dict, default={})
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.services = {}
         self._greenlets = {}
 
     def __callback(self, greenlet):
@@ -64,12 +65,14 @@ class ServiceManager(Base):
 
         # schedule default services
         for service in self.services.values():
-            self._schedule_service(service)
+            module = j.tools.codeloader.load_python_module(service["path"])
+            self._schedule_service(module.service)
 
     def stop(self):
         """Stop all background services
         """
-        for service in self.services:
+
+        for service in list(self.services.keys()):
             self.stop_service(service)
 
     def add_service(self, service_path):
@@ -93,7 +96,6 @@ class ServiceManager(Base):
 
         self._schedule_service(service)
         self.services[service.name] = dict(path=service_path)
-        self.save()
 
     def stop_service(self, service_name):
         """Stop a background service
@@ -109,3 +111,4 @@ class ServiceManager(Base):
                 greenlet.unlink(self.__callback)
                 self._greenlets.pop(key)
                 break
+        self.services.pop(service_name)

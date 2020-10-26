@@ -483,6 +483,10 @@ class PackageManager(Base):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
+        # stop background services
+        for service in package.services:
+            self.threebot.services.stop_service(service["name"])
+
         if self.threebot.started:
             # unregister gedis actors
             gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -495,9 +499,7 @@ class PackageManager(Base):
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
-                j.logger.warning(
-                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
-                )
+                j.logger.warning(f"Couldn't unload the chats of package {package_name}, this is the exception {str(e)}")
 
             # reload nginx
             self.threebot.nginx.reload()
@@ -542,7 +544,7 @@ class PackageManager(Base):
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
 
-        # add services
+        # start background services
         if package.services_dir:
             for service in package.services:
                 self.threebot.services.add_service(service["path"])

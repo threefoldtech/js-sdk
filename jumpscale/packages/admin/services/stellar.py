@@ -4,7 +4,7 @@ from jumpscale.tools.notificationsqueue.queue import LEVEL
 
 
 class StellarService(BackgroundService):
-    def __init__(self, name="stellar", interval=60, *args, **kwargs):
+    def __init__(self, name="admin_stellar", interval=60, *args, **kwargs):
         """
             Check stellar service state every 1 min
         """
@@ -27,12 +27,12 @@ class StellarService(BackgroundService):
         if current_state != self.stellar_state:
             self.stellar_state = current_state
             if current_state:
-                j.logger.info("[Stellar Service] Stellar services are now reachable")
+                j.logger.info("[Admin Package - Stellar Service] Stellar services are now reachable")
                 j.tools.notificationsqueue.push(
                     "Stellar services are now reachable", category="Stellar", level=LEVEL.INFO
                 )
             else:
-                j.logger.error("[Stellar Service] Could not reach stellar")
+                j.logger.error("[Admin Package - Stellar Service] Could not reach stellar")
                 j.tools.notificationsqueue.push("Could not reach stellar", category="Stellar", level=LEVEL.ERROR)
 
 
