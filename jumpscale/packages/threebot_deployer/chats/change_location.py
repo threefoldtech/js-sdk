@@ -37,12 +37,12 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self._init_solution()
         self.branch = "development_3botdeployer"
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
-        self.non_running_3bots = [
+        self.stopped_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value
         ]
-        self.non_running_names = {threebot["name"]: threebot for threebot in self.non_running_3bots}
+        self.stopped_names = {threebot["name"]: threebot for threebot in self.stopped_3bots}
         self.name = self.kwargs["tname"]
-        self.threebot_info = self.non_running_names[self.name]
+        self.threebot_info = self.stopped_names[self.name]
         self.pool_id = self.threebot_info["compute_pool"]
         self.query = {
             "cru": self.threebot_info["cpu"] + 1,
