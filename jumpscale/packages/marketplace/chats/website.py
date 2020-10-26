@@ -6,7 +6,7 @@ class WebsiteDeploy(Publisher):
 
     title = "Deploy a Website"
     SOLUTION_TYPE = "website"  # chatflow used to deploy the solution
-    EXAMPLE_URL = "https://github.com/xmonader/www_incubaid"
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/website_example"
 
     @chatflow_step(title="Website Setup")
     def configuration(self):
