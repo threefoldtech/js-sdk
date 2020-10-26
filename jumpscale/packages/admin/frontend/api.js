@@ -193,6 +193,16 @@ const apiClient = {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
+        },
+        getNotifications: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications`,
+            })
+        },
+        getNotificationsCount: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications_count`,
+            })
         }
     },
     explorers: {
@@ -235,6 +245,11 @@ const apiClient = {
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
                 data: { identity_instance_name: identity_instance_name }
+            })
+        },
+        currentIdentity: () => {
+            return axios({
+                url: `${baseURL}/admin/get_current_identity_name`
             })
         },
         deleteIdentity: (identity_instance_name) => {

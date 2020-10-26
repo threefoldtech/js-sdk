@@ -1,9 +1,14 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <router-link to="/" style="text-decoration: none;">
+      <router-link to="/" style="text-decoration: none">
         <v-row>
-          <img class="ml-2" src="./assets/TFNOW-Recovered.png" height="50" max-width="266" />
+          <img
+            class="ml-2"
+            src="./assets/TFNOW-Recovered.png"
+            height="50"
+            max-width="266"
+          />
         </v-row>
       </router-link>
       <v-spacer></v-spacer>
@@ -23,7 +28,9 @@
         <pre>
 This is for demo purposes to showcase grid usage.
 We're running on testnet which means it's always on latest testing code.
-Forgive any instability you might encounter while our developers work out the kinks</pre>
+Forgive any instability you might encounter while our developers work out the kinks.
+Your deployment will be automatically canceled in 3 hours.</pre
+        >
       </v-tooltip>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
           <template v-slot:activator="{ on }">
@@ -97,8 +104,6 @@ module.exports = {
       solutionCount: {},
     };
   },
-  computed: {},
-  methods: {},
   methods: {
     getCurrentUser() {
       this.$api.admins.getCurrentUser().then((response) => {

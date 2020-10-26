@@ -81,6 +81,8 @@ hello
 │   └── helloActor.py
 ├── chats
 │   └── helloChatflow.py
+├── services
+│   └── testservice.py
 ├── package.py
 ├── package.toml
 └── __init__.py
@@ -146,7 +148,7 @@ Some components will be defined by default based on the parent package classes i
     <br />
     Example
 
-        ```python3
+        ```python
         from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
         from jumpscale.loader import j
 
@@ -189,6 +191,27 @@ Some components will be defined by default based on the parent package classes i
                 self.age = self.string_ask("How old are you?",required=True)
 
         chat = HelloChatflow
+        ```
+- **services**
+    - services directory contains the background services that run with the package
+    - Parent class : `from jumpscale.tools.servicemanager.servicemanager import BackgroundService`
+    <br />
+    Example
+
+        ```python
+        from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+
+        class TestService(BackgroundService):
+          def __init__(self, name="packagename_test", interval=20, *args, **kwargs):
+            """
+                Test service that runs every 1 hour
+            """
+            super().__init__(name, interval, *args, **kwargs)
+
+          def job(self):
+            print("[Packagename - Test Service] Done")
+
+        service = TestService()
         ```
 
 ### Configuration

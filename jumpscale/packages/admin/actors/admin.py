@@ -74,6 +74,10 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
+    def get_current_identity_name(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.core.identity.me.instance_name})
+
+    @actor_method
     def set_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
@@ -157,6 +161,20 @@ class Admin(BaseActor):
     def clear_blocked_nodes(self) -> str:
         j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
+
+    @actor_method
+    def get_notifications(self) -> str:
+        notifications = []
+        if j.tools.notificationsqueue.count() >= 10:
+            notifications = j.tools.notificationsqueue.fetch()
+        else:
+            notifications = j.tools.notificationsqueue.fetch(10)
+        ret = [notification.json for notification in notifications]
+        return j.data.serializers.json.dumps({"data": ret})
+
+    @actor_method
+    def get_notifications_count(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.tools.notificationsqueue.count()})
 
 
 Actor = Admin
