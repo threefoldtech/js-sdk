@@ -17,7 +17,7 @@ import random
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -150,6 +150,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             self.password,
             compute_pool_id=self.pool_id,
             node_id=node_id,
+            solution_info={"flist": self.FLIST_URL},
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)

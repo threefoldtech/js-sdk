@@ -1,7 +1,7 @@
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.packages.threebot_deployer.bottle.utils import (
     list_threebot_solutions,
-    start_threebot_solution,
+    redeploy_threebot_solution,
     get_threebot_zos,
 )
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
@@ -76,7 +76,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Deploying", disable_previous=True)
     def deploy(self):
         self.md_show_update("Starting your 3Bot...")
-        start_threebot_solution(self.username, self.threebot_info["solution_uuid"], self.password)
+        redeploy_threebot_solution(
+            self.username, self.threebot_info["solution_uuid"], self.password, solution_info={"flist": self.FLIST_URL}
+        )
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

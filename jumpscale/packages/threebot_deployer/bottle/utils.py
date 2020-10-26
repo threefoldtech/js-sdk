@@ -421,7 +421,3 @@ def redeploy_threebot_solution(
             USER_THREEBOT_FACTORY.delete(f"threebot_{solution_uuid}")
             j.logger.debug("deployment successful")
     return user_threebot
-
-
-def start_threebot_solution(owner, solution_uuid, password):
-    return redeploy_threebot_solution(owner, solution_uuid, password)
