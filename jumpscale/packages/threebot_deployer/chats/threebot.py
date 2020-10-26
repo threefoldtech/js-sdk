@@ -130,9 +130,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Welcome")
     def create_or_recover(self):
+        self.recovery_network_name = "testnet" if "test" not in j.core.identity.me.explorer_url else "mainnet"
         self.action = self.single_choice(
-            "Would you like to create a new 3Bot instance, or recover an existing one?",
-            ["Create", "Recover"],
+            f"Would you like to create a new 3Bot instance, or import one from {self.recovery_network_name}?",
+            ["Create", "Import"],
             required=True,
         )
 
@@ -140,7 +141,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def get_solution_name(self):
         self._threebot_start()
         valid = False
-        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Recover" else self.CREATE_NAME_MESSAGE
+        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Import" else self.CREATE_NAME_MESSAGE
         while not valid:
             self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True)
             threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
@@ -154,10 +155,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             if valid and self.action == "Create" and self._existing_3bot():
                 valid = False
                 self.md_show(
-                    "The specified 3Bot name was deployed before. Please go to the previous step and choose recover or enter a new name."
+                    f"The specified 3Bot name was deployed before on {self.recovery_network_name}. Please go to the previous step and choose import or enter a new name."
                 )
 
-            if valid and self.action == "Recover" and not self._existing_3bot():
+            if valid and self.action == "Import" and not self._existing_3bot():
                 valid = False
                 self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
@@ -261,11 +262,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def set_backup_password(self):
         message = (
             "Please enter the recovery password"
-            if self.action == "Recover"
+            if self.action == "Import"
             else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-        while self.action == "Recover" and not self._verify_password(self.backup_password):
+        while self.action == "Import" and not self._verify_password(self.backup_password):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 

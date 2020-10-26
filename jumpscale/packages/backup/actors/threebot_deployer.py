@@ -24,7 +24,11 @@ class Backup(BaseActor):
 
     @property
     def ssh_dir_path(self):
-        ssh_path = j.sals.fs.join_paths("/root/", ".ssh")
+        username = j.sals.unix.get_current_pwd().pw_name
+        path = j.core.dirs.HOMEDIR
+        if username == "root":
+            path = "/root/"
+        ssh_path = j.sals.fs.join_paths(path, ".ssh")
         if not j.sals.fs.exists(ssh_path):
             j.sals.fs.mkdir(ssh_path)
         return ssh_path
