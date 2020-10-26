@@ -724,7 +724,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         node_metadata = defaultdict(dict)
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
-            decrypted_metadata = self.decrypt_metadata(workload.info.metadata)
+            decrypted_metadata = self.decrypt_metadata(workload.info.metadata, identity_name)
             metadata_dict = j.data.serializers.json.loads(decrypted_metadata)
             node_metadata[workload.info.node_id].update(metadata_dict)
             if not owner and metadata_dict.get("owner"):
@@ -751,7 +751,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             old_metadata = node_metadata.get(resource.info.node_id, {})
             old_metadata.pop("parent_network", None)
             metadata.update(old_metadata)
-            resource.info.metadata = self.encrypt_metadata(metadata)
+            resource.info.metadata = self.encrypt_metadata(metadata, identity_name)
             result.append(j.sals.zos.get().workloads.deploy(resource))
             parent_id = result[-1]
         return result
