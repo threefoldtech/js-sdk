@@ -35,6 +35,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
+        self.branch = "development_3botdeployer"
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.non_running_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value
@@ -150,7 +151,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             self.password,
             compute_pool_id=self.pool_id,
             node_id=node_id,
-            solution_info={"flist": self.FLIST_URL},
+            solution_info={"flist": self.FLIST_URL, "branch": self.branch},
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)

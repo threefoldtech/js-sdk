@@ -29,6 +29,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
+        self.branch = "development_3botdeployer"
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.non_running_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] != ThreebotState.RUNNING.value
@@ -77,7 +78,10 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     def deploy(self):
         self.md_show_update("Starting your 3Bot...")
         redeploy_threebot_solution(
-            self.username, self.threebot_info["solution_uuid"], self.password, solution_info={"flist": self.FLIST_URL}
+            self.username,
+            self.threebot_info["solution_uuid"],
+            self.password,
+            solution_info={"flist": self.FLIST_URL, "branch": self.branch},
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)
