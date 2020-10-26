@@ -34,7 +34,7 @@
           <template v-slot:item.actions="{ item }">
             <v-tooltip top v-if="deployed3botsStatus[item.state] === 3" >
               <template v-slot:activator="{ on, attrs }">
-                <v-btn icon :href="`https://${item.domain}/admin`">
+                <v-btn icon :href="`https://${item.domain}/admin`" target="_blank">
                   <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
                 </v-btn>
               </template>
