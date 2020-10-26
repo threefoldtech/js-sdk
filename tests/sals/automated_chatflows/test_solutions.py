@@ -147,7 +147,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             j.sals.nettools.tcp_connection_test(minio.ip_addresses[0], port=9000, timeout=40),
             "minio is not reached after 40 second",
         )
-        request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False)
+        request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test04_monitoring(self):
@@ -165,11 +165,11 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = monitoring.solution_id
 
         self.info("Check that Prometheus UI is reachable. ")
-        request = j.tools.http.get(f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False)
+        request = j.tools.http.get(f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
         self.info("Check that Grafana UI is reachable.")
-        request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False)
+        request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
         self.assertIn("login", request.content.decode())
 
@@ -198,7 +198,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = generic_flist.solution_id
 
         self.info("Check that the container coreX is reachable.")
-        request = j.tools.http.get(f"http://{generic_flist.ip_address}:7681", verify=False)
+        request = j.tools.http.get(f"http://{generic_flist.ip_address}:7681", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test06_exposed_flist(self):
@@ -225,5 +225,5 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = exposed.solution_id
 
         self.info("Check that the container coreX is reachable through the subdomain.")
-        request = j.tools.http.get(f"http://{exposed.domain}", verify=False)
+        request = j.tools.http.get(f"http://{exposed.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)

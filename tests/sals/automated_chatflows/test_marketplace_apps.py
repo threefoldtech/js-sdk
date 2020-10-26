@@ -43,7 +43,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = wiki.solution_id
 
         self.info("Check that the wiki is reachable.")
-        request = j.tools.http.get(f"https://{wiki.domain}", verify=False)
+        request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
         self.assertIn("TF Grid", request.content.decode())
 
@@ -63,7 +63,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = blog.solution_id
 
         self.info("Check that the blog is reachable.")
-        request = j.tools.http.get(f"https://{blog.domain}", verify=False)
+        request = j.tools.http.get(f"https://{blog.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test03_website(self):
@@ -82,7 +82,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = website.solution_id
 
         self.info("Check that the website is reachable.")
-        request = j.tools.http.get(f"https://{website.domain}", verify=False)
+        request = j.tools.http.get(f"https://{website.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
         self.assertIn("We are building companies", request.content.decode())
 
@@ -99,7 +99,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = mattermost.solution_id
 
         self.info("Check that Mattermost is reachable.")
-        request = j.tools.http.get(f"http://{mattermost.domain}", verify=False)
+        request = j.tools.http.get(f"http://{mattermost.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test05_cryptpad(self):
@@ -115,7 +115,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = cryptpad.solution_id
 
         self.info("Check that Cryptpad is reachable")
-        request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False)
+        request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test06_gitea(self):
@@ -131,7 +131,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = gitea.solution_id
 
         self.info("Check that Gitea is reachable.")
-        request = j.tools.http.get(f"https://{gitea.domain}", verify=False)
+        request = j.tools.http.get(f"https://{gitea.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test07_discourse(self):
@@ -152,7 +152,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = discourse.solution_id
 
         self.info("Check that Discourse is reachable.")
-        request = j.tools.http.get(f"https://{discourse.domain}", verify=False)
+        request = j.tools.http.get(f"https://{discourse.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
         self.assertIn("Congratulations, you installed TFT Forum!", request.content.decode())
 
@@ -169,7 +169,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = peertube.solution_id
 
         self.info("Check that Peertube is reachable.")
-        request = j.tools.http.get(f"https://{peertube.domain}", verify=False)
+        request = j.tools.http.get(f"https://{peertube.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
         self.assertIn("PeerTube", request.content.decode())
 
@@ -196,5 +196,5 @@ class MarketplaceChatflows(ChatflowsBase):
         self.solution_uuid = taiga.solution_id
 
         self.info("Check that Taiga is reachable.")
-        request = j.tools.http.get(f"https://{taiga.domain}", verify=False)
+        request = j.tools.http.get(f"https://{taiga.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)

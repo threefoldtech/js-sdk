@@ -40,7 +40,7 @@ class ThreebotChatflows(ChatflowsBase):
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that threebot is reachable.")
-        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
+        request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test02_recover_threebot(self):
@@ -67,7 +67,7 @@ class ThreebotChatflows(ChatflowsBase):
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that the threebot has been recovered is reachable.")
-        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
+        request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=5)
         self.assertEqual(request.status_code, 200)
 
     def test03_extend_threebot(self):
