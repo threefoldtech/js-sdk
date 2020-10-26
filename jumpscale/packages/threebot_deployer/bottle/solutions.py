@@ -14,7 +14,7 @@ from jumpscale.core.base import StoredFactory
 app = Bottle()
 
 
-@app.route("/api/threebots/list-all")
+@app.route("/api/threebots/list")
 @login_required
 def list_threebots() -> str:
     user_info = j.data.serializers.json.loads(get_user_info())
