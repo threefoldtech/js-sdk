@@ -273,6 +273,9 @@ Basic Package functionalities and properties
   "hello from foo's actor"%
   ```
 
+
+**Note** that adding a package will reload python modules for all chats and actors.
+
 ## ssl
 
 - If you to generate certificates to your website/package you can specify it in the package.toml explicitly.
