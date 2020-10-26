@@ -1,5 +1,5 @@
 from jumpscale.packages.tfgrid_solutions.chats.pools import PoolReservation
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class PoolAutomated(GedisChatBotPatch, PoolReservation):
@@ -24,3 +24,10 @@ class PoolAutomated(GedisChatBotPatch, PoolReservation):
         PAYMENT: "wallet_name",
         EXTEND_POOL: "pool_name",
     }
+
+    def single_choice(self, msg, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        for m in args[0]:
+            if selected in m:
+                return m
+        return selected

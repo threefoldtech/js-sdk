@@ -97,11 +97,11 @@ const WEB_SOCIAL = {
             helpLink: "https://now.threefold.io/now/docs/video-sharing/",
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
         },
-        videochat: {
+        meetings: {
             name: "Video Chat",
-            type: "videochat",
+            type: "meetings",
             image: "./assets/video_chat.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/video-conf/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
         },
