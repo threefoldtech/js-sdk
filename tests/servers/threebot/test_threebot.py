@@ -162,13 +162,16 @@ class Test3BotServer(BaseTests):
         - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
+        from jumpscale.packages import marketplace
+        path = j.sals.fs.dirname(marketplace.__file__)
+
         marketplace = j.servers.threebot.default.packages.add(
-            "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION)
+            path
         )
         marketplace_dir = {
             "marketplace": {
                 "name": "marketplace",
-                "path": "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION),
+                "path": path,
                 "giturl": None,
                 "kwargs": {},
             }
