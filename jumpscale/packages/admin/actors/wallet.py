@@ -11,9 +11,9 @@ class Wallet(BaseActor):
         if "testnet" in explorer.url or "devnet" in explorer.url:
             wallettype = "TEST"
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
-            raise j.exceptions.Value("Name already exists")
+        if j.clients.stellar.find(name):
+            raise j.exceptions.Value(f"Wallet {name} already exists")
+
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
@@ -26,8 +26,14 @@ class Wallet(BaseActor):
             raise j.exceptions.JSException("Error on wallet activation")
 
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        try:
+            for asset_code in trustlines.keys():
+                wallet.add_known_trustline(asset_code)
+        except Exception:
+            j.clients.stellar.delete(name=name)
+            raise j.exceptions.JSException(
+                f"Failed to add trustlines to wallet {name}. Any changes made will be reverted."
+            )
 
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})

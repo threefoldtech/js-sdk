@@ -1,5 +1,5 @@
-from utils.gedispatch import GedisChatBotPatch
 from jumpscale.packages.tfgrid_solutions.chats.minio import MinioDeploy
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class MinioAutomated(GedisChatBotPatch, MinioDeploy):

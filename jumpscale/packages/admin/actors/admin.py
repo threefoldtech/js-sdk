@@ -122,17 +122,35 @@ class Admin(BaseActor):
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
+        sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
-            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+            {
+                "data": {
+                    "test_cert": test_cert,
+                    "over_provision": over_provision,
+                    "explorer_logs": explorer_logs,
+                    "sort_nodes_by_sru": sort_nodes_by_sru,
+                }
+            }
         )
 
     @actor_method
-    def set_developer_options(self, test_cert: bool, over_provision: bool, explorer_logs: bool) -> str:
+    def set_developer_options(
+        self, test_cert: bool, over_provision: bool, explorer_logs: bool, sort_nodes_by_sru: bool
+    ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
+        j.core.config.set("SORT_NODES_BY_SRU", sort_nodes_by_sru)
         return j.data.serializers.json.dumps(
-            {"data": {"test_cert": test_cert, "over_provision": over_provision, "explorer_logs": explorer_logs}}
+            {
+                "data": {
+                    "test_cert": test_cert,
+                    "over_provision": over_provision,
+                    "explorer_logs": explorer_logs,
+                    "sort_nodes_by_sru": sort_nodes_by_sru,
+                }
+            }
         )
 
     @actor_method
