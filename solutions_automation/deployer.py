@@ -26,30 +26,32 @@ def deploy_gitea(solution_name, wg_config="NO", debug=True):
 
 
 def deploy_cryptpad(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return CryptpadAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return CryptpadAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
 
 
 def deploy_mattermost(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return MattermostAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return MattermostAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
+
 
 def deploy_meetings(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return MeetingsAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return MeetingsAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
+
 
 def deploy_wiki(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WikiAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
 def deploy_website(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WebsiteAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
 def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return BlogAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
@@ -65,7 +67,7 @@ def deploy_discourse(solution_name, host_email, smtp_host, host_email_password, 
 
 
 def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
 
 
 def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secret, wg_config="NO", debug=True):
@@ -299,10 +301,8 @@ def create_network(
     )
 
 
-def add_access_to_network(
-    network_name, ip_version="IPv4", debug=True,
-):
-    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True,)
+def add_access_to_network(network_name, ip_version="IPv4", debug=True):
+    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True)
 
 
 def deploy_exposed(
@@ -330,7 +330,7 @@ def deploy_exposed(
 
 
 def create_pool(
-    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
+    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True
 ):
     return PoolAutomated(
         type="create",
@@ -345,9 +345,7 @@ def create_pool(
     )
 
 
-def extend_pool(
-    pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
-):
+def extend_pool(pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="extend",
         pool_name=pool_name,
