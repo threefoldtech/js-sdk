@@ -437,13 +437,14 @@ class MarketPlaceDeployer(ChatflowDeployer):
             result_pool = sorted_result[0]
             return result_pool, result_pool.cus - required_cu, result_pool.sus - required_su
 
-    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4", identity_name=None):
+    def init_new_user_network(self, bot, username, pool_id, ip_version="IPv4", identity_name=None, network_name=None):
+        network_name = network_name or f"{username}_apps"
         access_node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
             1, pool_ids=[pool_id], ip_version=ip_version
         )[0]
         identity_name = identity_name or j.core.identity.me.instance_name
         result = self.deploy_network(
-            name=f"{username}_apps",
+            name=network_name,
             access_node=access_node,
             ip_range="10.100.0.0/16",
             ip_version="IPv4",

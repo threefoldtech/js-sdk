@@ -57,10 +57,10 @@ class Backup(BaseActor):
         else:
             try:
                 self.ssh_server1.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    f"cd /root/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
                 self.ssh_server2.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    f"cd /root/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
                 )
             except:
                 raise j.exceptions.Value(f"3Bot name or password is incorrect")

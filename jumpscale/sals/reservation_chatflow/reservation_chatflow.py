@@ -1601,7 +1601,7 @@ class ReservationChatflow:
         count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
         expiration = count * NODES_DISALLOW_EXPIRATION
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
-        j.core.db.set(node_key, expiration, ex=expiration)
+        j.core.db.set(node_key, j.data.time.utcnow().timestamp + expiration, ex=expiration)
 
     def unblock_node(self, node_id, reset=True):
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
