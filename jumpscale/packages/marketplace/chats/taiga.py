@@ -8,7 +8,7 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 
 
 class TaigaDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-restic-latest.flist"
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
     steps = [

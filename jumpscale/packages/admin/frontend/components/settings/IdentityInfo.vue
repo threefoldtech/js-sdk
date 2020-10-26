@@ -30,7 +30,9 @@
                 <v-text-field
                   hide-details
                   :value="identity.words"
-                  readonly solo flat
+                  readonly
+                  solo
+                  flat
                   :append-icon="showWords ? 'mdi-eye' : 'mdi-eye-off'"
                   :type="showWords ? 'text' : 'password'"
                   @click:append="showWords = !showWords"
@@ -45,69 +47,89 @@
       <v-btn icon @click.stop="deleteIdentity">
         <v-icon color="primary" left>mdi-delete</v-icon>
       </v-btn>
-      <v-btn text color="primary" @click.stop="setDefault" >Set Default</v-btn>
-      <v-btn text color="error" @click.done="close">Close</v-btn>
+      <v-btn text color="primary" :disabled="name == currentIdentity" @click.stop="setDefault">Set Default</v-btn>
+      <v-btn text class="text--lighten-1" color="red" @click.done="close">Close</v-btn>
     </template>
   </base-dialog>
 </template>
 
 <script>
-
 module.exports = {
-  props: {name: String},
+  props: { name: String },
   mixins: [dialog],
-  data () {
+  data() {
     return {
       identity: null,
-      showWords: false
-    }
+      showWords: false,
+      currentIdentity: null,
+    };
   },
   watch: {
-    dialog (val) {
+    dialog(val) {
       if (val) {
-        this.getIdentityInfo()
+        this.getIdentityInfo();
+        this.getCurrentIdentity();
       } else {
-        this.identity = null
+        this.identity = null;
       }
-    }
+    },
   },
   methods: {
-    getIdentityInfo () {
-      this.loading = true
-      this.$api.identities.getIdentity(this.name).then((response) => {
-        this.identity = JSON.parse(response.data).data
-      }).finally(() => {
-        this.loading = false
-      })
-    },
-    setDefault(){
-        this.$api.identities.setIdentity(this.name).then((response) => {
-          this.$parent.$parent.$parent.$parent.getIdentity()
-          this.done("Identity Updated", "success")
-          window.location.reload()
-        }).catch((error) => {
-          console.log(error)
-          this.alert("Failed to update identity", "error")
-        }).finally(()=>{
-          this.dialog = false
+    getIdentityInfo() {
+      this.loading = true;
+      this.$api.identities
+        .getIdentity(this.name)
+        .then((response) => {
+          this.identity = JSON.parse(response.data).data;
         })
-
-      },
-    deleteIdentity(){
-      this.$api.identities.deleteIdentity(this.name).then((response) => {
-        responseMessage = JSON.parse(response.data).data
-        if(responseMessage == "Cannot delete current default identity"){
-          this.alert(responseMessage, "error")
-        }
-        else{
-          this.done("Identity deleted", "success")
-        }
-      }).catch((error) => {
-        this.alert("Failed to delete identity", "error")
-      }).finally(()=>{
-          this.dialog = false
-      })
-    }
-  }
-}
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    getCurrentIdentity() {
+      this.$api.identities
+        .currentIdentity()
+        .then((response) => {
+          this.currentIdentity = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.identities = false;
+        });
+    },
+    setDefault() {
+      this.$api.identities
+        .setIdentity(this.name)
+        .then((response) => {
+          this.$parent.$parent.$parent.$parent.getIdentity();
+          this.done("Identity Updated", "success");
+          window.location.reload();
+        })
+        .catch((error) => {
+          console.log(error);
+          this.alert("Failed to update identity", "error");
+        })
+        .finally(() => {
+          this.dialog = false;
+        });
+    },
+    deleteIdentity() {
+      this.$api.identities
+        .deleteIdentity(this.name)
+        .then((response) => {
+          responseMessage = JSON.parse(response.data).data;
+          if (responseMessage == "Cannot delete current default identity") {
+            this.alert(responseMessage, "error");
+          } else {
+            this.done("Identity deleted", "success");
+          }
+        })
+        .catch((error) => {
+          this.alert("Failed to delete identity", "error");
+        })
+        .finally(() => {
+          this.dialog = false;
+        });
+    },
+  },
+};
 </script>

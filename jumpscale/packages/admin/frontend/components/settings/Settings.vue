@@ -171,6 +171,21 @@
                 :label="`Enable auto pool extention`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
+                v-model="sortNodesBySru"
+                :label="`Sort nodes by SRU`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
+              <v-btn
+                hide-details
+                class="my-2 ml-2"
+                small
+                color="info"
+                @click="showConfig()"
+                >Show 3Bot configurations</v-btn
+              >
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -211,6 +226,27 @@
       v-model="dialogs.addIdentity"
       @done="listIdentities"
     ></add-identity>
+    =======
+    <remove-admin
+      v-model="dialogs.removeAdmin"
+      :name="selectedAdmin"
+      @done="listAdmins"
+    ></remove-admin>
+    <identity-info
+      v-model="dialogs.identityInfo"
+      :name="selectedIdentity"
+      @done="listIdentities"
+    ></identity-info>
+    <add-identity
+      v-model="dialogs.addIdentity"
+      @done="listIdentities"
+    ></add-identity>
+    <config-view
+      v-if="configurations"
+      v-model="dialogs.configurations"
+      :data="configurations"
+    ></config-view>
+    >>>>>>> development
   </div>
 </template>
 
@@ -223,6 +259,7 @@ module.exports = {
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
+    "config-view": httpVueLoader("./ConfigurationsInfo.vue"),
   },
   data() {
     return {
@@ -241,6 +278,7 @@ module.exports = {
         addIdentity: false,
         escalationEmail: false,
         emailServerConfig: false,
+        configurations: false,
       },
       admins: [],
       escalationEmails: [],
@@ -248,11 +286,13 @@ module.exports = {
       identity: null,
       selectedIdentity: null,
       identities: [],
+      configurations: null,
       testCert: false,
       overProvision: false,
       explorerLogs: false,
       escalationEmailsEnabled: false,
       autoPoolExtend: false,
+      sortNodesBySru: false,
     };
   },
   methods: {
@@ -328,10 +368,10 @@ module.exports = {
     },
     getCurrentIdentity() {
       this.loading.identities = true;
-      this.$api.admins
-        .getCurrentUser()
+      this.$api.identities
+        .currentIdentity()
         .then((response) => {
-          this.identity = response.data.username;
+          this.identity = JSON.parse(response.data).data;
         })
         .finally(() => {
           this.loading.identities = false;
@@ -348,12 +388,23 @@ module.exports = {
         });
     },
     getColor(identityInstanceName) {
-      this.identity = this.identity.replace(".3bot", "");
       if (identityInstanceName == this.identity) {
         return "primary";
       } else {
         return "";
       }
+    },
+    showConfig() {
+      this.loading.developerOptions = true;
+      this.$api.admins
+        .getConfig()
+        .then((response) => {
+          this.configurations = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.dialogs.configurations = true;
+          this.loading.developerOptions = false;
+        });
     },
     getDeveloperOptions() {
       this.loading.developerOptions = true;
@@ -366,6 +417,7 @@ module.exports = {
           this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
           this.autoPoolExtend = developerOptions["auto_pool_extend"];
+          this.sortNodesBySru = developerOptions["sort_nodes_by_sru"];
         })
         .finally(() => {
           this.loading.developerOptions = false;
@@ -378,7 +430,8 @@ module.exports = {
           this.overProvision,
           this.explorerLogs,
           this.escalationEmailsEnabled,
-          this.autoPoolExtend
+          this.autoPoolExtend,
+          this.sortNodesBySru
         )
         .then((response) => {
           this.alert("Developer options updated", "success");

@@ -1,6 +1,5 @@
 import os
 import time
-from unittest import TestCase
 from urllib.parse import urljoin
 
 from selenium import webdriver
@@ -9,10 +8,11 @@ from selenium.webdriver.chrome.options import Options
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.packages.admin.bottle.models import UserEntry
+from tests.base_tests import BaseTests
 from tests.frontend.pages.base import Base
 
 
-class BaseTest(TestCase):
+class BaseTest(BaseTests):
     @classmethod
     def setUpClass(cls):
         # Set auto login config to disable 3bot connect login.
@@ -23,7 +23,7 @@ class BaseTest(TestCase):
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
         cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
-        if not (cls.tname and cls.email and cls.words):
+        if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 
         # Check if there is identity registered to set it back after the tests are finished.
@@ -32,8 +32,9 @@ class BaseTest(TestCase):
             cls.me = j.core.identity.me
 
         # Accept T&C for testing identity.
-        user_factory = StoredFactory(UserEntry)
-        user_entry = user_factory.get(f"{cls.tname.replace('.3bot', '')}")
+        cls.user_entry_name = f"{cls.tname.replace('.3bot', '')}"
+        cls.user_factory = StoredFactory(UserEntry)
+        user_entry = cls.user_factory.get(cls.user_entry_name)
         user_entry.has_agreed = True
         user_entry.tname = cls.tname
         user_entry.save()
@@ -44,7 +45,7 @@ class BaseTest(TestCase):
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
         )
         identity.register()
-        j.core.identity.set_default(cls.identity_name)
+        identity.set_default()
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
 
@@ -59,7 +60,10 @@ class BaseTest(TestCase):
 
         # Restore the user identity
         if cls.me:
-            j.core.identity.set_default(cls.me.instance_name)
+            cls.me.set_default()
+
+        # Remove userEntry for accepting T&C
+        cls.user_factory.delete(cls.user_entry_name)
 
     def setUp(self):
         # Configure chrome driver and go to the entrypoint.
@@ -81,9 +85,3 @@ class BaseTest(TestCase):
         if self._outcome.errors:
             self.driver.save_screenshot(f"{self._testMethodName}.png")
         self.driver.quit()
-
-    def info(self, msg):
-        j.logger.info(msg)
-
-    def random_str(self):
-        return j.data.random_names.random_name()

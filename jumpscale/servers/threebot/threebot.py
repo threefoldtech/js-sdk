@@ -18,6 +18,7 @@ GEDIS = "gedis"
 GEDIS_HTTP = "gedis_http"
 GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
+SERVICE_MANAGER = "service_manager"
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {
@@ -207,6 +208,13 @@ class Package:
         self.default_email = default_email
         self.kwargs = kwargs or {}
 
+    def _load_files(self, dir_path):
+        for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
+            file_name = j.sals.fs.basename(file_path)
+            if file_name.endswith(".py"):
+                name = f"{self.name}_{file_name[:-3]}"
+                yield dict(name=name, path=file_path)
+
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
 
@@ -245,6 +253,12 @@ class Package:
             return chats_dir
 
     @property
+    def services_dir(self):
+        services_dir = j.sals.fs.join_paths(self.path, self.config.get("services_dir", "services"))
+        if j.sals.fs.exists(services_dir):
+            return services_dir
+
+    @property
     def static_dirs(self):
         return self.config.get("static_dirs", [])
 
@@ -254,11 +268,11 @@ class Package:
 
     @property
     def actors(self):
-        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name = j.sals.fs.basename(file_path)
-            if file_name.endswith(".py"):
-                actor_name = f"{self.name}_{file_name[:-3]}"
-                yield dict(name=actor_name, path=file_path)
+        return self._load_files(self.actors_dir)
+
+    @property
+    def services(self):
+        return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         """Resolves path for static location in case we need it
@@ -343,6 +357,7 @@ class PackageManager(Base):
             package = self.get(pkg)
             if package:
                 if j.sals.fs.exists(package.path):
+                    chatflows = True if package.chats_dir else False
                     all_packages.append(
                         {
                             "name": pkg,
@@ -351,6 +366,7 @@ class PackageManager(Base):
                             "system_package": pkg in DEFAULT_PACKAGES.keys(),
                             "installed": True,
                             "frontend": package.config.get("frontend", False),
+                            "chatflows": chatflows,
                         }
                     )
                 else:
@@ -467,6 +483,11 @@ class PackageManager(Base):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
+        # stop background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service["name"])
+
         if self.threebot.started:
             # unregister gedis actors
             gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -479,9 +500,7 @@ class PackageManager(Base):
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
-                j.logger.warning(
-                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
-                )
+                j.logger.warning(f"Couldn't unload the chats of package {package_name}, this is the exception {str(e)}")
 
             # reload nginx
             self.threebot.nginx.reload()
@@ -525,6 +544,12 @@ class PackageManager(Base):
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
+
+        # start background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.add_service(service["path"])
+
         # start servers
         self.threebot.rack.start()
 
@@ -611,12 +636,14 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
+        self._services = None
         self._packages = None
         self._started = False
         self._nginx = None
         self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
+        self.rack.add(SERVICE_MANAGER, self.services)
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
@@ -665,6 +692,12 @@ class ThreebotServer(Base):
         if self._gedis_http is None:
             self._gedis_http = j.servers.gedis_http.get("threebot")
         return self._gedis_http
+
+    @property
+    def services(self):
+        if self._services is None:
+            self._services = j.tools.servicemanager.get("threebot")
+        return self._services
 
     @property
     def chatbot(self):

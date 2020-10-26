@@ -30,10 +30,17 @@ class GithubClientTest(BaseTests):
             j.sals.fs.rmtree(f"/tmp/{self.directory_name}/")
 
     def wait_for_deleting_repo(self, sec, repo):
-        while sec:
-            if repo.full_name in str(self.client.get_repos()):
+        for _ in range(sec):
+            if repo.name in str(self.client.get_repos()):
                 sleep(1)
-                sec -= 1
+            else:
+                return True
+        return False
+
+    def wait_for_creating_repo(self, sec, repo):
+        for _ in range(sec):
+            if repo.name not in str(self.client.get_repos()):
+                sleep(1)
             else:
                 return True
         return False
@@ -74,13 +81,14 @@ class GithubClientTest(BaseTests):
         self.info("Create a repository")
         repo_name = self.random_name()
         repo = self.client.create_repo(name=repo_name,)
+        self.assertTrue(self.wait_for_creating_repo(5, repo), "repository is not created after 5 second")
 
         self.info("Delete this repository")
         self.client.delete_repo(repo_name=repo.name)
 
-        self.assertTrue(self.wait_for_deleting_repo(3, repo), "repository is not deleted after 3 second")
+        self.assertTrue(self.wait_for_deleting_repo(5, repo), "repository is not deleted after 5 second")
         self.info("Check that this repository has been deleted")
-        self.assertNotIn(str(self.client.get_repos()), self.repo_name)
+        self.assertNotIn(repo_name, str(self.client.get_repos()))
 
     def test04_github_set_file(self):
         """Test case for set a file to repository.
@@ -100,6 +108,7 @@ class GithubClientTest(BaseTests):
         f_name = self.random_name()
         content = self.random_name()
         created_repo = self.client.create_repo(name=self.repo_name, auto_init=True)
+        self.assertTrue(self.wait_for_creating_repo(5, created_repo), "repository is not created after 5 second")
         repo = self.client.get_repo(repo_full_name=created_repo.full_name)
 
         self.info("Create file and set to repository")

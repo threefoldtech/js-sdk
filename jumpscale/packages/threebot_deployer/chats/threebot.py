@@ -18,7 +18,7 @@ FLAVORS = {
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -29,6 +29,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "set_backup_password",
         "choose_location",
         "choose_deployment_location",
+        "email_settings",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -102,7 +103,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
-            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query,
+            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query
         )
         if self.pool_info.escrow_information.address.strip() == "":
             raise StopChatFlow(
@@ -113,7 +114,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.wgcfg = deployer.init_new_user_network(
-            self, self.identity_name, self.pool_info.reservation_id, identity_name=self.identity_name,
+            self, self.identity_name, self.pool_info.reservation_id, identity_name=self.identity_name
         )
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view(f"{self.identity_name}_apps", identity_name=self.identity_name)
@@ -259,6 +260,21 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
+    @chatflow_step(title="Email settings (Optional)")
+    def email_settings(self):
+        form = self.new_form()
+        email_host_user = form.string_ask("E-mail address for your solution")
+        email_host = form.string_ask("SMTP host example: `smtp.gmail.com`", default="smtp.gmail.com", md=True)
+        email_host_password = form.secret_ask("Host e-mail password")
+
+        escalation_mail_address = form.string_ask("Email address to receive email notifications on")
+
+        form.ask("Please fill in these email configuration settings if you want to receive notifications on")
+        self.email_host_user = email_host_user.value or ""
+        self.email_host = email_host.value or ""
+        self.email_host_password = email_host_password.value or ""
+        self.escalation_mail_address = escalation_mail_address.value or ""
+
     @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):
         self.currency = self.single_choice(
@@ -308,6 +324,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.backup_model.token = backup_token
         self.backup_model.tname = self.solution_metadata["owner"]
         self.backup_model.save()
+
         # 3- deploy threebot container
         environment_vars = {
             "SDK_VERSION": self.branch,
@@ -317,6 +334,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
+            # email settings
+            "EMAIL_HOST": self.email_host,
+            "EMAIL_HOST_USER": self.email_host_user,
+            "EMAIL_HOST_PASSWORD": self.email_host_password,
+            "ESCALATION_MAIL": self.escalation_mail_address,
         }
         self.network_view = self.network_view.copy()
 

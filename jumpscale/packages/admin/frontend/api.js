@@ -134,6 +134,14 @@ const apiClient = {
             return axios({
                 url: `${baseURL}/packages/packages_names`
             })
+        },
+        listChatEndpoints: (name) => {
+            return axios({
+                url: `${baseURL}/packages/list_chat_urls`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
+            })
         }
     },
     admins: {
@@ -163,22 +171,37 @@ const apiClient = {
                 url: `/auth/authenticated/`
             })
         },
+        getConfig: () => {
+            return axios({
+                url: `${baseURL}/admin/get_config`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoPoolExtend) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, sortNodesBySRU, escalationEmails, autoPoolExtend) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, escalation_emails: escalationEmails, auto_pool_extend: autoPoolExtend }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_pool_extend: autoPoolExtend }
             })
         },
         clearBlockedNodes: () => {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
+            })
+        },
+        getNotifications: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications`,
+            })
+        },
+        getNotificationsCount: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications_count`,
             })
         }
     },
@@ -266,6 +289,11 @@ const apiClient = {
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
                 data: { identity_instance_name: identity_instance_name }
+            })
+        },
+        currentIdentity: () => {
+            return axios({
+                url: `${baseURL}/admin/get_current_identity_name`
             })
         },
         deleteIdentity: (identity_instance_name) => {

@@ -16,18 +16,9 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.clients.explorer.models import WorkloadType
 
-FLAVORS = {
-    "Silver": {"sru": 2,},
-    "Gold": {"sru": 5,},
-    "Platinum": {"sru": 10,},
-}
+FLAVORS = {"Silver": {"sru": 2}, "Gold": {"sru": 5}, "Platinum": {"sru": 10}}
 
-RESOURCE_VALUE_KEYS = {
-    "cru": "CPU {}",
-    "mru": "Memory {} GB",
-    "sru": "Disk {} GB [SSD]",
-    "hru": "Disk {} GB [HDD]",
-}
+RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} GB [SSD]", "hru": "Disk {} GB [HDD]"}
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
@@ -170,6 +161,36 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _select_node(self):
         self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
 
+    @chatflow_step(title="New Expiration")
+    def set_expiration(self):
+        self.expiration = deployer.ask_expiration(self)
+
+    @chatflow_step(title="SSH key (Optional)")
+    def upload_public_key(self):
+        self.public_key = (
+            self.upload_file(
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh"
+            )
+            or ""
+        )
+        self.public_key = self.public_key.strip()
+
+    @chatflow_step(title="Backup credentials")
+    def backup_credentials(self):
+        form = self.new_form()
+        aws_access_key_id = form.string_ask("AWS access key id", required=True)
+        aws_secret_access_key = form.secret_ask("AWS secret access key", required=True)
+        restic_password = form.secret_ask("Restic Password", required=True)
+        restic_repository = form.string_ask(
+            "Restic URL. Example: `s3backup.tfgw-testnet-01.gateway.tf`", required=True, md=True
+        )
+        form.ask("These credentials will be used to backup your solution.", md=True)
+        self.aws_access_key_id = aws_access_key_id.value
+        self.aws_secret_access_key = aws_secret_access_key.value
+        self.restic_password = restic_password.value
+        repo_name = self.solution_name.replace(".", "").replace("-", "")
+        self.restic_repository = f"s3:{restic_repository.value}/{repo_name}"
+
     @deployment_context()
     def _deploy_network(self):
         # get ip address
@@ -227,7 +248,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 self.gateway = gateway
                 self.gateway_pool = gw_dict["pool"]
                 self.domain = self.string_ask("Please specify the domain name you wish to bind to", required=True)
-                self.domain = j.sals.zos.gateway.correct_domain(self.domain)
+                self.domain = j.sals.zos.get().gateway.correct_domain(self.domain)
                 res = """\
                 ## Waiting for DNS Population...
                 Please create an `A` record in your DNS manager for domain: `{{domain}}` pointing to:
@@ -531,6 +552,29 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         self._deploy_network()
                 else:
                     raise e
+
+    @chatflow_step(title="Initializing backup")
+    def init_backup(self):
+        solution_name = self.solution_name.replace(".", "_").replace("-", "_")
+        self.md_show_update("Setting container backup")
+        SOLUTIONS_WATCHDOG_PATHS = j.sals.fs.join_paths(j.core.dirs.VARDIR, "solutions_watchdog")
+        if not j.sals.fs.exists(SOLUTIONS_WATCHDOG_PATHS):
+            j.sals.fs.mkdirs(SOLUTIONS_WATCHDOG_PATHS)
+
+        restic_instance = j.tools.restic.get(solution_name)
+        restic_instance.password = self.restic_password
+        restic_instance.repo = self.restic_repository
+        restic_instance.extra_env = {
+            "AWS_ACCESS_KEY_ID": self.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": self.aws_secret_access_key,
+        }
+        restic_instance.save()
+        try:
+            restic_instance.init_repo()
+        except Exception as e:
+            j.tools.restic.delete(solution_name)
+            raise j.exceptions.Input(f"Error: Failed to reach repo {self.restic_repository} due to {str(e)}")
+        restic_instance.start_watch_backup(SOLUTIONS_WATCHDOG_PATHS)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

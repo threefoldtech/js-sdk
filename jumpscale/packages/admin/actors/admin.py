@@ -74,6 +74,10 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
+    def get_current_identity_name(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.core.identity.me.instance_name})
+
+    @actor_method
     def set_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
@@ -100,6 +104,11 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
+    def get_config(self) -> str:
+        config_obj = j.core.config.get_config()
+        return j.data.serializers.json.dumps({"data": config_obj})
+
+    @actor_method
     def delete_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
@@ -119,6 +128,7 @@ class Admin(BaseActor):
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
         auto_pool_extend = j.core.config.set_default("AUTO_POOL_EXTEND_ENABLED", False)
+        sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -127,6 +137,7 @@ class Admin(BaseActor):
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
                     "auto_pool_extend": auto_pool_extend,
+                    "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
         )
@@ -137,6 +148,7 @@ class Admin(BaseActor):
         test_cert: bool,
         over_provision: bool,
         explorer_logs: bool,
+        sort_nodes_by_sru: bool,
         escalation_emails: bool,
         auto_pool_extend: bool,
     ) -> str:
@@ -145,7 +157,7 @@ class Admin(BaseActor):
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
         j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
         j.core.config.set("AUTO_POOL_EXTEND_ENABLED", auto_pool_extend)
-
+        j.core.config.set("SORT_NODES_BY_SRU", sort_nodes_by_sru)
         return j.data.serializers.json.dumps(
             {
                 "data": {
@@ -154,6 +166,7 @@ class Admin(BaseActor):
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
                     "auto_pool_extend": auto_pool_extend,
+                    "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
         )
@@ -199,6 +212,19 @@ class Admin(BaseActor):
             escalation_emails.remove(email)
             j.core.config.set("ESCALATION_EMAILS", escalation_emails)
         return j.data.serializers.json.dumps({"data": escalation_emails})
+
+    def get_notifications(self) -> str:
+        notifications = []
+        if j.tools.notificationsqueue.count() >= 10:
+            notifications = j.tools.notificationsqueue.fetch()
+        else:
+            notifications = j.tools.notificationsqueue.fetch(10)
+        ret = [notification.json for notification in notifications]
+        return j.data.serializers.json.dumps({"data": ret})
+
+    @actor_method
+    def get_notifications_count(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.tools.notificationsqueue.count()})
 
 
 Actor = Admin

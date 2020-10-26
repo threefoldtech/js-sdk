@@ -13,7 +13,7 @@ class TestIdentity(TestCase):
         self.tname = os.getenv("TNAME")
         self.email = os.getenv("EMAIL")
         self.words = os.getenv("WORDS")
-        if not (self.tname and self.email and self.words):
+        if not all([self.tname, self.email, self.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 
     def _get_instance(self):
@@ -106,5 +106,5 @@ class TestIdentity(TestCase):
 
     def tearDown(self):
         if self.me:
-            j.core.identity.set_default(self.me.instance_name)
+            self.me.set_default()
         j.core.identity.delete(self.instance_name)

@@ -43,6 +43,9 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_mattermost_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
 
+    def list_meetings_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("meetings", next_action, sync, "nginx", owner=username)
+
     def list_publisher_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("publisher", next_action, sync, None, owner=username)
 
@@ -329,6 +332,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "blog": 0,
             "website": 0,
             "taiga": 0,
+            "meetings": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

@@ -1359,7 +1359,7 @@ class ReservationChatflow:
             for unit, value in query.items():
                 if unit == "currency":
                     continue
-                freevalue = getattr(node.total_resources, unit) - getattr(node.used_resources, unit)
+                freevalue = getattr(node.total_resources, unit) - getattr(node.reserved_resources, unit)
                 if freevalue < value:
                     raise j.exceptions.Value(
                         f"Node {nodeid} does not have enough available {unit} resources for this request {value} required {freevalue} available, please choose another one"
@@ -1378,6 +1378,7 @@ class ReservationChatflow:
         pool_ids=None,
         filter_blocked=True,
         identity_name=None,
+        sort_by_disk_space=False,
     ):
         """get available nodes to deploy solutions on
 
@@ -1390,6 +1391,7 @@ class ReservationChatflow:
             mru (int, optional): memory resource. Defaults to None.
             hru (int, optional): hdd resources. Defaults to None.
             currency (str, optional): wanted currency. Defaults to "TFT".
+            sort_by_disk_space (bool, optional): return nodes with highest free disk space (sru). If set to False, can be overriden by SORT_NODES_BY_SRU in config
 
         Raises:
             StopChatFlow: if no nodes found
@@ -1397,6 +1399,7 @@ class ReservationChatflow:
         Returns:
             list of available nodes
         """
+        sort_by_disk_space = sort_by_disk_space or j.core.config.get("SORT_NODES_BY_SRU", False)
 
         def filter_disallowed_nodes(disallowed_node_ids, nodes):
             result = []
@@ -1424,11 +1427,23 @@ class ReservationChatflow:
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
-            for i in range(nodes_number):
+            if sort_by_disk_space:
+                nodes = sorted(nodes, key=lambda x: x.total_resources.sru - x.reserved_resources.sru, reverse=True)
+            for _ in range(nodes_number):
                 try:
-                    node = random.choice(nodes)
-                    while node.node_id in selected_ids:
+                    if sort_by_disk_space:
+                        if not nodes:
+                            raise StopChatFlow(
+                                "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
+                                htmlAlert=True,
+                            )
+                        for node in nodes:
+                            if node.node_id not in selected_ids:
+                                break
+                    else:
                         node = random.choice(nodes)
+                        while node.node_id in selected_ids:
+                            node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow(
                         "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",

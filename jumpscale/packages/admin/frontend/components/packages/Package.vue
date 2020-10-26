@@ -1,4 +1,5 @@
 <template>
+  <div>
   <v-card class="ma-4 mt-2" width="300" :loading="loading" :disabled="loading">
     <v-card-title class="primary--text">{{pkg.name}}</v-card-title>
     <v-card-subtitle v-if="pkg.system_package">System Package</v-card-subtitle>
@@ -29,6 +30,15 @@
 
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-if="pkg.installed && pkg.chatflows" @click="showChatflows()">
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-card-text-outline</v-icon>
+          </v-btn>
+        </template>
+        <span>Chatflows</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-if="pkg.installed" @click="reload(pkg.name)">
             <v-icon v-bind="attrs" v-on="on" color="primary">mdi-reload</v-icon>
           </v-btn>
@@ -46,10 +56,15 @@
       </v-tooltip>
     </v-card-actions>
   </v-card>
+  <open-chatflows v-model="dialogs.openChatflows" :name="pkg.name"></open-chatflows>
+  </div>
 </template>
 
 <script>
 module.exports = {
+  components: {
+    'open-chatflows': httpVueLoader("./Chats.vue"),
+  },
   props: {
     pkg: Object,
   },
@@ -57,6 +72,9 @@ module.exports = {
     return {
       loading: false,
       PACKAGE_PATH_MAXLENGTH: 80,
+      dialogs: {
+        openChatflows: false,
+      },
     };
   },
   methods: {
@@ -89,6 +107,9 @@ module.exports = {
         .finally(() => {
           this.loading = false;
         });
+    },
+    showChatflows() {
+      this.dialogs.openChatflows = true;
     },
   },
 };

@@ -16,6 +16,11 @@ def main():
     backup_password = os.environ.get("BACKUP_PASSWORD", None)
     test_cert = os.environ.get("TEST_CERT")
 
+    # email settings
+    email_host = os.environ.get("EMAIL_HOST")
+    email_host_user = os.environ.get("EMAIL_HOST_USER")
+    email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
+
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
     words = j.data.encryption.key_to_mnemonic(backup_password.encode().zfill(32))
@@ -60,6 +65,18 @@ def main():
             j.logger.error(str(e))
 
     j.logger.info("Starting threebot ...")
+    # configure escalation mailing
+    try:
+        email_instance = j.clients.mail.get("escalation_instance")
+        email_instance.login = email_host_user
+        email_instance.smtp_port = 587
+        email_instance.smtp_server = email_host
+        email_instance.sender_email = email_host_user
+        email_instance.password = email_host_password
+        email_instance.name = threebot_name
+        email_instance.save()
+    except Exception as e:
+        j.logger.warning("Failed to set escalation mail settings")
 
     server = j.servers.threebot.get("default")
     if test_cert == "false":
