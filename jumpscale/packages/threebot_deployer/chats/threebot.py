@@ -39,7 +39,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to recover"
+    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to import"
     CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
 
     def _threebot_start(self):
