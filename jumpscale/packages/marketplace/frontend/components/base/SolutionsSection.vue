@@ -76,7 +76,9 @@ module.exports = {
   },
   computed: {
     filteredApps() {
-      return Object.values(this.apps);
+      return Object.values(this.apps).sort(function(x,y){
+          return (x.disable === y.disable)? 0 : x.disable? 1 : -1
+        });
     },
   },
   methods: {
