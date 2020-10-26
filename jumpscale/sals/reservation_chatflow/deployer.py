@@ -444,10 +444,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not access_node and ip_version and node_filter(node):
                 access_node = node
             running_nodes += 1
-            available_cru += node.total_resources.cru - node.used_resources.cru
-            available_sru += node.total_resources.sru - node.used_resources.sru
-            available_mru += node.total_resources.mru - node.used_resources.mru
-            available_hru += node.total_resources.hru - node.used_resources.hru
+            available_cru += node.total_resources.cru - node.reserved_resources.cru
+            available_sru += node.total_resources.sru - node.reserved_resources.sru
+            available_mru += node.total_resources.mru - node.reserved_resources.mru
+            available_hru += node.total_resources.hru - node.reserved_resources.hru
 
         if not running_nodes:
             return False, available_cru, available_sru, available_mru, available_hru
