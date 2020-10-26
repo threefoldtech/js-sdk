@@ -484,8 +484,9 @@ class PackageManager(Base):
                 self.threebot.rack.remove(bottle_server)
 
         # stop background services
-        for service in package.services:
-            self.threebot.services.stop_service(service["name"])
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service["name"])
 
         if self.threebot.started:
             # unregister gedis actors
