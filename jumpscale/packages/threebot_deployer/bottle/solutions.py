@@ -28,7 +28,11 @@ def stop_threebot() -> str:
     data = j.data.serializers.json.loads(request.body.read())
     user_info = j.data.serializers.json.loads(get_user_info())
     if "password" not in data or "uuid" not in data:
-        raise j.exceptions.Validation(f"Invalid body {data}")
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": f"invalid body. missing keys"}),
+            status=400,
+            headers={"Content-Type": "application/json"},
+        )
     stop_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
     return j.data.serializers.json.dumps({"data": True})
 
@@ -39,7 +43,11 @@ def destroy_threebot() -> str:
     data = j.data.serializers.json.loads(request.body.read())
     user_info = j.data.serializers.json.loads(get_user_info())
     if "password" not in data or "uuid" not in data:
-        raise j.exceptions.Validation(f"Invalid body {data}")
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": f"invalid body. missing keys"}),
+            status=400,
+            headers={"Content-Type": "application/json"},
+        )
     delete_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
     return j.data.serializers.json.dumps({"data": True})
 
