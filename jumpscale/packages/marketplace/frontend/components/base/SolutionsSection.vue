@@ -49,7 +49,7 @@
           <v-btn v-if="app.disable" text medium disabled>Coming Soon</v-btn>
           <div v-else>
             <v-btn text medium color="green" @click.stop="openChatflow(app.type)">Deploy</v-btn>
-            <v-btn v-if="user" text medium @click.stop="viewWorkloads(app)">My Workloads</v-btn>
+            <v-btn v-if="loggedin" text medium @click.stop="viewWorkloads(app)">My Workloads</v-btn>
           </div>
         </v-card-actions>
       </v-card>
@@ -65,7 +65,7 @@ module.exports = {
     titletooltip: String,
     apps: Object,
     solutioncount: Object,
-    user: Boolean,
+    loggedin: Boolean,
   },
   data() {
     return {

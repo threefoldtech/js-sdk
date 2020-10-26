@@ -52,7 +52,7 @@
                 :apps="section.apps"
                 :titletooltip="section.titleToolTip"
                 :solutioncount="solutionCount"
-                :user="user"
+                :loggedin="loggedin"
               ></solutions-section>
             </v-tab-item>
           </v-tabs>
@@ -74,7 +74,7 @@ module.exports = {
       solutionCount: {},
       selectedObject: {},
       sections: SECTIONS,
-      user: null,
+      loggedin: this.$route.params.loggedin,
     };
   },
   computed: {
@@ -85,13 +85,6 @@ module.exports = {
           obj[key] = this.sections[key];
           return obj;
         }, {});
-    },
-    getCurrentUser() {
-      this.$api.admins.getCurrentUser().then((response) => {
-        this.user = true;
-      }).catch(() => {
-        this.user = false;
-      });
     },
     autoCompleteList() {
       let ret = [];
@@ -133,7 +126,6 @@ module.exports = {
     },
   },
   mounted() {
-    this.getCurrentUser();
     this.getSolutionCount();
   },
 };
