@@ -42,7 +42,7 @@ import gevent
 from signal import SIGTERM, SIGKILL
 
 from jumpscale.loader import j
-from jumpscale.core.base import Base, fields
+from jumpscale.core.base import Base
 
 
 class BackgroundService(ABC):

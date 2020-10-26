@@ -208,8 +208,8 @@ class Package:
         self.default_email = default_email
         self.kwargs = kwargs or {}
 
-    def _load_files(self, dir):
-        for file_path in j.sals.fs.walk_files(dir, recursive=False):
+    def _load_files(self, dir_path):
+        for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
             file_name = j.sals.fs.basename(file_path)
             if file_name.endswith(".py"):
                 name = f"{self.name}_{file_name[:-3]}"
