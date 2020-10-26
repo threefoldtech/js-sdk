@@ -176,9 +176,9 @@ def pay_pool(pool_info):
     resv_id, escrow_address, escrow_asset, total_amount = get_payment_amount(pool_info)
     # Get the user wallets
     wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
-    for wallet in wallets:
+    for wallet_name, wallet_val in wallets.items():
         try:
-            wallet.transfer(
+            wallet_val.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}"
             )
             return True
@@ -187,9 +187,9 @@ def pay_pool(pool_info):
     return False
 
 
-def check_pool_expiration(pool):
+def check_pool_expiration(pool, threshold_days=14):
     remaining_days = (pool.empty_at - time.time()) / 86400  # converting seconds to days
-    if remaining_days < 14 and remaining_days > 0:
+    if remaining_days < threshold_days and remaining_days > 0:
         return True
     return False
 
@@ -203,34 +203,42 @@ def calculate_pool_units(pool, days=14):
 def auto_extend_pools():
     pools = j.sals.zos.get().pools.list()
     for pool in pools:
-        import pdb
-
-        pdb.set_trace()
         if check_pool_expiration(pool):
             cu, su = calculate_pool_units(pool)
-            auto_extend_pool(pool.pool_id, cu, su)
+            auto_extend_pool(pool.pool_id, int(cu), int(su))
 
 
-def auto_extend_pool(pool_id, cu, su, currencies=["TFT"]):
+def auto_extend_pool(pool_id: int, cu: int, su: int, currencies=["TFT"]):
     try:
         pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currencies=currencies)
     except Exception as e:
+        # TODO: Send mail
         raise j.exceptions.Runtime(f"Error happend during extending the pool, {str(e)}")
     if not pay_pool(pool_info):
-        send_mail(pool_info)
+        send_pool_info_mail(pool_info, pool_id)
 
 
-def send_mail(pool_info, sender=""):
-    """
-    This method send mail in case the auto extend fail
-    """
+def send_pool_info_mail(pool_info, pool_id, sender="support@threefold.com"):
     recipients_emails = []
     user_mail = j.core.identity.me.email
     recipients_emails.append(user_mail)
     escalation_emails = j.core.config.get("ESCALATION_EMAILS")
     recipients_emails.extend(escalation_emails)
-    mail = j.clients.mail.get("mail")
-    mail.smtp_server = "localhost"
-    mail.smtp_port = "1025"
-    mail.send(recipients_emails, sender=sender, message="We are not apple to extend")
+    message = f"""
+The pool with Id {pool_id} is about to expire and we are not able to extend
+it automatically, please check the fund in your wallets and extend it manually
+or contact our support team"""
+    send_mail(recipients_emails, message, sender=sender)
 
+
+def send_mail(recipients_emails=[], message="", sender=""):
+    """
+    This method send mail in case the auto extend fail
+    """
+    mail = j.clients.mail.get("mail")
+    mail_config = j.core.config.get("EMAIL_SERVER_CONFIG")
+    mail.smtp_server = mail_config.get("host")
+    mail.smtp_port = mail_config.get("port")
+    mail.login = mail_config.get("username")
+    mail.password = mail_config.get("password")
+    mail.send(recipients_emails, sender=sender, message=message)
