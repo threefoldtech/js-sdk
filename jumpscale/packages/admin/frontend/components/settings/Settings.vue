@@ -181,10 +181,10 @@ module.exports = {
     },
     getCurrentIdentity() {
       this.loading.identities = true;
-      this.$api.admins
-        .getCurrentUser()
+      this.$api.identities
+        .currentIdentity()
         .then((response) => {
-          this.identity = response.data.username;
+          this.identity = JSON.parse(response.data).data;
         })
         .finally(() => {
           this.loading.identities = false;
@@ -201,7 +201,6 @@ module.exports = {
         });
     },
     getColor(identityInstanceName) {
-      this.identity = this.identity.replace(".3bot", "");
       if (identityInstanceName == this.identity) {
         return "primary";
       } else {
