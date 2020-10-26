@@ -268,11 +268,13 @@ class Package:
 
     @property
     def actors(self):
-        return self._load_files(self.actors_dir)
+        if self.actors_dir:
+            return self._load_files(self.actors_dir)
 
     @property
     def services(self):
-        return self._load_files(self.services_dir)
+        if self.services_dir:
+            return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         """Resolves path for static location in case we need it
