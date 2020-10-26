@@ -193,6 +193,16 @@ const apiClient = {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
+        },
+        getNotifications: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications`,
+            })
+        },
+        getNotificationsCount: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications_count`,
+            })
         }
     },
     explorers: {

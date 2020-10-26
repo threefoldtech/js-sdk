@@ -158,5 +158,19 @@ class Admin(BaseActor):
         j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
+    @actor_method
+    def get_notifications(self) -> str:
+        notifications = []
+        if j.tools.notificationsqueue.count() >= 10:
+            notifications = j.tools.notificationsqueue.fetch()
+        else:
+            notifications = j.tools.notificationsqueue.fetch(10)
+        ret = [notification.json for notification in notifications]
+        return j.data.serializers.json.dumps({"data": ret})
+
+    @actor_method
+    def get_notifications_count(self) -> str:
+        return j.data.serializers.json.dumps({"data": j.tools.notificationsqueue.count()})
+
 
 Actor = Admin
