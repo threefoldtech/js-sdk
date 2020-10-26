@@ -50,11 +50,11 @@ class NotificationsQueue:
         """Push a new notification
 
         Arguments:
-            message {str} -- notification message
+            message {str}: notification message
 
         Keyword Arguments:
-            type {str} -- notification type (default: {"default"})
-            level {LEVEL} -- notification level (default: {LEVEL.INFO})
+            type {str}: notification type (default: {"default"})
+            level {LEVEL}: notification level (default: {LEVEL.INFO})
         """
         if not self.db.is_running():
             return
@@ -76,11 +76,11 @@ class NotificationsQueue:
         """Fetch notifications from queue
 
         Keyword Arguments:
-            count {int} -- number of new notifications to fetch (default: {-1} = new notifications only)
+            count {int}: number of new notifications to fetch (default: {-1} = new notifications only)
                            if new notifications < count => will return list of (new notifications + old notifications) with length = count
 
         Returns:
-            list on Notification objects
+            list: Notification objects
         """
         get_all_new = count == -1
         ret_notifications_count = 0
@@ -109,7 +109,7 @@ class NotificationsQueue:
         """Get notifications count
 
         Returns:
-            int -- total number of notifications
+            int: total number of notifications
         """
         return self.db.llen(self._rkey)
 
