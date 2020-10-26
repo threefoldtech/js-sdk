@@ -36,7 +36,7 @@
             <base-section
               class="mt-3"
               title="Escalation Emails"
-              icon="mdi-account-lock"
+              icon="mdi-email"
               :loading="loading.escalationEmails"
             >
               <template #actions>
@@ -63,7 +63,7 @@
             <base-section
               class="mt-3"
               title="Email Sever config"
-              icon="mdi-account-lock"
+              icon="mdi-access-point-network"
               :loading="loading.emailServerConfig"
             >
               <template #actions>
