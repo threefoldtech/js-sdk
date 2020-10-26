@@ -779,7 +779,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 # if the workload is network we can overlook it
                 return True
             if cancel:
-                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id])
+                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
             raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
 
         # wait for workload

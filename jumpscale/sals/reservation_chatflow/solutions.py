@@ -297,7 +297,7 @@ class ChatflowSolutions:
         """
         identity_name = identity_name or j.core.identity.me.instance_name
         workload = j.sals.zos.get(identity_name).workloads.get(solution_wids[0])
-        solution_uuid = self.get_solution_uuid(workload)
+        solution_uuid = self.get_solution_uuid(workload, identity_name)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows

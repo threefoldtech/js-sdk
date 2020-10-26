@@ -218,6 +218,7 @@ def redeploy_threebot_solution(
     zos = get_threebot_zos(threebot)
     identity = generate_user_identity(threebot, backup_password, zos)
     with threebot_identity_context(identity.instance_name):
+        j.logger.debug(f"Using identity {identity.instance_name}")
         with deployment_context():
             zos = j.sals.zos.get(identity.instance_name)
             solution_workloads = get_threebot_workloads_by_uuid(solution_uuid, identity.instance_name)
