@@ -261,7 +261,29 @@ const apiClient = {
             })
         }
     },
-
+    sshkeys: {
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_sshkeys`
+            })
+        },
+        add: (id, sshkey) => {
+            return axios({
+                url: `${baseURL}/admin/add_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id, sshkey: sshkey }
+            })
+        },
+        delete: (id) => {
+            return axios({
+                url: `${baseURL}/admin/delete_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id }
+            })
+        }
+    },
     solutions: {
         getCount: () => {
             return axios({

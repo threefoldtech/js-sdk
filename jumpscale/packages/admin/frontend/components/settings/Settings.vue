@@ -26,6 +26,32 @@
                 close-icon="mdi-close-circle-outline"
               >{{ admin }}</v-chip>
             </base-section>
+            <base-section
+              class="mt-3"
+              title="SSH keys"
+              icon="mdi-key"
+              :loading="loading.sshkeys"
+            >
+              <template #actions>
+                <v-btn text @click.stop="dialogs.addSshkey = true">
+                  <v-icon left>mdi-plus</v-icon>Add
+                </v-btn>
+              </template>
+
+              <v-chip
+                class="ma-2"
+                color="primary"
+                v-for="(sshkey, id) in sshkeys"
+                :key="id"
+                outlined
+                label
+                close
+                close-icon="mdi-close-circle-outline"
+                @click="viewSshkey(id, sshkey)"
+                @click:close="deleteSshkey(id)"
+                >{{ id }}</v-chip
+              >
+            </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="4">
             <base-section
@@ -105,7 +131,9 @@
     </base-component>
 
     <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
+    <add-sshkey v-model="dialogs.addSshkey" @done="listSshkeys"></add-sshkey>
     <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
+    <sshkey-info v-if="selectedSshkey" v-model="dialogs.sshkeyInfo" :data="selectedSshkey"></sshkey-info>
     <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
     <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
     <config-view v-if="configurations" v-model="dialogs.configurations" :data="configurations"></config-view>
@@ -116,7 +144,9 @@
 module.exports = {
   components: {
     "add-admin": httpVueLoader("./AddAdmin.vue"),
+    "add-sshkey": httpVueLoader("./AddSshkey.vue"),
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
+    "sshkey-info": httpVueLoader("./SshkeyInfo.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
     "config-view": httpVueLoader("./ConfigurationsInfo.vue"),
@@ -125,18 +155,23 @@ module.exports = {
     return {
       loading: {
         admins: false,
+        sshkeys: false,
         identities: false,
         developerOptions: false,
       },
       selectedAdmin: null,
       dialogs: {
         addAdmin: false,
+        addSshkey: false,
         removeAdmin: false,
+        sshkeyInfo: false,
         identityInfo: false,
         addIdentity: false,
         configurations: false,
       },
       admins: [],
+      sshkeys: [],
+      selectedSshkey: null,
       identity: null,
       selectedIdentity: null,
       identities: [],
@@ -162,6 +197,36 @@ module.exports = {
     removeAdmin(name) {
       this.selectedAdmin = name;
       this.dialogs.removeAdmin = true;
+    },
+    listSshkeys() {
+      this.loading.sshkeys = true;
+      this.$api.sshkeys
+      .list()
+      .then((response) => {
+        this.sshkeys = JSON.parse(response.data).data;
+      })
+      .finally(() => {
+        this.loading.sshkeys = false;
+      });
+    },
+    viewSshkey (id, sshkey) {
+      this.selectedSshkey = {id: id, sshkey: sshkey};
+      this.dialogs.sshkeyInfo = true;
+    },
+    deleteSshkey(id) {
+      this.loading.sshkeys = true;
+      this.$api.sshkeys
+      .delete(id)
+      .then((response) => {
+        this.alert("SSH key removed", "success");
+        this.sshkeys = JSON.parse(response.data).data;
+      })
+      .catch(() => {
+        this.alert("Failed to remove SSH key", "error");
+      })
+      .finally(() => {
+        this.loading.sshkeys = false;
+      });
     },
     listIdentities() {
       this.getCurrentIdentity();
@@ -262,6 +327,7 @@ module.exports = {
   },
   mounted() {
     this.listAdmins();
+    this.listSshkeys();
     this.getCurrentIdentity();
     this.listIdentities();
     this.getDeveloperOptions();
