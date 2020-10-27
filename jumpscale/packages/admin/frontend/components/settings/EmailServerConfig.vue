@@ -1,6 +1,6 @@
 <template>
   <base-dialog
-    title="Email Server Config"
+    title="Email Server Configurations"
     v-model="dialog"
     :error="error"
     :loading="loading"
@@ -9,7 +9,7 @@
       <v-form>
         <v-text-field
           v-model="emailServerConfig.host"
-          label="Host"
+          label="SMTP Host"
           dense
         ></v-text-field>
         <v-text-field
