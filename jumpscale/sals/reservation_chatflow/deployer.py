@@ -418,6 +418,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
         node_filter = None
+        if j.core.config.get("OVER_PROVISIONING"):
+            cru = None
+            mru = None
         if ip_version and ip_version not in ["IPv4", "IPv6"]:
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
