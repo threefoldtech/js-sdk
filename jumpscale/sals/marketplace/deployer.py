@@ -41,7 +41,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         all_workloads = zos.workloads.list(identity.tid, next_action)
         networks = set()
         for workload in all_workloads:
-            decrypted_metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+            decrypted_metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(
+                workload.info.metadata, identity_name
+            )
             metadata = j.data.serializers.json.loads(decrypted_metadata)
             if metadata.get("owner") == username and workload.info.workload_type == WorkloadType.Network_resource:
                 networks.add(workload.name)
