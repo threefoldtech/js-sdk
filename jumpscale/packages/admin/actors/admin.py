@@ -127,18 +127,18 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": sshkeys})
 
     @actor_method
-    def add_sshkey(self, id, sshkey) -> str:
+    def add_sshkey(self, key_id, sshkey) -> str:
         sshkeys = j.core.config.get("SSH_KEYS", {})
-        if id not in sshkeys:
-            sshkeys[id] = sshkey
+        if key_id not in sshkeys:
+            sshkeys[key_id] = sshkey
             j.core.config.set("SSH_KEYS", sshkeys)
         return j.data.serializers.json.dumps({"data": sshkeys})
 
     @actor_method
-    def delete_sshkey(self, id) -> str:
+    def delete_sshkey(self, key_id) -> str:
         sshkeys = j.core.config.get("SSH_KEYS", {})
-        if id in sshkeys:
-            sshkeys.pop(id)
+        if key_id in sshkeys:
+            sshkeys.pop(key_id)
             j.core.config.set("SSH_KEYS", sshkeys)
         return j.data.serializers.json.dumps({"data": sshkeys})
 

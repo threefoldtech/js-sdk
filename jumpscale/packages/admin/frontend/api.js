@@ -272,7 +272,7 @@ const apiClient = {
                 url: `${baseURL}/admin/add_sshkey`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { id: id, sshkey: sshkey }
+                data: { key_id: id, sshkey: sshkey }
             })
         },
         delete: (id) => {
@@ -280,7 +280,7 @@ const apiClient = {
                 url: `${baseURL}/admin/delete_sshkey`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { id: id }
+                data: { key_id: id }
             })
         }
     },
