@@ -127,7 +127,7 @@ class Admin(BaseActor):
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
-        auto_pool_extend = j.core.config.set_default("auto_extend_pool", False)
+        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", False)
         sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {
@@ -136,7 +136,7 @@ class Admin(BaseActor):
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
-                    "auto_pool_extend": auto_pool_extend,
+                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
@@ -150,13 +150,13 @@ class Admin(BaseActor):
         explorer_logs: bool,
         sort_nodes_by_sru: bool,
         escalation_emails: bool,
-        auto_pool_extend: bool,
+        auto_extend_pools: bool,
     ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
         j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
-        j.core.config.set("auto_extend_pool", auto_pool_extend)
+        j.core.config.set("AUTO_EXTEND_POOLS_ENABLED", auto_extend_pools)
         j.core.config.set("SORT_NODES_BY_SRU", sort_nodes_by_sru)
         return j.data.serializers.json.dumps(
             {
@@ -165,7 +165,7 @@ class Admin(BaseActor):
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
-                    "auto_pool_extend": auto_pool_extend,
+                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }

@@ -169,7 +169,7 @@
               <v-switch
                 hide-details
                 class="my-2 pl-2"
-                v-model="autoPoolExtend"
+                v-model="autoExtendPools"
                 :label="`Pools auto extension`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
@@ -291,7 +291,7 @@ module.exports = {
       overProvision: false,
       explorerLogs: false,
       escalationEmailsEnabled: false,
-      autoPoolExtend: false,
+      autoExtendPools: false,
       sortNodesBySru: false,
     };
   },
@@ -416,7 +416,7 @@ module.exports = {
           this.overProvision = developerOptions["over_provision"];
           this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
-          this.autoPoolExtend = developerOptions["auto_pool_extend"];
+          this.autoExtendPools = developerOptions["auto_extend_pools"];
           this.sortNodesBySru = developerOptions["sort_nodes_by_sru"];
         })
         .finally(() => {
@@ -430,7 +430,7 @@ module.exports = {
           this.overProvision,
           this.explorerLogs,
           this.escalationEmailsEnabled,
-          this.autoPoolExtend,
+          this.autoExtendPools,
           this.sortNodesBySru
         )
         .then((response) => {
