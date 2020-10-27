@@ -6,7 +6,10 @@
     :loading="loading"
   >
     <template #default>
-        <v-file-input @change="readFile" prepend-icon="mdi-paperclip" label="File input" show-size outlined></v-file-input>
+        <v-form>
+            <v-text-field v-model="form.id" label="SSH key name" outlined></v-text-field>
+        </v-form>
+        <v-file-input @change="readFile" prepend-icon="" prepend-inner-icon="mdi-paperclip" label="File input" show-size outlined></v-file-input>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -37,12 +40,11 @@ module.exports = {
     },
     submit() {
         this.error = null;
-        console.log(this.val)
         if(!this.val){
             this.error = "SSH key file required"
         }
         else {
-            this.$api.sshkeys.add(this.val)
+            this.$api.sshkeys.add(this.form.id, this.val)
             .then((response) => {
                 this.done("SSH key added");
             })

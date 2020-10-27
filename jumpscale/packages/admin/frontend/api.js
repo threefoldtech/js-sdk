@@ -267,20 +267,20 @@ const apiClient = {
                 url: `${baseURL}/admin/list_sshkeys`
             })
         },
-        add: (sshkey) => {
+        add: (id, sshkey) => {
             return axios({
                 url: `${baseURL}/admin/add_sshkey`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { sshkey: sshkey }
+                data: { id: id, sshkey: sshkey }
             })
         },
-        delete: (sshkey) => {
+        delete: (id) => {
             return axios({
                 url: `${baseURL}/admin/delete_sshkey`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { sshkey: sshkey }
+                data: { id: id }
             })
         }
     },

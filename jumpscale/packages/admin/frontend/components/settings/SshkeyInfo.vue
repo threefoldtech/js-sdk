@@ -1,8 +1,8 @@
 <template>
-  <base-dialog title="SSH Key" v-model="dialog">
+  <base-dialog v-if="data" :title="data.id" v-model="dialog">
     <template #default>
-        <v-sheet v-if="sshkey" class="pa-5">
-            <p>{{sshkey}}</p>
+        <v-sheet v-if="data.sshkey" class="pa-5">
+            <p>{{data.sshkey}}</p>
         </v-sheet>
     </template>
     <template #actions>
@@ -13,7 +13,7 @@
 <script>
 
 module.exports = {
-  props: ["sshkey"],
+  props: ["data"],
   mixins: [dialog],
 }
 </script>

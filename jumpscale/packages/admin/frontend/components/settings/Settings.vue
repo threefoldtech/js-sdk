@@ -41,15 +41,15 @@
               <v-chip
                 class="ma-2"
                 color="primary"
-                v-for="sshkey in sshkeys"
-                :key="sshkey"
+                v-for="(sshkey, id) in sshkeys"
+                :key="id"
                 outlined
                 label
                 close
                 close-icon="mdi-close-circle-outline"
-                @click="viewSshkey(sshkey)"
-                @click:close="deleteSshkey(sshkey)"
-                >{{ sshkey.slice(sshkey.length - 50) }}</v-chip
+                @click="viewSshkey(id, sshkey)"
+                @click:close="deleteSshkey(id)"
+                >{{ id }}</v-chip
               >
             </base-section>
           </v-col>
@@ -133,7 +133,7 @@
     <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
     <add-sshkey v-model="dialogs.addSshkey" @done="listSshkeys"></add-sshkey>
     <remove-admin v-model="dialogs.removeAdmin" :name="selectedAdmin" @done="listAdmins"></remove-admin>
-    <sshkey-info v-if="selectedSshkey" v-model="dialogs.sshkeyInfo" :sshkey="selectedSshkey"></sshkey-info>
+    <sshkey-info v-if="selectedSshkey" v-model="dialogs.sshkeyInfo" :data="selectedSshkey"></sshkey-info>
     <identity-info v-model="dialogs.identityInfo" :name="selectedIdentity" @done="listIdentities"></identity-info>
     <add-identity v-model="dialogs.addIdentity" @done="listIdentities"></add-identity>
     <config-view v-if="configurations" v-model="dialogs.configurations" :data="configurations"></config-view>
@@ -209,14 +209,14 @@ module.exports = {
         this.loading.sshkeys = false;
       });
     },
-    viewSshkey (sshkey) {
-      this.selectedSshkey = sshkey;
+    viewSshkey (id, sshkey) {
+      this.selectedSshkey = {id: id, sshkey: sshkey};
       this.dialogs.sshkeyInfo = true;
     },
-    deleteSshkey(name) {
+    deleteSshkey(id) {
       this.loading.sshkeys = true;
       this.$api.sshkeys
-      .delete(name)
+      .delete(id)
       .then((response) => {
         this.alert("SSH key removed", "success");
         this.sshkeys = JSON.parse(response.data).data;
