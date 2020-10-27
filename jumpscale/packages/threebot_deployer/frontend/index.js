@@ -58,7 +58,7 @@ const router = new VueRouter({
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
     { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
-    { name: "SolutionChatflow", path: '/chats/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
+    { name: "SolutionChatflow", path: '/chats/:topic/:tname', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
     { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-tune" } },
   ]
 })

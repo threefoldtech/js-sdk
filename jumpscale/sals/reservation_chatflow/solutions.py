@@ -185,7 +185,7 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
-    def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+    def list_gw4to6_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6]:
@@ -297,7 +297,7 @@ class ChatflowSolutions:
         """
         identity_name = identity_name or j.core.identity.me.instance_name
         workload = j.sals.zos.get(identity_name).workloads.get(solution_wids[0])
-        solution_uuid = self.get_solution_uuid(workload)
+        solution_uuid = self.get_solution_uuid(workload, identity_name)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
@@ -321,7 +321,7 @@ class ChatflowSolutions:
             "monitoring": 0,
             "flist": 0,
             "gitea": 0,
-            "4to6gw": 0,
+            "gw4to6": 0,
             "delegated_domain": 0,
             "exposed": 0,
             "threebot": 0,

@@ -70,9 +70,9 @@ const SOLUTIONS = {
   },
   fourtosixgw: {
     name: "4 to 6 Gateway",
-    type: "4to6gw",
+    type: "gw4to6",
     image: "./assets/4to6.png",
-    url: "/solutions/4to6gw",
+    url: "/solutions/gw4to6",
     description: "4to6 Gateway gives you access to IPv6 networks using a wireguard tunnel"
   },
 }

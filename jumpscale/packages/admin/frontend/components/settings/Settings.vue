@@ -226,7 +226,6 @@
       v-model="dialogs.addIdentity"
       @done="listIdentities"
     ></add-identity>
-    =======
     <remove-admin
       v-model="dialogs.removeAdmin"
       :name="selectedAdmin"
@@ -246,7 +245,6 @@
       v-model="dialogs.configurations"
       :data="configurations"
     ></config-view>
-    >>>>>>> development
   </div>
 </template>
 

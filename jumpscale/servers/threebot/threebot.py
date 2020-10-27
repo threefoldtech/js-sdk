@@ -539,7 +539,7 @@ class PackageManager(Base):
         # register gedis actors
         if package.actors_dir:
             for actor in package.actors:
-                self.threebot.gedis._system_actor.register_actor(actor["name"], actor["path"])
+                self.threebot.gedis._system_actor.register_actor(actor["name"], actor["path"], force_reload=True)
 
         # add chatflows actors
         if package.chats_dir:

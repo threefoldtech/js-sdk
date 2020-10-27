@@ -1,7 +1,7 @@
 <template>
   <base-dialog
     v-if="data"
-    title="Destroy Workload"
+    title="Stop Workload"
     v-model="dialog"
     :error="error"
     :info="info"
@@ -9,7 +9,7 @@
     :loading="loading"
   >
     <template #default>
-      Please enter the password of {{ data.name }}. This will stop your running 3Bot and delete all backups.
+      Please enter the password of {{ data.name }}. This will stop your running 3Bot.
       <v-form>
         <v-text-field :type="'password'" v-model="form.password" dense></v-text-field>
       </v-form>
@@ -35,13 +35,13 @@ module.exports = {
       this.loading = true;
       this.error = null;
       this.$api.solutions
-        .destroyThreebot(this.data.solution_uuid, this.form.password)
+        .stopThreebot(this.data.solution_uuid, this.form.password)
         .then((response) => {
-          this.alert("3bot Destroyed", "success");
+          this.alert("Stopped 3Bot", "success");
           this.$router.go(0);
         })
         .catch((err) => {
-          this.alert("Failed to destroy 3Bot", "error");
+          this.alert("Failed to Stop 3Bot", "error");
           this.close();
         });
     },

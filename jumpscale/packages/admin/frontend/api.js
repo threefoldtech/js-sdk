@@ -181,7 +181,7 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, sortNodesBySRU, escalationEmails, autoPoolExtend) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoPoolExtend, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",

@@ -41,7 +41,8 @@ def main():
         identity.register()
         identity.save()
 
-    j.core.identity.set_default("main")
+    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+    j.core.identity.set_default(default_identity)
 
     if backup_password:
         # Sanitation for the case user deleted his old backups!

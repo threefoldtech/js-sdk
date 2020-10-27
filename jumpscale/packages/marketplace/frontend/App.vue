@@ -33,58 +33,57 @@ Your deployment will be automatically canceled in 3 hours.</pre
         >
       </v-tooltip>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
-        <template v-slot:activator="{ on }">
-          <v-btn text v-on="on">
-            <v-icon left>mdi-account</v-icon>
-            {{ user.username }}
-          </v-btn>
-        </template>
-        <v-card>
-          <v-list>
-            <v-list-item>
-              <v-list-item-avatar>
-                <v-avatar color="primary">
-                  <v-icon dark>mdi-account-circle</v-icon>
-                </v-avatar>
-              </v-list-item-avatar>
-              <v-list-item-content>
-                <v-list-item-title>{{ user.username }}</v-list-item-title>
-                <v-list-item-subtitle>{{ user.email }}</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-btn text color="blue" :to="'/terms'"
-                  >Terms and Conditions</v-btn
-                >
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-btn text color="blue" :to="'/disclaimer'">Disclaimer</v-btn>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-btn
-                  text
-                  :link="true"
-                  color="blue"
-                  href="https://manual.threefold.io/#/"
-                  target="_blank"
-                  >Manual</v-btn
-                >
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-          <v-divider></v-divider>
-          <v-card-actions>
-            <v-btn block text href="/auth/logout">
-              <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon
-              >Logout
+          <template v-slot:activator="{ on }">
+            <v-btn v-if="user" text v-on="on">
+              <v-icon left>mdi-account</v-icon>
+              {{user.username}}
             </v-btn>
-          </v-card-actions>
-        </v-card>
+            <v-btn v-else text href="/auth/login?next_url=/marketplace/">
+              <v-icon color="primary" class="mr-2" right>mdi-login-variant</v-icon>Login
+            </v-btn>
+          </template>
+          <v-card v-if="user">
+            <v-list>
+              <v-list-item>
+                <v-list-item-avatar>
+                  <v-avatar color="primary">
+                    <v-icon dark>mdi-account-circle</v-icon>
+                  </v-avatar>
+                </v-list-item-avatar>
+                <v-list-item-content>
+                  <v-list-item-title>{{user.username}}</v-list-item-title>
+                  <v-list-item-subtitle>{{user.email}}</v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-content>
+                  <v-btn text color="blue" :to="'/terms'">Terms and Conditions</v-btn>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-content>
+                  <v-btn text color="blue" :to="'/disclaimer'">Disclaimer</v-btn>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item>
+                <v-list-item-content>
+                  <v-btn
+                    text
+                    :link="true"
+                    color="blue"
+                    href="https://manual.threefold.io/#/"
+                    target="_blank"
+                  >Manual</v-btn>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-btn block text href="/auth/logout">
+                <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon>Logout
+              </v-btn>
+            </v-card-actions>
+          </v-card>
       </v-menu>
     </v-app-bar>
 
@@ -109,6 +108,8 @@ module.exports = {
     getCurrentUser() {
       this.$api.admins.getCurrentUser().then((response) => {
         this.user = response.data;
+      }).catch(() => {
+        this.user = null;
       });
     },
     getSolutionCount() {
