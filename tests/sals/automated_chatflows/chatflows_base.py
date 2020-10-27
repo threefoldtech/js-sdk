@@ -48,6 +48,9 @@ class ChatflowsBase(BaseTests):
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
 
+        # Timeout for any exposed solution to be reachable.
+        cls.timeout = 5
+
     @classmethod
     def tearDownClass(cls):
         # Return TEST_CERT, OVER_PROVISIONING values after the tests are finished.

@@ -12,7 +12,6 @@ class Test3BotServer(BaseTests):
     words = environ.get("WORDS")
     explorer_url = "https://explorer.testnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
-    JS_SDK_PARENT_LOCATION = __file__.split("js-sdk")[0]
 
     @classmethod
     def setUpClass(cls):
@@ -162,17 +161,12 @@ class Test3BotServer(BaseTests):
         - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
-        marketplace = j.servers.threebot.default.packages.add(
-            "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION)
-        )
-        marketplace_dir = {
-            "marketplace": {
-                "name": "marketplace",
-                "path": "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION),
-                "giturl": None,
-                "kwargs": {},
-            }
-        }
+        from jumpscale.packages import marketplace
+
+        path = j.sals.fs.dirname(marketplace.__file__)
+
+        marketplace = j.servers.threebot.default.packages.add(path)
+        marketplace_dir = {"marketplace": {"name": "marketplace", "path": path, "giturl": None, "kwargs": {},}}
         self.assertEqual(marketplace, marketplace_dir)
 
         self.info("Check that the package has been added")

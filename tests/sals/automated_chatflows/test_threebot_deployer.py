@@ -40,5 +40,5 @@ class ThreebotChatflows(ChatflowsBase):
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that threebot is reachable.")
-        request = j.tools.http.get(f"http://{threebot.domain}", verify=False)
+        request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)

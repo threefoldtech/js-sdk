@@ -267,12 +267,12 @@ const apiClient = {
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (identity_instance_name, tname, email, words, explorer_type) => {
+        add: (display_name, email, words, explorer_type) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { identity_instance_name: identity_instance_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+                data: { display_name: display_name, email: email, words: words, explorer_type: explorer_type }
             })
         },
         setIdentity: (identity_instance_name) => {
