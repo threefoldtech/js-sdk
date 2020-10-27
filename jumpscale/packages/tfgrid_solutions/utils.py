@@ -70,9 +70,9 @@ def send_pool_info_mail(pool_id, sender="support@threefold.com"):
     escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
     recipients_emails.extend(escalation_emails)
     message = (
-        f"The pool with Id {pool_id} is about to expire and we are not"
+        f"The pool with Id {pool_id} is about to expire and we are not "
         "able to extend it automatically, "
-        "please check the fund in your wallets and extend it manually"
+        "please check the fund in your wallets and extend it manually "
         "or contact our support team"
     )
     send_mail(recipients_emails, message, sender=sender)
