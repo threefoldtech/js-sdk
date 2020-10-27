@@ -94,7 +94,7 @@ class Admin(BaseActor):
             raise j.exceptions.Value(
                 "The display name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
             )
-        identity_instance_name = f"{tname}_{explorer_type}"
+        identity_instance_name = f"{tname}"
         explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             raise j.exceptions.Value("Identity with the same name already exists")

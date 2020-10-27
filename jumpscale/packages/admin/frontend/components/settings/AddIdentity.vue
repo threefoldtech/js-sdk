@@ -9,7 +9,7 @@
                 <v-icon color="grey lighten-1"> mdi-help-circle </v-icon>
               </v-btn>
             </template>
-            <span>The name to be registered on TFGrid, used to reference your created 3Bot identity.</span>
+            <span>The display name is used to reference the registered 3bot identity on TFGrid across the 3Bot.</span>
         </v-tooltip>
         </v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
