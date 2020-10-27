@@ -267,11 +267,7 @@ def create_test_wallet(wallet_name):
 def create_main_wallet(wallet_name):
     wallet_actor = Wallet()
     try:
-<<<<<<< HEAD
-        wallet_actor.create_wallet(wallet_name)
-=======
         wallet_actor.create_wallet(wallet_name, "STD")
->>>>>>> Use std instead of default identity for the main wallet
     except Exception as e:
         j.logger.error(str(e))
 
