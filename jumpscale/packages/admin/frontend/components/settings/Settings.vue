@@ -170,7 +170,7 @@
                 hide-details
                 class="my-2 pl-2"
                 v-model="autoPoolExtend"
-                :label="`Enable auto pool extention`"
+                :label="`Pools auto extension`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
               <v-switch
