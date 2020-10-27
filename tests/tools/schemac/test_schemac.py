@@ -1,7 +1,4 @@
 from unittest import skip
-
-from hypothesis import given
-from hypothesis.strategies import integers, lists
 from jumpscale.loader import j
 
 schema = """
