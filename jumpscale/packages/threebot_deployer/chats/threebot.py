@@ -109,7 +109,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
-            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query,
+            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query
         )
         if self.pool_info.escrow_information.address.strip() == "":
             raise StopChatFlow(

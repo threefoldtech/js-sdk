@@ -181,12 +181,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, sortNodesBySRU) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoExtendPools, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, escalation_emails:escalationEmails, sort_nodes_by_sru: sortNodesBySRU}
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
             })
         },
         clearBlockedNodes: () => {
@@ -205,7 +205,27 @@ const apiClient = {
             })
         }
     },
-    escalationEmails:{
+    emailServerConfig: {
+        get: () => {
+            return axios({
+                url: `${baseURL}/admin/get_email_server_config`
+            })
+        },
+        set: (host, port, username, password) => {
+            return axios({
+                url: `${baseURL}/admin/set_email_server_config`,
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                data: {
+                    host: host,
+                    port: port,
+                    username: username,
+                    password: password
+                }
+            })
+        },
+    },
+    escalationEmails: {
         list: () => {
             return axios({
                 url: `${baseURL}/admin/list_escalation_emails`
@@ -517,17 +537,17 @@ const apiClient = {
         },
     },
     announcement: {
-      announced: () => {
-        return axios({
-          url: `/admin/api/announced`,
-          method: "get"
-        })
-      },
-      announce: () => {
-        return axios({
-          url: `/admin/api/announce`,
-          method: "get"
-        })
-      },
+        announced: () => {
+            return axios({
+                url: `/admin/api/announced`,
+                method: "get"
+            })
+        },
+        announce: () => {
+            return axios({
+                url: `/admin/api/announce`,
+                method: "get"
+            })
+        },
     }
 }

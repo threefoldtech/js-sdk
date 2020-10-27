@@ -29,13 +29,14 @@
                 label
                 close
                 close-icon="mdi-close-circle-outline"
-              >{{ admin }}</v-chip>
+                >{{ admin }}</v-chip
+              >
             </base-section>
             <!-- List-Escalation-Emails -->
             <base-section
               class="mt-3"
               title="Escalation Emails"
-              icon="mdi-account-lock"
+              icon="mdi-email"
               :loading="loading.escalationEmails"
             >
               <template #actions>
@@ -58,6 +59,54 @@
                 >{{ email }}</v-chip
               >
             </base-section>
+            <!-- Email Server Config start -->
+            <base-section
+              class="mt-3"
+              title="Email Sever config"
+              icon="mdi-access-point-network"
+              :loading="loading.emailServerConfig"
+            >
+              <template #actions>
+                <v-btn text @click.stop="dialogs.emailServerConfig = true">
+                  <v-icon left>mdi-lead-pencil</v-icon>Edit
+                </v-btn>
+              </template>
+
+              <template>
+                <v-simple-table>
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">Property</th>
+                        <th class="text-left">Value</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Host</td>
+                        <td>{{ emailServerConfig.host }}</td>
+                      </tr>
+
+                      <tr>
+                        <td>Port</td>
+                        <td>{{ emailServerConfig.port }}</td>
+                      </tr>
+                      <tr>
+                        <td>Username</td>
+                        <td>{{ emailServerConfig.username }}</td>
+                      </tr>
+                      <tr>
+                        <td>Password</td>
+                        <td class="hidetext">
+                          {{ emailServerConfig.password }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
+              </template>
+            </base-section>
+            <!-- end of Email server config-->
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="4">
             <base-section
@@ -78,7 +127,8 @@
                 :key="i"
                 :color="getColor(identity.instance_name)"
                 @click="openIdentity(identity.instance_name)"
-              >{{ identity.instance_name }}</v-chip>
+                >{{ identity.instance_name }}</v-chip
+              >
             </base-section>
           </v-col>
           <v-col class="mt-0 pt-0" cols="12" md="3">
@@ -119,6 +169,13 @@
               <v-switch
                 hide-details
                 class="my-2 pl-2"
+                v-model="autoExtendPools"
+                :label="`Pools auto extension`"
+                @click.stop="setDeveloperOptions()"
+              ></v-switch>
+              <v-switch
+                hide-details
+                class="my-2 pl-2"
                 v-model="sortNodesBySru"
                 :label="`Sort nodes by SRU`"
                 @click.stop="setDeveloperOptions()"
@@ -129,14 +186,16 @@
                 small
                 color="info"
                 @click="showConfig()"
-              >Show 3Bot configurations</v-btn>
+                >Show 3Bot configurations</v-btn
+              >
               <v-btn
                 hide-details
                 class="my-2 ml-2"
                 small
                 color="success"
                 @click="clearBlockedNodes()"
-              >Clear blocked nodes</v-btn>
+                >Clear blocked nodes</v-btn
+              >
             </base-section>
           </v-col>
         </v-row>
@@ -148,6 +207,13 @@
       v-model="dialogs.escalationEmail"
       @done="listEscaltionEmails"
     ></add-escaltion-email>
+
+    <set-email-server-config
+      v-model="dialogs.emailServerConfig"
+      :emailServerConfig="emailServerConfig"
+      @done="getEmailServerConfig"
+    >
+    </set-email-server-config>
     <remove-admin
       v-model="dialogs.removeAdmin"
       :name="selectedAdmin"
@@ -162,7 +228,25 @@
       v-model="dialogs.addIdentity"
       @done="listIdentities"
     ></add-identity>
-    <config-view v-if="configurations" v-model="dialogs.configurations" :data="configurations"></config-view>
+    <remove-admin
+      v-model="dialogs.removeAdmin"
+      :name="selectedAdmin"
+      @done="listAdmins"
+    ></remove-admin>
+    <identity-info
+      v-model="dialogs.identityInfo"
+      :name="selectedIdentity"
+      @done="listIdentities"
+    ></identity-info>
+    <add-identity
+      v-model="dialogs.addIdentity"
+      @done="listIdentities"
+    ></add-identity>
+    <config-view
+      v-if="configurations"
+      v-model="dialogs.configurations"
+      :data="configurations"
+    ></config-view>
   </div>
 </template>
 
@@ -171,6 +255,7 @@ module.exports = {
   components: {
     "add-admin": httpVueLoader("./AddAdmin.vue"),
     "add-escaltion-email": httpVueLoader("./AddEscalationEmail.vue"),
+    "set-email-server-config": httpVueLoader("./EmailServerConfig.vue"),
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
@@ -183,6 +268,7 @@ module.exports = {
         identities: false,
         developerOptions: false,
         escalationEmails: false,
+        emailServerConfig: false,
       },
       selectedAdmin: null,
       dialogs: {
@@ -191,10 +277,12 @@ module.exports = {
         identityInfo: false,
         addIdentity: false,
         escalationEmail: false,
+        emailServerConfig: false,
         configurations: false,
       },
       admins: [],
       escalationEmails: [],
+      emailServerConfig: {},
       identity: null,
       selectedIdentity: null,
       identities: [],
@@ -203,6 +291,7 @@ module.exports = {
       overProvision: false,
       explorerLogs: false,
       escalationEmailsEnabled: false,
+      autoExtendPools: false,
       sortNodesBySru: false,
     };
   },
@@ -227,6 +316,22 @@ module.exports = {
         })
         .finally(() => {
           this.loading.escalationEmails = false;
+        });
+    },
+    getEmailServerConfig() {
+      this.$api.emailServerConfig.get().then((response) => {
+        this.emailServerConfig = JSON.parse(response.data).data;
+      });
+    },
+    setEmailServerConfig(hostname, port, username, password) {
+      this.loading.emailServerConfig = true;
+      this.$api.emailServerConfig
+        .set(host, port, username, password)
+        .then((response) => {
+          this.emailServerConfig = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.emailServerConfig = false;
         });
     },
     removeEscalationEmail(email) {
@@ -311,6 +416,7 @@ module.exports = {
           this.overProvision = developerOptions["over_provision"];
           this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
+          this.autoExtendPools = developerOptions["auto_extend_pools"];
           this.sortNodesBySru = developerOptions["sort_nodes_by_sru"];
         })
         .finally(() => {
@@ -324,13 +430,14 @@ module.exports = {
           this.overProvision,
           this.explorerLogs,
           this.escalationEmailsEnabled,
+          this.autoExtendPools,
           this.sortNodesBySru
         )
         .then((response) => {
           this.alert("Developer options updated", "success");
         })
         .catch((error) => {
-          this.alert("Failed to update developer options", "error");
+          this.alert("Failed to update developer options, " + error, "error");
         });
     },
     clearBlockedNodes() {
@@ -346,6 +453,7 @@ module.exports = {
   },
   mounted() {
     this.listAdmins();
+    this.getEmailServerConfig();
     this.getCurrentIdentity();
     this.listIdentities();
     this.getDeveloperOptions();

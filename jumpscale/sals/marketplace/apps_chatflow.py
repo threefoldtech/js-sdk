@@ -16,18 +16,9 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.clients.explorer.models import WorkloadType
 
-FLAVORS = {
-    "Silver": {"sru": 2,},
-    "Gold": {"sru": 5,},
-    "Platinum": {"sru": 10,},
-}
+FLAVORS = {"Silver": {"sru": 2}, "Gold": {"sru": 5}, "Platinum": {"sru": 10}}
 
-RESOURCE_VALUE_KEYS = {
-    "cru": "CPU {}",
-    "mru": "Memory {} GB",
-    "sru": "Disk {} GB [SSD]",
-    "hru": "Disk {} GB [HDD]",
-}
+RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} GB [SSD]", "hru": "Disk {} GB [HDD]"}
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
@@ -178,7 +169,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def upload_public_key(self):
         self.public_key = (
             self.upload_file(
-                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh"
             )
             or ""
         )
