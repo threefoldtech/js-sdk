@@ -18,7 +18,6 @@ from solutions_automation.marketplace.taiga import TaigaAutomated
 from solutions_automation.marketplace.website import WebsiteAutomated
 from solutions_automation.marketplace.wiki import WikiAutomated
 from solutions_automation.threebot.deploy import ThreebotDeployAutomated
-from solutions_automation.threebot.extend import ThreebotExtendAutomated
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -372,6 +371,7 @@ def deploy_threebot(
     email_host="",
     email_host_password="",
     escalation_mail_address="",
+    node_policy="Automatic",
 ):
     return ThreebotDeployAutomated(
         type="Create",
@@ -399,7 +399,3 @@ def recover_threebot(solution_name, recover_password, ssh, expiration, debug=Tru
         expiration=expiration,
         debug=debug,
     )
-
-
-def extend_threebot(name, expiration):
-    return ThreebotExtendAutomated(name=name, expiration=expiration)
