@@ -122,6 +122,27 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
+    def list_sshkeys(self) -> str:
+        sshkeys = j.core.config.get("SSH_KEYS", [])
+        return j.data.serializers.json.dumps({"data": sshkeys})
+
+    @actor_method
+    def add_sshkey(self, sshkey) -> str:
+        sshkeys = j.core.config.get("SSH_KEYS", [])
+        if sshkey not in sshkeys:
+            sshkeys.append(sshkey)
+            j.core.config.set("SSH_KEYS", sshkeys)
+        return j.data.serializers.json.dumps({"data": sshkeys})
+
+    @actor_method
+    def delete_sshkey(self, sshkey) -> str:
+        sshkeys = j.core.config.get("SSH_KEYS", [])
+        if sshkey in sshkeys:
+            sshkeys.remove(sshkey)
+            j.core.config.set("SSH_KEYS", sshkeys)
+        return j.data.serializers.json.dumps({"data": sshkeys})
+
+    @actor_method
     def get_developer_options(self) -> str:
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
