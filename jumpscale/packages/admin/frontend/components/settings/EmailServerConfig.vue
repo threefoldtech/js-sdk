@@ -25,6 +25,7 @@
         <v-text-field
           v-model="emailServerConfig.password"
           label="Password"
+          type="password"
           dense
         ></v-text-field>
       </v-form>

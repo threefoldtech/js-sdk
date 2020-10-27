@@ -97,7 +97,9 @@
                       </tr>
                       <tr>
                         <td>Password</td>
-                        <td>{{ emailServerConfig.password }}</td>
+                        <td class="hidetext">
+                          {{ emailServerConfig.password }}
+                        </td>
                       </tr>
                     </tbody>
                   </template>
