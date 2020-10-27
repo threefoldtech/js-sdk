@@ -1,5 +1,6 @@
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.packages.tfgrid_solutions.utils import auto_extend_pools
+from jumpscale.loader import j
 
 
 class AutoExtendPoolService(BackgroundService):
@@ -11,7 +12,7 @@ class AutoExtendPoolService(BackgroundService):
 
     def job(self):
         auto_extend_pools()
-        print("Auto extend pool service done successfully")
+        j.logger.info("Auto extend pool service done successfully")
 
 
 service = AutoExtendPoolService()
