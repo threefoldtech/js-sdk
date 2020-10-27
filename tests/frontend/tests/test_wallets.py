@@ -15,7 +15,7 @@ class WalletTests(BaseTest):
         - Check that the wallet has been deleted from the wallets cards.
         """
         self.info("Create a wallet.")
-        wallet_name = self.random_str()
+        wallet_name = self.random_name()
         wallets = Wallets(self.driver)
         wallets.load()
         wallets.create(wallet_name)

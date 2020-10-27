@@ -1,5 +1,5 @@
 from jumpscale.packages.marketplace.chats.discourse import Discourse
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class DiscourseAutomated(GedisChatBotPatch, Discourse):
@@ -9,6 +9,6 @@ class DiscourseAutomated(GedisChatBotPatch, Discourse):
 
     QS = {
         HOST_EMAIL: "host_email",
-        SMTP_HOST: "stmp_host",
+        SMTP_HOST: "smtp_host",
         HOST_EMAIL_PASSWORD: "host_email_password",
     }

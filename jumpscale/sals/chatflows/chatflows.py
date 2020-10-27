@@ -153,13 +153,16 @@ class GedisChatBot:
                 )
                 if e.msg:
                     self.send_error(
-                        e.msg + ". Please use the refresh button on the upper right to restart the chatflow", **e.kwargs
+                        e.msg + f". Use the refresh button on the upper right to restart {self.title} creation",
+                        **e.kwargs,
                     )
                 self.send_data({"category": "end"})
 
             except Exception as e:
                 message = "Something wrong happened"
-                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and "op_underfunded" in e.extras.get("result_codes", {}).get("operations", []):
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and "op_underfunded" in e.extras.get(
+                    "result_codes", {}
+                ).get("operations", []):
                     message = "Not enough funds"
                 internal_error = True
                 j.logger.exception("error", exception=e)
@@ -170,14 +173,14 @@ class GedisChatBot:
                 if username in j.core.identity.me.admins:
                     self.send_error(
                         f"""{message}, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>"""
-                        "Please use the refresh button on the upper right to restart the chatflow",
+                        f"Use the refresh button on the upper right to restart {self.title} creation",
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f"Something wrong happened, please contact support with alert ID: {alert.id}\n"
-                        "Please use the refresh button on the upper right to restart the chatflow"
+                        f"Use the refresh button on the upper right to restart {self.title} creation"
                     )
                 self.send_data({"category": "end"})
 

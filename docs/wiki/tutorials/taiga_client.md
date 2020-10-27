@@ -1,80 +1,153 @@
 # Taiga client
 
-This client is used to interact with Taiga API.
-
 ## Initialization
 
 Using username and  password:
-> client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", username='7mada', password='123456')
-
+```
+client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", username='admin', password='123456')
+```
 OR using a token
-> client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", token='extra secret token string')
 
+```
+client = j.clients.taiga.new('test', host="https://staging.circles.threefold.me/", token='extra secret token string')
+```
 ## Listing
 
 ### Listing issues
 
 To get the issues of the user with id 123:
-> client.list_all_issues(123)
+```
+client.list_all_issues(123)
+```
 To get the issues of all users:
-> client.list_all_issues(123)
+```
+client.list_all_issues(123)
 
+```
 ### Listing projects
 
 To list all projects:
-> client.list_all_projects()
+```
+client.list_all_projects()
+```
+
 
 ### Listing milestones
 
 To list all projects:
-> client.list_all_milestones()
+```
+client.list_all_milestones()
 
+```
 ### Listing user stories
 
 To list the user stories of the user with id 123:
-> client.list_all_user_stories(123)
+
+```
+client.list_all_user_stories(123)
+```
+
 To list the user stories of all users:
-> client.list_all_user_stories()
+
+```
+client.list_all_user_stories()
+```
+
+
+### List team circles
+
+```
+client.list_team_circles()
+```
+
+
+### List project circles
+
+```
+client.list_project_circles()  ## list_team_circles, list_funnel_circles
+```
+
+### List funnel circles
+
+```
+client.list_funnel_circles()
+
+```
+
+### Create new circle
+
+if you want full control on the circle creation on priorities, severities, .. etc, you can use `_create_new_circle` method
+
+
+```
+def _create_new_circle(
+    self,
+    name,
+    type_="team",
+    description="desc",
+    severities=None,
+    issues_statuses=None,
+    priorities=None,
+    issues_types=None,
+    user_stories_statuses=None,
+    tasks_statuses=None,
+    **attrs,
+):
+```
+otherwise you can use `create_new_project_circle,`, `create_new_team_circle`, `create_new_funnel_circle`
+
+
+### Create new story
+
+```
+circle_object.create_story("abc")
+```
+
+### Create a new  issue
+
+```
+create_issue("my issue")
+```
 
 ## Exporting
 
-### Exporting issues
-To export all issues details to the file /tmp/issues.md:
-> client.export_all_issues_details('/tmp/issues.md')
-it accepts the parameter with_description upon which is decided whether to print the description with the issues or not
+### Export users and circles
 
-### Exporting issues per project
-To export all issues details grouped by the project to the file /tmp/issues.md:
-> client.export_issues_per_project('/tmp/issues.md')
-It accepts with_details to tell whether to print only the issue title or its full details
+```
+client.export_as_md("/tmp/taigawiki")
+```
 
-### Exporting issues for a user
-To export all issues details for the username 7mada to the file /tmp/issues.md:
-> client.export_issues_per_user(username='7mada', '/tmp/issues.md')
-Accepts with_description
+### Export users
 
-### Exporting user stories
-To export all user stories to the file /tmp/stories.md:
-> client.export_all_user_stories(username='7mada', '/tmp/stories.md')
-
-## Fetching data
-
-### Fetching user circles
-> client.fetch_user_circles('7mada')
-
-### Fetching project issues
-> client.fetch_circles_issues(123) # project id
-
-### Fetching user stories
-> client.get_user_stories('7mada')
-
-### Fetching user tasks
-> client.get_user_tasks('7mada')
-
-### Fetch issue description
-> client.get_issue_description(567) # issue id
-
+```
+client.export_users_as_md("/tmp/taigawiki")
+```
+### Export circles
+```
+client.export_circles_as_md("/tmp/taigawiki")
+```
 ## Operations
 
-### Move a story to a porject
-> client.move_story_to_cirlce(789, 123) # story id, project id
+### Move a story to a project
+
+```
+client.move_story_to_cirlce(789, 123) # story id, project id
+```
+
+or using a project object
+```
+project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object)
+```
+
+### Resources urls
+All of resources e.g (user, issue, user_story, circle) have `url` property
+
+
+## Export objects as yaml
+to export All objects as yaml all you need is
+
+```
+client.export_as_yaml("/tmp/exported_taiga_dir")
+
+```
+this will export resources (users, projects, issues, stories, milestones) in `/tmp/exported_taiga_dir/$object_type/$object_id.yaml`

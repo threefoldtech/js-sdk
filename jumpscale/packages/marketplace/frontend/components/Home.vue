@@ -52,6 +52,7 @@
                 :apps="section.apps"
                 :titletooltip="section.titleToolTip"
                 :solutioncount="solutionCount"
+                :loggedin="loggedin"
               ></solutions-section>
             </v-tab-item>
           </v-tabs>
@@ -73,6 +74,7 @@ module.exports = {
       solutionCount: {},
       selectedObject: {},
       sections: SECTIONS,
+      loggedin: this.$route.params.loggedin,
     };
   },
   computed: {
@@ -87,6 +89,7 @@ module.exports = {
     autoCompleteList() {
       let ret = [];
       for (section in this.filteredSections) {
+        if (section === "All Solutions") continue;
         const apps = Object.values(this.filteredSections[section].apps);
         ret.push({ header: section });
         for (let i = 0; i < apps.length; i++) {

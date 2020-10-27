@@ -2,7 +2,7 @@ from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, authenticated
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -36,7 +36,7 @@ def cancel_solution():
 
 
 @app.route("/api/allowed", method="GET")
-@login_required
+@authenticated
 def allowed():
     user_factory = StoredFactory(UserEntry)
     user_info = j.data.serializers.json.loads(get_user_info())

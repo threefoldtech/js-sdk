@@ -1,5 +1,6 @@
 import re
-import os
+
+from jumpscale.loader import j
 
 
 def is_message_matched(msg, pattern):
@@ -12,11 +13,9 @@ def is_message_matched(msg, pattern):
             return False
 
 
-def read_file(f):
-    with open(os.path.expanduser(f), "r") as h:
-        return h.read()
+def read_file(filename):
+    return j.sals.fs.read_file(j.sals.fs.expanduser(filename))
 
 
-def write_file(filename, data):
-    with open(os.path.expanduser(filename), "w") as f:
-        return f.write(data)
+def write_file(filename, content):
+    return j.sals.fs.write_file(j.sals.fs.expanduser(filename), content)

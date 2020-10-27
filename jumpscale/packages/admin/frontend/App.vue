@@ -3,6 +3,31 @@
     <v-app-bar app>
       <v-switch v-model="darkTheme" hide-details inset label="Dark mode"></v-switch>
       <v-spacer></v-spacer>
+      <v-menu offset-y>
+        <template v-slot:activator="{ attrs, on }">
+          <div v-if="notificationsCount">
+            <v-badge color="red" offset-x="17" offset-y="12" class="mr-4" :content="notificationsCount">
+              <v-icon v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-ring</v-icon>
+            </v-badge>
+          </div>
+          <div v-else>
+              <v-icon class="pr-2" v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-outline</v-icon>
+          </div>
+        </template>
+
+        <v-list class="notificationlist" v-if="notifications.length">
+          <v-list-item v-for="item in notifications" :items="notifications" :key="item.id" link>
+            <v-list-item-icon>
+              <v-icon :color="notificationsIcons[item.level].color" class="ml-2" large>{{notificationsIcons[item.level].icon}}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+            <v-list-item-title v-text="item.category"></v-list-item-title>
+            <v-list-item-subtitle v-text="new Date(item.date * 1000).toLocaleString('en-GB')"></v-list-item-subtitle>
+              <v-list-item-title class="font-weight-bold" v-text="item.message"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <v-chip label flat color="transparent" class="pr-5">
         <v-icon color="primary" left>mdi-clock-outline</v-icon>
         {{ timenow }}
@@ -151,6 +176,24 @@ module.exports = {
       menu: false,
       mini: false,
       timenow: null,
+      notifications: [],
+      notificationsIcons:{
+        info: {
+          icon: "mdi-information-outline",
+          color : "green"
+        },
+        warning: {
+          icon: "mdi-alert-circle",
+          color : "orange"
+        },
+        error: {
+          icon: "mdi-close-circle-outline",
+          color : "red"
+        },
+      },
+      notificationsCount: null,
+      notificationsListOpen: false,
+      notificationInterval: null,
       clockInterval: null,
       dialogs: {
         identity: false,
@@ -220,6 +263,12 @@ module.exports = {
         this.$vuetify.theme.dark = this.darkTheme =
           cookie == "1" ? true : false;
     },
+    notificationsClick() {
+        this.$api.admins.getNotifications().then((response) => {
+          this.notifications = JSON.parse(response.data).data;
+          this.notificationsCount = 0;
+        });
+    },
   },
   mounted() {
     this.checkDarkMode();
@@ -230,9 +279,21 @@ module.exports = {
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);
+    this.notificationInterval = setInterval(() =>{
+      this.$api.admins.getNotificationsCount().then((response) => {
+        this.notificationsCount = JSON.parse(response.data).data;
+      });
+    },10000);
   },
   destroyed() {
     clearInterval(this.clockInterval);
+    clearInterval(this.notificationInterval);
   },
 };
 </script>
+<style>
+  .notificationlist{
+    height:400px;
+    overflow-y:auto
+  }
+</style>
