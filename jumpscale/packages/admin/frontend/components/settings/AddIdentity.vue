@@ -2,8 +2,16 @@
   <base-dialog title="Add identity" v-model="dialog" :error="error" :loading="loading">
     <template #default>
       <v-form>
-        <v-text-field v-model="form.instance_name" label="Identity name" dense></v-text-field>
-        <v-text-field v-model="form.tname" label="3Bot name" dense></v-text-field>
+        <v-text-field v-model="form.display_name" label="Display name" dense>
+        <v-tooltip slot="append" left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon color="grey lighten-1"> mdi-help-circle </v-icon>
+              </v-btn>
+            </template>
+            <span>The display name is used to reference the registered 3bot identity on TFGrid across the 3Bot.</span>
+        </v-tooltip>
+        </v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
         <v-text-field v-model="form.words" label="Words" dense></v-text-field>
         <v-select v-model="selected_explorer" label="Explorer type" :items="Object.keys(explorers)" dense></v-select>
@@ -33,12 +41,12 @@ module.exports = {
         submit () {
             this.loading = true
             this.error = null
-            if(!this.form.instance_name || !this.form.tname || !this.form.email || !this.form.words || !this.selected_explorer){
+            if(!this.form.display_name || !this.form.email || !this.form.words || !this.selected_explorer){
                 this.error = "All fields required"
                 this.loading = false
             }
             else{
-                this.$api.identities.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.selected_explorer].type).then((response) => {
+                this.$api.identities.add(this.form.display_name, this.form.email, this.form.words, this.explorers[this.selected_explorer].type).then((response) => {
                     responseMessage = JSON.parse(response.data).data
                     if(responseMessage == "Identity with the same instance name already exists"){
                         this.error = responseMessage

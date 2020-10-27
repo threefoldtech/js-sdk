@@ -1,7 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.core.exceptions import JSException
-
+from requests import HTTPError
 
 explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
@@ -88,19 +88,28 @@ class Admin(BaseActor):
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
     @actor_method
-    def add_identity(self, identity_instance_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
+    def add_identity(self, display_name: str, email: str, words: str, explorer_type: str) -> str:
+        tname = display_name
+        if not tname.isidentifier() or not tname.islower():
+            raise j.exceptions.Value(
+                "The display name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
+            )
+        identity_instance_name = f"{tname}"
         explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
-            return j.data.serializers.json.dumps({"data": "Identity with the same instance name already exists"})
+            raise j.exceptions.Value("Identity with the same name already exists")
         try:
             new_identity = j.core.identity.new(
                 name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
             )
             new_identity.register()
             new_identity.save()
-        except Exception as e:
+        except HTTPError as e:
             j.core.identity.delete(identity_instance_name)
-            raise j.exceptions.Value(str(e))
+            try:
+                raise j.exceptions.Value(j.data.serializers.json.loads(e.response.content)["error"])
+            except Exception as e:
+                raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
