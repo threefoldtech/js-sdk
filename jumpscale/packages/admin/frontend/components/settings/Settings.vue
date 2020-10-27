@@ -62,7 +62,7 @@
             <!-- Email Server Config start -->
             <base-section
               class="mt-3"
-              title="Email Sever config"
+              title="Email Sever Configurations"
               icon="mdi-access-point-network"
               :loading="loading.emailServerConfig"
             >
@@ -75,33 +75,50 @@
               <template>
                 <v-simple-table>
                   <template v-slot:default>
-                    <thead>
-                      <tr>
-                        <th class="text-left">Property</th>
-                        <th class="text-left">Value</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>Host</td>
-                        <td>{{ emailServerConfig.host }}</td>
-                      </tr>
-
-                      <tr>
-                        <td>Port</td>
-                        <td>{{ emailServerConfig.port }}</td>
-                      </tr>
-                      <tr>
-                        <td>Username</td>
-                        <td>{{ emailServerConfig.username }}</td>
-                      </tr>
-                      <tr>
-                        <td>Password</td>
-                        <td class="hidetext">
-                          {{ emailServerConfig.password }}
-                        </td>
-                      </tr>
-                    </tbody>
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on, attrs }">
+                          <tbody v-bind="attrs" v-on="on">
+                            <tr >
+                              <td >SMTP Host</td>
+                              <td>{{ emailServerConfig.host }}</td>
+                            </tr>
+                          </tbody>
+                            </template>
+                          <span>SMTP host server</span>
+                        </v-tooltip>
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on, attrs }">
+                          <tbody v-bind="attrs" v-on="on">
+                            <tr >
+                              <td >Port</td>
+                              <td>{{ emailServerConfig.port }}</td>
+                            </tr>
+                          </tbody>
+                            </template>
+                          <span>SMTP host server port</span>
+                        </v-tooltip>
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on, attrs }">
+                          <tbody v-bind="attrs" v-on="on">
+                            <tr >
+                              <td >Username</td>
+                              <td>{{ emailServerConfig.username }}</td>
+                            </tr>
+                          </tbody>
+                            </template>
+                          <span>Login username</span>
+                        </v-tooltip>
+                       <v-tooltip bottom>
+                          <template v-slot:activator="{ on, attrs }">
+                          <tbody v-bind="attrs" v-on="on">
+                            <tr >
+                              <td >Password</td>
+                              <td class="hidetext">{{ emailServerConfig.password }}</td>
+                            </tr>
+                          </tbody>
+                            </template>
+                          <span>Login password</span>
+                        </v-tooltip>
                   </template>
                 </v-simple-table>
               </template>
