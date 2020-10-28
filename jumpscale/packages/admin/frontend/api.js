@@ -231,6 +231,27 @@ const apiClient = {
                 data: { display_name: display_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
             })
         },
+        generateMnemonic: () => {
+            return axios({
+                url: `${baseURL}/admin/generate_mnemonic`
+            })
+        },
+        checkTNameExists: (tname, explorerType) => {
+            return axios({
+                url: `${baseURL}/admin/check_tname_exists`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { tname: tname, explorer_type: explorerType }
+            })
+        },
+        checkInstanceName: (name) => {
+            return axios({
+                url: `${baseURL}/admin/check_identity_instance_name`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
+            })
+        },
         setIdentity: (identity_instance_name) => {
             return axios({
                 url: `${baseURL}/admin/set_identity`,

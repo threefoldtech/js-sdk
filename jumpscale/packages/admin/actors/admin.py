@@ -88,6 +88,29 @@ class Admin(BaseActor):
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
+    def generate_mnemonic(self) -> str:
+        words = j.data.encryption.generate_mnemonic()
+        return j.data.serializers.json.dumps({"data": words})
+
+    @actor_method
+    def check_tname_exists(self, tname, explorer_type) -> str:
+        explorer_clients = {
+            "main": j.clients.explorer.get("user_checker_mainnet", f"https://{explorers['main']}/api/v1"),
+            "testnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
+        }
+        explorer_client = explorer_clients[explorer_type]
+        try:
+            explorer_client.users.get(name=tname)
+            return j.data.serializers.json.dumps({"data": True})
+        except j.exceptions.NotFound:
+            return j.data.serializers.json.dumps({"data": False})
+
+    @actor_method
+    def check_identity_instance_name(self, name) -> str:
+        if name in j.core.identity.list_all():
+            return j.data.serializers.json.dumps({"data": True})
+        return j.data.serializers.json.dumps({"data": False})
+
     @actor_method
     def add_identity(self, display_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
         if not display_name.isidentifier() or not display_name.islower():
