@@ -20,6 +20,7 @@ from solutions_automation.marketplace.wiki import WikiAutomated
 from solutions_automation.threebot.deploy import ThreebotDeployAutomated
 from solutions_automation.threebot.change_size import ThreebotChangeSizeAutomated
 from solutions_automation.threebot.start import ThreebotStart
+from solutions_automation.threebot.change_location import ThreebotChangeLocation
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -400,4 +401,8 @@ def start_threebot(name, password):
 
 
 def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - Disk 2 GB [SSD])"):
-    return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor,)
+    return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor)
+
+
+def change_threebot_location(name, password):
+    return ThreebotChangeLocation(tname=name, password=password)
