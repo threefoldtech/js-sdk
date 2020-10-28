@@ -20,7 +20,7 @@ from .exceptions import UnAuthorized
 
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
-_HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
+_HORIZON_NETWORKS = {"TEST": "http://157.245.131.96:8000", "STD": "https://horizon.stellar.org"}
 _NETWORK_PASSPHRASES = {
     "TEST": stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
     "STD": stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
@@ -228,13 +228,18 @@ class Stellar(Client):
         transaction.sign(signer_kp)
         server.submit_transaction(transaction)
 
+    def get_horizon_server(self):
+        server_url = _HORIZON_NETWORKS[self.network.value]
+        server = Server(horizon_url=server_url)
+        return server
+
     def activate_through_friendbot(self):
         """Activates and funds a testnet account using riendbot
         """
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
-        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
+        resp = j.tools.http.get("https://friendbot.stellar.org", params={"addr": self.address})
         resp.raise_for_status()
         j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
 
