@@ -139,7 +139,7 @@ class ServiceManager(Base):
         self.services[service.name] = dict(path=service_path)
 
     def stop_service(self, service_name, block=True):
-        """Stop a running background service gracefully and unschedules it if it's scheduled to run again
+        """Stop a running background service and unschedule it if it's scheduled to run again
 
         Arguments:
             service_name {str}: name of the service to be stopped
