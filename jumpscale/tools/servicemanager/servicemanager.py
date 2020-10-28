@@ -72,28 +72,29 @@ class ServiceManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.services = {}
-        self._greenlets = {}
+        self._scheduled = {}
+        self._running = {}
 
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
 
         Arguments:
-            greenlet {Greenlet} -- greenlet object
+            greenlet {Greenlet}: greenlet object
         """
-        g = self._greenlets.pop(greenlet.name)
-        service = g.service
-        self._schedule_service(service)
+        greenlet.unlink(self.__callback)
+        self._running.pop(greenlet.service.name)
 
     def _schedule_service(self, service):
-        """Schedule a service to run its job after interval specified by the service
+        """Runs a service job and schedules it to run again every period (interval) specified by the service
 
         Arguments:
-            service {BackgroundService} -- background service object
+            service {BackgroundService}: background service object
         """
-        greenlet = gevent.spawn_later(service.interval, service.job)
+        greenlet = gevent.spawn(service.job)
         greenlet.link(self.__callback)
-        self._greenlets[greenlet.name] = greenlet
-        self._greenlets[greenlet.name].service = service
+        self._running[service.name] = greenlet
+        self._running[service.name].service = service
+        self._scheduled[service.name] = gevent.spawn_later(service.interval, self._schedule_service, service=service)
 
     def start(self):
         """Start the service manager and schedule default services
@@ -118,7 +119,7 @@ class ServiceManager(Base):
         """Add a new background service to be managed and scheduled by the service manager
 
         Arguments:
-            service_path {str} -- absolute path of the service file
+            service_path {str}: absolute path of the service file
         """
 
         module = j.tools.codeloader.load_python_module(service_path)
@@ -131,23 +132,37 @@ class ServiceManager(Base):
         for service_obj in self.services.values():
             # better way?
             if isinstance(service, type(service_obj)):
-                raise j.exceptions.Value(f"A {type(service).__name__} instance is already running")
+                raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
 
         self._schedule_service(service)
         self.services[service.name] = dict(path=service_path)
 
-    def stop_service(self, service_name):
-        """Stop a background service
+    def stop_service(self, service_name, block=True):
+        """Stop a running background service gracefully and unschedules it if it's scheduled to run again
 
         Arguments:
-            service_name {str} -- name of the service to be stopped
+            service_name {str}: name of the service to be stopped
+            block {bool}: wait for service job to finish. if False, service job will be killed without waiting
         """
         if service_name not in self.services:
             raise j.exceptions.Value(f"Service {service_name} is not running")
 
-        for key, greenlet in self._greenlets.items():
-            if greenlet.service.name == service_name:
-                greenlet.unlink(self.__callback)
-                self._greenlets.pop(key)
-                break
+        # wait for service to finish if it's already running
+        if service_name in self._running:
+            greenlet = self._running[service_name]
+            if block:
+                greenlet.join()
+            else:
+                greenlet.kill()
+                if not greenlet.dead:
+                    raise j.exceptions.Runtime("Could not kill running greenlet")
+
+        # unschedule service if it's scheduled to run again
+        if service_name in self._scheduled:
+            greenlet = self._scheduled[service_name]
+            greenlet.kill()
+            if not greenlet.dead:
+                raise j.exceptions.Runtime("Could not kill scheduled greenlet")
+            self._scheduled.pop(service_name)
+
         self.services.pop(service_name)
