@@ -66,6 +66,7 @@ class BackgroundService(ABC):
 
 
 # TODO: add support for non-periodic tasks
+# TODO: add support for cron time string format (day of the week, month, day of the month, hour, minute)
 # TODO: configurable services
 # TODO: add support for services not in packages
 class ServiceManager(Base):
