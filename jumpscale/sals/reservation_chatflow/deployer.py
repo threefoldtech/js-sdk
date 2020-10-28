@@ -775,6 +775,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
 
         workload = j.sals.zos.get(identity_name).workloads.get(workload_id)
+        # if the workload is network and it is not a breaking node, skip if the node is blocked
+        if (
+            workload.info.workload_type == WorkloadType.Network_resource
+            and workload.info.node_id in j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes()
+        ):
+            if workload.info.node_id != breaking_node_id:
+                return True
+
         if workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
             node = j.sals.zos.get(identity_name)._explorer.gateway.get(workload.info.node_id)
         else:

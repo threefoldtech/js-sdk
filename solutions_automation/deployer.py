@@ -18,6 +18,8 @@ from solutions_automation.marketplace.taiga import TaigaAutomated
 from solutions_automation.marketplace.website import WebsiteAutomated
 from solutions_automation.marketplace.wiki import WikiAutomated
 from solutions_automation.threebot.deploy import ThreebotDeployAutomated
+from solutions_automation.threebot.change_size import ThreebotChangeSizeAutomated
+from solutions_automation.threebot.start import ThreebotStart
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -372,6 +374,7 @@ def deploy_threebot(
     email_host_password="",
     escalation_mail_address="",
     node_policy="Automatic",
+    flavor="Silver (CPU 1 - Memory 2 GB - Disk 2 GB [SSD])",
 ):
     return ThreebotDeployAutomated(
         type="Create",
@@ -387,15 +390,14 @@ def deploy_threebot(
         email_host=email_host,
         email_host_password=email_host_password,
         escalation_mail_address=escalation_mail_address,
+        node_policy=node_policy,
+        flavor=flavor,
     )
 
 
-def recover_threebot(solution_name, recover_password, ssh, expiration, debug=True):
-    return ThreebotDeployAutomated(
-        type="Recover",
-        solution_name=solution_name,
-        recover_password=recover_password,
-        ssh=ssh,
-        expiration=expiration,
-        debug=debug,
-    )
+def start_threebot(name, password):
+    return ThreebotStart(tname=name, password=password,)
+
+
+def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - Disk 2 GB [SSD])"):
+    return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor,)
