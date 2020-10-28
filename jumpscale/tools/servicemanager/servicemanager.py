@@ -36,10 +36,12 @@ service = TestService()
 ```
 """
 
-
+from numbers import Real
+from math import ceil
 from abc import ABC, abstractmethod
-import gevent
 from signal import SIGTERM, SIGKILL
+from crontab import CronTab
+import gevent
 
 from jumpscale.loader import j
 from jumpscale.core.base import Base
@@ -50,8 +52,8 @@ class BackgroundService(ABC):
         """Abstract base class for background services managed by the service manager
 
         Arguments:
-            service_name {str} -- identifier of the service
-            interval {int} -- scheduled job is executed every interval (in seconds)
+            service_name {str}: identifier of the service
+            interval {int}: scheduled job is executed every interval (in seconds)
         """
         self.name = service_name
         self.interval = interval
@@ -66,15 +68,39 @@ class BackgroundService(ABC):
 
 
 # TODO: add support for non-periodic tasks
-# TODO: add support for cron time string format (day of the week, month, day of the month, hour, minute)
 # TODO: configurable services
 # TODO: add support for services not in packages
 class ServiceManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.services = {}
-        self._scheduled = {}
-        self._running = {}
+        self.services = {}  # service objects
+        self._scheduled = {}  # greenlets of scheduled services
+        self._running = {}  # greenlets of currently running services
+
+    @classmethod
+    def seconds_to_next_interval(cls, interval):
+        """Helper method to get seconds remaining to next_interval
+
+        Arguments:
+            interval (Any): next interval to which seconds remaining is calculated
+
+        Returns:
+            Real: number of seconds remaining until next interval
+
+        Raises:
+            ValueError: when the type of interval is not Real / CronTab object / CronTab string format
+        """
+        if isinstance(interval, Real):
+            return interval
+        elif isinstance(interval, str):
+            try:
+                return CronTab(interval).next(default_utc=True)
+            except Exception as e:
+                raise j.exceptions.Value(str(e))
+        elif isinstance(interval, CronTab):
+            return interval.next(default_utc=True)
+        else:
+            raise j.exceptions.Runtime(f"Unsupported interval type: {type(interval)}")
 
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
@@ -95,7 +121,9 @@ class ServiceManager(Base):
         greenlet.link(self.__callback)
         self._running[service.name] = greenlet
         self._running[service.name].service = service
-        self._scheduled[service.name] = gevent.spawn_later(service.interval, self._schedule_service, service=service)
+        self._scheduled[service.name] = gevent.spawn_later(
+            ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
+        )
 
     def start(self):
         """Start the service manager and schedule default services
@@ -107,7 +135,10 @@ class ServiceManager(Base):
         # schedule default services
         for service in self.services.values():
             module = j.tools.codeloader.load_python_module(service["path"])
-            self._schedule_service(module.service)
+            service = module.service
+            self._scheduled[service.name] = gevent.spawn_later(
+                ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
+            )
 
     def stop(self):
         """Stop all background services
@@ -135,7 +166,9 @@ class ServiceManager(Base):
             if isinstance(service, type(service_obj)):
                 raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
 
-        self._schedule_service(service)
+        self._scheduled[service.name] = gevent.spawn_later(
+            ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
+        )
         self.services[service.name] = dict(path=service_path)
 
     def stop_service(self, service_name, block=True):
