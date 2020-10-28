@@ -151,18 +151,24 @@ class ServiceManager(Base):
         if service_name in self._running:
             greenlet = self._running[service_name]
             if block:
-                greenlet.join()
+                try:
+                    greenlet.join()
+                except Exception as e:
+                    raise j.exceptions.Runtime(f"Exception on waiting for greenlet: {str(e)}")
             else:
-                greenlet.kill()
+                try:
+                    greenlet.kill()
+                except Exception as e:
+                    raise j.exceptions.Runtime(f"Exception on killing greenlet: {str(e)}")
                 if not greenlet.dead:
-                    raise j.exceptions.Runtime("Could not kill running greenlet")
+                    raise j.exceptions.Runtime("Failed to kill running greenlet")
 
         # unschedule service if it's scheduled to run again
         if service_name in self._scheduled:
             greenlet = self._scheduled[service_name]
             greenlet.kill()
             if not greenlet.dead:
-                raise j.exceptions.Runtime("Could not kill scheduled greenlet")
+                raise j.exceptions.Runtime("Failed to unschedule greenlet")
             self._scheduled.pop(service_name)
 
         self.services.pop(service_name)
