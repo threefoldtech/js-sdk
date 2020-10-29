@@ -1,6 +1,6 @@
 import uuid
 from textwrap import dedent
-
+from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
 
@@ -82,25 +82,21 @@ class KubernetesDeploy(GedisChatBot):
     @deployment_context()
     def ip_selection(self):
         self.md_show_update("Deploying Network on Nodes....")
-        # deploy network on nodes
-        for i in range(len(self.selected_nodes)):
-            node = self.selected_nodes[i]
-            pool_id = self.selected_pool_ids[i]
-            result = deployer.add_network_node(
-                self.network_view.name,
-                node,
-                pool_id,
-                self.network_view,
-                bot=self,
-                owner=self.solution_metadata.get("owner"),
-            )
-            if not result:
-                continue
+        result = deployer.add_multiple_network_nodes(
+            self.network_view.name,
+            [node.node_id for node in self.selected_nodes],
+            self.selected_pool_ids,
+            self.network_view,
+            self,
+            owner=self.solution_metadata.get("owner"),
+        )
+        if result:
             for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self, breaking_node_id=node.node_id)
+                success = deployer.wait_workload(wid, self)
                 if not success:
-                    raise DeploymentFailed(f"Failed to add node {node.node_id} to network {wid}", wid=wid)
-            self.network_view = self.network_view.copy()
+                    workload = j.sals.zos.get().workloads.get(wid)
+                    raise DeploymentFailed(f"Failed to add node {workload.info.node_id} to network {wid}", wid=wid)
+        self.network_view = self.network_view.copy()
 
         # get ip addresses
         self.ip_addresses = []

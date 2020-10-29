@@ -267,12 +267,33 @@ const apiClient = {
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (display_name, email, words, explorer_type) => {
+        add: (display_name, tname, email, words, explorer_type) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { display_name: display_name, email: email, words: words, explorer_type: explorer_type }
+                data: { display_name: display_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+            })
+        },
+        generateMnemonic: () => {
+            return axios({
+                url: `${baseURL}/admin/generate_mnemonic`
+            })
+        },
+        checkTNameExists: (tname, explorerType) => {
+            return axios({
+                url: `${baseURL}/admin/check_tname_exists`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { tname: tname, explorer_type: explorerType }
+            })
+        },
+        checkInstanceName: (name) => {
+            return axios({
+                url: `${baseURL}/admin/check_identity_instance_name`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
             })
         },
         setIdentity: (identity_instance_name) => {
@@ -305,7 +326,29 @@ const apiClient = {
             })
         }
     },
-
+    sshkeys: {
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_sshkeys`
+            })
+        },
+        add: (id, sshkey) => {
+            return axios({
+                url: `${baseURL}/admin/add_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id, sshkey: sshkey }
+            })
+        },
+        delete: (id) => {
+            return axios({
+                url: `${baseURL}/admin/delete_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id }
+            })
+        }
+    },
     solutions: {
         getCount: () => {
             return axios({

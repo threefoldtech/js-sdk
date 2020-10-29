@@ -75,50 +75,52 @@
               <template>
                 <v-simple-table>
                   <template v-slot:default>
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                          <tbody v-bind="attrs" v-on="on">
-                            <tr >
-                              <td >SMTP Host</td>
-                              <td>{{ emailServerConfig.host }}</td>
-                            </tr>
-                          </tbody>
-                            </template>
-                          <span>SMTP host server</span>
-                        </v-tooltip>
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                          <tbody v-bind="attrs" v-on="on">
-                            <tr >
-                              <td >Port</td>
-                              <td>{{ emailServerConfig.port }}</td>
-                            </tr>
-                          </tbody>
-                            </template>
-                          <span>SMTP host server port</span>
-                        </v-tooltip>
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                          <tbody v-bind="attrs" v-on="on">
-                            <tr >
-                              <td >Username</td>
-                              <td>{{ emailServerConfig.username }}</td>
-                            </tr>
-                          </tbody>
-                            </template>
-                          <span>Login username</span>
-                        </v-tooltip>
-                       <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                          <tbody v-bind="attrs" v-on="on">
-                            <tr >
-                              <td >Password</td>
-                              <td class="hidetext">{{ emailServerConfig.password }}</td>
-                            </tr>
-                          </tbody>
-                            </template>
-                          <span>Login password</span>
-                        </v-tooltip>
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <tbody v-bind="attrs" v-on="on">
+                          <tr>
+                            <td>SMTP Host</td>
+                            <td>{{ emailServerConfig.host }}</td>
+                          </tr>
+                        </tbody>
+                      </template>
+                      <span>SMTP host server</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <tbody v-bind="attrs" v-on="on">
+                          <tr>
+                            <td>Port</td>
+                            <td>{{ emailServerConfig.port }}</td>
+                          </tr>
+                        </tbody>
+                      </template>
+                      <span>SMTP host server port</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <tbody v-bind="attrs" v-on="on">
+                          <tr>
+                            <td>Username</td>
+                            <td>{{ emailServerConfig.username }}</td>
+                          </tr>
+                        </tbody>
+                      </template>
+                      <span>Login username</span>
+                    </v-tooltip>
+                    <v-tooltip bottom>
+                      <template v-slot:activator="{ on, attrs }">
+                        <tbody v-bind="attrs" v-on="on">
+                          <tr>
+                            <td>Password</td>
+                            <td class="hidetext">
+                              {{ emailServerConfig.password }}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </template>
+                      <span>Login password</span>
+                    </v-tooltip>
                   </template>
                 </v-simple-table>
               </template>
