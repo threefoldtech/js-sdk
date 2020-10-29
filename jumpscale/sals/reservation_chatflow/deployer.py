@@ -148,13 +148,13 @@ class NetworkView:
 
     def add_multiple_nodes(self, node_ids, pool_ids):
         used_ip_ranges = set()
-        existing_nodes = []
+        existing_nodes = set()
         for workload in self.network_workloads:
             used_ip_ranges.add(workload.iprange)
             for peer in workload.peers:
                 used_ip_ranges.add(peer.iprange)
             if workload.info.node_id in node_ids:
-                existing_nodes.append(workload.info.node_id)
+                existing_nodes.add(workload.info.node_id)
 
         if len(existing_nodes) == len(node_ids):
             return
