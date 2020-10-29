@@ -102,6 +102,19 @@ class ServiceManager(Base):
         else:
             raise j.exceptions.Runtime(f"Unsupported interval type: {type(interval)}")
 
+    @classmethod
+    def _load_service(cls, path):
+        """Load the module in the service file path and get the service object
+
+        Arguments:
+            path (str): path of the service file
+
+        Returns:
+            service: service object defined in the service file
+        """
+        module = j.tools.codeloader.load_python_module(path)
+        return module.service
+
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
 
@@ -121,9 +134,8 @@ class ServiceManager(Base):
         greenlet.link(self.__callback)
         self._running[service.name] = greenlet
         self._running[service.name].service = service
-        self._scheduled[service.name] = gevent.spawn_later(
-            ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
-        )
+        next_start = ceil(self.seconds_to_next_interval(service.interval))
+        self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
 
     def start(self):
         """Start the service manager and schedule default services
@@ -134,11 +146,8 @@ class ServiceManager(Base):
 
         # schedule default services
         for service in self.services.values():
-            module = j.tools.codeloader.load_python_module(service["path"])
-            service = module.service
-            self._scheduled[service.name] = gevent.spawn_later(
-                ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
-            )
+            next_start = ceil(self.seconds_to_next_interval(service.interval))
+            self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
 
     def stop(self):
         """Stop all background services
@@ -154,9 +163,7 @@ class ServiceManager(Base):
             service_path {str}: absolute path of the service file
         """
 
-        module = j.tools.codeloader.load_python_module(service_path)
-        service = module.service
-
+        service = self._load_service(service_path)
         if service.name in self.services:
             raise j.exceptions.Value(f"Service with name {service.name} already exists")
 
@@ -164,9 +171,8 @@ class ServiceManager(Base):
         if service in self.services.values():
             raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
 
-        self._scheduled[service.name] = gevent.spawn_later(
-            ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
-        )
+        next_start = ceil(self.seconds_to_next_interval(service.interval))
+        self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
         self.services[service.name] = service
 
     def stop_service(self, service_name, block=True):
