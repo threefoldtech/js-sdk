@@ -122,4 +122,4 @@ class Pools:
           pool: list of pools
 
         """
-        return self._pools.list()
+        return self._pools.list(customer_tid=self._identity.tid)

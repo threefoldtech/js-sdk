@@ -253,7 +253,7 @@ class SolutionExpose(GedisChatBot):
                 solution_uuid=self.solution_id,
             )
         else:
-            self.tcprouter_id = deployer.expose_address(
+            self.tcprouter_id, _ = deployer.expose_address(
                 pool_id=self.pool_id,
                 gateway_id=self.domain_gateway.node_id,
                 network_name=self.network_name,
