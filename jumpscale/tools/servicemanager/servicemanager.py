@@ -53,7 +53,7 @@ class BackgroundService(ABC):
 
         Arguments:
             service_name {str}: identifier of the service
-            interval {int}: scheduled job is executed every interval (in seconds)
+            interval {int | CronTab object | str}: scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
         """
         self.name = service_name
         self.interval = interval
@@ -161,15 +161,13 @@ class ServiceManager(Base):
             raise j.exceptions.Value(f"Service with name {service.name} already exists")
 
         # TODO: check if instance of the service is already running -> kill greenlet and spawn a new one?
-        for service_obj in self.services.values():
-            # better way?
-            if isinstance(service, type(service_obj)):
-                raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
+        if service in self.services.values():
+            raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
 
         self._scheduled[service.name] = gevent.spawn_later(
             ceil(self.seconds_to_next_interval(service.interval)), self._schedule_service, service=service
         )
-        self.services[service.name] = dict(path=service_path)
+        self.services[service.name] = service
 
     def stop_service(self, service_name, block=True):
         """Stop a running background service and unschedule it if it's scheduled to run again
