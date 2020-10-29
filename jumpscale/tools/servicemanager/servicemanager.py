@@ -124,14 +124,25 @@ class ServiceManager(Base):
         greenlet.unlink(self.__callback)
         self._running.pop(greenlet.service.name)
 
+    def __on_exception(self, greenlet):
+        """Callback to handle exception raised by service greenlet
+
+        Arguments:
+            greenlet {Greenlet}: greenlet object
+        """
+        message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
+        j.tools.alerthandler.alert_raise(appname="servicemanager", message=message, alert_type="exception")
+
     def _schedule_service(self, service):
         """Runs a service job and schedules it to run again every period (interval) specified by the service
 
         Arguments:
             service {BackgroundService}: background service object
         """
-        greenlet = gevent.spawn(service.job)
+        greenlet = gevent.Greenlet(service.job)
         greenlet.link(self.__callback)
+        greenlet.link_exception(self.__on_exception)
+        greenlet.start()
         self._running[service.name] = greenlet
         self._running[service.name].service = service
         next_start = ceil(self.seconds_to_next_interval(service.interval))
