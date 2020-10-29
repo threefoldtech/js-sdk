@@ -20,7 +20,7 @@ from .exceptions import UnAuthorized
 
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
-_HORIZON_NETWORKS = {"TEST": "http://157.245.131.96:8000", "STD": "https://horizon.stellar.org"}
+_HORIZON_NETWORKS = {"TEST": "http://stellar-watcher.grid.tf/", "STD": "https://horizon.stellar.org"}
 _NETWORK_PASSPHRASES = {
     "TEST": stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
     "STD": stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
