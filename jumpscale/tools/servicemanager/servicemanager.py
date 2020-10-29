@@ -77,8 +77,8 @@ class ServiceManager(Base):
         self._scheduled = {}  # greenlets of scheduled services
         self._running = {}  # greenlets of currently running services
 
-    @classmethod
-    def seconds_to_next_interval(cls, interval):
+    @staticmethod
+    def seconds_to_next_interval(interval):
         """Helper method to get seconds remaining to next_interval
 
         Arguments:
@@ -102,8 +102,8 @@ class ServiceManager(Base):
         else:
             raise j.exceptions.Runtime(f"Unsupported interval type: {type(interval)}")
 
-    @classmethod
-    def _load_service(cls, path):
+    @staticmethod
+    def _load_service(path):
         """Load the module in the service file path and get the service object
 
         Arguments:
@@ -115,6 +115,16 @@ class ServiceManager(Base):
         module = j.tools.codeloader.load_python_module(path)
         return module.service
 
+    @staticmethod
+    def __on_exception(greenlet):
+        """Callback to handle exception raised by service greenlet
+
+        Arguments:
+            greenlet {Greenlet}: greenlet object
+        """
+        message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
+        j.tools.alerthandler.alert_raise(appname="servicemanager", message=message, alert_type="exception")
+
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
 
@@ -123,15 +133,6 @@ class ServiceManager(Base):
         """
         greenlet.unlink(self.__callback)
         self._running.pop(greenlet.service.name)
-
-    def __on_exception(self, greenlet):
-        """Callback to handle exception raised by service greenlet
-
-        Arguments:
-            greenlet {Greenlet}: greenlet object
-        """
-        message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
-        j.tools.alerthandler.alert_raise(appname="servicemanager", message=message, alert_type="exception")
 
     def _schedule_service(self, service):
         """Runs a service job and schedules it to run again every period (interval) specified by the service
