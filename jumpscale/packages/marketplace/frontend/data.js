@@ -49,6 +49,14 @@ const COLLAB_TOOLS = {
             helpLink: "https://now.threefold.io/now/docs/commento/",
             description: "Collaborate on online content without giving up your privacy."
         },
+        documentserver: {
+            name: "Documentserver",
+            type: "documentserver",
+            image: "./assets/documentserver.png",
+            disable: false,
+            helpLink: "https://now10.threefold.io/docs",
+            description: "Documentserver is an opensource collaboration tool that enables users to edit text files, data sheets and much more."
+        },
     },
 }
 

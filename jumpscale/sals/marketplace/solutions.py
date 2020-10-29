@@ -68,6 +68,9 @@ class MarketplaceSolutions(ChatflowSolutions):
 
     def list_cryptpad_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("cryptpad", next_action, sync, "nginx", owner=username)
+    
+    def list_documentserver_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("documentserver", next_action, sync, "nginx", owner=username)
 
     def list_minio_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         if sync:
