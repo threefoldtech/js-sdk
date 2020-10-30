@@ -57,6 +57,14 @@ const COLLAB_TOOLS = {
             helpLink: "https://now10.threefold.io/docs",
             description: "Documentserver is an opensource collaboration tool that enables users to edit text files, data sheets and much more."
         },
+        filebrowser: {
+            name: "Filebrowser",
+            type: "filebrowser",
+            image: "./assets/filebrowser.png",
+            disable: false,
+            helpLink: "https://now10.threefold.io/docs",
+            description: "Filebrowser is an opensource filemanager with a 3bot login."
+        },
     },
 }
 

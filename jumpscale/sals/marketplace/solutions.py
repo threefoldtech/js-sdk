@@ -72,6 +72,9 @@ class MarketplaceSolutions(ChatflowSolutions):
     def list_documentserver_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("documentserver", next_action, sync, "nginx", owner=username)
 
+    def list_filebrowser_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("filebrowser", next_action, sync, "nginx", owner=username)
+
     def list_minio_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
@@ -338,6 +341,8 @@ class MarketplaceSolutions(ChatflowSolutions):
             "website": 0,
             "taiga": 0,
             "meetings": 0,
+            "documentserver":0,
+            "filebrowser": 0
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

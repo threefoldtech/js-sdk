@@ -13,6 +13,8 @@ from solutions_automation.marketplace.discourse import DiscourseAutomated
 from solutions_automation.marketplace.gitea import GiteaAutomated
 from solutions_automation.marketplace.mattermost import MattermostAutomated
 from solutions_automation.marketplace.meetings import MeetingsAutomated
+from solutions_automation.marketplace.documentserver import DocumentserverAutomated
+from solutions_automation.marketplace.filebrowser import FilebrowserAutomated
 from solutions_automation.marketplace.peertube import PeertubeAutomated
 from solutions_automation.marketplace.taiga import TaigaAutomated
 from solutions_automation.marketplace.website import WebsiteAutomated
