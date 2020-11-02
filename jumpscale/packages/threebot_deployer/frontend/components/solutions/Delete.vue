@@ -58,9 +58,3 @@ module.exports = {
   },
 };
 </script>
-
-<style scoped>
-form p {
-  color: #ec7063 !important;
-}
-</style>
