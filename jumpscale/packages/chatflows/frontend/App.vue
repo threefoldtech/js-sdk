@@ -223,7 +223,7 @@
         this.getWork(true)
       },
       getWork (restore) {
-        failureMax = 30
+        failureMax = 60
         failureCount = 0
 
         const innerAxios = (failureCount) => {
@@ -242,7 +242,6 @@
                     this.loading = false
                     this.saveSession(response.data)
                     this.handleResponse(response.data)
-                    console.log(`done successfully`)
                     return
                 }).catch((response) => {
                       setTimeout(() => {
