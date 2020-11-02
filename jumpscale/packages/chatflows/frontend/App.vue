@@ -223,20 +223,39 @@
         this.getWork(true)
       },
       getWork (restore) {
-        axios({
-          url: `${baseUrl}/fetch`,
-          method: "post",
-          data: {
-            session_id: this.sessionId,
-            restore: restore
-          }
-        }).then((response) => {
-            this.loading = false
-            this.saveSession(response.data)
-            this.handleResponse(response.data)
-        }).catch((response) => {
-          alert("Request timedout. please refresh the page.")
-        })
+        failureMax = 30
+        failureCount = 0
+
+        const innerAxios = (failureCount) => {
+              if (failureCount == failureMax) {
+                  alert(`Connectivity error, we tried for ${failureCount} seconds, but Request timedout. please refresh the page.`)
+                  return
+              }
+              return axios({
+                  url: `${baseUrl}/fetch`,
+                  method: "post",
+                  data: {
+                    session_id: this.sessionId,
+                    restore: restore
+                  }
+                }).then((response) => {
+                    this.loading = false
+                    this.saveSession(response.data)
+                    this.handleResponse(response.data)
+                    console.log(`done successfully`)
+                    return
+                }).catch((response) => {
+                      setTimeout(() => {
+                        console.log(`retrying ... ${failureCount}`);
+                        failureCount++;
+                        return innerAxios(failureCount)
+                      }, 1000);
+
+                })
+
+        }
+        return innerAxios(failureCount)
+
       },
       reportWork (result) {
         axios({
