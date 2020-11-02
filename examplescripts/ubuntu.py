@@ -2,7 +2,7 @@ from jumpscale.loader import j
 from time import sleep
 import uuid
 
-zos = j.sals.zos
+zos = j.sals.zos.get()
 
 payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=["TFT"])
 print(payment_detail)
@@ -17,10 +17,12 @@ while pool.cus == 0:
 print("compute units available:", pool.cus)
 print("storage units available:", pool.sus)
 
-network_name = "demo_network3"
-ip_range = "172.19.0.0/16"
+network_name = "management"
+ip_range = "10.100.0.0/16"
+network = zos.network.load_network(network_name)
+if not network:
+    network = zos.network.create(ip_range=ip_range, network_name=network_name)
 
-network = zos.network.create(ip_range, network_name)
 nodes = zos.nodes_finder.nodes_by_capacity(pool_id=pool.pool_id)
 access_node = list(filter(zos.nodes_finder.filter_public_ip4, nodes))[0]
 zos.network.add_node(network, access_node.node_id, "172.19.2.0/24", pool.pool_id)
