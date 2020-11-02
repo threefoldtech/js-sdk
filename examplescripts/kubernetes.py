@@ -3,9 +3,10 @@ from time import sleep
 import netaddr
 import uuid
 import click
+import random
 
-zos = j.sals.zos
-network_name = "k8s_network"
+zos = j.sals.zos.get()
+network_name = "management"
 size = 1
 cluster_secret = "supersecret"
 
@@ -44,8 +45,19 @@ def deploy_overlay_network(pool):
     """
     deploying kubernetes network and adding nodes to it
     """
-    ip_range = "172.21.0.0/16"
-    network = zos.network.create(ip_range=ip_range, network_name=network_name)
+    ip_range = "10.100.0.0/16"
+    network = zos.network.load_network(network_name)
+    if not network:
+        network = zos.network.create(ip_range=ip_range, network_name=network_name)
+    network_node_ids = set()
+    network_used_ranges = set()
+    node_ranges = {}
+    for resource in network.network_resources:
+        node_ranges[resource.info.node_id] = resource.iprange
+        network_node_ids.add(resource.info.node_id)
+        network_used_ranges.add(resource.iprange)
+        for peer in resource.peers:
+            network_used_ranges.add(peer.iprange)
     pool_nodes = list(zos.nodes_finder.nodes_by_capacity(pool_id=pool.pool_id))
     for node in filter(zos.nodes_finder.filter_public_ip4, pool_nodes):
         if zos.nodes_finder.filter_is_up(node):
@@ -54,32 +66,49 @@ def deploy_overlay_network(pool):
     else:
         raise Exception("can not find a node with ipv4 that can be used as access node for the cluster")
 
-    iprange = f"172.21.0.0/24"
-    zos.network.add_node(network, access_node.node_id, iprange, pool.pool_id)
+    if not network_node_ids:
+        iprange = "10.100.0.0/24"
+        zos.network.add_node(network, access_node.node_id, iprange, pool.pool_id)
 
-    # adding wiregaurd access through a node that has ipv4
-    wg_quick = zos.network.add_access(network, access_node.node_id, "172.21.1.0/24", ipv4=True)
-    print(wg_quick)
+        # adding wiregaurd access through a node that has ipv4
+        wg_quick = zos.network.add_access(network, access_node.node_id, "10.100.1.0/24", ipv4=True)
+        network_used_ranges.add("10.100.0.0/24")
+        network_used_ranges.add("10.100.1.0/24")
+        print(wg_quick)
+        with open("kube.conf", "w") as f:
+            f.writelines(wg_quick)
 
-    for workload in network.network_resources:
-        wid = zos.workloads.deploy(workload)
-        workload = zos.workloads.get(wid)
-        while not workload.info.result.workload_id:
-            sleep(1)
+        for workload in network.network_resources:
+            wid = zos.workloads.deploy(workload)
             workload = zos.workloads.get(wid)
+            while not workload.info.result.workload_id:
+                sleep(1)
+                workload = zos.workloads.get(wid)
 
     nodes = []
-    for i, node in enumerate(reversed(pool_nodes)):
+    random.shuffle(pool_nodes)
+    for _, node in enumerate(pool_nodes):
+        if node.node_id in network_node_ids:
+            nodes.append({"id": node.node_id, "ip_range": node_ranges[node.node_id]})
+            continue
         if not zos.nodes_finder.filter_is_up(node) or node.node_id == access_node.node_id:
             continue
-        iprange = f"172.21.{i+10}.0/24"
-        zos.network.add_node(network, node.node_id, iprange, pool.pool_id)
-        nodes.append({"id": node.node_id, "ip_range": iprange})
+
+        network_range = netaddr.IPNetwork("10.100.0.0/16")
+        for _, subnet in enumerate(network_range.subnet(24)):
+            iprange = str(subnet)
+            if iprange in network_used_ranges:
+                continue
+
+            zos.network.add_node(network, node.node_id, iprange, pool.pool_id)
+            nodes.append({"id": node.node_id, "ip_range": iprange})
+            network_used_ranges.add(iprange)
+            break
+        else:
+            raise j.exceptions.Runtime(f"can't find free subnets in network {network_name}")
         if len(nodes) == 3:
             break
 
-    with open("kube.conf", "w") as f:
-        f.writelines(wg_quick)
     # Deploy the network
     node_workloads = {}
     for workload in network.network_resources:
