@@ -243,8 +243,8 @@ const SECTIONS = {
             ...BC_SOLUTIONS.apps,
         },
     },
-    "Collaboration Tools": COLLAB_TOOLS,
-    "Web & Social": WEB_SOCIAL,
-    "Developer Tools": DEV_TOOLS,
+    "Decentralised Office": COLLAB_TOOLS,
+    "Decentralised WE": WEB_SOCIAL,
+    "Decentralised Developer": DEV_TOOLS,
     "Blockchain Solutions": BC_SOLUTIONS,
 }
