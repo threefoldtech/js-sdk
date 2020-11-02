@@ -32,31 +32,6 @@
             <div :class="`${item.class}`">{{ item.expiration }}</div>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip top v-if="deployed3botsStatus[item.state] === 3" >
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn icon :href="`https://${item.domain}/admin`" target="_blank">
-                  <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
-                </v-btn>
-              </template>
-              <span>Open in browser</span>
-            </v-tooltip>
-            <v-tooltip top  v-if="deployed3botsStatus[item.state] !== 1">
-              <template v-slot:activator="{ on, attrs }">
-
-                <v-btn icon @click.stop="delete3Bot(item)">
-                  <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
-                </v-btn>
-              </template>
-              <span>Destroy</span>
-            </v-tooltip>
-            <v-tooltip top>
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn icon @click.stop="open(item)">
-                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>Show Information</span>
-            </v-tooltip>
             <v-tooltip top v-if="deployed3botsStatus[item.state] == 3">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn icon @click.stop="stop3Bot(item)">
@@ -72,6 +47,22 @@
                 </v-btn>
               </template>
               <span>Start</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="open(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
+                </v-btn>
+              </template>
+              <span>Show Information</span>
+            </v-tooltip>
+            <v-tooltip top  v-if="deployed3botsStatus[item.state] !== 1">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="delete3Bot(item)">
+                  <v-icon v-bind="attrs" v-on="on" color="#810000">mdi-delete</v-icon>
+                </v-btn>
+              </template>
+              <span>Destroy</span>
             </v-tooltip>
             <v-tooltip top v-if="deployed3botsStatus[item.state] === 2">
               <template v-slot:activator="{ on, attrs }">
@@ -97,6 +88,14 @@
                 </v-btn>
               </template>
               <span>This 3Bot expires in less than 2 days. Please go to your admin dashboard and extend pool {{ item.compute_pool }}</span>
+            </v-tooltip>
+            <v-tooltip top v-if="deployed3botsStatus[item.state] === 3" >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon :href="`https://${item.domain}/admin`" target="_blank">
+                  <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
+                </v-btn>
+              </template>
+              <span>Open in browser</span>
             </v-tooltip>
           </template>
         </v-data-table>
