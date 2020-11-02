@@ -2,6 +2,7 @@ from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.core.exceptions import JSException
 from requests import HTTPError
+import json
 
 explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
 
@@ -87,14 +88,36 @@ class Admin(BaseActor):
         else:
             return j.data.serializers.json.dumps({"data": f"{identity_instance_name} doesn't exist"})
 
+    def generate_mnemonic(self) -> str:
+        words = j.data.encryption.generate_mnemonic()
+        return j.data.serializers.json.dumps({"data": words})
+
     @actor_method
-    def add_identity(self, display_name: str, email: str, words: str, explorer_type: str) -> str:
-        tname = display_name
-        if not tname.isidentifier() or not tname.islower():
+    def check_tname_exists(self, tname, explorer_type) -> str:
+        explorer_clients = {
+            "main": j.clients.explorer.get("user_checker_mainnet", f"https://{explorers['main']}/api/v1"),
+            "testnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
+        }
+        explorer_client = explorer_clients[explorer_type]
+        try:
+            explorer_client.users.get(name=tname)
+            return j.data.serializers.json.dumps({"data": True})
+        except j.exceptions.NotFound:
+            return j.data.serializers.json.dumps({"data": False})
+
+    @actor_method
+    def check_identity_instance_name(self, name) -> str:
+        if name in j.core.identity.list_all():
+            return j.data.serializers.json.dumps({"data": True})
+        return j.data.serializers.json.dumps({"data": False})
+
+    @actor_method
+    def add_identity(self, display_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
+        if not display_name.isidentifier() or not display_name.islower():
             raise j.exceptions.Value(
                 "The display name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
             )
-        identity_instance_name = f"{tname}"
+        identity_instance_name = display_name
         explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             raise j.exceptions.Value("Identity with the same name already exists")
@@ -108,8 +131,14 @@ class Admin(BaseActor):
             j.core.identity.delete(identity_instance_name)
             try:
                 raise j.exceptions.Value(j.data.serializers.json.loads(e.response.content)["error"])
-            except Exception as e:
+            except (KeyError, json.decoder.JSONDecodeError):
+                # Return the original error message in case the explorer returned unexpected
+                # result, or it failed for some reason other than Bad Request error
                 raise j.exceptions.Value(str(e))
+        except Exception as e:
+            # register sometimes throws exceptions other than HTTP like Input
+            j.core.identity.delete(identity_instance_name)
+            raise j.exceptions.Value(str(e))
         return j.data.serializers.json.dumps({"data": "New identity successfully created and registered"})
 
     @actor_method
@@ -156,6 +185,8 @@ class Admin(BaseActor):
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
+        escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
+        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", False)
         sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {
@@ -163,6 +194,8 @@ class Admin(BaseActor):
                     "test_cert": test_cert,
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
+                    "escalation_emails": escalation_emails,
+                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
@@ -170,11 +203,19 @@ class Admin(BaseActor):
 
     @actor_method
     def set_developer_options(
-        self, test_cert: bool, over_provision: bool, explorer_logs: bool, sort_nodes_by_sru: bool
+        self,
+        test_cert: bool,
+        over_provision: bool,
+        explorer_logs: bool,
+        sort_nodes_by_sru: bool,
+        escalation_emails: bool,
+        auto_extend_pools: bool,
     ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
         j.core.config.set("EXPLORER_LOGS", explorer_logs)
+        j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
+        j.core.config.set("AUTO_EXTEND_POOLS_ENABLED", auto_extend_pools)
         j.core.config.set("SORT_NODES_BY_SRU", sort_nodes_by_sru)
         return j.data.serializers.json.dumps(
             {
@@ -182,6 +223,8 @@ class Admin(BaseActor):
                     "test_cert": test_cert,
                     "over_provision": over_provision,
                     "explorer_logs": explorer_logs,
+                    "escalation_emails": escalation_emails,
+                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
@@ -193,6 +236,42 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
     @actor_method
+    def get_email_server_config(self) -> str:
+        email_server_config = j.core.config.get("EMAIL_SERVER_CONFIG", {})
+        email_server_config.setdefault("host", "")
+        email_server_config.setdefault("port", "")
+        email_server_config.setdefault("username", "")
+        email_server_config.setdefault("password", "")
+        return j.data.serializers.json.dumps({"data": email_server_config})
+
+    @actor_method
+    def set_email_server_config(self, host="", port="", username="", password="") -> str:
+        email_server_config = j.core.config.get("EMAIL_SERVER_CONFIG", {})
+        email_server_config = {"host": host, "port": port, "username": username, "password": password}
+        j.core.config.set("EMAIL_SERVER_CONFIG", email_server_config)
+        return j.data.serializers.json.dumps({"data": email_server_config})
+
+    @actor_method
+    def list_escalation_emails(self) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
+        return j.data.serializers.json.dumps({"data": escalation_emails})
+
+    @actor_method
+    def add_escalation_email(self, email) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
+        if email not in escalation_emails:
+            escalation_emails.append(email)
+            j.core.config.set("ESCALATION_EMAILS", escalation_emails)
+        return j.data.serializers.json.dumps({"data": escalation_emails})
+
+    @actor_method
+    def delete_escalation_email(self, email) -> str:
+        escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
+        if email in escalation_emails:
+            escalation_emails.remove(email)
+            j.core.config.set("ESCALATION_EMAILS", escalation_emails)
+        return j.data.serializers.json.dumps({"data": escalation_emails})
+
     def get_notifications(self) -> str:
         notifications = []
         if j.tools.notificationsqueue.count() >= 10:

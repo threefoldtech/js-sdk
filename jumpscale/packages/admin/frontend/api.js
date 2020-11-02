@@ -181,12 +181,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, sortNodesBySRU) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoExtendPools, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
             })
         },
         clearBlockedNodes: () => {
@@ -204,6 +204,50 @@ const apiClient = {
                 url: `${baseURL}/admin/get_notifications_count`,
             })
         }
+    },
+    emailServerConfig: {
+        get: () => {
+            return axios({
+                url: `${baseURL}/admin/get_email_server_config`
+            })
+        },
+        set: (host, port, username, password) => {
+            return axios({
+                url: `${baseURL}/admin/set_email_server_config`,
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                data: {
+                    host: host,
+                    port: port,
+                    username: username,
+                    password: password
+                }
+            })
+        },
+    },
+    escalationEmails: {
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_escalation_emails`
+            })
+        },
+        add: (email) => {
+            return axios({
+                url: `${baseURL}/admin/add_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        },
+        delete: (email) => {
+            return axios({
+                url: `${baseURL}/admin/delete_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        }
+
     },
     explorers: {
         get: () => {
@@ -223,12 +267,33 @@ const apiClient = {
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (display_name, email, words, explorer_type) => {
+        add: (display_name, tname, email, words, explorer_type) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { display_name: display_name, email: email, words: words, explorer_type: explorer_type }
+                data: { display_name: display_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+            })
+        },
+        generateMnemonic: () => {
+            return axios({
+                url: `${baseURL}/admin/generate_mnemonic`
+            })
+        },
+        checkTNameExists: (tname, explorerType) => {
+            return axios({
+                url: `${baseURL}/admin/check_tname_exists`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { tname: tname, explorer_type: explorerType }
+            })
+        },
+        checkInstanceName: (name) => {
+            return axios({
+                url: `${baseURL}/admin/check_identity_instance_name`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
             })
         },
         setIdentity: (identity_instance_name) => {
@@ -510,6 +575,20 @@ const apiClient = {
         accept: () => {
             return axios({
                 url: `/admin/api/accept/`,
+                method: "get"
+            })
+        },
+    },
+    announcement: {
+        announced: () => {
+            return axios({
+                url: `/admin/api/announced`,
+                method: "get"
+            })
+        },
+        announce: () => {
+            return axios({
+                url: `/admin/api/announce`,
                 method: "get"
             })
         },

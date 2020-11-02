@@ -66,3 +66,8 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.hidetext {
+  -webkit-text-security: disc;
+  /* Default */
+}

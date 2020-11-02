@@ -7,7 +7,7 @@ import nacl.signing
 import nacl.utils
 import requests
 from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.models.backup_tokens_sal import BACKUP_MODEL_FACTORY
+from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from nacl.public import Box
 

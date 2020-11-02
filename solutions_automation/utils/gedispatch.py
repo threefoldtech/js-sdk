@@ -38,7 +38,7 @@ class GedisChatBotPatch(GedisChatBot):
             setattr(self, k, v)
 
         self.name_qs = 0
-        super().__init__(spawn=False)
+        super().__init__(spawn=False, **kwargs)
 
     def get_name(self, msg, *args, **kwargs):
         if self.name_qs == 0:

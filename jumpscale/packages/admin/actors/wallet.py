@@ -5,11 +5,13 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 
 class Wallet(BaseActor):
     @actor_method
-    def create_wallet(self, name: str) -> str:
+    def create_wallet(self, name: str, wallettype: str = None) -> str:
         explorer = j.core.identity.me.explorer
-        wallettype = "STD"
-        if "testnet" in explorer.url or "devnet" in explorer.url:
-            wallettype = "TEST"
+        if wallettype is None:
+            if "testnet" in explorer.url or "devnet" in explorer.url:
+                wallettype = "TEST"
+            else:
+                wallettype = "STD"
 
         if j.clients.stellar.find(name):
             raise j.exceptions.Value(f"Wallet {name} already exists")

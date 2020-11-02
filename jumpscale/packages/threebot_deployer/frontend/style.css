@@ -7,3 +7,7 @@
 .theme--light.v-tabs-items {
     background-color: #FBFCFC !important;
 }
+
+.table-colomns-max{
+    max-width: 200px;
+}

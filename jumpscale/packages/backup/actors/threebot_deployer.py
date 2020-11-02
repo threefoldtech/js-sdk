@@ -23,6 +23,13 @@ class Backup(BaseActor):
         return packages_path
 
     @property
+    def ssh_dir_path(self):
+        ssh_path = j.sals.fs.join_paths(j.core.dirs.HOMEDIR, ".ssh")
+        if not j.sals.fs.exists(ssh_path):
+            j.sals.fs.mkdir(ssh_path)
+        return ssh_path
+
+    @property
     def user_code_path(self):
         code_path = j.sals.fs.join_paths(j.core.dirs.CODEDIR, "playground")
         if not j.sals.fs.exists(code_path):
@@ -79,6 +86,7 @@ class Backup(BaseActor):
             repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
             repo.backup(self.downloaded_packages_path, tags=tags)
             repo.backup(self.user_code_path, tags=tags)
+            repo.backup(self.ssh_dir_path, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
 
     @actor_method
