@@ -8,12 +8,22 @@ chmod -R 500 /etc/ssh
 service ssh restart
 echo $SSHKEY > /root/.ssh/authorized_keys
 
+
+
 echo "[*] Switching to the correct version (${SDK_VERSION}) ..."
 cd ${SDK_PATH}
 git fetch --all
+
+poetry_install=false
+if [[ $SDK_VERSION != $(git branch --show-current) ]]; then
+  poetry_install=true
+fi
+
 git reset --hard origin/${SDK_VERSION}
 
-poetry install
+if $poetry_install; then
+  poetry install
+fi
 
 echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
 echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
