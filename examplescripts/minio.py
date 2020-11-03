@@ -1,25 +1,59 @@
 from jumpscale.loader import j
 from time import sleep
 import random
-import uuid
 import os
 import random
+import netaddr
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 import math
 
-zos = j.sals.zos
+zos = j.sals.zos.get()
 
 FREEFARM_ID = 71
 MAZR3A_ID = 13619
-DATA_NODES = 7
-PARITY_NODES = 3
+# DATA_NODES = 7
+DATA_NODES = 2
+# PARITY_NODES = 3
+PARITY_NODES = 1
 TO_KILL = 3
 ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
-network_name = str(uuid.uuid4())
+network_name = "management"
 print(f"network name: {network_name}")
-BAD_NODES = set(["A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7"])
+BAD_NODES = set(["A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7", "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF"])
 UP_FOR = 60 * 20  # number of seconds
+
+
+def get_free_ip(network, node_id, workloads=None):
+    workloads = workloads or zos.workloads.list(j.core.identity.me.tid)
+    used_ips = set()
+    for workload in workloads:
+        if workload.info.node_id != node_id:
+            continue
+        if workload.info.next_action != NextAction.DEPLOY:
+            continue
+        if workload.info.workload_type == WorkloadType.Kubernetes:
+            if workload.network_id == network.name:
+                used_ips.add(workload.ipaddress)
+        elif workload.info.workload_type == WorkloadType.Container:
+            for conn in workload.network_connection:
+                if conn.network_id == network.name:
+                    used_ips.add(conn.ipaddress)
+    node_range = None
+    for resource in network.network_resources:
+        if resource.info.node_id == node_id:
+            node_range = resource.iprange
+            break
+
+    hosts = netaddr.IPNetwork(node_range).iter_hosts()
+    next(hosts)  # skip ip used by node
+    for host in hosts:
+        ip = str(host)
+        if ip not in used_ips:
+            used_ips.add(ip)
+            return ip
+    return None
 
 
 def wait_site_up(url):
@@ -50,14 +84,22 @@ def remove_bad_nodes(nodes):
 
 def wait_workload(wid):
     workload = zos.workloads.get(wid)
-    while not workload.info.result.workload_id:
+    timeout = j.data.time.now().timestamp + 15 * 60 * 60
+    while not workload.info.result.state:
+        if j.data.time.now().timestamp > timeout:
+            raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
         sleep(1)
         workload = zos.workloads.get(wid)
+    if workload.info.result.state.value != 1:
+        raise j.exceptions.Runtime(f"workload {wid} failed due to {workload.info.result.message}")
 
 
 def wait_zdb_workloads(zdb_wids):
     # Looks like the workload_id can be set before the namespace
+    timeout = j.data.time.now().timestamp + 15 * 60 * 60
     for wid in zdb_wids:
+        if j.data.time.now().timestamp > timeout:
+            raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
         workload = zos.workloads.get(wid)
         data = j.data.serializers.json.loads(workload.info.result.data_json)
         if workload.info.result.message:
@@ -110,28 +152,50 @@ def create_zdb_pools(nodes):
 
 
 def create_network(network_name, pool, farm_id):
-    ip_range = "172.19.0.0/16"
+    network = zos.network.load_network(network_name)
+    if network:
+        return network, None
+    ip_range = "10.100.0.0/16"
     network = zos.network.create(ip_range, network_name)
     nodes = zos.nodes_finder.nodes_search(farm_id)
     access_node = list(filter(zos.nodes_finder.filter_public_ip4, nodes))[0]
-    zos.network.add_node(network, access_node.node_id, "172.19.1.0/24", pool.pool_id)
-    wg_quick = zos.network.add_access(network, access_node.node_id, "172.19.2.0/24", ipv4=True)
+    zos.network.add_node(network, access_node.node_id, "10.100.0.0/24", pool.pool_id)
+    wg_quick = zos.network.add_access(network, access_node.node_id, "10.100.1.0/24", ipv4=True)
 
     for workload in network.network_resources:
+        timeout = j.data.time.now().timestamp + 15 * 60 * 60
         wid = zos.workloads.deploy(workload)
         workload = zos.workloads.get(wid)
         while not workload.info.result.workload_id:
+            if j.data.time.now().timestamp > timeout:
+                raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
             sleep(1)
             workload = zos.workloads.get(wid)
+    with open("minio.conf", "w") as f:
+        f.write(wg_quick)
     return network, wg_quick
 
 
 def add_node_to_network(network, node_id, pool, iprange):
     zos.network.add_node(network, node_id, iprange, pool.pool_id)
+    nodes_workloads = {}
     for workload in network.network_resources:
+        if workload.info.node_id == node_id:
+            return
+        nodes_workloads[workload.info.node_id] = workload
+
+    wids = []
+    for workload in nodes_workloads.values():
         wid = zos.workloads.deploy(workload)
         workload = zos.workloads.get(wid)
+        wids.append(wid)
+        print(wid)
+    for wid in wids:
+        timeout = j.data.time.now().timestamp + 7 * 60 * 60
+        workload = zos.workloads.get(wid)
         while not workload.info.result.workload_id:
+            if j.data.time.now().timestamp > timeout:
+                raise j.exceptions.Runtime(f"workload {wid} timedout")
             sleep(1)
             workload = zos.workloads.get(wid)
 
@@ -173,7 +237,7 @@ def get_namespace_config(wids):
         elif data.get("IPs"):
             ip = data["IPs"][0]
         else:
-            raise j.exceptions.RuntimeError("missing IP field in the 0-DB result")
+            raise j.exceptions.Runtime(f"missing IP field in the 0-DB result in workload {workload.id}")
         cfg = f"{data['Namespace']}:{PASSWORD}@[{ip}]:{data['Port']}"
         namespace_config.append(cfg)
     return namespace_config
@@ -250,6 +314,8 @@ def attach_volume(minio_container, vol_wid):
 def pick_minio_nodes(nodes):
     if nodes[-1].farm_id == MAZR3A_ID:
         for node in reversed(nodes):
+            if node.node_id == "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF":
+                continue
             if node.farm_id == FREEFARM_ID:
                 return node, nodes[-1]
     return nodes[-1], nodes[-2]
@@ -297,8 +363,31 @@ tlog_pool = (
 pools = create_zdb_pools(nodes)
 
 
-add_node_to_network(network, minio_master_node.node_id, master_pool, "172.19.3.0/24")
-add_node_to_network(network, minio_backup_node.node_id, backup_pool, "172.19.4.0/24")
+network_used_ranges = set()
+network_node_ids = set()
+for resource in network.network_resources:
+    network_used_ranges.add(resource.iprange)
+    network_node_ids.add(resource.info.node_id)
+    for peer in resource.peers:
+        network_used_ranges.add(peer.iprange)
+
+network_range = netaddr.IPNetwork("10.100.0.0/16")
+node_ids = [minio_master_node.node_id, minio_backup_node.node_id]
+minio_pools = [master_pool, backup_pool]
+
+for idx, node_id in enumerate(node_ids):
+    if node_id in network_node_ids:
+        continue
+    for _, subnet in enumerate(network_range.subnet(24)):
+        subnet = str(subnet)
+        if subnet in network_used_ranges:
+            continue
+        add_node_to_network(network, node_id, minio_pools[idx], subnet)
+        network_node_ids.add(node_id)
+        network_used_ranges.add(subnet)
+        network = zos.network.load_network(network_name)
+        break
+
 zdb_workloads = deploy_zdbs(nodes, pools)
 tlog_workload = deploy_zdb(tlog_node, tlog_pool)
 master_vol_id = deploy_volume(minio_master_node.node_id, master_pool)
@@ -306,16 +395,17 @@ backup_vol_id = deploy_volume(minio_backup_node.node_id, backup_pool)
 zdb_wids = [x.id for x in zdb_workloads]
 wait_workloads(zdb_wids)
 wait_zdb_workloads(zdb_wids)
-wait_workload(tlog_workload.id)
+wait_workloads([tlog_workload.id])
+wait_zdb_workloads([tlog_workload.id])
 wait_workload(master_vol_id)
 wait_workload(backup_vol_id)
 namespace_config = get_namespace_config(zdb_workloads)
 tlog_namespace = get_namespace_config([tlog_workload])[0]
-master_ip_address = "172.19.3.3"
-backup_ip_address = "172.19.4.4"
+master_ip_address = get_free_ip(network, minio_master_node.node_id)
 master_wid, minio_master_container = deploy_master_minio(
     minio_master_node.node_id, master_pool, network_name, namespace_config, tlog_namespace, master_ip_address
 )
+backup_ip_address = get_free_ip(network, minio_backup_node.node_id)
 backup_wid, minio_backup_container = deploy_backup_minio(
     minio_backup_node.node_id, backup_pool, network_name, namespace_config, tlog_namespace, backup_ip_address
 )
