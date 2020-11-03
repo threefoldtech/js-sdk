@@ -11,10 +11,8 @@ zos = j.sals.zos.get()
 
 FREEFARM_ID = 71
 MAZR3A_ID = 13619
-# DATA_NODES = 7
-DATA_NODES = 2
-# PARITY_NODES = 3
-PARITY_NODES = 1
+DATA_NODES = 7
+PARITY_NODES = 3
 TO_KILL = 3
 ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
 SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -463,9 +461,11 @@ sleep(4 * 60)
 master_wid, minio_master_container = deploy_master_minio(
     minio_master_node.node_id, master_pool, network_name, namespace_config, tlog_namespace, master_ip_address
 )
+wait_workload(master_wid)
 backup_wid, minio_backup_container = deploy_backup_minio(
     minio_backup_node.node_id, backup_pool, network_name, namespace_config, tlog_namespace, backup_ip_address
 )
+wait_workload(backup_wid)
 attach_volume(minio_master_container, master_vol_id)
 attach_volume(minio_backup_container, backup_vol_id)
 
