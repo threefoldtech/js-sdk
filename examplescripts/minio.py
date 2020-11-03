@@ -189,7 +189,6 @@ def add_node_to_network(network, node_id, pool, iprange):
     wids = []
     for workload in nodes_workloads.values():
         wid = zos.workloads.deploy(workload)
-        workload = zos.workloads.get(wid)
         wids.append(wid)
         print(wid)
     for wid in wids:
