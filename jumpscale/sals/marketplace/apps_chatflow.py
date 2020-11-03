@@ -536,11 +536,12 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 success = True
             except DeploymentFailed as e:
                 j.logger.error(e)
+                self.retries -= 1
                 if self.retries > 0:
-                    self.retries -= 1
                     self.md_show_update(
                         f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
                     )
+                    gevent.sleep(3)
                     failed_workload = j.sals.zos.get().workloads.get(e.wid)
                     if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
                         self.addresses = []
