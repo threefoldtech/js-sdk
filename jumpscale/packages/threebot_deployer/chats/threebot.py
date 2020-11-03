@@ -349,7 +349,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     # email settings
                     "EMAIL_HOST": self.email_host,
                     "EMAIL_HOST_USER": self.email_host_user,
-                    "EMAIL_HOST_PASSWORD": self.email_host_password,
                     "ESCALATION_MAIL": self.escalation_mail_address,
                 }
                 self.network_view = self.network_view.copy()
@@ -370,7 +369,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                         cpu=self.container_resources["cru"],
                         memory=self.container_resources["mru"] * 1024,
                         disk_size=self.container_resources["sru"] * 1024,
-                        secret_env={"BACKUP_PASSWORD": self.backup_password, "BACKUP_TOKEN": backup_token},
+                        secret_env={
+                            "BACKUP_PASSWORD": self.backup_password,
+                            "BACKUP_TOKEN": backup_token,
+                            "EMAIL_HOST_PASSWORD": self.email_host_password,
+                        },
                         interactive=False,
                         log_config=log_config,
                         solution_uuid=self.solution_id,
