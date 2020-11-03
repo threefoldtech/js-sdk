@@ -95,7 +95,13 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             "branch": self.branch,
         }
         redeploy_threebot_solution(
-            self.username, self.threebot_info["solution_uuid"], self.password, solution_info=solution_info
+            self.username,
+            self.threebot_info["solution_uuid"],
+            self.password,
+            solution_info=solution_info,
+            retry=True,
+            bot=self,
+            prompt_retry_only=True,
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)
