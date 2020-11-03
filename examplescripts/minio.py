@@ -4,7 +4,7 @@ import random
 import os
 import random
 import netaddr
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, State
 import math
 
 zos = j.sals.zos.get()
@@ -21,7 +21,13 @@ SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
 network_name = "management"
 print(f"network name: {network_name}")
-BAD_NODES = set(["A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7", "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF"])
+BAD_NODES = set(
+    [
+        "466X86s2ctLmL2Q6R7SrJ4VBMyt9h9zJDCSZhHUSQ9py",
+        "A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7",
+        "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF",
+    ]
+)
 UP_FOR = 60 * 20  # number of seconds
 
 
@@ -85,12 +91,12 @@ def remove_bad_nodes(nodes):
 def wait_workload(wid):
     workload = zos.workloads.get(wid)
     timeout = j.data.time.now().timestamp + 15 * 60 * 60
-    while not workload.info.result.state:
+    while not workload.info.result.state.value:
         if j.data.time.now().timestamp > timeout:
             raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
         sleep(1)
         workload = zos.workloads.get(wid)
-    if workload.info.result.state.value != 1:
+    if workload.info.result.state != State.Ok:
         raise j.exceptions.Runtime(f"workload {wid} failed due to {workload.info.result.message}")
 
 
@@ -180,8 +186,6 @@ def add_node_to_network(network, node_id, pool, iprange):
     zos.network.add_node(network, node_id, iprange, pool.pool_id)
     nodes_workloads = {}
     for workload in network.network_resources:
-        if workload.info.node_id == node_id:
-            return
         nodes_workloads[workload.info.node_id] = workload
 
     wids = []
