@@ -82,6 +82,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             self.threebot_info["solution_uuid"],
             self.password,
             solution_info={"flist": self.FLIST_URL, "branch": self.branch},
+            retry=True,
+            bot=self,
+            prompt_retry_only=True,
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)

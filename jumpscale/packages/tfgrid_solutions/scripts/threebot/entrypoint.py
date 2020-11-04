@@ -44,6 +44,20 @@ def main():
     default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
     j.core.identity.set_default(default_identity)
 
+    # configure escalation mailing
+    if all([email_host, email_host_user, email_host_password]):
+        try:
+            email_instance = j.clients.mail.get("escalation_instance")
+            email_instance.login = email_host_user
+            email_instance.smtp_port = 587
+            email_instance.smtp_server = email_host
+            email_instance.sender_email = email_host_user
+            email_instance.password = email_host_password
+            email_instance.name = threebot_name
+            email_instance.save()
+        except Exception as e:
+            j.logger.warning("Failed to set escalation mail settings")
+
     if backup_password:
         # Sanitation for the case user deleted his old backups!
         try:
@@ -66,18 +80,6 @@ def main():
             j.logger.error(str(e))
 
     j.logger.info("Starting threebot ...")
-    # configure escalation mailing
-    try:
-        email_instance = j.clients.mail.get("escalation_instance")
-        email_instance.login = email_host_user
-        email_instance.smtp_port = 587
-        email_instance.smtp_server = email_host
-        email_instance.sender_email = email_host_user
-        email_instance.password = email_host_password
-        email_instance.name = threebot_name
-        email_instance.save()
-    except Exception as e:
-        j.logger.warning("Failed to set escalation mail settings")
 
     server = j.servers.threebot.get("default")
     if test_cert == "false":
