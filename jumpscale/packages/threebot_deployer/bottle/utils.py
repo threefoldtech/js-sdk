@@ -223,7 +223,8 @@ def redeploy_threebot_solution(
     j.logger.debug(f"Fetching solution info for uuid {solution_uuid} and owner {owner}")
     while retries:
         try:
-            self.md_show_update("Starting your 3Bot...")
+            if bot:
+                bot.md_show_update("Starting your 3Bot...")
             threebot = get_threebot_config_instance(owner, solution_uuid)
             zos = get_threebot_zos(threebot)
             identity = generate_user_identity(threebot, backup_password, zos)
