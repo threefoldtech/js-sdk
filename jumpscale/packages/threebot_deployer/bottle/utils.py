@@ -1,8 +1,14 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 import uuid
 from jumpscale.sals.marketplace import solutions
-from jumpscale.sals.reservation_chatflow.deployer import deployment_context, DeploymentFailed
-from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY, BACKUP_MODEL_FACTORY
+from jumpscale.sals.reservation_chatflow.deployer import (
+    deployment_context,
+    DeploymentFailed,
+)
+from jumpscale.packages.threebot_deployer.models import (
+    USER_THREEBOT_FACTORY,
+    BACKUP_MODEL_FACTORY,
+)
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.clients.explorer.models import WorkloadType, NextAction
 from jumpscale.sals.marketplace import deployer
@@ -13,7 +19,11 @@ from jumpscale.data.nacl.jsnacl import NACL
 from contextlib import ContextDecorator
 
 
-THREEBOT_WORKLOAD_TYPES = [WorkloadType.Container, WorkloadType.Subdomain, WorkloadType.Reverse_proxy]
+THREEBOT_WORKLOAD_TYPES = [
+    WorkloadType.Container,
+    WorkloadType.Subdomain,
+    WorkloadType.Reverse_proxy,
+]
 
 
 class threebot_identity_context(ContextDecorator):
@@ -35,7 +45,10 @@ def build_solution_info(workloads, threebot):
     solution_info = {"wids": [], "name": threebot.name}
     for workload in workloads:
         solution_info["wids"].append(workload.id)
-        if workload.info.workload_type in [WorkloadType.Reverse_proxy, WorkloadType.Subdomain]:
+        if workload.info.workload_type in [
+            WorkloadType.Reverse_proxy,
+            WorkloadType.Subdomain,
+        ]:
             solution_info["domain"] = workload.domain
             solution_info["gateway_pool"] = workload.info.pool_id
             solution_info["gateway"] = workload.info.node_id
@@ -151,7 +164,11 @@ def generate_user_identity(threebot, password, zos):
         suffix = "test"
     identity_name = f"{user.name}_{suffix}"
     identity = j.core.identity.get(
-        identity_name, tname=user.name, email=user.email, words=words, explorer_url=threebot.explorer_url
+        identity_name,
+        tname=user.name,
+        email=user.email,
+        words=words,
+        explorer_url=threebot.explorer_url,
     )
     identity.register()
     identity.save()
@@ -354,7 +371,7 @@ def redeploy_threebot_solution(
 
                     log_config = j.core.config.get("LOGGING_SINK", {})
                     if log_config:
-                        log_config["channel_name"] = new_solution_info["name"]
+                        log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}'.lower()
 
                     workload_ids.append(
                         deployer.deploy_container(
@@ -390,7 +407,7 @@ def redeploy_threebot_solution(
 
                     trc_log_config = j.core.config.get("LOGGING_SINK", {})
                     if trc_log_config:
-                        trc_log_config["channel_name"] = new_solution_info["name"] + "-trc"
+                        trc_log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}-trc'.lower()
                     identity_tid = identity.tid
                     secret = f"{identity_tid}:{uuid.uuid4().hex}"
                     j.logger.debug(f"deploying trc container with secret {secret}")

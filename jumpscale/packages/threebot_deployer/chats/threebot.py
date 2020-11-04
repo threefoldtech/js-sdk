@@ -4,8 +4,14 @@ from textwrap import dedent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
-from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, threebot_identity_context
-from jumpscale.packages.threebot_deployer.models import BACKUP_MODEL_FACTORY, USER_THREEBOT_FACTORY
+from jumpscale.packages.threebot_deployer.bottle.utils import (
+    list_threebot_solutions,
+    threebot_identity_context,
+)
+from jumpscale.packages.threebot_deployer.models import (
+    BACKUP_MODEL_FACTORY,
+    USER_THREEBOT_FACTORY,
+)
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
@@ -109,7 +115,11 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
-            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query
+            self.farm_name,
+            self.expiration,
+            currency=self.currency,
+            identity_name=self.identity_name,
+            **self.query,
         )
         if self.pool_info.escrow_information.address.strip() == "":
             raise StopChatFlow(
@@ -222,7 +232,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if self.farms_by_continent:
             choices.insert(1, "Continent")
         self.node_policy = self.single_choice(
-            "Please select the deployment location policy.", choices, required=True, default="Automatic"
+            "Please select the deployment location policy.",
+            choices,
+            required=True,
+            default="Automatic",
         )
 
     def _ask_for_continent(self):
@@ -236,7 +249,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def _ask_for_farm(self):
         farm_name_dict = {farm.name: farm for farm in self.available_farms}
         farm_name = self.drop_down_choice(
-            "Please select the farm you would like to deploy your 3Bot in.", list(farm_name_dict.keys()), required=True
+            "Please select the farm you would like to deploy your 3Bot in.",
+            list(farm_name_dict.keys()),
+            required=True,
         )
         self.available_farms = [farm_name_dict[farm_name]]
 
@@ -244,7 +259,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
         node_id_dict = {node.node_id: node for node in nodes}
         node_id = self.drop_down_choice(
-            "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True
+            "Please select the node you would like to deploy your 3Bot on.",
+            list(node_id_dict.keys()),
+            required=True,
         )
         self.selected_node = node_id_dict[node_id]
         self.available_farms = [farm for farm in self.available_farms if farm.id == self.selected_node.farm_id]
@@ -361,7 +378,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         ## Container logs
         log_config = j.core.config.get("LOGGING_SINK", {})
         if log_config:
-            log_config["channel_name"] = self.solution_name
+            log_config["channel_name"] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}".lower()
 
         self.workload_ids.append(
             deployer.deploy_container(

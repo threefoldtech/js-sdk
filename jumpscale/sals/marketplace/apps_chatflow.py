@@ -388,13 +388,19 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _config_logs(self):
         self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.solution_log_config:
-            self.solution_log_config["channel_name"] = self.solution_name
+            self.solution_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}".lower()
         self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.nginx_log_config:
-            self.nginx_log_config["channel_name"] = self.solution_name + "-nginx"
+            self.nginx_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}-nginx".lower()
         self.trc_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.trc_log_config:
-            self.trc_log_config["channel_name"] = self.solution_name + "-trc"
+            self.trc_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}-trc".lower()
 
     @chatflow_step(title="Solution Name")
     def get_solution_name(self):
