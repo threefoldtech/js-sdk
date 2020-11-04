@@ -97,7 +97,7 @@ def get_free_iprange(ip_range, network_used_ranges):
 
 
 def get_deploymnet_node(pool):
-    available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=0, mru=0, pool_id=pool.pool_id))
+    available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=1, mru=0, pool_id=pool.pool_id))
     available_nodes = [node for node in available_nodes if node.node_id not in bad_nodes]
     return available_nodes[0]
 
