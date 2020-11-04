@@ -164,11 +164,7 @@ def generate_user_identity(threebot, password, zos):
         suffix = "test"
     identity_name = f"{user.name}_{suffix}"
     identity = j.core.identity.get(
-        identity_name,
-        tname=user.name,
-        email=user.email,
-        words=words,
-        explorer_url=threebot.explorer_url,
+        identity_name, tname=user.name, email=user.email, words=words, explorer_url=threebot.explorer_url,
     )
     identity.register()
     identity.save()
@@ -410,7 +406,7 @@ def redeploy_threebot_solution(
                         trc_log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}-trc'.lower()
                     identity_tid = identity.tid
                     secret = f"{identity_tid}:{uuid.uuid4().hex}"
-                    j.logger.debug(f"deploying trc container with secret {secret}")
+                    j.logger.debug(f"deploying trc container")
                     workload_ids.extend(
                         deployer.expose_address(
                             pool_id=compute_pool_id,

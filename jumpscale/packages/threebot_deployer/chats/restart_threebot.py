@@ -77,7 +77,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Deploying", disable_previous=True)
     def deploy(self):
         self.md_show_update("Starting your 3Bot...")
-        redeploy_threebot_solution(
+        threebot = redeploy_threebot_solution(
             self.username,
             self.threebot_info["solution_uuid"],
             self.password,
@@ -86,6 +86,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             bot=self,
             prompt_retry_only=True,
         )
+        self.solution_id = threebot.solution_uuid
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
