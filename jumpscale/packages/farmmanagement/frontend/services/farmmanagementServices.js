@@ -7,12 +7,10 @@ export default {
   getUser() {
     return axios.get("/admin/actors/identity/get_identity");
   },
-  getFarms(tfgridUrl, user_id) {
-    return axios.get(`${tfgridUrl}/farms`, {
-      params: {
-        owner: user_id
-      }
-    });
+  getFarms(user_id) {
+    return axios.post('/farmmanagement/actors/farm_management/list_farms', {
+      user_id: user_id,
+    })
   },
   registerFarm(tfgridUrl, farm) {
     return axios.post(`${tfgridUrl}/farms`, farm);

@@ -43,8 +43,9 @@ export default {
       return tfService.setNodeFree(node_id, free)
     },
     getFarms: context => {
-      tfService.getFarms(context.getters.tfgridUrl, context.getters.user.id).then(response => {
-        context.commit("setFarms", response.data);
+      tfService.getFarms(context.getters.user.id).then(response => {
+        debugger;
+        context.commit("setFarms", JSON.parse(response.data));
       });
     },
     registerFarm: (context, farm) => {
