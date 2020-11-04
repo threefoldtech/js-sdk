@@ -4,11 +4,43 @@ import netaddr
 import uuid
 import click
 import random
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 
 zos = j.sals.zos.get()
 network_name = "management"
 size = 1
 cluster_secret = "supersecret"
+
+
+def get_free_ip(network, node_id, workloads=None):
+    workloads = workloads or zos.workloads.list(j.core.identity.me.tid)
+    used_ips = set()
+    for workload in workloads:
+        if workload.info.node_id != node_id:
+            continue
+        if workload.info.next_action != NextAction.DEPLOY:
+            continue
+        if workload.info.workload_type == WorkloadType.Kubernetes:
+            if workload.network_id == network.name:
+                used_ips.add(workload.ipaddress)
+        elif workload.info.workload_type == WorkloadType.Container:
+            for conn in workload.network_connection:
+                if conn.network_id == network.name:
+                    used_ips.add(conn.ipaddress)
+    node_range = None
+    for resource in network.network_resources:
+        if resource.info.node_id == node_id:
+            node_range = resource.iprange
+            break
+
+    hosts = netaddr.IPNetwork(node_range).iter_hosts()
+    next(hosts)  # skip ip used by node
+    for host in hosts:
+        ip = str(host)
+        if ip not in used_ips:
+            used_ips.add(ip)
+            return ip
+    return None
 
 
 def get_ssh_key():
@@ -88,10 +120,13 @@ def deploy_overlay_network(pool):
     nodes = []
     random.shuffle(pool_nodes)
     for _, node in enumerate(pool_nodes):
-        if node.node_id in network_node_ids:
-            nodes.append({"id": node.node_id, "ip_range": node_ranges[node.node_id]})
+        if node.node_id == "3dAnxcykEDgKVQdTRKmktggL2MZbm3CPSdS9Tdoy4HAF":
             continue
         if not zos.nodes_finder.filter_is_up(node) or node.node_id == access_node.node_id:
+            continue
+
+        if node.node_id in network_node_ids:
+            nodes.append({"id": node.node_id, "ip_range": node_ranges[node.node_id]})
             continue
 
         network_range = netaddr.IPNetwork("10.100.0.0/16")
@@ -114,8 +149,12 @@ def deploy_overlay_network(pool):
     for workload in network.network_resources:
         node_workloads[workload.info.node_id] = workload
 
+    wids = []
     for workload in node_workloads.values():
         wid = zos.workloads.deploy(workload)
+        wids.append(wid)
+
+    for wid in wids:
         if not wait_workload(wid):
             raise Exception(f"Failed to deploy network for kubernetes, Workload ID: {wid}")
 
@@ -138,11 +177,12 @@ def deploy_k8s_master(
     deploying kubernets master node
     """
     print(f"deploying kubernetes master on node: {node['id']}, iprange: {node['ip_range']}")
+    network = zos.network.load_network(network_name)
     master = zos.kubernetes.add_master(
         node_id=node["id"],  # node_id to make the capacity reservation on and deploy the Flist
         network_name=network_name,  # network_name deployed on the node (node could have multiple private networks)
         cluster_secret=cluster_secret,  # cluster pasword
-        ip_address=get_node_free_ip(node["ip_range"]),  # IP address of the node
+        ip_address=get_free_ip(network, node["id"]),  # IP address of the node
         size=size,  # 1 (1 logical core, 2GB of memory) or 2 (2 logical cores and 4GB of memory)
         ssh_keys=[get_ssh_key()],  # ssh public key providing ssh access to master of worker vm's
         pool_id=pool_id,
@@ -155,13 +195,15 @@ def deploy_k8s_workers(cluster, master, nodes, pool_id):
     """
     deploying kubernets worker nodes
     """
+    network = zos.network.load_network(network_name)
+    workloads = zos.workloads.list(j.core.identity.me.tid)
     for node in nodes:
         print(f"deploying kubernetes worker on node: {node['id']}, iprange: {node['ip_range']}")
         worker = zos.kubernetes.add_worker(
             node_id=node["id"],
             network_name=network_name,
             cluster_secret=cluster_secret,
-            ip_address=get_node_free_ip(node["ip_range"]),
+            ip_address=get_free_ip(network, node["id"], workloads),
             size=size,
             master_ip=master.ipaddress,
             ssh_keys=[get_ssh_key()],
@@ -264,7 +306,7 @@ def deploy_tcp_router(gateway, pool, subdomain, gateway_ips, network_name, node,
     # trc container deployment
     NODE_ID = node["id"]
     FLIST_URL = "https://hub.grid.tf/tf-official-apps/tcprouter:latest.flist"
-    CONTAINER_IP_ADDRESS = "172.19.4.4"
+    CONTAINER_IP_ADDRESS = get_free_ip(zos.network.load_network(network_name), NODE_ID)
     secret_env = {"TRC_SECRET": zos.container.encrypt_secret(NODE_ID, SECRET)}
     container = zos.container.create(
         node_id=NODE_ID,

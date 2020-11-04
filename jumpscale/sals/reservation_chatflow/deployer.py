@@ -120,7 +120,8 @@ class NetworkView:
             if workload.info.next_action != NextAction.DEPLOY:
                 continue
             if workload.info.workload_type == WorkloadType.Kubernetes:
-                self.used_ips.append(workload.ipaddress)
+                if workload.network_id == self.name:
+                    self.used_ips.append(workload.ipaddress)
             elif workload.info.workload_type == WorkloadType.Container:
                 for conn in workload.network_connection:
                     if conn.network_id == self.name:
