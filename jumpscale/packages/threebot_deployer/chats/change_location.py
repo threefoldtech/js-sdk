@@ -49,6 +49,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             "mru": self.threebot_info["memory"] / 1024 + 1,
             "sru": self.threebot_info["disk_size"] / 1024 + 0.25,
         }
+        self.retry = True
 
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
@@ -90,6 +91,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.selected_node = None
 
     def _ask_for_node(self):
+        self.retry = False
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
         node_id_dict = {node.node_id: node for node in nodes}
         node_id = self.drop_down_choice(
@@ -145,14 +147,18 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     def deploy(self):
         self.md_show_update("Starting your 3Bot...")
         node_id = self.selected_node.node_id if self.selected_node else None
-        redeploy_threebot_solution(
+        threebot = redeploy_threebot_solution(
             self.username,
             self.threebot_info["solution_uuid"],
             self.password,
             compute_pool_id=self.pool_id,
             node_id=node_id,
             solution_info={"flist": self.FLIST_URL, "branch": self.branch},
+            retry=self.retry,
+            bot=self,
+            prompt_retry_only=True,
         )
+        self.solution_id = threebot.solution_uuid
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

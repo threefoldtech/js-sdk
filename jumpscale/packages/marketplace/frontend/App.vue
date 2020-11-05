@@ -26,11 +26,10 @@
           </v-chip>
         </template>
         <pre>
-This is for demo purposes to showcase grid usage.
-We're running on testnet which means it's always on latest testing code.
+This marketplace is a showcase of open source peer-to-peer apps built on top of the TF Grid.
+We are in demo mode and running on testnet. Note your deployment will be cancelled automatically after three hours.
 Forgive any instability you might encounter while our developers work out the kinks.
-Your deployment will be automatically canceled in 3 hours.</pre
-        >
+        </pre>
       </v-tooltip>
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
           <template v-slot:activator="{ on }">
