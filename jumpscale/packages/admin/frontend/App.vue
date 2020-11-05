@@ -94,7 +94,6 @@
           <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
-              <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
               <v-list-item-subtitle>
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
               </v-list-item-subtitle>
