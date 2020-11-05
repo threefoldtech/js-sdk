@@ -3,6 +3,7 @@ SDK_PATH="/sandbox/code/github/threefoldtech/js-sdk"
 echo "[*] Enabling ssh access ..."
 ssh-keygen -A
 echo "127.0.0.1       localhost" > /etc/hosts
+echo "127.0.0.1       $(hostname)" >> /etc/hosts
 echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 chmod -R 500 /etc/ssh
 service ssh restart
