@@ -483,7 +483,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def ask_expiration(self, bot, default=None, msg="", min=None, pool_empty_at=None):
         default = default or j.data.time.utcnow().timestamp + 3900
-        min = min or 3600
+        min = min or 3600 * 24
         timestamp_now = j.data.time.utcnow().timestamp
         min_message = f"Date/time should be at least {j.data.time.get(timestamp_now+min).humanize()} from now"
         self.expiration = bot.datetime_picker(
