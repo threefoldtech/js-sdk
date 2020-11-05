@@ -64,7 +64,7 @@
                       <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
                     </a>
                   </template>
-                  <span>Go to How-to Manual</span>
+                  <span>Go to Wiki</span>
                 </v-tooltip>
               </v-card-title>
               <v-card-text style="height:100px" class="mx-2 text--primary">
