@@ -69,7 +69,7 @@ class DocumentserverDeploy(MarketPlaceAppsChatflow):
             disk_size=self.resources["sru"] * 1024,
             interactive=False,
             entrypoint="/start_docuserver_grid.sh",
-            public_ipv6=True,
+            public_ipv6=False,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )

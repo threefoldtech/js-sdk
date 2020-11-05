@@ -26,6 +26,7 @@ class FilebrowserDeploy(MarketPlaceAppsChatflow):
         self.user_email = self.user_info()["email"]
         self._choose_flavor()
         self.resources["sru"] += self.flavor_resources["sru"]
+
     @chatflow_step(title="Filebrowser setup")
     def documentserver_url(self):
         form = self.new_form()
@@ -41,7 +42,7 @@ class FilebrowserDeploy(MarketPlaceAppsChatflow):
                 "Solution name": self.solution_name,
                 "Domain name": self.domain,
                 "chatflow": self.SOLUTION_TYPE,
-                "DOCUMENTSERVER_URL":self.DOCUMENTSERVER_URL
+                "DOCUMENTSERVER_URL": self.DOCUMENTSERVER_URL,
             },
         }
         self.solution_metadata.update(metadata)
@@ -64,9 +65,7 @@ class FilebrowserDeploy(MarketPlaceAppsChatflow):
                 wid=_id,
             )
             self.solution_url = f"https://{self.domain}"
-        metadata = {
-            "THREEBOT_APP_ID": self.domain
-        }
+        metadata = {"THREEBOT_APP_ID": self.domain}
         self.solution_metadata.update(metadata)
         # Create container
         self.resv_id = deployer.deploy_container(
@@ -80,7 +79,7 @@ class FilebrowserDeploy(MarketPlaceAppsChatflow):
             disk_size=self.resources["sru"] * 1024,
             interactive=False,
             entrypoint="/entrypoint.sh",
-            public_ipv6=True,
+            public_ipv6=False,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )

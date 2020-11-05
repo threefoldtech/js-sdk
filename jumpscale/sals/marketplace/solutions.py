@@ -68,7 +68,7 @@ class MarketplaceSolutions(ChatflowSolutions):
 
     def list_cryptpad_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("cryptpad", next_action, sync, "nginx", owner=username)
-    
+
     def list_documentserver_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("documentserver", next_action, sync, "nginx", owner=username)
 
@@ -235,7 +235,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if metadata.get("owner") != username:
                     continue
                 result.append(
-                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id,}
+                    {"wids": [dom.id], "Name": dom.domain, "Gateway": dom.info.node_id, "Pool": dom.info.pool_id}
                 )
         return result
 
@@ -265,7 +265,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                         "Pool": proxy.info.pool_id,
                         "Domain": proxy.domain,
                     }
-                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"),)
+                    name = metadata.get("Solution name", metadata.get("form_info", {}).get("Solution name"))
                     name_to_proxy[name] = f"{proxy.info.pool_id}-{proxy.domain}"
                 pools.add(proxy.info.pool_id)
 
@@ -281,7 +281,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -308,7 +308,7 @@ class MarketplaceSolutions(ChatflowSolutions):
                 if chatflow and chatflow != "exposed":
                     continue
                 solution_name = metadata.get(
-                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name")),
+                    "Solution name", metadata.get("name", metadata.get("form_info", {}).get("Solution name"))
                 )
                 if not solution_name:
                     continue
@@ -341,8 +341,8 @@ class MarketplaceSolutions(ChatflowSolutions):
             "website": 0,
             "taiga": 0,
             "meetings": 0,
-            "documentserver":0,
-            "filebrowser": 0
+            "documentserver": 0,
+            "filebrowser": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():
