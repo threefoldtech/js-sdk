@@ -32,18 +32,22 @@ module.exports = {
   props: { data: Object },
   methods: {
     submit() {
-      this.loading = true;
-      this.error = null;
-      this.$api.solutions
-        .destroyThreebot(this.data.solution_uuid, this.form.password)
-        .then((response) => {
-          this.alert("3bot Destroyed", "success");
-          this.$router.go(0);
-        })
-        .catch((err) => {
-          this.alert("Failed to destroy 3Bot", "error");
-          this.close();
-        });
+      if (!this.form.password) {
+        this.error = "Password required";
+      } else {
+        this.loading = true;
+        this.error = null;
+        this.$api.solutions
+          .destroyThreebot(this.data.solution_uuid, this.form.password)
+          .then((response) => {
+            this.alert("3bot Destroyed", "success");
+            this.$router.go(0);
+          })
+          .catch((err) => {
+            this.alert("Failed to destroy 3Bot", "error");
+            this.close();
+          });
+      }
     },
   },
   updated() {
