@@ -160,6 +160,7 @@ from functools import lru_cache
 from textwrap import dedent
 
 import dateutil
+import dateutil.utils
 import gevent
 import yaml
 from jumpscale.clients.base import Client
@@ -262,6 +263,48 @@ class TaigaClient(Client):
         theid = self._get_user_id(username)
         return self._get_user_by_id(theid)
 
+    def get_issue_custom_fields(self,id):
+        """Get Issue Custom fields
+
+        Args:
+            id (int): Issue id
+
+        Returns:
+            Array: Array of dictionaries {name: "custom field name", value: {values as dict}}
+        """
+        issue = self.api.issues.get(id)
+        issue_attributes = issue.get_attributes()['attributes_values']
+        project_attributes = self._get_project(issue.project).list_issue_attributes()
+        custom_fields = []
+        for p_attr in project_attributes :
+            for k, value in issue_attributes.items():
+                if p_attr.id == int(k):
+                    custom_fields.append({"name":p_attr.name, "value": yaml.safe_load(value)})
+                    break
+        
+        return custom_fields
+    
+    def get_user_story_custom_fields(self,id):
+        """Get User_Story Custom fields
+
+        Args:
+            id (int): User_Story id
+
+        Returns:
+            Array: Array of dictionaries {name: "custom field name", value: {values as dict}}
+        """
+        user_story = self.api.user_stories.get(id)
+        user_story_attributes = user_story.get_attributes()['attributes_values']
+        project_attributes = self._get_project(user_story.project).list_user_story_attributes()
+        custom_fields = []
+        for p_attr in project_attributes :
+            for k, value in user_story_attributes.items():
+                if p_attr.id == int(k):
+                    custom_fields.append({"name":p_attr.name, "value": yaml.safe_load(value)})
+                    break
+        
+        return custom_fields
+    
     def get_user_circles(self, username):
         """Get circles owned by user
 
@@ -537,6 +580,79 @@ class TaigaClient(Client):
     def list_funnel_circles(self):
         return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))]
 
+    def validate_custom_fields(self, attributes):
+        """Validate custom fields values to match our requirments
+
+        Args:
+            attributes (Array): Output from get_issue/user_story_custom_fields functions
+
+        Raises:
+            j.exceptions.Validation: Raise validation exception if any input not valid
+
+        Returns:
+            bool: Return True if no exception raised and print logs
+        """
+        
+        for attr in attributes:
+            name = attr.get("name")
+            value = attr.get("value")
+            
+            period = value.get("period", "onetime")
+            duration = value.get("duration", 1)
+            amount = value.get("amount", 0)
+            currency = value.get("currency", "eur")
+            start_date = value.get("start_date", "{}:{}".format(dateutil.utils.today().month,dateutil.utils.today().year))
+            confidence = value.get("confidence", 100)
+            user = value.get("user")
+            part= value.get("part", "0%")
+            type= value.get("type", "revenue")
+
+            if name not in ["bookings", "commission"]:
+                raise j.exceptions.Validation('Name: ({}) is unknown custom field, please select one of the following ["bookings", "commission"]'.format(name))
+
+            if period not in ["onetime", "month", "year"]:
+                raise j.exceptions.Validation('Period: ({}) not found, please select one of following ["onetime", "month", "year"]'.format(period))
+
+            if duration < 1 or duration > 120:
+                raise j.exceptions.Validation('Duration: ({}) is not in range, please select it from 1 to 120'.format(duration))
+
+            if not isinstance(amount, int):
+                raise j.exceptions.Validation('Amount: ({}) is not integer, please add int value'.format(amount))
+
+            if currency.replace(" ", "").lower() not in ["usd", "chf", "eur", "gbp", "egp"]:
+                raise j.exceptions.Validation('Currency: ({}) is not supported, please use one of the following currencies ["usd", "chf", "eur", "gbp", "egp"]'.format(currency))
+            try:
+                date = start_date.split(":")
+                month = int(date[0])
+                year = (
+                    int(date[1])
+                    if len(date) > 1
+                    else dateutil.utils.today().year
+                )
+                if month < 1 or month > 12:
+                    raise j.exceptions.Validation("Please use values from 1 to 12 in Month field, follow format like MONTH:YEAR as 11:2020 or MONTH as 11")
+            except ValueError as e:
+                raise j.exceptions.Validation("Please use numaric date with the following format MONTH:YEAR as 11:2020 or MONTH as 11")
+            except AttributeError as e:
+                pass  # Will check what happen if start_date not provide
+
+            if confidence % 10 != 0:
+                j.exceptions.Validation("Confidence: ({}) not multiple of 10, it must be multiple of 10".format(confidence))
+            
+            part_tmp = part.replace('%', '')
+            if user != None and user not in self.list_all_users():
+                raise j.exceptions.Validation('User: ({}) is not found'.format(user))
+
+            if  int(part_tmp) < 0 or int(part_tmp) > 100:
+                j.exceptions.Validation('Part: ({}) is a not a valid percentage, it must be from 0% to 100%')
+
+            if type not in ["revenue", "booking"]:
+                raise j.exceptions.Validation('Type: ({}) is not supported type, please choose one of the following ["revenue" , "booking"]'.format(type))
+
+            j.logger.info("Arrtibute: {} passed".format(name))
+        
+        return True
+
     def _create_new_circle(
         self,
         name,
@@ -548,6 +664,7 @@ class TaigaClient(Client):
         issues_types=None,
         user_stories_statuses=None,
         tasks_statuses=None,
+        custom_fields=None,
         **attrs,
     ):
         severities = severities or ["Low", "Mid", "High"]
@@ -610,6 +727,14 @@ class TaigaClient(Client):
                 # check if duplicated
                 j.logger.debug(f"skipping issue type {t} {e}")
 
+        for t in custom_fields:
+            try:
+                p.add_issue_attribute(t)
+                p.add_user_story_attribute(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f"skipping custom field type {t} {e}")
+
         return p
 
     def create_new_project_circle(
@@ -635,9 +760,27 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
+        issues_types = ["Bug", "Question", "Enhancement"]
+        severities = ["Wishlist", "Minor", "Normal", "Important", "Critical"]
+        priorities = None
 
-        return ProjectCircle(
-            self._api, self._create_new_circle(name, type_="project", description=description, **attrs,),
+        story_statuses = ["New", "to-start", "in-progress", "Blocked", "Implemented", "Verified", "Archived"]
+        item_statuses = ["New", "to-start", "in-progress", "Blocked", "Done"]
+        issues_statuses = ["New", "to-start", "in-progress", "Blocked", "Implemented", "Closed", "Rejected", "Postponed", "Archived"]
+
+        return ProjectCircle(self,
+            self._create_new_circle(
+                name,
+                type_="project",
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
+                **attrs,
+            ),
         )
 
     def create_new_team_circle(self, name, description="", **attrs):
@@ -669,10 +812,14 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
-        severities = None
+        issues_types = ["Bug", "Question", "Enhancement"]
+        severities = ["Wishlist", "Minor", "Normal", "Important", "Critical"]
         priorities = None
-        statuses = None
-        issues_types = None
+
+        story_statuses = ["New", "to-start", "in-progress", "Blocked", "Implemented", "Verified", "Archived"]
+        item_statuses = ["New", "to-start", "in-progress", "Blocked", "Done"]
+        issues_statuses = ["New", "to-start", "in-progress", "Blocked", "Implemented", "Closed", "Rejected", "Postponed", "Archived"]
+
         return TeamCircle(
             self,
             self._create_new_circle(
@@ -680,11 +827,11 @@ class TaigaClient(Client):
                 type_="team",
                 description=description,
                 severities=severities,
-                issues_statuses=statuses,
+                issues_statuses=issues_statuses,
                 priorities=priorities,
                 issues_types=issues_types,
-                user_stories_statuses=None,
-                tasks_statuses=None,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
                 **attrs,
             ),
         )
@@ -728,13 +875,15 @@ class TaigaClient(Client):
         # Closed
         # Needs info
 
-        severities = None
-        priorities = None
-        issues_types = None
+        severities = ["unknown", "low", "25%", "50%", "75%", "90%"]
+        priorities = ["Low", "Normal", "High"]
+        issues_types = "oportunity"
 
-        issues_statuses = ["New", "Interested", "Deal", "Blocked", "Lost", "Postponed", "Won"]
-        story_statuses = ["New", "Proposal", "Contract", "Blocked / Needs info", "Project"]
+        issues_statuses = ["New", "Interested", "Deal", "Blocked", "NeedInfo", "Lost", "Postponed", "Won",]
+        story_statuses = ["New", "Proposal", "Contract", "Blocked", "NeedInfo", "Closed"]
         task_statuses = ["New", "In progress", "Verification", "Needs info", "Closed"]
+        
+        custom_fields = ["bookings", "commission"]
 
         return FunnelCircle(
             self,
@@ -748,6 +897,7 @@ class TaigaClient(Client):
                 issues_types=issues_types,
                 user_stories_statuses=story_statuses,
                 tasks_statuses=task_statuses,
+                custom_fields=custom_fields,
                 **attrs,
             ),
         )
@@ -856,5 +1006,6 @@ class TaigaClient(Client):
         gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
         gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
         gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
+        # gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
 
         gevent.joinall(gs)

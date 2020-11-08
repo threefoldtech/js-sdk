@@ -41,7 +41,7 @@ class CircleIssue(CircleResource):
         return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
 
     def __dir__(self):
-        return dir(self._original_object) + ["as_md"]
+        return dir(self._original_object) + ["url", "as_md"]
 
 
 class CircleStory(CircleResource):
@@ -77,7 +77,7 @@ class CircleStory(CircleResource):
         pass
 
     def __dir__(self):
-        return dir(self._original_object) + ["as_md"]
+        return dir(self._original_object) + ["url", "as_md"]
 
 
 class CircleUser(CircleResource):
@@ -145,7 +145,7 @@ class CircleUser(CircleResource):
         return self.get_circles()
 
     def __dir__(self):
-        return dir(self._original_object) + ["as_md", "issues", "stories", "get_circles", "get_issues", "get_stories"]
+        return dir(self._original_object) + ["as_md", "issues", "stories", "get_circles", "get_issues", "get_stories", "url", "clean_name"]
 
     @property
     def as_md(self):
