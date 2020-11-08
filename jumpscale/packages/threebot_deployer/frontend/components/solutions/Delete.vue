@@ -33,7 +33,7 @@ module.exports = {
   methods: {
     submit() {
       if (!this.form.password) {
-        this.error = "Password required!";
+        this.error = "Password required";
       } else {
         this.loading = true;
         this.error = null;
