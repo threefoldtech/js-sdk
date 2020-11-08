@@ -5,6 +5,7 @@ from jumpscale.loader import j
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from jumpscale.packages.threebot_deployer.bottle.utils import stop_threebot_solution
+from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 
 
 @pytest.mark.integration
@@ -44,11 +45,11 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test02_start_threebot(self):
+    def test02_start_deployed_threebot(self):
         """Test case for starting a threebot.
 
         **Test Scenario**
-        - Deploy a threebot
+        - Deploy a threebot.
         - Stop the deployed threebot
         - Start the stopped threebot.
         - Check that threebot is reachable.
@@ -70,12 +71,12 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test03_change_threebot_size(self):
-        """Test case for starting a threebot.
+    def test03_change_deployed_threebot_size(self):
+        """Test case for changing a threebot size.
 
         **Test Scenario**
-        - Deploy a threebot
-        - Stop the deployed threebot
+        - Deploy a threebot.
+        - Stop the deployed threebot.
         - Change the stopped threebot size.
         - Check that threebot is reachable.
         """
@@ -89,19 +90,26 @@ class ThreebotChatflows(ChatflowsBase):
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
 
         self.info("Start the stopped threebot")
-        threebot = deployer.change_threebot_size(name, self.secret)
+        threebot = deployer.change_threebot_size(
+            name, self.secret, flavor="Gold (CPU 2 - Memory 4 GB - Disk 4 GB [SSD])"
+        )
         self.solution_uuid = threebot.solution_id
+        threebot_config = USER_THREEBOT_FACTORY.get(f"threebot_{self.solution_uuid}")
+        threebot_container_workload = j.sals.zos.get().workloads.get(threebot_config.threebot_container_wid)
+        self.assertEqual(threebot_container_workload.capacity.cpu, 2)
+        self.assertEqual(threebot_container_workload.capacity.memory, 4096)
+        self.assertEqual(threebot_container_workload.capacity.disk_size, 4096)
 
         self.info("Check that threebot is reachable.")
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test04_change_threebot_location(self):
-        """Test case for starting a threebot.
+    def test04_change_deployed_threebot_location(self):
+        """Test case for changing a threebot location.
 
         **Test Scenario**
-        - Deploy a threebot
-        - Stop the deployed threebot
+        - Deploy a threebot.
+        - Stop the deployed threebot.
         - Change the stopped threebot location.
         - Check that threebot is reachable.
         """

@@ -1,22 +1,64 @@
 from jumpscale.loader import j
+from jumpscale.clients.explorer.models import WorkloadType, NextAction, State
 from time import sleep
 import uuid
+import netaddr
 import os
 
 bad_nodes = []
 DOMAIN = "mydomain.com"
 SUBDOMAIN1 = f"testa.{DOMAIN}"
 SUBDOMAIN2 = f"testb.{DOMAIN}"
-NETWORK_NAME = j.data.random_names.random_name()
-SOLUTION_IP_ADDRESS = "172.18.4.3"
-TRC1_IP_ADDRESS = "172.18.4.4"
-TRC2_IP_ADDRESS = "172.18.4.5"
-TRC3_IP_ADDRESS = "172.18.4.6"
+NETWORK_NAME = "management"
+SOLUTION_IP_ADDRESS = None
 SOLUTION_PORT = 3001
 SOLUTION_TLS_PORT = 443  # not serving https actually, but it must be provided
 SECRET = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
 
-zos = j.sals.zos
+zos = j.sals.zos.get()
+
+
+def get_free_ip(network, node_id, workloads=None):
+    workloads = workloads or zos.workloads.list(j.core.identity.me.tid)
+    used_ips = set()
+    for workload in workloads:
+        if workload.info.node_id != node_id:
+            continue
+        if workload.info.next_action != NextAction.DEPLOY:
+            continue
+        if workload.info.workload_type == WorkloadType.Kubernetes:
+            if workload.network_id == network.name:
+                used_ips.add(workload.ipaddress)
+        elif workload.info.workload_type == WorkloadType.Container:
+            for conn in workload.network_connection:
+                if conn.network_id == network.name:
+                    used_ips.add(conn.ipaddress)
+    node_range = None
+    for resource in network.network_resources:
+        if resource.info.node_id == node_id:
+            node_range = resource.iprange
+            break
+
+    hosts = netaddr.IPNetwork(node_range).iter_hosts()
+    next(hosts)  # skip ip used by node
+    for host in hosts:
+        ip = str(host)
+        if ip not in used_ips:
+            used_ips.add(ip)
+            return ip
+    return None
+
+
+def wait_workload(wid):
+    workload = zos.workloads.get(wid)
+    timeout = j.data.time.now().timestamp + 15 * 60 * 60
+    while not workload.info.result.state.value:
+        if j.data.time.now().timestamp > timeout:
+            raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
+        sleep(1)
+        workload = zos.workloads.get(wid)
+    if workload.info.result.state != State.Ok:
+        raise j.exceptions.Runtime(f"workload {wid} failed due to {workload.info.result.message}")
 
 
 def create_pool(currency="TFT", wallet_name=None):
@@ -36,24 +78,28 @@ def create_pool(currency="TFT", wallet_name=None):
     return pool
 
 
-def create_network(pool, network_name):
-
-    ip_range = "172.18.0.0/16"
-
+def create_network(network_name, pool, farm_id):
+    network = zos.network.load_network(network_name)
+    if network:
+        return network, None
+    ip_range = "10.100.0.0/16"
     network = zos.network.create(ip_range, network_name)
-    nodes = zos.nodes_finder.nodes_by_capacity(pool_id=pool.pool_id)
+    nodes = zos.nodes_finder.nodes_search(farm_id)
     access_node = list(filter(zos.nodes_finder.filter_public_ip4, nodes))[0]
-    zos.network.add_node(network, access_node.node_id, "172.18.2.0/24", pool.pool_id)
-    wg_quick = zos.network.add_access(network, access_node.node_id, "172.18.3.0/24", ipv4=True)
+    zos.network.add_node(network, access_node.node_id, "10.100.0.0/24", pool.pool_id)
+    wg_quick = zos.network.add_access(network, access_node.node_id, "10.100.1.0/24", ipv4=True)
 
     for workload in network.network_resources:
+        timeout = j.data.time.now().timestamp + 15 * 60 * 60
         wid = zos.workloads.deploy(workload)
         workload = zos.workloads.get(wid)
         while not workload.info.result.workload_id:
+            if j.data.time.now().timestamp > timeout:
+                raise j.exceptions.Runtime(f"workload {wid} failed to deploy in time")
             sleep(1)
             workload = zos.workloads.get(wid)
-    j.logger.info("Network wg config:")
-    print(wg_quick)
+    with open("ubuntu_server.conf", "w") as f:
+        f.write(wg_quick)
     return network, wg_quick
 
 
@@ -63,14 +109,19 @@ def get_deploymnet_node(pool):
     return available_nodes[0]
 
 
-def add_node_to_network(node, network, pool):
-    zos.network.add_node(network, node.node_id, "172.18.4.0/24", pool.pool_id)
+def add_node_to_network(network, node_id, pool, iprange):
+    zos.network.add_node(network, node_id, iprange, pool.pool_id)
+    nodes_workloads = {}
     for workload in network.network_resources:
+        nodes_workloads[workload.info.node_id] = workload
+
+    wids = []
+    for workload in nodes_workloads.values():
         wid = zos.workloads.deploy(workload)
-        workload = zos.workloads.get(wid)
-        while not workload.info.result.workload_id:
-            sleep(1)
-            workload = zos.workloads.get(wid)
+        wids.append(wid)
+        print(wid)
+    for wid in wids:
+        wait_workload(wid)
 
 
 def get_ssh_key():
@@ -79,8 +130,10 @@ def get_ssh_key():
 
 
 def deploy_ubuntu_server(node, pool, ssh_key):
+    global SOLUTION_IP_ADDRESS
     env = {"pub_key": ssh_key, "DOMAIN": SUBDOMAIN1}
-
+    network = zos.network.load_network(NETWORK_NAME)
+    SOLUTION_IP_ADDRESS = get_free_ip(network, node.node_id)
     container = zos.container.create(
         node_id=node.node_id,
         network_name=NETWORK_NAME,
@@ -108,8 +161,12 @@ def get_gateways(pool):
                 continue
             gateways.append(g)
 
+    if not gateways:
+        raise j.exceptions.Input(f"Can't find any gateway")
+
     if len(gateways) < 2:
-        raise j.exceptions.Input(f"Can't find two gateways")
+        # raise j.exceptions.Input(f"Can't find two gateways")
+        return gateways[0], gateways[0]
     return gateways[0], gateways[1]
 
 
@@ -138,11 +195,6 @@ def create_proxy(node, gateway, pool, ip_address, domain):
     )
     wid = zos.workloads.deploy(container)
 
-    workload = zos.workloads.get(wid)
-    while not workload.info.result.workload_id:
-        sleep(1)
-        workload = zos.workloads.get(wid)
-
     return wid
 
 
@@ -150,24 +202,50 @@ pool = create_pool()
 gateway1, gateway2 = get_gateways(pool)
 gateway1_ip = j.sals.nettools.get_host_by_name(gateway1.dns_nameserver[0])
 gateway2_ip = j.sals.nettools.get_host_by_name(gateway2.dns_nameserver[0])
-network, wg_quick = create_network(pool, NETWORK_NAME)
+network, wg_quick = create_network(NETWORK_NAME, pool, zos._explorer.farms.get(farm_name="freefarm").id)
 
 deployment_node = get_deploymnet_node(pool)
-add_node_to_network(deployment_node, network, pool)
+
+
+network_used_ranges = set()
+network_node_ids = set()
+for resource in network.network_resources:
+    network_used_ranges.add(resource.iprange)
+    network_node_ids.add(resource.info.node_id)
+    for peer in resource.peers:
+        network_used_ranges.add(peer.iprange)
+
+if deployment_node.node_id not in network_node_ids:
+    network_range = netaddr.IPNetwork("10.100.0.0/16")
+    for _, subnet in enumerate(network_range.subnet(24)):
+        subnet = str(subnet)
+        if subnet not in network_used_ranges:
+            break
+    else:
+        raise j.exceptions.Runtime(f"failed to find a free range to assign to node {deployment_node.node_id}")
+    add_node_to_network(network, deployment_node.node_id, pool, subnet)
 ssh_key = get_ssh_key()
 
 
-deploy_ubuntu_server(deployment_node, pool, ssh_key)
+wid = deploy_ubuntu_server(deployment_node, pool, ssh_key)
+wait_workload(wid)
 j.logger.info(f"Reserving the proxy on the gateway {gateway1_ip}")
-first_proxy = create_proxy(deployment_node, gateway1, pool, TRC1_IP_ADDRESS, SUBDOMAIN1)
+network = zos.network.load_network(NETWORK_NAME)
+first_proxy = create_proxy(deployment_node, gateway1, pool, get_free_ip(network, deployment_node.node_id), SUBDOMAIN1)
+wait_workload(first_proxy)
 j.logger.info(f"Reserving the proxy on the gateway {gateway2_ip}")
-second_proxy = create_proxy(deployment_node, gateway2, pool, TRC2_IP_ADDRESS, SUBDOMAIN1)
+second_proxy = create_proxy(deployment_node, gateway2, pool, get_free_ip(network, deployment_node.node_id), SUBDOMAIN1)
+wait_workload(second_proxy)
 j.logger.info(f"Reserving the proxy on the gateway {gateway1_ip}")
-second_domain_proxy = create_proxy(deployment_node, gateway1, pool, TRC3_IP_ADDRESS, SUBDOMAIN2)
+second_domain_proxy = create_proxy(
+    deployment_node, gateway1, pool, get_free_ip(network, deployment_node.node_id), SUBDOMAIN2
+)
+wait_workload(second_domain_proxy)
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway1_ip} in /etc/hosts")
 j.logger.info(f"Decommisioning the proxy workload from the first gateway")
 zos.workloads.decomission(first_proxy)
-input(f"Check https://{SUBDOMAIN1} is no longer reachable.")
+if gateway1_ip != gateway2_ip:
+    input(f"Check https://{SUBDOMAIN1} is no longer reachable.")
 input(f"Check https://{SUBDOMAIN1} reachable after pointing it to {gateway2_ip} in /etc/hosts")
 input(
     f"Check https://{SUBDOMAIN2} is not reachable because the generated certificate for a different domain. but is accessible using http after pointing it to {gateway1_ip}."
