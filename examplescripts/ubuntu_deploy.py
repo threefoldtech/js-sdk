@@ -21,19 +21,7 @@ ip_range = "10.100.0.0/16"
 wg_quick = None
 
 
-bad_nodes = [
-    "A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7",  # storage problem (not enough space in ssd pools)
-    "J1Xb2piba1vZM2pSmWP24CPgREnoTce7EuUJysttCyz6",
-    "A34YUGenHKyhjDMAUKZe4cVDtJM2wQ4n4XRkfGUUEYdy",
-    "7Qa7fxRPtMc5R72cnNms4XWD9PJkeQJ6iD8iTU9T8p2o",
-    "HYwvrxCy5z1QPALC5gTAiAMYWLH7orQ8xWEDbEyLiJV7",
-    "Dko5HMMaJ9D78rAfgobA3sE29FiVrKst64v2WM4Q52gx",
-    "9AcLUTkRRWGGQBn8T83Qkmuv1mwhjvmJmcvhS6r8Y8Kf",  # times out
-    "HEv8cqTakrSzoxeTyauBiRNomsMFB5N2iqCfHFDY63ct",  # times out
-    "J7twE8kmwkeph5WeKGcDoo1mUFgyYiWANFHtvE79L6Fp",  # times out -> about five minutes y3ne
-    "FVamMByotQxr5azHA9xLoo99qP7FNi1ukysMxpm6apNG",
-    "CBDY1Fu4CuxGpdU3zLL9QT5DGaRkxjpuJmzV6V5CBWg4",  # Bad access node
-]
+bad_nodes = []
 
 
 def get_free_ip(network, node_id, workloads=None):

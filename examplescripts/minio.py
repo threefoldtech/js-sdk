@@ -18,7 +18,7 @@ SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 PASSWORD = "supersecurepassowrd"
 network_name = str(uuid.uuid4())
 print(f"network name: {network_name}")
-BAD_NODES = set(["A7FmQZ72h7FzjkJMGXmzLDFyfyxzitDZYuernGG97nv7"])
+BAD_NODES = set([])
 UP_FOR = 60 * 20  # number of seconds
 
 
@@ -256,10 +256,14 @@ def pick_minio_nodes(nodes):
 
 
 freefarm_nodes = list(
-    filter(j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_search(FREEFARM_ID),)
+    filter(
+        j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_by_capacity(FREEFARM_ID, sru=3),
+    )
 )
 mazr3a_nodes = list(
-    filter(j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_search(MAZR3A_ID),)
+    filter(
+        j.sals.zos.get().nodes_finder.filter_is_up, j.sals.zos.get().nodes_finder.nodes_by_capacity(MAZR3A_ID, sru=3),
+    )
 )
 
 nodes = freefarm_nodes + mazr3a_nodes
