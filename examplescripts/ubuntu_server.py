@@ -5,18 +5,7 @@ import uuid
 import netaddr
 import os
 
-bad_nodes = [
-    "J1Xb2piba1vZM2pSmWP24CPgREnoTce7EuUJysttCyz6",
-    "A34YUGenHKyhjDMAUKZe4cVDtJM2wQ4n4XRkfGUUEYdy",
-    "7Qa7fxRPtMc5R72cnNms4XWD9PJkeQJ6iD8iTU9T8p2o",
-    "HYwvrxCy5z1QPALC5gTAiAMYWLH7orQ8xWEDbEyLiJV7",
-    "Dko5HMMaJ9D78rAfgobA3sE29FiVrKst64v2WM4Q52gx",
-    "9AcLUTkRRWGGQBn8T83Qkmuv1mwhjvmJmcvhS6r8Y8Kf",  # times out
-    "HEv8cqTakrSzoxeTyauBiRNomsMFB5N2iqCfHFDY63ct",  # times out
-    "J7twE8kmwkeph5WeKGcDoo1mUFgyYiWANFHtvE79L6Fp",  # times out -> about five minutes y3ne
-    "FVamMByotQxr5azHA9xLoo99qP7FNi1ukysMxpm6apNG",
-    "CBDY1Fu4CuxGpdU3zLL9QT5DGaRkxjpuJmzV6V5CBWg4",  # Bad access node
-]
+bad_nodes = []
 DOMAIN = "mydomain.com"
 SUBDOMAIN1 = f"testa.{DOMAIN}"
 SUBDOMAIN2 = f"testb.{DOMAIN}"
@@ -115,7 +104,7 @@ def create_network(network_name, pool, farm_id):
 
 
 def get_deploymnet_node(pool):
-    available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=0, mru=0, pool_id=pool.pool_id))
+    available_nodes = list(zos.nodes_finder.nodes_by_capacity(cru=0, sru=1, mru=0, pool_id=pool.pool_id))
     available_nodes = [node for node in available_nodes if node.node_id not in bad_nodes]
     return available_nodes[0]
 
