@@ -865,7 +865,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     msg = f"Workload {workload.id} failed to deploy due to error {error_message}. For more details: {j.core.identity.me.explorer_url}/reservations/workloads/{workload.id}"
                     j.logger.error(msg)
                     j.tools.alerthandler.alert_raise(
-                        appname="chatflows", category="internal_errors", message=msg, alert_type="exception"
+                        app_name="chatflows", category="internal_errors", message=msg, alert_type="exception"
                     )
                 elif workload.info.workload_type != WorkloadType.Network_resource:
                     j.sals.reservation_chatflow.reservation_chatflow.unblock_node(workload.info.node_id)

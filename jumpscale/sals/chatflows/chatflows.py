@@ -149,7 +149,7 @@ class GedisChatBot:
                 internal_error = True
                 j.logger.exception("error", exception=e)
                 j.tools.alerthandler.alert_raise(
-                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                    app_name="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
                 if e.msg:
                     self.send_error(
@@ -167,7 +167,7 @@ class GedisChatBot:
                 internal_error = True
                 j.logger.exception("error", exception=e)
                 alert = j.tools.alerthandler.alert_raise(
-                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                    app_name="chatflows", category="internal_errors", message=str(e), alert_type="exception"
                 )
                 username = self.user_info()["username"]
                 if username in j.core.identity.me.admins:

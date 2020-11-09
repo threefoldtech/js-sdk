@@ -749,7 +749,7 @@ class ThreebotServer(Base):
         self.redis.start()
         self.nginx.start()
         self.rack.start()
-        j.application.start(f"threebot_{self.instance_name}")
+        j.logger.register(f"threebot_{self.instance_name}")
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
@@ -780,7 +780,8 @@ class ThreebotServer(Base):
             package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
-        j.application.stop()
+        j.logger.unregister()
         self.redis.stop()
         self.rack.stop()
         self._started = False
+
