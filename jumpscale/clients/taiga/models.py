@@ -36,7 +36,7 @@ class CircleIssue(CircleResource):
             - **Owner Name:** {{issue.owner_extra_info.get('username', 'unknown')}}
             - **Owner Email:** {{issue.owner_extra_info.get('email', 'unknown')}}
             - **Project:** {{issue.project_extra_info.get('name', 'unknown')}}
-    """
+            """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
 
@@ -66,7 +66,7 @@ class CircleStory(CircleResource):
             - **Subject:** [{{story.subject}}]({{story.url}})
             - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get('username', 'not assigned') or 'not assigned' }}
             - **Watchers:** {{story.watchers or 'no watchers'}}
-            - **Tasks**:
+            - **Tasks**: {{story.tasks or 'no tasks'}}
 
             """
         )
@@ -78,6 +78,36 @@ class CircleStory(CircleResource):
 
     def __dir__(self):
         return dir(self._original_object) + ["url", "as_md"]
+
+class CircleTask(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f"<Task {self._original_object}>"
+        
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/task/286
+        return f"{self._client.host}/project/{self.project_extra_info.get('slug')}/task/{self.id}"
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            """
+            - **Subject:** [{{task.subject}}]({{task.url}})
+            - **Created Date:** {{task.created_date or 'unknown' }}
+            - **Due Date:** {{task.due_date or 'unknown' }}
+            - **Owner Name:** {{task.owner_extra_info.get('username', 'unknown')}}
+            - **Owner Email:** {{task.owner_extra_info.get('email', 'unknown')}}
+            - **Project:** {{task.project_extra_info.get('name', 'unknown')}}
+            """
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
+    
 
 
 class CircleUser(CircleResource):
@@ -120,9 +150,8 @@ class CircleUser(CircleResource):
                 circles.append(Circle(self._client, c))
         return circles
 
-    # TODO
     def get_tasks(self):
-        pass
+        return self._client.list_all_tasks(self._original_object.username)
 
     @property
     def stories(self):
@@ -144,8 +173,12 @@ class CircleUser(CircleResource):
     def circles(self):
         return self.get_circles()
 
+    @property
+    def tasks(self):
+        return self.get_tasks()
+
     def __dir__(self):
-        return dir(self._original_object) + ["as_md", "issues", "stories", "get_circles", "get_issues", "get_stories", "url", "clean_name"]
+        return dir(self._original_object) + ["as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
 
     @property
     def as_md(self):
@@ -189,7 +222,19 @@ class CircleUser(CircleResource):
 
             {% endfor %}
             {% endif %}
-                """
+
+            {% if user.tasks %}
+            ## Tasks
+
+            {% for task in user.tasks %}
+            ### {{task.subject}}
+
+            {{task.as_md}}
+
+            {% endfor %}
+            {% endif %}
+
+            """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
 

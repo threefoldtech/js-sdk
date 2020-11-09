@@ -168,6 +168,7 @@ from jumpscale.clients.taiga.models import (
     Circle,
     CircleIssue,
     CircleStory,
+    CircleTask,
     CircleUser,
     FunnelCircle,
     ProjectCircle,
@@ -284,7 +285,7 @@ class TaigaClient(Client):
         
         return custom_fields
     
-    def get_user_story_custom_fields(self,id):
+    def get_story_custom_fields(self,id):
         """Get User_Story Custom fields
 
         Args:
@@ -466,6 +467,22 @@ class TaigaClient(Client):
             return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
         else:
             return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+
+    def list_all_tasks(self, username=""):
+        """
+        List all tasks for specific user if you didn't pass user_id will list all the tasks
+
+        Args:
+            username (str): username.
+
+        Returns:
+            List: List of taiga.models.models.Task.
+        """
+        if username:
+            user_id = self._get_user_id(username)
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+        else:
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
 
     def list_all_projects(self):
         """
@@ -987,25 +1004,45 @@ class TaigaClient(Client):
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
         def _export_objects_to_dir(objects_dir, objects_fun):
             j.sals.fs.mkdirs(objects_dir)
-            objects = objects_fun()
-            for obj in objects:
-                outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
-                with open(outpath, "w") as f:
-                    yaml.dump(obj.to_dict, f)
+            try:
+                objects = objects_fun()
+                for obj in objects:
+                    outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
+                    with open(outpath, "w") as f:
+                        yaml.dump(obj.to_dict, f)
+            except Exception as e:
+                import  traceback
+                traceback.print_exc()
+                j.logger.error(e)
 
         projects_path = j.sals.fs.join_paths(export_dir, "projects")
         stories_path = j.sals.fs.join_paths(export_dir, "stories")
         issues_path = j.sals.fs.join_paths(export_dir, "issues")
-        # tasks_path = j.sals.fs.join_paths(export_dir, "tasks")
+        tasks_path = j.sals.fs.join_paths(export_dir, "tasks")
         milestones_path = j.sals.fs.join_paths(export_dir, "milestones")
         users_path = j.sals.fs.join_paths(export_dir, "users")
+        def on_err(*args,  **kwargs):
+            print("err, ", args, kwargs)
 
+        
         gs = []
         gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_projects))
         gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
-        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
-        gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
-        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
-        # gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
 
         gevent.joinall(gs)
+        gs =[]
+        
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
+        gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
+
+        gevent.joinall(gs)
+        gs  =[]
+        
+        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
+        gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
+        gevent.joinall(gs)
+        for g in gs:
+            g.link_exception(on_err)
+        
+
+        # gevent.joinall(gs)
