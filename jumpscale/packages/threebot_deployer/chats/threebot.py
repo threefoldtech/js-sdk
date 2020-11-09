@@ -127,7 +127,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.md_show_update(
-            f"Capacity pool {self.pool_id} created and funded with {payment_info['total_amount_dec']} TFT"
+            f"Capacity pool {self.pool_info.reservation_id} created and funded with {payment_info['total_amount_dec']} TFT"
         )
         gevent.sleep(2)
         self.wgcfg = deployer.init_new_user_network(
