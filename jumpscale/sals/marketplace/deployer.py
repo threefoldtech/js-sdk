@@ -81,6 +81,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             asset=info["escrow_asset"],
             memo_text=f"p-{info['resv_id']}",
         )
+        return info
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)

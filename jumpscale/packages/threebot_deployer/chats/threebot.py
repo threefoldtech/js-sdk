@@ -1,6 +1,7 @@
 import uuid
 import random
 from textwrap import dedent
+import gevent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
@@ -115,20 +116,20 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self._select_farms()
         self._select_pool_node()
         self.pool_info = deployer.create_3bot_pool(
-            self.farm_name,
-            self.expiration,
-            currency=self.currency,
-            identity_name=self.identity_name,
-            **self.query,
+            self.farm_name, self.expiration, currency=self.currency, identity_name=self.identity_name, **self.query,
         )
         if self.pool_info.escrow_information.address.strip() == "":
             raise StopChatFlow(
                 f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
             )
-        deployer.pay_for_pool(self.pool_info)
+        payment_info = deployer.pay_for_pool(self.pool_info)
         result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+        self.md_show_update(
+            f"Capacity pool {self.pool_id} created and funded with {payment_info['total_amount_dec']} TFT"
+        )
+        gevent.sleep(2)
         self.wgcfg = deployer.init_new_user_network(
             self,
             self.identity_name,
@@ -136,6 +137,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             identity_name=self.identity_name,
             network_name="management",
         )
+        self.md_show_update("Management network created.")
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view("management", identity_name=self.identity_name)
 
@@ -232,10 +234,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if self.farms_by_continent:
             choices.insert(1, "Continent")
         self.node_policy = self.single_choice(
-            "Please select the deployment location policy.",
-            choices,
-            required=True,
-            default="Automatic",
+            "Please select the deployment location policy.", choices, required=True, default="Automatic",
         )
 
     def _ask_for_continent(self):
@@ -249,9 +248,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def _ask_for_farm(self):
         farm_name_dict = {farm.name: farm for farm in self.available_farms}
         farm_name = self.drop_down_choice(
-            "Please select the farm you would like to deploy your 3Bot in.",
-            list(farm_name_dict.keys()),
-            required=True,
+            "Please select the farm you would like to deploy your 3Bot in.", list(farm_name_dict.keys()), required=True,
         )
         self.available_farms = [farm_name_dict[farm_name]]
 
@@ -259,9 +256,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
         node_id_dict = {node.node_id: node for node in nodes}
         node_id = self.drop_down_choice(
-            "Please select the node you would like to deploy your 3Bot on.",
-            list(node_id_dict.keys()),
-            required=True,
+            "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True,
         )
         self.selected_node = node_id_dict[node_id]
         self.available_farms = [farm for farm in self.available_farms if farm.id == self.selected_node.farm_id]
@@ -276,6 +271,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         elif self.node_policy == "Specific node":
             self._ask_for_node()
         self._create_identities()
+        self.md_show_update("User identity created.")
+        gevent.sleep(3)
 
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
