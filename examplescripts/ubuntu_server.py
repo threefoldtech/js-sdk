@@ -11,11 +11,12 @@ Expected Result:
 3- failover test for these two domains
 
 Running the script:
+
 ```
 python ubuntu_server.py
+```
 
 you will be prompted to verify the availability of the container over the domain names during the execution
-```
 """
 
 
