@@ -1,3 +1,23 @@
+"""
+This is an example script to create a kubernetes cluster and optionally expose it using ZOS sal.
+
+Requirements:
+1- stellar wallet named "wallet" funded with enough TFTs
+
+Expected Result:
+1- a network named "management" created or extended with the nodes required for kubernetes deployment
+2- kubernetes cluster of size 1 with 3 nodes
+3- Optional, cluster exposed on the specified domain prefix.
+
+Running the script:
+Basic usage is just
+```
+python kubernetes.py
+```
+
+the script is a click cli application. you can view all options using python kubernetes.py --help.
+"""
+
 from jumpscale.loader import j
 from time import sleep
 import netaddr
@@ -261,7 +281,7 @@ def deploy(expose, domain_prefix):
     nodes = deploy_overlay_network(pool)
     master = deploy_k8s_cluster(nodes, pool.pool_id)
     if expose:
-        expose_cluster(pool, "kubernetes-demo", nodes[0], master.ipaddress)
+        expose_cluster(pool, domain_prefix, nodes[0], master.ipaddress)
     print("DONE")
 
 
