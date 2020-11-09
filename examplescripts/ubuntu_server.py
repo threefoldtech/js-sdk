@@ -1,3 +1,24 @@
+"""
+This is an example script to create an ubuntu container with a minimal web service runnng on top of it and expose it over different managed domains (gateways if available).
+
+Requirements:
+1- stellar wallet funded with enough TFTs
+2- environment varibale `WALLET` with the wallet name defined
+
+Expected Result:
+1- a network named "management" created or extended with the nodes required for container deployment
+2- ubuntu container exposed over two subdomains
+3- failover test for these two domains
+
+Running the script:
+```
+python ubuntu_server.py
+
+you will be prompted to verify the availability of the container over the domain names during the execution
+```
+"""
+
+
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import WorkloadType, NextAction, State
 from time import sleep
