@@ -9,7 +9,7 @@ def test_container_ru():
         {"cpu": 4, "memory": 4096, "type": DiskType.SSD, "size": 10240, "cru": 4, "mru": 4, "sru": 0, "hru": 0},
         {"cpu": 4, "memory": 4096, "type": DiskType.SSD, "size": 51200, "cru": 4, "mru": 4, "sru": 0, "hru": 0},
         {"cpu": 4, "memory": 4096, "type": DiskType.SSD, "size": 52224, "cru": 4, "mru": 4, "sru": 1, "hru": 0},
-        {"cpu": 1, "memory": 1000, "type": DiskType.SSD, "size": 10000, "cru": 1, "mru": 1, "sru": 0, "hru": 0,},
+        {"cpu": 1, "memory": 1024, "type": DiskType.SSD, "size": 10000, "cru": 1, "mru": 1, "sru": 0, "hru": 0,},
     ]
     for tc in tt:
         c.capacity.cpu = tc["cpu"]

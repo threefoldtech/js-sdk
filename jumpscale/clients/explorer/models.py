@@ -116,7 +116,7 @@ class CloudUnits(Base):
 
 
 class ResourceUnitAmount(Base):
-    cru = fields.Float()
+    cru = fields.Integer()
     mru = fields.Float()
     hru = fields.Float()
     sru = fields.Float()
@@ -491,7 +491,7 @@ class Container(Base):
         cap = self.capacity
         resource_units = ResourceUnitAmount()
         resource_units.cru = cap.cpu
-        resource_units.mru = round(cap.memory / 1024)
+        resource_units.mru = round(cap.memory / 1024 * 10000) / 10000
         storage_size = round(cap.disk_size / 1024 * 10000) / 10000
         storage_size = max(0, storage_size - 50)  # we offer the 50 first GB of storage for container root filesystem
         if cap.disk_type == DiskType.HDD:
