@@ -146,6 +146,8 @@ class CircleUser(CircleResource):
                 circles.append(FunnelCircle(self._client, c))
             elif cname.startswith("project"):
                 circles.append(ProjectCircle(self._client, c))
+            elif cname.startswith("archive"):
+                pass # to not included in as_md property
             else:
                 circles.append(Circle(self._client, c))
         return circles
@@ -421,3 +423,20 @@ class ProjectCircle(Circle):
 
     def __str__(self):
         return f"<ProjectCircle {self._original_object}>"
+
+class ArchiveCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, "_original_object"):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f"{attr} not found in {self} and not in {self._original_object}")
+
+    def __str__(self):
+        return f"<ArchiveCircle {self._original_object}>"
+        

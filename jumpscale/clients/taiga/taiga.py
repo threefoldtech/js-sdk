@@ -493,6 +493,9 @@ class TaigaClient(Client):
         """
         return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
 
+    def list_all_active_projects(self):
+        return [Circle(self, p) for p in self.list_projects_by(lambda x: not x.name.startswith("ARCHIVE_"))]
+
     def list_all_milestones(self):
         """
         List all milestones
@@ -928,7 +931,7 @@ class TaigaClient(Client):
         path = j.sals.fs.join_paths(wikipath, "src", "circles")
 
         j.sals.fs.mkdirs(path)
-        circles = self.list_all_projects()
+        circles = self.list_all_active_projects()
 
         def write_md_for_circle(circle):
             # print(f"Writing {circle}")
@@ -954,7 +957,7 @@ class TaigaClient(Client):
 
         path = j.sals.fs.join_paths(wikipath, "src", "users")
         j.sals.fs.mkdirs(path)
-        circles = self.list_all_projects()
+        circles = self.list_all_active_projects()
         users = set()
         for c in circles:
             for m in c.members:
@@ -1026,23 +1029,22 @@ class TaigaClient(Client):
 
         
         gs = []
-        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_projects))
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects))
         gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
-
+        for g in gs:
+            g.link_exception(on_err)
         gevent.joinall(gs)
         gs =[]
         
         gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
         gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
-
+        for g in gs:
+            g.link_exception(on_err)
         gevent.joinall(gs)
         gs  =[]
         
         gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
         gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
-        gevent.joinall(gs)
         for g in gs:
             g.link_exception(on_err)
-        
-
-        # gevent.joinall(gs)
+        gevent.joinall(gs)
