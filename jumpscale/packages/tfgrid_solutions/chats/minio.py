@@ -67,7 +67,7 @@ class MinioDeploy(GedisChatBot):
         disk_type = form.drop_down_choice(
             "Choose the type of disk for zdb", ["SSD", "HDD"], required=True, default="SSD"
         )
-        disk_size = form.int_ask("Specify the size for zdb", default=10, required=True, min=1)
+        disk_size = form.int_ask("Specify the size for zdb (GB)", default=10, required=True, min=1)
         form.ask()
         self.zdb_disk_type = DiskType[disk_type.value]
         self.zdb_disk_size = disk_size.value
