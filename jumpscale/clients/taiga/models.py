@@ -10,10 +10,14 @@ class CircleResource:
         self._client = taigaclient
         self._api = self._client.api
 
-
 class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
+        self.allowed_params.extend(('assigned_to_extra_info', 'attachments', 
+        'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
+        'external_reference','finished_date', 'id', 'is_voter', 'is_watcher', 
+        'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
+        'ref', 'status_extra_info', 'total_voter', 'total_watcher'))
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -43,10 +47,17 @@ class CircleIssue(CircleResource):
     def __dir__(self):
         return dir(self._original_object) + ["url", "as_md"]
 
-
 class CircleStory(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
+        self.allowed_params.extend(( 'assigned_to_extra_info', 'attachments', 
+        'comment', 'created_date', 'due_date_reason', 'due_date_status', 
+        'epic_order', 'epics', 'external_reference','finish_date', 'id', 
+        'is_voter', 'is_watcher', 'milestone_name', 'milestone_slug', 
+        'modified_date', 'origin_issue', 'origin_task', 'owner', 
+        'owner_extra_info', 'project_extra_info', 'ref', 'status_extra_info', 
+        'total_attachments', 'total_comments', 'total_points', 'total_voter', 
+        'total_watcher', 'tribe_gig'))
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -66,22 +77,29 @@ class CircleStory(CircleResource):
             - **Subject:** [{{story.subject}}]({{story.url}})
             - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get('username', 'not assigned') or 'not assigned' }}
             - **Watchers:** {{story.watchers or 'no watchers'}}
-            - **Tasks**: {{story.tasks or 'no tasks'}}
-
+            - **Tasks**:{% for task in story.tasks %} 
+                - **Task#{{task.id}}**: {{task.subject}}
+            {% endfor %}
             """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)
 
+    @property
     def tasks(self):
-        # TODO
-        pass
+        return self.list_tasks()
 
     def __dir__(self):
-        return dir(self._original_object) + ["url", "as_md"]
+        return dir(self._original_object) + ["tasks", "url", "as_md"]
 
 class CircleTask(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
+        self.allowed_params.extend(('assigned_to_extra_info', 'attachments', 
+        'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
+        'finished_date', 'id', 'is_voter', 'is_watcher', 'milestone_slug', 
+        'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
+        'ref', 'status_extra_info', 'total_comments', 'total_voter', 
+        'total_watcher', 'user_story_extra_info'))
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -106,13 +124,21 @@ class CircleTask(CircleResource):
             - **Project:** {{task.project_extra_info.get('name', 'unknown')}}
             """
         )
-        return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, task=self)
     
-
-
+    def __dir__(self):
+        return dir(self._original_object) + ["url", "as_md"]
+    
 class CircleUser(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
+        self.allowed_params.extend(('accepted_terms', 'big_photo', 'bio', 
+        'color', 'date_joined', 'email', 'full_name', 'full_name_display', 
+        'gravatar_id', 'id', 'is_active', 'lang', 
+        'max_memberships_private_projects', 'max_memberships_public_projects',
+        'max_private_projects', 'max_public_projects', 'photo', 'public_key', 
+        'read_new_terms', 'roles', 'theme', 'timezone', 'total_private_projects',
+        'total_public_projects', 'username', 'uuid'))
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -179,9 +205,6 @@ class CircleUser(CircleResource):
     def tasks(self):
         return self.get_tasks()
 
-    def __dir__(self):
-        return dir(self._original_object) + ["as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
-
     @property
     def as_md(self):
 
@@ -240,10 +263,25 @@ class CircleUser(CircleResource):
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
 
+    def __dir__(self):
+        return dir(self._original_object) + ["as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
 
 class Circle(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
+        self.allowed_params.extend(('anon_permissions', 'blocked_code',
+        'created_date','default_epic_status','default_issue_status', 
+        'default_issue_type', 'default_points','default_priority', 
+        'default_severity', 'default_task_status','default_us_status',
+        'i_am_admin', 'i_am_member', 'i_am_owner', 'id', 'is_contact_activated',
+        'is_epics_activated', 'is_fan', 'is_featured','is_watcher', 
+        'logo_big_url', 'logo_small_url', 'looking_for_people_note', 
+        'modified_date', 'my_homepage', 'my_permissions', 'notify_level', 'owner',
+        'public_permissions', 'slug', 'tags', 'tags_colors', 'total_activity', 
+        'total_activity_last_month', 'total_activity_last_week', 
+        'total_activity_last_year','total_closed_milestones', 'total_fans', 
+        'total_fans_last_month', 'total_fans_last_week', 'total_fans_last_year', 
+        'total_watchers', 'totals_updated_datetime', 'videoconferences_extra_data'))
 
     @property
     def clean_name(self):
@@ -373,7 +411,6 @@ class Circle(CircleResource):
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)
 
-
 class TeamCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -390,7 +427,6 @@ class TeamCircle(Circle):
     def __str__(self):
         return f"<TeamCircle {self._original_object}>"
 
-
 class FunnelCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -406,7 +442,6 @@ class FunnelCircle(Circle):
 
     def __str__(self):
         return f"<FunnelCircle {self._original_object}>"
-
 
 class ProjectCircle(Circle):
     def __init__(self, taigaclient, original_object):

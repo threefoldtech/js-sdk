@@ -238,6 +238,9 @@ class TaigaClient(Client):
         ids = ids or []
         return [self._get_issue_by_id(x) for x in ids]
 
+    def _get_task_by_id(self, id):
+        return self.api.tasks.get(id)
+
     @lru_cache(maxsize=2048)
     def _get_issue_status(self, status_id):
         return self.api.issue_statuses.get(status_id)
@@ -562,6 +565,7 @@ class TaigaClient(Client):
             "assigned_to": self._get_user_by_id,
             "owner": self._get_user_by_id,
             "issues": self._get_issues_by_ids,
+            "tasks": self._get_task_by_id,
         }
         newobj = copy.deepcopy(obj)
         for k in dir(newobj):
@@ -1012,7 +1016,7 @@ class TaigaClient(Client):
                 for obj in objects:
                     outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
                     with open(outpath, "w") as f:
-                        yaml.dump(obj.to_dict, f)
+                        yaml.dump(obj.to_dict(), f)
             except Exception as e:
                 import  traceback
                 traceback.print_exc()
