@@ -1,6 +1,7 @@
 import uuid
 import random
 from textwrap import dedent
+import gevent
 
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
@@ -125,10 +126,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             raise StopChatFlow(
                 f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
             )
-        deployer.pay_for_pool(self.pool_info)
+        payment_info = deployer.pay_for_pool(self.pool_info)
         result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+        self.md_show_update(
+            f"Capacity pool {self.pool_info.reservation_id} created and funded with {payment_info['total_amount_dec']} TFT"
+        )
+        gevent.sleep(2)
         self.wgcfg = deployer.init_new_user_network(
             self,
             self.identity_name,
@@ -136,6 +141,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             identity_name=self.identity_name,
             network_name="management",
         )
+        self.md_show_update("Management network created.")
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view("management", identity_name=self.identity_name)
 
@@ -269,6 +275,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         elif self.node_policy == "Specific node":
             self._ask_for_node()
         self._create_identities()
+        self.md_show_update("User identity created.")
+        gevent.sleep(3)
 
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):

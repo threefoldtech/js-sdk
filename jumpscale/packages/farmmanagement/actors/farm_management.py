@@ -22,5 +22,9 @@ class FarmManagemenet(BaseActor):
     def mark_node_free(self, node_id, free):
         return self._explorer.nodes.configure_free_to_use(node_id=node_id, free=free)
 
+    @actor_method
+    def list_farms(self, user_id) -> str:
+        return j.data.serializers.json.dumps([f.to_dict() for f in self._explorer.farms.list(user_id)])
+
 
 Actor = FarmManagemenet

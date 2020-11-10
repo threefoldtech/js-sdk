@@ -1,3 +1,20 @@
+"""
+This is an example script to create an ubuntu container with corex enabled and expose it over a managed domain.
+
+Requirements:
+1- stellar wallet named "wallet" funded with enough TFTs
+
+Expected Result:
+1- a network named "management" created or extended with the nodes required for container deployment
+2- ubuntu container with corex enabled and exposed over a managed domain.
+
+Running the script:
+```
+python ubuntu.py
+```
+"""
+
+
 from jumpscale.loader import j
 import netaddr
 from time import sleep
