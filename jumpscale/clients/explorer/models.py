@@ -104,8 +104,8 @@ class CloudUnits(Base):
         compute the total cost
 
         Args:
-            cu_price (float): number of compute unit
-            su_price (float): number of storage unit
+            cu_price (float): price of compute unit per second
+            su_price (float): price of storage unit per second
             duration (int): duration in second
 
         Returns:
