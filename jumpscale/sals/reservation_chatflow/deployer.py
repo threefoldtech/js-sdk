@@ -924,9 +924,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
 
-    def add_multiple_network_nodes(self, name, node_ids, pool_ids, network_view=None, bot=None, **metadata):
+    def add_multiple_network_nodes(
+        self, name, node_ids, pool_ids, network_view=None, bot=None, identity_name=None, **metadata
+    ):
         if not network_view:
-            network_view = NetworkView(name)
+            network_view = NetworkView(name, identity_name=identity_name)
         network = network_view.add_multiple_nodes(node_ids, pool_ids)
         if not network:
             return
@@ -938,7 +940,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
         dry_run_name = uuid.uuid4().hex
-        with NetworkView.dry_run_context(dry_run_name):
+        with NetworkView.dry_run_context(dry_run_name, identity_name):
             network_view.dry_run(
                 dry_run_name,
                 list(node_workloads.keys()),
@@ -950,8 +952,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             workload.info.reference = ""
             workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
-            workload.info.metadata = self.encrypt_metadata(metadata)
-            ids.append(j.sals.zos.get().workloads.deploy(workload))
+            workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            ids.append(j.sals.zos.get(identity_name).workloads.deploy(workload))
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
 
@@ -1143,26 +1145,45 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return j.sals.zos.get().workloads.deploy(domain_delegate)
 
     def deploy_kubernetes_master(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        cluster_secret,
+        ssh_keys,
+        ip_address,
+        size=1,
+        identity_name=None,
+        **metadata,
     ):
-        master = j.sals.zos.get().kubernetes.add_master(
+        master = j.sals.zos.get(identity_name).kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
         )
         master.info.description = j.data.serializers.json.dumps({"role": "master"})
         if metadata:
-            master.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(master)
+            master.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        return j.sals.zos.get(identity_name).workloads.deploy(master)
 
     def deploy_kubernetes_worker(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        cluster_secret,
+        ssh_keys,
+        ip_address,
+        master_ip,
+        size=1,
+        identity_name=None,
+        **metadata,
     ):
-        worker = j.sals.zos.get().kubernetes.add_worker(
+        worker = j.sals.zos.get(identity_name).kubernetes.add_worker(
             node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
         )
         worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
         if metadata:
-            worker.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(worker)
+            worker.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        return j.sals.zos.get(identity_name).workloads.deploy(worker)
 
     def deploy_kubernetes_cluster(
         self,
