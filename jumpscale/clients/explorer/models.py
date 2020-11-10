@@ -408,15 +408,31 @@ class K8s(Base):
     info = fields.Object(ReservationInfo)
 
     def resource_units(self):
+        size_table = {
+            1: {"cru": 1, "mru": 2, "sru": 50},
+            2: {"cru": 2, "mru": 4, "sru": 100},
+            3: {"cru": 2, "mru": 8, "sru": 25},
+            4: {"cru": 2, "mru": 5, "sru": 50},
+            5: {"cru": 2, "mru": 8, "sru": 200},
+            6: {"cru": 4, "mru": 16, "sru": 50},
+            7: {"cru": 4, "mru": 16, "sru": 100},
+            8: {"cru": 4, "mru": 16, "sru": 400},
+            9: {"cru": 8, "mru": 32, "sru": 100},
+            10: {"cru": 8, "mru": 32, "sru": 200},
+            11: {"cru": 8, "mru": 32, "sru": 800},
+            12: {"cru": 1, "mru": 64, "sru": 200},
+            13: {"cru": 1, "mru": 64, "sru": 400},
+            14: {"cru": 1, "mru": 64, "sru": 800},
+        }
+
         resource_units = ResourceUnitAmount()
-        if self.size == 1:
-            resource_units.cru += 1
-            resource_units.mru += 2
-            resource_units.sru += 50
-        elif self.size == 2:
-            resource_units.cru += 2
-            resource_units.mru += 4
-            resource_units.sru += 100
+        size = size_table.get(self.size)
+        if not size:
+            raise j.exceptions.Input(f"k8s size {self.sizes} not supported")
+
+        resource_units.cru += size["cru"]
+        resource_units.mru += size["mru"]
+        resource_units.sru += size["sru"]
         return resource_units
 
 
