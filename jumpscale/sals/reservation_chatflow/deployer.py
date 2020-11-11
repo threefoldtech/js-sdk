@@ -876,7 +876,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
                     return True
-                raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
+                raise DeploymentFailed(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
 
     def add_network_node(self, name, node, pool_id, network_view=None, bot=None, identity_name=None, **metadata):
@@ -964,11 +964,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
         return network_views[network_name]
 
-    def deploy_volume(self, pool_id, node_id, size, volume_type=DiskType.SSD, **metadata):
-        volume = j.sals.zos.get().volume.create(node_id, pool_id, size, volume_type)
+    def deploy_volume(self, pool_id, node_id, size, volume_type=DiskType.SSD, identity_name=None, **metadata):
+        volume = j.sals.zos.get(identity_name).volume.create(node_id, pool_id, size, volume_type)
         if metadata:
             volume.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(volume)
+        return j.sals.zos.get(identity_name).workloads.deploy(volume)
 
     def deploy_container(
         self,
@@ -1395,11 +1395,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             workload.info.metadata = self.encrypt_metadata(metadata)
         return j.sals.zos.get().workloads.deploy(workload)
 
-    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, **metadata):
-        workload = j.sals.zos.get().zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
+    def deploy_zdb(
+        self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, identity_name=None, **metadata
+    ):
+        workload = j.sals.zos.get(identity_name).zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(workload)
+        return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
     def create_subdomain(self, pool_id, gateway_id, subdomain, addresses=None, identity_name=None, **metadata):
         """
@@ -1695,6 +1697,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         bot=None,
         public_ipv6=False,
         secondary_pool_id=None,
+        identity_name=None,
         **metadata,
     ):
         secondary_pool_id = secondary_pool_id or pool_id
@@ -1712,13 +1715,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             "MINIO_PROMETHEUS_AUTH_TYPE": "public",
         }
         result = []
-        master_volume_id = self.deploy_volume(pool_id, minio_nodes[0], disk_size, disk_type, **metadata)
-        success = self.wait_workload(master_volume_id, bot)
+        master_volume_id = self.deploy_volume(
+            pool_id, minio_nodes[0], disk_size, disk_type, identity_name=identity_name, **metadata
+        )
+        success = self.wait_workload(master_volume_id, bot, identity_name=identity_name)
         if not success:
             raise DeploymentFailed(
                 f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}",
                 wid=master_volume_id,
                 solution_uuid=metadata.get("solution_uuid"),
+                identity_name=identity_name,
             )
         master_cont_id = self.deploy_container(
             pool_id=pool_id,
@@ -1733,18 +1739,22 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             volumes={"/data": master_volume_id},
             public_ipv6=public_ipv6,
             flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+            identity_name=identity_name,
             **metadata,
         )
         result.append(master_cont_id)
         if mode == "Master/Slave":
             secret_env["MASTER"] = secret_env.pop("TLOG")
-            slave_volume_id = self.deploy_volume(pool_id, minio_nodes[1], disk_size, disk_type, **metadata)
+            slave_volume_id = self.deploy_volume(
+                pool_id, minio_nodes[1], disk_size, disk_type, identity_name=identity_name, **metadata
+            )
             success = self.wait_workload(slave_volume_id, bot)
             if not success:
                 raise DeploymentFailed(
                     f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}",
                     solution_uuid=metadata.get("solution_uuid"),
                     wid=slave_volume_id,
+                    identity_name=identity_name,
                 )
             slave_cont_id = self.deploy_container(
                 pool_id=secondary_pool_id,
@@ -1759,13 +1769,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 volumes={"/data": slave_volume_id},
                 public_ipv6=public_ipv6,
                 flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+                identity_name=identity_name,
                 **metadata,
             )
             result.append(slave_cont_id)
         return result
 
-    def get_zdb_url(self, zdb_id, password):
-        workload = j.sals.zos.get().workloads.get(zdb_id)
+    def get_zdb_url(self, zdb_id, password, identity_name=None):
+        workload = j.sals.zos.get(identity_name).workloads.get(zdb_id)
         result_json = j.data.serializers.json.loads(workload.info.result.data_json)
         if "IPs" in result_json:
             ip = result_json["IPs"][0]

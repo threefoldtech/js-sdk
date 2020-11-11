@@ -1,7 +1,11 @@
 from enum import Enum
 
-S3_NO_DATA_NODES = 6
-S3_NO_PARITY_NODES = 4
+S3_NO_DATA_NODES = 2
+S3_NO_PARITY_NODES = 1
+
+# TODO: replace after development
+# S3_NO_DATA_NODES = 6
+# S3_NO_PARITY_NODES = 4
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
@@ -26,8 +30,10 @@ class S3ZDBSize(Enum):
     BIG = 3
 
 
+# TODO: replace after development
 S3_ZDB_SIZES = {
-    S3ZDBSize.SMALL: {"sru": 3 * 1024},
+    # S3ZDBSize.SMALL: {"sru": 3 * 1024},
+    S3ZDBSize.SMALL: {"sru": 3},
     S3ZDBSize.MEDIUM: {"sru": 10 * 1024},
     S3ZDBSize.BIG: {"sru": 20 * 1024},
 }

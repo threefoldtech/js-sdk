@@ -1,4 +1,5 @@
 from jumpscale.sals.zos import get as get_zos
+import random
 
 
 class Scheduler:
@@ -11,10 +12,11 @@ class Scheduler:
     def nodes(self):
         if not self._nodes:
             self._nodes = self.zos.nodes_finder.nodes_search(farm_name=self.farm_name)
+        random.shuffle(self._nodes)
         return self._nodes
 
     def _update_node(self, selected_node, cru=None, mru=None, sru=None, hru=None):
-        for node in self.nodes:
+        for node in self._nodes:
             if node.node_id not in selected_node.node_id:
                 continue
             if cru:

@@ -2,10 +2,14 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from jumpscale.loader import j
 import uuid
 from jumpscale.sals.zos import get as get_zos
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 import gevent
 from .size import *
 from .scheduler import Scheduler
+from jumpscale.clients.explorer.models import ZDBMode, DiskType
+import uuid
+from .s3 import VDCS3Deployer
+from .kubernetes import VDCKubernetesDeployer
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -15,14 +19,29 @@ IP_RANGE = "10.200.0.0/16"
 
 
 class VDCDeployer:
-    def __init__(self, vdc_name, tname, password, email, wallet_name=None):
+    def __init__(self, vdc_name, tname, password, email, wallet_name=None, bot=None):
         self.vdc_name = vdc_name
         self.tname = tname
+        self.bot = bot
         self.identity = None
         self._generate_identity(password, email)
         self._zos = None
         self.wallet_name = wallet_name
         self._wallet = None
+        self._kubernetes = None
+        self._s3 = None
+
+    @property
+    def kubernetes(self):
+        if not self._kubernetes:
+            self._kubernetes = VDCKubernetesDeployer(self)
+        return self._kubernetes
+
+    @property
+    def s3(self):
+        if not self._s3:
+            self._s3 = VDCS3Deployer(self)
+        return self._s3
 
     @property
     def wallet(self):
@@ -74,12 +93,15 @@ class VDCDeployer:
         for access_node in access_nodes:
             network_success = True
             result = deployer.deploy_network(
-                self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_info.reservation_id, self.identity.instance_name
+                self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_info.reservation_id, self.identity.instance_name,
             )
             for wid in result["ids"]:
                 try:
                     success = deployer.wait_workload(
-                        wid, breaking_node_id=access_node.node_id, identity_name=self.identity.instance_name
+                        wid,
+                        breaking_node_id=access_node.node_id,
+                        identity_name=self.identity.instance_name,
+                        bot=self.bot,
                     )
                     network_success = network_success and success
                 except Exception as e:
@@ -110,13 +132,15 @@ class VDCDeployer:
             total_cus += minio_cus
             total_sus += minio_sus
             storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
-            zdb_cus, zdb_sus = deployer.calculate_capacity_units(storage_per_zdb)
+            zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
             zdb_cus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
             total_cus += zdb_cus
             total_sus += zdb_sus
         return total_cus, total_sus
 
-    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, flavor=VDCFlavor.SILVER, farm_name=PREFERED_FARM):
+    def deploy_vdc(
+        self, cluster_secret, minio_ak, minio_sk, ssh_keys, flavor=VDCFlavor.SILVER, farm_name=PREFERED_FARM
+    ):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -125,6 +149,7 @@ class VDCDeployer:
             flavor: vdc flavor key
             farm_name: where to initialize the vdc
         """
+        vdc_uuid = uuid.uuid4().hex
         scheduler = Scheduler(farm_name)
         size_dict = VDC_FLAFORS[flavor]
         k8s_size_dict = size_dict["k8s"]
@@ -134,104 +159,35 @@ class VDCDeployer:
         sus = sus * 60 * 60 * 24 * 30
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus)
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
-        success = self.deploy_kubernetes(pool_id, scheduler, k8s_size_dict, cluster_secret, "")
+        k8s_thread = gevent.spawn(
+            self.kubernetes.deploy_kubernetes, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid
+        )
+        zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)
+        gevent.joinall([k8s_thread, zdb_thread])
+        zdb_wids = zdb_thread.value
+        k8s_wids = k8s_thread.value
 
-    def deploy_s3(self, pool_id, scheduler, storage_per_zdb):
-        pass
+        if not zdb_wids or not k8s_wids:
+            solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            return False
+        try:
+            minio_wid = self.s3.deploy_s3_minio_container(
+                pool_id, minio_ak, minio_sk, ssh_keys, scheduler, zdb_wids, vdc_uuid
+            )
+            if not minio_wid:
+                solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+                return False
+        except IndexError:
+            raise j.exceptions.Runtime("all tries to deploy minio container has failed")
 
-    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys):
-        no_nodes = k8s_size_dict["no_nodes"] + 1
-        master_ip = None
-        wids = []
-        deployment_nodes = []
-        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        for node in scheduler.nodes_by_capacity(**K8S_SIZES[k8s_size_dict["size"]]):
-            if len(deployment_nodes) < no_nodes:
-                deployment_nodes.append(node)
-            else:
-                # update network
-                network_view = network_view.copy()
-                try:
-                    result = deployer.add_multiple_network_nodes(
-                        name=network_view.name,
-                        node_ids=[node.node_id for node in deployment_nodes],
-                        pool_ids=[pool_id] * no_nodes,
-                        identity_name=self.identity.instance_name,
-                    )
-                    if result:
-                        for wid in result["ids"]:
-                            success = deployer.wait_workload(wid, identity_name=self.identity.instance_name, expiry=3)
-                            if not success:
-                                raise DeploymentFailed("", wid=wid)
-                except DeploymentFailed as e:
-                    if e.wid:
-                        workload = self.zos.workloads.get(e.wid)
-                        success_nodes = []
-                        for node in deployment_nodes:
-                            if node.node_id == workload.info.node_id:
-                                continue
-                            success_nodes.append(node)
-                        deployment_nodes = success_nodes
-                    else:
-                        deployment_nodes = []
-                    continue
-
-                # deploy k8s
-                network_view = network_view.copy()
-                failed_nodes = []
-                for node in deployment_nodes:
-                    ip_address = network_view.get_free_ip(node)
-                    if not master_ip:
-                        wid = deployer.deploy_kubernetes_master(
-                            pool_id,
-                            node.node_id,
-                            network_view.name,
-                            cluster_secret,
-                            ssh_keys,
-                            ip_address,
-                            size=k8s_size_dict["size"].value,
-                            secret=cluster_secret,
-                            identity_name=self.identity.instance_name,
-                        )
-                        try:
-                            success = deployer.wait_workload(wid, identity_name=self.identity.instance_name,)
-                            if not success:
-                                failed_nodes.append(node.node_id)
-                                continue
-                        except DeploymentFailed as e:
-                            failed_nodes.append(node.node_id)
-                            continue
-                        master_ip = ip_address
-                        continue
-                    wid = deployer.deploy_kubernetes_worker(
-                        pool_id,
-                        node.node_id,
-                        network_view.name,
-                        cluster_secret,
-                        ssh_keys,
-                        ip_address,
-                        master_ip,
-                        size=k8s_size_dict["size"].value,
-                        secret=cluster_secret,
-                        identity_name=self.identity.instance_name,
-                    )
-                    try:
-                        success = deployer.wait_workload(wid, identity_name=self.identity.instance_name,)
-                        if not success:
-                            failed_nodes.append(node.node_id)
-                            continue
-                    except DeploymentFailed as e:
-                        failed_nodes.append(node.node_id)
-                        continue
-                    wids.append(wid)
-                if len(wids) == no_nodes - 1:
-                    return True
-                success_nodes = []
-                for node in deployment_nodes:
-                    if node.node_id in failed_nodes:
-                        continue
-                    success_nodes.append(node)
-                deployment_nodes = success_nodes
+        # start wireguard
+        rc, out, err = j.sals.process.execute(
+            f"wg-quick up {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+        )
+        if rc:
+            # what to do
+            pass
+        # download wireguard config from master
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
