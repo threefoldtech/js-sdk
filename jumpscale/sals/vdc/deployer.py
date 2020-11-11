@@ -99,7 +99,7 @@ class VDCDeployer:
 
         return pool_info.reservation_id
 
-    def _calcualte_new_vdc_pool_units(self, k8s_size_dict, s3_size_dict=None):
+    def _calculate_new_vdc_pool_units(self, k8s_size_dict, s3_size_dict=None):
         total_cus, total_sus = deployer.calculate_capacity_units(**K8S_SIZES[k8s_size_dict["size"]])
         total_cus = total_cus * k8s_size_dict["no_nodes"]
         total_sus = total_sus * k8s_size_dict["no_nodes"]
@@ -129,7 +129,7 @@ class VDCDeployer:
         size_dict = VDC_FLAFORS[flavor]
         k8s_size_dict = size_dict["k8s"]
         s3_size_dict = size_dict["s3"]
-        cus, sus = self._calcualte_new_vdc_pool_units(k8s_size_dict, s3_size_dict)
+        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict)
         cus = cus * 60 * 60 * 24 * 30
         sus = sus * 60 * 60 * 24 * 30
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus)
@@ -140,9 +140,6 @@ class VDCDeployer:
         pass
 
     def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys):
-        import ipdb
-
-        ipdb.set_trace()
         no_nodes = k8s_size_dict["no_nodes"] + 1
         master_ip = None
         wids = []
@@ -234,7 +231,7 @@ class VDCDeployer:
                     if node.node_id in failed_nodes:
                         continue
                     success_nodes.append(node)
-                    deployment_nodes = success_nodes
+                deployment_nodes = success_nodes
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
