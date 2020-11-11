@@ -39,7 +39,7 @@ def stop_threebot() -> str:
     except exceptions.Validation:
         return HTTPResponse(
             j.data.serializers.json.dumps({"error": "invalid secret"}),
-            status=403,
+            status=401,
             headers={"Content-Type": "application/json"},
         )
     return j.data.serializers.json.dumps({"data": True})
@@ -52,7 +52,7 @@ def destroy_threebot() -> str:
     user_info = j.data.serializers.json.loads(get_user_info())
     if "password" not in data or "uuid" not in data:
         return HTTPResponse(
-            j.data.serializers.json.dumps({"error": f"invalid body. missing keys"}),
+            j.data.serializers.json.dumps({"error": "invalid body. missing keys"}),
             status=400,
             headers={"Content-Type": "application/json"},
         )
@@ -61,7 +61,7 @@ def destroy_threebot() -> str:
     except exceptions.Validation:
         return HTTPResponse(
             j.data.serializers.json.dumps({"error": "invalid secret"}),
-            status=403,
+            status=401,
             headers={"Content-Type": "application/json"},
         )
     return j.data.serializers.json.dumps({"data": True})
