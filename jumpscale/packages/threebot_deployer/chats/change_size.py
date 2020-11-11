@@ -73,7 +73,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
 
     def _verify_password(self, password):
         instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
-        if not instance._verify_password:
+        if not instance.verify_secret(password):
             return False
         zos = get_threebot_zos(instance)
         user = zos._explorer.users.get(instance.identity_tid)
