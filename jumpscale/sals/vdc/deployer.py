@@ -164,8 +164,8 @@ class VDCDeployer:
                             if not success:
                                 raise DeploymentFailed("", wid=wid)
                 except DeploymentFailed as e:
-                    workload = self.zos.workloads.get(e.wid)
                     if e.wid:
+                        workload = self.zos.workloads.get(e.wid)
                         success_nodes = []
                         for node in deployment_nodes:
                             if node.node_id == workload.info.node_id:
