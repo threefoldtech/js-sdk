@@ -2,15 +2,12 @@ name: Build docker image
 
 on:
   push:
-    tags:
-      - '**'
+    branches: [ master ]
 jobs:
-    build-tagged-docker:
+    build-docker:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v2
-        - uses: olegtarasov/get-tag@v2 # getting tagname
-          id: tagName
         - uses: docker/build-push-action@v1
           with:
             path: jumpscale/install
@@ -18,9 +15,9 @@ jobs:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
             dockerfile: jumpscale/install/Dockerfile
-            tags: ${{ steps.tagName.outputs.tag }}
-            build_args: BRANCH=${{ steps.tagName.outputs.tag }}
+            tags: latest
+            build_args: BRANCH=master
         - name: Convert Docker image to flist
           run: |
             TOKEN=$(curl -f -H "Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}" https://itsyou.online/v1/oauth/jwt/refresh)
-            curl -f -X POST  -H "Authorization: bearer $TOKEN" ${{secrets.ZEROHUB_URL}}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:${{ steps.tagName.outputs.tag }}'
+            curl -f -X POST  -H "Authorization: bearer $TOKEN" ${{ secrets.ZEROHUB_URL }}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:master'
