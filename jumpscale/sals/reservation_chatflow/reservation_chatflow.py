@@ -1427,9 +1427,9 @@ class ReservationChatflow:
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
-            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in bool with id={pool_id}) for this reservation.
-                        If you are using a low resources environment like testnet, 
-                        please make sure to allow over provisioning from the settings tab in dashboard. 
+            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in pool with id={pool_id}) for this reservation.
+                        If you are using a low resources environment like testnet,
+                        please make sure to allow over provisioning from the settings tab in dashboard.
                         For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>
                     """
             if sort_by_disk_space:
@@ -1439,8 +1439,7 @@ class ReservationChatflow:
                     if sort_by_disk_space:
                         if not nodes:
                             raise StopChatFlow(
-                                err_msg,
-                                htmlAlert=True,
+                                err_msg, htmlAlert=True,
                             )
                         for node in nodes:
                             if node.node_id not in selected_ids:
@@ -1451,8 +1450,7 @@ class ReservationChatflow:
                             node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow(
-                        err_msg,
-                        htmlAlert=True,
+                        err_msg, htmlAlert=True,
                     )
                 nodes.remove(node)
                 nodes_selected.append(node)
