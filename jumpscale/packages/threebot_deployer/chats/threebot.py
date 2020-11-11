@@ -459,6 +459,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         user_threebot.trc_container_wid = self.workload_ids[-2]
         user_threebot.reverse_proxy_wid = self.workload_ids[-1]
         user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+        user_threebot.hash_secret(self.backup_password)
         user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)
