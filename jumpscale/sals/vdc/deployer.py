@@ -87,11 +87,11 @@ class VDCDeployer:
                     j.logger.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
                     break
             if network_success:
+                # store wireguard config
+                wg_quick = result["wg"]
+                j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}")
+                j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf", wg_quick)
                 break
-            # store wireguard config
-            wg_quick = result["wg"]
-            j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}")
-            j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf", wg_quick)
         if not network_success:
             raise j.exceptions.Runtime(
                 f"all retries to create a network with ip version {IP_VERSION} on farm {farm_name} failed"
