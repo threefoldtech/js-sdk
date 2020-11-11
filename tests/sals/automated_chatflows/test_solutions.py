@@ -107,7 +107,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that kubernetes is reachable.")
         self.assertTrue(
-            j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=40),
+            j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=60),
             "master is not reached after 40 second",
         )
 
