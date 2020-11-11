@@ -9,15 +9,21 @@ class CircleResource:
         self._original_object = original_object
         self._client = taigaclient
         self._api = self._client.api
+    
+    def add_allowed_params(self, *args):
+        for param in args:
+            if param not in self.allowed_params:
+                self.allowed_params.append(param)
+        return self.allowed_params
 
 class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        self.allowed_params.extend(('assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params('assigned_to_extra_info', 'attachments', 
         'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
         'external_reference','finished_date', 'id', 'is_voter', 'is_watcher', 
         'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
-        'ref', 'status_extra_info', 'total_voter', 'total_watcher'))
+        'ref', 'status_extra_info', 'total_voter', 'total_watcher')
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -50,14 +56,14 @@ class CircleIssue(CircleResource):
 class CircleStory(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        self.allowed_params.extend(( 'assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params( 'assigned_to_extra_info', 'attachments', 
         'comment', 'created_date', 'due_date_reason', 'due_date_status', 
         'epic_order', 'epics', 'external_reference','finish_date', 'id', 
         'is_voter', 'is_watcher', 'milestone_name', 'milestone_slug', 
         'modified_date', 'origin_issue', 'origin_task', 'owner', 
         'owner_extra_info', 'project_extra_info', 'ref', 'status_extra_info', 
         'total_attachments', 'total_comments', 'total_points', 'total_voter', 
-        'total_watcher', 'tribe_gig'))
+        'total_watcher', 'tribe_gig')
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -94,12 +100,12 @@ class CircleStory(CircleResource):
 class CircleTask(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        self.allowed_params.extend(('assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params('assigned_to_extra_info', 'attachments', 
         'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
         'finished_date', 'id', 'is_voter', 'is_watcher', 'milestone_slug', 
         'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
         'ref', 'status_extra_info', 'total_comments', 'total_voter', 
-        'total_watcher', 'user_story_extra_info'))
+        'total_watcher', 'user_story_extra_info')
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -132,13 +138,13 @@ class CircleTask(CircleResource):
 class CircleUser(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        self.allowed_params.extend(('accepted_terms', 'big_photo', 'bio', 
+        super().add_allowed_params('accepted_terms', 'big_photo', 'bio', 
         'color', 'date_joined', 'email', 'full_name', 'full_name_display', 
         'gravatar_id', 'id', 'is_active', 'lang', 
         'max_memberships_private_projects', 'max_memberships_public_projects',
         'max_private_projects', 'max_public_projects', 'photo', 'public_key', 
         'read_new_terms', 'roles', 'theme', 'timezone', 'total_private_projects',
-        'total_public_projects', 'username', 'uuid'))
+        'total_public_projects', 'username', 'uuid')
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -269,7 +275,7 @@ class CircleUser(CircleResource):
 class Circle(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        self.allowed_params.extend(('anon_permissions', 'blocked_code',
+        super().add_allowed_params('anon_permissions', 'blocked_code',
         'created_date','default_epic_status','default_issue_status', 
         'default_issue_type', 'default_points','default_priority', 
         'default_severity', 'default_task_status','default_us_status',
@@ -281,7 +287,7 @@ class Circle(CircleResource):
         'total_activity_last_month', 'total_activity_last_week', 
         'total_activity_last_year','total_closed_milestones', 'total_fans', 
         'total_fans_last_month', 'total_fans_last_week', 'total_fans_last_year', 
-        'total_watchers', 'totals_updated_datetime', 'videoconferences_extra_data'))
+        'total_watchers', 'totals_updated_datetime', 'videoconferences_extra_data')
 
     @property
     def clean_name(self):
@@ -380,6 +386,7 @@ class Circle(CircleResource):
             # Circle {{project.name}}
 
             Homepage: {{project.url}}
+            Modified Date: {{project.modified_date}}
 
             {% if project.stories %}
             ## Stories

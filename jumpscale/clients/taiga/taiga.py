@@ -158,10 +158,11 @@ import copy
 from collections import defaultdict
 from functools import lru_cache
 from textwrap import dedent
-
+import threading, time
 import dateutil
 import dateutil.utils
 import gevent
+from taiga.models.models import Milestones
 import yaml
 from jumpscale.clients.base import Client
 from jumpscale.clients.taiga.models import (
@@ -926,7 +927,7 @@ class TaigaClient(Client):
             ),
         )
 
-    def export_circles_as_md(self, wikipath="/tmp/taigawiki"):
+    def export_circles_as_md(self, wikipath="/tmp/taigawiki", modified_only=True):
         """export circles into {wikipath}/src/circles
 
         Args:
@@ -938,9 +939,10 @@ class TaigaClient(Client):
         circles = self.list_all_active_projects()
 
         def write_md_for_circle(circle):
-            # print(f"Writing {circle}")
+            circle_md = circle.as_md
             circle_mdpath = j.sals.fs.join_paths(path, f"{circle.clean_name}.md")
-            j.sals.fs.write_ascii(circle_mdpath, circle.as_md)
+            if not (modified_only and j.sals.fs.exists(circle_mdpath) and j.sals.fs.read_ascii(circle_mdpath)  == circle_md):
+                j.sals.fs.write_ascii(circle_mdpath, circle_md)
 
         circles_mdpath = j.sals.fs.join_paths(path, "circles.md")
         circles_mdcontent = "# circles\n\n"
@@ -952,7 +954,7 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
         gevent.joinall(greenlets)
 
-    def export_users_as_md(self, wikipath="/tmp/taigawiki"):
+    def export_users_as_md(self, wikipath="/tmp/taigawiki", modified_only=True):
         """export users into {wikipath}/src/users
 
         Args:
@@ -961,23 +963,16 @@ class TaigaClient(Client):
 
         path = j.sals.fs.join_paths(wikipath, "src", "users")
         j.sals.fs.mkdirs(path)
-        circles = self.list_all_active_projects()
-        users = set()
-        for c in circles:
-            for m in c.members:
-                users.add(m)
-
-        # now we have all users
-        users_objects = []
-        for uid in users:
-            users_objects.append(self._get_user_by_id(uid))
+        users_objects = self.list_all_users()
 
         users_mdpath = j.sals.fs.join_paths(path, "users.md")
         users_mdcontent = "# users\n\n"
 
         def write_md_for_user(user):
+            user_md = user.as_md
             user_mdpath = j.sals.fs.join_paths(path, f"{user.clean_name}.md")
-            j.sals.fs.write_ascii(user_mdpath, user.as_md)
+            if not (modified_only and j.sals.fs.exists(user_mdpath) and j.sals.fs.read_ascii(user_mdpath) == user_md):
+                j.sals.fs.write_ascii(user_mdpath, user_md)
 
         for u in users_objects:
             users_mdcontent += f"[{u.username}](./{u.clean_name}.md)\n"
@@ -987,15 +982,15 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
         gevent.joinall(greenlets)
 
-    def export_as_md(self, wiki_path="/tmp/taigawiki"):
+    def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only=True):
         """export taiga instance into a wiki  showing users and circles
 
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
         gs = []
-        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path))
-        gs.append(gevent.spawn(self.export_users_as_md, wiki_path))
+        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only))
+        gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only))
         gevent.joinall(gs)
         readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "readme.md")
         content = dedent(
@@ -1007,6 +1002,13 @@ class TaigaClient(Client):
         """
         )
         j.sals.fs.write_ascii(readme_md_path, content)
+
+    def export_as_md_five_min(self, wiki_path="/tmp/taigawiki", modified_only=True):
+        FIVE_MIN = 0
+        repeater = threading.Event()
+        while not repeater.wait(FIVE_MIN):
+            FIVE_MIN = 300
+            self.export_as_md(wiki_path,modified_only)
 
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
         def _export_objects_to_dir(objects_dir, objects_fun):
@@ -1052,3 +1054,51 @@ class TaigaClient(Client):
         for g in gs:
             g.link_exception(on_err)
         gevent.joinall(gs)
+
+    def _import_project(self, projects_path, file):
+        if file.endswith(".yaml") or file.endswith(".yml"):
+            with open(j.sals.fs.join_paths(projects_path, file)) as f:
+                project_obj = yaml.full_load(f)
+                circle_proj = None
+                # Funnel Circle
+                if project_obj['name'].lower() == "funnel":
+                    circle_proj = self.create_new_funnel_circle(project_obj['name'], project_obj['description'])
+                # Team Circle
+                elif project_obj['name'].lower() == "team":
+                    circle_proj = self.create_new_team_circle(project_obj['name'], project_obj['description'])
+                # Project Circle
+                elif project_obj['name'].lower() == "project":
+                    circle_proj = self.create_new_project_circle(project_obj['name'], project_obj['description'])
+                # Any Other Circle  
+                else:
+                    circle_proj = self._create_new_circle(project_obj['name'], project_obj['description'])
+                    circle_proj.is_backlog_activated = project_obj['is_backlog_activated']
+                    circle_proj.is_issues_activated = project_obj['is_issues_activated']
+                    circle_proj.is_kanban_activated = project_obj['is_kanban_activated']
+                    circle_proj.is_wiki_activated = project_obj['is_wiki_activated']
+                    
+                circle_proj.is_private = project_obj['is_private']
+                circle_proj.videoconferences = project_obj['videoconferences']
+                circle_proj.total_milestones = project_obj['total_milestones']
+                circle_proj.total_story_points = project_obj['total_story_points']
+
+    def import_from_yaml(self, import_dir="/tmp/export_dir"):
+        # Folders
+        projects_path = j.sals.fs.join_paths(import_dir, "projects")
+        stories_path = j.sals.fs.join_paths(import_dir, "stories")
+        issues_path = j.sals.fs.join_paths(import_dir, "issues")
+        tasks_path = j.sals.fs.join_paths(import_dir, "tasks")
+        milestones_path = j.sals.fs.join_paths(import_dir, "milestones")
+        users_path = j.sals.fs.join_paths(import_dir, "users")
+        
+        # List of Files inside each Folder
+        projects =  j.sals.fs.os.listdir(projects_path)
+        stories =  j.sals.fs.os.listdir(stories_path)
+        issues =  j.sals.fs.os.listdir(issues_path)
+        tasks =  j.sals.fs.os.listdir(tasks_path)
+        milestones =  j.sals.fs.os.listdir(milestones_path)
+        users =  j.sals.fs.os.listdir(users_path)
+        
+        
+        gs = []
+        gs.append(gevent.spawn(self._import_project, projects_path, file) for file in projects)
