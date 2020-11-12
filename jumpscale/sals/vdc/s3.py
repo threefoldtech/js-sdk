@@ -65,8 +65,8 @@ class VDCS3Deployer(VDCBaseComponent):
         wids = []
         for node in scheduler.nodes_by_capacity(sru=math.ceil(storage_per_zdb), ip_version="IPv6"):
             j.logger.info(f"VDC: NEW ZDB: node {node.node_id} selected")
+            deployment_nodes.append(node)
             if len(deployment_nodes) < S3_NO_DATA_NODES + S3_NO_PARITY_NODES - len(wids):
-                deployment_nodes.append(node)
                 continue
             j.logger.info(f"VDC: NEW ZDB: staring zdb deployment")
             result = []
