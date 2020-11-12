@@ -190,7 +190,7 @@ class VDCDeployer:
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
-            pool_id, minio_ak, minio_sk, self.ssh_key.public_key, scheduler, zdb_wids, vdc_uuid
+            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid
         )
         if not minio_wid:
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
