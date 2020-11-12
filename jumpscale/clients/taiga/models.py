@@ -19,7 +19,7 @@ class CircleResource:
 class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        super().add_allowed_params('assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params('assigned_to_extra_info', 
         'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
         'external_reference','finished_date', 'id', 'is_voter', 'is_watcher', 
         'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
@@ -37,6 +37,17 @@ class CircleIssue(CircleResource):
         return f"{self._client.host}/project/{self.project_extra_info.get('slug')}/issue/{self.id}"
 
     @property
+    def as_yaml(self):
+        self_dict = self.to_dict()
+
+        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
+        custom_fields = self._client.get_issue_custom_fields(self.id)
+        
+        self_dict['attachments'] = attachments
+        self_dict['custom_fields'] = custom_fields
+        return self_dict
+
+    @property
     def as_md(self):
         TEMPLATE = dedent(
             """
@@ -51,12 +62,12 @@ class CircleIssue(CircleResource):
         return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
 
     def __dir__(self):
-        return dir(self._original_object) + ["url", "as_md"]
+        return dir(self._original_object) + ["as_yaml", "url", "as_md"]
 
 class CircleStory(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        super().add_allowed_params( 'assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params( 'assigned_to_extra_info', 
         'comment', 'created_date', 'due_date_reason', 'due_date_status', 
         'epic_order', 'epics', 'external_reference','finish_date', 'id', 
         'is_voter', 'is_watcher', 'milestone_name', 'milestone_slug', 
@@ -91,16 +102,29 @@ class CircleStory(CircleResource):
         return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)
 
     @property
+    def as_yaml(self):
+        self_dict = self.to_dict()
+        
+        tasks_id = [task.id for task in self.tasks]
+        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
+        custom_fields = self._client.get_story_custom_fields(self.id)
+
+        self_dict['tasks_id'] = tasks_id
+        self_dict['attachments'] = attachments
+        self_dict['custom_fields'] = custom_fields
+        return self_dict
+
+    @property
     def tasks(self):
         return self.list_tasks()
 
     def __dir__(self):
-        return dir(self._original_object) + ["tasks", "url", "as_md"]
+        return dir(self._original_object) + ["as_yaml", "tasks", "url", "as_md"]
 
 class CircleTask(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        super().add_allowed_params('assigned_to_extra_info', 'attachments', 
+        super().add_allowed_params('assigned_to_extra_info',
         'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
         'finished_date', 'id', 'is_voter', 'is_watcher', 'milestone_slug', 
         'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
@@ -119,6 +143,14 @@ class CircleTask(CircleResource):
         return f"{self._client.host}/project/{self.project_extra_info.get('slug')}/task/{self.id}"
 
     @property
+    def as_yaml(self):
+        self_dict = self.to_dict()
+
+        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
+        self_dict['attachments'] = attachments
+        return self_dict
+
+    @property
     def as_md(self):
         TEMPLATE = dedent(
             """
@@ -131,9 +163,9 @@ class CircleTask(CircleResource):
             """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, task=self)
-    
+
     def __dir__(self):
-        return dir(self._original_object) + ["url", "as_md"]
+        return dir(self._original_object) + ["as_yaml", "url", "as_md"]
     
 class CircleUser(CircleResource):
     def __init__(self, taigaclient, original_object):
@@ -269,8 +301,12 @@ class CircleUser(CircleResource):
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
 
+    @property
+    def as_yaml(self):
+        return self.to_dict()
+
     def __dir__(self):
-        return dir(self._original_object) + ["as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
+        return dir(self._original_object) + ["as_yaml", "as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
 
 class Circle(CircleResource):
     def __init__(self, taigaclient, original_object):
@@ -282,8 +318,8 @@ class Circle(CircleResource):
         'i_am_admin', 'i_am_member', 'i_am_owner', 'id', 'is_contact_activated',
         'is_epics_activated', 'is_fan', 'is_featured','is_watcher', 
         'logo_big_url', 'logo_small_url', 'looking_for_people_note', 
-        'modified_date', 'my_homepage', 'my_permissions', 'notify_level', 'owner',
-        'public_permissions', 'slug', 'tags', 'tags_colors', 'total_activity', 
+        'modified_date', 'my_homepage', 'notify_level', 'owner',
+        'slug', 'tags', 'tags_colors', 'total_activity', 
         'total_activity_last_month', 'total_activity_last_week', 
         'total_activity_last_year','total_closed_milestones', 'total_fans', 
         'total_fans_last_month', 'total_fans_last_week', 'total_fans_last_year', 
@@ -370,6 +406,7 @@ class Circle(CircleResource):
             "issues",
             "stories",
             "circle_users",
+            "as_yaml",
         ]
 
     def __getattr__(self, attr):
@@ -417,6 +454,21 @@ class Circle(CircleResource):
             """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)
+  
+    @property
+    def as_yaml(self):
+        self_dict = self.to_dict()
+
+        stories_id = [story.id for story in self.stories]
+        issues_id = [issue.id for issue in self.issues]
+        issue_attributes_name = [issue_attr.name for issue_attr in self.list_issue_attributes()]
+        us_attributes_name = [us_attr.name for us_attr in self.list_user_story_attributes()]
+        
+        self_dict['stories_id'] = stories_id
+        self_dict['stories_attributes'] = us_attributes_name
+        self_dict['issues_id'] = issues_id
+        self_dict['issues_attributes'] = issue_attributes_name
+        return self_dict
 
 class TeamCircle(Circle):
     def __init__(self, taigaclient, original_object):

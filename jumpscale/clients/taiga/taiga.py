@@ -947,7 +947,7 @@ class TaigaClient(Client):
         circles_mdpath = j.sals.fs.join_paths(path, "circles.md")
         circles_mdcontent = "# circles\n\n"
         for c in circles:
-            circles_mdcontent += f"[{c.name}](./{c.clean_name}.md)\n"
+            circles_mdcontent += f"- [{c.name}](./{c.clean_name}.md)\n"
 
         j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
 
@@ -975,7 +975,7 @@ class TaigaClient(Client):
                 j.sals.fs.write_ascii(user_mdpath, user_md)
 
         for u in users_objects:
-            users_mdcontent += f"[{u.username}](./{u.clean_name}.md)\n"
+            users_mdcontent += f"- [{u.username}](./{u.clean_name}.md)\n"
 
         j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
 
@@ -988,11 +988,82 @@ class TaigaClient(Client):
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
+        def create_index_file(index_file):
+            content =  dedent(
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="1a5a5241-91cb-4a41-8323-5ba5ec574da0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+            <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta charset="UTF-8">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+
+            <style>
+            .markdown-section {
+            max-width: 55em !important;
+            }
+            </style>
+
+            <script type="text/javascript" src="//www.freeprivacypolicy.com/public/cookie-consent/3.1.0/cookie-consent.js"></script> <script type="text/javascript"> document.addEventListener('DOMContentLoaded', function () { cookieconsent.run({"notice_banner_type":"headline","consent_type":"express","palette":"light","language":"en","website_name":"https://sdk.threefold.io/#/","cookies_policy_url":"https://wiki.threefold.io/#/privacypolicy"}); }); </script> <script type="text/plain" cookie-consent="functionality">window.$crisp=[];window.CRISP_WEBSITE_ID="1a5a5241-91cb-4a41-8323-5ba5ec574da0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script> <script type="text/plain" cookie-consent="tracking" async src="https://www.googletagmanager.com/gtag/js?id=UA-100065546-6"></script> <script type="text/plain" cookie-consent="tracking"> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-100065546-6'); </script>
+
+            </head>
+            <body>
+            <div id="app"></div>
+            <script>
+            window.$docsify = {
+            name: "Circles Reprot",
+            repo: "",
+            loadSidebar: true,
+            loadNavbar: true,
+            auto2top: true,
+            search: 'auto',
+            remoteMarkdown: {
+            tag: 'remoteMarkdownUrl',
+            },
+            subMaxLevel: 0,
+            themeable: {
+            readyTransition : true, // default
+            responsiveTables: true // default
+            },
+            // complete configuration parameters
+            search: {
+            maxAge: 86400000, // Expiration time, the default one day
+            paths: 'auto',
+            placeholder: 'Type to search',
+            noData: 'No Results!',
+            depth: 6,
+            hideOtherSidebarContent: false, // whether or not to hide other sidebar content
+            },
+
+            }
+            </script>
+            <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/docsify-example-panels"></script>
+            <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
+            <script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
+            <script src="//unpkg.com/docsify-remote-markdown/dist/docsify-remote-markdown.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+            <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0"></script>
+            <script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+            <script src="//unpkg.com/docsify-glossary/dist/docsify-glossary.min.js"></script>
+            </body>
+            </html>
+            """
+            )
+            j.sals.fs.write_ascii(index_file, content)
+
         gs = []
         gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only))
         gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only))
         gevent.joinall(gs)
-        readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "readme.md")
+        index_html_path = j.sals.fs.join_paths(wiki_path, "src", "index.html")
+        readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "README.md")
+        sidebar_md_path = j.sals.fs.join_paths(wiki_path, "src", "_sidebar.md")
         content = dedent(
             f"""
             # Taiga overview
@@ -1002,13 +1073,18 @@ class TaigaClient(Client):
         """
         )
         j.sals.fs.write_ascii(readme_md_path, content)
+        j.sals.fs.write_ascii(sidebar_md_path, content)
+        create_index_file(index_html_path)
 
-    def export_as_md_five_min(self, wiki_path="/tmp/taigawiki", modified_only=True):
-        FIVE_MIN = 0
+
+    def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period= 300, modified_only=True):
+        export_each = 0
         repeater = threading.Event()
-        while not repeater.wait(FIVE_MIN):
-            FIVE_MIN = 300
+        while not repeater.wait(export_each):
+            j.logger.info("Exporting ....")
+            export_each = period
             self.export_as_md(wiki_path,modified_only)
+            j.logger.info("Exported at {}".format(wiki_path))
 
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
         def _export_objects_to_dir(objects_dir, objects_fun):
@@ -1018,7 +1094,7 @@ class TaigaClient(Client):
                 for obj in objects:
                     outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
                     with open(outpath, "w") as f:
-                        yaml.dump(obj.to_dict(), f)
+                        yaml.dump(obj.as_yaml, f)
             except Exception as e:
                 import  traceback
                 traceback.print_exc()
@@ -1028,61 +1104,61 @@ class TaigaClient(Client):
         stories_path = j.sals.fs.join_paths(export_dir, "stories")
         issues_path = j.sals.fs.join_paths(export_dir, "issues")
         tasks_path = j.sals.fs.join_paths(export_dir, "tasks")
-        milestones_path = j.sals.fs.join_paths(export_dir, "milestones")
+        # Milestones is not one of our model objects
+        # milestones_path = j.sals.fs.join_paths(export_dir, "milestones")
         users_path = j.sals.fs.join_paths(export_dir, "users")
         def on_err(*args,  **kwargs):
             print("err, ", args, kwargs)
 
+        j.logger.info("Start Export as YAML")
         
         gs = []
         gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects))
         gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
-        for g in gs:
-            g.link_exception(on_err)
-        gevent.joinall(gs)
-        gs =[]
-        
         gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
-        gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones))
-        for g in gs:
-            g.link_exception(on_err)
-        gevent.joinall(gs)
-        gs  =[]
-        
+        # Milestones is not one of our model objects
+        # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
         gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
         gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
-        for g in gs:
-            g.link_exception(on_err)
         gevent.joinall(gs)
-
-    def _import_project(self, projects_path, file):
-        if file.endswith(".yaml") or file.endswith(".yml"):
-            with open(j.sals.fs.join_paths(projects_path, file)) as f:
-                project_obj = yaml.full_load(f)
-                circle_proj = None
-                # Funnel Circle
-                if project_obj['name'].lower() == "funnel":
-                    circle_proj = self.create_new_funnel_circle(project_obj['name'], project_obj['description'])
-                # Team Circle
-                elif project_obj['name'].lower() == "team":
-                    circle_proj = self.create_new_team_circle(project_obj['name'], project_obj['description'])
-                # Project Circle
-                elif project_obj['name'].lower() == "project":
-                    circle_proj = self.create_new_project_circle(project_obj['name'], project_obj['description'])
-                # Any Other Circle  
-                else:
-                    circle_proj = self._create_new_circle(project_obj['name'], project_obj['description'])
-                    circle_proj.is_backlog_activated = project_obj['is_backlog_activated']
-                    circle_proj.is_issues_activated = project_obj['is_issues_activated']
-                    circle_proj.is_kanban_activated = project_obj['is_kanban_activated']
-                    circle_proj.is_wiki_activated = project_obj['is_wiki_activated']
-                    
-                circle_proj.is_private = project_obj['is_private']
-                circle_proj.videoconferences = project_obj['videoconferences']
-                circle_proj.total_milestones = project_obj['total_milestones']
-                circle_proj.total_story_points = project_obj['total_story_points']
-
+        
+        j.logger.info("Finish Export as YAML")
+    
     def import_from_yaml(self, import_dir="/tmp/export_dir"):
+        def import_circle(yaml_obj):
+            circle = None
+            # Funnel Circle
+            if yaml_obj['name'].lower() == "funnel":
+                circle = self.create_new_funnel_circle(yaml_obj['name'], yaml_obj['description'])
+            # Team Circle
+            elif yaml_obj['name'].lower() == "team":
+                circle = self.create_new_team_circle(yaml_obj['name'], yaml_obj['description'])
+            # Project Circle
+            elif yaml_obj['name'].lower() == "project":
+                circle = self.create_new_project_circle(yaml_obj['name'], yaml_obj['description'])
+            # Any Other Circle  
+            else:
+                circle = self._create_new_circle(yaml_obj['name'], yaml_obj['description'])
+                circle.is_backlog_activated = yaml_obj['is_backlog_activated']
+                circle.is_issues_activated = yaml_obj['is_issues_activated']
+                circle.is_kanban_activated = yaml_obj['is_kanban_activated']
+                circle.is_wiki_activated = yaml_obj['is_wiki_activated']
+                
+            circle.is_private = yaml_obj['is_private']
+            circle.videoconferences = yaml_obj['videoconferences']
+            circle.total_milestones = yaml_obj['total_milestones']
+            circle.total_story_points = yaml_obj['total_story_points']
+            return circle
+
+        def import_story(circle_object,yaml_obj):
+            story = circle_object.add_user_story(
+                yaml_obj['subject']
+                )
+            return story
+        def import_issue(circle_object, yaml_obj):
+            return None
+        def import_tasks(story_object, yaml_obj):
+            return None
         # Folders
         projects_path = j.sals.fs.join_paths(import_dir, "projects")
         stories_path = j.sals.fs.join_paths(import_dir, "stories")
@@ -1093,12 +1169,14 @@ class TaigaClient(Client):
         
         # List of Files inside each Folder
         projects =  j.sals.fs.os.listdir(projects_path)
-        stories =  j.sals.fs.os.listdir(stories_path)
-        issues =  j.sals.fs.os.listdir(issues_path)
-        tasks =  j.sals.fs.os.listdir(tasks_path)
-        milestones =  j.sals.fs.os.listdir(milestones_path)
-        users =  j.sals.fs.os.listdir(users_path)
         
-        
-        gs = []
-        gs.append(gevent.spawn(self._import_project, projects_path, file) for file in projects)
+        for project_file in projects:
+            if project_file.endswith(".yaml") or project_file.endswith(".yml"):
+                with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
+                    circle_yaml = yaml.full_load(pf)
+                    circle_obj = import_circle(circle_yaml)
+
+                    for story_id in circle_yaml['stories_id']:
+                        with open(j.sals.fs.join_paths(stories_path,f"{story_id}.yaml")) as sf:
+                            story_yaml = yaml.full_load(sf)
+                            story_obj = import_story(circle_obj, story_yaml)
