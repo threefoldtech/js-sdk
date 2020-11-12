@@ -32,7 +32,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.load_from_file_system()
         cls.ssh_cl.save()
         cls.solution_uuid = ""
-        cls.deployment_timeout = 180
+        cls.deployment_timeout = 300
 
     @classmethod
     def tearDownClass(cls):
@@ -162,7 +162,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy a monitoring solution.")
         name = self.random_name()
-        monitoring = deployer.deploy_monitoring(solution_name=name, network=self.network_name,)
+        monitoring = deployer.deploy_monitoring(
+            solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path
+        )
         self.solution_uuid = monitoring.solution_id
 
         self.info("Check that Prometheus UI is reachable. ")
