@@ -291,23 +291,26 @@ class ChatflowSolutions:
                     result[domain]["wids"].append(container_workload.id)
         return list(result.values())
 
-    def cancel_solution(self, solution_wids):
+    def cancel_solution(self, solution_wids, identity_name=None):
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
         """
-        workload = j.sals.zos.get().workloads.get(solution_wids[0])
-        solution_uuid = self.get_solution_uuid(workload)
+        identity_name = identity_name or j.core.identity.me.instance_name
+        workload = j.sals.zos.get(identity_name).workloads.get(solution_wids[0])
+        solution_uuid = self.get_solution_uuid(workload, identity_name)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
-                if solution_uuid == self.get_solution_uuid(workload):
+            for workload in j.sals.zos.get(identity_name).workloads.list(
+                j.core.identity.get(identity_name).tid, next_action="DEPLOY"
+            ):
+                if solution_uuid == self.get_solution_uuid(workload, identity_name):
                     ids_to_delete.append(workload.id)
         else:
             ids_to_delete = solution_wids
 
         for wid in ids_to_delete:
-            j.sals.zos.get().workloads.decomission(wid)
+            j.sals.zos.get(identity_name).workloads.decomission(wid)
 
     def count_solutions(self, next_action=NextAction.DEPLOY):
         count_dict = {
@@ -340,11 +343,11 @@ class ChatflowSolutions:
             count_dict[key] = len(method(next_action=next_action, sync=False))
         return count_dict
 
-    def get_solution_uuid(self, workload):
+    def get_solution_uuid(self, workload, identity_name=None):
         if workload.info.metadata:
             try:
                 metadata = j.data.serializers.json.loads(
-                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata, identity_name)
                 )
             except:
                 return
@@ -662,16 +665,20 @@ class ChatflowSolutions:
                 result[-1]["wids"] += c_dict["vol_ids"]
         return result
 
-    def cancel_solution_by_uuid(self, solution_uuid):
+    def cancel_solution_by_uuid(self, solution_uuid, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
         # Get workloads with specific UUID
-        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
-            if solution_uuid == self.get_solution_uuid(workload):
-                j.sals.zos.get().workloads.decomission(workload.id)
+        for workload in j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action="DEPLOY"):
+            if solution_uuid == self.get_solution_uuid(workload, identity_name):
+                j.sals.zos.get(identity_name).workloads.decomission(workload.id)
 
-    def get_workloads_by_uuid(self, solution_uuid, next_action=None):
+    def get_workloads_by_uuid(self, solution_uuid, next_action=None, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
         workloads = []
-        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid, next_action=next_action):
-            if solution_uuid == self.get_solution_uuid(workload):
+        for workload in j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action=next_action):
+            if solution_uuid == self.get_solution_uuid(workload, identity_name):
                 workloads.append(workload)
         return workloads
 

@@ -32,6 +32,8 @@ class SolutionExpose(GedisChatBot):
         self.user_form_data = {}
         self.solution_metadata = {}
         self.email = self.user_info()["email"]
+        self.username = self.user_info()["username"]
+        self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
 
     @chatflow_step(title="Solution type")
     def solution_type(self):
@@ -234,7 +236,7 @@ class SolutionExpose(GedisChatBot):
 
         trc_log_config = j.core.config.get("LOGGING_SINK", {})
         if trc_log_config:
-            trc_log_config["channel_name"] = self.solution_name + "-trc"
+            trc_log_config["channel_name"] = f"{self.threebot_name}-{self.solution_name}-trc".lower()
 
         if self.proxy_type == "NGINX":
             self.tcprouter_id = deployer.expose_and_create_certificate(
@@ -253,7 +255,7 @@ class SolutionExpose(GedisChatBot):
                 solution_uuid=self.solution_id,
             )
         else:
-            self.tcprouter_id = deployer.expose_address(
+            self.tcprouter_id, _ = deployer.expose_address(
                 pool_id=self.pool_id,
                 gateway_id=self.domain_gateway.node_id,
                 network_name=self.network_name,

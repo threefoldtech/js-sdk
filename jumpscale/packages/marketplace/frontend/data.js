@@ -1,4 +1,4 @@
-const COLLAB_TOOLS = {
+const DECENTRALIZED_OFFICE = {
     titleToolTip: null,
     apps: {
         taiga: {
@@ -69,7 +69,7 @@ const COLLAB_TOOLS = {
 }
 
 
-const WEB_SOCIAL = {
+const DECENTRALIZED_WE = {
     titleToolTip: null,
     apps: {
         blog: {
@@ -141,7 +141,7 @@ const WEB_SOCIAL = {
     },
 }
 
-const DEV_TOOLS = {
+const DECENTRALIZED_DEV = {
     titleToolTip: null,
     apps: {
         gitea: {
@@ -253,14 +253,14 @@ const SECTIONS = {
     "All Solutions": {
         titleToolTip: null,
         apps: {
-            ...COLLAB_TOOLS.apps,
-            ...WEB_SOCIAL.apps,
-            ...DEV_TOOLS.apps,
+            ...DECENTRALIZED_OFFICE.apps,
+            ...DECENTRALIZED_WE.apps,
+            ...DECENTRALIZED_DEV.apps,
             ...BC_SOLUTIONS.apps,
         },
     },
-    "Collaboration Tools": COLLAB_TOOLS,
-    "Web & Social": WEB_SOCIAL,
-    "Developer Tools": DEV_TOOLS,
+    "Decentralized Office": DECENTRALIZED_OFFICE,
+    "Decentralized WE": DECENTRALIZED_WE,
+    "Decentralized Developer": DECENTRALIZED_DEV,
     "Blockchain Solutions": BC_SOLUTIONS,
 }

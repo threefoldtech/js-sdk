@@ -7,9 +7,7 @@ from .models import UserPool
 
 class MarketplaceSolutions(ChatflowSolutions):
     def list_network_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action, sync=sync)
-        if not sync and not networks:
-            networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action, sync=False)
+        networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action)
         result = []
         for n in networks.values():
             if len(n.network_workloads) == 0:

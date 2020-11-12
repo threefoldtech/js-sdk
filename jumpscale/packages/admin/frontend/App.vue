@@ -94,7 +94,6 @@
           <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
-              <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
               <v-list-item-subtitle>
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
               </v-list-item-subtitle>
@@ -136,6 +135,33 @@
       <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
+     <v-dialog
+      v-model="announcement_dialog"
+      persistent
+      max-width="500"
+    >
+
+      <v-card>
+        <v-card-title class="headline">
+          Quick start guide
+        </v-card-title>
+        <v-card-text>
+        We've created a wallet for you. Make sure your wallet is funded to extend your 3Bot before it expires.
+        <br />
+        Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="announced = true"
+          >
+            Ok
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -171,14 +197,17 @@ module.exports = {
       dialogs: {
         identity: false,
       },
+      announced: true
     };
   },
   components: {
     identities: httpVueLoader("./Identity.vue"),
   },
-  computed: {},
   methods: {},
   computed: {
+    announcement_dialog() {
+      return !this.announced
+    },
     pages() {
       return this.$router.options.routes.filter((page) => {
         return page.meta.listed;
@@ -195,6 +224,13 @@ module.exports = {
     getCurrentUser() {
       this.$api.user.currentUser().then((response) => {
         this.user = response.data;
+      });
+    },
+    getAnnouncementStatus() {
+      this.$api.announcement.announced().then((response) => {
+        console.log(response.data)
+        this.announced = response.data["announced"];
+        this.$api.announcement.announce();
       });
     },
     getIdentity() {
@@ -237,6 +273,7 @@ module.exports = {
     this.checkDarkMode();
     this.getIdentity();
     this.getCurrentUser();
+    this.getAnnouncementStatus();
     this.setTimeLocal();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
