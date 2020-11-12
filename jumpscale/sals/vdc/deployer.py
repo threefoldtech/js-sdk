@@ -1,5 +1,4 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
-from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from jumpscale.loader import j
 import uuid
 from jumpscale.sals.zos import get as get_zos
@@ -7,10 +6,10 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 import gevent
 from .size import *
 from .scheduler import Scheduler
-from jumpscale.clients.explorer.models import ZDBMode, DiskType
-import uuid
 from .s3 import VDCS3Deployer
 from .kubernetes import VDCKubernetesDeployer
+from .models import VDCFACTORY
+import hashlib
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -26,7 +25,9 @@ class VDCDeployer:
         self.tname = tname
         self.bot = bot
         self.identity = None
-        self._generate_identity(password, email)
+        self.password = password
+        self.email = email
+        self._generate_identity()
         self._zos = None
         self.wallet_name = wallet_name
         self._wallet = None
@@ -73,13 +74,14 @@ class VDCDeployer:
             self._ssh_key.load_from_file_system()
         return self._ssh_key
 
-    def _generate_identity(self, password, email):
+    def _generate_identity(self):
         # create a user identity from an old one or create a new one
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name)
-        words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
+        password_hash = hashlib.md5(self.password.encode()).hexdigest()
+        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
         identity_name = f"vdc_ident_{uuid.uuid4().hex}"
         self.identity = j.core.identity.get(
-            identity_name, tname=username, email=email, words=words, explorer_url=j.core.identity.me.explorer_url
+            identity_name, tname=username, email=self.email, words=words, explorer_url=j.core.identity.me.explorer_url
         )
         try:
             self.identity.register()
@@ -195,13 +197,22 @@ class VDCDeployer:
             return False
 
         # download kube config from master
-        k8s_workload = self.zos.workloads.get(k8s_wids[0])
-        master_ip = k8s_workload.master_ips[0]
-        kube_config = self.download_kube_config(master_ip)
-        config_dict = j.data.serializers.yaml.loads(kube_config)
-        public_ip = self.kubernetes.setup_external_network_node(pool_id, kube_config)
+        # k8s_workload = self.zos.workloads.get(k8s_wids[0])
+        # master_ip = k8s_workload.master_ips[0]
+        # kube_config = self.download_kube_config(master_ip)
+        # config_dict = j.data.serializers.yaml.loads(kube_config)
+        # public_ip = self.kubernetes.setup_external_network_node(pool_id, kube_config)
         # config_dict["server"] = add public ip here when implemented
-        return j.data.serializers.yaml.dumps(config_dict)
+
+        vdc_instance = VDCFACTORY.new(self.vdc_name)
+        vdc_instance.vdc_name = self.vdc_name
+        vdc_instance.solution_uuid = vdc_uuid
+        vdc_instance.owner_tname = self.tname
+        vdc_instance.identity_tid = self.identity.tid
+        vdc_instance.flavor = flavor
+        vdc_instance.save()
+
+        # return j.data.serializers.yaml.dumps(config_dict)
 
     def start_vdc_wireguard(self):
         # start wireguard

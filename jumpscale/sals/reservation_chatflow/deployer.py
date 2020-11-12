@@ -968,6 +968,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         volume = j.sals.zos.get(identity_name).volume.create(node_id, pool_id, size, volume_type)
         if metadata:
             volume.info.metadata = self.encrypt_metadata(metadata)
+            if "solution_uuid" in metadata:
+                volume.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
         return j.sals.zos.get(identity_name).workloads.deploy(volume)
 
     def deploy_container(
@@ -1021,6 +1023,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 j.sals.zos.get(identity_name).volume.attach_existing(container, f"{vol_id}-1", mount_point)
         if metadata:
             container.info.metadata = self.encrypt_metadata(metadata, identity_name=identity_name)
+            if "solution_uuid" in metadata:
+                container.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
         if log_config:
             j.sals.zos.get(identity_name).container.add_logs(container, **log_config)
         return j.sals.zos.get(identity_name).workloads.deploy(container)
@@ -1162,6 +1166,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         master.info.description = j.data.serializers.json.dumps({"role": "master"})
         if metadata:
             master.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            if "solution_uuid" in metadata:
+                master.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
         return j.sals.zos.get(identity_name).workloads.deploy(master)
 
     def deploy_kubernetes_worker(
@@ -1183,6 +1189,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
         if metadata:
             worker.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            if "solution_uuid" in metadata:
+                worker.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
         return j.sals.zos.get(identity_name).workloads.deploy(worker)
 
     def deploy_kubernetes_cluster(
@@ -1401,6 +1409,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         workload = j.sals.zos.get(identity_name).zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
+            if "solution_uuid" in metadata:
+                workload.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
         return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
     def create_subdomain(self, pool_id, gateway_id, subdomain, addresses=None, identity_name=None, **metadata):
