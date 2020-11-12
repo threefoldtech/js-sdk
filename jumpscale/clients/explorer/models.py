@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
-
+from jumpscale.loader import j
 
 """
 Explorer directory types
@@ -428,7 +428,7 @@ class K8s(Base):
         resource_units = ResourceUnitAmount()
         size = size_table.get(self.size)
         if not size:
-            raise j.exceptions.Input(f"k8s size {self.sizes} not supported")
+            raise j.exceptions.Input(f"k8s size {self.size} not supported")
 
         resource_units.cru += size["cru"]
         resource_units.mru += size["mru"]
