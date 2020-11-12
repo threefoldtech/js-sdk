@@ -32,7 +32,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.load_from_file_system()
         cls.ssh_cl.save()
         cls.solution_uuid = ""
-        cls.deployment_timeout = 60
+        cls.deployment_timeout = 180
 
     @classmethod
     def tearDownClass(cls):
