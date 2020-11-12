@@ -176,7 +176,7 @@ class VDCDeployer:
             scheduler,
             k8s_size_dict,
             cluster_secret,
-            self.ssh_key.public_key,
+            self.ssh_key.public_key.split("\n"),
             vdc_uuid,
         )
         zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)

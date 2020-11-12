@@ -1140,7 +1140,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return cu, su
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
-        return NetworkView(network_name, workloads, identity_name=identity_name)
+        nv = NetworkView(network_name, workloads, identity_name=identity_name)
+        if not nv.network_workloads:
+            return
+        return nv
 
     def delegate_domain(self, pool_id, gateway_id, domain_name, **metadata):
         domain_delegate = j.sals.zos.get().gateway.delegate_domain(gateway_id, domain_name, pool_id)

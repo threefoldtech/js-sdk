@@ -97,7 +97,7 @@ class VDCStoredFactory(StoredFactory):
             else:
                 node.role = KubernetesRole.MASTER
             instance.kubernetes.append(node)
-        elif workload.info.WorkloadType == WorkloadType.Container:
+        elif workload.info.workload_type == WorkloadType.Container:
             container = S3Container()
             container.wid = workload.id
             container.ip_address = workload.network_connection[0].ipaddress

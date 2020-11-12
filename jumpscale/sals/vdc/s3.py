@@ -15,7 +15,7 @@ class VDCS3Deployer(VDCBaseComponent):
         for zid in zdb_wids:
             zdb_configs.append(deployer.get_zdb_url(zid, vdc_uuid, identity_name=self.identity.instance_name))
 
-        network_view = deployer.get_network_view(self.vdc_name)
+        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         for node in scheduler.nodes_by_capacity(cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024):
             try:
                 result = deployer.add_network_node(
@@ -49,6 +49,7 @@ class VDCS3Deployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "minio"},
                 name=self.vdc_name,
+                solution_uuid=vdc_uuid,
             )
             wid = result[0]
             try:
