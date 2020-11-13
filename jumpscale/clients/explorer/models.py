@@ -42,6 +42,9 @@ class Location(Base):
     def __str__(self):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
+class FarmerIP(Base):
+    ip = fields.IPAddress()
+    reservation_id = fields.Integer()
 
 class Farm(Base):
     id = fields.Integer()
@@ -53,10 +56,10 @@ class Farm(Base):
     email = fields.Email()
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
+    ips = fields.List(fields.Object(FarmerIP))
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
-
 
 class WorkloadsAmount(Base):
     network = fields.Integer()
@@ -220,6 +223,7 @@ class Category(Enum):
     Subdomain = 7
     Domain_delegate = 8
     Gateway4to6 = 9
+    Public_IP = 10
 
 
 class State(Enum):
@@ -240,6 +244,7 @@ class WorkloadType(Enum):
     Domain_delegate = 8
     Gateway4to6 = 9
     Network_resource = 10
+    Public_IP = 11
 
 
 class ZDBMode(Enum):
@@ -563,6 +568,14 @@ class ZdbNamespace(Base):
             resource_units.sru += self.size
         return resource_units
 
+class PublicIP(Base):
+    id = fields.Integer()
+    ip = fields.IPAddress()
+    destination_ip = fields.IPAddress()
+    info = fields.Object(ReservationInfo)
+
+    def resource_units(self):
+        return ResourceUnitAmount()
 
 class ReservationData(Base):
     description = fields.String(default="")
