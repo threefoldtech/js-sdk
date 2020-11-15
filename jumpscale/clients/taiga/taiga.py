@@ -181,7 +181,6 @@ from jumpscale.loader import j
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
 
-
 class TaigaClient(Client):
     def credential_updated(self, value):
         self._api = None
@@ -706,6 +705,7 @@ class TaigaClient(Client):
         issues_types = issues_types or []
         user_stories_statuses = user_stories_statuses or []
         tasks_statuses = tasks_statuses or []
+        custom_fields = custom_fields or []
 
         type_ = type_.upper()
         project_name = f"{type_}_{name}"
@@ -1069,13 +1069,12 @@ class TaigaClient(Client):
             # Taiga overview
 
             - [circles](./circles/circles.md)
-            - [usuers](./users/users.md)
+            - [users](./users/users.md)
         """
         )
         j.sals.fs.write_ascii(readme_md_path, content)
         j.sals.fs.write_ascii(sidebar_md_path, content)
         create_index_file(index_html_path)
-
 
     def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period= 300, modified_only=True):
         export_each = 0
@@ -1125,7 +1124,14 @@ class TaigaClient(Client):
         j.logger.info("Finish Export as YAML")
     
     def import_from_yaml(self, import_dir="/tmp/export_dir"):
-        def import_circle(yaml_obj):
+        def check_by_name(arr_obj, name_to_find):
+            for obj in arr_obj:
+                if obj.name == name_to_find:
+                    return obj.id
+            
+            return arr_obj[0].id
+
+        def import_circle(self,yaml_obj):
             circle = None
             # Funnel Circle
             if yaml_obj['name'].lower() == "funnel":
@@ -1148,24 +1154,53 @@ class TaigaClient(Client):
             circle.videoconferences = yaml_obj['videoconferences']
             circle.total_milestones = yaml_obj['total_milestones']
             circle.total_story_points = yaml_obj['total_story_points']
+            for issue_attr in yaml_obj['issues_attributes']: 
+                circle.add_issue_attribute(issue_attr)
+            for us_attr in yaml_obj['stories_attributes']: 
+                circle.add_user_story_attribute(us_attr)
             return circle
 
         def import_story(circle_object,yaml_obj):
-            story = circle_object.add_user_story(
-                yaml_obj['subject']
-                )
+            status_id = check_by_name(circle_object.us_statuses, yaml_obj['status_extra_info']['name'])
+            
+            story = circle_object.add_user_story(yaml_obj.get('subject'), tags=yaml_obj.get('tags'),
+            client_requirement=yaml_obj.get('client_requirement'), description=yaml_obj.get('description', ''),
+            is_blocked=yaml_obj.get('is_blocked'), team_requirement=yaml_obj.get('team_requirement'),
+            due_date=yaml_obj.get('due_date'), status=status_id )
+            
+            for field in yaml_obj.get('custom_fields', []):
+                for attr in  circle_object.list_user_story_attributes():
+                    if attr.name == field['name']:
+                        story.set_attribute(attr.id, field['value'])
+                        break
             return story
+
         def import_issue(circle_object, yaml_obj):
-            return None
-        def import_tasks(story_object, yaml_obj):
-            return None
+            issue = circle_object.add_issue(yaml_obj['subject'],
+            circle_object.priorities.get(name='Normal').id,
+            circle_object.issue_statuses.get(name='New').id,
+            circle_object.issue_types.get(name='Bug').id,
+            circle_object.severities.get(name='Normal').id,
+            description=yaml_obj.get('description'),
+            )
+            
+            for field in yaml_obj['custom_fields']:
+                for attr in  circle_object.list_issue_attributes():
+                    if attr.name == field['name']:
+                        issue.set_attribute(attr.id, field['value'])
+                        break
+            return issue
+
+        def import_tasks(circle_object, story_object, yaml_obj):
+            status_id = check_by_name(circle_object.task_statuses, yaml_obj['status_extra_info']['name'])
+            task = story_object.add_task(yaml_obj.get('subject', 'New_Task'), status_id, description=yaml_obj.get('description', ''),
+                    tags=yaml_obj.get('tags'))
+            return task
         # Folders
         projects_path = j.sals.fs.join_paths(import_dir, "projects")
         stories_path = j.sals.fs.join_paths(import_dir, "stories")
         issues_path = j.sals.fs.join_paths(import_dir, "issues")
         tasks_path = j.sals.fs.join_paths(import_dir, "tasks")
-        milestones_path = j.sals.fs.join_paths(import_dir, "milestones")
-        users_path = j.sals.fs.join_paths(import_dir, "users")
         
         # List of Files inside each Folder
         projects =  j.sals.fs.os.listdir(projects_path)
@@ -1174,9 +1209,29 @@ class TaigaClient(Client):
             if project_file.endswith(".yaml") or project_file.endswith(".yml"):
                 with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
                     circle_yaml = yaml.full_load(pf)
-                    circle_obj = import_circle(circle_yaml)
+                    circle_obj = import_circle(self,circle_yaml)
+                    j.logger.info("<Circle {} Created".format(circle_obj.id))
 
                     for story_id in circle_yaml['stories_id']:
                         with open(j.sals.fs.join_paths(stories_path,f"{story_id}.yaml")) as sf:
                             story_yaml = yaml.full_load(sf)
                             story_obj = import_story(circle_obj, story_yaml)
+                            j.logger.info("<Story {} Created in Cicle {}".format(story_obj.id, circle_obj.id))
+                            
+                            for task_id in story_yaml['tasks_id']:
+                                with open(j.sals.fs.join_paths(tasks_path,f"{task_id}.yaml")) as tf:
+                                    task_yaml = yaml.full_load(tf)
+                                    task_obj = import_tasks(circle_obj,story_obj, task_yaml)
+                                    j.logger.info("<Task {} Created in Story {}".format(task_obj.id, story_obj.id))
+                                    task_obj.update()
+                            story_obj.update()
+
+                    for issue_id in circle_yaml['issues_id']:
+                        with open(j.sals.fs.join_paths(issues_path,f"{issue_id}.yaml")) as isf:
+                            issue_yaml = yaml.full_load(isf)
+                            issue_obj= import_issue(circle_obj, issue_yaml)
+                            j.logger.info("<Issue {} Created in Cicle {}".format(issue_obj.id, circle_obj.id))
+                            issue_obj.update()
+
+                    circle_obj.update()
+                    j.logger.info("<Circle {} Imported with All Stories and Issues".format(circle_obj.id))

@@ -16,6 +16,10 @@ class CircleResource:
                 self.allowed_params.append(param)
         return self.allowed_params
 
+    @property
+    def as_yaml(self):
+        return self.to_dict()
+
 class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -39,11 +43,7 @@ class CircleIssue(CircleResource):
     @property
     def as_yaml(self):
         self_dict = self.to_dict()
-
-        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
         custom_fields = self._client.get_issue_custom_fields(self.id)
-        
-        self_dict['attachments'] = attachments
         self_dict['custom_fields'] = custom_fields
         return self_dict
 
@@ -70,11 +70,11 @@ class CircleStory(CircleResource):
         super().add_allowed_params( 'assigned_to_extra_info', 
         'comment', 'created_date', 'due_date_reason', 'due_date_status', 
         'epic_order', 'epics', 'external_reference','finish_date', 'id', 
-        'is_voter', 'is_watcher', 'milestone_name', 'milestone_slug', 
+        'is_voter', 'is_watcher', 
         'modified_date', 'origin_issue', 'origin_task', 'owner', 
         'owner_extra_info', 'project_extra_info', 'ref', 'status_extra_info', 
         'total_attachments', 'total_comments', 'total_points', 'total_voter', 
-        'total_watcher', 'tribe_gig')
+        'total_watcher')
 
     def __getattr__(self, attr):
         return getattr(self._original_object, attr)
@@ -106,11 +106,9 @@ class CircleStory(CircleResource):
         self_dict = self.to_dict()
         
         tasks_id = [task.id for task in self.tasks]
-        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
         custom_fields = self._client.get_story_custom_fields(self.id)
 
         self_dict['tasks_id'] = tasks_id
-        self_dict['attachments'] = attachments
         self_dict['custom_fields'] = custom_fields
         return self_dict
 
@@ -126,7 +124,7 @@ class CircleTask(CircleResource):
         super().__init__(taigaclient, original_object)
         super().add_allowed_params('assigned_to_extra_info',
         'created_date', 'due_date', 'due_date_reason', 'due_date_status', 
-        'finished_date', 'id', 'is_voter', 'is_watcher', 'milestone_slug', 
+        'finished_date', 'id', 'is_voter', 'is_watcher', 
         'modified_date', 'owner', 'owner_extra_info', 'project_extra_info', 
         'ref', 'status_extra_info', 'total_comments', 'total_voter', 
         'total_watcher', 'user_story_extra_info')
@@ -142,13 +140,7 @@ class CircleTask(CircleResource):
         # https://circles.threefold.me/project/despiegk-tftech-software/task/286
         return f"{self._client.host}/project/{self.project_extra_info.get('slug')}/task/{self.id}"
 
-    @property
-    def as_yaml(self):
-        self_dict = self.to_dict()
-
-        attachments = [{'name': attach.name, 'url': attach.url} for attach in self.list_attachments()]
-        self_dict['attachments'] = attachments
-        return self_dict
+    
 
     @property
     def as_md(self):
@@ -170,9 +162,8 @@ class CircleTask(CircleResource):
 class CircleUser(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        super().add_allowed_params('accepted_terms', 'big_photo', 'bio', 
-        'color', 'date_joined', 'email', 'full_name', 'full_name_display', 
-        'gravatar_id', 'id', 'is_active', 'lang', 
+        super().add_allowed_params('accepted_terms', 'bio', 
+        'date_joined', 'email', 'full_name', 'id', 'is_active', 'lang', 
         'max_memberships_private_projects', 'max_memberships_public_projects',
         'max_private_projects', 'max_public_projects', 'photo', 'public_key', 
         'read_new_terms', 'roles', 'theme', 'timezone', 'total_private_projects',
@@ -301,29 +292,21 @@ class CircleUser(CircleResource):
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
 
-    @property
-    def as_yaml(self):
-        return self.to_dict()
-
     def __dir__(self):
         return dir(self._original_object) + ["as_yaml", "as_md", "issues", "stories", "tasks","get_circles", "get_issues", "get_stories", "get_tasks", "url", "clean_name"]
 
 class Circle(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
-        super().add_allowed_params('anon_permissions', 'blocked_code',
-        'created_date','default_epic_status','default_issue_status', 
-        'default_issue_type', 'default_points','default_priority', 
-        'default_severity', 'default_task_status','default_us_status',
-        'i_am_admin', 'i_am_member', 'i_am_owner', 'id', 'is_contact_activated',
+        super().add_allowed_params('blocked_code',
+        'created_date','i_am_admin', 'i_am_member', 'i_am_owner', 'id', 'is_contact_activated',
         'is_epics_activated', 'is_fan', 'is_featured','is_watcher', 
-        'logo_big_url', 'logo_small_url', 'looking_for_people_note', 
-        'modified_date', 'my_homepage', 'notify_level', 'owner',
-        'slug', 'tags', 'tags_colors', 'total_activity', 
+        'logo_big_url', 'looking_for_people_note', 'modified_date', 'my_homepage', 'notify_level', 'owner',
+        'slug', 'tags', 'total_activity', 
         'total_activity_last_month', 'total_activity_last_week', 
         'total_activity_last_year','total_closed_milestones', 'total_fans', 
         'total_fans_last_month', 'total_fans_last_week', 'total_fans_last_year', 
-        'total_watchers', 'totals_updated_datetime', 'videoconferences_extra_data')
+        'total_watchers', 'totals_updated_datetime')
 
     @property
     def clean_name(self):
