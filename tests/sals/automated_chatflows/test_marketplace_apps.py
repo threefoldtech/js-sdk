@@ -134,6 +134,7 @@ class MarketplaceChatflows(ChatflowsBase):
         request = j.tools.http.get(f"https://{gitea.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test07_discourse(self):
         """Test case for deploy Discourse.
 

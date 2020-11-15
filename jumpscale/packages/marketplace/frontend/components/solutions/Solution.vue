@@ -24,7 +24,7 @@
                   >mdi-information-outline</v-icon>
                 </a>
               </template>
-              <span>Go to How-to Manual</span>
+              <span>Go to Wiki</span>
             </v-tooltip>
           </v-card-title>
 

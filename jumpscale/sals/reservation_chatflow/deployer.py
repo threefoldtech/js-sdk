@@ -306,8 +306,8 @@ class NetworkView:
                 if workload.info.node_id not in breaking_node_ids:
                     continue
                 j.sals.reservation_chatflow.reservation_chatflow.block_node(network.network_resources[idx].info.node_id)
-                raise StopChatFlow(
-                    "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}"
+                raise DeploymentFailed(
+                    "Network nodes dry run failed on node" f" {network.network_resources[idx].info.node_id}", wid=wid
                 )
 
 

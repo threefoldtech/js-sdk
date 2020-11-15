@@ -57,7 +57,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             msg = f"{flavor} ({flavor_specs[:-3]})"
             messages.append(msg)
         chosen_flavor = self.single_choice(
-            "Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)",
+            "Please choose the flavor you want to use (flavors define how much resources the deployed solution will use)",
             options=messages,
             required=True,
             default=messages[0],
