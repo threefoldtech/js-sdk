@@ -1166,11 +1166,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         master = j.sals.zos.get(identity_name).kubernetes.add_master(
             node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
         )
-        master.info.description = j.data.serializers.json.dumps({"role": "master"})
+        desc = {"role": "master"}
         if metadata:
             master.info.metadata = self.encrypt_metadata(metadata, identity_name)
             if "solution_uuid" in metadata:
-                master.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
+                desc["solution_uuid"] = metadata["solution_uuid"]
+        master.info.description = j.data.serializers.json.dumps(desc)
         return j.sals.zos.get(identity_name).workloads.deploy(master)
 
     def deploy_kubernetes_worker(
@@ -1189,11 +1190,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         worker = j.sals.zos.get(identity_name).kubernetes.add_worker(
             node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
         )
-        worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
+        desc = {"role": "worker"}
         if metadata:
             worker.info.metadata = self.encrypt_metadata(metadata, identity_name)
             if "solution_uuid" in metadata:
-                worker.info.description = j.data.serializers.json.dumps({"solution_uuid": metadata["solution_uuid"]})
+                desc["solution_uuid"] = metadata["solution_uuid"]
+        worker.info.description = j.data.serializers.json.dumps(desc)
         return j.sals.zos.get(identity_name).workloads.deploy(worker)
 
     def deploy_kubernetes_cluster(

@@ -160,6 +160,10 @@ class VDCDeployer:
             flavor: vdc flavor key
             farm_name: where to initialize the vdc
         """
+        if len(minio_ak) < 3 or len(minio_sk) < 8:
+            raise j.exceptions.Validation(
+                "Access key length should be at least 3, and secret key length at least 8 characters"
+            )
         vdc_uuid = uuid.uuid4().hex
         scheduler = Scheduler(farm_name)
         size_dict = VDC_FLAFORS[flavor]
@@ -170,6 +174,7 @@ class VDCDeployer:
         sus = sus * 60 * 60 * 24 * 30
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus)
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
+        threads = []
         k8s_thread = gevent.spawn(
             self.kubernetes.deploy_kubernetes,
             pool_id,
@@ -179,18 +184,19 @@ class VDCDeployer:
             self.ssh_key.public_key.split("\n"),
             vdc_uuid,
         )
+        threads.append(k8s_thread)
         zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)
-        gevent.joinall([k8s_thread, zdb_thread])
+        threads.append(zdb_thread)
+        gevent.joinall(threads)
         zdb_wids = zdb_thread.value
         k8s_wids = k8s_thread.value
 
-        # if not zdb_wids or not k8s_wids:
         if not k8s_wids or not zdb_wids:
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
-            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid
+            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid
         )
         if not minio_wid:
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
@@ -224,7 +230,7 @@ class VDCDeployer:
             j.tools.alerthandler.alert_raise(
                 "vdc", f"couldn't start wireguard for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
             )
-            raise StopChatFlow(f"Couldn't download kube config.")
+            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
 
     def get_ssh_client(self, master_ip):
         client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
@@ -239,7 +245,7 @@ class VDCDeployer:
             j.tools.alerthandler.alert_raise(
                 "vdc", f"couldn't read k3s config for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
             )
-            raise StopChatFlow(f"Couldn't download kube config.")
+            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
 
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml", out)
