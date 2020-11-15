@@ -150,7 +150,7 @@ class GedisChatBot:
                 j.logger.exception("error", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname="chatflows",
+                    app_name="chatflows",
                     category="internal_errors",
                     message=str(e),
                     alert_type="exception",
@@ -173,7 +173,7 @@ class GedisChatBot:
                 j.logger.exception("error", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname="chatflows",
+                    app_name="chatflows",
                     category="internal_errors",
                     message=str(e),
                     alert_type="exception",
