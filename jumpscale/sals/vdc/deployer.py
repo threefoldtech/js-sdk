@@ -16,7 +16,6 @@ VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
 PREFERED_FARM = "freefarm"
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
-VDC_KEY_PATH = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
 
 
 class VDCDeployer:
@@ -71,7 +70,8 @@ class VDCDeployer:
     def ssh_key(self):
         if not self._ssh_key:
             self._ssh_key = j.clients.sshkey.new(self.vdc_name)
-            self._ssh_key.private_key_path = j.sals.fs.expanduser(VDC_KEY_PATH)
+            vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
+            self._ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
             self._ssh_key.load_from_file_system()
         return self._ssh_key
 
