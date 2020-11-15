@@ -784,4 +784,3 @@ class ThreebotServer(Base):
         self.redis.stop()
         self.rack.stop()
         self._started = False
-
