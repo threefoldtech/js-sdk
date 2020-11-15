@@ -8,6 +8,13 @@
       </template>
 
       <template #default>
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
         <v-data-table :loading="loading" :search="search" :headers="headers" :items="data"  :sort-by="['id', 'epoch']" :sort-desc="[true, true]"@click:row="open" class="elevation-1">
           <template slot="no-data">No logs available</p></template>
           <template v-slot:item.message="{ item }">
@@ -36,6 +43,9 @@
               </td>
               <td>
                 <v-select v-model="filters.level" :items="Object.values(levels)" clearable filled hide-details dense></v-select>
+              </td>
+              <td>
+                <v-select v-model="filters.module" :items="modules" clearable filled hide-details dense></v-select>
               </td>
               <td>
                 <v-text-field v-model="filters.context" clearable filled hide-details dense></v-text-field>
@@ -70,6 +80,7 @@ module.exports = {
       search: "",
       apps: [],
       logs: [],
+      modules: [],
       dialogs: {
         show: false,
         delete: false,
@@ -82,16 +93,18 @@ module.exports = {
         epoch: null,
         category: null,
         level: null,
+        module: null,
         context: null,
         message: null,
         processid: null,
       },
       headers: [
         { text: "Id", value: "id" },
-        { text: "Application", value: "appname" },
+        { text: "Application", value: "app_name" },
         { text: "Timestamp", value: "epoch" },
         { text: "Category", value: "category" },
         { text: "Level", value: "level" },
+        { text: "Module", value: "module" },
         { text: "Context", value: "context" },
         { text: "Message", value: "message" },
         { text: "Process Id", value: "processid" },
@@ -128,6 +141,9 @@ module.exports = {
         .listLogs(this.appname)
         .then((response) => {
           this.logs = JSON.parse(response.data).data;
+          this.modules = this.logs
+            .filter((record) => record.module)
+            .map((record) => record.module);
         })
         .finally(() => {
           this.loading = false;
