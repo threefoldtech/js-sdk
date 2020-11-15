@@ -158,10 +158,10 @@ import copy
 from collections import defaultdict
 from functools import lru_cache
 from textwrap import dedent
-import threading, time
 import dateutil
 import dateutil.utils
 import gevent
+from gevent.event import Event
 from taiga.models.models import Milestones
 import yaml
 from jumpscale.clients.base import Client
@@ -180,6 +180,7 @@ from jumpscale.loader import j
 
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
+from pathlib import Path
 
 class TaigaClient(Client):
     def credential_updated(self, value):
@@ -260,7 +261,7 @@ class TaigaClient(Client):
             user = user[0]
             return user.id
         else:
-            raise j.exceptions.Input("Couldn't find user with username: {}".format(username))
+            raise j.exceptions.Input(f"Couldn't find user with username: {username}")
 
     @lru_cache(maxsize=2048)
     def _get_user_by_name(self, username):
@@ -274,7 +275,7 @@ class TaigaClient(Client):
             id (int): Issue id
 
         Returns:
-            Array: Array of dictionaries {name: "custom field name", value: {values as dict}}
+            List: List of dictionaries {name: "custom field name", value: {values as dict}}
         """
         issue = self.api.issues.get(id)
         issue_attributes = issue.get_attributes()['attributes_values']
@@ -295,7 +296,7 @@ class TaigaClient(Client):
             id (int): User_Story id
 
         Returns:
-            Array: Array of dictionaries {name: "custom field name", value: {values as dict}}
+            List: List of dictionaries {name: "custom field name", value: {values as dict}}
         """
         user_story = self.api.user_stories.get(id)
         user_story_attributes = user_story.get_attributes()['attributes_values']
@@ -404,7 +405,7 @@ class TaigaClient(Client):
         try:
             user_story = self.api.user_stories.get(story_id)
         except TaigaRestException:
-            raise j.exceptions.NotFound("Couldn't find user story with id: {}".format(story_id))
+            raise j.exceptions.NotFound(f"Couldn't find user story with id: {story_id}")
 
         project_stories_statuses = self.api.user_story_statuses.list(project=project_id)
         status = self._get_user_stories_status(user_story.status)
@@ -420,7 +421,7 @@ class TaigaClient(Client):
                 tags=user_story.tags,
             )
         except TaigaRestException:
-            raise j.exceptions.NotFound("No project with id: {} found".format(project_id))
+            raise j.exceptions.NotFound(f"No project with id: {project_id} found")
         try:
             comments = self.api.history.user_story.get(story_id)
             comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c["created_at"]))
@@ -450,7 +451,7 @@ class TaigaClient(Client):
 
         except Exception as e:
             self.api.user_stories.delete(migrate_story.id)
-            raise j.exceptions.Runtime("Failed to migrate story error was: {}".format(str(e)))
+            raise j.exceptions.Runtime(f"Failed to migrate story error was: {str(e)}")
 
         self.api.user_stories.delete(story_id)
         return migrate_story.id
@@ -608,7 +609,7 @@ class TaigaClient(Client):
         """Validate custom fields values to match our requirments
 
         Args:
-            attributes (Array): Output from get_issue/user_story_custom_fields functions
+            attributes (List): Output from get_issue/story_custom_fields functions
 
         Raises:
             j.exceptions.Validation: Raise validation exception if any input not valid
@@ -625,26 +626,26 @@ class TaigaClient(Client):
             duration = value.get("duration", 1)
             amount = value.get("amount", 0)
             currency = value.get("currency", "eur")
-            start_date = value.get("start_date", "{}:{}".format(dateutil.utils.today().month,dateutil.utils.today().year))
+            start_date = value.get("start_date", f"{dateutil.utils.today().month}:{dateutil.utils.today().year}")
             confidence = value.get("confidence", 100)
             user = value.get("user")
             part= value.get("part", "0%")
             type= value.get("type", "revenue")
 
             if name not in ["bookings", "commission"]:
-                raise j.exceptions.Validation('Name: ({}) is unknown custom field, please select one of the following ["bookings", "commission"]'.format(name))
+                raise j.exceptions.Validation(f'Name: ({name}) is unknown custom field, please select one of the following ["bookings", "commission"]')
 
             if period not in ["onetime", "month", "year"]:
-                raise j.exceptions.Validation('Period: ({}) not found, please select one of following ["onetime", "month", "year"]'.format(period))
+                raise j.exceptions.Validation(f'Period: ({period}) not found, please select one of following ["onetime", "month", "year"]')
 
             if duration < 1 or duration > 120:
-                raise j.exceptions.Validation('Duration: ({}) is not in range, please select it from 1 to 120'.format(duration))
+                raise j.exceptions.Validation(f'Duration: ({duration}) is not in range, please select it from 1 to 120')
 
             if not isinstance(amount, int):
-                raise j.exceptions.Validation('Amount: ({}) is not integer, please add int value'.format(amount))
+                raise j.exceptions.Validation(f'Amount: ({amount}) is not integer, please add int value')
 
             if currency.replace(" ", "").lower() not in ["usd", "chf", "eur", "gbp", "egp"]:
-                raise j.exceptions.Validation('Currency: ({}) is not supported, please use one of the following currencies ["usd", "chf", "eur", "gbp", "egp"]'.format(currency))
+                raise j.exceptions.Validation(f'Currency: ({currency}) is not supported, please use one of the following currencies ["usd", "chf", "eur", "gbp", "egp"]')
             try:
                 date = start_date.split(":")
                 month = int(date[0])
@@ -661,19 +662,19 @@ class TaigaClient(Client):
                 pass  # Will check what happen if start_date not provide
 
             if confidence % 10 != 0:
-                j.exceptions.Validation("Confidence: ({}) not multiple of 10, it must be multiple of 10".format(confidence))
+                j.exceptions.Validation(f'Confidence: ({confidence}) not multiple of 10, it must be multiple of 10')
             
             part_tmp = part.replace('%', '')
             if user != None and user not in self.list_all_users():
-                raise j.exceptions.Validation('User: ({}) is not found'.format(user))
+                raise j.exceptions.Validation(f'User: ({user}) is not found')
 
             if  int(part_tmp) < 0 or int(part_tmp) > 100:
                 j.exceptions.Validation('Part: ({}) is a not a valid percentage, it must be from 0% to 100%')
 
             if type not in ["revenue", "booking"]:
-                raise j.exceptions.Validation('Type: ({}) is not supported type, please choose one of the following ["revenue" , "booking"]'.format(type))
+                raise j.exceptions.Validation(f'Type: ({type}) is not supported type, please choose one of the following ["revenue" , "booking"]')
 
-            j.logger.info("Arrtibute: {} passed".format(name))
+            j.logger.info(f'Attribute: {name} passed')
         
         return True
 
@@ -987,80 +988,13 @@ class TaigaClient(Client):
 
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
-        """
-        def create_index_file(index_file):
-            content =  dedent(
-            """
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="1a5a5241-91cb-4a41-8323-5ba5ec574da0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
-            <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <meta charset="UTF-8">
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-
-            <style>
-            .markdown-section {
-            max-width: 55em !important;
-            }
-            </style>
-
-            <script type="text/javascript" src="//www.freeprivacypolicy.com/public/cookie-consent/3.1.0/cookie-consent.js"></script> <script type="text/javascript"> document.addEventListener('DOMContentLoaded', function () { cookieconsent.run({"notice_banner_type":"headline","consent_type":"express","palette":"light","language":"en","website_name":"https://sdk.threefold.io/#/","cookies_policy_url":"https://wiki.threefold.io/#/privacypolicy"}); }); </script> <script type="text/plain" cookie-consent="functionality">window.$crisp=[];window.CRISP_WEBSITE_ID="1a5a5241-91cb-4a41-8323-5ba5ec574da0";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script> <script type="text/plain" cookie-consent="tracking" async src="https://www.googletagmanager.com/gtag/js?id=UA-100065546-6"></script> <script type="text/plain" cookie-consent="tracking"> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'UA-100065546-6'); </script>
-
-            </head>
-            <body>
-            <div id="app"></div>
-            <script>
-            window.$docsify = {
-            name: "Circles Reprot",
-            repo: "",
-            loadSidebar: true,
-            loadNavbar: true,
-            auto2top: true,
-            search: 'auto',
-            remoteMarkdown: {
-            tag: 'remoteMarkdownUrl',
-            },
-            subMaxLevel: 0,
-            themeable: {
-            readyTransition : true, // default
-            responsiveTables: true // default
-            },
-            // complete configuration parameters
-            search: {
-            maxAge: 86400000, // Expiration time, the default one day
-            paths: 'auto',
-            placeholder: 'Type to search',
-            noData: 'No Results!',
-            depth: 6,
-            hideOtherSidebarContent: false, // whether or not to hide other sidebar content
-            },
-
-            }
-            </script>
-            <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/docsify-example-panels"></script>
-            <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-bash.min.js"></script>
-            <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-python.min.js"></script>
-            <script src="//unpkg.com/docsify/lib/plugins/search.min.js"></script>
-            <script src="//unpkg.com/docsify-remote-markdown/dist/docsify-remote-markdown.min.js"></script>
-            <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
-            <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0"></script>
-            <script src="//unpkg.com/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
-            <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
-            <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
-            <script src="//unpkg.com/docsify-glossary/dist/docsify-glossary.min.js"></script>
-            </body>
-            </html>
-            """
-            )
-            j.sals.fs.write_ascii(index_file, content)
-
+        """ 
         gs = []
         gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only))
         gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only))
         gevent.joinall(gs)
+        
+        template_file = j.sals.fs.join_paths(Path(__file__).parent, "template.html")
         index_html_path = j.sals.fs.join_paths(wiki_path, "src", "index.html")
         readme_md_path = j.sals.fs.join_paths(wiki_path, "src", "README.md")
         sidebar_md_path = j.sals.fs.join_paths(wiki_path, "src", "_sidebar.md")
@@ -1074,16 +1008,16 @@ class TaigaClient(Client):
         )
         j.sals.fs.write_ascii(readme_md_path, content)
         j.sals.fs.write_ascii(sidebar_md_path, content)
-        create_index_file(index_html_path)
+        j.sals.fs.copy_file(template_file, index_html_path)
 
     def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period= 300, modified_only=True):
-        export_each = 0
-        repeater = threading.Event()
-        while not repeater.wait(export_each):
-            j.logger.info("Exporting ....")
-            export_each = period
+        # gevent.event Event() used
+        repeater = Event()
+        while True:
+            j.logger.info("Start Exporting ....")
             self.export_as_md(wiki_path,modified_only)
-            j.logger.info("Exported at {}".format(wiki_path))
+            j.logger.info(f'Exported at {wiki_path}')
+            repeater.wait(period)
 
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
         def _export_objects_to_dir(objects_dir, objects_fun):
@@ -1124,12 +1058,14 @@ class TaigaClient(Client):
         j.logger.info("Finish Export as YAML")
     
     def import_from_yaml(self, import_dir="/tmp/export_dir"):
-        def check_by_name(arr_obj, name_to_find):
-            for obj in arr_obj:
+        
+        # Helper Functions
+        def check_by_name(list_obj, name_to_find):
+            for obj in list_obj:
                 if obj.name == name_to_find:
                     return obj.id
             
-            return arr_obj[0].id
+            return list_obj[0].id
 
         def import_circle(self,yaml_obj):
             circle = None
@@ -1196,13 +1132,14 @@ class TaigaClient(Client):
             task = story_object.add_task(yaml_obj.get('subject', 'New_Task'), status_id, description=yaml_obj.get('description', ''),
                     tags=yaml_obj.get('tags'))
             return task
-        # Folders
+        
+        # Folders Path
         projects_path = j.sals.fs.join_paths(import_dir, "projects")
         stories_path = j.sals.fs.join_paths(import_dir, "stories")
         issues_path = j.sals.fs.join_paths(import_dir, "issues")
         tasks_path = j.sals.fs.join_paths(import_dir, "tasks")
         
-        # List of Files inside each Folder
+        # List of Files inside project Folder
         projects =  j.sals.fs.os.listdir(projects_path)
         
         for project_file in projects:
@@ -1210,19 +1147,19 @@ class TaigaClient(Client):
                 with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
                     circle_yaml = yaml.full_load(pf)
                     circle_obj = import_circle(self,circle_yaml)
-                    j.logger.info("<Circle {} Created".format(circle_obj.id))
+                    j.logger.info(f'<Circle {circle_obj.id} Created')
 
                     for story_id in circle_yaml['stories_id']:
                         with open(j.sals.fs.join_paths(stories_path,f"{story_id}.yaml")) as sf:
                             story_yaml = yaml.full_load(sf)
                             story_obj = import_story(circle_obj, story_yaml)
-                            j.logger.info("<Story {} Created in Cicle {}".format(story_obj.id, circle_obj.id))
+                            j.logger.info(f'<Story {story_obj.id} Created in Cicle {circle_obj.id}')
                             
                             for task_id in story_yaml['tasks_id']:
                                 with open(j.sals.fs.join_paths(tasks_path,f"{task_id}.yaml")) as tf:
                                     task_yaml = yaml.full_load(tf)
                                     task_obj = import_tasks(circle_obj,story_obj, task_yaml)
-                                    j.logger.info("<Task {} Created in Story {}".format(task_obj.id, story_obj.id))
+                                    j.logger.info(f'<Task {task_obj.id} Created in Story {story_obj.id}')
                                     task_obj.update()
                             story_obj.update()
 
@@ -1230,8 +1167,8 @@ class TaigaClient(Client):
                         with open(j.sals.fs.join_paths(issues_path,f"{issue_id}.yaml")) as isf:
                             issue_yaml = yaml.full_load(isf)
                             issue_obj= import_issue(circle_obj, issue_yaml)
-                            j.logger.info("<Issue {} Created in Cicle {}".format(issue_obj.id, circle_obj.id))
+                            j.logger.info(f'<Issue {issue_obj.id} Created in Cicle {circle_obj.id}')
                             issue_obj.update()
 
                     circle_obj.update()
-                    j.logger.info("<Circle {} Imported with All Stories and Issues".format(circle_obj.id))
+                    j.logger.info(f'<Circle {circle_obj.id} Imported with All Stories and Issues')
