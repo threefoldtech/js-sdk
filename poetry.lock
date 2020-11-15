@@ -604,7 +604,7 @@ description = "system automation, configuration management and RPC framework"
 name = "js-ng"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "11.0b7"
+version = "11.0b8"
 
 [package.dependencies]
 GitPython = ">=3.0,<4.0"
@@ -1525,7 +1525,7 @@ docs = ["sphinx", "repoze.sphinx.autointerface"]
 test = ["zope.security", "zope.testrunner"]
 
 [metadata]
-content-hash = "4a7d75675bd2bd47335241bdcfcbfa80877afb6962e8fbfd71a9570341b67d2f"
+content-hash = "f50eec7748b8f2fc5712f2ff1721b578eebef0ef89f20c232e28bee611d50db9"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1818,8 +1818,8 @@ josepy = [
     {file = "josepy-1.4.0.tar.gz", hash = "sha256:c37ff4b93606e6a452b72cdb992da5e0544be12912fac01b31ddbdd61f6d5bd0"},
 ]
 js-ng = [
-    {file = "js-ng-11.0b7.tar.gz", hash = "sha256:f3ed46ff2d8a3e2304d9255565813f2cbe0822858d5d63d36c4cbf5112eb4f5c"},
-    {file = "js_ng-11.0b7-py3-none-any.whl", hash = "sha256:203b271f11a8b77b25ff8f28bbc91a4149920f93711f37a22e67c399a15c2317"},
+    {file = "js-ng-11.0b8.tar.gz", hash = "sha256:a3d4941ec11271d6fd61593b370e1636cf5e7ce03888dd481a135cadf98fe799"},
+    {file = "js_ng-11.0b8-py3-none-any.whl", hash = "sha256:6404959ab32a0638b8a38cd4f9bcc27c7cd0b10acb0a1d1d3ffb72b38f15cbd2"},
 ]
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},

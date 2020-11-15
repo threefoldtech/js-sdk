@@ -1,5 +1,6 @@
 from jumpscale.core.base import Base, fields
 from enum import Enum
+import hashlib
 
 
 class ThreebotState(Enum):
@@ -13,7 +14,7 @@ class UserThreebot(Base):
     solution_uuid = fields.String()
     identity_tid = fields.Integer()
     name = fields.String()
-    owner_tname = fields.String()  # owner's tname in 3bot connect after cleaning
+    owner_tname = fields.String()  # owner's tname in Threefold Connect after cleaning
     farm_name = fields.String()
     state = fields.Enum(ThreebotState)
     continent = fields.String()
@@ -22,3 +23,12 @@ class UserThreebot(Base):
     trc_container_wid = fields.Integer()
     reverse_proxy_wid = fields.Integer()
     subdomain_wid = fields.Integer()
+    secret_hash = fields.String()
+
+    def verify_secret(self, secret):
+        if not self.secret_hash:
+            return True
+        return self.secret_hash == hashlib.md5(secret.encode()).hexdigest()
+
+    def hash_secret(self, secret):
+        self.secret_hash = hashlib.md5(secret.encode()).hexdigest()

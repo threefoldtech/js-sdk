@@ -174,6 +174,8 @@ def generate_user_identity(threebot, password, zos):
 def stop_threebot_solution(owner, solution_uuid, password):
     owner = text.removesuffix(owner, ".3bot")
     threebot = get_threebot_config_instance(owner, solution_uuid)
+    if not threebot.verify_secret(password):
+        raise j.exceptions.Validation(f"incorrect secret provided")
     zos = get_threebot_zos(threebot)
     identity = generate_user_identity(threebot, password, zos)
     zos = j.sals.zos.get(identity.instance_name)
@@ -239,6 +241,8 @@ def redeploy_threebot_solution(
             if bot:
                 bot.md_show_update("Starting your 3Bot...")
             threebot = get_threebot_config_instance(owner, solution_uuid)
+            if not threebot.verify_secret(backup_password):
+                raise j.exceptions.Validation(f"incorrect secret provided")
             zos = get_threebot_zos(threebot)
             identity = generate_user_identity(threebot, backup_password, zos)
             with threebot_identity_context(identity.instance_name):

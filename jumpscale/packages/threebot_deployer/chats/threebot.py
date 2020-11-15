@@ -17,6 +17,7 @@ from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotS
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from collections import defaultdict
 
 FLAVORS = {
     "Silver": {"cru": 1, "mru": 2, "sru": 2},
@@ -26,7 +27,10 @@ FLAVORS = {
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = defaultdict(lambda: "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist")
+    FLIST_URL["master"] = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    # The master flist fails for the gevent host dns resolution issue
+
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -383,7 +387,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 node_id=self.selected_node.node_id,
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
-                flist=self.FLIST_URL,
+                flist=self.FLIST_URL[self.branch],
                 env=environment_vars,
                 cpu=self.container_resources["cru"],
                 memory=self.container_resources["mru"] * 1024,
@@ -455,6 +459,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         user_threebot.trc_container_wid = self.workload_ids[-2]
         user_threebot.reverse_proxy_wid = self.workload_ids[-1]
         user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+        user_threebot.hash_secret(self.backup_password)
         user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)

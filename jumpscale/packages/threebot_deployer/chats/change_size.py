@@ -1,5 +1,9 @@
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, redeploy_threebot_solution
+from jumpscale.packages.threebot_deployer.bottle.utils import (
+    list_threebot_solutions,
+    redeploy_threebot_solution,
+    get_threebot_zos,
+)
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.sals.chatflows.chatflows import chatflow_step
@@ -68,9 +72,11 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             self.expiration = 0
 
     def _verify_password(self, password):
-        name = f"{self.threebot_name}_{self.name}"
-        explorer = j.clients.explorer.get_by_url("https://explorer.testnet.grid.tf/api/v1")  # Fix
-        user = explorer.users.get(name=name)
+        instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
+        if not instance.verify_secret(password):
+            return False
+        zos = get_threebot_zos(instance)
+        user = zos._explorer.users.get(instance.identity_tid)
         words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
         seed = j.data.encryption.mnemonic_to_key(words)
         pubkey = NACL(seed).get_verify_key_hex()
