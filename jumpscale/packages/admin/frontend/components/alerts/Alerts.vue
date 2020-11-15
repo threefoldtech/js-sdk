@@ -8,7 +8,14 @@
       </template>
 
       <template #default>
-        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open"  :sort-by="['id']" :sort-desc="[true]" :page.sync="page">
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+        <v-data-table class="elevation-1" :loading="loading" :search="search" :headers="headers" :items="data" @click:row="open"  :sort-by="['id']" :sort-desc="[true]" :page.sync="page">
           <template slot="no-data">No Alerts available</p></template>
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
@@ -64,6 +71,7 @@ module.exports = {
   },
   data() {
     return {
+      search: "",
       appname: "init",
       apps: [],
       alerts: [],
