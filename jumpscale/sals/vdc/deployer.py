@@ -34,6 +34,7 @@ class VDCDeployer:
         self._kubernetes = None
         self._s3 = None
         self._ssh_key = None
+        self._log_format = f"VDC: {self.vdc_name}: {{}}"
 
     @property
     def kubernetes(self):
@@ -96,14 +97,18 @@ class VDCDeployer:
         create pool and network for new vdc
         """
         # create pool
+        self.info("initializing vdc")
         pool_info = self.zos.pools.create(int(cu), int(su), farm_name)
+        self.info(f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}")
         self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.info(f"pool {pool_info.reservation_id} paid. waiting resources")
         success = self.wait_pool_payment(pool_info.reservation_id)
         if not success:
             raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
         access_nodes = scheduler.nodes_by_capacity(ip_version=IP_VERSION)
         network_success = False
         for access_node in access_nodes:
+            self.info(f"deploying network on node {access_node.node_id}")
             network_success = True
             result = deployer.deploy_network(
                 self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_info.reservation_id, self.identity.instance_name,
@@ -119,9 +124,12 @@ class VDCDeployer:
                     network_success = network_success and success
                 except Exception as e:
                     network_success = False
-                    j.logger.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
+                    self.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
                     break
             if network_success:
+                self.info(
+                    f"saving wireguard config to {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+                )
                 # store wireguard config
                 wg_quick = result["wg"]
                 j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}")
@@ -160,11 +168,13 @@ class VDCDeployer:
             flavor: vdc flavor key
             farm_name: where to initialize the vdc
         """
+        self.info(f"deploying vdc flavor: {flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
             raise j.exceptions.Validation(
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
         vdc_uuid = uuid.uuid4().hex
+        self.info(f"vdc uuid: {vdc_uuid}")
         scheduler = Scheduler(farm_name)
         size_dict = VDC_FLAFORS[flavor]
         k8s_size_dict = size_dict["k8s"]
@@ -172,7 +182,9 @@ class VDCDeployer:
         cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict)
         cus = cus * 60 * 60 * 24 * 30
         sus = sus * 60 * 60 * 24 * 30
+        self.info(f"required cus: {cus}, sus: {sus}")
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus)
+        self.info(f"vdc initialization successful")
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
         threads = []
         k8s_thread = gevent.spawn(
@@ -190,8 +202,11 @@ class VDCDeployer:
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
         k8s_wids = k8s_thread.value
+        self.info(f"k8s wids: {k8s_wids}")
+        self.info(f"zdb wids: {zdb_wids}")
 
         if not k8s_wids or not zdb_wids:
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
             return False
 
@@ -207,7 +222,6 @@ class VDCDeployer:
         # master_ip = k8s_workload.master_ips[0]
         # kube_config = self.download_kube_config(master_ip)
         # config_dict = j.data.serializers.yaml.loads(kube_config)
-        # public_ip = self.kubernetes.setup_external_network_node(pool_id, kube_config)
         # config_dict["server"] = add public ip here when implemented
 
         vdc_instance = VDCFACTORY.new(self.vdc_name)
@@ -259,6 +273,15 @@ class VDCDeployer:
                 return True
             gevent.sleep(2)
         return False
+
+    def _log(self, msg, loglevel="info"):
+        getattr(j.logger, loglevel)(self._log_format.format(msg))
+
+    def info(self, msg):
+        self._log(msg, "info")
+
+    def error(self, msg):
+        self._log(msg, "error")
 
     def __del__(self):
         if self.identity:
