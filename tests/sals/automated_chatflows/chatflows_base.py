@@ -49,7 +49,7 @@ class ChatflowsBase(BaseTests):
         cls.server.start()
 
         # Timeout for any exposed solution to be reachable.
-        cls.timeout = 5
+        cls.timeout = 360
 
     @classmethod
     def tearDownClass(cls):

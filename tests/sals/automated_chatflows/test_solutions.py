@@ -32,7 +32,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.load_from_file_system()
         cls.ssh_cl.save()
         cls.solution_uuid = ""
-        cls.deployment_timeout = 180
+        cls.deployment_timeout = 360
 
     @classmethod
     def tearDownClass(cls):
@@ -149,7 +149,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             f"minio is not reached after {self.deployment_timeout} second",
         )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 403)
 
     def test04_monitoring(self):
         """Test case for deploying a monitoring solution.
@@ -162,18 +162,19 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy a monitoring solution.")
         name = self.random_name()
-        monitoring = deployer.deploy_monitoring(solution_name=name, network=self.network_name,)
+        monitoring = deployer.deploy_monitoring(
+            solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path
+        )
         self.solution_uuid = monitoring.solution_id
-
         self.info("Check that Prometheus UI is reachable. ")
         request = j.tools.http.get(
             f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False, timeout=self.timeout
         )
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 403)
 
         self.info("Check that Grafana UI is reachable.")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 403)
         self.assertIn("login", request.content.decode())
 
         self.info("Check that Redis is reachable.")
