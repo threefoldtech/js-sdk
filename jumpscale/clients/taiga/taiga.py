@@ -1135,6 +1135,7 @@ class TaigaClient(Client):
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
         """
+        j.logger.info("Start Exporting Wiki ...")
         gs = []
         gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only))
         gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only))
@@ -1155,6 +1156,7 @@ class TaigaClient(Client):
         j.sals.fs.write_ascii(readme_md_path, content)
         j.sals.fs.write_ascii(sidebar_md_path, content)
         j.sals.fs.copy_file(template_file, index_html_path)
+        j.logger.info(f"Exported at {wiki_path}")
 
     def export_as_md_periodically(
         self, wiki_path="/tmp/taigawiki", period=300, modified_only=True
