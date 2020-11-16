@@ -1,4 +1,5 @@
 from jumpscale.loader import j
+from jumpscale.clients.base import Client
 
 
 def is_helm_installed():
@@ -26,15 +27,16 @@ def helm_required(method):
     return wrapper
 
 
-class Manager:
+class Manager(Client):
     """SAL for kubernetes"""
 
-    def __init__(self, config_path=f"{j.core.dirs.HOMEDIR}/.kube/config"):
+    def __init__(self, config_path=f"{j.core.dirs.HOMEDIR}/.kube/config", *args, **kwargs):
         """constructor for kubernetes class
 
         Args:
             config_path (str, optional): path to kubeconfig. Defaults to "~/.kube/config".
         """
+        super().__init__(*args, **kwargs)
         if not j.sals.fs.exists(config_path) or not j.sals.fs.is_file(config_path):
             raise j.exceptions.NotFound(f"No such file {config_path}")
         self.config_path = config_path
@@ -59,7 +61,22 @@ class Manager:
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name):
+    def update_helm_repo(self):
+        """Update helm repo
+
+        Raises:
+            j.exceptions.Runtime: in case the command failed to execute
+
+        Returns:
+            str: output of the helm command
+        """
+        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} repo update")
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to update repo, error was {err}")
+        return out
+
+    @helm_required
+    def install_chart(self, release, chart_name, config=None):
         """deployes a helm chart
 
         Args:
@@ -72,7 +89,11 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} install {release} {chart_name}")
+        cmd = f"helm --kubeconfig {self.config_path} install {release} {chart_name}"
+        if config:
+            cmd += "".join([f" --set {key}={value} " for key, value in config.items()]).strip()
+
+        rc, out, err = j.sals.process.execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
         return out
