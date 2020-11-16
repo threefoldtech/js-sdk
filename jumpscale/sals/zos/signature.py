@@ -216,6 +216,5 @@ def _network_resource_challenge(network):
 
 def _public_ip_challenge(public_ip):
     b = StringIO()
-    b.write(str(public_ip.ip))
-    b.write(str(public_ip.destination_ip))
+    b.write(str(public_ip.ipaddress))
     return b.getvalue()
