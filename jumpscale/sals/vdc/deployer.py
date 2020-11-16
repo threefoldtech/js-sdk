@@ -164,6 +164,7 @@ class VDCDeployer:
             storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
             zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
             zdb_cus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
+            # TODO: add nignx containers as well
             total_cus += zdb_cus
             total_sus += zdb_sus
         return total_cus, total_sus
@@ -196,26 +197,25 @@ class VDCDeployer:
         self.info(f"vdc initialization successful")
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
         threads = []
-        # k8s_thread = gevent.spawn(
-        #     self.kubernetes.deploy_kubernetes,
-        #     pool_id,
-        #     scheduler,
-        #     k8s_size_dict,
-        #     cluster_secret,
-        #     self.ssh_key.public_key.split("\n"),
-        #     vdc_uuid,
-        # )
-        # threads.append(k8s_thread)
+        k8s_thread = gevent.spawn(
+            self.kubernetes.deploy_kubernetes,
+            pool_id,
+            scheduler,
+            k8s_size_dict,
+            cluster_secret,
+            self.ssh_key.public_key.split("\n"),
+            vdc_uuid,
+        )
+        threads.append(k8s_thread)
         zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)
         threads.append(zdb_thread)
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
-        # k8s_wids = k8s_thread.value
-        # self.info(f"k8s wids: {k8s_wids}")
+        k8s_wids = k8s_thread.value
+        self.info(f"k8s wids: {k8s_wids}")
         self.info(f"zdb wids: {zdb_wids}")
 
-        # if not k8s_wids or not zdb_wids:
-        if not zdb_wids:
+        if not k8s_wids or not zdb_wids:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
             nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
@@ -236,16 +236,9 @@ class VDCDeployer:
             )
             return False
 
-        scheduler.refresh_nodes()
         minio_api_prefix = f"s3-{self.vdc_name}-{self.tname}"
         minio_api_wid = self.proxy.proxy_container(
-            prefix=minio_api_prefix,
-            wid=minio_wid,
-            port=9000,
-            vdc_uuid=vdc_uuid,
-            pool_id=pool_id,
-            secret=self.password,
-            scheduler=scheduler,
+            prefix=minio_api_prefix, wid=minio_wid, port=9000, vdc_uuid=vdc_uuid, pool_id=pool_id, secret=self.password,
         )
 
         minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
@@ -256,7 +249,6 @@ class VDCDeployer:
             vdc_uuid=vdc_uuid,
             pool_id=pool_id,
             secret=self.password,
-            scheduler=scheduler,
         )
 
         if not minio_api_wid or not minio_healing_wid:

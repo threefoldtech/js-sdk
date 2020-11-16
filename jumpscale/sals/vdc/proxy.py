@@ -181,7 +181,6 @@ class VDCProxy(VDCBaseComponent):
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
         scheduler = scheduler or Scheduler(self.farm_name)
-        print("scheduler object id: ", id(scheduler))
         self.vdc_deployer.info(f"proxy container {wid} port {port} pool: {pool_id}")
         workload = self.zos.workloads.get(wid)
         if workload.info.workload_type != WorkloadType.Container:
