@@ -1,4 +1,4 @@
-from jumpscale.sals.chatflows.chatflows import StopChatFlow
+from .proxy import VDCProxy
 from jumpscale.loader import j
 import uuid
 from jumpscale.sals.zos import get as get_zos
@@ -19,9 +19,9 @@ IP_RANGE = "10.200.0.0/16"
 
 
 class VDCDeployer:
-    def __init__(self, vdc_name, tname, password, email, wallet_name=None, bot=None):
+    def __init__(self, vdc_name, tname, password, email, wallet_name=None, bot=None, proxy_farm_name=None):
         self.vdc_name = vdc_name
-        self.tname = tname
+        self.tname = j.data.text.removesuffix(tname, ".3bot")
         self.bot = bot
         self.identity = None
         self.password = password
@@ -32,8 +32,10 @@ class VDCDeployer:
         self._wallet = None
         self._kubernetes = None
         self._s3 = None
+        self._proxy = None
         self._ssh_key = None
         self._log_format = f"VDC: {self.vdc_name}: {{}}"
+        self.proxy_farm_name = proxy_farm_name
 
     @property
     def kubernetes(self):
@@ -46,6 +48,12 @@ class VDCDeployer:
         if not self._s3:
             self._s3 = VDCS3Deployer(self)
         return self._s3
+
+    @property
+    def proxy(self):
+        if not self._proxy:
+            self._proxy = VDCProxy(self, self.proxy_farm_name)
+        return self._proxy
 
     @property
     def wallet(self):
@@ -69,7 +77,7 @@ class VDCDeployer:
     @property
     def ssh_key(self):
         if not self._ssh_key:
-            self._ssh_key = j.clients.sshkey.new(self.vdc_name)
+            self._ssh_key = j.clients.sshkey.get(self.vdc_name)
             vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
             self._ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
             self._ssh_key.load_from_file_system()
@@ -96,6 +104,7 @@ class VDCDeployer:
         """
         create pool and network for new vdc
         """
+        # TODO: reuse pools of failed deployments
         # create pool
         self.info("initializing vdc")
         pool_info = self.zos.pools.create(int(cu), int(su), farm_name)
@@ -187,44 +196,86 @@ class VDCDeployer:
         self.info(f"vdc initialization successful")
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
         threads = []
-        k8s_thread = gevent.spawn(
-            self.kubernetes.deploy_kubernetes,
-            pool_id,
-            scheduler,
-            k8s_size_dict,
-            cluster_secret,
-            self.ssh_key.public_key.split("\n"),
-            vdc_uuid,
-        )
-        threads.append(k8s_thread)
+        # k8s_thread = gevent.spawn(
+        #     self.kubernetes.deploy_kubernetes,
+        #     pool_id,
+        #     scheduler,
+        #     k8s_size_dict,
+        #     cluster_secret,
+        #     self.ssh_key.public_key.split("\n"),
+        #     vdc_uuid,
+        # )
+        # threads.append(k8s_thread)
         zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)
         threads.append(zdb_thread)
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
-        k8s_wids = k8s_thread.value
-        self.info(f"k8s wids: {k8s_wids}")
+        # k8s_wids = k8s_thread.value
+        # self.info(f"k8s wids: {k8s_wids}")
         self.info(f"zdb wids: {zdb_wids}")
 
-        if not k8s_wids or not zdb_wids:
+        # if not k8s_wids or not zdb_wids:
+        if not zdb_wids:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+            solutions.cancel_solution(
+                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
+            )
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
             pool_id, minio_ak, minio_sk, self.ssh_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid
         )
         if not minio_wid:
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+            solutions.cancel_solution(
+                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
+            )
+            return False
+
+        scheduler.refresh_nodes()
+        minio_api_prefix = f"s3-{self.vdc_name}-{self.tname}"
+        minio_api_wid = self.proxy.proxy_container(
+            prefix=minio_api_prefix,
+            wid=minio_wid,
+            port=9000,
+            vdc_uuid=vdc_uuid,
+            pool_id=pool_id,
+            secret=self.password,
+            scheduler=scheduler,
+        )
+
+        minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
+        minio_healing_wid = self.proxy.proxy_container(
+            prefix=minio_healing_prefix,
+            wid=minio_wid,
+            port=9010,
+            vdc_uuid=vdc_uuid,
+            pool_id=pool_id,
+            secret=self.password,
+            scheduler=scheduler,
+        )
+
+        if not minio_api_wid or not minio_healing_wid:
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
+            solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+            solutions.cancel_solution(
+                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
+            )
             return False
 
         # download kube config from master
         # k8s_workload = self.zos.workloads.get(k8s_wids[0])
         # master_ip = k8s_workload.master_ips[0]
-        # kube_config = self.download_kube_config(master_ip)
+        # kube_config = self.kubernetes.download_kube_config(master_ip)
         # config_dict = j.data.serializers.yaml.loads(kube_config)
-        # config_dict["server"] = add public ip here when implemented
+        # config_dict["server"] = f"https://{master_ip}:6443"
 
-        vdc_instance = VDCFACTORY.new(self.vdc_name)
+        vdc_instance = VDCFACTORY.get(self.vdc_name)
         vdc_instance.vdc_name = self.vdc_name
         vdc_instance.solution_uuid = vdc_uuid
         vdc_instance.owner_tname = self.tname
@@ -233,50 +284,6 @@ class VDCDeployer:
         vdc_instance.save()
 
         # return j.data.serializers.yaml.dumps(config_dict)
-
-    def start_vdc_wireguard(self):
-        # start wireguard
-        rc, out, err = j.sals.process.execute(
-            f"wg-quick up {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
-        )
-        if rc:
-            self.error(f"couldn't start wireguard for vdc {self.vdc_name}")
-            j.tools.alerthandler.alert_raise(
-                "vdc", f"couldn't start wireguard for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
-            )
-            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
-
-    def stop_vdc_wireguard(self):
-        rc, out, err = j.sals.process.execute(
-            f"wg-quick down {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
-        )
-        if rc:
-            self.error(f"couldn't stop wireguard for vdc {self.vdc_name}")
-            j.tools.alerthandler.alert_raise(
-                "vdc", f"couldn't stop wireguard for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
-            )
-            return False
-        return True
-
-    def get_ssh_client(self, master_ip):
-        client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
-        return client
-
-    def download_kube_config(self, master_ip):
-        self.start_vdc_wireguard()
-        ssh_client = self.get_ssh_client(master_ip)
-        rc, out, err = ssh_client.run("cat /etc/rancher/k3s/k3s.yaml")
-        if rc:
-            j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
-            j.tools.alerthandler.alert_raise(
-                "vdc", f"couldn't read k3s config for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
-            )
-            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
-
-        j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}")
-        j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml", out)
-        self.stop_vdc_wireguard()
-        return out
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60

@@ -18,7 +18,9 @@ class VDCS3Deployer(VDCBaseComponent):
         self.vdc_deployer.info(f"zdb_configs: {zdb_configs}")
 
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        for node in scheduler.nodes_by_capacity(cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024):
+        for node in scheduler.nodes_by_capacity(
+            cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024, ip_version="IPv6"
+        ):
             self.vdc_deployer.info(f"node {node.node_id} selected for minio")
             try:
                 result = deployer.add_network_node(
@@ -50,6 +52,7 @@ class VDCS3Deployer(VDCBaseComponent):
                 MINIO_MEMORY,
                 S3_NO_DATA_NODES,
                 S3_NO_PARITY_NODES,
+                public_ipv6=True,
                 disk_size=int(MINIO_DISK / 1024),
                 bot=self.bot,
                 identity_name=self.identity.instance_name,
@@ -97,7 +100,9 @@ class VDCS3Deployer(VDCBaseComponent):
                 )
             for wid in result:
                 try:
-                    success = deployer.wait_workload(wid, bot=self.bot, identity_name=self.identity.instance_name)
+                    success = deployer.wait_workload(
+                        wid, bot=self.bot, expiry=3, identity_name=self.identity.instance_name
+                    )
                     if not success:
                         raise DeploymentFailed()
                     wids.append(wid)

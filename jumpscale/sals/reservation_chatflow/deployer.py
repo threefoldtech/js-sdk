@@ -1458,6 +1458,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         log_config=None,
         bot=None,
         public_key="",
+        identity_name=None,
         **metadata,
     ):
         """
@@ -1477,19 +1478,26 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             public_key: your public key in case you want to have ssh access on the nginx container
 
         """
+        zos = j.sals.zos.get(identity_name)
         test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
-        gateway = self._explorer.gateway.get(gateway_id)
+        gateway = zos._explorer.gateway.get(gateway_id)
 
         proxy_id = self.create_proxy(
-            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
+            pool_id=proxy_pool_id,
+            gateway_id=gateway_id,
+            domain_name=domain,
+            trc_secret=trc_secret,
+            identity_name=identity_name,
+            **metadata,
         )
-        success = self.wait_workload(proxy_id)
+        success = self.wait_workload(proxy_id, identity_name=identity_name)
         if not success:
             raise DeploymentFailed(
                 f"failed to create reverse proxy on gateway {gateway_id} workload {proxy_id}",
                 wid=proxy_id,
                 solution_uuid=metadata.get("solution_uuid"),
+                identity_name=identity_name,
             )
 
         tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
@@ -1508,20 +1516,22 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
         else:
-            node = self._explorer.nodes.get(node_id)
+            node = zos._explorer.nodes.get(node_id)
 
-        res = self.add_network_node(network_name, node, pool_id, bot=bot)
+        res = self.add_network_node(network_name, node, pool_id, identity_name=identity_name, bot=bot)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
+                success = self.wait_workload(
+                    wid, bot, expiry=3, identity_name=identity_name, breaking_node_id=node.node_id
+                )
                 if not success:
                     raise DeploymentFailed(
                         f"failed to add node {node.node_id} to network workload {wid}",
                         wid=wid,
                         solution_uuid=metadata.get("solution_uuid"),
+                        identity_name=identity_name,
                     )
-        network_view = NetworkView(network_name)
-        network_view = network_view.copy()
+        network_view = self.get_network_view(network_name, identity_name=identity_name)
         ip_address = network_view.get_free_ip(node)
         resv_id = self.deploy_container(
             pool_id=pool_id,
@@ -1534,9 +1544,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             secret_env=secret_env,
             public_ipv6=False,
             log_config=log_config,
+            identity_name=identity_name,
             **metadata,
         )
-        return resv_id
+        return resv_id, proxy_id
 
     def expose_address(
         self,

@@ -219,3 +219,25 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             if len(wids) == no_nodes:
                 self.vdc_deployer.info(f"all workers deployed successfully")
                 return wids
+
+    def get_ssh_client(self, master_ip):
+        client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
+        return client
+
+    def download_kube_config(self, master_ip):
+        """
+        Args:
+            master ip: public ip address of kubernetes master
+        """
+        ssh_client = self.get_ssh_client(master_ip)
+        rc, out, err = ssh_client.run("cat /etc/rancher/k3s/k3s.yaml")
+        if rc:
+            j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
+            j.tools.alerthandler.alert_raise(
+                "vdc", f"couldn't read k3s config for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
+            )
+            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
+
+        j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
+        j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
+        return out

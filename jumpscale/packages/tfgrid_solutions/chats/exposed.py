@@ -239,7 +239,7 @@ class SolutionExpose(GedisChatBot):
             trc_log_config["channel_name"] = f"{self.threebot_name}-{self.solution_name}-trc".lower()
 
         if self.proxy_type == "NGINX":
-            self.tcprouter_id = deployer.expose_and_create_certificate(
+            self.tcprouter_id, _ = deployer.expose_and_create_certificate(
                 domain=self.domain,
                 email=self.email,
                 pool_id=self.pool_id,
