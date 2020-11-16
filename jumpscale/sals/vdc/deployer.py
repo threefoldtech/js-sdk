@@ -240,11 +240,23 @@ class VDCDeployer:
             f"wg-quick up {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
         )
         if rc:
-            j.logger.error(f"couldn't start wireguard for vdc {self.vdc_name}")
+            self.error(f"couldn't start wireguard for vdc {self.vdc_name}")
             j.tools.alerthandler.alert_raise(
                 "vdc", f"couldn't start wireguard for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
             )
             raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
+
+    def stop_vdc_wireguard(self):
+        rc, out, err = j.sals.process.execute(
+            f"wg-quick down {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+        )
+        if rc:
+            self.error(f"couldn't stop wireguard for vdc {self.vdc_name}")
+            j.tools.alerthandler.alert_raise(
+                "vdc", f"couldn't stop wireguard for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
+            )
+            return False
+        return True
 
     def get_ssh_client(self, master_ip):
         client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
@@ -263,6 +275,7 @@ class VDCDeployer:
 
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml", out)
+        self.stop_vdc_wireguard()
         return out
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):

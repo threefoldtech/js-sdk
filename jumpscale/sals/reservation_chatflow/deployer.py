@@ -1660,9 +1660,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         else:
             pool_ids = pool_ids or [pool_id] * zdb_no
 
-        if len(pool_ids) != len(node_ids):
-            raise StopChatFlow("pool_ids must be same length as node_ids")
-
         if not node_ids and zdb_no:
             query = {}
             if disk_type == DiskType.SSD:
@@ -1670,7 +1667,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             else:
                 query["hru"] = disk_size
             for pool_id in pool_ids:
-                node = j.sals.reservation_chatflow.reservation_chatflow.nodes_get(
+                node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
                     pool_ids=[pool_id], number_of_nodes=1, **query
                 )[0]
                 node_ids.append(node.node_id)
