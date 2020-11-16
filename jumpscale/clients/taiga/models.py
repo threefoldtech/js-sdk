@@ -10,8 +10,16 @@ class CircleResource:
         self._client = taigaclient
         self._api = self._client.api
     
-    def add_allowed_params(self, *args):
-        for param in args:
+    def add_allowed_params(self, *params):
+        """Add more parameters to allowed_params list
+
+        Args:
+            *params (tuple(str)): Any needed parameters to be be added to allowed_params list
+
+        Returns:
+            [List]: [List of allowed_params that used in to_dict function]
+        """
+        for param in params:
             if param not in self.allowed_params:
                 self.allowed_params.append(param)
         return self.allowed_params
