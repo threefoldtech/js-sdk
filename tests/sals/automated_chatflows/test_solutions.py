@@ -170,7 +170,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(
             f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False, timeout=self.timeout
         )
-        self.assertEqual(request.status_code, 403)
+        self.assertEqual(request.status_code, 200)
 
         self.info("Check that Grafana UI is reachable.")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=self.timeout)
