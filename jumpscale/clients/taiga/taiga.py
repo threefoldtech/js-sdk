@@ -162,7 +162,6 @@ import dateutil
 import dateutil.utils
 import gevent
 from gevent.event import Event
-from taiga.models.models import Milestones
 import yaml
 from jumpscale.clients.base import Client
 from jumpscale.clients.taiga.models import (
@@ -208,9 +207,7 @@ class TaigaClient(Client):
                 api.token = self.token
             else:
                 if not self.username or not self.password:
-                    raise j.exceptions.Runtime(
-                        "Token or username and password are required"
-                    )
+                    raise j.exceptions.Runtime("Token or username and password are required")
                 api.auth(self.username, self.password)
             self._api = api
         return self._api
@@ -287,9 +284,10 @@ class TaigaClient(Client):
         for p_attr in project_attributes:
             for k, value in issue_attributes.items():
                 if p_attr.id == int(k):
-                    custom_fields.append(
-                        {"name": p_attr.name, "value": yaml.safe_load(value)}
-                    )
+                    try:
+                        custom_fields.append({"name": p_attr.name, "value": yaml.full_load(value)})
+                    except:
+                        custom_fields.append({"name": p_attr.name, "value": value})
                     break
 
         return custom_fields
@@ -305,16 +303,15 @@ class TaigaClient(Client):
         """
         user_story = self.api.user_stories.get(id)
         user_story_attributes = user_story.get_attributes()["attributes_values"]
-        project_attributes = self._get_project(
-            user_story.project
-        ).list_user_story_attributes()
+        project_attributes = self._get_project(user_story.project).list_user_story_attributes()
         custom_fields = []
         for p_attr in project_attributes:
             for k, value in user_story_attributes.items():
                 if p_attr.id == int(k):
-                    custom_fields.append(
-                        {"name": p_attr.name, "value": yaml.safe_load(value)}
-                    )
+                    try:
+                        custom_fields.append({"name": p_attr.name, "value": yaml.full_load(value)})
+                    except:
+                        custom_fields.append({"name": p_attr.name, "value": value})
                     break
 
         return custom_fields
@@ -433,9 +430,7 @@ class TaigaClient(Client):
             raise j.exceptions.NotFound(f"No project with id: {project_id} found")
         try:
             comments = self.api.history.user_story.get(story_id)
-            comments = sorted(
-                comments, key=lambda c: dateutil.parser.isoparse(c["created_at"])
-            )
+            comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c["created_at"]))
 
             for comment in comments:
                 migrate_story.add_comment(comment["comment_html"])
@@ -455,9 +450,7 @@ class TaigaClient(Client):
                     user_story=migrate_story.id,
                 )
                 comments = self.api.history.task.get(migrate_task.id)
-                comments = sorted(
-                    comments, key=lambda c: dateutil.parser.isoparse(c["created_at"])
-                )
+                comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c["created_at"]))
 
                 for comment in comments:
                     migrate_task.add_comment(comment["comment_html"])
@@ -481,15 +474,9 @@ class TaigaClient(Client):
         """
         if username:
             user_id = self._get_user_id(username)
-            return [
-                CircleIssue(self, self._resolve_object(x))
-                for x in self.api.issues.list(assigned_to=user_id)
-            ]
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
         else:
-            return [
-                CircleIssue(self, self._resolve_object(x))
-                for x in self.api.issues.list()
-            ]
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
 
     def list_all_tasks(self, username=""):
         """
@@ -503,14 +490,9 @@ class TaigaClient(Client):
         """
         if username:
             user_id = self._get_user_id(username)
-            return [
-                CircleTask(self, self._resolve_object(x))
-                for x in self.api.tasks.list(assigned_to=user_id)
-            ]
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
         else:
-            return [
-                CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()
-            ]
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
 
     def list_all_projects(self):
         """
@@ -522,10 +504,7 @@ class TaigaClient(Client):
         return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
 
     def list_all_active_projects(self):
-        return [
-            Circle(self, p)
-            for p in self.list_projects_by(lambda x: not x.name.startswith("ARCHIVE_"))
-        ]
+        return [Circle(self, p) for p in self.list_projects_by(lambda x: not x.name.startswith("ARCHIVE_"))]
 
     def list_all_milestones(self):
         """
@@ -549,15 +528,9 @@ class TaigaClient(Client):
         if username:
             user_id = self._get_user_id(username)
 
-            return [
-                CircleStory(self, self._resolve_object(x))
-                for x in self.api.user_stories.list(assigned_to=user_id)
-            ]
+            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)]
         else:
-            return [
-                CircleStory(self, self._resolve_object(x))
-                for x in self.api.user_stories.list()
-            ]
+            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
 
     def list_all_users(self):
         """
@@ -604,12 +577,7 @@ class TaigaClient(Client):
         newobj = copy.deepcopy(obj)
         for k in dir(newobj):
             v = getattr(newobj, k)
-            if (
-                isinstance(v, int)
-                or isinstance(v, list)
-                and v
-                and isinstance(v[0], int)
-            ):
+            if isinstance(v, int) or isinstance(v, list) and v and isinstance(v[0], int):
                 if k in resolvers:
                     resolved = None
                     resolver = resolvers[k]
@@ -635,22 +603,13 @@ class TaigaClient(Client):
         return [p for p in self.list_all_projects() if fn(p)]
 
     def list_team_circles(self):
-        return [
-            TeamCircle(self, p)
-            for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))
-        ]
+        return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))]
 
     def list_project_circles(self):
-        return [
-            ProjectCircle(self, p)
-            for p in self.list_projects_by(lambda x: x.name.startswith("PROJECT_"))
-        ]
+        return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("PROJECT_"))]
 
     def list_funnel_circles(self):
-        return [
-            FunnelCircle(self, p)
-            for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))
-        ]
+        return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("FUNNEL_"))]
 
     def validate_custom_fields(self, attributes):
         """Validate custom fields values to match our requirements
@@ -673,10 +632,7 @@ class TaigaClient(Client):
             duration = value.get("duration", 1)
             amount = value.get("amount", 0)
             currency = value.get("currency", "eur")
-            start_date = value.get(
-                "start_date",
-                f"{dateutil.utils.today().month}:{dateutil.utils.today().year}",
-            )
+            start_date = value.get("start_date", f"{dateutil.utils.today().month}:{dateutil.utils.today().year}",)
             confidence = value.get("confidence", 100)
             user = value.get("user")
             part = value.get("part", "0%")
@@ -693,14 +649,10 @@ class TaigaClient(Client):
                 )
 
             if duration < 1 or duration > 120:
-                raise j.exceptions.Validation(
-                    f"Duration: ({duration}) is not in range, please select it from 1 to 120"
-                )
+                raise j.exceptions.Validation(f"Duration: ({duration}) is not in range, please select it from 1 to 120")
 
             if not isinstance(amount, int):
-                raise j.exceptions.Validation(
-                    f"Amount: ({amount}) is not integer, please add int value"
-                )
+                raise j.exceptions.Validation(f"Amount: ({amount}) is not integer, please add int value")
 
             if currency.replace(" ", "").lower() not in [
                 "usd",
@@ -728,18 +680,14 @@ class TaigaClient(Client):
                 pass  # Will check what happen if start_date not provide
 
             if confidence % 10 != 0:
-                j.exceptions.Validation(
-                    f"Confidence: ({confidence}) not multiple of 10, it must be multiple of 10"
-                )
+                j.exceptions.Validation(f"Confidence: ({confidence}) not multiple of 10, it must be multiple of 10")
 
             part_tmp = part.replace("%", "")
             if user != None and user not in self.list_all_users():
                 raise j.exceptions.Validation(f"User: ({user}) is not found")
 
             if int(part_tmp) < 0 or int(part_tmp) > 100:
-                j.exceptions.Validation(
-                    f"Part: ({part}) is a not a valid percentage, it must be from 0% to 100%"
-                )
+                j.exceptions.Validation(f"Part: ({part}) is a not a valid percentage, it must be from 0% to 100%")
 
             if type not in ["revenue", "booking"]:
                 raise j.exceptions.Validation(
@@ -842,10 +790,7 @@ class TaigaClient(Client):
         return p
 
     def create_new_project_circle(
-        self,
-        name,
-        description="",
-        **attrs,
+        self, name, description="", **attrs,
     ):
         """Creates a new project circle.
 
@@ -1077,9 +1022,7 @@ class TaigaClient(Client):
             circle_md = circle.as_md
             circle_mdpath = j.sals.fs.join_paths(path, f"{circle.clean_name}.md")
             if not (
-                modified_only
-                and j.sals.fs.exists(circle_mdpath)
-                and j.sals.fs.read_ascii(circle_mdpath) == circle_md
+                modified_only and j.sals.fs.exists(circle_mdpath) and j.sals.fs.read_ascii(circle_mdpath) == circle_md
             ):
                 j.sals.fs.write_ascii(circle_mdpath, circle_md)
 
@@ -1090,9 +1033,7 @@ class TaigaClient(Client):
 
         j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
 
-        greenlets = [
-            gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles
-        ]
+        greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
         gevent.joinall(greenlets)
 
     def export_users_as_md(self, wikipath="/tmp/taigawiki", modified_only=True):
@@ -1112,11 +1053,7 @@ class TaigaClient(Client):
         def write_md_for_user(user):
             user_md = user.as_md
             user_mdpath = j.sals.fs.join_paths(path, f"{user.clean_name}.md")
-            if not (
-                modified_only
-                and j.sals.fs.exists(user_mdpath)
-                and j.sals.fs.read_ascii(user_mdpath) == user_md
-            ):
+            if not (modified_only and j.sals.fs.exists(user_mdpath) and j.sals.fs.read_ascii(user_mdpath) == user_md):
                 j.sals.fs.write_ascii(user_mdpath, user_md)
 
         for u in users_objects:
@@ -1124,9 +1061,7 @@ class TaigaClient(Client):
 
         j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
 
-        greenlets = [
-            gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects
-        ]
+        greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
         gevent.joinall(greenlets)
 
     def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only=True):
@@ -1158,9 +1093,7 @@ class TaigaClient(Client):
         j.sals.fs.copy_file(template_file, index_html_path)
         j.logger.info(f"Exported at {wiki_path}")
 
-    def export_as_md_periodically(
-        self, wiki_path="/tmp/taigawiki", period=300, modified_only=True
-    ):
+    def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period=300, modified_only=True):
         # gevent.event Event() used
         repeater = Event()
         while True:
@@ -1172,17 +1105,18 @@ class TaigaClient(Client):
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
         def _export_objects_to_dir(objects_dir, objects_fun):
             j.sals.fs.mkdirs(objects_dir)
-            try:
-                objects = objects_fun()
-                for obj in objects:
+            objects = objects_fun()
+            for obj in objects:
+                try:
                     outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
-                    with open(outpath, "w") as f:
-                        yaml.dump(obj.as_yaml, f)
-            except Exception as e:
-                import traceback
+                    j.sals.fs.write_ascii(outpath, obj.as_yaml)
 
-                traceback.print_exc()
-                j.logger.error(e)
+                except Exception as e:
+                    import traceback
+
+                    traceback.print_exc()
+                    j.logger.error(e)
+                    j.logger.error(f"{type(obj)}: {obj.id}")
 
         projects_path = j.sals.fs.join_paths(export_dir, "projects")
         stories_path = j.sals.fs.join_paths(export_dir, "stories")
@@ -1198,19 +1132,9 @@ class TaigaClient(Client):
         j.logger.info("Start Export as YAML")
 
         gs = []
-        gs.append(
-            gevent.spawn(
-                _export_objects_to_dir, projects_path, self.list_all_active_projects
-            )
-        )
-        gs.append(
-            gevent.spawn(
-                _export_objects_to_dir, stories_path, self.list_all_user_stories
-            )
-        )
-        gs.append(
-            gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues)
-        )
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects))
+        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
         # Milestones is not one of our model objects
         # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
         gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
@@ -1232,34 +1156,30 @@ class TaigaClient(Client):
         def import_circle(self, yaml_obj):
             circle = None
             # Funnel Circle
-            if yaml_obj["name"].lower() == "funnel":
+            if yaml_obj["basic_info"]["name"].lower() == "funnel":
                 circle = self.create_new_funnel_circle(
-                    yaml_obj["name"], yaml_obj["description"]
+                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
                 )
             # Team Circle
-            elif yaml_obj["name"].lower() == "team":
+            elif yaml_obj["basic_info"]["name"].lower() == "team":
                 circle = self.create_new_team_circle(
-                    yaml_obj["name"], yaml_obj["description"]
+                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
                 )
             # Project Circle
-            elif yaml_obj["name"].lower() == "project":
+            elif yaml_obj["basic_info"]["name"].lower() == "project":
                 circle = self.create_new_project_circle(
-                    yaml_obj["name"], yaml_obj["description"]
+                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
                 )
             # Any Other Circle
             else:
-                circle = self._create_new_circle(
-                    yaml_obj["name"], yaml_obj["description"]
-                )
-                circle.is_backlog_activated = yaml_obj["is_backlog_activated"]
-                circle.is_issues_activated = yaml_obj["is_issues_activated"]
-                circle.is_kanban_activated = yaml_obj["is_kanban_activated"]
-                circle.is_wiki_activated = yaml_obj["is_wiki_activated"]
+                circle = self._create_new_circle(yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],)
+                circle.is_backlog_activated = yaml_obj["modules"]["is_backlog_activated"]
+                circle.is_issues_activated = yaml_obj["modules"]["is_issues_activated"]
+                circle.is_kanban_activated = yaml_obj["modules"]["is_kanban_activated"]
+                circle.is_wiki_activated = yaml_obj["modules"]["is_wiki_activated"]
 
-            circle.is_private = yaml_obj["is_private"]
-            circle.videoconferences = yaml_obj["videoconferences"]
-            circle.total_milestones = yaml_obj["total_milestones"]
-            circle.total_story_points = yaml_obj["total_story_points"]
+            circle.is_private = yaml_obj["basic_info"]["is_private"]
+            circle.videoconferences = yaml_obj["modules"]["videoconferences"]
             for issue_attr in yaml_obj["issues_attributes"]:
                 circle.add_issue_attribute(issue_attr)
             for us_attr in yaml_obj["stories_attributes"]:
@@ -1267,18 +1187,16 @@ class TaigaClient(Client):
             return circle
 
         def import_story(circle_object, yaml_obj):
-            status_id = check_by_name(
-                circle_object.us_statuses, yaml_obj["status_extra_info"]["name"]
-            )
+            status_id = check_by_name(circle_object.us_statuses, yaml_obj["status"]["name"])
 
             story = circle_object.add_user_story(
-                yaml_obj.get("subject"),
-                tags=yaml_obj.get("tags"),
-                client_requirement=yaml_obj.get("client_requirement"),
-                description=yaml_obj.get("description", ""),
-                is_blocked=yaml_obj.get("is_blocked"),
-                team_requirement=yaml_obj.get("team_requirement"),
-                due_date=yaml_obj.get("due_date"),
+                yaml_obj["basic_info"].get("subject"),
+                tags=yaml_obj["basic_info"].get("tags"),
+                description=yaml_obj["basic_info"].get("description", ""),
+                client_requirement=yaml_obj["requirements"].get("client_requirement"),
+                team_requirement=yaml_obj["requirements"].get("team_requirement"),
+                is_blocked=yaml_obj["additional_info"].get("is_blocked"),
+                due_date=yaml_obj["date"].get("due_date"),
                 status=status_id,
             )
 
@@ -1290,13 +1208,17 @@ class TaigaClient(Client):
             return story
 
         def import_issue(circle_object, yaml_obj):
+            priority_id = check_by_name(circle_object.priorities, yaml_obj["priority"]["name"])
+            status_id = check_by_name(circle_object.issue_statuses, yaml_obj["status"]["name"])
+            type_id = check_by_name(circle_object.issue_types, yaml_obj["type"]["name"])
+            severity_id = check_by_name(circle_object.severities, yaml_obj["severity"]["name"])
             issue = circle_object.add_issue(
-                yaml_obj["subject"],
-                circle_object.priorities.get(name="Normal").id,
-                circle_object.issue_statuses.get(name="New").id,
-                circle_object.issue_types.get(name="Bug").id,
-                circle_object.severities.get(name="Normal").id,
-                description=yaml_obj.get("description"),
+                yaml_obj["basic_info"]["subject"],
+                priority_id,
+                status_id,
+                type_id,
+                severity_id,
+                description=yaml_obj["basic_info"].get("description"),
             )
 
             for field in yaml_obj["custom_fields"]:
@@ -1307,14 +1229,12 @@ class TaigaClient(Client):
             return issue
 
         def import_tasks(circle_object, story_object, yaml_obj):
-            status_id = check_by_name(
-                circle_object.task_statuses, yaml_obj["status_extra_info"]["name"]
-            )
+            status_id = check_by_name(circle_object.task_statuses, yaml_obj["status"]["name"])
             task = story_object.add_task(
-                yaml_obj.get("subject", "New_Task"),
+                yaml_obj["basic_info"].get("subject"),
                 status_id,
-                description=yaml_obj.get("description", ""),
-                tags=yaml_obj.get("tags"),
+                description=yaml_obj["basic_info"].get("description", ""),
+                tags=yaml_obj["basic_info"].get("tags"),
             )
             return task
 
@@ -1332,44 +1252,28 @@ class TaigaClient(Client):
                 with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
                     circle_yaml = yaml.full_load(pf)
                     circle_obj = import_circle(self, circle_yaml)
-                    j.logger.info(f"<Circle {circle_obj.id} Created")
+                    j.logger.info(f"<Circle {circle_obj.id} Created>")
 
-                    for story_id in circle_yaml["stories_id"]:
-                        with open(
-                            j.sals.fs.join_paths(stories_path, f"{story_id}.yaml")
-                        ) as sf:
+                    for story in circle_yaml["stories"]:
+                        with open(j.sals.fs.join_paths(stories_path, f"{story}.yaml")) as sf:
                             story_yaml = yaml.full_load(sf)
                             story_obj = import_story(circle_obj, story_yaml)
-                            j.logger.info(
-                                f"<Story {story_obj.id} Created in Circle {circle_obj.id}"
-                            )
+                            j.logger.info(f"<Story {story_obj.id} Created in Circle {circle_obj.id}>")
 
-                            for task_id in story_yaml["tasks_id"]:
-                                with open(
-                                    j.sals.fs.join_paths(tasks_path, f"{task_id}.yaml")
-                                ) as tf:
+                            for task in story_yaml["tasks"]:
+                                with open(j.sals.fs.join_paths(tasks_path, f"{task}.yaml")) as tf:
                                     task_yaml = yaml.full_load(tf)
-                                    task_obj = import_tasks(
-                                        circle_obj, story_obj, task_yaml
-                                    )
-                                    j.logger.info(
-                                        f"<Task {task_obj.id} Created in Story {story_obj.id}"
-                                    )
+                                    task_obj = import_tasks(circle_obj, story_obj, task_yaml)
+                                    j.logger.info(f"<Task {task_obj.id} Created in Story {story_obj.id}>")
                                     task_obj.update()
                             story_obj.update()
 
-                    for issue_id in circle_yaml["issues_id"]:
-                        with open(
-                            j.sals.fs.join_paths(issues_path, f"{issue_id}.yaml")
-                        ) as isf:
+                    for issue in circle_yaml["issues"]:
+                        with open(j.sals.fs.join_paths(issues_path, f"{issue}.yaml")) as isf:
                             issue_yaml = yaml.full_load(isf)
                             issue_obj = import_issue(circle_obj, issue_yaml)
-                            j.logger.info(
-                                f"<Issue {issue_obj.id} Created in Circle {circle_obj.id}"
-                            )
+                            j.logger.info(f"<Issue {issue_obj.id} Created in Circle {circle_obj.id}>")
                             issue_obj.update()
 
                     circle_obj.update()
-                    j.logger.info(
-                        f"<Circle {circle_obj.id} Imported with All Stories and Issues"
-                    )
+                    j.logger.info(f"<Circle {circle_obj.id} Imported with All Stories and Issues")

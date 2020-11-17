@@ -53,7 +53,7 @@ class CircleIssue(CircleResource):
         obj["basic_info"] = {
             "subject": self.subject,
             "id": self.id,
-            "description": self.description,
+            "description": self.description if hasattr(self, "description") else "",
             "tags": self.tags,
             "version": self.version,
             "url": self.url,
@@ -92,9 +92,7 @@ class CircleIssue(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [
-            f"({watcher.id}) {watcher.username}" for watcher in watchers_objects
-        ]
+        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
         obj["membership"] = {"owner": owner, "wathchers": wathchers}
 
         obj["statistics"] = {
@@ -107,7 +105,6 @@ class CircleIssue(CircleResource):
             "is_closed": self.is_closed,
             "is_voter": self.is_voter,
             "is_watcher": self.is_watcher,
-            "commnet": self.comment,
             "blocked_note": self.blocked_note,
         }
         return yaml.dump(obj)
@@ -144,7 +141,7 @@ class CircleStory(CircleResource):
             - **Watchers:** {{story.watchers or 'no watchers'}}
             {% if story.tasks %}
             - **Tasks**:
-                {% for task in story.circle_tasks %} 
+                {% for task in story.circle_tasks %}
                 - [**{{task.subject}}**]({{task.url}})
                 {% endfor %}
             {% endif %}
@@ -165,7 +162,7 @@ class CircleStory(CircleResource):
         obj["basic_info"] = {
             "subject": self.subject,
             "id": self.id,
-            "description": self.description,
+            "description": self.description if hasattr(self, "description") else "",
             "tags": self.tags,
             "version": self.version,
             "url": self.url,
@@ -193,9 +190,7 @@ class CircleStory(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [
-            f"({watcher.id}) {watcher.username}" for watcher in watchers_objects
-        ]
+        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
         obj["membership"] = {"owner": owner, "wathchers": wathchers}
         obj["requirements"] = {
             "client_requirement": self.client_requirement,
@@ -214,7 +209,6 @@ class CircleStory(CircleResource):
             "is_closed": self.is_closed,
             "is_voter": self.is_voter,
             "is_watcher": self.is_watcher,
-            "commnet": self.comment,
             "blocked_note": self.blocked_note,
             "generated_from_issue": self.generated_from_issue,
             "generated_from_task": self.generated_from_task,
@@ -271,7 +265,7 @@ class CircleTask(CircleResource):
         obj["basic_info"] = {
             "subject": self.subject,
             "id": self.id,
-            "description": self.description,
+            "description": self.description if hasattr(self, "description") else "",
             "tags": self.tags,
             "version": self.version,
             "url": self.url,
@@ -302,9 +296,7 @@ class CircleTask(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [
-            f"({watcher.id}) {watcher.username}" for watcher in watchers_objects
-        ]
+        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
         obj["membership"] = {"owner": owner, "wathchers": wathchers}
         obj["statistics"] = {
             "total_comments": self.total_comments,
@@ -316,7 +308,6 @@ class CircleTask(CircleResource):
             "is_closed": self.is_closed,
             "is_voter": self.is_voter,
             "is_watcher": self.is_watcher,
-            "commnet": self.comment,
             "blocked_note": self.blocked_note,
         }
         return yaml.dump(obj)
@@ -516,32 +507,20 @@ class Circle(CircleResource):
     @lru_cache(maxsize=128)
     def get_project_info(self):
 
-        prios = list(
-            map(lambda x: (str(x), x.id), self._original_object.list_priorities())
-        )
-        severities = list(
-            map(lambda x: (str(x), x.id), self._original_object.list_severities())
-        )
-        statuses = list(
-            map(lambda x: (str(x), x.id), self._original_object.list_issue_statuses())
-        )
-        issues_types = list(
-            map(lambda x: (str(x), x.id), self._original_object.list_issue_types())
-        )
+        prios = list(map(lambda x: (str(x), x.id), self._original_object.list_priorities()))
+        severities = list(map(lambda x: (str(x), x.id), self._original_object.list_severities()))
+        statuses = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_statuses()))
+        issues_types = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_types()))
 
         return f"prios: {prios}, severities: {severities}, issues_types: {issues_types}, statuses: {statuses}"
 
-    def create_issue(
-        self, subject, prio=None, status=None, issue_type=None, severity=None
-    ):
+    def create_issue(self, subject, prio=None, status=None, issue_type=None, severity=None):
         prio = prio or self._original_object.list_priorities()[0].id
         status = status or self._original_object.list_issue_statuses()[0].id
         severity = severity or self._original_object.list_severities()[0].id
         issue_type = issue_type or self._original_object.list_issue_types()[0].id
 
-        return self._original_object.add_issue(
-            subject, prio, status, issue_type, severity
-        )
+        return self._original_object.add_issue(subject, prio, status, issue_type, severity)
 
     def move_issue(self, issue, project):
         issue_id = issue
@@ -658,7 +637,7 @@ class Circle(CircleResource):
             "name": self.name,
             "slug": self.slug,
             "id": self.id,
-            "description": self.description,
+            "description": self.description if hasattr(self, "description") else "",
             "tags": self.tags,
             "is_private": self.is_private,
             "looking_for_people_note": self.looking_for_people_note,
@@ -681,12 +660,7 @@ class Circle(CircleResource):
             "email": self.owner["email"],
         }
         members = [
-            {
-                "username": member.username,
-                "id": member.id,
-                "role": self.roles.get(id=member.role).name,
-            }
-            for member in self.members
+            {"name": member.full_name, "id": member.id, "role": member.role_name,} for member in self.list_memberships()
         ]
         other_membership = {
             "i_am_owner": self.i_am_owner,
@@ -704,13 +678,9 @@ class Circle(CircleResource):
             "total_watchers": self.total_watchers,
         }
         obj["stories"] = [story.id for story in self.stories]
-        obj["stories_attributes"] = [
-            st_attr.name for st_attr in self.list_user_story_attributes()
-        ]
+        obj["stories_attributes"] = [st_attr.name for st_attr in self.list_user_story_attributes()]
         obj["issues"] = [issue.id for issue in self.issues]
-        obj["issues_attributes"] = [
-            issue_attr.name for issue_attr in self.list_issue_attributes()
-        ]
+        obj["issues_attributes"] = [issue_attr.name for issue_attr in self.list_issue_attributes()]
         return yaml.dump(obj)
 
 
@@ -725,9 +695,7 @@ class TeamCircle(Circle):
             if hasattr(self._original_object, "_original_object"):
                 return getattr(self._original_object._original_object, attr)
             else:
-                raise j.exceptions.Runtime(
-                    f"{attr} not found in {self} and not in {self._original_object}"
-                )
+                raise j.exceptions.Runtime(f"{attr} not found in {self} and not in {self._original_object}")
 
     def __str__(self):
         return f"<TeamCircle {self._original_object}>"
@@ -744,9 +712,7 @@ class FunnelCircle(Circle):
             if hasattr(self._original_object, "_original_object"):
                 return getattr(self._original_object._original_object, attr)
             else:
-                raise j.exceptions.Runtime(
-                    f"{attr} not found in {self} and not in {self._original_object}"
-                )
+                raise j.exceptions.Runtime(f"{attr} not found in {self} and not in {self._original_object}")
 
     def __str__(self):
         return f"<FunnelCircle {self._original_object}>"
@@ -763,9 +729,7 @@ class ProjectCircle(Circle):
             if hasattr(self._original_object, "_original_object"):
                 return getattr(self._original_object._original_object, attr)
             else:
-                raise j.exceptions.Runtime(
-                    f"{attr} not found in {self} and not in {self._original_object}"
-                )
+                raise j.exceptions.Runtime(f"{attr} not found in {self} and not in {self._original_object}")
 
     def __str__(self):
         return f"<ProjectCircle {self._original_object}>"
@@ -782,9 +746,7 @@ class ArchiveCircle(Circle):
             if hasattr(self._original_object, "_original_object"):
                 return getattr(self._original_object._original_object, attr)
             else:
-                raise j.exceptions.Runtime(
-                    f"{attr} not found in {self} and not in {self._original_object}"
-                )
+                raise j.exceptions.Runtime(f"{attr} not found in {self} and not in {self._original_object}")
 
     def __str__(self):
         return f"<ArchiveCircle {self._original_object}>"
