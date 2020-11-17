@@ -3,7 +3,7 @@ from jumpscale.loader import j
 from redis import Redis
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
-
+from time import sleep
 
 @pytest.mark.integration
 class TFGridSolutionChatflows(ChatflowsBase):
@@ -57,6 +57,13 @@ class TFGridSolutionChatflows(ChatflowsBase):
         j.clients.sshclient.delete(self.ssh_client_name)
         super().tearDown()
 
+    def wait(self, ip, port, timeout):
+        for _ in range(timeout):
+            if j.sals.nettools.tcp_connection_test(ip, port, timeout=1):
+                return True
+            sleep(1)
+        return False
+
     def test01_ubuntu(self):
         """Test case for deploying Ubuntu.
 
@@ -72,7 +79,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Ubuntu is reachable.")
         self.assertTrue(
-            j.sals.nettools.tcp_connection_test(ubuntu.ip_address, port=22, timeout=self.deployment_timeout),
+            self.wait(ubuntu.ip_address, port=22, timeout=self.deployment_timeout),
             f"Ubuntu is not reached after {self.deployment_timeout} second",
         )
 
@@ -107,7 +114,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = kubernetes.solution_id
         self.info("Check that kubernetes is reachable.")
         self.assertTrue(
-            j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=self.deployment_timeout),
+            self.wait(kubernetes.ip_addresses[0], port=22, timeout=self.deployment_timeout),
             f"master is not reached after {self.deployment_timeout} second",
         )
 
@@ -144,7 +151,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Minio is reachable.")
         self.assertTrue(
-            j.sals.nettools.tcp_connection_test(minio.ip_addresses[0], port=9000, timeout=self.deployment_timeout),
+            self.wait(minio.ip_addresses[0], port=9000, timeout=self.deployment_timeout),
             f"minio is not reached after {self.deployment_timeout} second",
         )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=self.timeout)
@@ -173,12 +180,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Grafana UI is reachable.")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
+        self.assertEqual(request.status_code, 403)
         self.assertIn("login", request.content.decode())
 
         self.info("Check that Redis is reachable.")
         self.assertTrue(
-            j.sals.nettools.tcp_connection_test(monitoring.ip_addresses[0], port=6379, timeout=self.deployment_timeout),
+            self.wait(monitoring.ip_addresses[0], port=6379, timeout=self.deployment_timeout),
             f"redis is not reached after {self.deployment_timeout} second",
         )
         redis = Redis(host=monitoring.ip_addresses[0])
