@@ -1,6 +1,6 @@
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
-from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.loader import j
 import gevent
@@ -107,7 +107,45 @@ class VDCProxy(VDCBaseComponent):
             gevent.sleep(3)
         return False
 
-    def reserve_subdomain(self, gateway, prefix, vdc_uuid, pool_id=None, ip_address=None):
+    def check_subdomain_existence(self, subdomain, workloads=None):
+        self.vdc_deployer.info(f"checking the ownership of subdomain {subdomain}")
+        workloads = workloads or self.zos.workloads.list(self.identity.tid, NextAction.DEPLOY)
+        # get the latest workload that represents this domain
+        old_workloads = []
+        latest_domain_workload = None
+        for workload in workloads:
+            if workload.info.workload_type != WorkloadType.Subdomain:
+                continue
+            if workload.domain != subdomain:
+                continue
+            old_workloads.append(workload)
+            latest_domain_workload = workload
+        if len(old_workloads) > 1:
+            old_workloads.pop(-1)
+            self.vdc_deployer.info(
+                f"cancelling old workloads for subdomain: {subdomain} wids: {[workload.id for workload in old_workloads]}"
+            )
+            for workload in old_workloads:
+                self.zos.decomission(workload.id)
+            for workload in old_workloads:
+                deployer.wait_workload_deletion(workload.id, identity_name=self.identity.instance_name)
+        return latest_domain_workload
+
+    def verify_subdomain(self, subdomain_workload, addresses=None):
+        gateway = self.explorer.gateway.get(subdomain_workload.info.node_id)
+        addresses = addresses or self.get_gateway_addresses(gateway)
+        self.vdc_deployer.info(
+            f"verifying subdomain workload: {subdomain_workload.id} ips: {subdomain_workload.ips} matching addresses {addresses}"
+        )
+        if set(addresses.sort()) == set(subdomain_workload.ips.sort()):
+            self.vdc_deployer.info(f"subdomain {subdomain_workload.id} matching addresses {addresses}")
+            return True
+        self.vdc_deployer.info(f"cancelling subdomain workload {subdomain_workload.id}")
+        self.zos.workloads.decomission(subdomain_workload.id)
+        deployer.wait_workload_deletion(subdomain_workload.id, identity_name=self.identity.instance_name)
+        return False
+
+    def reserve_subdomain(self, gateway, prefix, vdc_uuid, pool_id=None, ip_address=None, exposed_wid=None):
         """
         it will try to create a working subdomain on any of the available managed domain of the gateway
         Args:
@@ -119,6 +157,9 @@ class VDCProxy(VDCBaseComponent):
             subdomain
             workload id
         """
+        desc = j.data.serializers.json.loads(self.vdc_deployer.description)
+        desc["exposed_wid"] = exposed_wid
+        desc = j.data.serializers.json.dumps(desc)
         pool_id = pool_id or self.get_gateway_pool_id()
         if not pool_id:
             return None
@@ -128,11 +169,26 @@ class VDCProxy(VDCBaseComponent):
             self.vdc_deployer.info(f"reserving subdomain of {managed_domain}")
             subdomain = f"{prefix}.{managed_domain}"
             addresses = None
-            # check availability of the subdomain
 
+            # check availability of the subdomain
             if self.check_domain_availability(subdomain):
-                self.vdc_deployer.error(f"subdomain {subdomain} already exists")
-                continue
+                self.vdc_deployer.info(f"subdomain {subdomain} already exists")
+                # check if the subdomain is owned by me
+                self.vdc_deployer.info(f"checking if subdomain {subdomain} is owned by identity {self.identity.tid}")
+                subdomain_workload = self.check_subdomain_existence(subdomain)
+                if not subdomain_workload:
+                    # subdomain is not mine, get a new one
+                    self.vdc_deployer.error(
+                        f"subdomain {subdomain} exists and not owned by vdc identity {self.identity.tid}"
+                    )
+                    continue
+                # verify the subdomain is pointing to the correct address or cancel it
+                valid = self.verify_subdomain(subdomain_workload, addresses)
+                if valid:
+                    # use the subdomain
+                    yield subdomain, subdomain_workload.id
+                    # check the next managed domain
+                    continue
 
             if ip_address:
                 addresses = [ip_address]
@@ -159,6 +215,8 @@ class VDCProxy(VDCBaseComponent):
                 addresses,
                 identity_name=self.identity.instance_name,
                 solution_uuid=vdc_uuid,
+                exposed_wid=exposed_wid,
+                description=desc,
             )
             try:
                 success = deployer.wait_workload(wid, bot=self.bot, identity_name=self.identity.instance_name)
@@ -181,19 +239,23 @@ class VDCProxy(VDCBaseComponent):
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
         scheduler = scheduler or Scheduler(self.farm_name)
-        self.vdc_deployer.info(f"proxy container {wid} port {port} pool: {pool_id}")
         workload = self.zos.workloads.get(wid)
         if workload.info.workload_type != WorkloadType.Container:
             raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
 
         pool_id = pool_id or workload.info.pool_id
-
         ip_address = workload.network_connection[0].ipaddress
+        self.vdc_deployer.info(f"proxy container {wid} ip: {ip_address} port: {port} pool: {pool_id}")
         gateways = self.fetch_myfarm_gateways()
         random.shuffle(gateways)
         gateway_pool_id = self.get_gateway_pool_id()
+        desc = j.data.serializers.json.loads(self.vdc_deployer.description)
+        desc["exposed_wid"] = wid
+        desc = j.data.serializers.json.dumps(desc)
         for gateway in gateways:
-            for subdomain, subdomain_id in self.reserve_subdomain(gateway, prefix, vdc_uuid, gateway_pool_id):
+            for subdomain, subdomain_id in self.reserve_subdomain(
+                gateway, prefix, vdc_uuid, gateway_pool_id, exposed_wid=wid
+            ):
                 cont_id = None
                 proxy_id = None
                 for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
@@ -216,8 +278,10 @@ class VDCProxy(VDCBaseComponent):
                             solution_uuid=vdc_uuid,
                             secret=secret,
                             node_id=node.node_id,
-                            wid=wid,
+                            exposed_wid=wid,
                             identity_name=self.identity.instance_name,
+                            public_key=self.vdc_deployer.ssh_key.public_key.strip(),
+                            description=desc,
                         )
                         success = deployer.wait_workload(cont_id, self.bot, identity_name=self.identity.instance_name)
                         if not success:
@@ -227,7 +291,7 @@ class VDCProxy(VDCBaseComponent):
                             # container only failed. no need to decomission subdomain
                             self.zos.workloads.decomission(proxy_id)
                             continue
-                        return cont_id
+                        return subdomain
                     except DeploymentFailed:
                         self.vdc_deployer.error(
                             f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"

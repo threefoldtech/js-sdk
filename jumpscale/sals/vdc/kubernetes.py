@@ -38,7 +38,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             no_nodes,
         )
 
-    def _deploy_master(self, pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid, network_view):
+    def _deploy_master(
+        self, pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, solution_uuid, network_view
+    ):
         master_ip = None
         # deploy_master
         while not master_ip:
@@ -86,7 +88,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "kubernetes"},
                 name=self.vdc_name,
-                solution_uuid=vdc_uuid,
+                solution_uuid=solution_uuid,
+                description=self.vdc_deployer.description,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
@@ -165,7 +168,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         k8s_size_dict,
         cluster_secret,
         ssh_keys,
-        vdc_uuid,
+        solution_uuid,
         network_view,
         master_ip,
         no_nodes,
@@ -201,7 +204,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         identity_name=self.identity.instance_name,
                         form_info={"chatflow": "kubernetes"},
                         name=self.vdc_name,
-                        solution_uuid=vdc_uuid,
+                        solution_uuid=solution_uuid,
+                        description=self.vdc_deployer.description,
                     )
                 )
             for wid in result:

@@ -10,11 +10,11 @@ from .base_component import VDCBaseComponent
 
 
 class VDCS3Deployer(VDCBaseComponent):
-    def deploy_s3_minio_container(self, pool_id, ak, sk, ssh_key, scheduler, zdb_wids, vdc_uuid):
+    def deploy_s3_minio_container(self, pool_id, ak, sk, ssh_key, scheduler, zdb_wids, solution_uuid, password):
         zdb_configs = []
         self.vdc_deployer.info(f"deploying minio for zdbs: {zdb_wids}")
         for zid in zdb_wids:
-            zdb_configs.append(deployer.get_zdb_url(zid, vdc_uuid, identity_name=self.identity.instance_name))
+            zdb_configs.append(deployer.get_zdb_url(zid, password, identity_name=self.identity.instance_name))
         self.vdc_deployer.info(f"zdb_configs: {zdb_configs}")
 
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
@@ -58,7 +58,8 @@ class VDCS3Deployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "minio"},
                 name=self.vdc_name,
-                solution_uuid=vdc_uuid,
+                solution_uuid=solution_uuid,
+                description=self.vdc_deployer.description,
             )
             wid = result[0]
             try:
@@ -72,7 +73,7 @@ class VDCS3Deployer(VDCBaseComponent):
                 continue
         self.vdc_deployer.error("no nodes available to deploy minio container")
 
-    def deploy_s3_zdb(self, pool_id, scheduler, storage_per_zdb, password, vdc_uuid):
+    def deploy_s3_zdb(self, pool_id, scheduler, storage_per_zdb, password, solution_uuid):
         deployment_nodes = []
         wids = []
         for node in scheduler.nodes_by_capacity(sru=math.ceil(storage_per_zdb), ip_version="IPv6"):
@@ -94,8 +95,9 @@ class VDCS3Deployer(VDCBaseComponent):
                         password=password,
                         form_info={"chatflow": "minio"},
                         name=self.vdc_name,
-                        solution_uuid=vdc_uuid,
+                        solution_uuid=solution_uuid,
                         identity_name=self.identity.instance_name,
+                        description=self.vdc_deployer.description,
                     )
                 )
             for wid in result:

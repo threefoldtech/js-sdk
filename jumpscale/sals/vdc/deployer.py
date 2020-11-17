@@ -36,6 +36,7 @@ class VDCDeployer:
         self._ssh_key = None
         self._log_format = f"VDC: {self.vdc_name}: {{}}"
         self.proxy_farm_name = proxy_farm_name
+        self.description = ""
 
     @property
     def kubernetes(self):
@@ -184,6 +185,7 @@ class VDCDeployer:
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
         vdc_uuid = uuid.uuid4().hex
+        self.description = j.data.serializers.json.dumps({"vdc_uuid": vdc_uuid})
         self.info(f"vdc uuid: {vdc_uuid}")
         scheduler = Scheduler(farm_name)
         size_dict = VDC_FLAFORS[flavor]
@@ -207,7 +209,7 @@ class VDCDeployer:
             vdc_uuid,
         )
         threads.append(k8s_thread)
-        zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, vdc_uuid, vdc_uuid)
+        zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, self.password, vdc_uuid)
         threads.append(zdb_thread)
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
@@ -225,7 +227,7 @@ class VDCDeployer:
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
-            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid
+            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid, self.password
         )
         if not minio_wid:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
@@ -236,22 +238,23 @@ class VDCDeployer:
             )
             return False
 
+        trc_secret = uuid.uuid4().hex
         minio_api_prefix = f"s3-{self.vdc_name}-{self.tname}"
-        minio_api_wid = self.proxy.proxy_container(
-            prefix=minio_api_prefix, wid=minio_wid, port=9000, vdc_uuid=vdc_uuid, pool_id=pool_id, secret=self.password,
+        minio_api_subdomain = self.proxy.proxy_container(
+            prefix=minio_api_prefix, wid=minio_wid, port=9000, vdc_uuid=vdc_uuid, pool_id=pool_id, secret=trc_secret,
         )
 
         minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
-        minio_healing_wid = self.proxy.proxy_container(
+        minio_healing_subdomain = self.proxy.proxy_container(
             prefix=minio_healing_prefix,
             wid=minio_wid,
             port=9010,
             vdc_uuid=vdc_uuid,
             pool_id=pool_id,
-            secret=self.password,
+            secret=f"healing{trc_secret}",
         )
 
-        if not minio_api_wid or not minio_healing_wid:
+        if not minio_api_subdomain or not minio_healing_subdomain:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
             solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
             nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
@@ -267,12 +270,14 @@ class VDCDeployer:
         # config_dict = j.data.serializers.yaml.loads(kube_config)
         # config_dict["server"] = f"https://{master_ip}:6443"
 
-        vdc_instance = VDCFACTORY.get(self.vdc_name)
+        vdc_instance = VDCFACTORY.get(f"vdc_{self.tname}_{self.vdc_name}")
         vdc_instance.vdc_name = self.vdc_name
         vdc_instance.solution_uuid = vdc_uuid
         vdc_instance.owner_tname = self.tname
         vdc_instance.identity_tid = self.identity.tid
         vdc_instance.flavor = flavor
+        # vdc_instance.s3.subdomain = minio_api_subdomain
+        # vdc_instance.s3.healing_subdomain = minio_healing_subdomain
         vdc_instance.save()
 
         # return j.data.serializers.yaml.dumps(config_dict)
