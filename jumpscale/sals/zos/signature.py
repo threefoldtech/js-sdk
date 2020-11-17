@@ -159,6 +159,7 @@ def _k8s_challenge(k8s):
         b.write(str(ip))
     for key in k8s.ssh_keys:
         b.write(key)
+    b.write(str(k8s.public_ip))
     return b.getvalue()
 
 

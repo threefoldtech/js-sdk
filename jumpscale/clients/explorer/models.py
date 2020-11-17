@@ -409,6 +409,7 @@ class K8s(Base):
     cluster_secret = fields.String(default="")
     master_ips = fields.List(fields.IPAddress())
     ssh_keys = fields.List(fields.String())
+    public_ip = fields.Integer()
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
 
