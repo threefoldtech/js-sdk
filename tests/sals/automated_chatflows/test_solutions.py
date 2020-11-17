@@ -105,7 +105,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = kubernetes.solution_id
-
         self.info("Check that kubernetes is reachable.")
         self.assertTrue(
             j.sals.nettools.tcp_connection_test(kubernetes.ip_addresses[0], port=22, timeout=self.deployment_timeout),
@@ -174,7 +173,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Grafana UI is reachable.")
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 403)
+        self.assertEqual(request.status_code, 200)
         self.assertIn("login", request.content.decode())
 
         self.info("Check that Redis is reachable.")
