@@ -49,4 +49,32 @@ def get_stats():
     return results
 
 
+@app.route("/api/total_tft")
+def total_tft():
+    query_params = request.query.decode()
+    network = query_params.get("network", "public")
+    tokencode = query_params.get("tokencode", "TFT")
+    detailed = j.data.serializers.json.loads(query_params.get("detailed", "false"))
+
+    collector = StatisticsCollector(network)
+    stats = collector.getstatistics(tokencode, detailed)
+
+    return f"{stats['total']:,.7f}"
+
+
+@app.route("/api/total_unlocked_tft")
+def total_tft():
+    query_params = request.query.decode()
+    network = query_params.get("network", "public")
+    tokencode = query_params.get("tokencode", "TFT")
+    detailed = j.data.serializers.json.loads(query_params.get("detailed", "false"))
+
+    collector = StatisticsCollector(network)
+    stats = collector.getstatistics(tokencode, detailed)
+    total_tft = stats["total"]
+    total_locked_tft = stats["total_locked"]
+    total_unlocked_tft = total_tft - total_locked_tft
+    return f"{total_unlocked_tft:,.7f}"
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
