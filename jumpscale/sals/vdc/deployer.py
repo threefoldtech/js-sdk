@@ -10,16 +10,28 @@ from .s3 import VDCS3Deployer
 from .kubernetes import VDCKubernetesDeployer
 from .models import VDCFACTORY
 import hashlib
+from jumpscale.sals.kubernetes import Manager
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
 PREFERED_FARM = "freefarm"
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
+MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
 
 
 class VDCDeployer:
-    def __init__(self, vdc_name, tname, password, email, wallet_name=None, bot=None, proxy_farm_name=None):
+    def __init__(
+        self,
+        vdc_name,
+        tname,
+        password,
+        email,
+        wallet_name=None,
+        bot=None,
+        proxy_farm_name=None,
+        mgmt_kube_config_path=None,
+    ):
         self.vdc_name = vdc_name
         self.tname = j.data.text.removesuffix(tname, ".3bot")
         self.bot = bot
@@ -36,7 +48,24 @@ class VDCDeployer:
         self._ssh_key = None
         self._log_format = f"VDC: {self.vdc_name}: {{}}"
         self.proxy_farm_name = proxy_farm_name
+        self.mgmt_kube_config_path = mgmt_kube_config_path
+        self._vdc_k8s_manager = None
+        self._mgmt_k8s_manager = None
         self.description = ""
+
+    @property
+    def mgmt_k8s_manager(self):
+        if not self._mgmt_k8s_manager:
+            config_path = self.mgmt_kube_config_path or j.core.config.get("VDC_MGMT_KUBE_CONFIG")
+            self._mgmt_k8s_manager = Manager(config_path)
+        return self._mgmt_k8s_manager
+
+    @property
+    def vdc_k8s_manager(self):
+        if not self._vdc_k8s_manager:
+            config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
+            self._vdc_k8s_manager = Manager(config_path)
+        return self._vdc_k8s_manager
 
     @property
     def kubernetes(self):
@@ -271,6 +300,9 @@ class VDCDeployer:
         # config_dict["server"] = f"https://{master_ip}:6443"
 
         minio_prometheus_job = self.s3.get_minio_prometheus_job(vdc_uuid, minio_api_subdomain)
+
+        self.mgmt_k8s_manager.add_helm_repo("marketplace", MARKETPLACE_HELM_REPO_URL)
+        self.mgmt_k8s_manager.install_chart(f"vdc_3bot_{vdc_uuid}", "3bot")  # TODO: add kwargs
 
         vdc_instance = VDCFACTORY.get(f"vdc_{self.tname}_{self.vdc_name}")
         vdc_instance.vdc_name = self.vdc_name

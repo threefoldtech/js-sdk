@@ -59,7 +59,7 @@ class Manager:
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name):
+    def install_chart(self, release, chart_name, **kwrags):
         """deployes a helm chart
 
         Args:
@@ -72,7 +72,13 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} install {release} {chart_name}")
+        params = ""
+        for key, arg in kwrags.items():
+            params += f" --set {key}={arg}"
+
+        rc, out, err = j.sals.process.execute(
+            f"helm --kubeconfig {self.config_path} install {release} {chart_name} {params}"
+        )
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
         return out
