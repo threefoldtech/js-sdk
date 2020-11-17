@@ -54,27 +54,44 @@ def total_tft():
     query_params = request.query.decode()
     network = query_params.get("network", "public")
     tokencode = query_params.get("tokencode", "TFT")
-    detailed = j.data.serializers.json.loads(query_params.get("detailed", "false"))
+
+    # cache the request in local redis
+    redis = j.clients.redis.get("redis_instance")
+    cached_data = redis.get(f"{network}-{tokencode}-total_tft")
+    if cached_data:
+        return cached_data
 
     collector = StatisticsCollector(network)
-    stats = collector.getstatistics(tokencode, detailed)
+    stats = collector.getstatistics(tokencode, False)
 
-    return f"{stats['total']:,.7f}"
+    total = stats["total"]
+    redis.set(f"{network}-{tokencode}-total_tft", total, ex=600)
+    return f"{total}"
+    # return f"{stats['total']:,.7f}"
 
 
 @app.route("/api/total_unlocked_tft")
-def total_tft():
+def total_unlocked_tft():
     query_params = request.query.decode()
     network = query_params.get("network", "public")
     tokencode = query_params.get("tokencode", "TFT")
-    detailed = j.data.serializers.json.loads(query_params.get("detailed", "false"))
+
+    # cache the request in local redis
+    redis = j.clients.redis.get("redis_instance")
+    cached_data = redis.get(f"{network}-{tokencode}-total_unlocked_tft")
+    if cached_data:
+        return cached_data
 
     collector = StatisticsCollector(network)
-    stats = collector.getstatistics(tokencode, detailed)
+    stats = collector.getstatistics(tokencode, False)
+
     total_tft = stats["total"]
     total_locked_tft = stats["total_locked"]
     total_unlocked_tft = total_tft - total_locked_tft
-    return f"{total_unlocked_tft:,.7f}"
+
+    redis.set(f"{network}-{tokencode}-total_unlocked_tft", total_unlocked_tft, ex=600)
+    return f"{total_unlocked_tft}"
+    # return f"{total_unlocked_tft:,.7f}"
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
