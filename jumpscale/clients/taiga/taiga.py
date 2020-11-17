@@ -801,10 +801,7 @@ class TaigaClient(Client):
         Returns:
             [ProjectCircle]: Project circle
         """
-        # is a circle starting with name: PROJECT_
-        # is structured as kanban
-        # its a task management system for managing a project, not people
-        # there are no custom fields
+
         attrs = {
             "is_backlog_activated": False,
             "is_issues_activated": True,
@@ -871,11 +868,6 @@ class TaigaClient(Client):
             [TeamCircle]: team circle
         """
 
-        # starts with TEAM_ ...
-        # represents a group of people working together on aligned journey
-        # is using sprints & timeline (does not use kanban)
-        # no custom fields
-        # see the TEMPLATE_TEAM as example on circles.threefold.me
         attrs = {
             "is_backlog_activated": True,
             "is_issues_activated": True,
@@ -942,27 +934,6 @@ class TaigaClient(Client):
             "is_private": False,
             "is_wiki_activated": True,
         }
-
-        # #issue
-        # New
-        # Interested
-        # Deal (means moved to story)
-        # Blocked / Need Info (something to be done to ublock)
-        # Lost
-        # Postponed
-        # Won
-        # # story (is a deal)
-        # New (means is a deal, we need to make a proposal, or customer said yes so we can continue)
-        # Proposal
-        # Contract
-        # Blocked / Need Info (something to be done to ublock)
-        # Project (once project, will go out of funnel and will be dealt with as a PROJECT_ ...) = closed
-        # # item (is a task or checklist on the story)
-        # New
-        # In progress
-        # Verification
-        # Closed
-        # Needs info
 
         severities = ["unknown", "low", "25%", "50%", "75%", "90%"]
         priorities = ["Low", "Normal", "High"]
@@ -1064,11 +1035,12 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
         gevent.joinall(greenlets)
 
-    def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only=True):
+    def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only: bool = True):
         """export taiga instance into a wiki  showing users and circles
 
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+            modified_only (bool): write modified objects only. Defaults to True
         """
         j.logger.info("Start Exporting Wiki ...")
         gs = []
@@ -1093,8 +1065,14 @@ class TaigaClient(Client):
         j.sals.fs.copy_file(template_file, index_html_path)
         j.logger.info(f"Exported at {wiki_path}")
 
-    def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period=300, modified_only=True):
-        # gevent.event Event() used
+    def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period: int = 300, modified_only: bool = True):
+        """export taiga instance into a wiki  showing users and circles periodically
+
+        Args:
+            wiki_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+            period (int): Time to wait between each export in "Seconds". Defaults to 300 (5 Min).
+            modified_only (bool): write modified objects only.. Defaults to True.
+        """
         repeater = Event()
         while True:
             j.logger.info("Start Exporting ....")
@@ -1103,6 +1081,12 @@ class TaigaClient(Client):
             repeater.wait(period)
 
     def export_as_yaml(self, export_dir="/tmp/export_dir"):
+        """export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+
+        Args:
+            export_dir (str, optional): [description]. Defaults to "/tmp/export_dir".
+        """
+
         def _export_objects_to_dir(objects_dir, objects_fun):
             j.sals.fs.mkdirs(objects_dir)
             objects = objects_fun()
@@ -1144,7 +1128,11 @@ class TaigaClient(Client):
         j.logger.info("Finish Export as YAML")
 
     def import_from_yaml(self, import_dir="/tmp/export_dir"):
+        """Import Circle with all stories, issues and tasks from yaml files
 
+        Args:
+            import_dir (str): import directory path. Defaults to "/tmp/export_dir".
+        """
         # Helper Functions
         def check_by_name(list_obj, name_to_find):
             for obj in list_obj:

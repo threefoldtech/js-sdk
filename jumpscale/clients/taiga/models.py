@@ -31,12 +31,12 @@ class CircleIssue(CircleResource):
     def as_md(self):
         TEMPLATE = dedent(
             """
-            '**Subject:** [{{issue.subject}}]({{issue.url}})
-            '**Created Date:** {{issue.created_date or 'unknown' }}
-            '**Due Date:** {{issue.due_date or 'unknown' }}
-            '**Owner Name:** {{issue.owner_extra_info.get('username', 'unknown')}}
-            '**Owner Email:** {{issue.owner_extra_info.get('email', 'unknown')}}
-            '**Project:** {{issue.project_extra_info.get('name', 'unknown')}}
+            - **Subject:** [{{issue.subject}}]({{issue.url}})
+            - **Created Date:** {{issue.created_date or 'unknown' }}
+            - **Due Date:** {{issue.due_date or 'unknown' }}
+            - **Owner Name:** {{issue.owner_extra_info.get('username', 'unknown')}}
+            - **Owner Email:** {{issue.owner_extra_info.get('email', 'unknown')}}
+            - **Project:** {{issue.project_extra_info.get('name', 'unknown')}}
             """
         )
         return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
@@ -92,8 +92,8 @@ class CircleIssue(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
-        obj["membership"] = {"owner": owner, "wathchers": wathchers}
+        watchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
+        obj["membership"] = {"owner": owner, "watchers": watchers}
 
         obj["statistics"] = {
             "total_voters": self.total_voters,
@@ -190,8 +190,8 @@ class CircleStory(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
-        obj["membership"] = {"owner": owner, "wathchers": wathchers}
+        watchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
+        obj["membership"] = {"owner": owner, "watchers": watchers}
         obj["requirements"] = {
             "client_requirement": self.client_requirement,
             "team_requirement": self.team_requirement,
@@ -296,8 +296,8 @@ class CircleTask(CircleResource):
             "email": self.owner_extra_info["email"],
         }
         watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
-        wathchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
-        obj["membership"] = {"owner": owner, "wathchers": wathchers}
+        watchers = [f"({watcher.id}) {watcher.username}" for watcher in watchers_objects]
+        obj["membership"] = {"owner": owner, "watchers": watchers}
         obj["statistics"] = {
             "total_comments": self.total_comments,
             "total_voters": self.total_voters,
@@ -627,11 +627,6 @@ class Circle(CircleResource):
 
     @property
     def as_yaml(self):
-        """Convert object to YAML and export it to a fileo
-
-        Returns:
-            [yaml]: [YAML Dumped data]
-        """
         obj = {}
         obj["basic_info"] = {
             "name": self.name,
