@@ -270,14 +270,14 @@ class VDCDeployer:
         # config_dict = j.data.serializers.yaml.loads(kube_config)
         # config_dict["server"] = f"https://{master_ip}:6443"
 
+        minio_prometheus_job = self.s3.get_minio_prometheus_job(vdc_uuid, minio_api_subdomain)
+
         vdc_instance = VDCFACTORY.get(f"vdc_{self.tname}_{self.vdc_name}")
         vdc_instance.vdc_name = self.vdc_name
         vdc_instance.solution_uuid = vdc_uuid
         vdc_instance.owner_tname = self.tname
         vdc_instance.identity_tid = self.identity.tid
         vdc_instance.flavor = flavor
-        # vdc_instance.s3.subdomain = minio_api_subdomain
-        # vdc_instance.s3.healing_subdomain = minio_healing_subdomain
         vdc_instance.save()
 
         # return j.data.serializers.yaml.dumps(config_dict)
