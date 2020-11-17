@@ -121,7 +121,7 @@ class Farms(BaseResource):
         return True
 
     def add_public_ips(self, farm_id, public_ips):
-        self._session.post(f"{self._url}/ip/{farm_id}", json=public_ips)
+        self._session.post(f"{self._url}/{farm_id}/ip", json=public_ips)
 
     def remove_public_ips(self, farm_id, public_ips):
-        self._session.delete(f"{self._url}/ip/{farm_id}", json=public_ips)
+        self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
