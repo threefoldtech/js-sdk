@@ -67,7 +67,6 @@ def total_tft():
     total = stats["total"]
     redis.set(f"{network}-{tokencode}-total_tft", total, ex=600)
     return f"{total}"
-    # return f"{stats['total']:,.7f}"
 
 
 @app.route("/api/total_unlocked_tft")
@@ -91,7 +90,6 @@ def total_unlocked_tft():
 
     redis.set(f"{network}-{tokencode}-total_unlocked_tft", total_unlocked_tft, ex=600)
     return f"{total_unlocked_tft}"
-    # return f"{total_unlocked_tft:,.7f}"
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
