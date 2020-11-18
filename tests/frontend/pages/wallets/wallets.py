@@ -76,6 +76,8 @@ class Wallets(Base):
         return wallets
 
         
+
+        
     def get_secret(self, name):
         wallets = self.list()
         for wallet in wallets.keys():

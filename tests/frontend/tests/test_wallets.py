@@ -64,6 +64,7 @@ class WalletTests(BaseTest):
         self.assertNotIn(wallet_name, all_wallets.keys())
 
 
+
     def test_import_wallet(self):
         """Test case for importing a wallet and deleting it.
 
