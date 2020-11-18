@@ -87,6 +87,8 @@ class WalletTests(BaseTest):
 
 
 
+
+
         self.info("Import deleted wallet")
         wallets.import_(name=wallet_name, secret=wallet_secret, network="TEST")
 
