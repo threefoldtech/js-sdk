@@ -40,6 +40,18 @@ class Manager:
         self.config_path = config_path
 
     @helm_required
+    def update_repos(self):
+        """Update helm repos
+
+        Returns:
+            str: output of the helm command
+        """
+        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} repo update")
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to update repos error was {err}")
+        return out
+
+    @helm_required
     def add_helm_repo(self, name, url):
         """Add helm repo
 
@@ -59,12 +71,13 @@ class Manager:
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name, **kwrags):
+    def install_chart(self, release, chart_name, extra_config=None):
         """deployes a helm chart
 
         Args:
             release (str): name of the relase to be deployed
             chart_name (str): the name of the chart you need to deploy
+            extra_config: dict containing extra paramters passed to install command with --set
 
         Raises:
             j.exceptions.Runtime: in case the helm command failed to execute
@@ -72,8 +85,9 @@ class Manager:
         Returns:
             str: output of the helm command
         """
+        extra_config = extra_config or {}
         params = ""
-        for key, arg in kwrags.items():
+        for key, arg in extra_config.items():
             params += f" --set {key}={arg}"
 
         rc, out, err = j.sals.process.execute(
@@ -100,6 +114,25 @@ class Manager:
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
         return out
+
+    @helm_required
+    def list_deployed_releases(self):
+        """list deployed helm releases
+
+        Returns:
+            list: output of the helm command as dicts
+        """
+        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} list -o json")
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
+        return out
+
+    @helm_required
+    def get_deployed_release(self, release_name):
+        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} get values {release_name}")
+        if rc != 0:
+            return None
+        return j.data.serializers.yaml.loads(out)
 
     @helm_required
     def execute_native_cmd(self, cmd):

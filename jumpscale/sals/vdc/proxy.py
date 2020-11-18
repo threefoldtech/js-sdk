@@ -31,14 +31,17 @@ class VDCProxy(VDCBaseComponent):
                     continue
                 if not gateway.dns_nameserver:
                     continue
+                if not gateway.farm_id:
+                    continue
                 farm_id = gateway.farm_id
                 try:
                     farm = self.explorer.farms.get(farm_id)
                     self._farm_name = farm.name
-                    break
+                    return self._farm_name
                 except Exception as e:
                     self.vdc_deployer.error(f"failed to fetch farm with id {farm_id} due to error {str(e)}")
                     continue
+            raise j.exceptions.Runtime("couldn't find any running gateway")
 
         return self._farm_name
 

@@ -36,6 +36,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         if not currencies:
             currencies = ["TFT"]
 
@@ -75,6 +77,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         p = self.get(pool_id)
         if not currencies:
             currencies = ["TFT"]

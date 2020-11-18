@@ -233,6 +233,7 @@ class VDCDeployer:
             "s3_proxy": {"cru": 1, "mru": 1, "sru": 0.25, "no_nodes": 2},
         }
         cc = CapacityChecker(farm_name)
+        cc.add_query(ip_version=IP_VERSION)
         for query in query_details.values():
             query["backup_no"] = NO_DEPLOYMENT_BACKUP_NODES
             if not cc.add_query(**query):
@@ -245,7 +246,6 @@ class VDCDeployer:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
             minio_ak: access key for minio
             minio_sk: secret key for minio
-            flavor: vdc flavor key
             farm_name: where to initialize the vdc
         """
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
@@ -261,6 +261,7 @@ class VDCDeployer:
             raise j.exceptions.Runtime(
                 f"farm {farm_name} doesn't have enough capacity to deploy vdc of flavor {self.flavor}"
             )
+
         cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict, duration=size_dict["duration"])
         self.info(f"required cus: {cus}, sus: {sus}")
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus, pool_id)
@@ -273,7 +274,7 @@ class VDCDeployer:
             scheduler,
             k8s_size_dict,
             cluster_secret,
-            self.ssh_key.public_key.split("\n"),
+            [self.ssh_key.public_key.strip()],
         )
         threads.append(k8s_thread)
         zdb_thread = gevent.spawn(
@@ -317,6 +318,8 @@ class VDCDeployer:
             secret=trc_secret,
         )
 
+        helm_thread = gevent.spawn(self.deploy_mgmt_3bot, minio_api_subdomain)
+
         minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
         minio_healing_subdomain = self.proxy.proxy_container(
             prefix=minio_healing_prefix,
@@ -332,6 +335,11 @@ class VDCDeployer:
             self.rollback_vdc_deployment()
             return False
 
+        gevent.joinall([helm_thread])
+        if not helm_thread.value:
+            self.error("failed to deploy 3bot managemnt container")
+            self.rollback_vdc_deployment()
+
         # download kube config from master
         # k8s_workload = self.zos.workloads.get(k8s_wids[0])
         # master_ip = k8s_workload.master_ips[0]
@@ -340,21 +348,29 @@ class VDCDeployer:
         # config_dict["server"] = f"https://{master_ip}:6443"
 
         # minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
-
-        # self.mgmt_k8s_manager.add_helm_repo("marketplace", MARKETPLACE_HELM_REPO_URL)
-        # self.mgmt_k8s_manager.install_chart(
-        #     release=f"vdc_3bot_{self.vdc_uuid}",
-        #     chart_name="3bot",
-        # )
         self.save_config()
         # return j.data.serializers.yaml.dumps(config_dict)
+
+    def deploy_mgmt_3bot(self, minio_subdomain):
+        self.mgmt_k8s_manager.add_helm_repo, ("marketplace", MARKETPLACE_HELM_REPO_URL)
+        self.mgmt_k8s_manager.update_repos()
+        self.info("deploying 3bot helm chart")
+        return self.mgmt_k8s_manager.install_chart(
+            release=f"vdc_3bot_{self.vdc_uuid}".replace("_", "-"),
+            chart_name="marketplace/3bot",
+            extra_config=self.get_threebot_extra_config(minio_subdomain, self.wallet.secret),
+        )
 
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        solutions.cancel_solution(
-            [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
-        )
+        if nv:
+            solutions.cancel_solution(
+                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
+            )
+        release_name = f"vdc_3bot_{self.vdc_uuid}".replace("_", "-")
+        if self.mgmt_k8s_manager.get_deployed_release(release_name):
+            self.mgmt_k8s_manager.delete_deployed_release(release_name)
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
@@ -374,6 +390,28 @@ class VDCDeployer:
         vdc_instance.flavor = self.flavor
         vdc_instance.save()
         return vdc_instance
+
+    def get_threebot_extra_config(self, s3_domain_name, vdc_wallet_secret):
+        variables = {
+            "VDC_NAME": self.vdc_name,
+            "VDC_UUID": self.vdc_uuid,
+            "VDC_OWNER_TNAME": self.tname,
+            "VDC_EMAIL": self.email,
+            "VDC_PASSWORD_HASH": hashlib.md5(self.password.encode()).hexdigest(),
+            "EXPLORER_URL": j.core.identity.me.explorer_url,
+            "VDC_S3_DOMAIN_NAME": s3_domain_name,
+            "VDC_WALLET_SECRET": vdc_wallet_secret,
+        }
+        extra_config = {
+            "entryPoint[0]": "python3",
+            "entryPointArgs[0]": "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py",
+            "image.tag": "vdc",
+            "image.pullPolicy": "Always",
+        }
+        for i, (key, value) in enumerate(variables.items()):
+            extra_config[f"env[{i}].name"] = key
+            extra_config[f"env[{i}].value"] = value
+        return extra_config
 
     def _log(self, msg, loglevel="info"):
         getattr(j.logger, loglevel)(self._log_format.format(msg))

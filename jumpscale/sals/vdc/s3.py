@@ -38,28 +38,38 @@ class VDCS3Deployer(VDCBaseComponent):
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
             self.vdc_deployer.info(f"minio ip address {ip_address}")
-            result = deployer.deploy_minio_containers(
-                pool_id,
-                self.vdc_name,
-                [node.node_id],
-                [ip_address],
-                zdb_configs,
-                ak,
-                sk,
-                ssh_key,
-                MINIO_CPU,
-                MINIO_MEMORY,
-                S3_NO_DATA_NODES,
-                S3_NO_PARITY_NODES,
-                public_ipv6=True,
-                disk_size=int(MINIO_DISK / 1024),
-                bot=self.bot,
-                identity_name=self.identity.instance_name,
-                form_info={"chatflow": "minio"},
-                name=self.vdc_name,
-                solution_uuid=solution_uuid,
-                description=self.vdc_deployer.description,
-            )
+            try:
+                result = deployer.deploy_minio_containers(
+                    pool_id,
+                    self.vdc_name,
+                    [node.node_id],
+                    [ip_address],
+                    zdb_configs,
+                    ak,
+                    sk,
+                    ssh_key,
+                    MINIO_CPU,
+                    MINIO_MEMORY,
+                    S3_NO_DATA_NODES,
+                    S3_NO_PARITY_NODES,
+                    public_ipv6=True,
+                    disk_size=int(MINIO_DISK / 1024),
+                    bot=self.bot,
+                    identity_name=self.identity.instance_name,
+                    form_info={"chatflow": "minio"},
+                    name=self.vdc_name,
+                    solution_uuid=solution_uuid,
+                    description=self.vdc_deployer.description,
+                )
+            except DeploymentFailed as e:
+                if e.wid:
+                    workload = self.zos.workloads.get(e.wid)
+                    self.vdc_deployer.error(
+                        f"failed to deploy minio volume wid: {e.wid} on node {workload.info.node_id}"
+                    )
+                else:
+                    self.vdc_deployer.error(f"failed to deploy minio volume due to error {str(e)}")
+                continue
             wid = result[0]
             try:
                 success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
