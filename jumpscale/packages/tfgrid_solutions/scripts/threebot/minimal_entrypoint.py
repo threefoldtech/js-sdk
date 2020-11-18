@@ -72,4 +72,4 @@ if "testnet" in EXPLORER_URL:
 
 wallet = j.clients.stellar.new(name=VDC_NAME, secret=VDC_WALLET_SECRET, network=network)
 
-j.servers.threebot.start_default()
+j.servers.threebot.start_default(wait=True)
