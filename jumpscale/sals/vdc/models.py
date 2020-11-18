@@ -17,37 +17,41 @@ VDC_WORKLOAD_TYPES = [
 ]
 
 
+class VDCWorkloadBase(Base):
+    wid = fields.Integer()
+    node_id = fields.String()
+    pool_id = fields.Integer()
+
+
 class KubernetesRole(Enum):
     MASTER = "master"
     WORKER = "worker"
 
 
-class KubernetesNode(Base):
-    wid = fields.Integer()
+class KubernetesNode(VDCWorkloadBase):
     role = fields.Enum(KubernetesRole)
     ip_address = fields.IPAddress()
     size = fields.Enum(K8SNodeFlavor)
 
 
-class S3Container(Base):
-    wid = fields.Integer()
+class S3Container(VDCWorkloadBase):
     ip_address = fields.IPAddress()
 
 
-class S3ZDB(Base):
-    wid = fields.Integer()
+class S3ZDB(VDCWorkloadBase):
+    pass
 
 
-class S3Subdomain(Base):
-    wid = fields.Integer()
+class S3Subdomain(VDCWorkloadBase):
+    pass
 
 
-class S3ReverseProxy(Base):
-    wid = fields.Integer()
+class S3ReverseProxy(VDCWorkloadBase):
+    pass
 
 
-class S3NginxProxy(Base):
-    wid = fields.Integer()
+class S3NginxProxy(VDCWorkloadBase):
+    pass
 
 
 class S3Proxy(Base):
@@ -138,16 +142,22 @@ class VDCStoredFactory(StoredFactory):
                 node.role = KubernetesRole.WORKER
             else:
                 node.role = KubernetesRole.MASTER
+            node.node_id = workload.info.node_id
+            node.pool_id = workload.info.pool_id
             instance.size = workload.size
             instance.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
             if "minio" in workload.flist:
                 container = S3Container()
+                container.node_id = workload.info.node_id
+                container.pool_id = workload.info.pool_id
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
                 instance.s3.minio = container
         elif workload.info.workload_type == WorkloadType.Zdb:
             zdb = S3ZDB()
+            zdb.node_id = workload.info.node_id
+            zdb.pool_id = workload.info.pool_id
             zdb.wid = workload.id
             instance.s3.zdbs.append(zdb)
         return instance
@@ -176,9 +186,13 @@ class VDCStoredFactory(StoredFactory):
                     if "healing" in domain:
                         healer_nginx_domain = domain
                         instance.s3.healer_proxy.nginx.wid = workload.id
+                        instance.s3.healer_proxy.nginx.node_id = workload.info.node_id
+                        instance.s3.healer_proxy.nginx.pool_id = workload.info.pool_id
                     else:
                         api_nginx_domain = domain
                         instance.s3.api_proxy.nginx.wid = workload.id
+                        instance.s3.api_proxy.nginx.node_id = workload.info.node_id
+                        instance.s3.api_proxy.nginx.pool_id = workload.info.pool_id
                 else:
                     j.logger.warning(f"couldn't identity the domain of nginx container wid: {workload.id}")
             elif workload.info.workload_type == WorkloadType.Subdomain:
@@ -186,17 +200,25 @@ class VDCStoredFactory(StoredFactory):
                 if "healing" in domain:
                     healer_subdomain_domain = domain
                     instance.s3.healer_proxy.subdomain.wid = workload.id
+                    instance.s3.healer_proxy.subdomain.node_id = workload.info.node_id
+                    instance.s3.healer_proxy.subdomain.pool_id = workload.info.pool_id
                 else:
                     api_subdomain_domain = domain
                     instance.s3.api_proxy.subdomain.wid = workload.id
+                    instance.s3.api_proxy.subdomain.node_id = workload.info.node_id
+                    instance.s3.api_proxy.subdomain.pool_id = workload.info.pool_id
             elif workload.info.workload_type == WorkloadType.Reverse_proxy:
                 domain = workload.domain
                 if "healing" in domain:
                     healer_proxy_domain = domain
                     instance.s3.healer_proxy.reverse_proxy.wid = workload.id
+                    instance.s3.healer_proxy.reverse_proxy.node_id = workload.info.node_id
+                    instance.s3.healer_proxy.reverse_proxy.pool_id = workload.info.pool_id
                 else:
                     api_proxy_domain = domain
                     instance.s3.api_proxy.reverse_proxy.wid = workload.id
+                    instance.s3.api_proxy.reverse_proxy.node_id = workload.info.node_id
+                    instance.s3.api_proxy.reverse_proxy.pool_id = workload.info.pool_id
             else:
                 j.logger.warning(f"workload {workload.id} is not a vaild workload for vdc proxy")
 

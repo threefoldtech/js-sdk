@@ -8,6 +8,11 @@ class Scheduler:
         self.zos = get_zos()
         self.farm_name = farm_name
         self._nodes = []
+        self._excluded_node_ids = set()
+
+    def exclude_nodes(self, *node_ids):
+        for node_id in node_ids:
+            self._excluded_node_ids.add(node_id)
 
     @property
     def nodes(self):
@@ -55,6 +60,8 @@ class Scheduler:
             filters.append(self.zos.nodes_finder.filter_public_ip6)
 
         for node in self.nodes:
+            if node.node_id in self._excluded_node_ids:
+                continue
             if not self.check_node_capacity(node.node_id, node, cru, mru, hru, sru):
                 continue
 
@@ -88,5 +95,7 @@ class Scheduler:
             return False
         return True
 
-    def refresh_nodes(self):
+    def refresh_nodes(self, clean_excluded=False):
         self._nodes = []
+        if clean_excluded:
+            self._excluded_node_ids = set()

@@ -11,6 +11,7 @@ from .kubernetes import VDCKubernetesDeployer
 from .models import VDCFACTORY
 import hashlib
 from jumpscale.sals.kubernetes import Manager
+import math
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -60,7 +61,9 @@ class VDCDeployer:
     @property
     def mgmt_k8s_manager(self):
         if not self._mgmt_k8s_manager:
-            config_path = self.mgmt_kube_config_path or j.core.config.get("VDC_MGMT_KUBE_CONFIG")
+            config_path = self.mgmt_kube_config_path or j.core.config.get(
+                "VDC_MGMT_KUBE_CONFIG", f"{j.core.dirs.HOMEDIR}/.kube/config"
+            )
             self._mgmt_k8s_manager = Manager(config_path)
         return self._mgmt_k8s_manager
 
@@ -141,7 +144,7 @@ class VDCDeployer:
         # create pool
         self.info("initializing vdc")
         if not pool_id:
-            pool_info = self.zos.pools.create(int(cu), int(su), farm_name)
+            pool_info = self.zos.pools.create(math.ceil(cu), math.ceil(su), farm_name)
             self.info(
                 f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}"
             )
@@ -252,11 +255,7 @@ class VDCDeployer:
 
         if not k8s_wids or not zdb_wids:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
-            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-            solutions.cancel_solution(
-                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
-            )
+            self.rollback_vdc_deployment()
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
@@ -271,11 +270,7 @@ class VDCDeployer:
         )
         if not minio_wid:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
-            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-            solutions.cancel_solution(
-                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
-            )
+            self.rollback_vdc_deployment()
             return False
 
         trc_secret = uuid.uuid4().hex
@@ -301,11 +296,7 @@ class VDCDeployer:
 
         if not minio_api_subdomain or not minio_healing_subdomain:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
-            nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-            solutions.cancel_solution(
-                [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
-            )
+            self.rollback_vdc_deployment()
             return False
 
         # download kube config from master
@@ -315,12 +306,22 @@ class VDCDeployer:
         # config_dict = j.data.serializers.yaml.loads(kube_config)
         # config_dict["server"] = f"https://{master_ip}:6443"
 
-        minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
+        # minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
 
-        self.mgmt_k8s_manager.add_helm_repo("marketplace", MARKETPLACE_HELM_REPO_URL)
-        self.mgmt_k8s_manager.install_chart(f"vdc_3bot_{self.vdc_uuid}", "3bot")  # TODO: add kwargs
+        # self.mgmt_k8s_manager.add_helm_repo("marketplace", MARKETPLACE_HELM_REPO_URL)
+        # self.mgmt_k8s_manager.install_chart(
+        #     release=f"vdc_3bot_{self.vdc_uuid}",
+        #     chart_name="3bot",
+        # )
         self.save_config()
         # return j.data.serializers.yaml.dumps(config_dict)
+
+    def rollback_vdc_deployment(self):
+        solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        solutions.cancel_solution(
+            [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
+        )
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60
