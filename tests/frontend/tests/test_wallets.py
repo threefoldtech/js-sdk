@@ -93,3 +93,4 @@ class WalletTests(BaseTest):
 
         self.info("Delete the wallet")
         wallets.delete(wallet_name)
+        

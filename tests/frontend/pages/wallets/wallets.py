@@ -123,3 +123,4 @@ class Wallets(Base):
                 close_button = [button for button in buttons if button.text == "CLOSE"][0]
                 close_button.click()
                 return balances
+
