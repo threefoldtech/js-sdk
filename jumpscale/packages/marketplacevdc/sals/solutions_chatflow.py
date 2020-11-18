@@ -1,0 +1,287 @@
+import random
+import requests
+import uuid
+import dedent
+
+from jumpscale.loader import j
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
+from jumpscale.sals.marketplace import deployer, solutions
+from jumpscale.clients.explorer.models import WorkloadType
+
+CHART_LIMITS = {
+    "Silver": {"cpu": "1000m", "memory": "1024Mi"},
+    "Gold": {"cpu": "2000m", "memory": "2048Mi"},
+    "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
+}
+RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
+HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/marketplace-charts/"}}
+
+
+class SolutionsChatflowDeploy(GedisChatBot):
+    def _init_solution(self):
+        self.user_info_data = self.user_info()
+        self.username = self.user_info_data["username"]
+        self.solution_id = uuid.uuid4().hex
+        self.identity_name = j.core.identity.me.instance_name
+        identity_tid = j.core.identity.me.tid
+        self.secret = f"{identity_tid}:{uuid.uuid4().hex}"
+        self.ip_version = "IPv6"
+        self.chart_config = {}  # TODO:
+
+    def _get_kube_config(self):
+        # TODO:
+        self.vdc_info = {}
+        # TODO: Get pool_id from vdc obj
+        self.vdc_info["pool_id"] = 5714
+        # TODO: Get master_ip from vdc obj
+        self.vdc_info["master_ip"] = "172.18.2.44"
+        # TODO: Get network from vdc obj
+        self.vdc_info["network_name"] = "ayoub011"
+        self.vdc_info["network_view"] = deployer.get_network_view(
+            self.vdc_info["network_name"], identity_name=self.identity_name
+        )
+        self.vdc_info["farm_name"] = "freefarm"
+
+    def _choose_flavor(self, chart_limits=None):
+        chart_limits = chart_limits or CHART_LIMITS
+        messages = []
+        for flavor in chart_limits:
+            flavor_specs = ""
+            for key in chart_limits[flavor]:
+                flavor_specs += f"{RESOURCE_VALUE_TEMPLATE[key].format(chart_limits[flavor][key])} - "
+            msg = f"{flavor} ({flavor_specs[:-3]})"
+            messages.append(msg)
+        chosen_flavor = self.single_choice(
+            "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)",
+            options=messages,
+            required=True,
+            default=messages[0],
+        )
+        flavor = chosen_flavor.split()[0]
+        self.resources_limits = chart_limits[flavor]
+
+    def _get_domain(self):
+        # get domain for the ip address
+        self.md_show_update("Preparing gateways ...")
+        gateways = deployer.list_all_gateways(
+            self.username, self.vdc_info["farm_name"], identity_name=self.identity_name
+        )
+        if not gateways:
+            raise StopChatFlow(
+                "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
+            )
+
+        domains = dict()
+        is_http_failure = False
+        is_managed_domains = False
+        gateway_values = list(gateways.values())
+        random.shuffle(gateway_values)
+        blocked_domains = deployer.list_blocked_managed_domains()
+        for gw_dict in gateway_values:
+            gateway = gw_dict["gateway"]
+            random.shuffle(gateway.managed_domains)
+            for domain in gateway.managed_domains:
+                self.addresses = []
+                is_managed_domains = True
+                if domain in blocked_domains:
+                    continue
+                success = deployer.test_managed_domain(
+                    gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
+                )
+                if not success:
+                    j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
+                    deployer.block_managed_domain(domain)
+                    continue
+                else:
+                    deployer.unblock_managed_domain(domain)
+                try:
+                    if j.sals.crtsh.has_reached_limit(domain):
+                        continue
+                except requests.exceptions.HTTPError:
+                    is_http_failure = True
+                    continue
+                domains[domain] = gw_dict
+                self.gateway_pool = gw_dict["pool"]
+                self.gateway = gw_dict["gateway"]
+                managed_domain = domain
+
+                release_name = self.release_name.replace("_", "-")
+                owner_prefix = self.username.replace(".3bot", "").replace(".", "").replace("_", "-")
+                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
+                # check if domain name is free or append random number
+
+                if self.domain_type == "Custom domain":
+                    self.custom_subdomain = self.string_ask(
+                        f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True,
+                    )
+                    full_domain = f"{self.custom_subdomain}.{managed_domain}"
+                else:
+                    full_domain = f"{owner_prefix}-{solution_type}-{release_name}.{managed_domain}"
+
+                metafilter = lambda metadata: metadata.get("owner") == self.username
+                # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
+                user_subdomains = {}
+                all_domains = solutions._list_subdomain_workloads(
+                    self.SOLUTION_TYPE, metadata_filters=[metafilter]
+                ).values()
+                for dom_list in all_domains:
+                    for dom in dom_list:
+                        user_subdomains[dom["domain"]] = dom
+
+                while True:
+                    if full_domain in user_subdomains:
+                        # check if related container workloads still exist
+                        dom = user_subdomains[full_domain]
+                        sol_uuid = dom["uuid"]
+                        if sol_uuid:
+                            workloads = solutions.get_workloads_by_uuid(sol_uuid, "DEPLOY")
+                            is_free = True
+                            for w in workloads:
+                                if w.info.workload_type == WorkloadType.Container:
+                                    is_free = False
+                                    break
+                            if is_free:
+                                solutions.cancel_solution_by_uuid(sol_uuid)
+
+                    if j.tools.dnstool.is_free(full_domain):
+                        self.domain = full_domain
+                        break
+                    else:
+                        if self.domain_type == "Custom domain":
+                            self.custom_subdomain = self.string_ask(
+                                f"Please enter anthor subdomain as {self.custom_subdomain} is unavilable on {managed_domain}",
+                                required=True,
+                                is_identifier=True,
+                            )
+                            full_domain = f"{self.custom_subdomain}.{managed_domain}"
+                        else:
+                            random_number = random.randint(1000, 100000)
+                            full_domain = (
+                                f"{owner_prefix}-{solution_type}-{release_name}-{random_number}.{managed_domain}"
+                            )
+
+                for ns in self.gateway.dns_nameserver:
+                    try:
+                        self.addresses.append(j.sals.nettools.get_host_by_name(ns))
+                    except Exception as e:
+                        j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
+                if not self.addresses:
+                    continue
+                return self.domain
+
+        if is_http_failure:
+            raise StopChatFlow(
+                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+            )
+        elif not is_managed_domains:
+            raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
+        else:
+            raise StopChatFlow(
+                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+            )
+
+    @deployment_context()
+    def _deploy(self):
+        self.workload_ids = []
+        metadata = {
+            "name": self.release_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.release_name},
+        }
+        # TODO: get node related to vdc
+        selected_node = deployer.schedule_container(self.vdc_info["pool_id"], ip_version=self.ip_version)
+        # TODO: Do we need logs?
+        self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
+        if self.nginx_log_config:
+            self.nginx_log_config[
+                "channel_name"
+            ] = f"{self.username}-{self.SOLUTION_TYPE}-{self.release_name}-nginx".lower()
+        # reserve subdomain
+        self.workload_ids.append(
+            deployer.create_subdomain(
+                pool_id=self.gateway_pool.pool_id,
+                gateway_id=self.gateway.node_id,
+                subdomain=self.domain,
+                addresses=self.addresses,
+                solution_uuid=self.solution_id,
+                **metadata,
+            )
+        )
+        success = deployer.wait_workload(self.workload_ids[0], self)
+        if not success:
+            raise DeploymentFailed(
+                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                wid=self.workload_ids[0],
+            )
+
+        # expose solution on nginx container
+        _id = deployer.expose_and_create_certificate(
+            pool_id=self.vdc_info["pool_id"],
+            gateway_id=self.gateway.node_id,
+            network_name=self.vdc_info["network_view"].name,
+            trc_secret=self.secret,
+            domain=self.domain,
+            email=self.user_info_data["email"],
+            solution_ip=self.vdc_info["master_ip"],
+            solution_port=80,
+            enforce_https=False,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            node_id=selected_node.node_id,
+            solution_uuid=self.solution_id,
+            log_config=self.nginx_log_config,
+            **metadata,
+        )
+        success = deployer.wait_workload(_id, self)
+        if not success:
+            # solutions.cancel_solution(self.workload_ids)
+            raise DeploymentFailed(
+                f"Failed to create TRC container on node {selected_node.node_id}"
+                f" {_id}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+            )
+
+    @chatflow_step(title="Solution Name")
+    def get_release_name(self):
+        self._init_solution()
+        self.release_name = self.string_ask(
+            "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
+            required=True,
+            is_identifier=True,
+        )
+        # TODO: Check if solution name exist
+        self.release_name = f"{self.release_name}"
+
+    @chatflow_step(title="Select VDC")
+    def select_vdc(self):
+        self._get_kube_config()
+
+    @chatflow_step(title="Create subdomain")
+    def create_subdomain(self):
+        choices = ["Create standard Subdomain", "Custom domain"]
+        self.domain_type = self.single_choice("Select the domain type", choices, default="Create standard Domain",)
+        # get self.domain
+        self._get_domain()
+        self._deploy()
+
+    @chatflow_step(title="Installation")
+    def install_chart(self):
+        k8s_client = j.clients.kubernetes.get("marketplace_vdc")
+        helm_repos_urls = [repo["url"] for repo in k8s_client.helm_repo_list()]
+        if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
+            k8s_client.add_helm_repo(HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"])
+        k8s_client.update_helm_repo()
+        k8s_client.install_chart(
+            release=self.release_name,
+            chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
+            config=self.chart_config,
+        )
+
+    @chatflow_step(title="Success")
+    def success(self):
+        message = f"""\
+        # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
+        <br />\n
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
+        self.md_show(dedent(message), md=True)

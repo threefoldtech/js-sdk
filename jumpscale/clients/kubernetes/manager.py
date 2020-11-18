@@ -82,16 +82,16 @@ class Manager(Client):
         Args:
             release (str): name of the relase to be deployed
             chart_name (str): the name of the chart you need to deploy
-
+            config (dict): the chart config
         Raises:
             j.exceptions.Runtime: in case the helm command failed to execute
 
         Returns:
             str: output of the helm command
         """
-        cmd = f"helm --kubeconfig {self.config_path} install {release} {chart_name}"
+        cmd = f"helm --kubeconfig {self.config_path} install {release} {chart_name} "
         if config:
-            cmd += "".join([f" --set {key}={value} " for key, value in config.items()]).strip()
+            cmd += "".join([f"--set {key}={value} " for key, value in config.items()]).strip()
 
         rc, out, err = j.sals.process.execute(cmd)
         if rc != 0:
@@ -134,3 +134,19 @@ class Manager(Client):
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
         return out
+
+    @helm_required
+    def helm_repo_list(self):
+        """List helm repos
+
+        Raises:
+            j.exceptions.Runtime: in case the command failed to execute
+
+        Returns:
+            list: list of added repos
+        """
+        cmd = f"helm repo list -o json --kubeconfig {self.config_path}"
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
+        return j.data.serializers.json.loads(out)
