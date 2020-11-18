@@ -2,6 +2,7 @@ import pytest
 from tests.frontend.pages.wallets.wallets import Wallets
 from tests.frontend.tests.base_tests import BaseTest
 
+
 @pytest.mark.integration
 class WalletTests(BaseTest):
     def test_create_delete_wallet(self):
@@ -63,15 +64,13 @@ class WalletTests(BaseTest):
         all_wallets = wallets.list()
         self.assertNotIn(wallet_name, all_wallets.keys())
 
-
-
     def test_import_wallet(self):
         """Test case for importing a wallet and deleting it.
 
         **Test Scenario**
         - Create a wallet.
         - Delete the wallet.
-        - Import deleted wallet. 
+        - Import deleted wallet.
         - Check that the wallet has been imported.
         - Delete the wallet.
         """
@@ -84,11 +83,6 @@ class WalletTests(BaseTest):
 
         self.info("Delete the wallet")
         wallets.delete(wallet_name)
-
-
-
-
-
 
         self.info("Import deleted wallet")
         wallets.import_(name=wallet_name, secret=wallet_secret, network="TEST")

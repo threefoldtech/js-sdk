@@ -27,7 +27,7 @@ class Wallets(Base):
         submit_button.click()
         wait = WebDriverWait(self.driver, 60)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
-    
+
     def add_funded(self, name):
         # get funded wallet button and click
         buttons = self.driver.find_elements_by_class_name("v-btn")
@@ -60,7 +60,7 @@ class Wallets(Base):
         buttons = self.driver.find_elements_by_class_name("v-btn")
         submit_button = [button for button in buttons if button.text == "SUBMIT"][0]
         submit_button.click()
-        # wait until the importing is finished 
+        # wait until the importing is finished
         wait = WebDriverWait(self.driver, 60)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
 
@@ -75,9 +75,6 @@ class Wallets(Base):
 
         return wallets
 
-        
-
-        
     def get_secret(self, name):
         wallets = self.list()
         for wallet in wallets.keys():
@@ -97,7 +94,7 @@ class Wallets(Base):
                 close_button = [button for button in buttons if button.text == "CLOSE"][0]
                 close_button.click()
                 return secret
-                                
+
     def delete(self, name):
         wallets = self.list()
         for wallet in wallets.keys():
@@ -125,4 +122,3 @@ class Wallets(Base):
                 close_button = [button for button in buttons if button.text == "CLOSE"][0]
                 close_button.click()
                 return balances
-
