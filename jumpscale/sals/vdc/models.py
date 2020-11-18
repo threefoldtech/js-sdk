@@ -6,6 +6,7 @@ from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.data import serializers
 from jumpscale.sals.reservation_chatflow.deployer import GATEWAY_WORKLOAD_TYPES
 from jumpscale.loader import j
+import datetime
 
 
 VDC_WORKLOAD_TYPES = [
@@ -77,6 +78,9 @@ class UserVDC(Base):
     flavor = fields.Enum(VDCFlavor)
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
+    created = fields.DateTime(default=datetime.datetime.utcnow)
+    updated = fields.DateTime(default=datetime.datetime.utcnow, on_update=datetime.datetime.utcnow)
+    expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
 
 
 class VDCStoredFactory(StoredFactory):

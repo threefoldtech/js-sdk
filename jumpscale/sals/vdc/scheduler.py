@@ -82,11 +82,12 @@ class Scheduler:
             raise j.exceptions.Validation(f"node {node_id} is not part of farm {self.farm_name}")
         total = node.total_resources
         reserved = node.reserved_resources
-        if cru and total.cru - max(0, reserved.cru) < cru:
-            return False
+        if not j.core.config.get("OVER_PROVISIONING"):
+            if cru and total.cru - max(0, reserved.cru) < cru:
+                return False
 
-        if mru and total.mru - max(0, reserved.mru) < mru:
-            return False
+            if mru and total.mru - max(0, reserved.mru) < mru:
+                return False
 
         if sru and total.sru - max(0, reserved.sru) < sru:
             return False
@@ -99,3 +100,26 @@ class Scheduler:
         self._nodes = []
         if clean_excluded:
             self._excluded_node_ids = set()
+
+
+class CapacityChecker:
+    def __init__(self, farm_name):
+        self.farm_name = farm_name
+        self.scheduler = Scheduler(farm_name)
+        self.result = True
+
+    def exclude_nodes(self, *node_ids):
+        self.scheduler.exclude_nodes(*node_ids)
+
+    def add_query(self, cru=None, mru=None, hru=None, sru=None, ip_version=None, no_nodes=1, backup_no=0):
+        nodes = []
+        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version):
+            nodes.append(node)
+            if len(nodes) == no_nodes + backup_no:
+                return self.result
+        self.result = False
+        return self.result
+
+    def refresh(self, clear_excluded=False):
+        self.result = True
+        self.scheduler.refresh_nodes(clear_excluded)

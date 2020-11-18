@@ -5,7 +5,7 @@ from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 import gevent
 from .size import *
-from .scheduler import Scheduler
+from .scheduler import Scheduler, CapacityChecker
 from .s3 import VDCS3Deployer
 from .kubernetes import VDCKubernetesDeployer
 from .models import VDCFACTORY
@@ -19,6 +19,7 @@ PREFERED_FARM = "freefarm"
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
+NO_DEPLOYMENT_BACKUP_NODES = 0
 
 
 class VDCDeployer:
@@ -44,8 +45,8 @@ class VDCDeployer:
         self.wallet_name = wallet_name
         self.proxy_farm_name = proxy_farm_name
         self.mgmt_kube_config_path = mgmt_kube_config_path
-        self.description = j.data.serializers.json.dumps({"vdc_uuid": vdc_uuid})
         self.vdc_uuid = vdc_uuid or uuid.uuid4().hex
+        self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
         self.flavor = flavor
         self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
         self._generate_identity()
@@ -142,7 +143,7 @@ class VDCDeployer:
         create pool if needed and network for new vdc
         """
         # create pool
-        self.info("initializing vdc")
+        self.info(f"initializing vdc on farm {farm_name}")
         if not pool_id:
             pool_info = self.zos.pools.create(math.ceil(cu), math.ceil(su), farm_name)
             self.info(
@@ -154,7 +155,9 @@ class VDCDeployer:
             if not success:
                 raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
             pool_id = pool_info.reservation_id
-
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        if nv:
+            return pool_id
         access_nodes = scheduler.nodes_by_capacity(ip_version=IP_VERSION)
         network_success = False
         for access_node in access_nodes:
@@ -198,7 +201,7 @@ class VDCDeployer:
         total_sus = total_sus * k8s_size_dict["no_nodes"]
         if s3_size_dict:
             minio_cus, minio_sus = deployer.calculate_capacity_units(
-                cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024
+                cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024 + 0.25
             )
             nginx_cus, nginx_sus = deployer.calculate_capacity_units(cru=1, mru=1, sru=0.25)
             storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
@@ -209,6 +212,32 @@ class VDCDeployer:
             total_cus += zdb_cus + minio_cus + (2 * nginx_cus)
             total_sus += zdb_sus + minio_sus + (2 * nginx_sus)
         return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
+
+    def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict, s3_size_dict=None):
+        k8s_query = K8S_SIZES[k8s_size_dict["size"]].copy()
+        k8s_query["no_nodes"] = k8s_size_dict["no_nodes"]
+        query_details = {
+            "k8s": k8s_query,
+            "s3_zdb": {
+                "sru": S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES,
+                "no_nodes": S3_NO_DATA_NODES + S3_NO_PARITY_NODES,
+                "ip_version": "IPv6",
+            },
+            "s3_minio": {
+                "cru": MINIO_CPU,
+                "mru": MINIO_MEMORY / 1024,
+                "sru": MINIO_DISK / 1024 + 0.25,
+                "no_nodes": 1,
+                "ip_version": "IPv6",
+            },
+            "s3_proxy": {"cru": 1, "mru": 1, "sru": 0.25, "no_nodes": 2},
+        }
+        cc = CapacityChecker(farm_name)
+        for query in query_details.values():
+            query["backup_no"] = NO_DEPLOYMENT_BACKUP_NODES
+            if not cc.add_query(**query):
+                return False
+        return cc.result
 
     def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM, pool_id=None):
         """deploys a new vdc
@@ -228,6 +257,10 @@ class VDCDeployer:
         size_dict = VDC_FLAFORS[self.flavor]
         k8s_size_dict = size_dict["k8s"]
         s3_size_dict = size_dict["s3"]
+        if not self._check_new_vdc_farm_capacity(farm_name, k8s_size_dict, s3_size_dict):
+            raise j.exceptions.Runtime(
+                f"farm {farm_name} doesn't have enough capacity to deploy vdc of flavor {self.flavor}"
+            )
         cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict, duration=size_dict["duration"])
         self.info(f"required cus: {cus}, sus: {sus}")
         pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus, pool_id)

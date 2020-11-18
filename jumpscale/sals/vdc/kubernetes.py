@@ -79,12 +79,15 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         return pool_id
 
-    def extend_cluster(self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, duration, no_nodes=1):
+    def extend_cluster(self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, no_nodes=1, duration=None):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
         """
-        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
         vdc_instance = VDCFACTORY.get(f"vdc_{self.vdc_deployer.tname}_{self.vdc_name}")
+        duration = duration or vdc_instance.expiration.timestamp - j.data.time.utcnow().timestamp
+        if duration <= 0:
+            raise j.exceptions.Validation(f"invalid duration {duration}")
+        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
         scheduler = Scheduler(farm_name)
         old_node_ids = []
         for k8s_node in vdc_instance.kubernetes:
