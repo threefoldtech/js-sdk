@@ -84,6 +84,9 @@ class WalletTests(BaseTest):
         self.info("Delete the wallet")
         wallets.delete(wallet_name)
 
+
+
+
         self.info("Import deleted wallet")
         wallets.import_(name=wallet_name, secret=wallet_secret, network="TEST")
 
@@ -93,4 +96,3 @@ class WalletTests(BaseTest):
 
         self.info("Delete the wallet")
         wallets.delete(wallet_name)
-        
