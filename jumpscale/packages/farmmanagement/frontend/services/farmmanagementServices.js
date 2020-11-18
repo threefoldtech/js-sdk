@@ -7,6 +7,11 @@ export default {
   getUser() {
     return axios.get("/admin/actors/identity/get_identity");
   },
+  getFarm(farm_id) {
+    return axios.post('/farmmanagement/actors/farm_management/get_farm', {
+      farm_id,
+    })
+  },
   getFarms(user_id) {
     return axios.post('/farmmanagement/actors/farm_management/list_farms', {
       user_id: user_id,

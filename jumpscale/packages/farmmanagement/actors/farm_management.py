@@ -26,5 +26,9 @@ class FarmManagemenet(BaseActor):
     def list_farms(self, user_id) -> str:
         return j.data.serializers.json.dumps([f.to_dict() for f in self._explorer.farms.list(user_id)])
 
+    @actor_method
+    def get_farm(self, farm_id) -> str:
+        return j.data.serializers.json.dumps(self._explorer.farms.get(farm_id).to_dict())
+
 
 Actor = FarmManagemenet
