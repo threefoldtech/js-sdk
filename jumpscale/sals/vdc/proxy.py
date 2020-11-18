@@ -235,7 +235,7 @@ class VDCProxy(VDCBaseComponent):
                 self.zos.workloads.decomission(wid)
         self.vdc_deployer.error(f"all tries to reserve a subdomain failed on farm {self.farm_name}")
 
-    def proxy_container(self, prefix, wid, port, vdc_uuid, pool_id=None, secret=None, scheduler=None):
+    def proxy_container(self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None):
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
         scheduler = scheduler or Scheduler(self.farm_name)
@@ -254,7 +254,7 @@ class VDCProxy(VDCBaseComponent):
         desc = j.data.serializers.json.dumps(desc)
         for gateway in gateways:
             for subdomain, subdomain_id in self.reserve_subdomain(
-                gateway, prefix, vdc_uuid, gateway_pool_id, exposed_wid=wid
+                gateway, prefix, solution_uuid, gateway_pool_id, exposed_wid=wid
             ):
                 cont_id = None
                 proxy_id = None
@@ -275,7 +275,7 @@ class VDCProxy(VDCBaseComponent):
                             enforce_https=True,
                             proxy_pool_id=gateway_pool_id,
                             bot=self.bot,
-                            solution_uuid=vdc_uuid,
+                            solution_uuid=solution_uuid,
                             secret=secret,
                             node_id=node.node_id,
                             exposed_wid=wid,

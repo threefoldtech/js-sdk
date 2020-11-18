@@ -49,13 +49,16 @@ VDC_FLAFORS = {
     VDCFlavor.SILVER: {
         "k8s": {"no_nodes": 1, "size": K8SNodeFlavor.SMALL, "dedicated": False},
         "s3": {"size": S3ZDBSize.SMALL},
+        "duration": 30,  # days
     },
     VDCFlavor.GOLD: {
         "k8s": {"no_nodes": 2, "size": K8SNodeFlavor.MEDIUM, "dedicated": False},
         "s3": {"size": S3ZDBSize.MEDIUM},
+        "duration": 30,  # days
     },
     VDCFlavor.PLATINUM: {
         "k8s": {"no_nodes": 2, "size": K8SNodeFlavor.BIG, "dedicated": True},
         "s3": {"size": S3ZDBSize.BIG},
+        "duration": 30,  # days
     },
 }

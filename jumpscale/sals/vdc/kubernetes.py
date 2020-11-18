@@ -12,7 +12,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid):
+    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys):
         self.vdc_deployer.info(f"deploying kubernetes with size_dict: {k8s_size_dict}")
         no_nodes = k8s_size_dict["no_nodes"]
         master_ip = None
@@ -21,7 +21,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         # deploy master
         master_ip = self._deploy_master(
-            pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid, network_view
+            pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, self.vdc_uuid, network_view
         )
         self.vdc_deployer.info(f"kubernetes master ip: {master_ip}")
         if not master_ip:
@@ -33,7 +33,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             k8s_size_dict,
             cluster_secret,
             ssh_keys,
-            vdc_uuid,
+            self.vdc_uuid,
             network_view,
             master_ip,
             no_nodes,

@@ -31,6 +31,8 @@ class VDCDeployer:
         bot=None,
         proxy_farm_name=None,
         mgmt_kube_config_path=None,
+        vdc_uuid=None,
+        flavor=VDCFlavor.SILVER,
     ):
         self.vdc_name = vdc_name
         self.tname = j.data.text.removesuffix(tname, ".3bot")
@@ -38,20 +40,22 @@ class VDCDeployer:
         self.identity = None
         self.password = password
         self.email = email
+        self.wallet_name = wallet_name
+        self.proxy_farm_name = proxy_farm_name
+        self.mgmt_kube_config_path = mgmt_kube_config_path
+        self.description = j.data.serializers.json.dumps({"vdc_uuid": vdc_uuid})
+        self.vdc_uuid = vdc_uuid or uuid.uuid4().hex
+        self.flavor = flavor
+        self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
         self._generate_identity()
         self._zos = None
-        self.wallet_name = wallet_name
         self._wallet = None
         self._kubernetes = None
         self._s3 = None
         self._proxy = None
         self._ssh_key = None
-        self._log_format = f"VDC: {self.vdc_name}: {{}}"
-        self.proxy_farm_name = proxy_farm_name
-        self.mgmt_kube_config_path = mgmt_kube_config_path
         self._vdc_k8s_manager = None
         self._mgmt_k8s_manager = None
-        self.description = ""
 
     @property
     def mgmt_k8s_manager(self):
@@ -130,27 +134,31 @@ class VDCDeployer:
             # TODO: raise alert with traceback
             raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
-    def initialize_new_vdc_deployment(self, scheduler, farm_name, cu, su):
+    def initialize_new_vdc_deployment(self, scheduler, farm_name, cu, su, pool_id=None):
         """
-        create pool and network for new vdc
+        create pool if needed and network for new vdc
         """
-        # TODO: reuse pools of failed deployments
         # create pool
         self.info("initializing vdc")
-        pool_info = self.zos.pools.create(int(cu), int(su), farm_name)
-        self.info(f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}")
-        self.zos.billing.payout_farmers(self.wallet, pool_info)
-        self.info(f"pool {pool_info.reservation_id} paid. waiting resources")
-        success = self.wait_pool_payment(pool_info.reservation_id)
-        if not success:
-            raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
+        if not pool_id:
+            pool_info = self.zos.pools.create(int(cu), int(su), farm_name)
+            self.info(
+                f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}"
+            )
+            self.zos.billing.payout_farmers(self.wallet, pool_info)
+            self.info(f"pool {pool_info.reservation_id} paid. waiting resources")
+            success = self.wait_pool_payment(pool_info.reservation_id)
+            if not success:
+                raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
+            pool_id = pool_info.reservation_id
+
         access_nodes = scheduler.nodes_by_capacity(ip_version=IP_VERSION)
         network_success = False
         for access_node in access_nodes:
             self.info(f"deploying network on node {access_node.node_id}")
             network_success = True
             result = deployer.deploy_network(
-                self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_info.reservation_id, self.identity.instance_name,
+                self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_id, self.identity.instance_name,
             )
             for wid in result["ids"]:
                 try:
@@ -179,9 +187,9 @@ class VDCDeployer:
                 f"all retries to create a network with ip version {IP_VERSION} on farm {farm_name} failed"
             )
 
-        return pool_info.reservation_id
+        return pool_id
 
-    def _calculate_new_vdc_pool_units(self, k8s_size_dict, s3_size_dict=None):
+    def _calculate_new_vdc_pool_units(self, k8s_size_dict, s3_size_dict=None, duration=30):
         total_cus, total_sus = deployer.calculate_capacity_units(**K8S_SIZES[k8s_size_dict["size"]])
         total_cus = total_cus * k8s_size_dict["no_nodes"]
         total_sus = total_sus * k8s_size_dict["no_nodes"]
@@ -189,17 +197,17 @@ class VDCDeployer:
             minio_cus, minio_sus = deployer.calculate_capacity_units(
                 cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024
             )
-            total_cus += minio_cus
-            total_sus += minio_sus
+            nginx_cus, nginx_sus = deployer.calculate_capacity_units(cru=1, mru=1, sru=0.25)
             storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
             zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
-            zdb_cus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
-            # TODO: add nignx containers as well
-            total_cus += zdb_cus
-            total_sus += zdb_sus
-        return total_cus, total_sus
 
-    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, flavor=VDCFlavor.SILVER, farm_name=PREFERED_FARM):
+            zdb_sus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
+            zdb_cus = zdb_cus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
+            total_cus += zdb_cus + minio_cus + (2 * nginx_cus)
+            total_sus += zdb_sus + minio_sus + (2 * nginx_sus)
+        return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
+
+    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM, pool_id=None):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -208,23 +216,18 @@ class VDCDeployer:
             flavor: vdc flavor key
             farm_name: where to initialize the vdc
         """
-        self.info(f"deploying vdc flavor: {flavor} farm: {farm_name}")
+        self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
             raise j.exceptions.Validation(
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
-        vdc_uuid = uuid.uuid4().hex
-        self.description = j.data.serializers.json.dumps({"vdc_uuid": vdc_uuid})
-        self.info(f"vdc uuid: {vdc_uuid}")
         scheduler = Scheduler(farm_name)
-        size_dict = VDC_FLAFORS[flavor]
+        size_dict = VDC_FLAFORS[self.flavor]
         k8s_size_dict = size_dict["k8s"]
         s3_size_dict = size_dict["s3"]
-        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict)
-        cus = cus * 60 * 60 * 24 * 30
-        sus = sus * 60 * 60 * 24 * 30
+        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict, duration=size_dict["duration"])
         self.info(f"required cus: {cus}, sus: {sus}")
-        pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus)
+        pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus, pool_id)
         self.info(f"vdc initialization successful")
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
         threads = []
@@ -235,10 +238,11 @@ class VDCDeployer:
             k8s_size_dict,
             cluster_secret,
             self.ssh_key.public_key.split("\n"),
-            vdc_uuid,
         )
         threads.append(k8s_thread)
-        zdb_thread = gevent.spawn(self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, self.password, vdc_uuid)
+        zdb_thread = gevent.spawn(
+            self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, self.password, self.vdc_uuid
+        )
         threads.append(zdb_thread)
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
@@ -247,8 +251,8 @@ class VDCDeployer:
         self.info(f"zdb wids: {zdb_wids}")
 
         if not k8s_wids or not zdb_wids:
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
-            solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
             nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
             solutions.cancel_solution(
                 [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
@@ -256,11 +260,18 @@ class VDCDeployer:
             return False
 
         minio_wid = self.s3.deploy_s3_minio_container(
-            pool_id, minio_ak, minio_sk, self.ssh_key.public_key.strip(), scheduler, zdb_wids, vdc_uuid, self.password
+            pool_id,
+            minio_ak,
+            minio_sk,
+            self.ssh_key.public_key.strip(),
+            scheduler,
+            zdb_wids,
+            self.vdc_uuid,
+            self.password,
         )
         if not minio_wid:
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
-            solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
             nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
             solutions.cancel_solution(
                 [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
@@ -270,7 +281,12 @@ class VDCDeployer:
         trc_secret = uuid.uuid4().hex
         minio_api_prefix = f"s3-{self.vdc_name}-{self.tname}"
         minio_api_subdomain = self.proxy.proxy_container(
-            prefix=minio_api_prefix, wid=minio_wid, port=9000, vdc_uuid=vdc_uuid, pool_id=pool_id, secret=trc_secret,
+            prefix=minio_api_prefix,
+            wid=minio_wid,
+            port=9000,
+            solution_uuid=self.vdc_uuid,
+            pool_id=pool_id,
+            secret=trc_secret,
         )
 
         minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
@@ -278,14 +294,14 @@ class VDCDeployer:
             prefix=minio_healing_prefix,
             wid=minio_wid,
             port=9010,
-            vdc_uuid=vdc_uuid,
+            solution_uuid=self.vdc_uuid,
             pool_id=pool_id,
             secret=f"healing{trc_secret}",
         )
 
         if not minio_api_subdomain or not minio_healing_subdomain:
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {vdc_uuid}")
-            solutions.cancel_solution_by_uuid(vdc_uuid, self.identity.instance_name)
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+            solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
             nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
             solutions.cancel_solution(
                 [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
@@ -299,19 +315,11 @@ class VDCDeployer:
         # config_dict = j.data.serializers.yaml.loads(kube_config)
         # config_dict["server"] = f"https://{master_ip}:6443"
 
-        minio_prometheus_job = self.s3.get_minio_prometheus_job(vdc_uuid, minio_api_subdomain)
+        minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
 
         self.mgmt_k8s_manager.add_helm_repo("marketplace", MARKETPLACE_HELM_REPO_URL)
-        self.mgmt_k8s_manager.install_chart(f"vdc_3bot_{vdc_uuid}", "3bot")  # TODO: add kwargs
-
-        vdc_instance = VDCFACTORY.get(f"vdc_{self.tname}_{self.vdc_name}")
-        vdc_instance.vdc_name = self.vdc_name
-        vdc_instance.solution_uuid = vdc_uuid
-        vdc_instance.owner_tname = self.tname
-        vdc_instance.identity_tid = self.identity.tid
-        vdc_instance.flavor = flavor
-        vdc_instance.save()
-
+        self.mgmt_k8s_manager.install_chart(f"vdc_3bot_{self.vdc_uuid}", "3bot")  # TODO: add kwargs
+        self.save_config()
         # return j.data.serializers.yaml.dumps(config_dict)
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
@@ -322,6 +330,16 @@ class VDCDeployer:
                 return True
             gevent.sleep(2)
         return False
+
+    def save_config(self):
+        vdc_instance = VDCFACTORY.get(f"vdc_{self.tname}_{self.vdc_name}")
+        vdc_instance.vdc_name = self.vdc_name
+        vdc_instance.solution_uuid = self.vdc_uuid
+        vdc_instance.owner_tname = self.tname
+        vdc_instance.identity_tid = self.identity.tid
+        vdc_instance.flavor = self.flavor
+        vdc_instance.save()
+        return vdc_instance
 
     def _log(self, msg, loglevel="info"):
         getattr(j.logger, loglevel)(self._log_format.format(msg))

@@ -36,22 +36,25 @@ EXPLORER_URL = os.environ.get("EXPLORER_URL")
 VDC_WALLET_SECRET = os.environ.get("VDC_WALLET_SECRET")
 VDC_S3_DOMAIN_NAME = os.environ.get("VDC_S3_DOMAIN_NAME")
 
-if not all(
-    [
-        VDC_NAME,
-        VDC_UUID,
-        VDC_OWNER_TNAME,
-        VDC_EMAIL,
-        VDC_PASSWORD_HASH,
-        EXPLORER_URL,
-        VDC_WALLET_SECRET,
-        VDC_S3_DOMAIN_NAME,
-    ]
-):
+
+VDC_VARS = {
+    "VDC_NAME": VDC_NAME,
+    "VDC_UUID": VDC_UUID,
+    "VDC_OWNER_TNAME": VDC_OWNER_TNAME,
+    "VDC_EMAIL": VDC_EMAIL,
+    "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
+    "EXPLORER_URL": EXPLORER_URL,
+    "VDC_WALLET_SECRET": VDC_WALLET_SECRET,
+    "VDC_S3_DOMAIN_NAME": VDC_S3_DOMAIN_NAME,
+}
+
+if not all(list(VDC_VARS.values())):
     raise j.exceptions.Validation("MISSING ENVIRONMENT VARIABLES")
 
 
-j.sals.process.execute("env | grep _ >> /etc/environment")
+for key, value in VDC_VARS.items():
+    j.sals.process.execute(f"""echo "{key}={value}" >> /etc/environment""")
+
 
 username = VDC_IDENTITY_FORMAT.format(VDC_OWNER_TNAME, VDC_NAME)
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
