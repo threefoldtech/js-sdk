@@ -9,6 +9,7 @@ S3_NO_PARITY_NODES = 1
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
+ZDB_STARTING_SIZE = 10  # in GB
 
 
 class K8SNodeFlavor(Enum):
@@ -31,10 +32,8 @@ class S3ZDBSize(Enum):
     BIG = 3
 
 
-# TODO: replace after development
 S3_ZDB_SIZES = {
-    # S3ZDBSize.SMALL: {"sru": 3 * 1024},
-    S3ZDBSize.SMALL: {"sru": 3},
+    S3ZDBSize.SMALL: {"sru": 3 * 1024},
     S3ZDBSize.MEDIUM: {"sru": 10 * 1024},
     S3ZDBSize.BIG: {"sru": 20 * 1024},
 }

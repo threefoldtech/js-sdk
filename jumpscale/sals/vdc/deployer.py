@@ -20,6 +20,7 @@ IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
+S3_AUTO_TOPUP_FARMS = ["freefarm"]
 
 
 class VDCDeployer:
@@ -204,7 +205,7 @@ class VDCDeployer:
                 cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024 + 0.25
             )
             nginx_cus, nginx_sus = deployer.calculate_capacity_units(cru=1, mru=1, sru=0.25)
-            storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
+            storage_per_zdb = ZDB_STARTING_SIZE
             zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
 
             zdb_sus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
@@ -219,7 +220,7 @@ class VDCDeployer:
         query_details = {
             "k8s": k8s_query,
             "s3_zdb": {
-                "sru": S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES,
+                "sru": ZDB_STARTING_SIZE,
                 "no_nodes": S3_NO_DATA_NODES + S3_NO_PARITY_NODES,
                 "ip_version": "IPv6",
             },
@@ -266,7 +267,7 @@ class VDCDeployer:
         self.info(f"required cus: {cus}, sus: {sus}")
         pool_id = self.init_new_vdc(scheduler, farm_name, cus, sus, pool_id)
         self.info(f"vdc initialization successful")
-        storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
+        storage_per_zdb = ZDB_STARTING_SIZE
         threads = []
         k8s_thread = gevent.spawn(
             self.kubernetes.deploy_kubernetes,
@@ -392,6 +393,7 @@ class VDCDeployer:
         return vdc_instance
 
     def get_threebot_extra_config(self, s3_domain_name, vdc_wallet_secret):
+        auto_top_up_farms = ",".join(S3_AUTO_TOPUP_FARMS)
         variables = {
             "VDC_NAME": self.vdc_name,
             "VDC_UUID": self.vdc_uuid,
@@ -401,6 +403,8 @@ class VDCDeployer:
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_DOMAIN_NAME": s3_domain_name,
             "VDC_WALLET_SECRET": vdc_wallet_secret,
+            "VDC_S3_MAX_STORAGE": S3_ZDB_SIZES[VDC_FLAFORS[self.flavor]["s3"]["size"]],
+            "S3_AUTO_TOPUP_FARMS": auto_top_up_farms,
         }
         extra_config = {
             "entryPoint[0]": "python3",
