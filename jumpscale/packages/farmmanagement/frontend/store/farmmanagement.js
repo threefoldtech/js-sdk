@@ -59,6 +59,12 @@ export default {
     updateFarm(context, farm) {
       return tfService.updateFarm(farm.id, farm);
     },
+    deleteIpAddress(context, toDel) {
+      return tfService.removePublicIPs(toDel.farm_id, [toDel.ipaddress])
+    },
+    createIpAddress(context, toInsert) {
+      return tfService.addPublicIPs(toInsert.farm_id, [toInsert.ipaddress])
+    },
     deleteNodeFarm(context, node) {
       return tfService.deleteNodeFarm(node)
     }

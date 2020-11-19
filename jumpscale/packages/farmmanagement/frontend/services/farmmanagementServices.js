@@ -53,8 +53,8 @@ export default {
   },
   removePublicIPs(farm_id, ip_addresses) {
     return axios.post('/farmmanagement/actors/farm_management/remove_ip_addresses', {
-      farm_id,
-      ip_addresses,
+      farm_id: farm_id,
+      ip_addresses: ip_addresses,
     })
   }
 };

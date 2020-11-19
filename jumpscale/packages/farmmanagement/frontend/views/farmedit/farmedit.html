@@ -1,4 +1,4 @@
-<v-card style="width: 100%;">
+<v-card style="width: 80%; margin: auto;">
     <v-card-title primary-title class="primary py-3 mb-5 white--text">
       <v-icon color="white" left>fa-server</v-icon>
       Farm Settings - {{farm.name}}
@@ -42,15 +42,55 @@
 
         <br />
         <br />
-        <h3>IP Address management</h3>
+
+        <div class="header-with-action">
+          <h3>IP Address management</h3>
+          <v-btn v-if="farm.gateway_ip !== ''" class="plus-button" fab small text @click="openCreateModal = true">
+            <v-icon small>
+              fa-plus
+            </v-icon>
+          </v-btn>
+        </div>
+
+        <v-col cols="12" sm="4" class="header-with-action">
+          <v-text-field 
+            v-model="farm.gateway_ip" 
+            label="Gateway IP (Required)"
+            :rules="[rules.required, rules.validIp]"
+          ></v-text-field>
+          <v-btn style="margin-top: 20px;" text color="secondary" class="mr-3" @click="saveFarm(false)">Save</v-btn>
+        </v-col>
+
+        <v-dialog v-model="openCreateModal" persistent max-width="800">
+          <v-card>
+            <v-card-title class="headline">Create a new IP address</v-card-title>
+            <v-col cols="12" sm="8">
+              <div class="create-ip">
+                <p>An IP address must be a public IP in format: "x.x.x.x/x"</p>
+                <v-text-field 
+                  v-model="newIpAddress" 
+                  label="IPAddress"
+                  :rules="[rules.required, rules.validIp]"
+                ></v-text-field>
+              </div>
+            </v-col>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn x-small color="black darken-1" text @click="openCreateModal = false">Cancel</v-btn>
+              <v-btn x-small color="red darken-1" text @click="createIpAddressFarmer()">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
         <v-data-table 
+          v-if="farm.gateway_ip !== ''"
           item-key="ipaddress" 
           :headers="headers" 
           :items="farm.ipaddresses" 
         >
           
           <template v-slot:item.action="{ item }">
-            <v-btn fab small text @click="openDeleteModal = true">
+            <v-btn v-if="item.reservation_id == 0" fab small text @click="openDeleteModal = true">
               <v-icon small>
                 fa-trash
               </v-icon>
@@ -62,7 +102,7 @@
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
-                  <v-btn x-small color="red darken-1" text @click="deleteIpAddress(item)">Delete</v-btn>
+                  <v-btn x-small color="red darken-1" text @click="deleteIpAddressFarmer(item)">Delete</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -74,11 +114,11 @@
       </v-row>
     </v-card-text>
     <v-card-actions>
-      <v-spacer></v-spacer>
       <v-alert :type="editFarmAlert.type" v-if=editFarmAlert border="right" colored-border elevation="2">
         {{editFarmAlert.message}}
       </v-alert>
+      <v-spacer></v-spacer>
       <v-btn text class="mr-3" @click="cancelEditFarm">Cancel</v-btn>
-      <v-btn text color="secondary" class="mr-3" @click="saveFarm">Save</v-btn>
+      <v-btn text color="secondary" class="mr-3" @click="saveFarm(true)">Save</v-btn>
     </v-card-actions>
 </v-card>

@@ -2,6 +2,8 @@ module.exports = new Promise(async (resolve, reject) => {
     const vuex = await import(
         "/weblibs/vuex/vuex.esm.browser.js"
     )
+    const ipaddr = await import("https://cdn.jsdelivr.net/npm/ip-address@5.8.9/dist/ip-address-globals.js")
+
     resolve({
         name: "farmedit",
         data () {
@@ -14,25 +16,47 @@ module.exports = new Promise(async (resolve, reject) => {
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 openDeleteModal: false,
+                openCreateModal: false,
+                newIpAddress: '',
+                newIpAddressError: '',
+                rules: {
+                    required: value => !!value || 'Required.',
+                    validIp: value => new window.Address4(value).isValid()
+                },
+                mounted: false
             }
         },
         async mounted () {
             await this.getFarm(this.$router.history.current.params.id)
+            this.mounted = true
+        },
+        computed: {
+            validGateway () {
+                if (farm.gateway_ip == '') {
+                    return false
+                }
+
+                return true
+            }
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
                 "getFarm",
-                "updateFarm"
+                "updateFarm",
+                "deleteIpAddress",
+                "createIpAddress",
+                "addIpAddress"
             ]),
-            saveFarm() {
+            saveFarm(goBack) {
                 this.updateFarm(this.farm)
                     .then(response => {
+                        debugger
                         if (response.status == 200) {
                             this.editFarmAlert = {
                                 message: "farm configuration updated",
                                 type: "success",
                             }
-                            this.getFarms();
+                            this.getFarm(this.$router.history.current.params.id)
                         } else {
                             this.editFarmAlert = {
                                 message: response.data['error'],
@@ -41,9 +65,8 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                         setTimeout(() => {
                             this.editFarmAlert = undefined
-                            this.settingsDialog = false
-                            this.$router.push('/')
                         }, 2000)
+                        if (goBack) this.$router.push('/')
                     }).catch(err => {
                         var msg = "server error"
                         if (err.response) {
@@ -55,7 +78,10 @@ module.exports = new Promise(async (resolve, reject) => {
                             message: msg,
                             type: "error",
                         }
-                        this.$router.push('/')
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 2000)
+                        if (goBack) this.$router.push('/')
                     })
             },
             addWallet(farm) {
@@ -67,8 +93,81 @@ module.exports = new Promise(async (resolve, reject) => {
             cancelEditFarm() {
                 this.$router.push('/')
             },
-            deleteIpAddress (ipaddress) {
-                console.log(ipaddress)
+            deleteIpAddressFarmer (ipaddress) {
+                const del = {
+                    farm_id: this.farm.id,
+                    ipaddress: ipaddress.ipaddress
+                }
+                this.deleteIpAddress(del)
+                    .then(response => {
+                        if (response.status == 200) {
+                            this.editFarmAlert = {
+                                message: "farm configuration updated",
+                                type: "success",
+                            }
+                            this.getFarm(this.$router.history.current.params.id)
+                        } else {
+                            this.editFarmAlert = {
+                                message: response.data['error'],
+                                type: "error",
+                            }
+                        }
+                        this.editFarmAlert = undefined
+                        this.openDeleteModal = false
+                    }).catch(err => {
+                        var msg = "server error"
+                        if (err.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                        }
+                        this.editFarmAlert = {
+                            message: msg,
+                            type: "error",
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 2500)
+                        this.openDeleteModal = false
+                    })
+            },
+            createIpAddressFarmer () {
+                const insert = {
+                    farm_id: this.farm.id,
+                    ipaddress: this.newIpAddress
+                }
+                this.createIpAddress(insert)
+                    .then(response => {
+                        if (response.status == 200) {
+                            this.editFarmAlert = {
+                                message: "farm configuration updated",
+                                type: "success",
+                            }
+                            this.getFarm(this.$router.history.current.params.id)
+                        } else {
+                            this.editFarmAlert = {
+                                message: response.data['error'],
+                                type: "error",
+                            }
+                        }
+                        this.editFarmAlert = undefined
+                        this.openCreateModal = false
+                    }).catch(err => {
+                        var msg = "server error"
+                        if (err.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                        }
+                        this.editFarmAlert = {
+                            message: msg,
+                            type: "error",
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 2500)
+                        this.openCreateModal = false
+                    })
             }
         },
         computed: {

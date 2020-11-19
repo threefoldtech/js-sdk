@@ -81,7 +81,6 @@ module.exports = new Promise(async (resolve, reject) => {
                 "getUser",
                 "registerFarm",
                 "getFarms",
-                "updateFarm",
                 "getNodes",
                 "getTfgridUrl"
             ]),
