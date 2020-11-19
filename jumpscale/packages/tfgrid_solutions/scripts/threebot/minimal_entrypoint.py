@@ -83,5 +83,5 @@ j.core.config.set("S3_AUTO_TOPUP_MAX", VDC_S3_MAX_STORAGE)  # in GB
 j.core.config.set("S3_AUTO_TOPUP_CLUSTERS", [VDC_NAME])  # name of the minio clusters to auto top up
 j.core.config.set("S3_AUTO_TOPUP_WALLET", VDC_NAME)  # wallet to be used by auto top up
 j.core.config.set("S3_AUTO_TOPUP_FARMS", S3_AUTO_TOPUP_FARMS.split(","))  # farms to deploy zdbs on
-
+j.core.config.set("S3_AUTO_TOP_SOLUTIONS", [VDC_NAME])  # minio solutions that will be auto topped up
 j.servers.threebot.start_default(wait=True)

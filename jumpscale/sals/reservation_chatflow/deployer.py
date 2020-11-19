@@ -1465,6 +1465,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         description="",
         **metadata,
     ):
+        metadata["password"] = password
         workload = j.sals.zos.get(identity_name).zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata)
@@ -1885,8 +1886,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             result.append(slave_cont_id)
         return result
 
-    def get_zdb_url(self, zdb_id, password, identity_name=None):
-        workload = j.sals.zos.get(identity_name).workloads.get(zdb_id)
+    def get_zdb_url(self, zdb_id, password, identity_name=None, workload=None):
+        workload = workload or j.sals.zos.get(identity_name).workloads.get(zdb_id)
         result_json = j.data.serializers.json.loads(workload.info.result.data_json)
         if "IPs" in result_json:
             ip = result_json["IPs"][0]

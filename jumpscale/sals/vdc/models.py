@@ -40,7 +40,7 @@ class S3Container(VDCWorkloadBase):
 
 
 class S3ZDB(VDCWorkloadBase):
-    pass
+    size = fields.Integer()
 
 
 class S3Subdomain(VDCWorkloadBase):
@@ -163,6 +163,7 @@ class VDCStoredFactory(StoredFactory):
             zdb.node_id = workload.info.node_id
             zdb.pool_id = workload.info.pool_id
             zdb.wid = workload.id
+            zdb.size = workload.size
             instance.s3.zdbs.append(zdb)
         return instance
 

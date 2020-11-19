@@ -214,7 +214,7 @@ class VDCDeployer:
             total_sus += zdb_sus + minio_sus + (2 * nginx_sus)
         return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
 
-    def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict, s3_size_dict=None):
+    def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict):
         k8s_query = K8S_SIZES[k8s_size_dict["size"]].copy()
         k8s_query["no_nodes"] = k8s_size_dict["no_nodes"]
         query_details = {
@@ -258,7 +258,7 @@ class VDCDeployer:
         size_dict = VDC_FLAFORS[self.flavor]
         k8s_size_dict = size_dict["k8s"]
         s3_size_dict = size_dict["s3"]
-        if not self._check_new_vdc_farm_capacity(farm_name, k8s_size_dict, s3_size_dict):
+        if not self._check_new_vdc_farm_capacity(farm_name, k8s_size_dict):
             raise j.exceptions.Runtime(
                 f"farm {farm_name} doesn't have enough capacity to deploy vdc of flavor {self.flavor}"
             )
