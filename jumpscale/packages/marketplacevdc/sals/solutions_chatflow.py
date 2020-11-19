@@ -1,7 +1,7 @@
 import random
 import requests
 import uuid
-import dedent
+from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -277,7 +277,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             config=self.chart_config,
         )
 
-    @chatflow_step(title="Success")
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
