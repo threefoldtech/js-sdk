@@ -48,10 +48,6 @@ class BaseTest(BaseTests):
         identity.set_default()
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
-        from jumpscale.packages import threebot_deployer
-
-        path = j.sals.fs.dirname(threebot_deployer.__file__)
-        threebot_deployer = j.servers.threebot.default.packages.add(path)
 
     @classmethod
     def tearDownClass(cls):

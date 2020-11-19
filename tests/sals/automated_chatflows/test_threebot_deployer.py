@@ -15,6 +15,12 @@ class ThreebotChatflows(ChatflowsBase):
         super().setUpClass()
         # Accept admin T&C for testing identity.
         cls.accept_terms_conditions(type_="marketplace")
+
+        from jumpscale.packages import threebot_deployer
+
+        path = j.sals.fs.dirname(threebot_deployer.__file__)
+        threebot_deployer = j.servers.threebot.default.packages.add(path)
+
         cls.solution_uuid = ""
         cls.secret = ""
 

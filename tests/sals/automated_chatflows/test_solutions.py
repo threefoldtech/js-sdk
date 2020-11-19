@@ -3,7 +3,8 @@ from jumpscale.loader import j
 from redis import Redis
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
-from time import sleep
+from gevent import sleep
+
 
 @pytest.mark.integration
 class TFGridSolutionChatflows(ChatflowsBase):
@@ -33,6 +34,10 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.save()
         cls.solution_uuid = ""
         cls.deployment_timeout = 360
+
+    def setUp(self):
+        _, res, _ = j.sals.process.execute("sudo wg")
+        self.assertTrue("latest handshake" in res, "there are a problem with wireguard")
 
     @classmethod
     def tearDownClass(cls):
