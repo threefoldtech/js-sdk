@@ -17,6 +17,7 @@ class K8SNodeFlavor(Enum):
     BIG = 3
 
 
+# FIXME: the below sizes are not correct and not supported (https://github.com/threefoldtech/vdc/issues/39)
 K8S_SIZES = {
     K8SNodeFlavor.SMALL: {"cru": 1, "mru": 2, "sru": 25},
     K8SNodeFlavor.MEDIUM: {"cru": 2, "mru": 4, "sru": 50},

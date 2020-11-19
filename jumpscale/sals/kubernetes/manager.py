@@ -125,7 +125,7 @@ class Manager:
         rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} list -o json")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
-        return out
+        return j.data.serializers.json.loads(out)
 
     @helm_required
     def get_deployed_release(self, release_name):

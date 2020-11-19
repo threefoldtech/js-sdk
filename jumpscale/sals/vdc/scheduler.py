@@ -40,18 +40,14 @@ class Scheduler:
         """search node with the ability to filter on different criteria
 
         Args:
-          farm_id: int:  (Default value = None)
-          farm_name: str:  (Default value = None)
-          country: str:  (Default value = None)
-          city: str:  (Default value = None)
           cru: int:  (Default value = None)
           sru: int:  (Default value = None)
           mru: int:  (Default value = None)
           hru: int:  (Default value = None)
-          currency: str:  (Default value = None)
+          ip_version: str:  (Default value = None)
 
-        Returns:
-
+        yields:
+            node
         """
         filters = [self.zos.nodes_finder.filter_is_up]
         if ip_version == "IPv4":

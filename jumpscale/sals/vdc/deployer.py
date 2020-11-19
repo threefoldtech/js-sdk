@@ -138,7 +138,7 @@ class VDCDeployer:
             # TODO: raise alert with traceback
             raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
-    def initialize_new_vdc_deployment(self, scheduler, farm_name, cu, su, pool_id=None):
+    def init_new_vdc(self, scheduler, farm_name, cu, su, pool_id=None):
         """
         create pool if needed and network for new vdc
         """
@@ -264,7 +264,7 @@ class VDCDeployer:
 
         cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict, duration=size_dict["duration"])
         self.info(f"required cus: {cus}, sus: {sus}")
-        pool_id = self.initialize_new_vdc_deployment(scheduler, farm_name, cus, sus, pool_id)
+        pool_id = self.init_new_vdc(scheduler, farm_name, cus, sus, pool_id)
         self.info(f"vdc initialization successful")
         storage_per_zdb = S3_ZDB_SIZES[s3_size_dict["size"]]["sru"] / S3_NO_DATA_NODES
         threads = []
