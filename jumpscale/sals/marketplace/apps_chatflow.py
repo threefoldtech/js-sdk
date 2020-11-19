@@ -33,7 +33,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
-        self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
         self.retries = 3
         self.custom_domain = False
@@ -159,7 +158,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         return self.pool_id
 
     def _select_node(self):
-        self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="New Expiration")
     def set_expiration(self):
@@ -439,12 +438,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         for farm in farms:
             farm_name = farm.name
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4"
+                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
-            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
-            )
-            if available_ipv4 and available_ipv6:
+            if available_ipv4:
                 self.available_farms.append(farm)
                 if only_one:
                     return
