@@ -104,15 +104,9 @@ class Stellar(Client):
         resp.raise_for_status()
         return resp.json()
 
-    def _create_activation_code(self):
+    def _activate_account(self):
         data = {"address": self.address}
         resp = j.tools.http.post(self._get_url("CREATE_ACTIVATION_CODE"), json={"args": data})
-        resp.raise_for_status()
-        return resp.json()
-
-    def _activation_account(self, activation_code):
-        data = {"activation_code": activation_code}
-        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"args": data})
         resp.raise_for_status()
         return resp.json()
 
@@ -229,7 +223,7 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using riendbot
+        """Activates and funds a testnet account using friendbot
         """
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
@@ -240,10 +234,9 @@ class Stellar(Client):
 
     def activate_through_threefold_service(self):
         """
-        Activate your weallet through threefold services
+        Activate your wallet through the threefold activation service
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        self._activate_account()
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
