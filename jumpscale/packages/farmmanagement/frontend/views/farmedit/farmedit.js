@@ -11,7 +11,9 @@ module.exports = new Promise(async (resolve, reject) => {
                 headers: [
                     { text: "IP Address", value: "ipaddress" },
                     { text: "Reservation ID", value: "reservation_id" },
+                    { text: "Actions", value: "action", sortable: false }
                 ],
+                openDeleteModal: false,
             }
         },
         async mounted () {
@@ -20,6 +22,7 @@ module.exports = new Promise(async (resolve, reject) => {
         methods: {
             ...vuex.mapActions("farmmanagement", [
                 "getFarm",
+                "updateFarm"
             ]),
             saveFarm() {
                 this.updateFarm(this.farm)
@@ -39,6 +42,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         setTimeout(() => {
                             this.editFarmAlert = undefined
                             this.settingsDialog = false
+                            this.$router.push('/')
                         }, 2000)
                     }).catch(err => {
                         var msg = "server error"
@@ -51,6 +55,7 @@ module.exports = new Promise(async (resolve, reject) => {
                             message: msg,
                             type: "error",
                         }
+                        this.$router.push('/')
                     })
             },
             addWallet(farm) {
@@ -61,6 +66,9 @@ module.exports = new Promise(async (resolve, reject) => {
             },
             cancelEditFarm() {
                 this.$router.push('/')
+            },
+            deleteIpAddress (ipaddress) {
+                console.log(ipaddress)
             }
         },
         computed: {

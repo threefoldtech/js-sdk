@@ -101,8 +101,10 @@ class CloudUnits(Base):
     cu = fields.Float()
     # storage units
     su = fields.Float()
+    # ipv4 units
+    ipv4u = fields.Float()
 
-    def cost(self, cu_price, su_price, duration):
+    def cost(self, cu_price, su_price, ipv4u_price, duration):
         """
         compute the total cost
 
@@ -114,7 +116,7 @@ class CloudUnits(Base):
         Returns:
             [float]: price
         """
-        price_per_second = self.cu * cu_price + self.su * su_price
+        price_per_second = self.cu * cu_price + self.su * su_price + self.ipv4u * ipv4u_price
         return price_per_second * duration
 
 
@@ -123,6 +125,7 @@ class ResourceUnitAmount(Base):
     mru = fields.Float()
     hru = fields.Float()
     sru = fields.Float()
+    ipv4u = fields.Float()
 
     def cloud_units(self) -> CloudUnits:
         # converts resource units to cloud units. Cloud units are rounded to 3
@@ -130,6 +133,7 @@ class ResourceUnitAmount(Base):
         cloud_units = CloudUnits()
         cloud_units.cu = round(min(self.mru / 4, self.cru / 2) * 1000) / 1000
         cloud_units.su = round((self.hru / 1200 + self.sru / 300) * 1000) / 1000
+        cloud_units.ipv4u = self.ipv4u
         return cloud_units
 
 
@@ -575,7 +579,9 @@ class PublicIP(Base):
     info = fields.Object(ReservationInfo)
 
     def resource_units(self):
-        return ResourceUnitAmount()
+        resource_units = ResourceUnitAmount()
+        resource_units.ipv4u = 1
+        return resource_units
 
 class ReservationData(Base):
     description = fields.String(default="")
@@ -615,6 +621,7 @@ class PoolCreateData(Base):
     pool_id = fields.Integer()
     cus = fields.Integer()
     sus = fields.Integer()
+    ipv4us = fields.Integer()
     node_ids = fields.List(fields.String())
     currencies = fields.List(fields.String())
 
@@ -630,6 +637,7 @@ class Pool(Base):
     pool_id = fields.Integer()
     cus = fields.Float()
     sus = fields.Float()
+    ipv4us = fields.Float()
     node_ids = fields.List(fields.String())
     last_updated = fields.DateTime()
     active_cu = fields.Float()

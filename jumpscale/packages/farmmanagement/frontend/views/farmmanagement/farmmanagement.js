@@ -166,38 +166,6 @@ module.exports = new Promise(async (resolve, reject) => {
                 this.newFarm.location.longitude = event.latLng.lng();
                 console.log(this.newFarm);
             },
-            saveFarm() {
-                this.updateFarm(this.farmToEdit)
-                    .then(response => {
-                        if (response.status == 200) {
-                            this.editFarmAlert = {
-                                message: "farm configuration updated",
-                                type: "success",
-                            }
-                            this.getFarms();
-                        } else {
-                            this.editFarmAlert = {
-                                message: response.data['error'],
-                                type: "error",
-                            }
-                        }
-                        setTimeout(() => {
-                            this.editFarmAlert = undefined
-                            this.settingsDialog = false
-                        }, 2000)
-                    }).catch(err => {
-                        var msg = "server error"
-                        if (err.response) {
-                            // The request was made and the server responded with a status code
-                            // that falls out of the range of 2xx
-                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
-                        }
-                        this.editFarmAlert = {
-                            message: msg,
-                            type: "error",
-                        }
-                    })
-            },
             addWallet(farm) {
                 farm.wallet_addresses.push({ 'asset': 'TFT', address: '' })
             },

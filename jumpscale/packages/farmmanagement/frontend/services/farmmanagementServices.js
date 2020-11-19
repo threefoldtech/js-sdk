@@ -44,5 +44,17 @@ export default {
       node_id: node_id,
       free: free,
     })
+  },
+  addPublicIPs(farm_id, ip_addresses) {
+    return axios.post('/farmmanagement/actors/farm_management/add_ip_addresses', {
+      farm_id,
+      ip_addresses,
+    })
+  },
+  removePublicIPs(farm_id, ip_addresses) {
+    return axios.post('/farmmanagement/actors/farm_management/remove_ip_addresses', {
+      farm_id,
+      ip_addresses,
+    })
   }
 };

@@ -43,50 +43,32 @@
         <br />
         <br />
         <h3>IP Address management</h3>
-        <!-- <v-col>
-            <v-btn @click="addWallet(farm)" dark small color="blue">Add an IP address</v-btn>
-        </v-col>
-        <v-row v-for="(ip, i) in farm.ipaddresses" :key="ip.ipaddress">
-            <v-col cols="12" sm="4">
-                <v-text-field disabled v-model="ip.ipaddress" label="IP address"></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="4">
-                <v-text-field disabled v-model="ip.reservation_id" label="IP reservation ID"></v-text-field>
-            </v-col>
-            <v-col>
-                <v-btn v-if="ip.reservation_id == 0" @click="removeWallet(farm, i)" fab dark small color="warning">
-                    <v-icon small>fa-minus</v-icon>
-                </v-btn>
-            </v-col>
-        </v-row> -->
+        <v-data-table 
+          item-key="ipaddress" 
+          :headers="headers" 
+          :items="farm.ipaddresses" 
+        >
+          
+          <template v-slot:item.action="{ item }">
+            <v-btn fab small text @click="openDeleteModal = true">
+              <v-icon small>
+                fa-trash
+              </v-icon>
+            </v-btn>
 
+            <v-dialog v-model="openDeleteModal" persistent max-width="800">
+              <v-card>
+                <v-card-title class="headline">Are you sure you want to delete ipaddress: {{ item.ipaddress }}?</v-card-title>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
+                  <v-btn x-small color="red darken-1" text @click="deleteIpAddress(item)">Delete</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </template>
 
-        <v-data-table item-key="ipaddress" :headers="headers" :items="farm.ipaddresses" items-per-page="10">
-            <template v-slot:item.action="{ item }">
-
-              <v-btn fab small text @click="openDeleteNodeModal(item)">
-                <v-icon small>
-                  fa-trash
-                </v-icon>
-              </v-btn>
-
-              <v-dialog v-model="openDeleteModal" persistent max-width="800">
-                <v-card>
-                  <v-card-title class="headline">Are you sure you want to delete node: {{ nodeToDelete.id }}?</v-card-title>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
-                    <v-btn x-small color="red darken-1" text @click="deleteNode()">Delete</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-
-            </template>
-          </v-data-table>
-
-
-
-
+        </v-data-table>
 
         </v-col>
       </v-row>
