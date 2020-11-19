@@ -19,15 +19,11 @@ class Wallet(BaseActor):
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
-            if wallettype == "TEST":
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException("Error on wallet activation")
 
-        trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
         try:
             wallet.add_known_trustline("TFT")
         except Exception:

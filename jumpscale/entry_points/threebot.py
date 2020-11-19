@@ -7,6 +7,7 @@ import sys
 import click
 import tempfile
 import subprocess
+import requests
 
 from jumpscale.loader import j
 from jumpscale.threesdk.identitymanager import IdentityManager
@@ -256,28 +257,40 @@ def have_wallets():
             main = True
     return test, main
 
+def fund_testnet_wallet(wallet_name:str):
+    wallet = j.clients.stellar.get(wallet_name)
 
-def create_test_wallet(wallet_name):
+    headers = {"Content-Type": "application/json"}
+    url = "https://gettft.testnet.grid.tf/tft_faucet/api/transfer"
+    data = {"destination": wallet.address}
+
     try:
-        j.clients.stellar.create_testnet_funded_wallet(wallet_name)
-    except Exception as e:
-        j.logger.error(str(e))
+        response = requests.post(url, json=data, headers=headers)
+    except requests.exceptions.HTTPError:
+        j.clients.stellar.delete(wallet_name)
+        raise j.exceptions.Runtime(
+            f"Failed to fund wallet can't reach {url} due to connection error. Changes will be reverted."
+        )
+    if response.status_code != 200:
+        j.clients.stellar.delete(wallet_name)
+        raise j.exceptions.Runtime(
+            f"Failed to fund the wallet due to to faucet server error. Changes will be reverted."
+        )
 
-
-def create_main_wallet(wallet_name):
-    wallet_actor = Wallet()
-    try:
-        wallet_actor.create_wallet(wallet_name, "STD")
-    except Exception as e:
-        j.logger.error(str(e))
-
+    j.logger.info("Wallet funded successfully")
 
 def create_wallets_if_not_exists():
+
     test, main = have_wallets()
-    if not test and "testnet" in j.core.identity.me.explorer_url:
-        create_test_wallet("test")
-    if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
-        create_main_wallet("main")
+    wallet_actor = Wallet()
+    try:
+        if not test and "testnet" in j.core.identity.me.explorer_url:
+            wallet_actor.create_wallet("test", "TEST")
+            fund_testnet_wallet("test")
+        if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
+            wallet_actor.create_wallet("main", "STD")
+    except Exception as e:
+        j.logger.error(str(e))
 
 
 cli.add_command(start)
