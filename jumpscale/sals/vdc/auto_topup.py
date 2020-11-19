@@ -20,7 +20,6 @@ METRIC_KEYS = {
 
 def get_target_s3_zdb_config(target_name):
     zos = get_zos()
-    clusters = {}
     for sol_dict in solutions.list_minio_solutions():
         if sol_dict["Name"] != target_name:
             continue
@@ -44,17 +43,21 @@ def get_target_s3_zdb_config(target_name):
                 j.logger.error(
                     f"AUTO_TOPUP: zdb workload {workload.id} doesn't include password in metadata in s3 solution {sol_dict['Name']}"
                 )
-                cluster_zdb_configs = []
-                break
+                raise j.exceptions.Validation(
+                    f"AUTO_TOPUP: zdb workload {workload.id} doesn't include password in metadata in s3 solution {sol_dict['Name']}"
+                )
             zdb_url = deployer.get_zdb_url(workload.id, password, workload=workload)
             cluster_zdb_configs.append(zdb_url)
 
         if not cluster_zdb_configs:
-            j.logger.warning(f"AUTO_TOPUP: skipping s3 solution {sol_dict['Name']} because of invalid zdb metadata")
-            continue
+            j.logger.error(
+                f"AUTO_TOPUP: can't retrive zdb config of s3 solution {sol_dict['Name']} because of invalid zdb metadata"
+            )
+            raise j.exceptions.Runtime(
+                f"AUTO_TOPUP: can't retrive zdb config of s3 solution {sol_dict['Name']} because of invalid zdb metadata"
+            )
 
-        clusters[sol_dict["Name"]] = cluster_zdb_configs
-    return clusters
+        return cluster_zdb_configs
 
 
 def _parse_zerostor_metric(line):
