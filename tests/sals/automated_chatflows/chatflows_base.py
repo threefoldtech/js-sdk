@@ -47,6 +47,10 @@ class ChatflowsBase(BaseTests):
 
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
+        from jumpscale.packages import threebot_deployer
+
+        path = j.sals.fs.dirname(threebot_deployer.__file__)
+        threebot_deployer = j.servers.threebot.default.packages.add(path)
 
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 360
