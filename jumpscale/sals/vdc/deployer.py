@@ -340,6 +340,7 @@ class VDCDeployer:
         if not helm_thread.value:
             self.error("failed to deploy 3bot managemnt container")
             self.rollback_vdc_deployment()
+            return False
 
         # download kube config from master
         # k8s_workload = self.zos.workloads.get(k8s_wids[0])
@@ -353,7 +354,9 @@ class VDCDeployer:
         # return j.data.serializers.yaml.dumps(config_dict)
 
     def deploy_mgmt_3bot(self, minio_subdomain):
+        self.info(f"adding helm marketplace repo url: {MARKETPLACE_HELM_REPO_URL}")
         self.mgmt_k8s_manager.add_helm_repo, ("marketplace", MARKETPLACE_HELM_REPO_URL)
+        self.info("updating helm repos")
         self.mgmt_k8s_manager.update_repos()
         self.info("deploying 3bot helm chart")
         return self.mgmt_k8s_manager.install_chart(
@@ -403,7 +406,7 @@ class VDCDeployer:
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_DOMAIN_NAME": s3_domain_name,
             "VDC_WALLET_SECRET": vdc_wallet_secret,
-            "VDC_S3_MAX_STORAGE": S3_ZDB_SIZES[VDC_FLAFORS[self.flavor]["s3"]["size"]],
+            "VDC_S3_MAX_STORAGE": S3_ZDB_SIZES[VDC_FLAFORS[self.flavor]["s3"]["size"]]["sru"],
             "S3_AUTO_TOPUP_FARMS": auto_top_up_farms,
         }
         extra_config = {
