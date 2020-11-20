@@ -43,7 +43,8 @@ class Location(Base):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
 class FarmerIP(Base):
-    ipaddress = fields.IPRange()
+    address = fields.IPRange()
+    gateway = fields.IPAddress()
     reservation_id = fields.Integer()
 
 class Farm(Base):
@@ -56,7 +57,6 @@ class Farm(Base):
     email = fields.Email()
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
-    gateway_ip = fields.IPAddress()
     ipaddresses = fields.List(fields.Object(FarmerIP))
 
     def __str__(self):

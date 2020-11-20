@@ -12,7 +12,7 @@
           </v-text-field>
           <v-text-field v-model="farm.name" label="Farm name"></v-text-field>
 
-          <v-select v-model="farm.location.country" menu-props="auto" :items="countries" label="Country">
+          <!-- <v-select v-model="farm.location.country" menu-props="auto" :items="countries" label="Country"> -->
           </v-select>
 
           <v-text-field v-model="farm.email" label="Email"></v-text-field>
@@ -45,21 +45,12 @@
 
         <div class="header-with-action">
           <h3>IP Address management</h3>
-          <v-btn v-if="farm.gateway_ip !== ''" class="plus-button" fab small text @click="openCreateModal = true">
+          <v-btn class="plus-button" fab small text @click="openCreateModal = true">
             <v-icon small>
               fa-plus
             </v-icon>
           </v-btn>
         </div>
-
-        <v-col cols="12" sm="4" class="header-with-action">
-          <v-text-field 
-            v-model="farm.gateway_ip" 
-            label="Gateway IP (Required)"
-            :rules="[rules.required, rules.validIp]"
-          ></v-text-field>
-          <v-btn style="margin-top: 20px;" text color="secondary" class="mr-3" @click="saveFarm(false)">Save</v-btn>
-        </v-col>
 
         <v-dialog v-model="openCreateModal" persistent max-width="800">
           <v-card>
@@ -68,8 +59,13 @@
               <div class="create-ip">
                 <p>An IP address must be a public IP in format: "x.x.x.x/x"</p>
                 <v-text-field 
-                  v-model="newIpAddress" 
-                  label="IPAddress"
+                  v-model="newIpAddress.ipaddress" 
+                  label="IP Address"
+                  :rules="[rules.required, rules.validIp]"
+                ></v-text-field>
+                <v-text-field 
+                  v-model="newIpAddress.gatewayIP" 
+                  label="Gateway IP"
                   :rules="[rules.required, rules.validIp]"
                 ></v-text-field>
               </div>
@@ -83,7 +79,6 @@
         </v-dialog>
 
         <v-data-table 
-          v-if="farm.gateway_ip !== ''"
           item-key="ipaddress" 
           :headers="headers" 
           :items="farm.ipaddresses" 

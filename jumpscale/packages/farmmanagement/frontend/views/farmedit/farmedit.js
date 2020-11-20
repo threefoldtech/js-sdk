@@ -11,33 +11,26 @@ module.exports = new Promise(async (resolve, reject) => {
                 countries,
                 editFarmAlert: undefined,
                 headers: [
-                    { text: "IP Address", value: "ipaddress" },
+                    { text: "IP Address", value: "address" },
+                    { text: "Gateway IP", value: "gateway" },
                     { text: "Reservation ID", value: "reservation_id" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 openDeleteModal: false,
                 openCreateModal: false,
-                newIpAddress: '',
+                newIpAddress: {
+                    ipaddress: '',
+                    gatewayIP: ''
+                },
                 newIpAddressError: '',
                 rules: {
                     required: value => !!value || 'Required.',
                     validIp: value => new window.Address4(value).isValid()
                 },
-                mounted: false
             }
         },
         async mounted () {
             await this.getFarm(this.$router.history.current.params.id)
-            this.mounted = true
-        },
-        computed: {
-            validGateway () {
-                if (farm.gateway_ip == '') {
-                    return false
-                }
-
-                return true
-            }
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
@@ -50,7 +43,6 @@ module.exports = new Promise(async (resolve, reject) => {
             saveFarm(goBack) {
                 this.updateFarm(this.farm)
                     .then(response => {
-                        debugger
                         if (response.status == 200) {
                             this.editFarmAlert = {
                                 message: "farm configuration updated",
@@ -134,7 +126,8 @@ module.exports = new Promise(async (resolve, reject) => {
             createIpAddressFarmer () {
                 const insert = {
                     farm_id: this.farm.id,
-                    ipaddress: this.newIpAddress
+                    address: this.newIpAddress.ipaddress,
+                    gateway: this.newIpAddress.gatewayIP
                 }
                 this.createIpAddress(insert)
                     .then(response => {
