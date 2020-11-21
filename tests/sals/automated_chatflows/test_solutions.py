@@ -4,6 +4,7 @@ from redis import Redis
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from gevent import sleep
+from unittest import TestCase
 
 
 @pytest.mark.integration
@@ -20,8 +21,11 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.wg_conf_path = f"/tmp/{cls.random_name()}.conf"
         network = deployer.create_network(solution_name=cls.network_name)
         j.sals.fs.write_file(cls.wg_conf_path, network.wgconf)
-        j.sals.process.execute(f"sudo wg-quick up {cls.wg_conf_path}")
-
+        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {cls.wg_conf_path}")
+        TestCase().assertFalse(rc, f"out: {out} err: {err}")
+        _, out, err = j.sals.process.execute("sudo wg")
+        TestCase().assertIn("latest handshake", out, f"out: {out}, err: {err}")
+        
         # Prepare ssh
         cls.ssh_client_name = cls.random_name()
         if not j.sals.fs.exists("/tmp/.ssh"):
@@ -34,10 +38,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.save()
         cls.solution_uuid = ""
         cls.deployment_timeout = 360
-
-    def setUp(self):
-        _, res, _ = j.sals.process.execute("sudo wg")
-        self.assertTrue("latest handshake" in res, "there are a problem with wireguard")
 
     @classmethod
     def tearDownClass(cls):
