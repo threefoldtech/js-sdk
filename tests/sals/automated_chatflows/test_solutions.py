@@ -23,6 +23,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         j.sals.fs.write_file(cls.wg_conf_path, network.wgconf)
         rc, out, err = j.sals.process.execute(f"sudo wg-quick up {cls.wg_conf_path}")
         TestCase().assertFalse(rc, f"out: {out} err: {err}")
+        sleep(5)
         _, out, err = j.sals.process.execute("sudo wg")
         TestCase().assertIn("latest handshake", out, f"out: {out}, err: {err}")
         
