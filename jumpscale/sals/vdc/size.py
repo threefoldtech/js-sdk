@@ -9,6 +9,7 @@ S3_NO_PARITY_NODES = 1
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
+ZDB_STARTING_SIZE = 10  # in GB
 
 
 class K8SNodeFlavor(Enum):
@@ -17,6 +18,7 @@ class K8SNodeFlavor(Enum):
     BIG = 3
 
 
+# FIXME: the below sizes are not correct and not supported (https://github.com/threefoldtech/vdc/issues/39)
 K8S_SIZES = {
     K8SNodeFlavor.SMALL: {"cru": 1, "mru": 2, "sru": 25},
     K8SNodeFlavor.MEDIUM: {"cru": 2, "mru": 4, "sru": 50},
@@ -30,10 +32,8 @@ class S3ZDBSize(Enum):
     BIG = 3
 
 
-# TODO: replace after development
 S3_ZDB_SIZES = {
-    # S3ZDBSize.SMALL: {"sru": 3 * 1024},
-    S3ZDBSize.SMALL: {"sru": 3},
+    S3ZDBSize.SMALL: {"sru": 3 * 1024},
     S3ZDBSize.MEDIUM: {"sru": 10 * 1024},
     S3ZDBSize.BIG: {"sru": 20 * 1024},
 }
@@ -49,13 +49,16 @@ VDC_FLAFORS = {
     VDCFlavor.SILVER: {
         "k8s": {"no_nodes": 1, "size": K8SNodeFlavor.SMALL, "dedicated": False},
         "s3": {"size": S3ZDBSize.SMALL},
+        "duration": 30,  # days
     },
     VDCFlavor.GOLD: {
         "k8s": {"no_nodes": 2, "size": K8SNodeFlavor.MEDIUM, "dedicated": False},
         "s3": {"size": S3ZDBSize.MEDIUM},
+        "duration": 30,  # days
     },
     VDCFlavor.PLATINUM: {
         "k8s": {"no_nodes": 2, "size": K8SNodeFlavor.BIG, "dedicated": True},
         "s3": {"size": S3ZDBSize.BIG},
+        "duration": 30,  # days
     },
 }

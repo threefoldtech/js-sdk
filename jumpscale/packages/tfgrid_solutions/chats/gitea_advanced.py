@@ -117,7 +117,7 @@ class Gitea(MarketPlaceAppsChatflow):
                 wid=self.resv_id,
             )
 
-        self.reverse_proxy_id = deployer.expose_and_create_certificate(
+        self.reverse_proxy_id, _ = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,

@@ -1,17 +1,19 @@
+import uuid
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow import deployer
 from .base_component import VDCBaseComponent
 from .size import *
-from .scheduler import Scheduler
-import os
+from .models import VDCFACTORY
+from .scheduler import Scheduler, CapacityChecker
+import math
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid):
+    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys):
         self.vdc_deployer.info(f"deploying kubernetes with size_dict: {k8s_size_dict}")
         no_nodes = k8s_size_dict["no_nodes"]
         master_ip = None
@@ -20,25 +22,108 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         # deploy master
         master_ip = self._deploy_master(
-            pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid, network_view
+            pool_id, nodes_generator, k8s_size_dict["size"], cluster_secret, ssh_keys, self.vdc_uuid, network_view
         )
         self.vdc_deployer.info(f"kubernetes master ip: {master_ip}")
         if not master_ip:
             self.vdc_deployer.error("failed to deploy master")
             return
-        return self.add_workers(
+        return self._add_workers(
             pool_id,
             nodes_generator,
-            k8s_size_dict,
+            k8s_size_dict["size"],
             cluster_secret,
             ssh_keys,
-            vdc_uuid,
+            self.vdc_uuid,
             network_view,
             master_ip,
             no_nodes,
         )
 
-    def _deploy_master(self, pool_id, nodes_generator, k8s_size_dict, cluster_secret, ssh_keys, vdc_uuid, network_view):
+    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration):
+        """
+        returns pool id after extension with enough cloud units
+        duration in seconds
+        """
+        k8s_resources_dict = K8S_SIZES[k8s_flavor]
+        cus, sus = deployer.calculate_capacity_units(**k8s_resources_dict)
+        cus = cus * duration * no_nodes
+        sus = sus * duration * no_nodes
+
+        farm = self.explorer.farms.get(farm_name=farm_name)
+        pool_id = None
+        for pool in self.zos.pools.list():
+            farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
+            if farm_id == farm.id:
+                pool_id = pool.pool_id
+                break
+
+        trigger_cus = 0
+        trigger_sus = 1
+        if not pool_id:
+            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), farm_name)
+            pool_id = pool_info.reservation_id
+            self.vdc_deployer.info(f"new pool {pool_info.reservation_id} for k8s cluster extension.")
+        else:
+            trigger_cus = (pool.cus + cus) * 0.75
+            trigger_sus = (pool.sus + sus) * 0.75
+            pool_info = self.zos.pools.extend(pool_id, cus, sus)
+            self.vdc_deployer.info(
+                f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for k8s cluster extension."
+            )
+
+        self.zos.billing.payout_farmers(self.wallet, pool_info)
+        success = self.vdc_deployer.wait_pool_payment(pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
+        if not success:
+            raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
+
+        return pool_id
+
+    def extend_cluster(self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, no_nodes=1, duration=None):
+        """
+        search for a pool in the same farm and extend it or create a new one with the required capacity
+        """
+        vdc_instance = VDCFACTORY.get(f"vdc_{self.vdc_deployer.tname}_{self.vdc_name}")
+        old_node_ids = []
+        for k8s_node in vdc_instance.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+
+        for _ in range(no_nodes):
+            if not cc.add_query(**K8S_SIZES[k8s_flavor]):
+                raise j.exceptions.Validation(
+                    f"not enough capacity in farm {farm_name} for {no_nodes} k8s nodes of flavor {k8s_flavor}"
+                )
+
+        duration = duration or vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+        if duration <= 0:
+            raise j.exceptions.Validation(f"invalid duration {duration}")
+        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
+        scheduler = Scheduler(farm_name)
+        scheduler.exclude_nodes(*old_node_ids)
+        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor])
+        solution_uuid = uuid.uuid4().hex
+        wids = self._add_workers(
+            pool_id,
+            nodes_generator,
+            k8s_flavor,
+            cluster_secret,
+            ssh_keys,
+            solution_uuid,  # use differnet uuid than
+            network_view,
+            master_ip,
+            no_nodes,
+        )
+        if not wids:
+            self.vdc_deployer.error(f"failed to extend k8s cluster with {no_nodes} nodes of flavor {k8s_flavor}")
+            j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(solution_uuid)
+        return wids
+
+    def _deploy_master(
+        self, pool_id, nodes_generator, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view
+    ):
         master_ip = None
         # deploy_master
         while not master_ip:
@@ -81,12 +166,13 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 cluster_secret,
                 ssh_keys,
                 ip_address,
-                size=k8s_size_dict["size"].value,
+                size=k8s_flavor.value,
                 secret=cluster_secret,
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "kubernetes"},
                 name=self.vdc_name,
-                solution_uuid=vdc_uuid,
+                solution_uuid=solution_uuid,
+                description=self.vdc_deployer.description,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
@@ -158,14 +244,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 self.vdc_deployer.info("required nodes added to network successfully")
                 return deployment_nodes
 
-    def add_workers(
+    def _add_workers(
         self,
         pool_id,
         nodes_generator,
-        k8s_size_dict,
+        k8s_flavor,
         cluster_secret,
         ssh_keys,
-        vdc_uuid,
+        solution_uuid,
         network_view,
         master_ip,
         no_nodes,
@@ -196,12 +282,13 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         ssh_keys,
                         ip_address,
                         master_ip,
-                        size=k8s_size_dict["size"].value,
+                        size=k8s_flavor.value,
                         secret=cluster_secret,
                         identity_name=self.identity.instance_name,
                         form_info={"chatflow": "kubernetes"},
                         name=self.vdc_name,
-                        solution_uuid=vdc_uuid,
+                        solution_uuid=solution_uuid,
+                        description=self.vdc_deployer.description,
                     )
                 )
             for wid in result:
@@ -219,3 +306,21 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             if len(wids) == no_nodes:
                 self.vdc_deployer.info(f"all workers deployed successfully")
                 return wids
+
+    def download_kube_config(self, master_ip):
+        """
+        Args:
+            master ip: public ip address of kubernetes master
+        """
+        ssh_client = j.clients.sshclient.get(uuid.uuid4().hex, user="rancher", host=master_ip, sshkey=self.vdc_name)
+        rc, out, err = ssh_client.run("cat /etc/rancher/k3s/k3s.yaml")
+        if rc:
+            j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
+            j.tools.alerthandler.alert_raise(
+                "vdc", f"couldn't read k3s config for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
+            )
+            raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
+        j.clients.sshclient.delete(ssh_client.instance_name)
+        j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
+        j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
+        return out
