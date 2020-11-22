@@ -92,16 +92,18 @@ def fetch_zero_stor_metrics(url, bearer_token=None):
     return zdbs
 
 
-def check_s3_utilization(url, threshold=0.7, max_storage=None, bearer_token=None):
+def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=None, bearer_token=None):
     """
-    return zdb wids that hit auto topup trigger
+    return utilization ratio, required capacity to add
     """
     triggered_wids = []
+    used_storage = 0
     total_storage = 0
     zdbs_usage = fetch_zero_stor_metrics(url, bearer_token)
     for zdb_wid, usage in zdbs_usage.items():
         free_space = usage["free"]
         used_space = usage["used"]
+        used_storage += used_space
         total_storage += used_space + free_space
         zdb_utilization = float(used_space / (free_space + used_space))
         j.logger.info(f"AUTO TOPUP: zdb {zdb_wid} utilization is {zdb_utilization} trigger: {threshold}")
@@ -109,56 +111,36 @@ def check_s3_utilization(url, threshold=0.7, max_storage=None, bearer_token=None
             triggered_wids.append(zdb_wid)
     if max_storage and total_storage >= max_storage:
         j.logger.warning(f"AUTO TOPUP: maximum storage capacity has been reached. skipping extension")
-        return []
-    j.logger.info(f"AUTO TOPUP: zdbs reached threshold for extension {triggered_wids}")
-    return triggered_wids
+        return 0, 0
+
+    required_capacity = (used_storage / clear_threshold) - total_storage
+
+    if required_capacity + total_storage > max_storage:
+        required_capacity = max_storage - total_storage
+
+    disk_utilization = used_storage / total_storage
+
+    j.logger.info(
+        f"AUTO TOPUP: zdbs disk reached utilization: {disk_utilization} required capacity: {required_capacity}"
+    )
+    return disk_utilization, required_capacity
 
 
-def extend_triggered_zdbs(name, zdb_wids, pool_ids, password, wallet_name=None):
+def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None):
     """
-    1- fetch triggered workloads
-    2- get the password form metadata
-    3- create/extend pools with enough cloud units for the new zdbs
-    3- deploy a zdb with the same size and password for each wid
-    4- build the newly installed zdbs config
-    5- return config
+    1- create/extend pools with enough cloud units for the new zdbs
+    2- deploy a zdb with the same size and password for each wid
+    3- build the newly installed zdbs config
+    4- return wids, password
 
-    Args:
-        zdb_wids: zdb workload ids that reached
-        farm_names: farms to deploy the new zdbs on (same length as zdb_wids)
-    Returns:
-        new_zdb_wids, password
     """
-    description = None
-    solution_uuid = None
+    description = {"solution_uuid": solution_uuid}
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
-    current_expiration = None  # timestamp
-    if len(zdb_wids) != len(pool_ids):
-        raise j.exceptions.Validation("zdb wids and farm names must be the same length")
     zos = get_zos()
-    triggered_sizes = []
-    for wid in zdb_wids:
-        workload = zos.workloads.get(wid)
-        if workload.info.workload_type != WorkloadType.Zdb:
-            raise j.core.exceptions.Validation(
-                f"AUTO TOPUP: workload {wid} is not a ZDB workload. type: {workload.info.workload_type}"
-            )
-
-        if not description and workload.info.description:
-            description = workload.info.decription
-
-        if not current_expiration:
-            current_expiration = zos.pools.get(workload.info.pool_id).empty_at
-
-        if not solution_uuid:
-            solution_uuid = solutions.get_solution_uuid(workload)
-
-        triggered_sizes.append(workload.size)
 
     pool_total_sus = defaultdict(int)
-    for idx, pool_id in enumerate(pool_ids):
-        size = triggered_sizes[idx]
+    for _, pool_id in enumerate(pool_ids):
         _, su = deployer.calculate_capacity_units(sru=size)
         pool_total_sus[pool_id] += su
 
@@ -172,8 +154,7 @@ def extend_triggered_zdbs(name, zdb_wids, pool_ids, password, wallet_name=None):
 
     gs = GlobalScheduler()
     wids = []
-    for idx, size in enumerate(triggered_sizes):
-        pool_id = pool_ids[idx]
+    for _, pool_id in enumerate(pool_ids):
         for node in gs.nodes_by_capacity(pool_id=pool_id, sru=size):
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
