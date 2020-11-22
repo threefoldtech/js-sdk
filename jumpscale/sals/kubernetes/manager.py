@@ -1,5 +1,4 @@
 from jumpscale.loader import j
-from jumpscale.clients.base import Client
 
 
 def is_helm_installed():
@@ -27,16 +26,15 @@ def helm_required(method):
     return wrapper
 
 
-class Manager(Client):
+class Manager:
     """SAL for kubernetes"""
 
-    def __init__(self, config_path=f"{j.core.dirs.HOMEDIR}/.kube/config", *args, **kwargs):
+    def __init__(self, config_path=f"{j.core.dirs.HOMEDIR}/.kube/config"):
         """constructor for kubernetes class
 
         Args:
             config_path (str, optional): path to kubeconfig. Defaults to "~/.kube/config".
         """
-        super().__init__(*args, **kwargs)
         if not j.sals.fs.exists(config_path) or not j.sals.fs.is_file(config_path):
             raise j.exceptions.NotFound(f"No such file {config_path}")
         self.config_path = config_path
@@ -88,7 +86,7 @@ class Manager(Client):
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name, extra_config=None):
+    def install_chart(self, release, chart_name, namespace="default", extra_config=None):
         """deployes a helm chart
 
         Args:
@@ -108,7 +106,7 @@ class Manager(Client):
             params += f" --set {key}={arg}"
 
         rc, out, err = j.sals.process.execute(
-            f"helm --kubeconfig {self.config_path} install {release} {chart_name} {params}"
+            f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
         )
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
@@ -133,13 +131,15 @@ class Manager(Client):
         return out
 
     @helm_required
-    def list_deployed_releases(self):
+    def list_deployed_releases(self, namespace="default"):
         """list deployed helm releases
 
         Returns:
             list: output of the helm command as dicts
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} list -o json")
+        rc, out, err = j.sals.process.execute(
+            f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json"
+        )
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
         return j.data.serializers.json.loads(out)
@@ -173,10 +173,8 @@ class Manager(Client):
     @helm_required
     def helm_repo_list(self):
         """List helm repos
-
         Raises:
             j.exceptions.Runtime: in case the command failed to execute
-
         Returns:
             list: list of added repos
         """

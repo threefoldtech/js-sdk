@@ -8,7 +8,7 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 class HelmChart(BaseActor):
     def __init__(self):
         super().__init__()
-        k8s_client = j.clients.kubernetes.get("marketplace_vdc")
+        k8s_client = j.sals.kubernetes.Manager()
 
     @actor_method
     def install_helm_chart(

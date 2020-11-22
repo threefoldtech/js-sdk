@@ -41,6 +41,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.vdc_info["network_view"] = deployer.get_network_view(
             self.vdc_info["network_name"], identity_name=self.identity_name
         )
+        self.vdc_info["kube_config_path"] = f"{j.core.dirs.HOMEDIR}/.kube/config"
         self.vdc_info["farm_name"] = "freefarm"
 
     def _choose_flavor(self, chart_limits=None):
@@ -215,7 +216,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             )
 
         # expose solution on nginx container
-        _id = deployer.expose_and_create_certificate(
+        _id, _ = deployer.expose_and_create_certificate(
             pool_id=self.vdc_info["pool_id"],
             gateway_id=self.gateway.node_id,
             network_name=self.vdc_info["network_view"].name,
@@ -266,7 +267,8 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Installation")
     def install_chart(self):
-        k8s_client = j.clients.kubernetes.get("marketplace_vdc")
+        # TODO: should use config_path from vdc_obj to create k8s_client
+        k8s_client = j.sals.kubernetes.Manager(config_path=self.vdc_info["kube_config_path"])
         helm_repos_urls = [repo["url"] for repo in k8s_client.helm_repo_list()]
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
             k8s_client.add_helm_repo(HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"])
