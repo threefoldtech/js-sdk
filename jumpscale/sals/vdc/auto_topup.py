@@ -94,7 +94,7 @@ def fetch_zero_stor_metrics(url, bearer_token=None):
 
 def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=None, bearer_token=None):
     """
-    return utilization ratio, required capacity to add
+    return utilization ratio, required capacity to add in GB
     """
     triggered_wids = []
     used_storage = 0
@@ -113,17 +113,19 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
         j.logger.warning(f"AUTO TOPUP: maximum storage capacity has been reached. skipping extension")
         return 0, 0
 
+    disk_utilization = used_storage / total_storage
+    j.logger.info(
+        f"AUTO TOPUP: zdbs disk reached utilization: {disk_utilization} required capacity: {required_capacity}"
+    )
+    if disk_utilization < threshold:
+        return 0, 0
+
     required_capacity = (used_storage / clear_threshold) - total_storage
 
     if required_capacity + total_storage > max_storage:
         required_capacity = max_storage - total_storage
 
-    disk_utilization = used_storage / total_storage
-
-    j.logger.info(
-        f"AUTO TOPUP: zdbs disk reached utilization: {disk_utilization} required capacity: {required_capacity}"
-    )
-    return disk_utilization, required_capacity
+    return disk_utilization, (required_capacity / (1024 ** 3))
 
 
 def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None):
