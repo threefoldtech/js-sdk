@@ -174,7 +174,7 @@ class MinioDeploy(GedisChatBot):
                 Just upload the file with the key. (Optional)"""
         )
         if public_key_file:
-            self.public_ssh_key = public_key_file.split("\n")[0]
+            self.public_ssh_key = public_key_file.strip()
         else:
             self.public_ssh_key = ""
 
