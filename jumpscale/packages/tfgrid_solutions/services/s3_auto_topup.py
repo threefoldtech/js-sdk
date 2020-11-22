@@ -8,11 +8,13 @@ from jumpscale.sals.vdc.auto_topup import (
     get_farm_pool_id,
     extend_zdbs,
     get_target_s3_zdb_config,
+    MINIO_CONFIG_DICT,
 )
 from jumpscale.sals.reservation_chatflow import solutions
 from jumpscale.sals.zos import get as get_zos
 import math
 import uuid
+from jumpscale.tools import http
 
 
 """
@@ -24,7 +26,8 @@ S3_AUTO_TOP_SOLUTIONS: dict {
     "clear_threshold": 0.4,
     "targets": {
         "solution_name": {
-            "healing_address": "https://myminio.com:9010",
+            "minio_api_url": "myminio.com:9000",
+            "healing_url": "myminio.com:9010"
             "max_storage": 10 * 1024 # override,
         }
     }
@@ -45,13 +48,17 @@ class S3AutoTopUp(BackgroundService):
         5- extend_zdbs
         6- get new config
         """
+        import ipdb
+
+        ipdb.set_trace()
         for sol_config in self.list_auto_top_up_config():
-            util_ratio, required_cap = check_s3_utilization(
-                sol_config["healing_address"],
+            _, required_cap = check_s3_utilization(
+                sol_config["minio_api_url"],
                 sol_config["threshold"],
                 sol_config["clear_threshold"],
                 sol_config["max_storage"],
             )
+
             if not required_cap:
                 continue
 
@@ -66,7 +73,7 @@ class S3AutoTopUp(BackgroundService):
                     farm_pools[farm_name] = pool_id
                 pool_ids.append(pool_id)
 
-            wids, password = extend_zdbs(
+            wids, _ = extend_zdbs(
                 sol_config["name"],
                 pool_ids,
                 sol_config["solution_uuid"],
@@ -74,8 +81,30 @@ class S3AutoTopUp(BackgroundService):
                 sol_config["current_expiration"],
                 sol_config["extension_size"],
             )
+            if len(wids) != no_zdbs:
+                j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
 
             zdb_configs = get_target_s3_zdb_config(sol_config["name"])
+            config_dict = MINIO_CONFIG_DICT.copy()
+            config_dict["datastor"]["shards"] = zdb_configs
+            config_dict["datastor"]["pipeline"]["distribution"] = {"data_shards": 6, "parity_shards": 4}
+            try:
+                res = http.post(
+                    f"{sol_config['healing_url']}/config",
+                    j.data.serializers.json.dumps(config_dict),
+                    headers={"Content-Type": "application/json"},
+                )
+                res.raise_for_status()
+            except Exception as e:
+                j.logger.error(
+                    f"AUTO_TOPUP: couldn't update minio config for solution {sol_config['name']} due to error: {str(e)}"
+                )
+                j.tools.alerthandler.alert_raise(
+                    appname="s3_auto_topup",
+                    category="internal_errors",
+                    message=f"AUTO_TOPUP: couldn't update minio config for solution {sol_config['name']} due to error: {str(e)}",
+                    alert_type="exception",
+                )
 
     @staticmethod
     def list_auto_top_up_config():
@@ -92,7 +121,7 @@ class S3AutoTopUp(BackgroundService):
             )
             return
         default_extension_size = config.get("extension_size", 10)
-        default_max_storage = config.get("defaul_max_storage")
+        default_max_storage = config.get("max_storage")
         default_threshold = config.get("threshold")
         default_clear_threshold = config.get("clear_threshold")
         default_farm_names = config.get("farm_names")
@@ -129,7 +158,9 @@ class S3AutoTopUp(BackgroundService):
             minio_pool = zos.pools.get(minio_solution["Primary Pool"])
             workload = zos.workloads.get(minio_solution["wids"][0])
             solution_uuid = solutions.get_solution_uuid(workload)
-            if not isinstance(sol_config, dict) or "healing_address" not in sol_config:
+            if not isinstance(sol_config, dict) or not all(
+                [key in sol_config for key in ["minio_api_url", "healing_url"]]
+            ):
                 j.logger.error(f"AUTO_ TOPUP: target {sol_name} config is not valid!")
                 j.tools.alerthandler.alert_raise(
                     appname="s3_auto_topup",
@@ -137,12 +168,14 @@ class S3AutoTopUp(BackgroundService):
                     message=f"AUTO_ TOPUP: target {sol_name} config is not valid!",
                     alert_type="exception",
                 )
+                continue
 
             yield {
                 "name": sol_name,
                 "solution_uuid": solution_uuid,
                 "extension_size": sol_config.get("extension_size", default_extension_size),
-                "healing_address": sol_config["healing_address"],
+                "minio_api_url": sol_config["minio_api_url"],
+                "healing_url": sol_config["healing_url"],
                 "max_storage": sol_config.get("max_storage", default_max_storage),
                 "threshold": sol_config.get("threshold", default_threshold),
                 "clear_threshold": sol_config.get("clear_threshold", default_clear_threshold),
