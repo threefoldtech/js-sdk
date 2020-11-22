@@ -268,6 +268,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Installation")
     def install_chart(self):
         # TODO: should use config_path from vdc_obj to create k8s_client
+        # TODO: use kubectl patch command to add label after the deployment [solution_type, tname, vdc_name]
         k8s_client = j.sals.kubernetes.Manager(config_path=self.vdc_info["kube_config_path"])
         helm_repos_urls = [repo["url"] for repo in k8s_client.helm_repo_list()]
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
@@ -276,7 +277,8 @@ class SolutionsChatflowDeploy(GedisChatBot):
         k8s_client.install_chart(
             release=self.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
-            config=self.chart_config,
+            namespace=self.SOLUTION_TYPE,
+            extra_config=self.chart_config,
         )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)

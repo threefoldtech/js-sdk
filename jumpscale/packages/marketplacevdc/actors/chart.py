@@ -12,13 +12,21 @@ class HelmChart(BaseActor):
 
     @actor_method
     def install_helm_chart(
-        self, repo_name: str, repo_url: str, release: str, chart_name: str, config: dict = None
+        self,
+        repo_name: str,
+        repo_url: str,
+        release: str,
+        chart_name: str,
+        solution_type: str = "default",
+        config: dict = None,
     ) -> str:
         config = config or {}
 
         self.k8s_client.add_helm_repo(repo_name, repo_url)
         self.k8s_client.update_helm_repo()
-        self.k8s_client.install_chart(release=release, chart_name=chart_name, config=config)
+        self.k8s_client.install_chart(
+            release=release, chart_name=chart_name, namespace=solution_type, extra_config=config
+        )
 
         return j.data.serializers.json.dumps("Chart installed")
 
