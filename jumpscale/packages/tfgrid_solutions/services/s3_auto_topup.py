@@ -1,26 +1,31 @@
+from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.loader import j
 from jumpscale.sals.vdc.auto_topup import (
     check_s3_utilization,
+    extend_zdbs,
     get_zdb_farms_distribution,
     get_farm_pool_id,
-    extend_triggered_zdbs,
+    extend_zdbs,
     get_target_s3_zdb_config,
 )
 from jumpscale.sals.reservation_chatflow import solutions
 from jumpscale.sals.zos import get as get_zos
+import math
 import uuid
 
 
 """
 S3_AUTO_TOP_SOLUTIONS: dict {
+    "farm_names": []
+    "extension_size": 10,
     "max_storage": 3, * 1024 # default
     "threshold": 0.7,
     "clear_threshold": 0.4,
     "targets": {
         "solution_name": {
             "healing_address": "https://myminio.com:9010",
-            "max_storage": 10 * 1024 # override
+            "max_storage": 10 * 1024 # override,
         }
     }
 }
@@ -37,11 +42,43 @@ class S3AutoTopUp(BackgroundService):
         2- get solution_uuid of the solution
         3- get_zdb_farms_distribution
         4- get_farm_pool_id for the returned farm names
-        5- extend_triggered_zdbs
+        5- extend_zdbs
+        6- get new config
         """
-        pass
+        for sol_config in self.list_auto_top_up_config():
+            util_ratio, required_cap = check_s3_utilization(
+                sol_config["healing_address"],
+                sol_config["threshold"],
+                sol_config["clear_threshold"],
+                sol_config["max_storage"],
+            )
+            if not required_cap:
+                continue
 
-    def list_auto_top_up_config(self):
+            no_zdbs = math.floor(required_cap / sol_config["extension_size"])
+            farm_names = get_zdb_farms_distribution(sol_config["solution_uuid"], sol_config["farm_names"], no_zdbs)
+            pool_ids = []
+            farm_pools = {}
+            for farm_name in farm_names:
+                pool_id = farm_pools.get(farm_name)
+                if not pool_id:
+                    pool_id = get_farm_pool_id(farm_name)
+                    farm_pools[farm_name] = pool_id
+                pool_ids.append(pool_id)
+
+            wids, password = extend_zdbs(
+                sol_config["name"],
+                pool_ids,
+                sol_config["solution_uuid"],
+                uuid.uuid4().hex,
+                sol_config["current_expiration"],
+                sol_config["extension_size"],
+            )
+
+            zdb_configs = get_target_s3_zdb_config(sol_config["name"])
+
+    @staticmethod
+    def list_auto_top_up_config():
         config = j.core.config.set_default(
             "S3_AUTO_TOP_SOLUTIONS", {"max_storage": 3 * 1024, "threshold": 0.7, "clear_threshold": 0.4, "targets": {}}
         )
@@ -54,10 +91,12 @@ class S3AutoTopUp(BackgroundService):
                 alert_type="exception",
             )
             return
+        default_extension_size = config.get("extension_size", 10)
         default_max_storage = config.get("defaul_max_storage")
         default_threshold = config.get("threshold")
         default_clear_threshold = config.get("clear_threshold")
-        defaults = [default_max_storage, default_threshold, default_clear_threshold]
+        default_farm_names = config.get("farm_names")
+        defaults = [default_max_storage, default_threshold, default_clear_threshold, default_farm_names]
         if not all(defaults):
             j.logger.error("AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
             j.tools.alerthandler.alert_raise(
@@ -87,6 +126,7 @@ class S3AutoTopUp(BackgroundService):
                 j.logger.warning(f"AUTO_ TOPUP: solution {sol_name} is not a current s3 solution")
                 continue
             minio_solution = minio_solutions[sol_name]
+            minio_pool = zos.pools.get(minio_solution["Primary Pool"])
             workload = zos.workloads.get(minio_solution["wids"][0])
             solution_uuid = solutions.get_solution_uuid(workload)
             if not isinstance(sol_config, dict) or "healing_address" not in sol_config:
@@ -101,10 +141,13 @@ class S3AutoTopUp(BackgroundService):
             yield {
                 "name": sol_name,
                 "solution_uuid": solution_uuid,
+                "extension_size": sol_config.get("extension_size", default_extension_size),
                 "healing_address": sol_config["healing_address"],
                 "max_storage": sol_config.get("max_storage", default_max_storage),
                 "threshold": sol_config.get("threshold", default_threshold),
                 "clear_threshold": sol_config.get("clear_threshold", default_clear_threshold),
+                "current_expiration": minio_pool.empty_at,
+                "farm_names": sol_config.get("farm_names", default_farm_names),
             }
 
 
