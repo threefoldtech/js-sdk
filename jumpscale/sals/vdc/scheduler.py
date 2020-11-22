@@ -7,10 +7,13 @@ from jumpscale.loader import j
 class Scheduler:
     def __init__(self, farm_name=None, pool_id=None):
         self.zos = get_zos()
+        self._pool_node_ids = None
         if not farm_name and not pool_id:
             raise j.exceptions.Validation("must pass farm_name or pool_id")
         if not farm_name and pool_id:
-            farm_id = deployer.get_pool_farm_id(pool_id)
+            pool = self.zos.pools.get(pool_id)
+            self._pool_node_ids = pool.node_ids
+            farm_id = deployer.get_pool_farm_id(pool_id, pool)
             farm_name = self.zos._explorer.farms.get(farm_id).name
         self.farm_name = farm_name
         self._nodes = []
@@ -23,7 +26,12 @@ class Scheduler:
     @property
     def nodes(self):
         if not self._nodes:
-            self._nodes = self.zos.nodes_finder.nodes_search(farm_name=self.farm_name)
+            filters = [self.zos.nodes_finder.filter_is_up]
+            if self._pool_node_ids:
+                filters.append(lambda node: node.node_id in self._pool_node_ids)
+            self._nodes = [
+                node for node in self.zos.nodes_finder.nodes_search(farm_name=self.farm_name) if all(filters)
+            ]
         random.shuffle(self._nodes)
         return self._nodes
 
@@ -55,7 +63,7 @@ class Scheduler:
         yields:
             node
         """
-        filters = [self.zos.nodes_finder.filter_is_up]
+        filters = []
         if ip_version == "IPv4":
             filters.append(self.zos.nodes_finder.filter_public_ip4)
         elif ip_version == "IPv6":
@@ -67,7 +75,7 @@ class Scheduler:
             if not self.check_node_capacity(node.node_id, node, cru, mru, hru, sru):
                 continue
 
-            if not all([f(node) for f in filters]):
+            if filters and not all([f(node) for f in filters]):
                 continue
 
             self._update_node(node, cru, mru, hru, sru)

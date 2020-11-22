@@ -100,7 +100,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
         pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
-        scheduler = Scheduler(farm_name)
+        scheduler = Scheduler(pool_id=pool_id)
         scheduler.exclude_nodes(*old_node_ids)
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor])
