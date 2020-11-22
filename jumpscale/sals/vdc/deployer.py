@@ -319,8 +319,6 @@ class VDCDeployer:
             secret=trc_secret,
         )
 
-        helm_thread = gevent.spawn(self.deploy_mgmt_3bot, minio_api_subdomain)
-
         minio_healing_prefix = f"s3-{self.vdc_name}-{self.tname}-healing"
         minio_healing_subdomain = self.proxy.proxy_container(
             prefix=minio_healing_prefix,
@@ -336,11 +334,7 @@ class VDCDeployer:
             self.rollback_vdc_deployment()
             return False
 
-        gevent.joinall([helm_thread])
-        if not helm_thread.value:
-            self.error("failed to deploy 3bot managemnt container")
-            self.rollback_vdc_deployment()
-            return False
+        helm_thread = gevent.spawn(self.deploy_mgmt_3bot, minio_api_subdomain, minio_healing_subdomain)
 
         # download kube config from master
         # k8s_workload = self.zos.workloads.get(k8s_wids[0])
@@ -349,11 +343,17 @@ class VDCDeployer:
         # config_dict = j.data.serializers.yaml.loads(kube_config)
         # config_dict["server"] = f"https://{master_ip}:6443"
 
+        gevent.joinall([helm_thread])
+        if not helm_thread.value:
+            self.error("failed to deploy 3bot managemnt container")
+            self.rollback_vdc_deployment()
+            return False
+
         # minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
         self.save_config()
         # return j.data.serializers.yaml.dumps(config_dict)
 
-    def deploy_mgmt_3bot(self, minio_subdomain):
+    def deploy_mgmt_3bot(self, minio_subdomain, s3_healing_domain_name):
         self.info(f"adding helm marketplace repo url: {MARKETPLACE_HELM_REPO_URL}")
         self.mgmt_k8s_manager.add_helm_repo, ("marketplace", MARKETPLACE_HELM_REPO_URL)
         self.info("updating helm repos")
@@ -362,7 +362,7 @@ class VDCDeployer:
         return self.mgmt_k8s_manager.install_chart(
             release=f"vdc_3bot_{self.vdc_uuid}".replace("_", "-"),
             chart_name="marketplace/3bot",
-            extra_config=self.get_threebot_extra_config(minio_subdomain, self.wallet.secret),
+            extra_config=self.get_threebot_extra_config(minio_subdomain, s3_healing_domain_name, self.wallet.secret),
         )
 
     def rollback_vdc_deployment(self):
@@ -395,7 +395,7 @@ class VDCDeployer:
         vdc_instance.save()
         return vdc_instance
 
-    def get_threebot_extra_config(self, s3_domain_name, vdc_wallet_secret):
+    def get_threebot_extra_config(self, s3_domain_name, s3_healing_domain_name, vdc_wallet_secret):
         auto_top_up_farms = ",".join(S3_AUTO_TOPUP_FARMS)
         variables = {
             "VDC_NAME": self.vdc_name,
@@ -408,11 +408,12 @@ class VDCDeployer:
             "VDC_WALLET_SECRET": vdc_wallet_secret,
             "VDC_S3_MAX_STORAGE": S3_ZDB_SIZES[VDC_FLAFORS[self.flavor]["s3"]["size"]]["sru"],
             "S3_AUTO_TOPUP_FARMS": auto_top_up_farms,
+            "VDC_S3_HEALING_DOMAIN_NAME": s3_healing_domain_name,
         }
         extra_config = {
             "entryPoint[0]": "python3",
             "entryPointArgs[0]": "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py",
-            "image.tag": "vdc",
+            "image.tag": "vdc",  # TODO: change to correct branch
             "image.pullPolicy": "Always",
         }
         for i, (key, value) in enumerate(variables.items()):

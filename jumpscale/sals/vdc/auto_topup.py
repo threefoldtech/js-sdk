@@ -10,11 +10,31 @@ from urllib.parse import urljoin
 import re
 from jumpscale.loader import j
 from .scheduler import GlobalScheduler
+import gevent
 
 
 METRIC_KEYS = {
     "used": "minio_zerostor_data_size",
     "free": "minio_zerostor_data_free_space",
+}
+
+MINIO_CONFIG_DICT = {
+    "password": "",
+    "namespace": "",
+    "datastor": {
+        "shards": [],  # set to zdb_dicts
+        "spreading": "random",
+        "pipeline": {
+            "block_size": 4194304,
+            "hashing": {"type": "blake2b_256", "private_key": ""},
+            "compression": {"mode": "", "type": "snappy"},
+            "encryption": {"private_key": "", "type": "aes"},
+            "distribution": {"data_shards": 2, "parity_shards": 1},
+        },
+        "tls": {"enabled": False, "server": "", "root_ca": "", "min_version": "", "max_version": "",},
+    },
+    "jobs": 0,
+    "minio": {"healer": {"listen": ""}},
 }
 
 
@@ -47,7 +67,9 @@ def get_target_s3_zdb_config(target_name):
                     f"AUTO_TOPUP: zdb workload {workload.id} doesn't include password in metadata in s3 solution {sol_dict['Name']}"
                 )
             zdb_url = deployer.get_zdb_url(workload.id, password, workload=workload)
-            cluster_zdb_configs.append(zdb_url)
+            splits = zdb_url.split("@")
+            zdb_dict = {"address": splits[1], "namespace": splits[0].split(":")[0], "password": password}
+            cluster_zdb_configs.append(zdb_dict)
 
         if not cluster_zdb_configs:
             j.logger.error(
@@ -94,33 +116,39 @@ def fetch_zero_stor_metrics(url, bearer_token=None):
 
 def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=None, bearer_token=None):
     """
+    Args:
+        clear_threshold: the required utilization after extension # TODO: choose a better a name
     return utilization ratio, required capacity to add in GB
     """
-    triggered_wids = []
+    max_storage = max_storage * (1024 ** 3)
     used_storage = 0
     total_storage = 0
     zdbs_usage = fetch_zero_stor_metrics(url, bearer_token)
     for zdb_wid, usage in zdbs_usage.items():
-        free_space = usage["free"]
-        used_space = usage["used"]
+        free_space = (
+            usage["free"] / 1024
+        )  # TODO: remove when zerostor metrics are fixed (https://github.com/threefoldtech/minio/issues/124)
+        used_space = (
+            usage["used"] / 1024
+        )  # TODO: remove when zerostor metrics are fixed (https://github.com/threefoldtech/minio/issues/124)
         used_storage += used_space
         total_storage += used_space + free_space
         zdb_utilization = float(used_space / (free_space + used_space))
         j.logger.info(f"AUTO TOPUP: zdb {zdb_wid} utilization is {zdb_utilization} trigger: {threshold}")
-        if zdb_utilization >= threshold:
-            triggered_wids.append(zdb_wid)
     if max_storage and total_storage >= max_storage:
         j.logger.warning(f"AUTO TOPUP: maximum storage capacity has been reached. skipping extension")
         return 0, 0
 
     disk_utilization = used_storage / total_storage
+
+    if disk_utilization < threshold:
+        return disk_utilization, 0
+
+    required_capacity = (used_storage / clear_threshold) - total_storage
+
     j.logger.info(
         f"AUTO TOPUP: zdbs disk reached utilization: {disk_utilization} required capacity: {required_capacity}"
     )
-    if disk_utilization < threshold:
-        return 0, 0
-
-    required_capacity = (used_storage / clear_threshold) - total_storage
 
     if required_capacity + total_storage > max_storage:
         required_capacity = max_storage - total_storage
@@ -128,7 +156,9 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
     return disk_utilization, (required_capacity / (1024 ** 3))
 
 
-def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None):
+def extend_zdbs(
+    name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None,
+):
     """
     1- create/extend pools with enough cloud units for the new zdbs
     2- deploy a zdb with the same size and password for each wid
@@ -136,7 +166,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
     4- return wids, password
 
     """
-    description = {"solution_uuid": solution_uuid}
+    description = j.data.serializers.json.dumps({"solution_uuid": solution_uuid})
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
     zos = get_zos()
@@ -157,6 +187,9 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
     gs = GlobalScheduler()
     wids = []
     for _, pool_id in enumerate(pool_ids):
+        pool = zos.pools.get(pool_id)
+        if not pool.sus:
+            wait_pool_payment(pool_id)
         for node in gs.nodes_by_capacity(pool_id=pool_id, sru=size):
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
@@ -222,8 +255,19 @@ def get_farm_pool_id(farm_name):
     zos = get_zos()
     for pool in zos.pools.list():
         farm_id = deployer.get_pool_farm_id(pool.pool_id, pool)
-        pool_farm_name = zos._explorer.farms.get(farm_id)
+        pool_farm_name = zos._explorer.farms.get(farm_id).name
         if farm_name == pool_farm_name:
             return pool.pool_id
     pool_info = zos.pools.create(0, 0, farm_name)
     return pool_info.reservation_id
+
+
+def wait_pool_payment(pool_id, exp=5, trigger_cus=0, trigger_sus=1):
+    zos = get_zos()
+    expiration = j.data.time.now().timestamp + exp * 60
+    while j.data.time.get().timestamp < expiration:
+        pool = zos.pools.get(pool_id)
+        if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            return True
+        gevent.sleep(2)
+    return False

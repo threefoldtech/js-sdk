@@ -19,6 +19,7 @@ Required env variables:
 - EXPLORER_URL  -> for identity generation and wallet network
 - VDC_WALLET_SECRET  -> for auto-top up
 - VDC_S3_DOMAIN_NAME  -> used for monitoring to trigger auto-top up
+- VDC_S3_HEALING_DOMAIN_NAME  -> used for auto top up
 - VDC_S3_MAX_STORAGE  -> used for auto top up
 - S3_AUTO_TOPUP_FARMS  -> used for auto top up
 
@@ -39,6 +40,7 @@ VDC_WALLET_SECRET = os.environ.get("VDC_WALLET_SECRET")
 VDC_S3_DOMAIN_NAME = os.environ.get("VDC_S3_DOMAIN_NAME")
 VDC_S3_MAX_STORAGE = os.environ.get("VDC_S3_MAX_STORAGE")
 S3_AUTO_TOPUP_FARMS = os.environ.get("S3_AUTO_TOPUP_FARMS")
+VDC_S3_HEALING_DOMAIN_NAME = os.environ.get("VDC_S3_HEALING_DOMAIN_NAME")
 
 
 VDC_VARS = {
@@ -52,6 +54,7 @@ VDC_VARS = {
     "VDC_S3_DOMAIN_NAME": VDC_S3_DOMAIN_NAME,
     "VDC_S3_MAX_STORAGE": VDC_S3_MAX_STORAGE,
     "S3_AUTO_TOPUP_FARMS": S3_AUTO_TOPUP_FARMS,
+    "VDC_S3_HEALING_DOMAIN_NAME": VDC_S3_HEALING_DOMAIN_NAME,
 }
 
 if not all(list(VDC_VARS.values())):
@@ -79,9 +82,21 @@ if "testnet" in EXPLORER_URL:
 wallet = j.clients.stellar.new(name=VDC_NAME, secret=VDC_WALLET_SECRET, network=network)
 wallet.save()
 
-j.core.config.set("S3_AUTO_TOPUP_MAX", VDC_S3_MAX_STORAGE)  # in GB
-j.core.config.set("S3_AUTO_TOPUP_CLUSTERS", [VDC_NAME])  # name of the minio clusters to auto top up
-j.core.config.set("S3_AUTO_TOPUP_WALLET", VDC_NAME)  # wallet to be used by auto top up
-j.core.config.set("S3_AUTO_TOPUP_FARMS", S3_AUTO_TOPUP_FARMS.split(","))  # farms to deploy zdbs on
-j.core.config.set("S3_AUTO_TOP_SOLUTIONS", [VDC_NAME])  # minio solutions that will be auto topped up
+j.core.config.set(
+    "S3_AUTO_TOP_SOLUTIONS",
+    {
+        "farm_names": S3_AUTO_TOPUP_FARMS.split(","),
+        "extension_size": 10,
+        "max_storage": VDC_S3_MAX_STORAGE,
+        "threshold": 0.7,
+        "clear_threshold": 0.4,
+        "targets": {
+            VDC_NAME: {
+                "minio_api_url": f"https://{VDC_S3_DOMAIN_NAME}",
+                "healing_url": f"https://{VDC_S3_HEALING_DOMAIN_NAME}",
+            }
+        },
+    },
+)
+
 j.servers.threebot.start_default(wait=True)
