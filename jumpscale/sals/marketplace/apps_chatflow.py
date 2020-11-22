@@ -316,7 +316,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 else:
                     deployer.unblock_managed_domain(domain)
                 try:
-                    if j.sals.crtsh.has_reached_limit(domain):
+                    if not j.core.config.get("TEST_CERT") and j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
                     is_http_failure = True
