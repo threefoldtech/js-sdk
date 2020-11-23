@@ -84,12 +84,14 @@ class UserVDC(Base):
 
 
 class VDCStoredFactory(StoredFactory):
-    def find(self, name, owner_tname=None):
+    def find(self, name, owner_tname=None, load_info=False):
         instance = super().find(name)
         if not instance:
             return
         if owner_tname and instance.owner_tname != owner_tname:
             return
+        if not load_info:
+            return instance
         instance_vdc_workloads = self._filter_vdc_workloads(instance.identity_tid, instance.solution_uuid)
         proxy_workloads = []
         for workload in instance_vdc_workloads:
@@ -101,8 +103,11 @@ class VDCStoredFactory(StoredFactory):
         instance = self._build_domain_info(instance, proxy_workloads)
         return instance
 
-    def list(self, owner_tname):
+    def list(self, owner_tname, load_info=False):
         _, _, instances = self.find_many(owner_tname=owner_tname)
+        if not load_info:
+            return instances
+
         result = []
         proxy_workloads = []
         for instance in instances:
