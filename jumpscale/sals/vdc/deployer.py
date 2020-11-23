@@ -269,26 +269,27 @@ class VDCDeployer:
         self.info(f"vdc initialization successful")
         storage_per_zdb = ZDB_STARTING_SIZE
         threads = []
-        k8s_thread = gevent.spawn(
-            self.kubernetes.deploy_kubernetes,
-            pool_id,
-            scheduler,
-            k8s_size_dict,
-            cluster_secret,
-            [self.ssh_key.public_key.strip()],
-        )
-        threads.append(k8s_thread)
+        # k8s_thread = gevent.spawn(
+        #     self.kubernetes.deploy_kubernetes,
+        #     pool_id,
+        #     scheduler,
+        #     k8s_size_dict,
+        #     cluster_secret,
+        #     [self.ssh_key.public_key.strip()],
+        # )
+        # threads.append(k8s_thread)
         zdb_thread = gevent.spawn(
             self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, self.password, self.vdc_uuid
         )
         threads.append(zdb_thread)
         gevent.joinall(threads)
         zdb_wids = zdb_thread.value
-        k8s_wids = k8s_thread.value
-        self.info(f"k8s wids: {k8s_wids}")
+        # k8s_wids = k8s_thread.value
+        # self.info(f"k8s wids: {k8s_wids}")
         self.info(f"zdb wids: {zdb_wids}")
 
-        if not k8s_wids or not zdb_wids:
+        # if not k8s_wids or not zdb_wids:
+        if not zdb_wids:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
             return False
