@@ -30,7 +30,9 @@ class Scheduler:
             if self._pool_node_ids:
                 filters.append(lambda node: node.node_id in self._pool_node_ids)
             self._nodes = [
-                node for node in self.zos.nodes_finder.nodes_search(farm_name=self.farm_name) if all(filters)
+                node
+                for node in self.zos.nodes_finder.nodes_search(farm_name=self.farm_name)
+                if all([f(node) for f in filters])
             ]
         random.shuffle(self._nodes)
         return self._nodes

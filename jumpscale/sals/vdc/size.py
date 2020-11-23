@@ -1,11 +1,7 @@
 from enum import Enum
 
-S3_NO_DATA_NODES = 2
-S3_NO_PARITY_NODES = 1
-
-# TODO: replace after development
-# S3_NO_DATA_NODES = 6
-# S3_NO_PARITY_NODES = 4
+S3_NO_DATA_NODES = 6
+S3_NO_PARITY_NODES = 4
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
