@@ -1,4 +1,3 @@
-from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.loader import j
 from jumpscale.sals.vdc.auto_topup import (
@@ -48,9 +47,6 @@ class S3AutoTopUp(BackgroundService):
         5- extend_zdbs
         6- get new config
         """
-        import ipdb
-
-        ipdb.set_trace()
         for sol_config in self.list_auto_top_up_config():
             _, required_cap = check_s3_utilization(
                 sol_config["minio_api_url"],
@@ -112,11 +108,11 @@ class S3AutoTopUp(BackgroundService):
             "S3_AUTO_TOP_SOLUTIONS", {"max_storage": 3 * 1024, "threshold": 0.7, "clear_threshold": 0.4, "targets": {}}
         )
         if not isinstance(config, dict):
-            j.logger.error("AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
+            j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
             j.tools.alerthandler.alert_raise(
                 appname="s3_auto_topup",
                 category="validation",
-                message="AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
+                message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
                 alert_type="exception",
             )
             return
@@ -127,22 +123,22 @@ class S3AutoTopUp(BackgroundService):
         default_farm_names = config.get("farm_names")
         defaults = [default_max_storage, default_threshold, default_clear_threshold, default_farm_names]
         if not all(defaults):
-            j.logger.error("AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
+            j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
             j.tools.alerthandler.alert_raise(
                 appname="s3_auto_topup",
                 category="validation",
-                message="AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
+                message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
                 alert_type="exception",
             )
             return
 
         targets = config.get("targets", {})
         if not isinstance(targets, dict):
-            j.logger.error("AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!")
+            j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!")
             j.tools.alerthandler.alert_raise(
                 appname="s3_auto_topup",
                 category="validation",
-                message="AUTO_ TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!",
+                message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!",
                 alert_type="exception",
             )
             return
@@ -152,7 +148,7 @@ class S3AutoTopUp(BackgroundService):
 
         for sol_name, sol_config in targets.items():
             if sol_name not in minio_solutions:
-                j.logger.warning(f"AUTO_ TOPUP: solution {sol_name} is not a current s3 solution")
+                j.logger.warning(f"AUTO_TOPUP: solution {sol_name} is not a current s3 solution")
                 continue
             minio_solution = minio_solutions[sol_name]
             minio_pool = zos.pools.get(minio_solution["Primary Pool"])
@@ -161,11 +157,11 @@ class S3AutoTopUp(BackgroundService):
             if not isinstance(sol_config, dict) or not all(
                 [key in sol_config for key in ["minio_api_url", "healing_url"]]
             ):
-                j.logger.error(f"AUTO_ TOPUP: target {sol_name} config is not valid!")
+                j.logger.error(f"AUTO_TOPUP: target {sol_name} config is not valid!")
                 j.tools.alerthandler.alert_raise(
                     appname="s3_auto_topup",
                     category="validation",
-                    message=f"AUTO_ TOPUP: target {sol_name} config is not valid!",
+                    message=f"AUTO_TOPUP: target {sol_name} config is not valid!",
                     alert_type="exception",
                 )
                 continue
