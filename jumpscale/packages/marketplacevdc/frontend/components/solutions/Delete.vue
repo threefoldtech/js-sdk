@@ -19,7 +19,7 @@ module.exports = {
     submit () {
       this.loading = true
       this.error = null
-      this.$api.solutions.cancelReservation(this.wids).then(response => {
+      this.$api.charts.deleteChart(this.wids).then(response => {
         console.log("cancelled")
         this.$router.go(0);
       }).catch(err => {

@@ -70,7 +70,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }).catch((e) => {
     if (to.name === "SolutionChatflow") {
-      let nextUrl = encodeURIComponent(`/marketplace/#${to.path}`)
+      let nextUrl = encodeURIComponent(`/marketplacevdc/#${to.path}`)
       window.location.href = `/auth/login?next_url=${nextUrl}`
     }
     else {

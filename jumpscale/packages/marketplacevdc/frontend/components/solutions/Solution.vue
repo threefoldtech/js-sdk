@@ -151,7 +151,7 @@ module.exports = {
     },
     getDeployedSolutions(solution_type) {
       this.$api.solutions
-        .getDeployed(solution_type)
+        .getSolutions(solution_type)
         .then((response) => {
           this.deployedSolutions = response.data.data;
         })
