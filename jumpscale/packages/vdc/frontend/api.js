@@ -23,31 +23,21 @@ const apiClient = {
     },
   },
   solutions: {
-    getAllThreebots: () => {
+    listVdcs: () => {
       return axios({
-        url: `/vdc/api/threebots/list`,
+        url: `/vdc/api/vdcs`,
         method: "get",
         headers: { 'Content-Type': 'application/json' }
       })
 
     },
-    stopThreebot: (uuid, password) => {
+    getVdcInfo: (name) => {
       return axios({
-        url: `/vdc/api/threebots/stop`,
+        url: `/vdc/api/vdcs/` + name,
         headers: { 'Content-Type': 'application/json' },
-        data: { uuid: uuid , password: password },
-        method: "post"
+        method: "get"
       })
     },
-    destroyThreebot: (uuid, password) => {
-      return axios({
-        url: `/vdc/api/threebots/destroy`,
-        headers: { 'Content-Type': 'application/json' },
-        data: { uuid: uuid, password: password },
-        method: "post"
-      })
-    },
-  },
   license: {
     accept: () => {
       return axios({
