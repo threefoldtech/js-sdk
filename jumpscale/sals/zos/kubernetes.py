@@ -73,6 +73,7 @@ class KubernetesGenerator:
         master_ip: str,
         ssh_keys: List[str],
         pool_id: int,
+        public_ip: int
     ) -> K8s:
         """create a kubernetes worker workload object
 
@@ -101,6 +102,7 @@ class KubernetesGenerator:
             size=size,
             ssh_keys=ssh_keys,
             pool_id=pool_id,
+            public_ip=public_ip
         )
         worker.master_ips = [master_ip]
         return worker
