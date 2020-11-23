@@ -114,7 +114,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
                 if self.domain_type == "Custom domain":
                     self.custom_subdomain = self.string_ask(
-                        f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True,
+                        f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True
                     )
                     full_domain = f"{self.custom_subdomain}.{managed_domain}"
                 else:
@@ -260,7 +260,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
         choices = ["Create standard Subdomain", "Custom domain"]
-        self.domain_type = self.single_choice("Select the domain type", choices, default="Create standard Domain",)
+        self.domain_type = self.single_choice("Select the domain type", choices, default="Create standard Domain")
         # get self.domain
         self._get_domain()
         self._deploy()
@@ -277,7 +277,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
         k8s_client.install_chart(
             release=self.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
-            namespace=self.SOLUTION_TYPE,
             extra_config=self.chart_config,
         )
 
