@@ -8,7 +8,7 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 class HelmChart(BaseActor):
     def __init__(self):
         super().__init__()
-        k8s_client = j.sals.kubernetes.Manager()
+        self.k8s_client = j.sals.kubernetes.Manager()
 
     @actor_method
     def install_helm_chart(
@@ -31,8 +31,9 @@ class HelmChart(BaseActor):
         return j.data.serializers.json.dumps("Chart installed")
 
     @actor_method
-    def uninstall_helm_chart(self, release: str) -> str:
+    def uninstall_helm_chart(self, release: str, solution_id: str) -> str:
         self.k8s_client.delete_deployed_release(release)
+        j.sals.marketplace.solutions.cancel_solution_by_uuid(solution_id)
         return j.data.serializers.json.dumps("Chart uninstalled")
 
 

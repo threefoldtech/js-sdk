@@ -232,6 +232,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             log_config=self.nginx_log_config,
             **metadata,
         )
+        self.workload_ids.append(_id)
         success = deployer.wait_workload(_id, self)
         if not success:
             # solutions.cancel_solution(self.workload_ids)
@@ -242,20 +243,22 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 wid=self.workload_ids[-1],
             )
 
-    @chatflow_step(title="Solution Name")
-    def get_release_name(self):
-        self._init_solution()
-        self.release_name = self.string_ask(
-            "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
-            required=True,
-            is_identifier=True,
-        )
-        # TODO: Check if solution name exist
-        self.release_name = f"{self.release_name}"
-
     @chatflow_step(title="Select VDC")
     def select_vdc(self):
+        self._init_solution()
         self._get_kube_config()
+        self.k8s_client = j.sals.kubernetes.Manager(config_path=self.vdc_info["kube_config_path"])
+
+    @chatflow_step(title="Solution Name")
+    def get_release_name(self):
+        message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
+        while True:
+            self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True,)
+            # TODO: Check if solution name exist
+            releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
+            if not self.release_name in releases:
+                break
+            message = "Release name already exists.</br>Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
 
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
@@ -269,12 +272,14 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def install_chart(self):
         # TODO: should use config_path from vdc_obj to create k8s_client
         # TODO: use kubectl patch command to add label after the deployment [solution_type, tname, vdc_name]
-        k8s_client = j.sals.kubernetes.Manager(config_path=self.vdc_info["kube_config_path"])
-        helm_repos_urls = [repo["url"] for repo in k8s_client.helm_repo_list()]
+        helm_repos_urls = [repo["url"] for repo in self.k8s_client.helm_repo_list()]
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
-            k8s_client.add_helm_repo(HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"])
-        k8s_client.update_helm_repo()
-        k8s_client.install_chart(
+            self.k8s_client.add_helm_repo(
+                HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"]
+            )
+        self.k8s_client.update_helm_repo()
+        self.chart_config.update({"solution_uuid": self.solution_id})
+        self.k8s_client.install_chart(
             release=self.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
             extra_config=self.chart_config,
