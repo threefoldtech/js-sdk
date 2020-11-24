@@ -95,5 +95,3 @@ j.core.config.set(
         },
     },
 )
-
-j.servers.threebot.start_default(wait=True)
