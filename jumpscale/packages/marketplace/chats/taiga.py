@@ -86,7 +86,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",
-            public_ipv6=True,
             secret_env={
                 "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                 "PRIVATE_KEY": private_key,
