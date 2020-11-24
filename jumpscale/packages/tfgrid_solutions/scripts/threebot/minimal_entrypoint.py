@@ -84,7 +84,7 @@ j.core.config.set(
     {
         "farm_names": S3_AUTO_TOPUP_FARMS.split(","),
         "extension_size": 10,
-        "max_storage": VDC_S3_MAX_STORAGE,
+        "max_storage": int(VDC_S3_MAX_STORAGE),
         "threshold": 0.7,
         "clear_threshold": 0.4,
         "targets": {
