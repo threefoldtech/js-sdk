@@ -18,7 +18,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
         minio_ip_address = workload.network_connection[0].ipaddress
         secret_env = {
-            "VDC_OWNER_TNAME": self.vdc_deployer.owner_tname,
+            "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
             "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
@@ -27,19 +27,22 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_NAME": self.vdc_name,
             "VDC_UUID": self.vdc_uuid,
             "EXPLORER_URL": j.core.identity.me.explorer_url,
-            "VDC_S3_MAX_STORAGE": S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["size"]],
+            "VDC_S3_MAX_STORAGE": str(S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
             "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
         }
+
         scheduler = Scheduler(pool_id=pool_id)
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         for node in scheduler.nodes_by_capacity(THREEBOT_CPU, THREEBOT_DISK / 1024, THREEBOT_MEMORY / 1024):
+            self.vdc_deployer.info(f"vdc threebot: node {node.node_id} selected")
             result = deployer.add_network_node(
                 network_view.name, node, pool_id, network_view, self.bot, self.identity.instance_name
             )
+            self.vdc_deployer.info(f"vdc threebot network update result for node {node.node_id} is {result}")
             if result:
                 network_updated = True
                 try:
@@ -59,8 +62,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     continue
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
+            self.vdc_deployer.info(f"vdc threebot container ip address {ip_address}")
             if not ip_address:
                 continue
+
             wid = deployer.deploy_container(
                 pool_id=pool_id,
                 node_id=node.node_id,
@@ -76,6 +81,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 description=self.vdc_deployer.description,
                 form_info={"chatflow": "threebot"},
             )
+            self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
                 success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
                 if success:
