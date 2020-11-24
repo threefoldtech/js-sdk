@@ -1,3 +1,4 @@
+from random import choice
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
 from selenium.webdriver.common.by import By
@@ -15,23 +16,37 @@ class Packages(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
+    def click_button(self, button_type):
+        buttons = self.driver.find_elements_by_class_name("v-btn")
+        button = [button for button in buttons if button.text == button_type][0]
+        button.click()
+
+    def check_threebot_deployer_package(self):
+        installed_packages, available_packages = self.check_package_card()
+        if "threebot_deployer" not in installed_packages.keys():
+            git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
+            self.add_package(git_url)
+        installed_packages, available_packages = self.check_package_card()
+        package_card = installed_packages["threebot_deployer"]
+        return package_card
+
     def system_packages(self):
-        packages = self.driver.find_elements_by_class_name("v-card__title")
-        system_packages = []
-        for i in range(6):
-            system_packages.append(packages[i].text)
+        system_packages = {}
+        packages_category = self.driver.find_elements_by_class_name("row")
+        system_packages_cards = packages_category[0].find_elements_by_class_name("v-card")
+
+        for system_card in system_packages_cards:
+            system_packages_cards_name = system_card.find_element_by_class_name("v-card__title")
+            system_name = system_packages_cards_name.text
+            system_packages[system_name] = system_card
         return system_packages
 
     def add_package(self, git_url):
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        add_button = [button for button in buttons if button.text == "ADD"][0]
-        add_button.click()
+        self.click_button("ADD")
         add_new_package_box = self.driver.find_elements_by_class_name("v-text-field__slot")
         git_url_input = add_new_package_box[1].find_element_by_tag_name("input")
         git_url_input.send_keys(git_url)
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        submit_button = [button for button in buttons if button.text == "SUBMIT"][0]
-        submit_button.click()
+        self.click_button("SUBMIT")
         wait = WebDriverWait(self.driver, 60)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
 
@@ -64,6 +79,28 @@ class Packages(Base):
                 break
         else:
             return
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        submit_button = [button for button in buttons if button.text == "SUBMIT"][0]
-        submit_button.click()
+        self.click_button("SUBMIT")
+
+    def install_package(self):
+        installed_packages, available_packages = self.check_package_card()
+        random_package = choice(list(available_packages.keys()))
+        package_card = available_packages[random_package]
+        install_icon = package_card.find_element_by_class_name("v-btn__content")
+        install_icon.click()
+        return random_package
+
+    def open_in_browser(self):
+        package_card = self.check_threebot_deployer_package()
+        open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
+        open_in_browser.click()
+        return self.driver.current_url
+
+    def chatflows(self):
+        package_card = self.check_threebot_deployer_package()
+        chatflows = package_card.find_elements_by_class_name("v-btn__content")[2]
+        chatflows.click()
+        cards = self.driver.find_elements_by_class_name("v-card__title")
+        cards_name = []
+        for card in cards:
+            cards_name.append(card.text)
+        return cards_name
