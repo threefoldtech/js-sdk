@@ -34,18 +34,23 @@ class VDCWallet(Base):
     wallet_secret = fields.String()
     wallet_network = fields.Enum(StellarNetwork)
 
-    def _init_wallet(self):
+    def _init_wallet(self, secret=None):
         if "testnet" in j.core.identity.me.explorer_url or "devnet" in j.core.identity.me.explorer_url:
             self.wallet_network = StellarNetwork.TEST
         else:
             self.wallet_network = StellarNetwork.STD
 
-        wallet = j.clients.stellar.new(self.instance_name, network=self.wallet_network)
+        wallet = j.clients.stellar.new(self.instance_name, secret=secret, network=self.wallet_network)
+        if not secret:
+            wallet.activate_through_friendbot()
+            wallet.add_known_trustline("TFT")
         wallet.save()
         self.wallet_secret = wallet.secret
 
     @property
     def stellar_wallet(self):
+        if not j.clients.stellar.find(self.instance_name) and self.wallet_secret:
+            self._init_wallet(self.wallet_secret)
         return j.clients.stellar.get(self.instance_name)
 
 
@@ -140,6 +145,7 @@ class UserVDC(Base):
             vdc_wallet = VDC_WALLET_FACTORY.find(self.instance_name)
             if not vdc_wallet:
                 vdc_wallet = VDC_WALLET_FACTORY.new(self.instance_name)
+                vdc_wallet.save()
             wallet = vdc_wallet.stellar_wallet
         return wallet
 

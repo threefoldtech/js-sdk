@@ -147,19 +147,44 @@ class VDCDeployer:
         """
         create pool if needed and network for new vdc
         """
-        # create pool
         self.info(f"initializing vdc on farm {farm_name}")
+
+        # seach if a pool exists that can be used
+        self.info(f"searching for an old pool on farm {farm_name}")
         if not pool_id:
+            for pool in self.zos.pools.list():
+                farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
+                farm = self.explorer.farms.get(farm_id)
+                if farm_name == farm.name:
+                    pool_id = pool.pool_id
+                    self.info(f"found old pool {pool_id} on farm {farm_name}")
+                    break
+            if not pool_id:
+                self.info(f"couldn't find any old pool on farm {farm_name}")
+
+        if not pool_id:
+            # create pool
+            self.info(f"creating a new pool on farm {farm_name}")
             pool_info = self.zos.pools.create(math.ceil(cu), math.ceil(su), farm_name)
             self.info(
                 f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}"
             )
-            self.zos.billing.payout_farmers(self.wallet, pool_info)
-            self.info(f"pool {pool_info.reservation_id} paid. waiting resources")
-            success = self.wait_pool_payment(pool_info.reservation_id)
-            if not success:
-                raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
             pool_id = pool_info.reservation_id
+        else:
+            node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
+            pool = self.zos.pools.get(pool_id)
+            required_cus = max(0, cu - pool.cus)
+            required_sus = max(0, su - pool.sus)
+            self.info(f"extending pool {pool_id} with cus: {required_cus} sus: {required_sus}")
+            pool_info = self.zos.pools.extend(pool_id, required_cus, required_sus, node_ids=node_ids)
+
+        self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.info(f"pool {pool_id} paid. waiting resources")
+        success = self.wait_pool_payment(pool_id)
+        if not success:
+            raise j.exceptions.Runtime(
+                f"Pool {pool_info.reservation_id} pool_id: {pool_id} resource reservation timedout"
+            )
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         if nv:
             return pool_id
@@ -315,12 +340,14 @@ class VDCDeployer:
             self.vdc_uuid,
             self.password,
         )
+        self.info(f"minio_wid: {minio_wid}")
         if not minio_wid:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
             return False
 
         threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
+        self.info(f"threebot_wid: {threebot_wid}")
         if not threebot_wid:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
