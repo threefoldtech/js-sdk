@@ -84,7 +84,7 @@ class PoolsTests(BaseTest):
         wallets.delete(wallet_name)
 
     def test03_hide_pool(self):
-        """Test case for hideing a pool.
+        """Test case for hiding a pool.
 
         **Test Scenario**
         - Create a wallet.
