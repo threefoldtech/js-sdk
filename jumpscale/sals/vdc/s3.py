@@ -1,11 +1,11 @@
-from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
-from jumpscale.loader import j
-
-from jumpscale.sals.reservation_chatflow import deployer
-from .size import *
-from jumpscale.clients.explorer.models import ZDBMode, DiskType
 import math
+
+from jumpscale.clients.explorer.models import DiskType, ZDBMode
+from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+
 from .base_component import VDCBaseComponent
+from .size import *
 
 
 class VDCS3Deployer(VDCBaseComponent):

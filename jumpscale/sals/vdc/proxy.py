@@ -1,12 +1,58 @@
-from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
-from .base_component import VDCBaseComponent
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
-from jumpscale.sals.reservation_chatflow import deployer
-from jumpscale.loader import j
-import gevent
 import random
 import uuid
+
+import gevent
+from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+
+from .base_component import VDCBaseComponent
 from .scheduler import Scheduler
+
+
+PROXY_SERVICE_TEMPLATE = """
+kind: Service
+apiVersion: v1
+metadata:
+ name: {{ service_name }}
+spec:
+ type: ClusterIP
+ ports:
+ - port: {{ port }}
+"""
+
+
+PROXY_ENDPOINT_TEMPLATE = """
+kind: Endpoints
+apiVersion: v1
+metadata:
+ name: {{ endpoint_name }}
+subsets:
+ - addresses:
+    {% for address in addresses %}
+     - ip: {{ address }}
+    {% endfor %}
+   ports:
+     - port: {{ port }}
+"""
+
+
+PROXY_INGRESS_TEMPLATE = """
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ ingress_name }}
+spec:
+  rules:
+    - host: {{ hostname }}
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: {{ service_name }}
+            servicePort: {{ service_port }}
+"""
 
 
 class VDCProxy(VDCBaseComponent):
@@ -309,3 +355,42 @@ class VDCProxy(VDCBaseComponent):
                 scheduler.refresh_nodes()
             self.vdc_deployer.error(f"failed to expose workload {wid} on gateway {gateway.node_id}")
         self.vdc_deployer.error(f"all tries to expose wid {wid} failed")
+
+    def ingress_proxy(self, name, prefix, wid, port, public_ip, solution_uuid):
+        workload = self.zos.workloads.get(wid)
+        if workload.info.workload_type != WorkloadType.Container:
+            raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
+        ip_address = workload.network_connection[0].ipaddress
+        gateways = self.fetch_myfarm_gateways()
+        gateway_pool_id = self.get_gateway_pool_id()
+        random.shuffle(gateways)
+        for gateway in gateways:
+            subdomain, subdomain_id = self.reserve_subdomain(
+                gateway, prefix, solution_uuid, gateway_pool_id, exposed_wid=wid, ip_address=public_ip,
+            )
+            try:
+                self._create_ingress(name, subdomain, [ip_address], port)
+            except Exception as e:
+                self.vdc_deployer.error(f"failed to create proxy ingress config due to error {str(e)}")
+                self.zos.workloads.decomission(subdomain_id)
+                raise e
+
+    def _create_ingress(self, name, domain, addresses, port):
+        service_text = j.tools.jinja2.render_template(
+            template_text=PROXY_SERVICE_TEMPLATE, service_name=name, port=port,
+        )
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{service_text}' |  kubectl apply -f -")
+
+        endpoint_text = j.tools.jinja2.render_template(
+            template_text=PROXY_ENDPOINT_TEMPLATE, endpoint_name=name, addresses=addresses, port=port,
+        )
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{endpoint_text}' |  kubectl apply -f -")
+
+        ingress_text = j.tools.jinja2.render_template(
+            template_text=PROXY_INGRESS_TEMPLATE,
+            ingress_name=name,
+            hostname=domain,
+            service_name=name,
+            service_port=port,
+        )
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")

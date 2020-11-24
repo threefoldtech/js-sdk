@@ -13,7 +13,7 @@ app = Bottle()
 @login_required
 def list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
-    username = j.data.text.removesuffix(user_info["username"], ".3bot")
+    username = user_info["username"]
     result = []
     for vdc in VDCFACTORY.list(username):
         vdc_dict = vdc.to_dict()
@@ -29,8 +29,8 @@ def list_vdcs():
 @login_required
 def get_vdc_info(name):
     user_info = j.data.serializers.json.loads(get_user_info())
-    username = j.data.text.removesuffix(user_info["username"], ".3bot")
-    vdc = VDCFACTORY.find(f"vdc_{username}_{name}", username, load_info=True)
+    username = user_info["username"]
+    vdc = VDCFACTORY.find(vdc_name=name, owner_tname=username, load_info=True)
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"},)
     return HTTPResponse(

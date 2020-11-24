@@ -1,12 +1,13 @@
+import math
 import uuid
-from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+
 from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+
 from .base_component import VDCBaseComponent
+from .scheduler import CapacityChecker, Scheduler
 from .size import *
-from .models import VDCFACTORY
-from .scheduler import Scheduler, CapacityChecker
-import math
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
@@ -83,9 +84,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
         """
-        vdc_instance = VDCFACTORY.get(f"vdc_{self.vdc_deployer.tname}_{self.vdc_name}")
         old_node_ids = []
-        for k8s_node in vdc_instance.kubernetes:
+        for k8s_node in self.vdc_instance.kubernetes:
             old_node_ids.append(k8s_node.node_id)
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
@@ -96,7 +96,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     f"not enough capacity in farm {farm_name} for {no_nodes} k8s nodes of flavor {k8s_flavor}"
                 )
 
-        duration = duration or vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+        duration = duration or self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
         pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
