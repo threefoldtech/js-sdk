@@ -66,19 +66,22 @@ class VDCWorkloadBase(Base):
     pool_id = fields.Integer()
 
 
+class VDCHostBase(VDCWorkloadBase):
+    ip_address = fields.IPAddress()
+
+
 class KubernetesRole(Enum):
     MASTER = "master"
     WORKER = "worker"
 
 
-class KubernetesNode(VDCWorkloadBase):
+class KubernetesNode(VDCHostBase):
     role = fields.Enum(KubernetesRole)
-    ip_address = fields.IPAddress()
     size = fields.Enum(K8SNodeFlavor)
 
 
-class S3Container(VDCWorkloadBase):
-    ip_address = fields.IPAddress()
+class S3Container(VDCHostBase):
+    pass
 
 
 class S3ZDB(VDCWorkloadBase):
@@ -112,6 +115,10 @@ class S3(Base):
     healer_proxy = fields.Object(S3Proxy)
 
 
+class VDCThreebot(VDCHostBase):
+    pass
+
+
 class UserVDC(Base):
     vdc_name = fields.String()
     owner_tname = fields.String()
@@ -120,6 +127,7 @@ class UserVDC(Base):
     flavor = fields.Enum(VDCFlavor)
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
+    threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     updated = fields.DateTime(default=datetime.datetime.utcnow, on_update=datetime.datetime.utcnow)
     expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
@@ -189,6 +197,13 @@ class UserVDC(Base):
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.s3.minio = container
+            elif "js-sdk" in workload.flist:
+                container = VDCThreebot()
+                container.node_id = workload.info.node_id
+                container.pool_id = workload.info.pool_id
+                container.wid = workload.id
+                container.ip_address = workload.network_connection[0].ipaddress
+                self.threebot = container
         elif workload.info.workload_type == WorkloadType.Zdb:
             zdb = S3ZDB()
             zdb.node_id = workload.info.node_id
