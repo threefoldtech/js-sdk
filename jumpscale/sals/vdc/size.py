@@ -9,9 +9,9 @@ ZDB_STARTING_SIZE = 10  # in GB
 
 
 class K8SNodeFlavor(Enum):
-    SMALL = 1
-    MEDIUM = 2
-    BIG = 3
+    SMALL = 15
+    MEDIUM = 16
+    BIG = 17
 
 
 # FIXME: the below sizes are not correct and not supported (https://github.com/threefoldtech/vdc/issues/39)
