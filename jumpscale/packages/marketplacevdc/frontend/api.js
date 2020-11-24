@@ -31,8 +31,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-  },
-  charts: {
+    deleteSolution: (releaseName, solutionId) => {
+      return axios({
+        url: `${baseURL}/chart/uninstall_helm_chart`, // TODO Replace with bottle server api call
+        method: "post",
+        data: { release: releaseName , solution_id: solutionId},
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
   },
   license: {
     accept: () => {

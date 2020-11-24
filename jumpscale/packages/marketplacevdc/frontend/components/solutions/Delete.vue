@@ -1,7 +1,7 @@
 <template>
   <base-dialog title="Cancel workload" v-model="dialog" :error="error" :loading="loading">
     <template #default>
-      Are you sure you want to cancel?
+      Are you sure you want to cancel {{releasename}}?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -14,18 +14,19 @@
 
 module.exports = {
   mixins: [dialog],
-  props: ["wids"],
+  props: ["releasename", "solutionid"],
   methods: {
     submit () {
       this.loading = true
       this.error = null
-      this.$api.charts.deleteChart(this.wids).then(response => {
+      this.$api.solutions.deleteSolution(this.releasename, this.solutionid).then(response => {
         console.log("cancelled")
         this.$router.go(0);
       }).catch(err => {
         console.log("failed")
+        this.close()
       });
     }
-  }
+  },
 }
 </script>
