@@ -1,17 +1,18 @@
-from collections import defaultdict
 import random
-from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
-from jumpscale.sals.reservation_chatflow import solutions, deployer
-from jumpscale.sals.zos import get as get_zos
-from jumpscale.clients.explorer.models import WorkloadType, ZDBMode, DiskType
-from jumpscale.data import serializers
-from jumpscale.tools import http
-from urllib.parse import urljoin
 import re
-from jumpscale.loader import j
-from .scheduler import GlobalScheduler
-import gevent
+from collections import defaultdict
+from urllib.parse import urljoin
 
+import gevent
+from jumpscale.clients.explorer.models import DiskType, WorkloadType, ZDBMode
+from jumpscale.data import serializers
+from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+from jumpscale.sals.zos import get as get_zos
+from jumpscale.tools import http
+
+from .scheduler import GlobalScheduler
 
 METRIC_KEYS = {
     "used": "minio_zerostor_data_size",
