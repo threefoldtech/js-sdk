@@ -7,8 +7,8 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     title = "Cryptpad"
     HELM_REPO_NAME = "marketplace"
     steps = [
-        "get_release_name",
         "select_vdc",
+        "get_release_name",
         "create_subdomain",
         "set_config",
         "install_chart",
@@ -20,7 +20,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         # TODO: get config from user
         self._choose_flavor()
         self.chart_config = {
-            "ingresscryptpad.host": self.domain,
+            "ingress.host": self.domain,
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
