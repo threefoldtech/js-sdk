@@ -210,11 +210,15 @@ class VDCDeployer:
             )
             storage_per_zdb = ZDB_STARTING_SIZE
             zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
-
             zdb_sus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
             zdb_cus = zdb_cus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
             total_cus += zdb_cus + minio_cus
             total_sus += zdb_sus + minio_sus
+        threebot_cus, threebot_sus = deployer.calculate_capacity_units(
+            THREEBOT_CPU, THREEBOT_MEMORY / 1024, THREEBOT_DISK / 1024
+        )
+        total_cus += threebot_cus
+        total_sus += threebot_sus
         return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
 
     def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict):
@@ -234,7 +238,12 @@ class VDCDeployer:
                 "no_nodes": 1,
                 "ip_version": "IPv6",
             },
-            "s3_proxy": {"cru": 1, "mru": 1, "sru": 0.25, "no_nodes": 2},
+            "threebot": {
+                "cru": THREEBOT_CPU,
+                "mru": THREEBOT_MEMORY / 1024,
+                "sru": THREEBOT_DISK / 1024,
+                "no_nodes": 1,
+            },
         }
         cc = CapacityChecker(farm_name)
         cc.add_query(ip_version=IP_VERSION)
@@ -307,6 +316,12 @@ class VDCDeployer:
             self.password,
         )
         if not minio_wid:
+            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+            self.rollback_vdc_deployment()
+            return False
+
+        threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
+        if not threebot_wid:
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
             return False
