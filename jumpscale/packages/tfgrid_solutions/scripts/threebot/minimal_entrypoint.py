@@ -18,8 +18,7 @@ Required env variables:
 - VDC_PASSWORD_HASH  -> for identity generation
 - EXPLORER_URL  -> for identity generation and wallet network
 - VDC_WALLET_SECRET  -> for auto-top up
-- VDC_S3_DOMAIN_NAME  -> used for monitoring to trigger auto-top up
-- VDC_S3_HEALING_DOMAIN_NAME  -> used for auto top up
+- VDC_MINIO_ADDRESS  -> used for monitoring to trigger auto-top up and reconfig
 - VDC_S3_MAX_STORAGE  -> used for auto top up
 - S3_AUTO_TOPUP_FARMS  -> used for auto top up
 
@@ -37,10 +36,9 @@ VDC_EMAIL = os.environ.get("VDC_EMAIL")
 VDC_PASSWORD_HASH = os.environ.get("VDC_PASSWORD_HASH")
 EXPLORER_URL = os.environ.get("EXPLORER_URL")
 VDC_WALLET_SECRET = os.environ.get("VDC_WALLET_SECRET")
-VDC_S3_DOMAIN_NAME = os.environ.get("VDC_S3_DOMAIN_NAME")
 VDC_S3_MAX_STORAGE = os.environ.get("VDC_S3_MAX_STORAGE")
 S3_AUTO_TOPUP_FARMS = os.environ.get("S3_AUTO_TOPUP_FARMS")
-VDC_S3_HEALING_DOMAIN_NAME = os.environ.get("VDC_S3_HEALING_DOMAIN_NAME")
+VDC_MINIO_ADDRESS = os.environ.get("VDC_MINIO_ADDRESS")
 
 
 VDC_VARS = {
@@ -51,10 +49,9 @@ VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
     "EXPLORER_URL": EXPLORER_URL,
     "VDC_WALLET_SECRET": VDC_WALLET_SECRET,
-    "VDC_S3_DOMAIN_NAME": VDC_S3_DOMAIN_NAME,
     "VDC_S3_MAX_STORAGE": VDC_S3_MAX_STORAGE,
     "S3_AUTO_TOPUP_FARMS": S3_AUTO_TOPUP_FARMS,
-    "VDC_S3_HEALING_DOMAIN_NAME": VDC_S3_HEALING_DOMAIN_NAME,
+    "VDC_MINIO_ADDRESS": VDC_MINIO_ADDRESS,
 }
 
 if not all(list(VDC_VARS.values())):
@@ -92,8 +89,8 @@ j.core.config.set(
         "clear_threshold": 0.4,
         "targets": {
             VDC_NAME: {
-                "minio_api_url": f"https://{VDC_S3_DOMAIN_NAME}",
-                "healing_url": f"https://{VDC_S3_HEALING_DOMAIN_NAME}",
+                "minio_api_url": f"http://{VDC_MINIO_ADDRESS}:9000",
+                "healing_url": f"http://{VDC_MINIO_ADDRESS}:9010",
             }
         },
     },

@@ -7,6 +7,12 @@ MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
 ZDB_STARTING_SIZE = 10  # in GB
 
+THREEBOT_CPU = 1
+THREEBOT_MEMORY = 2 * 1024  # in MB
+THREEBOT_DISK = 1 * 1024  # in MB
+
+S3_AUTO_TOPUP_FARMS = ["freefarm"]
+
 
 class K8SNodeFlavor(Enum):
     SMALL = 15

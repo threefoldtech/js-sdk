@@ -12,6 +12,7 @@ from jumpscale.sals.zos import get as get_zos
 from .kubernetes import VDCKubernetesDeployer
 from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
+from .threebot import VDCThreebotDeployer
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
 
@@ -21,7 +22,6 @@ IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
-S3_AUTO_TOPUP_FARMS = ["freefarm"]
 
 
 class VDCDeployer:
@@ -40,6 +40,7 @@ class VDCDeployer:
         self.bot = bot
         self.identity = None
         self.password = password
+        self.password_hash = hashlib.md5(self.password.encode()).hexdigest()
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
@@ -56,6 +57,13 @@ class VDCDeployer:
         self._ssh_key = None
         self._vdc_k8s_manager = None
         self._mgmt_k8s_manager = None
+        self._threebot = None
+
+    @property
+    def threebot(self):
+        if not self._threebot:
+            self._threebot = VDCThreebotDeployer(self)
+        return self._threebot
 
     @property
     def mgmt_k8s_manager(self):
@@ -122,8 +130,7 @@ class VDCDeployer:
     def _generate_identity(self):
         # create a user identity from an old one or create a new one
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name)
-        password_hash = hashlib.md5(self.password.encode()).hexdigest()
-        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
+        words = j.data.encryption.key_to_mnemonic(self.password_hash.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
         self.identity = j.core.identity.get(
             identity_name, tname=username, email=self.email, words=words, explorer_url=j.core.identity.me.explorer_url
@@ -201,14 +208,13 @@ class VDCDeployer:
             minio_cus, minio_sus = deployer.calculate_capacity_units(
                 cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024 + 0.25
             )
-            nginx_cus, nginx_sus = deployer.calculate_capacity_units(cru=1, mru=1, sru=0.25)
             storage_per_zdb = ZDB_STARTING_SIZE
             zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
 
             zdb_sus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
             zdb_cus = zdb_cus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
-            total_cus += zdb_cus + minio_cus + (2 * nginx_cus)
-            total_sus += zdb_sus + minio_sus + (2 * nginx_sus)
+            total_cus += zdb_cus + minio_cus
+            total_sus += zdb_sus + minio_sus
         return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
 
     def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict):
