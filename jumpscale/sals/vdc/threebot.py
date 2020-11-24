@@ -36,8 +36,8 @@ class VDCThreebotDeployer(VDCBaseComponent):
         }
 
         scheduler = Scheduler(pool_id=pool_id)
-        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         for node in scheduler.nodes_by_capacity(THREEBOT_CPU, THREEBOT_DISK / 1024, THREEBOT_MEMORY / 1024):
+            network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
             self.vdc_deployer.info(f"vdc threebot: node {node.node_id} selected")
             result = deployer.add_network_node(
                 network_view.name, node, pool_id, network_view, self.bot, self.identity.instance_name
