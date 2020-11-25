@@ -40,9 +40,6 @@ class PackagesTests(BaseTest):
         """
 
         self.info("Add a package using GitURL")
-        import ipdb
-
-        ipdb.set_trace()
         git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/notebooks"
         self.packages.add_package(git_url=git_url)
 
