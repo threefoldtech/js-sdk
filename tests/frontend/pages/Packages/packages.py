@@ -22,11 +22,11 @@ class Packages(Base):
         button.click()
 
     def check_threebot_deployer_package(self):
-        installed_packages, available_packages = self.check_package_card()
+        installed_packages, available_packages = self.check_packages_type()
         if "threebot_deployer" not in installed_packages.keys():
             git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
             self.add_package(git_url)
-        installed_packages, available_packages = self.check_package_card()
+        installed_packages, available_packages = self.check_packages_type()
         package_card = installed_packages["threebot_deployer"]
         return package_card
 
@@ -41,7 +41,7 @@ class Packages(Base):
             system_packages[system_name] = system_card
         return system_packages
 
-    def add_package(self, git_url):
+    def add_package(self, git_url=None, path=None):
         self.click_button("ADD")
         add_new_package_box = self.driver.find_elements_by_class_name("v-text-field__slot")
         git_url_input = add_new_package_box[1].find_element_by_tag_name("input")
@@ -49,8 +49,13 @@ class Packages(Base):
         self.click_button("SUBMIT")
         wait = WebDriverWait(self.driver, 60)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
+        path_input = add_new_package_box[0].find_element_by_tag_name("input")
+        path_input.send_keys(path)
+        self.click_button("SUBMIT")
+        wait = WebDriverWait(self.driver, 60)
+        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
 
-    def check_package_card(self):
+    def check_packages_type(self):
 
         installed_packages = {}
         available_packages = {}
@@ -70,7 +75,7 @@ class Packages(Base):
         return installed_packages, available_packages
 
     def delete_package(self, package_name):
-        installed_packages, available_packages = self.check_package_card()
+        installed_packages, available_packages = self.check_packages_type()
         for package in installed_packages.keys():
             if package == package_name:
                 package_card = installed_packages[package_name]
@@ -82,7 +87,7 @@ class Packages(Base):
         self.click_button("SUBMIT")
 
     def install_package(self):
-        installed_packages, available_packages = self.check_package_card()
+        installed_packages, available_packages = self.check_packages_type()
         random_package = choice(list(available_packages.keys()))
         package_card = available_packages[random_package]
         install_icon = package_card.find_element_by_class_name("v-btn__content")
