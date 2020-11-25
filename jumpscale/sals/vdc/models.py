@@ -7,7 +7,6 @@ from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.data import serializers
 from jumpscale.loader import j
-from jumpscale.sals.reservation_chatflow.deployer import GATEWAY_WORKLOAD_TYPES
 from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
@@ -105,19 +104,10 @@ class S3NginxProxy(VDCWorkloadBase):
     pass
 
 
-class S3Proxy(Base):
-    reverse_proxy = fields.Object(S3ReverseProxy)
-    subdomain = fields.Object(S3Subdomain)
-    nginx = fields.Object(S3NginxProxy)
-
-
 class S3(Base):
-    subdomain = fields.String()
-    healer_subdomain = fields.String()
     minio = fields.Object(S3Container)
     zdbs = fields.List(fields.Object(S3ZDB))
-    api_proxy = fields.Object(S3Proxy)
-    healer_proxy = fields.Object(S3Proxy)
+    domain = fields.String()
 
 
 class VDCThreebot(VDCHostBase):
@@ -153,20 +143,16 @@ class UserVDC(Base):
         return VDCDeployer(password, self, bot, proxy_farm_name, mgmt_kube_config_path)
 
     def load_info(self):
-        instance_vdc_workloads = self._filter_vdc_workloads(self.identity_tid, self.solution_uuid)
-        proxy_workloads = []
+        instance_vdc_workloads = self._filter_vdc_workloads()
+        subdomains = []
         for workload in instance_vdc_workloads:
             self._update_instance(workload)
-            if workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
-                proxy_workloads.append(workload)
-            if workload.info.workload_type == WorkloadType.Container and "nginx" in workload.flist:
-                proxy_workloads.append(workload)
-        self._build_domain_info(proxy_workloads)
+            if workload.info.workload_type == WorkloadType.Subdomain:
+                subdomains.append(workload)
 
-    @staticmethod
-    def _filter_vdc_workloads(identity_tid, solution_uuid):
+    def _filter_vdc_workloads(self):
         zos = get_zos()
-        user_workloads = zos.workloads.list(identity_tid, next_action=NextAction.DEPLOY)
+        user_workloads = zos.workloads.list(self.identity_tid, next_action=NextAction.DEPLOY)
         result = []
         for workload in user_workloads:
             if workload.info.workload_type not in VDC_WORKLOAD_TYPES:
@@ -177,7 +163,7 @@ class UserVDC(Base):
                 description = serializers.json.loads(workload.info.description)
             except:
                 continue
-            if description.get("vdc_uuid") != solution_uuid:
+            if description.get("vdc_uuid") != self.solution_uuid:
                 continue
             result.append(workload)
         return result
@@ -218,78 +204,22 @@ class UserVDC(Base):
             zdb.size = workload.size
             self.s3.zdbs.append(zdb)
 
-    def _build_domain_info(self, proxy_worklaods):
-        healer_proxy_domain = ""
-        healer_nginx_domain = ""
-        healer_subdomain_domain = ""
-
-        api_proxy_domain = ""
-        api_nginx_domain = ""
-        api_subdomain_domain = ""
-
-        for workload in proxy_worklaods:
-            description = serializers.json.loads(workload.info.description)
-            if description.get("exposed_wid") != self.s3.minio.wid:
-                j.logger.warning(
-                    f"proxy workload {workload.id} of type {workload.info.workload_type} skipped because of incorrect exposed wid"
-                )
+    def _get_s3_subdomain(self, subdomain_workloads):
+        minio_wid = self.s3.minio.wid
+        if not minio_wid:
+            return
+        for workload in subdomain_workloads:
+            if not workload.info.description:
                 continue
-            # check exposed_id in description. make sure it is pointing to the instance minio container
-            if workload.info.workload_type == WorkloadType.Container:
-                domain = workload.environment.get("DOMAIN")
-                if domain:
-                    if "healing" in domain:
-                        healer_nginx_domain = domain
-                        self.s3.healer_proxy.nginx.wid = workload.id
-                        self.s3.healer_proxy.nginx.node_id = workload.info.node_id
-                        self.s3.healer_proxy.nginx.pool_id = workload.info.pool_id
-                    else:
-                        api_nginx_domain = domain
-                        self.s3.api_proxy.nginx.wid = workload.id
-                        self.s3.api_proxy.nginx.node_id = workload.info.node_id
-                        self.s3.api_proxy.nginx.pool_id = workload.info.pool_id
-                else:
-                    j.logger.warning(f"couldn't identity the domain of nginx container wid: {workload.id}")
-            elif workload.info.workload_type == WorkloadType.Subdomain:
-                domain = workload.domain
-                if "healing" in domain:
-                    healer_subdomain_domain = domain
-                    self.s3.healer_proxy.subdomain.wid = workload.id
-                    self.s3.healer_proxy.subdomain.node_id = workload.info.node_id
-                    self.s3.healer_proxy.subdomain.pool_id = workload.info.pool_id
-                else:
-                    api_subdomain_domain = domain
-                    self.s3.api_proxy.subdomain.wid = workload.id
-                    self.s3.api_proxy.subdomain.node_id = workload.info.node_id
-                    self.s3.api_proxy.subdomain.pool_id = workload.info.pool_id
-            elif workload.info.workload_type == WorkloadType.Reverse_proxy:
-                domain = workload.domain
-                if "healing" in domain:
-                    healer_proxy_domain = domain
-                    self.s3.healer_proxy.reverse_proxy.wid = workload.id
-                    self.s3.healer_proxy.reverse_proxy.node_id = workload.info.node_id
-                    self.s3.healer_proxy.reverse_proxy.pool_id = workload.info.pool_id
-                else:
-                    api_proxy_domain = domain
-                    self.s3.api_proxy.reverse_proxy.wid = workload.id
-                    self.s3.api_proxy.reverse_proxy.node_id = workload.info.node_id
-                    self.s3.api_proxy.reverse_proxy.pool_id = workload.info.pool_id
-            else:
-                j.logger.warning(f"workload {workload.id} is not a vaild workload for vdc proxy")
-
-        if api_nginx_domain == api_proxy_domain == api_subdomain_domain:
-            self.s3.subdomain = api_nginx_domain
-        else:
-            j.logger.error(
-                f"vdc {self.solution_uuid} s3 api domains are conflicting. subdomain: {api_subdomain_domain}, nginx: {api_nginx_domain}, reverse_proxy: {api_proxy_domain}"
-            )
-
-        if healer_nginx_domain == healer_proxy_domain == healer_subdomain_domain:
-            self.s3.healer_subdomain = healer_nginx_domain
-        else:
-            j.logger.error(
-                f"vdc {self.solution_uuid} s3 healer domains are conflicting. subdomain: {healer_subdomain_domain}, nginx: {healer_nginx_domain}, reverse_proxy: {healer_proxy_domain}"
-            )
+            try:
+                desc = j.data.serializers.json.loads(workload.info.description)
+            except Exception as e:
+                j.logger.warning(f"failed to load workload {workload.id} description")
+                continue
+            exposed_wid = desc.get("exposed_wid")
+            if exposed_wid == minio_wid:
+                self.s3.domain = workload.domain
+                return
 
 
 VDC_INSTANCE_NAME_FORMAT = "vdc_{}_{}"
