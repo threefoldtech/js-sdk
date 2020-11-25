@@ -149,6 +149,7 @@ class UserVDC(Base):
             self._update_instance(workload)
             if workload.info.workload_type == WorkloadType.Subdomain:
                 subdomains.append(workload)
+            self._get_s3_subdomain(subdomains)
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -214,7 +215,7 @@ class UserVDC(Base):
             try:
                 desc = j.data.serializers.json.loads(workload.info.description)
             except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description")
+                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
                 continue
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == minio_wid:
