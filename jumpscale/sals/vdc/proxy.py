@@ -370,10 +370,11 @@ class VDCProxy(VDCBaseComponent):
             )
             try:
                 self._create_ingress(name, subdomain, [ip_address], port)
+                return subdomain
             except Exception as e:
                 self.vdc_deployer.error(f"failed to create proxy ingress config due to error {str(e)}")
                 self.zos.workloads.decomission(subdomain_id)
-                raise e
+                return
 
     def _create_ingress(self, name, domain, addresses, port):
         service_text = j.tools.jinja2.render_template(

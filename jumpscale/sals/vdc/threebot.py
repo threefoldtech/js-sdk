@@ -80,6 +80,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 description=self.vdc_deployer.description,
                 form_info={"chatflow": "threebot"},
+                interactive=True,
             )
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
