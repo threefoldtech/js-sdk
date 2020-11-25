@@ -29,8 +29,7 @@ class Wallet(BaseActor):
 
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
         try:
-            for asset_code in trustlines.keys():
-                wallet.add_known_trustline(asset_code)
+            wallet.add_known_trustline("TFT")
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException(
@@ -81,8 +80,8 @@ class Wallet(BaseActor):
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if "TFT" in trustlines.keys():
+            wallet.add_known_trustline("TFT")
 
         wallet.save()
         return j.data.serializers.json.dumps({"data": trustlines})

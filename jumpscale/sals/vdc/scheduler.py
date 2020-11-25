@@ -52,7 +52,7 @@ class Scheduler:
                 node.reserved_resources.hru += hru
 
     def nodes_by_capacity(
-        self, cru=None, sru=None, mru=None, hru=None, ip_version=None,
+        self, cru=None, sru=None, mru=None, hru=None, ip_version=None, public_ip=None,
     ):
         """search node with the ability to filter on different criteria
 
@@ -75,14 +75,28 @@ class Scheduler:
         for node in self.nodes:
             if node.node_id in self._excluded_node_ids:
                 continue
+
             if not self.check_node_capacity(node.node_id, node, cru, mru, hru, sru):
                 continue
 
             if filters and not all([f(node) for f in filters]):
                 continue
 
+            if public_ip and not self.check_node_public_ip_bridge(node):
+                continue
+
             self._update_node(node, cru, mru, hru, sru)
             yield node
+
+    def check_node_public_ip_bridge(self, node):
+        if not any([self.zos.nodes_finder.filter_public_ip4(node), self.zos.nodes_finder.filter_public_ip6(node)]):
+            return False
+
+        for iface in node.ifaces:
+            if iface["name"] == "br-pub":
+                return True
+
+        return False
 
     def check_node_capacity(self, node_id, node=None, cru=None, mru=None, hru=None, sru=None):
         if not node:
@@ -136,9 +150,11 @@ class CapacityChecker:
     def exclude_nodes(self, *node_ids):
         self.scheduler.exclude_nodes(*node_ids)
 
-    def add_query(self, cru=None, mru=None, hru=None, sru=None, ip_version=None, no_nodes=1, backup_no=0):
+    def add_query(
+        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
+    ):
         nodes = []
-        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version):
+        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip):
             nodes.append(node)
             if len(nodes) == no_nodes + backup_no:
                 return self.result
@@ -172,7 +188,16 @@ class GlobalScheduler:
             self.get_scheduler(farm.name)
 
     def nodes_by_capacity(
-        self, farm_name=None, pool_id=None, cru=None, sru=None, mru=None, hru=None, ip_version=None, all_farms=False
+        self,
+        farm_name=None,
+        pool_id=None,
+        cru=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        ip_version=None,
+        public_ip=None,
+        all_farms=False,
     ):
         my_schedulers = []
         if farm_name or pool_id:
@@ -186,7 +211,7 @@ class GlobalScheduler:
             random.shuffle(my_schedulers)
 
         for scheduler in my_schedulers:
-            node_generator = scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version)
+            node_generator = scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip)
             try:
                 while True:
                     yield next(node_generator)

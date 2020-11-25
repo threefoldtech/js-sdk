@@ -28,6 +28,7 @@ class ThreebotChatflows(ChatflowsBase):
         if self.solution_uuid and self.secret:
             stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test01_deploy_threebot(self):
         """Test case for deploying a threebot.
 
@@ -45,6 +46,7 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_start_deployed_threebot(self):
         """Test case for starting a threebot.
 
@@ -71,6 +73,7 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test03_change_deployed_threebot_size(self):
         """Test case for changing a threebot size.
 
@@ -104,6 +107,7 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test04_change_deployed_threebot_location(self):
         """Test case for changing a threebot location.
 

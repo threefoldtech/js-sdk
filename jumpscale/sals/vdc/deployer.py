@@ -12,6 +12,7 @@ from jumpscale.sals.zos import get as get_zos
 from .kubernetes import VDCKubernetesDeployer
 from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
+from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
@@ -49,6 +50,9 @@ class VDCDeployer:
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
         self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
         self._generate_identity()
+        if not self.vdc_instance.identity_tid:
+            self.vdc_instance.identity_tid = self.identity.tid
+            self.vdc_instance.save()
         self._zos = None
         self._wallet = None
         self._kubernetes = None
@@ -56,23 +60,20 @@ class VDCDeployer:
         self._proxy = None
         self._ssh_key = None
         self._vdc_k8s_manager = None
-        self._mgmt_k8s_manager = None
         self._threebot = None
+        self._monitoring = None
+
+    @property
+    def monitoring(self):
+        if not self._monitoring:
+            self._monitoring = VDCMonitoring(self)
+        return self._monitoring
 
     @property
     def threebot(self):
         if not self._threebot:
             self._threebot = VDCThreebotDeployer(self)
         return self._threebot
-
-    @property
-    def mgmt_k8s_manager(self):
-        if not self._mgmt_k8s_manager:
-            config_path = self.mgmt_kube_config_path or j.core.config.get(
-                "VDC_MGMT_KUBE_CONFIG", f"{j.core.dirs.HOMEDIR}/.kube/config"
-            )
-            self._mgmt_k8s_manager = Manager(config_path)
-        return self._mgmt_k8s_manager
 
     @property
     def vdc_k8s_manager(self):
@@ -370,9 +371,6 @@ class VDCDeployer:
             solutions.cancel_solution(
                 [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
             )
-        release_name = f"vdc_3bot_{self.vdc_uuid}".replace("_", "-")
-        if self.mgmt_k8s_manager.get_deployed_release(release_name):
-            self.mgmt_k8s_manager.delete_deployed_release(release_name)
 
     def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
         expiration = j.data.time.now().timestamp + exp * 60

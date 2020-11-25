@@ -71,7 +71,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
             env=var_dict,
             interactive=False,
             entrypoint="/start_gitea.sh",
-            public_ipv6=True,
             disk_size=self.container_resources["sru"] * 1024,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
             solution_uuid=self.solution_id,

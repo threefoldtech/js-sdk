@@ -66,6 +66,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
             if not ip_address:
                 continue
 
+            log_config = j.core.config.get("VDC_LOG_CONFIG", {})
+            if log_config:
+                log_config["channel_name"] = self.vdc_instance.instance_name
+
             wid = deployer.deploy_container(
                 pool_id=pool_id,
                 node_id=node.node_id,
@@ -79,7 +83,8 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 secret_env=secret_env,
                 identity_name=self.identity.instance_name,
                 description=self.vdc_deployer.description,
-                form_info={"chatflow": "threebot"},
+                form_info={"chatflow": "threebot", "Solution name": self.vdc_name},
+                log_config=log_config,
             )
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:

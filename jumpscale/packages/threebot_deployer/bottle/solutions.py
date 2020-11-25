@@ -36,7 +36,7 @@ def stop_threebot() -> str:
         )
     try:
         stop_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
-    except exceptions.Validation:
+    except (exceptions.Permission, exceptions.Validation):
         return HTTPResponse(
             j.data.serializers.json.dumps({"error": "invalid secret"}),
             status=401,
@@ -58,7 +58,7 @@ def destroy_threebot() -> str:
         )
     try:
         delete_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
-    except exceptions.Validation:
+    except (exceptions.Permission, exceptions.Validation):
         return HTTPResponse(
             j.data.serializers.json.dumps({"error": "invalid secret"}),
             status=401,

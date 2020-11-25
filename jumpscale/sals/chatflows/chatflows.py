@@ -148,8 +148,13 @@ class GedisChatBot:
             except StopChatFlow as e:
                 internal_error = True
                 j.logger.exception("error", exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                    app_name="chatflows",
+                    category="internal_errors",
+                    message=str(e),
+                    alert_type="exception",
+                    traceback=traceback_info,
                 )
                 if e.msg:
                     self.send_error(
@@ -166,13 +171,18 @@ class GedisChatBot:
                     message = "Not enough funds"
                 internal_error = True
                 j.logger.exception("error", exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname="chatflows", category="internal_errors", message=str(e), alert_type="exception"
+                    app_name="chatflows",
+                    category="internal_errors",
+                    message=str(e),
+                    alert_type="exception",
+                    traceback=traceback_info,
                 )
                 username = self.user_info()["username"]
                 if username in j.core.identity.me.admins:
                     self.send_error(
-                        f"""{message}, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>"""
+                        f"""{message}, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>. This could occur if Stellar service was down."""
                         f"Use the refresh button on the upper right to restart {self.title} creation",
                         md=True,
                         html=True,
