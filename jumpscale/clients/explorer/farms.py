@@ -9,7 +9,6 @@ from .auth import HTTPSignatureAuth
 from .base import BaseResource
 from .models import Farm, FarmerIP
 from .pagination import get_all, get_page
-from typing import List
 
 def _build_query(threebot_id: int = None, name: str = None,) -> dict:
     query = {}
