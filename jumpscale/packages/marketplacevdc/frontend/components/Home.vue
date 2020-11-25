@@ -51,7 +51,6 @@
                 :title="key"
                 :apps="section.apps"
                 :titletooltip="section.titleToolTip"
-                :solutioncount="solutionCount"
                 :loggedin="loggedin"
               ></solutions-section>
             </v-tab-item>
@@ -71,7 +70,6 @@ module.exports = {
   data() {
     return {
       loading: false,
-      solutionCount: {},
       selectedObject: {},
       sections: SECTIONS,
       loggedin: this.$route.params.loggedin,
@@ -115,18 +113,10 @@ module.exports = {
         },
       });
     },
-    getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
-        this.solutionCount = response.data.data;
-      });
-    },
     appsLength(app) {
       const apps = Object.values(this.filteredSections[app].apps);
       return apps.length;
     },
-  },
-  mounted() {
-    this.getSolutionCount();
   },
 };
 </script>

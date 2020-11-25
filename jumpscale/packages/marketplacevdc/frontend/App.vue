@@ -82,7 +82,6 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
-      solutionCount: {},
     };
   },
   methods: {
@@ -93,15 +92,9 @@ module.exports = {
         this.user = null;
       });
     },
-    getSolutionCount() {
-      this.$api.solutions.getCount().then((response) => {
-        this.solutionCount = response.data.data;
-      });
-    },
   },
   mounted() {
     this.getCurrentUser();
-    this.getSolutionCount();
   },
 };
 </script>

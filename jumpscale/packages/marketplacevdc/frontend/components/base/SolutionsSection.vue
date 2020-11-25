@@ -19,15 +19,6 @@
         <v-img class="mt-6" height="70px" :contain="true" :src="app.image"></v-img>
         <v-card-title class="mx-2 font-weight-black">
           {{ app.name }}
-          <v-chip
-            v-if="
-              solutioncount !== undefined &&
-              solutioncount[app.type] !== undefined
-            "
-            class="ml-2"
-            small
-            outlined
-          >{{ solutioncount[app.type] }}</v-chip>
           <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
               <a class="chatflowInfo" :href="app.helpLink" target="blank">
@@ -64,7 +55,6 @@ module.exports = {
     title: String,
     titletooltip: String,
     apps: Object,
-    solutioncount: Object,
     loggedin: Boolean,
   },
   data() {
