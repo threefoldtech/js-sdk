@@ -12,6 +12,7 @@ from jumpscale.sals.zos import get as get_zos
 from .kubernetes import VDCKubernetesDeployer
 from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
+from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
@@ -60,6 +61,13 @@ class VDCDeployer:
         self._ssh_key = None
         self._vdc_k8s_manager = None
         self._threebot = None
+        self._monitoring = None
+
+    @property
+    def monitoring(self):
+        if not self._monitoring:
+            self._monitoring = VDCMonitoring(self)
+        return self._monitoring
 
     @property
     def threebot(self):

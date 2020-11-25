@@ -126,14 +126,3 @@ class VDCS3Deployer(VDCBaseComponent):
                 return wids
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")
-
-    @staticmethod
-    def get_minio_prometheus_job(name, minio_domain_name):
-        job = {
-            "job_name": name,
-            "metrics_path": "/minio/prometheus/metrics",
-            "scheme": "https",
-            "static_configs": [{"targets": [f"{minio_domain_name}:443"]}],
-            "tls_config": {"insecure_skip_verify": True},
-        }
-        return job
