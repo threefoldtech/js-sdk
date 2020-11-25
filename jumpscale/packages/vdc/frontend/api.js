@@ -38,6 +38,7 @@ const apiClient = {
         method: "get"
       })
     },
+  },
   license: {
     accept: () => {
       return axios({
@@ -46,5 +47,4 @@ const apiClient = {
       })
     },
   }
-}
 }
