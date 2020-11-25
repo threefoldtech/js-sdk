@@ -1,0 +1,50 @@
+name = "marketplacevdc"
+is_auth = false
+is_admin = false
+frontend = "/marketplacevdc"
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/solutions.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+port = 5556
+
+
+[[servers]]
+name = "marketplacevdc_root_proxy"
+domain = "marketplacevdc.threefold.me"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplacevdc*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /marketplacevdc;
+}
+"""
+
+[[servers]]
+name = "marketplacevdc_io_proxy"
+domain = "marketplacevdc.threefold.io"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.marketplacevdc*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /marketplacevdc;
+}
+"""

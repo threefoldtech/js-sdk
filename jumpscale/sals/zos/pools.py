@@ -37,6 +37,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         if not currencies:
             currencies = ["TFT"]
 
@@ -77,6 +79,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         p = self.get(pool_id)
         if not currencies:
             currencies = ["TFT"]
@@ -86,7 +90,7 @@ class Pools:
         pool.data_reservation.cus = cu
         pool.data_reservation.sus = su
         pool.data_reservation.ipv4us = ipv4us
-        pool.data_reservation.node_ids = p.node_ids
+        pool.data_reservation.node_ids = list(set(node_ids).union(set(p.node_ids))) if node_ids else p.node_ids
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
 

@@ -98,7 +98,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             interactive=False,
             entrypoint="/start_mattermost.sh",
             volumes=volume_config,
-            public_ipv6=True,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )
@@ -111,7 +110,7 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             )
 
         # expose threebot container
-        _id = deployer.expose_and_create_certificate(
+        _id, _ = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,

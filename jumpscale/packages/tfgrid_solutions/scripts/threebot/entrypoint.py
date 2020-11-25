@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import os
-import requests
 from jumpscale.loader import j
 from jumpscale.packages.backup.actors.threebot_deployer import Backup
 

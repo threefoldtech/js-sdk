@@ -86,7 +86,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",
-            public_ipv6=True,
             secret_env={
                 "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                 "PRIVATE_KEY": private_key,
@@ -106,7 +105,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             )
 
         # expose taiga container
-        _id = deployer.expose_and_create_certificate(
+        _id, _ = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,

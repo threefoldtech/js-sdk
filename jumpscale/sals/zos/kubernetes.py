@@ -43,7 +43,7 @@ class KubernetesGenerator:
           Input: if size is not supported
 
         """
-        if size not in range(1, 15):
+        if size not in range(1, 18):
             raise Input(f"VM size {size} is not supported")
 
         master = K8s()

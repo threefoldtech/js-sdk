@@ -71,7 +71,6 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
             env=var_dict,
             interactive=False,
             entrypoint="/start_gitea.sh",
-            public_ipv6=True,
             disk_size=self.container_resources["sru"] * 1024,
             secret_env={"POSTGRES_PASSWORD": self.database_password},
             solution_uuid=self.solution_id,
@@ -86,7 +85,7 @@ class GiteaDeploy(MarketPlaceAppsChatflow):
                 wid=self.resv_id,
             )
 
-        self.reverse_proxy_id = deployer.expose_and_create_certificate(
+        self.reverse_proxy_id, _ = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,
