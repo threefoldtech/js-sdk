@@ -67,7 +67,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 60 * 60  # 60 minutes for 3bot
-        self.ip_version = "IPv6"
         self.retries = 3
         self.allow_custom_domain = False
         self.custom_domain = False
@@ -232,7 +231,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Deployment location policy")
     def choose_location(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=False)
         self.farms_by_continent = deployer.group_farms_by_continent(self.available_farms)
         choices = ["Automatic", "Farm", "Specific node"]
         if self.farms_by_continent:
