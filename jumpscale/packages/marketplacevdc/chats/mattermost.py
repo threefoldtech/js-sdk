@@ -17,23 +17,23 @@ class MattermostDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        default_mysql_user = "mysql"
-        default_mysql_password = "mysql"
+
         form = self.new_form()
-        mysql_user = form.string_ask("Enter mysql user name", default=default_mysql_user, min_length=3, required=True,)
+        mysql_user = form.string_ask("Enter mysql user name", default="mysql", min_length=3, required=True,)
         mysql_password = form.secret_ask(
-            "Enter mysql password", default=default_mysql_password, min_length=8, required=True,
-        )
+            "Enter mysql password", default="mySqlPassword", min_length=8, required=True,
+        )  # TODO: need to check a valid password
         mysql_root_password = form.secret_ask(
-            "Enter mysql password for root user", default=default_mysql_password, min_length=8, required=True,
-        )
+            "Enter mysql password for root user", default="mySqlRootPassword", min_length=8, required=True,
+        )  # TODO: need to check a valid password
         form.ask()
+
         self._choose_flavor()
         self.chart_config = {
             "ingress.host": self.domain,
-            "mysql.mysqlUser": mysql_user,
-            "mysql.mysqlPassword": mysql_password,
-            "mysql.mysqlRootPassword": mysql_root_password,
+            "mysql.mysqlUser": mysql_user.value,
+            "mysql.mysqlPassword": mysql_password.value,
+            "mysql.mysqlRootPassword": mysql_root_password.value,
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
