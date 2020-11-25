@@ -49,7 +49,6 @@ class PoolChatflows(ChatflowsBase):
         self.assertEqual(pool_data.cus, float(calculated_cu))
         self.assertEqual(pool_data.sus, float(calculated_su))
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_extend_pool(self):
         """Test case for extending a pool.
 

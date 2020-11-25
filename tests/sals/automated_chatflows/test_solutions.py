@@ -70,7 +70,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             sleep(1)
         return False
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test01_ubuntu(self):
         """Test case for deploying Ubuntu.
 
@@ -99,7 +98,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_kubernetes(self):
         """Test case for Deploying a kubernetes.
 
@@ -137,7 +135,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         res = res[2:]  # Remove master node and table's head.
         self.assertEqual(workernodes, len(res))
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test03_minio(self):
         """Test case for deploying Minio.
 
@@ -166,7 +163,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 403)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test04_monitoring(self):
         """Test case for deploying a monitoring solution.
 
@@ -201,7 +197,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test05_generic_flist(self):
         """Test case for deploying a container with a generic flist.
 
