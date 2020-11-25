@@ -245,6 +245,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Select VDC")
     def select_vdc(self):
+        self.md_show_update("Preparing the chatflow...")
         self._init_solution()
         self._get_kube_config()
         self.k8s_client = j.sals.kubernetes.Manager(config_path=self.vdc_info["kube_config_path"])

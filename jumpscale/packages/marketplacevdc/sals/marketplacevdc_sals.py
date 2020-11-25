@@ -10,7 +10,7 @@ def _filter_data(deployment):
     # TODO: Add vdc name
     filtered_deployment = {
         "Release": deployment["metadata"]["labels"]["app.kubernetes.io/instance"],
-        "Version": deployment["metadata"]["labels"]["app.kubernetes.io/version"],
+        "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
         "Creation Timestamp": deployment["metadata"]["creationTimestamp"],
         "Status": status,
         "Status Details": deployment["status"]["conditions"],
