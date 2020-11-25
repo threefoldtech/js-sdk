@@ -155,7 +155,7 @@ module.exports = {
       this.$api.solutions
         .getSolutions(solution_type)
         .then((response) => {
-          this.deployedSolutions = JSON.parse(response.data);
+          this.deployedSolutions = response.data.data;
         })
         .finally(() => {
           this.loading = false;

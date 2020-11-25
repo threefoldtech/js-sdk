@@ -12,7 +12,7 @@ spa = true
 
 [[bottle_servers]]
 name = "main"
-file_path = "bottle/solutions.py"
+file_path = "bottle/deployments.py"
 path_url = "/api/"
 path_dest = "/api/"
 host = "0.0.0.0"
