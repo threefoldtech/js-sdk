@@ -98,7 +98,6 @@ class MattermostDeploy(MarketPlaceAppsChatflow):
             interactive=False,
             entrypoint="/start_mattermost.sh",
             volumes=volume_config,
-            public_ipv6=True,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )
