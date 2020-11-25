@@ -188,7 +188,7 @@ class Manager:
         return out
 
     @helm_required
-    def helm_repo_list(self):
+    def list_helm_repo(self):
         """List helm repos
         Raises:
             j.exceptions.Runtime: in case the command failed to execute
