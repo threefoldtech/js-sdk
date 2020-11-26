@@ -616,7 +616,7 @@ class Stellar(Client):
         unlock_hash = stellar_sdk.strkey.StrKey.encode_pre_auth_tx(preauth_tx_hash)
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=preauth_tx.to_xdr())
 
-        self._set_escrow_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
+        self._set_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
         j.logger.info(preauth_tx.to_xdr())
 
         self.transfer(
