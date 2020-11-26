@@ -1,6 +1,6 @@
 import hashlib
+from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
 import math
-import uuid
 
 import gevent
 from jumpscale.loader import j
@@ -226,26 +226,38 @@ class VDCDeployer:
 
         return pool_id
 
-    def _calculate_new_vdc_pool_units(self, k8s_size_dict, s3_size_dict=None, duration=30):
-        total_cus, total_sus = deployer.calculate_capacity_units(**K8S_SIZES[k8s_size_dict["size"]])
-        total_cus = total_cus * k8s_size_dict["no_nodes"]
-        total_sus = total_sus * k8s_size_dict["no_nodes"]
-        if s3_size_dict:
-            minio_cus, minio_sus = deployer.calculate_capacity_units(
-                cru=MINIO_CPU, mru=MINIO_MEMORY / 1024, sru=MINIO_DISK / 1024 + 0.25
-            )
-            storage_per_zdb = ZDB_STARTING_SIZE
-            zdb_cus, zdb_sus = deployer.calculate_capacity_units(sru=storage_per_zdb)
-            zdb_sus = zdb_sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
-            zdb_cus = zdb_cus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
-            total_cus += zdb_cus + minio_cus
-            total_sus += zdb_sus + minio_sus
-        threebot_cus, threebot_sus = deployer.calculate_capacity_units(
-            THREEBOT_CPU, THREEBOT_MEMORY / 1024, THREEBOT_DISK / 1024
-        )
-        total_cus += threebot_cus
-        total_sus += threebot_sus
-        return total_cus * 60 * 60 * 24 * duration, total_sus * 60 * 60 * 24 * duration
+    def _calculate_new_vdc_pool_units(self, k8s_flavor, duration):
+        zdb = ZdbNamespace()
+        zdb.size = ZDB_STARTING_SIZE
+        deployments = [zdb] * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
+        k = K8s()
+        k.size = k8s_flavor.value
+        deployments += [k, k]
+        v = Volume()
+        v.size = MINIO_DISK / 1024
+        v.type = DiskType.SSD
+        deployments.append(v)
+        minio_container = Container()
+        minio_container.capacity.disk_size = 256
+        minio_container.capacity.memory = MINIO_MEMORY
+        minio_container.capacity.cpu = MINIO_CPU
+        minio_container.capacity.disk_type = DiskType.SSD
+        deployments.append(minio_container)
+        threebot_container = Container()
+        threebot_container.capacity.disk_size = THREEBOT_DISK
+        threebot_container.capacity.memory = THREEBOT_MEMORY
+        threebot_container.capacity.cpu = THREEBOT_CPU
+        threebot_container.capacity.disk_type = DiskType.SSD
+        deployments.append(threebot_container)
+
+        cus = sus = 0
+        for deployment in deployments:
+            print(deployment)
+            ru = deployment.resource_units()
+            cloud_units = ru.cloud_units()
+            cus += cloud_units.cu
+            sus += cloud_units.su
+        return cus * 60 * 60 * 24 * duration, sus * 60 * 60 * 24 * duration
 
     def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict):
         k8s_query = K8S_SIZES[k8s_size_dict["size"]].copy()
@@ -295,13 +307,12 @@ class VDCDeployer:
         scheduler = Scheduler(farm_name)
         size_dict = VDC_FLAFORS[self.flavor]
         k8s_size_dict = size_dict["k8s"]
-        s3_size_dict = size_dict["s3"]
         if not self._check_new_vdc_farm_capacity(farm_name, k8s_size_dict):
             raise j.exceptions.Runtime(
                 f"farm {farm_name} doesn't have enough capacity to deploy vdc of flavor {self.flavor}"
             )
 
-        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict, s3_size_dict, duration=size_dict["duration"])
+        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict["size"], duration=size_dict["duration"])
         self.info(f"required cus: {cus}, sus: {sus}")
         pool_id = self.init_new_vdc(scheduler, farm_name, cus, sus, pool_id)
         self.info(f"vdc initialization successful")
