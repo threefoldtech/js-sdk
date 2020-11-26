@@ -37,10 +37,9 @@ class WalletTests(BaseTest):
         **Test Scenario**
         - Create a funded wallet.
         - Check that the wallet has been created in the wallets cards.
+        - Check the wallet balances.
         - Delete the wallet.
         - Check that the wallet has been deleted from the wallets cards.
-        - Check that the wallet balances.
-        - Delete the wallet.
         """
         self.info("Create a funded wallet.")
         wallet_name = self.random_name()
@@ -52,7 +51,7 @@ class WalletTests(BaseTest):
         all_wallets = wallets.list()
         self.assertIn(wallet_name, all_wallets.keys())
 
-        self.info("Check that the wallet balances")
+        self.info("Check the wallet balances")
         balances = wallets.get_balance(wallet_name)
         self.assertEqual(balances[0], "TFT 1000.0000000")
         self.assertEqual(balances[1], "XLM 9999.9999900")

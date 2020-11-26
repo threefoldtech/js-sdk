@@ -77,23 +77,22 @@ class Wallets(Base):
 
     def get_secret(self, name):
         wallets = self.list()
-        for wallet in wallets.keys():
-            if wallet == name:
-                # get the wallet card end click to show wallet details
-                wallet_card = wallets[name]
-                wallet_card.click()
-                # click on the show secret button
-                wallet_details = self.driver.find_element_by_class_name("v-data-table")
-                secret_input_box = wallet_details.find_element_by_class_name("v-input__slot")
-                button = secret_input_box.find_element_by_tag_name("button")
-                button.click()
-                # get the value of secret
-                secret_input = secret_input_box.find_element_by_tag_name("input")
-                secret = secret_input.get_attribute("value")
-                buttons = self.driver.find_elements_by_class_name("v-btn")
-                close_button = [button for button in buttons if button.text == "CLOSE"][0]
-                close_button.click()
-                return secret
+        if name in wallets.keys():
+            # get the wallet card end click to show wallet details
+            wallet_card = wallets[name]
+            wallet_card.click()
+            # click on the show secret button
+            wallet_details = self.driver.find_element_by_class_name("v-data-table")
+            secret_input_box = wallet_details.find_element_by_class_name("v-input__slot")
+            button = secret_input_box.find_element_by_tag_name("button")
+            button.click()
+            # get the value of secret
+            secret_input = secret_input_box.find_element_by_tag_name("input")
+            secret = secret_input.get_attribute("value")
+            buttons = self.driver.find_elements_by_class_name("v-btn")
+            close_button = [button for button in buttons if button.text == "CLOSE"][0]
+            close_button.click()
+            return secret
 
     def delete(self, name):
         wallets = self.list()
@@ -111,14 +110,15 @@ class Wallets(Base):
 
     def get_balance(self, name):
         wallets = self.list()
-        for wallet in wallets.keys():
-            if wallet == name:
-                wallet_card = wallets[name]
-                wallet_card.click()
-                wallet_details = self.driver.find_element_by_class_name("v-data-table")
-                balances_row = wallet_details.find_elements_by_class_name("v-chip__content")
+        if name in wallets.keys():
+            wallet_card = wallets[name]
+            wallet_card.click()
+            wallet_details = self.driver.find_element_by_class_name("v-data-table")
+            # get spams that contain balances and check that there are spams elements
+            balances_row = wallet_details.find_elements_by_class_name("v-chip__content")
+            if balances_row:
                 balances = [balances_row[0].text, balances_row[1].text]
                 buttons = self.driver.find_elements_by_class_name("v-btn")
-                close_button = [button for button in buttons if button.text == "CLOSE"][0]
-                close_button.click()
-                return balances
+            close_button = [button for button in buttons if button.text == "CLOSE"][0]
+            close_button.click()
+            return balances
