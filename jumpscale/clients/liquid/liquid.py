@@ -4,20 +4,20 @@
 
 Liquid client is available from `j.clients.liquid` ```
 JS-NG> 1 = j.clients.liquid.get("l1")
-```                                                                                
+```
 
 ## Getting a pair price
 
 Here we try to get the value of `TFTBTC` (it's the default as well.)
 ```
-JS-NG> p1 = k1.get_pair_price()                                                                                       
-JS-NG> p1.last_trade                                                                                                  
+JS-NG> p1 = k1.get_pair_price()
+JS-NG> p1.last_trade
 '0.06943500'
 
-JS-NG> p1.bid                                                                                                         
+JS-NG> p1.bid
 '0.06930000'
 
-JS-NG> p1.ask                                                                                                         
+JS-NG> p1.ask
 '0.06943500'
 ```
 
@@ -63,7 +63,7 @@ class LiquidClient(Client):
         res = self._do_request(f"{self._url}/products", j.exceptions.Input)
         result = [p for p in res if p["product_type"] == "CurrencyPair" and p["currency_pair_code"] == pair]
         if not result:
-            raise j.exceptions.Input()
+            raise j.exceptions.Input("no result")
         result = result[0]
         data = {
             "pair": pair,
