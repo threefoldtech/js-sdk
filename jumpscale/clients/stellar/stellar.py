@@ -236,7 +236,7 @@ class Stellar(Client):
 
         resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
         resp.raise_for_status()
-        j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
+        j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
     def activate_through_threefold_service(self):
         """
@@ -292,7 +292,7 @@ class Stellar(Client):
         """
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
-            raise j.exceptions.NotFound(f"We do not provide a known issuers for {asset_code} on network {self.network}")
+            raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
         self._change_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
@@ -338,8 +338,9 @@ class Stellar(Client):
         transaction.sign(source_keypair)
 
         try:
-            response = server.submit_transaction(transaction)
-            j.logger.info("Transaction hash: {}".format(response["hash"]))
+            server.submit_transaction(transaction)
+            if limit is None:
+                j.logger.info(f"Added trustline {asset_code}:{issuer} to account {self.address}")
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
             raise e
