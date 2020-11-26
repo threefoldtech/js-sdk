@@ -42,9 +42,11 @@ class HeartBeatService(BackgroundService):
 
             data["signature"] = binascii.hexlify(signature).decode()
             try:
-                requests.post(f"{MONITORING_SERVER_URL}/heartbeat", json=j.data.serializers.json.dumps(data))
+                requests.post(
+                    f"{MONITORING_SERVER_URL}/heartbeat", json=data, headers={"Content-type": "application/json"}
+                )
             except Exception as e:
-                j.tools.alerthandler.alert_raise("3bot monitoring", str(e))
+                j.logger.error(f"Failed to send alert, URL:{MONITORING_SERVER_URL}/alert, exception: {str(e)}")
 
 
 service = HeartBeatService()
