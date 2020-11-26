@@ -236,7 +236,7 @@ class Stellar(Client):
 
         resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
         resp.raise_for_status()
-        j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
+        j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
     def activate_through_threefold_service(self):
         """
@@ -292,7 +292,7 @@ class Stellar(Client):
         """
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
-            raise j.exceptions.NotFound(f"We do not provide a known issuers for {asset_code} on network {self.network}")
+            raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
         self._change_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
@@ -338,8 +338,9 @@ class Stellar(Client):
         transaction.sign(source_keypair)
 
         try:
-            response = server.submit_transaction(transaction)
-            j.logger.info("Transaction hash: {}".format(response["hash"]))
+            server.submit_transaction(transaction)
+            if limit is None:
+                j.logger.info(f"Added trustline {asset_code}:{issuer} to account {self.address}")
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
             raise e
@@ -591,7 +592,7 @@ class Stellar(Client):
 
         unlock_time = math.ceil(unlock_time)
 
-        self._log_info("Creating escrow account")
+        j.logger.info("Creating escrow account")
         escrow_kp = stellar_sdk.Keypair.random()
 
         # minimum account balance as described at https://www.stellar.org/developers/guides/concepts/fees.html#minimum-account-balance
@@ -601,11 +602,11 @@ class Stellar(Client):
         minimum_account_balance = (2 + 1 + 3) * base_reserve  # 1 trustline and 3 signers
         required_XLM = minimum_account_balance + base_fee * 0.0000001 * 3
 
-        self._log_info("Activating escrow account")
+        j.logger.info("Activating escrow account")
         self.activate_account(escrow_kp.public_key, str(math.ceil(required_XLM)))
 
         if asset_code != "XLM":
-            self._log_info("Adding trustline to escrow account")
+            j.logger.info("Adding trustline to escrow account")
             self.add_trustline(asset_code, asset_issuer, escrow_kp.secret)
 
         preauth_tx = self._create_unlock_transaction(escrow_kp, unlock_time)
@@ -615,9 +616,8 @@ class Stellar(Client):
         unlock_hash = stellar_sdk.strkey.StrKey.encode_pre_auth_tx(preauth_tx_hash)
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=preauth_tx.to_xdr())
 
-        self._set_escrow_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
-        self._log_info("Unlock Transaction:")
-        self._log_info(preauth_tx.to_xdr())
+        self._set_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
+        j.logger.info(preauth_tx.to_xdr())
 
         self.transfer(
             escrow_kp.public_key,
