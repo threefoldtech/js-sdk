@@ -29,7 +29,7 @@ def install_deployment():
     # TODO: get manger with passed vdc_uuid  in data > data.vdcuuid
     k8s_client = j.sals.kubernetes.Manager()
     k8s_client.add_helm_repo(data["repo_name"], data["repo_url"])
-    k8s_client.update_helm_repo()
+    k8s_client.update_repos()
     k8s_client.install_chart(
         release=data["release"],
         chart_name=data["chart_name"],

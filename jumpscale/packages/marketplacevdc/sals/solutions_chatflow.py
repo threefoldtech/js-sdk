@@ -8,6 +8,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 from jumpscale.sals.marketplace import deployer, solutions
 from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.sals.vdc.models import KubernetesRole
 
 CHART_LIMITS = {
     "Silver": {"cpu": "1000m", "memory": "1024Mi"},
@@ -23,26 +24,33 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
         self.solution_id = uuid.uuid4().hex
-        self.identity_name = j.core.identity.me.instance_name
-        identity_tid = j.core.identity.me.tid
-        self.secret = f"{identity_tid}:{uuid.uuid4().hex}"
         self.ip_version = "IPv6"
-        self.chart_config = {}  # TODO:
+        self.chart_config = {}
 
     def _get_kube_config(self):
-        # TODO:
-        self.vdc_info = {}
-        # TODO: Get pool_id from vdc obj
-        self.vdc_info["pool_id"] = 5714
-        # TODO: Get master_ip from vdc obj
-        self.vdc_info["master_ip"] = "172.18.2.44"
-        # TODO: Get network from vdc obj
-        self.vdc_info["network_name"] = "ayoub011"
-        self.vdc_info["network_view"] = deployer.get_network_view(
-            self.vdc_info["network_name"], identity_name=self.identity_name
+        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
+        vdc_selected = self.single_choice(
+            f"Choose the vdc to install {self.SOLUTION_TYPE} on", options=vdc_names, required=True
         )
-        self.vdc_info["kube_config_path"] = f"{j.core.dirs.HOMEDIR}/.kube/config"
-        self.vdc_info["farm_name"] = "freefarm"
+        self.vdc_info = {}
+        self.vdc = j.sals.vdc.find(vdc_name=vdc_selected, owner_tname=self.username, load_info=True)
+        self.identity_name = f"vdc_ident_{self.vdc.solution_uuid}"
+        self.secret = f"{self.vdc.identity_tid}:{uuid.uuid4().hex}"
+        for node in self.vdc.kubernetes:
+            if node.role == KubernetesRole.MASTER:
+                self.vdc_info["master_ip"] = node.ip_address
+                self.vdc_info["pool_id"] = node.pool_id
+                self.vdc_info["farm_name"] = j.core.identity.me.explorer.farms.get(
+                    j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
+                ).name
+                self.vdc_info[
+                    "kube_config_path"
+                ] = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.username.rstrip('.3bot')}/{vdc_selected}.yaml"
+                self.vdc_info["network_name"] = vdc_selected
+                self.vdc_info["network_view"] = deployer.get_network_view(
+                    vdc_selected, identity_name=self.identity_name
+                )
+                break
 
     def _choose_flavor(self, chart_limits=None):
         chart_limits = chart_limits or CHART_LIMITS
@@ -205,6 +213,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 subdomain=self.domain,
                 addresses=self.addresses,
                 solution_uuid=self.solution_id,
+                identity_name=self.identity_name,
                 **metadata,
             )
         )
@@ -230,6 +239,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             node_id=selected_node.node_id,
             solution_uuid=self.solution_id,
             log_config=self.nginx_log_config,
+            identity_name=self.identity_name,
             **metadata,
         )
         self.workload_ids.append(_id)
@@ -243,7 +253,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 wid=self.workload_ids[-1],
             )
 
-    @chatflow_step(title="Select VDC")
+    @chatflow_step(title="VDC selection")
     def select_vdc(self):
         self.md_show_update("Preparing the chatflow...")
         self._init_solution()
@@ -278,7 +288,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             self.k8s_client.add_helm_repo(
                 HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"]
             )
-        self.k8s_client.update_helm_repo()
+        self.k8s_client.update_repos()
         self.chart_config.update({"solution_uuid": self.solution_id})
         self.k8s_client.install_chart(
             release=self.release_name,

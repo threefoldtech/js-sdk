@@ -110,6 +110,7 @@ module.exports = {
       },
       headers: [
         { text: "Release", value: "Release" },
+        { text: "VDC Name", value: "VDC Name" },
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
         { text: "Status", value: "Status" },
