@@ -1,7 +1,16 @@
 from hashlib import new
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
-from .size import THREEBOT_CPU, THREEBOT_MEMORY, THREEBOT_DISK, VDC_FLAFORS, S3_ZDB_SIZES, S3_AUTO_TOPUP_FARMS
+from .size import (
+    THREEBOT_CPU,
+    THREEBOT_MEMORY,
+    THREEBOT_DISK,
+    VDC_FLAFORS,
+    S3_ZDB_SIZES,
+    S3_AUTO_TOPUP_FARMS,
+    S3_NO_DATA_NODES,
+    S3_NO_PARITY_NODES,
+)
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import WorkloadType
 from .scheduler import Scheduler
@@ -27,7 +36,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_NAME": self.vdc_name,
             "VDC_UUID": self.vdc_uuid,
             "EXPLORER_URL": j.core.identity.me.explorer_url,
-            "VDC_S3_MAX_STORAGE": str(S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]),
+            "VDC_S3_MAX_STORAGE": str(
+                S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
+                * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
+            ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
             "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
@@ -84,6 +96,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 description=self.vdc_deployer.description,
                 form_info={"chatflow": "threebot", "Solution name": self.vdc_name},
+                solution_uuid=self.vdc_uuid,
                 log_config=log_config,
             )
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")

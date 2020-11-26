@@ -4,12 +4,12 @@
       <v-data-table
         :loading="loading"
         :headers="headers"
-        :items="deployed"
+        :items="deployedVdc"
         class="elevation-1"
       >
         <template slot="no-data">No VDC instances available</template>
         <template v-slot:item.id="{ item }">
-          <div>{{ vdcID }}</div>
+          <div>{{ item.id }}</div>
         </template>
         <template v-slot:item.name="{ item }">
           <router-link :to="`/workloads/${item.vdc_name}`">{{
@@ -65,15 +65,11 @@ module.exports = {
     },
   },
   computed: {
-    vdcID() {
-      return (
-        this.deployed.length -
-        this.deployed
-          .map(function (x) {
-            return x.id;
-          })
-          .indexOf(this.deployed.id)
-      );
+    deployedVdc() {
+      return this.deployed.map((item, index) => ({
+        id: index + 1,
+        ...item,
+      }));
     },
   },
 };

@@ -1,4 +1,4 @@
-from jumpscale.sals.vdc.models import VDCFACTORY
+from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse
 from jumpscale.loader import j

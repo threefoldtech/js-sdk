@@ -78,17 +78,13 @@ const router = new VueRouter({
                     name: 'S3',
                     path: 's3',
                     component: s3,
-                    props: true
+                    props: (route) => ({ query: route.query.vdc })
                 },
                 {
                     name: 'Kubernetes',
                     path: 'kubernetes',
-                    component: kubernetes
-                },
-                {
-                    name: 'IPs',
-                    path: 'ips',
-                    component: ip
+                    component: kubernetes,
+                    props: (route) => ({ query: route.query.vdc })
                 }
             ]
         }

@@ -365,9 +365,13 @@ class VDCProxy(VDCBaseComponent):
         gateway_pool_id = self.get_gateway_pool_id()
         random.shuffle(gateways)
         for gateway in gateways:
-            subdomain, subdomain_id = self.reserve_subdomain(
+            domain_generator = self.reserve_subdomain(
                 gateway, prefix, solution_uuid, gateway_pool_id, exposed_wid=wid, ip_address=public_ip,
             )
+            try:
+                subdomain, subdomain_id = next(domain_generator)
+            except StopIteration:
+                continue
             try:
                 self._create_ingress(name, subdomain, [ip_address], port)
                 return subdomain
