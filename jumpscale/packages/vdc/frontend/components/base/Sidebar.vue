@@ -48,15 +48,30 @@
       <v-list dense nav>
         <v-list-item
           link
-          v-for="(val, key, id) in vdc"
-          :key="id"
-          :class="{ active: activeIndex === id }"
-          @click="setActive(id)"
+          @click="setActive(1)"
+          :class="{ active: activeIndex == 1 }"
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link class="d-block" :to="`/workloads/${name}/${key}`">
-                {{ key }}</router-link
+              <router-link class="d-block" :to="`/workloads/${name}/s3`">
+                s3</router-link
+              >
+            </v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item
+          link
+          @click="setActive(2)"
+          :class="{ active: activeIndex == 2 }"
+        >
+          <v-list-item-content>
+            <v-list-item-title class="text-capitalize">
+              <router-link
+                class="d-block"
+                :to="`/workloads/${name}/kubernetes`"
+              >
+                kubernetes</router-link
               >
             </v-list-item-title>
           </v-list-item-content>
@@ -69,10 +84,10 @@
 <script>
 module.exports = {
   name: "Sidebar",
-  props: ["name", "vdc"],
+  props: ["name"],
   data() {
     return {
-      activeIndex: undefined,
+      activeIndex: 1,
       dialog: false,
       address: "THEADDRESSS",
     };
