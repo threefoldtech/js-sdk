@@ -141,7 +141,6 @@ class VDCDeployer:
             self.identity.save()
         except Exception as e:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
-            # TODO: raise alert with traceback
             raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def init_new_vdc(self, scheduler, farm_name, cu, su, pool_id=None):
@@ -234,7 +233,7 @@ class VDCDeployer:
         k.size = k8s_flavor.value
         deployments += [k, k]
         v = Volume()
-        v.size = MINIO_DISK / 1024
+        v.size = int(MINIO_DISK / 1024)
         v.type = DiskType.SSD
         deployments.append(v)
         minio_container = Container()
@@ -252,7 +251,6 @@ class VDCDeployer:
 
         cus = sus = 0
         for deployment in deployments:
-            print(deployment)
             ru = deployment.resource_units()
             cloud_units = ru.cloud_units()
             cus += cloud_units.cu
@@ -400,3 +398,29 @@ class VDCDeployer:
 
     def error(self, msg):
         self._log(msg, "error")
+
+    def renew_plan(self, duration):
+        self.vdc_instance.load_info()
+        pool_ids = set()
+        for zdb in self.vdc_instance.s3.zdbs:
+            pool_ids.add(zdb.pool_id)
+        for k8s in self.vdc_instance.kubernetes:
+            pool_ids.add(k8s.pool_id)
+        if self.vdc_instance.s3.minio.pool_id:
+            pool_ids.add(self.vdc_instance.s3.minio.pool_id)
+        if self.vdc_instance.threebot.pool_id:
+            pool_ids.add(self.vdc_instance.threebot.pool_id)
+        self.info(f"renew plan with pools: {pool_ids}")
+        for pool_id in pool_ids:
+            pool = self.zos.pools.get(pool_id)
+            sus = pool.active_su * duration * 60 * 60 * 24
+            cus = pool.active_cu * duration * 60 * 60 * 24
+            pool_info = self.zos.pools.extend(pool_id, cus, sus)
+            self.info(
+                f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
+            )
+            self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.vdc_instance.expiration = j.data.time.utcnow().timestamp + duration * 60 * 60 * 24
+        self.vdc_instance.updated = j.data.time.utcnow().timestamp
+        if self.vdc_instance.is_blocked:
+            self.vdc_instance.undo_grace_period_action()

@@ -314,7 +314,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             master ip: public ip address of kubernetes master
         """
         ssh_client = j.clients.sshclient.get(uuid.uuid4().hex, user="rancher", host=master_ip, sshkey=self.vdc_name)
-        rc, out, err = ssh_client.run("cat /etc/rancher/k3s/k3s.yaml")
+        rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
         if rc:
             j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
             j.tools.alerthandler.alert_raise(
