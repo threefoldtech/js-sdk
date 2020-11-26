@@ -2,6 +2,7 @@ import pytest
 from jumpscale.loader import j
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
+from gevent import sleep
 
 
 @pytest.mark.integration
@@ -75,5 +76,16 @@ class PoolChatflows(ChatflowsBase):
         pool_data = j.sals.zos.get().pools.get(reservation_id)
         calculated_su = (su + 1) * time_to_live * 60 * 60 * 24
         calculated_cu = (cu + 1) * time_to_live * 60 * 60 * 24
+        self.assertTrue(
+            self.wait(calculated_su, calculated_cu, pool_data, self.timeout), "the pool has not been extended"
+        )
         self.assertEqual(pool_data.cus, float(calculated_cu))
         self.assertEqual(pool_data.sus, float(calculated_su))
+
+    def wait(self, calculated_su, calculated_cu, pool, timeout):
+        for _ in range(timeout):
+            if pool.cus == float(calculated_cu) and pool.sus == float(calculated_su):
+                return True
+            else:
+                sleep(1)
+        return False
