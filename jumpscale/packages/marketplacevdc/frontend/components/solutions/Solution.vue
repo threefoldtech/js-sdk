@@ -86,7 +86,7 @@
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
-    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :releasename="selected.Release" :solutionid="selected['User Supplied Values'].solution_uuid"></cancel-solution>
+    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :releasename="selected.Release" :solutionid="selected['User Supplied Values'].solution_uuid" :vdcname="selected['VDC Name']"></cancel-solution>
   </div>
 </template>
 

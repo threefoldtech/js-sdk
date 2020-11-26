@@ -1,5 +1,5 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse
+from bottle import Bottle, request, HTTPResponse, abort
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, authenticated
@@ -25,9 +25,15 @@ def list_deployments(solution_type: str) -> str:
 @app.route("/api/deployments/install", method="POST")
 @login_required
 def install_deployment():
+    # DEBUGGING PURPOSES
     data = j.data.serializers.json.loads(request.body.read())
-    # TODO: get manger with passed vdc_uuid  in data > data.vdcuuid
-    k8s_client = j.sals.kubernetes.Manager()
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_name = data.get("vdc_name")
+    if not vdc_name:
+        abort(400, "Error: Not all required params was passed.")
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     k8s_client.add_helm_repo(data["repo_name"], data["repo_url"])
     k8s_client.update_repos()
     k8s_client.install_chart(
@@ -43,8 +49,13 @@ def install_deployment():
 @login_required
 def cancel_deployment():
     data = j.data.serializers.json.loads(request.body.read())
-    # TODO: get manger with passed vdc_uuid  in data > data.vdcuuid
-    k8s_client = j.sals.kubernetes.Manager()
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_name = data.get("vdc_name")
+    if not vdc_name:
+        abort(400, "Error: Not all required params was passed.")
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     k8s_client.delete_deployed_release(data["release"])
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})

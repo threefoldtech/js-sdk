@@ -1,7 +1,12 @@
 <template>
-  <base-dialog title="Cancel workload" v-model="dialog" :error="error" :loading="loading">
+  <base-dialog
+    title="Cancel workload"
+    v-model="dialog"
+    :error="error"
+    :loading="loading"
+  >
     <template #default>
-      Are you sure you want to cancel {{releasename}}?
+      Are you sure you want to cancel {{ releasename }}?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -11,22 +16,24 @@
 </template>
 
 <script>
-
 module.exports = {
   mixins: [dialog],
-  props: ["releasename", "solutionid"],
+  props: ["releasename", "solutionid", "vdcname"],
   methods: {
-    submit () {
-      this.loading = true
-      this.error = null
-      this.$api.solutions.deleteSolution(this.releasename, this.solutionid).then(response => {
-        console.log("cancelled")
-        this.$router.go(0);
-      }).catch(err => {
-        console.log("failed")
-        this.close()
-      });
-    }
+    submit() {
+      this.loading = true;
+      this.error = null;
+      this.$api.solutions
+        .deleteSolution(this.releasename, this.solutionid, this.vdcname)
+        .then((response) => {
+          console.log("cancelled");
+          this.$router.go(0);
+        })
+        .catch((err) => {
+          console.log("failed");
+          this.close();
+        });
+    },
   },
-}
+};
 </script>

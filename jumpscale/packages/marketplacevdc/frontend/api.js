@@ -23,11 +23,11 @@ const apiClient = {
         method: "get",
       })
     },
-    deleteSolution: (releaseName, solutionId) => {
+    deleteSolution: (releaseName, solutionId, vdcName) => {
       return axios({
         url: `${baseURL}/deployments/cancel/`, // TODO Replace with bottle server api call
         method: "post",
-        data: { release: releaseName , solution_id: solutionId},
+        data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName },
         headers: { 'Content-Type': 'application/json' }
       })
     },
