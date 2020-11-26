@@ -281,8 +281,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Installation")
     def install_chart(self):
-        # TODO: should use config_path from vdc_obj to create k8s_client
-        # TODO: use kubectl patch command to add label after the deployment [solution_type, tname, vdc_name]
         helm_repos_urls = [repo["url"] for repo in self.k8s_client.list_helm_repo()]
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
             self.k8s_client.add_helm_repo(
@@ -295,6 +293,22 @@ class SolutionsChatflowDeploy(GedisChatBot):
             chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
             extra_config=self.chart_config,
         )
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self):
+        self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
+
+        if not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.domain}", timeout=300, verify=not j.config.get("TEST_CERT")
+        ):
+            stop_message = f"""\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+
+                Domain: {self.domain}
+                VDC Name: {self.vdc.vdc_name}
+                Farm name: {self.vdc_info["farm_name"]}
+                """
+            self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

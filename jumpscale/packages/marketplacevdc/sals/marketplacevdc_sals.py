@@ -63,10 +63,14 @@ def get_deployments(solution_type: str = None) -> list:
     for vdc_name in vdc_names:
         config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-        # TODO: validate empty result
-        kubectl_deployment_info = k8s_client.execute_native_cmd(
-            cmd=f'kubectl --kubeconfig {config_path} get deployments -o=jsonpath=\'{{range .items[?(@.metadata.labels.app\.kubernetes\.io/name=="{solution_type}")]}}{{@}}{{"\\n"}}{{end}}\''
-        )
+        try:
+            kubectl_deployment_info = k8s_client.execute_native_cmd(
+                cmd=f'kubectl --kubeconfig {config_path} get deployments -o=jsonpath=\'{{range .items[?(@.metadata.labels.app\.kubernetes\.io/name=="{solution_type}")]}}{{@}}{{"\\n"}}{{end}}\''
+            )
+        except j.exceptions.Runtime:
+            # Empty response
+            return []
+
         # TODO Improve splitting
         deployments = kubectl_deployment_info.split("\n")[:-1]
 

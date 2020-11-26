@@ -27,6 +27,7 @@
             "create_subdomain",   #required
             "set_config",
             "install_chart",      #required
+            "initializing",       #required
             "success",            #required
         ]
     ```

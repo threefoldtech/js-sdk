@@ -12,6 +12,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         "create_subdomain",
         "set_config",
         "install_chart",
+        "initializing",
         "success",
     ]
 
