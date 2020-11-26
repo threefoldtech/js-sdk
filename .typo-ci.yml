@@ -10,6 +10,8 @@ dictionaries:
 # Any files/folders we should ignore?
 excluded_files:
   - "*.py"
+  - "*.js"
+  - "*.vue"
   - ".typo-ci.yml"
 
 # Any typos we should ignore?
