@@ -27,7 +27,9 @@ class VDCS3Deployer(VDCBaseComponent):
                 )
                 if result:
                     for wid in result["ids"]:
-                        success = deployer.wait_workload(wid, self.bot, 5, identity_name=self.identity.instance_name)
+                        success = deployer.wait_workload(
+                            wid, self.bot, 5, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                        )
                         if not success:
                             self.vdc_deployer.error(f"workload {wid} failed when adding node to network")
                             raise DeploymentFailed()
@@ -72,7 +74,9 @@ class VDCS3Deployer(VDCBaseComponent):
                 continue
             wid = result[0]
             try:
-                success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
+                success = deployer.wait_workload(
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
                 if not success:
                     raise DeploymentFailed()
                 self.vdc_deployer.info(f"minio container deployed successfully wid: {wid}")
@@ -82,13 +86,14 @@ class VDCS3Deployer(VDCBaseComponent):
                 continue
         self.vdc_deployer.error("no nodes available to deploy minio container")
 
-    def deploy_s3_zdb(self, pool_id, scheduler, storage_per_zdb, password, solution_uuid):
+    def deploy_s3_zdb(self, pool_id, scheduler, storage_per_zdb, password, solution_uuid, no_nodes=None):
         deployment_nodes = []
         wids = []
-        for node in scheduler.nodes_by_capacity(sru=math.ceil(storage_per_zdb), ip_version="IPv6"):
+        no_nodes = no_nodes or S3_NO_DATA_NODES + S3_NO_PARITY_NODES
+        for node in scheduler.nodes_by_capacity(pool_id=pool_id, sru=math.ceil(storage_per_zdb), ip_version="IPv6"):
             self.vdc_deployer.info(f"node {node.node_id} selected for zdb")
             deployment_nodes.append(node)
-            if len(deployment_nodes) < S3_NO_DATA_NODES + S3_NO_PARITY_NODES - len(wids):
+            if len(deployment_nodes) < no_nodes - len(wids):
                 continue
             self.vdc_deployer.info(f"staring zdb deployment on nodes {[node.node_id for node in deployment_nodes]}")
             result = []
@@ -112,7 +117,7 @@ class VDCS3Deployer(VDCBaseComponent):
             for wid in result:
                 try:
                     success = deployer.wait_workload(
-                        wid, bot=self.bot, expiry=3, identity_name=self.identity.instance_name
+                        wid, bot=self.bot, expiry=5, identity_name=self.identity.instance_name, cancel_by_uuid=False,
                     )
                     if not success:
                         raise DeploymentFailed()
@@ -122,7 +127,7 @@ class VDCS3Deployer(VDCBaseComponent):
                     self.vdc_deployer.error(f"failed to deploy zdb wid: {wid}")
                     continue
             if len(wids) == S3_NO_DATA_NODES + S3_NO_PARITY_NODES:
-                self.vdc_deployer.info("all zdbs deployed successfully")
+                self.vdc_deployer.info(f"{no_nodes} zdbs deployed successfully on pool {pool_id}")
                 return wids
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")

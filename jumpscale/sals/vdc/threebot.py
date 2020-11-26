@@ -65,6 +65,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                             expiry=5,
                             breaking_node_id=node.node_id,
                             identity_name=self.identity.instance_name,
+                            cancel_by_uuid=False,
                         )
                         network_updated = network_updated and success
                     if not network_updated:
@@ -101,7 +102,9 @@ class VDCThreebotDeployer(VDCBaseComponent):
             )
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
-                success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
+                success = deployer.wait_workload(
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
                 if success:
                     return wid
                 raise DeploymentFailed()

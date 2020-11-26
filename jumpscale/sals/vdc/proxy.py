@@ -268,7 +268,9 @@ class VDCProxy(VDCBaseComponent):
                 description=desc,
             )
             try:
-                success = deployer.wait_workload(wid, bot=self.bot, identity_name=self.identity.instance_name)
+                success = deployer.wait_workload(
+                    wid, bot=self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
                 if not success:
                     raise DeploymentFailed()
             except DeploymentFailed:
@@ -332,7 +334,9 @@ class VDCProxy(VDCBaseComponent):
                             public_key=self.vdc_deployer.ssh_key.public_key.strip(),
                             description=desc,
                         )
-                        success = deployer.wait_workload(cont_id, self.bot, identity_name=self.identity.instance_name)
+                        success = deployer.wait_workload(
+                            cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                        )
                         if not success:
                             self.vdc_deployer.error(
                                 f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
