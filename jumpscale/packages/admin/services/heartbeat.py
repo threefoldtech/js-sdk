@@ -46,7 +46,7 @@ class HeartBeatService(BackgroundService):
                     f"{MONITORING_SERVER_URL}/heartbeat", json=data, headers={"Content-type": "application/json"}
                 )
             except Exception as e:
-                j.logger.error(f"Failed to send alert, URL:{MONITORING_SERVER_URL}/alert, exception: {str(e)}")
+                j.logger.error(f"Failed to send alert, URL:{MONITORING_SERVER_URL}/heartbeat, exception: {str(e)}")
 
 
 service = HeartBeatService()
