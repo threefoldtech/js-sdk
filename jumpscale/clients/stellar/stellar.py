@@ -591,7 +591,7 @@ class Stellar(Client):
 
         unlock_time = math.ceil(unlock_time)
 
-        self._log_info("Creating escrow account")
+        j.logger.info("Creating escrow account")
         escrow_kp = stellar_sdk.Keypair.random()
 
         # minimum account balance as described at https://www.stellar.org/developers/guides/concepts/fees.html#minimum-account-balance
@@ -601,11 +601,11 @@ class Stellar(Client):
         minimum_account_balance = (2 + 1 + 3) * base_reserve  # 1 trustline and 3 signers
         required_XLM = minimum_account_balance + base_fee * 0.0000001 * 3
 
-        self._log_info("Activating escrow account")
+        j.logger.info("Activating escrow account")
         self.activate_account(escrow_kp.public_key, str(math.ceil(required_XLM)))
 
         if asset_code != "XLM":
-            self._log_info("Adding trustline to escrow account")
+            j.logger.info("Adding trustline to escrow account")
             self.add_trustline(asset_code, asset_issuer, escrow_kp.secret)
 
         preauth_tx = self._create_unlock_transaction(escrow_kp, unlock_time)
@@ -616,8 +616,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=preauth_tx.to_xdr())
 
         self._set_escrow_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
-        self._log_info("Unlock Transaction:")
-        self._log_info(preauth_tx.to_xdr())
+        j.logger.info(preauth_tx.to_xdr())
 
         self.transfer(
             escrow_kp.public_key,
