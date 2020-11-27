@@ -82,13 +82,12 @@ class GedisChatBotPatch(GedisChatBot):
         escrow_asset = escrow_info.asset
         total_amount = escrow_info.amount
         total_amount_dec = Decimal(total_amount) / Decimal(1e7)
-        thecurrency = escrow_asset.split(":")[0]
         total_amount = "{0:f}".format(total_amount_dec)
         wallet = self.get_wallet()
         wallet.transfer(
             escrow_address,
             f"{total_amount_dec}",
-            asset=thecurrency + ":" + wallet.get_asset(thecurrency).issuer,
+            asset=escrow_asset,
             memo_text=f"p-{resv_id}",
         )
 
