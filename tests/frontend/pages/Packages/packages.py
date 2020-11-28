@@ -16,19 +16,27 @@ class Packages(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
+    def wait(self):
+        wait = WebDriverWait(self.driver, 60)
+        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
+
     def click_button(self, button_type):
         buttons = self.driver.find_elements_by_class_name("v-btn")
         button = [button for button in buttons if button.text == button_type][0]
+        wait = WebDriverWait(self.driver, 60)
+        wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "v-btn")))
         button.click()
 
     def check_threebot_deployer_package(self):
+        threebot_installed = 0
         installed_packages, available_packages = self.check_packages_type()
         if "threebot_deployer" not in installed_packages.keys():
             git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
-            self.add_package(git_url)
+            self.add_package(git_url=git_url)
+            threebot_installed = 1
         installed_packages, available_packages = self.check_packages_type()
         package_card = installed_packages["threebot_deployer"]
-        return package_card
+        return package_card, threebot_installed
 
     def system_packages(self):
         system_packages = {}
@@ -44,19 +52,19 @@ class Packages(Base):
     def add_package(self, git_url=None, path=None):
         self.click_button("ADD")
         add_new_package_box = self.driver.find_elements_by_class_name("v-text-field__slot")
-        git_url_input = add_new_package_box[1].find_element_by_tag_name("input")
-        git_url_input.send_keys(git_url)
-        self.click_button("SUBMIT")
-        wait = WebDriverWait(self.driver, 60)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
         path_input = add_new_package_box[0].find_element_by_tag_name("input")
-        path_input.send_keys(path)
-        self.click_button("SUBMIT")
-        wait = WebDriverWait(self.driver, 60)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
+        git_url_input = add_new_package_box[1].find_element_by_tag_name("input")
+
+        if git_url is not None:
+            git_url_input.send_keys(git_url)
+            self.click_button("SUBMIT")
+            self.wait()
+        else:
+            path_input.send_keys(path)
+            self.click_button("SUBMIT")
+            # self.wait()
 
     def check_packages_type(self):
-
         installed_packages = {}
         available_packages = {}
         packages_category = self.driver.find_elements_by_class_name("row")
@@ -80,6 +88,8 @@ class Packages(Base):
             if package == package_name:
                 package_card = installed_packages[package_name]
                 delete_icon = package_card.find_element_by_class_name("v-btn")
+                wait = WebDriverWait(self.driver, 60)
+                wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "v-btn")))
                 delete_icon.click()
                 break
         else:
@@ -95,17 +105,17 @@ class Packages(Base):
         return random_package
 
     def open_in_browser(self):
-        package_card = self.check_threebot_deployer_package()
+        package_card, threebot_installed = self.check_threebot_deployer_package()
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
-        return self.driver.current_url
+        return self.driver.current_url, threebot_installed
 
     def chatflows(self):
-        package_card = self.check_threebot_deployer_package()
+        package_card, threebot_installed = self.check_threebot_deployer_package()
         chatflows = package_card.find_elements_by_class_name("v-btn__content")[2]
         chatflows.click()
         cards = self.driver.find_elements_by_class_name("v-card__title")
         cards_name = []
         for card in cards:
             cards_name.append(card.text)
-        return cards_name
+        return cards_name, threebot_installed

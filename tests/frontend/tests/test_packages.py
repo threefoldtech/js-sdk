@@ -1,4 +1,5 @@
 import pytest
+from jumpscale.loader import j
 from jumpscale.packages import polls
 from tests.frontend.pages.Packages.packages import Packages
 from tests.frontend.tests.base_tests import BaseTest
@@ -45,22 +46,22 @@ class PackagesTests(BaseTest):
 
         self.info("Check that the package has been Added correctly")
         installed_packages, available_packages = self.packages.check_packages_type()
-        self.assertIn("notebooks", installed_packages.keys())
+        self.assertNotIn("notebooks", available_packages.keys())
 
-        self.info("Add a package using GitURL")
+        self.info("Add a package using path")
         path = j.sals.fs.dirname(polls.__file__)
         self.packages.add_package(path=path)
 
         self.info("Check that the package has been Added correctly")
         installed_packages, available_packages = self.packages.check_packages_type()
-        self.assertIn("polls", installed_packages.keys())
+        self.assertNotIn("polls", available_packages.keys())
 
         self.info("Install another package")
         installed_package = self.packages.install_package()
 
         self.info("Check that the package has been installed correctly")
         installed_packages, available_packages = self.packages.check_packages_type()
-        self.assertIn(installed_package, installed_packages.keys())
+        self.assertNotIn(installed_package, available_packages.keys())
 
         self.info("Delete the three packages")
         self.packages.delete_package("notebooks")
@@ -82,7 +83,9 @@ class PackagesTests(BaseTest):
         - Check the current URL.
         """
         self.info("Press open in browser button")
-        current_url = self.packages.open_in_browser()
+        current_url, threebot_installed = self.packages.open_in_browser()
+        if threebot_installed == 1:
+            self.packages.delete_package("threebot_deployer")
         self.assertEqual(current_url, "https://localhost/threebot_deployer/#/")
 
     def test04_chatflows(self):
@@ -94,7 +97,9 @@ class PackagesTests(BaseTest):
         - Check that the chatflow pop-up window appears.
         """
 
-        cards_name = self.packages.chatflows()
+        cards_name, threebot_installed = self.packages.chatflows()
+        if threebot_installed == 1:
+            self.packages.delete_package("threebot_deployer")
         self.info("Press chatflows button")
         self.info("Check that the chatflow pop-up window appears")
         self.assertIn("Chatflows", cards_name)
