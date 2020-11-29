@@ -5,7 +5,7 @@ from tests.frontend.tests.base_tests import BaseTest
 
 @pytest.mark.integration
 class WalletTests(BaseTest):
-    def test_create_delete_wallet(self):
+    def test01_create_delete_wallet(self):
         """Test case for creating a wallet and deleting it.
 
         **Test Scenario**
@@ -32,7 +32,7 @@ class WalletTests(BaseTest):
         all_wallets = wallets.list()
         self.assertNotIn(wallet_name, all_wallets.keys())
 
-    def test_add_funded_wallet(self):
+    def test02_add_funded_wallet(self):
         """Test case for creating a funded wallet and deleting it.
 
         **Test Scenario**
@@ -64,7 +64,7 @@ class WalletTests(BaseTest):
         all_wallets = wallets.list()
         self.assertNotIn(wallet_name, all_wallets.keys())
 
-    def test_import_wallet(self):
+    def test03_import_wallet(self):
         """Test case for importing a wallet and deleting it.
 
         **Test Scenario**

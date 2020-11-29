@@ -119,6 +119,8 @@ class Wallets(Base):
             if len(balances_row) >= 2:
                 balances = [balances_row[0].text, balances_row[1].text]
                 buttons = self.driver.find_elements_by_class_name("v-btn")
+            else:
+                balances = []
             close_button = [button for button in buttons if button.text == "CLOSE"][0]
             close_button.click()
             return balances

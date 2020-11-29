@@ -1,4 +1,15 @@
-### test_add_funded_wallet
+### test01_create_delete_wallet
+
+Test case for creating a wallet and deleting it.
+
+**Test Scenario**
+
+- Create a wallet.
+- Check that the wallet has been created in the wallets cards.
+- Delete the wallet.
+- Check that the wallet has been deleted from the wallets cards.
+
+### test02_add_funded_wallet
 
 Test case for creating a funded wallet and deleting it.
 
@@ -9,17 +20,7 @@ Test case for creating a funded wallet and deleting it.
 - Delete the wallet.
 - Check that the wallet has been deleted from the wallets cards.
 
-### test_create_delete_wallet
-
-Test case for creating a wallet and deleting it.
-
-**Test Scenario**
-- Create a wallet.
-- Check that the wallet has been created in the wallets cards.
-- Delete the wallet.
-- Check that the wallet has been deleted from the wallets cards.
-
-### test_import_wallet
+### test03_import_wallet
 
 Test case for importing a wallet and deleting it.
 
