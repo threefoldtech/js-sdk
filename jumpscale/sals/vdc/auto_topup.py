@@ -205,7 +205,7 @@ def extend_zdbs(
                 description=description,
             )
             try:
-                success = deployer.wait_workload(wid)
+                success = deployer.wait_workload(wid, cancel_by_uuid=False,)
                 if not success:
                     raise DeploymentFailed()
                 wids.append(wid)

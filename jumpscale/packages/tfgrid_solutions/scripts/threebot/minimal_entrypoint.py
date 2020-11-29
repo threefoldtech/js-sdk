@@ -97,3 +97,7 @@ j.core.config.set(
         },
     },
 )
+
+from monitoring_alert_handler import send_alert
+
+j.tools.alerthandler.register_handler(send_alert)

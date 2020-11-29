@@ -828,7 +828,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             parent_id = result[-1]
         return result
 
-    def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None, identity_name=None):
+    def wait_workload(
+        self, workload_id, bot=None, expiry=10, breaking_node_id=None, identity_name=None, cancel_by_uuid=True
+    ):
         j.logger.info(f"waiting workload {workload_id} to finish deployment")
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
@@ -859,7 +861,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 # if the workload is network we can overlook it
                 return True
             if cancel:
-                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                if cancel_by_uuid:
+                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                else:
+                    try:
+                        j.sals.zos.get(identity_name).workloads.decomission(workload_id)
+                    except Exception as e:
+                        j.logger.error(f"failed to delete expired workload {workload_id} due to error {str(e)}")
             raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
 
         # wait for workload

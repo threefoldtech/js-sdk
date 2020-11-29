@@ -11,7 +11,10 @@ THREEBOT_CPU = 1
 THREEBOT_MEMORY = 2 * 1024  # in MB
 THREEBOT_DISK = 2 * 1024  # in MB
 
-S3_AUTO_TOPUP_FARMS = ["freefarm"]
+S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
+ZDB_FARMS = ["freefarm", "freefarm"]
+PREFERED_FARM = "freefarm"
+NETWORK_FARM = "freefarm"
 
 
 class K8SNodeFlavor(Enum):

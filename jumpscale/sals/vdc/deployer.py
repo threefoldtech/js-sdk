@@ -14,11 +14,10 @@ from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
-from .scheduler import CapacityChecker, Scheduler
+from .scheduler import CapacityChecker, GlobalScheduler, Scheduler
 from .size import *
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
-PREFERED_FARM = "freefarm"
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
@@ -143,153 +142,169 @@ class VDCDeployer:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
             raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
-    def init_new_vdc(self, scheduler, farm_name, cu, su, pool_id=None):
-        """
-        create pool if needed and network for new vdc
-        """
-        self.info(f"initializing vdc on farm {farm_name}")
-
-        # seach if a pool exists that can be used
-        self.info(f"searching for an old pool on farm {farm_name}")
-        if not pool_id:
-            for pool in self.zos.pools.list():
-                farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
-                farm = self.explorer.farms.get(farm_id)
-                if farm_name == farm.name:
-                    pool_id = pool.pool_id
-                    self.info(f"found old pool {pool_id} on farm {farm_name}")
-                    break
-            if not pool_id:
-                self.info(f"couldn't find any old pool on farm {farm_name}")
-
-        if not pool_id:
-            # create pool
-            self.info(f"creating a new pool on farm {farm_name}")
-            pool_info = self.zos.pools.create(math.ceil(cu), math.ceil(su), farm_name)
-            self.info(
-                f"pool reservation sent. pool id: {pool_info.reservation_id}, escrow: {pool_info.escrow_information}"
-            )
-            pool_id = pool_info.reservation_id
-        else:
-            node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
-            pool = self.zos.pools.get(pool_id)
-            required_cus = max(0, cu - pool.cus)
-            required_sus = max(0, su - pool.sus)
-            self.info(f"extending pool {pool_id} with cus: {required_cus} sus: {required_sus}")
-            pool_info = self.zos.pools.extend(pool_id, required_cus, required_sus, node_ids=node_ids)
-
+    def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+        farm = self.explorer.farms.get(farm_name=farm_name)
+        for pool in self.zos.pools.list():
+            farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
+            if farm_id == farm.id:
+                # extend
+                if not any([cus, sus, ipv4us]):
+                    return pool.pool_id
+                node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
+                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, node_ids=node_ids)
+                self.zos.billing.payout_farmers(self.wallet, pool_info)
+                return pool.pool_id
+        pool_info = self.zos.pools.create(cus, sus, farm_name)
         self.zos.billing.payout_farmers(self.wallet, pool_info)
-        self.info(f"pool {pool_id} paid. waiting resources")
-        success = self.wait_pool_payment(pool_id)
-        if not success:
-            raise j.exceptions.Runtime(
-                f"Pool {pool_info.reservation_id} pool_id: {pool_id} resource reservation timedout"
-            )
-        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        if nv:
-            return pool_id
-        access_nodes = scheduler.nodes_by_capacity(ip_version=IP_VERSION)
-        network_success = False
-        for access_node in access_nodes:
-            self.info(f"deploying network on node {access_node.node_id}")
-            network_success = True
-            result = deployer.deploy_network(
-                self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool_id, self.identity.instance_name,
-            )
-            for wid in result["ids"]:
-                try:
-                    success = deployer.wait_workload(
-                        wid,
-                        breaking_node_id=access_node.node_id,
-                        identity_name=self.identity.instance_name,
-                        bot=self.bot,
-                    )
-                    network_success = network_success and success
-                except Exception as e:
-                    network_success = False
-                    self.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
-                    break
-            if network_success:
-                self.info(
-                    f"saving wireguard config to {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
-                )
-                # store wireguard config
-                wg_quick = result["wg"]
-                j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}")
-                j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf", wg_quick)
-                break
-        if not network_success:
-            raise j.exceptions.Runtime(
-                f"all retries to create a network with ip version {IP_VERSION} on farm {farm_name} failed"
-            )
+        return pool_info.reservation_id
 
-        return pool_id
+    def init_vdc(self, selected_farm=PREFERED_FARM):
+        """
+        1- create 2 pool on storage farms (with the required capacity to have 50-50) as speced
+        2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
+        3- get (and extend) or create a pool for kubernetes workers
+        """
+        duration = VDC_FLAFORS[self.flavor]["duration"]
 
-    def _calculate_new_vdc_pool_units(self, k8s_flavor, duration):
-        zdb = ZdbNamespace()
-        zdb.size = ZDB_STARTING_SIZE
-        deployments = [zdb] * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)
-        k = K8s()
-        k.size = k8s_flavor.value
-        deployments += [k, k]
-        v = Volume()
-        v.size = int(MINIO_DISK / 1024)
-        v.type = DiskType.SSD
-        deployments.append(v)
-        minio_container = Container()
-        minio_container.capacity.disk_size = 256
-        minio_container.capacity.memory = MINIO_MEMORY
-        minio_container.capacity.cpu = MINIO_CPU
-        minio_container.capacity.disk_type = DiskType.SSD
-        deployments.append(minio_container)
-        threebot_container = Container()
-        threebot_container.capacity.disk_size = THREEBOT_DISK
-        threebot_container.capacity.memory = THREEBOT_MEMORY
-        threebot_container.capacity.cpu = THREEBOT_CPU
-        threebot_container.capacity.disk_type = DiskType.SSD
-        deployments.append(threebot_container)
-
-        cus = sus = 0
-        for deployment in deployments:
-            ru = deployment.resource_units()
+        def get_cloud_units(workload):
+            ru = workload.resource_units()
             cloud_units = ru.cloud_units()
-            cus += cloud_units.cu
-            sus += cloud_units.su
-        return cus * 60 * 60 * 24 * duration, sus * 60 * 60 * 24 * duration
+            return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
-    def _check_new_vdc_farm_capacity(self, farm_name, k8s_size_dict):
-        k8s_query = K8S_SIZES[k8s_size_dict["size"]].copy()
-        k8s_query["no_nodes"] = k8s_size_dict["no_nodes"]
-        query_details = {
-            "k8s": k8s_query,
-            "s3_zdb": {
-                "sru": ZDB_STARTING_SIZE,
-                "no_nodes": S3_NO_DATA_NODES + S3_NO_PARITY_NODES,
-                "ip_version": "IPv6",
-            },
-            "s3_minio": {
-                "cru": MINIO_CPU,
-                "mru": MINIO_MEMORY / 1024,
-                "sru": MINIO_DISK / 1024 + 0.25,
-                "no_nodes": 1,
-                "ip_version": "IPv6",
-            },
-            "threebot": {
-                "cru": THREEBOT_CPU,
-                "mru": THREEBOT_MEMORY / 1024,
-                "sru": THREEBOT_DISK / 1024,
-                "no_nodes": 1,
-            },
-        }
-        cc = CapacityChecker(farm_name)
-        cc.add_query(ip_version=IP_VERSION)
-        for query in query_details.values():
-            query["backup_no"] = NO_DEPLOYMENT_BACKUP_NODES
-            if not cc.add_query(**query):
-                return False
-        return cc.result
+        # create zdb pools
+        if len(ZDB_FARMS) != 2:
+            raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
+        for farm_name in ZDB_FARMS:
+            zdb = ZdbNamespace()
+            zdb.size = ZDB_STARTING_SIZE
+            zdb.disk_type = DiskType.SSD
+            _, sus = get_cloud_units(zdb)
+            sus = sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2
+            pool_id = self.get_pool_id(farm_name, 0, sus)
+            self.wait_pool_payment(pool_id)
 
-    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM, pool_id=None):
+        # create kubernetes controller with small flavor on network farm
+        k8s = K8s()
+        k8s.size = K8SNodeFlavor.SMALL.value
+        cus, sus = get_cloud_units(k8s)
+        pool_id = self.get_pool_id(NETWORK_FARM, cus, sus)
+        self.wait_pool_payment(pool_id, trigger_cus=1)
+
+        # create minio and threebot pool
+        cont1 = Container()
+        cont1.capacity.cpu = MINIO_CPU
+        cont1.capacity.memory = MINIO_MEMORY
+        cont1.capacity.disk_size = 256
+        cont1.capacity.disk_type = DiskType.SSD
+        cont2 = Container()
+        cont2.capacity.cpu = THREEBOT_CPU
+        cont2.capacity.memory = THREEBOT_MEMORY
+        cont2.capacity.disk_size = THREEBOT_DISK
+        cont2.capacity.disk_type = DiskType.SSD
+        vol = Volume()
+        vol.size = int(MINIO_DISK / 1024)
+        vol.type = DiskType.SSD
+        cus = sus = 0
+        for workload in [cont1, cont2, vol]:
+            n_cus, n_sus = get_cloud_units(workload)
+            cus += n_cus
+            sus += n_sus
+        pool_id = self.get_pool_id(selected_farm, cus, sus)
+        self.wait_pool_payment(pool_id, trigger_cus=1)
+
+    def deploy_vdc_network(self):
+        """
+        create a network for the vdc on any pool withing the ones created during initialization
+        """
+        for pool in self.zos.pools.list():
+            scheduler = Scheduler(pool_id=pool.pool_id)
+            network_success = False
+            for access_node in scheduler.nodes_by_capacity(ip_version=IP_VERSION):
+                self.info(f"deploying network on node {access_node.node_id}")
+                network_success = True
+                result = deployer.deploy_network(
+                    self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool.pool_id, self.identity.instance_name,
+                )
+                for wid in result["ids"]:
+                    try:
+                        success = deployer.wait_workload(
+                            wid,
+                            breaking_node_id=access_node.node_id,
+                            identity_name=self.identity.instance_name,
+                            bot=self.bot,
+                            cancel_by_uuid=False,
+                        )
+                        network_success = network_success and success
+                    except Exception as e:
+                        network_success = False
+                        self.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
+                        break
+                if network_success:
+                    self.info(
+                        f"saving wireguard config to {j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+                    )
+                    # store wireguard config
+                    wg_quick = result["wg"]
+                    j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}")
+                    j.sals.fs.write_file(
+                        f"{j.core.dirs.CFGDIR}/vdc/wireguard/{self.tname}/{self.vdc_name}.conf", wg_quick
+                    )
+                    return True
+
+    def deploy_vdc_zdb(self, scheduler=None):
+        """
+        1- get pool_id of each farm from ZDB_FARMS
+        2- deploy zdbs on it with half of the capacity
+        """
+        gs = scheduler or GlobalScheduler()
+        zdb_threads = []
+        for farm in ZDB_FARMS:
+            pool_id = self.get_pool_id(farm)
+            zdb_threads.append(
+                gevent.spawn(
+                    self.s3.deploy_s3_zdb,
+                    pool_id=pool_id,
+                    scheduler=gs,
+                    storage_per_zdb=ZDB_STARTING_SIZE,
+                    password=self.password,
+                    solution_uuid=self.vdc_uuid,
+                    no_nodes=(S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
+                )
+            )
+        return zdb_threads
+
+    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret):
+        """
+        1- deploy master
+        2- extend cluster with the flavor no_nodes
+        """
+        gs = scheduler or GlobalScheduler()
+        master_pool_id = self.get_pool_id(NETWORK_FARM)
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        master_ip = self.kubernetes.deploy_master(
+            master_pool_id,
+            gs,
+            K8SNodeFlavor.SMALL,
+            cluster_secret,
+            [self.ssh_key.public_key.strip()],
+            self.vdc_uuid,
+            nv,
+        )
+        if not master_ip:
+            return
+        no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
+        wids = self.kubernetes.extend_cluster(
+            farm_name,
+            master_ip,
+            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            cluster_secret,
+            [self.ssh_key.public_key.strip()],
+            no_nodes,
+            VDC_FLAFORS[self.flavor]["duration"],
+        )
+        return wids
+
+    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -302,44 +317,23 @@ class VDCDeployer:
             raise j.exceptions.Validation(
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
-        scheduler = Scheduler(farm_name)
-        size_dict = VDC_FLAFORS[self.flavor]
-        k8s_size_dict = size_dict["k8s"]
-        if not self._check_new_vdc_farm_capacity(farm_name, k8s_size_dict):
-            raise j.exceptions.Runtime(
-                f"farm {farm_name} doesn't have enough capacity to deploy vdc of flavor {self.flavor}"
-            )
-
-        cus, sus = self._calculate_new_vdc_pool_units(k8s_size_dict["size"], duration=size_dict["duration"])
-        self.info(f"required cus: {cus}, sus: {sus}")
-        pool_id = self.init_new_vdc(scheduler, farm_name, cus, sus, pool_id)
-        self.info(f"vdc initialization successful")
-        storage_per_zdb = ZDB_STARTING_SIZE
-        threads = []
-        k8s_thread = gevent.spawn(
-            self.kubernetes.deploy_kubernetes,
-            pool_id,
-            scheduler,
-            k8s_size_dict,
-            cluster_secret,
-            [self.ssh_key.public_key.strip()],
-        )
-        threads.append(k8s_thread)
-        zdb_thread = gevent.spawn(
-            self.s3.deploy_s3_zdb, pool_id, scheduler, storage_per_zdb, self.password, self.vdc_uuid
-        )
-        threads.append(zdb_thread)
-        gevent.joinall(threads)
-        zdb_wids = zdb_thread.value
-        k8s_wids = k8s_thread.value
-        self.info(f"k8s wids: {k8s_wids}")
-        self.info(f"zdb wids: {zdb_wids}")
-
-        if not k8s_wids or not zdb_wids:
+        self.init_vdc(farm_name)
+        self.deploy_vdc_network()
+        gs = GlobalScheduler()
+        deployment_threads = self.deploy_vdc_zdb(gs)
+        k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
+        deployment_threads.append(k8s_thread)
+        gevent.joinall(deployment_threads)
+        for thread in deployment_threads:
+            if thread.value:
+                continue
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
-            return False
 
+        zdb_wids = deployment_threads[0].value + deployment_threads[1].value
+
+        scheduler = Scheduler(farm_name)
+        pool_id = self.get_pool_id(farm_name)
         minio_wid = self.s3.deploy_s3_minio_container(
             pool_id,
             minio_ak,
@@ -400,6 +394,10 @@ class VDCDeployer:
         self._log(msg, "error")
 
     def renew_plan(self, duration):
+        """before calling
+        transfer current balance in vdc wallet to deployer wallet
+        transfer all amount of new payment to the vdc wallet (amount of package + amount of external nodes)
+        """
         self.vdc_instance.load_info()
         pool_ids = set()
         for zdb in self.vdc_instance.s3.zdbs:

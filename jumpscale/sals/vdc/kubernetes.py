@@ -14,33 +14,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def deploy_kubernetes(self, pool_id, scheduler, k8s_size_dict, cluster_secret, ssh_keys):
-        self.vdc_deployer.info(f"deploying kubernetes with size_dict: {k8s_size_dict}")
-        no_nodes = k8s_size_dict["no_nodes"]
-        master_ip = None
-        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_size_dict["size"]])
-
-        # deploy master
-        master_ip = self._deploy_master(
-            pool_id, nodes_generator, k8s_size_dict["size"], cluster_secret, ssh_keys, self.vdc_uuid, network_view
-        )
-        self.vdc_deployer.info(f"kubernetes master ip: {master_ip}")
-        if not master_ip:
-            self.vdc_deployer.error("failed to deploy master")
-            return
-        return self._add_workers(
-            pool_id,
-            nodes_generator,
-            k8s_size_dict["size"],
-            cluster_secret,
-            ssh_keys,
-            self.vdc_uuid,
-            network_view,
-            master_ip,
-            no_nodes,
-        )
-
     def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration):
         """
         returns pool id after extension with enough cloud units
@@ -122,11 +95,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(solution_uuid)
         return wids
 
-    def _deploy_master(
-        self, pool_id, nodes_generator, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view
-    ):
+    def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
         master_ip = None
         # deploy_master
+        k8s_resources_dict = K8S_SIZES[k8s_flavor]
+        nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id)
         while not master_ip:
             try:
                 try:
@@ -142,7 +115,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     if result:
                         for wid in result["ids"]:
                             success = deployer.wait_workload(
-                                wid, self.bot, 3, identity_name=self.identity.instance_name
+                                wid, self.bot, 3, identity_name=self.identity.instance_name, cancel_by_uuid=False,
                             )
                             if not success:
                                 self.vdc_deployer.error(f"failed to deploy network for kubernetes master wid: {wid}")
@@ -177,7 +150,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
-                success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
+                success = deployer.wait_workload(
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
                 if not success:
                     raise DeploymentFailed()
                 master_ip = ip_address
@@ -213,7 +188,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     result += network_result["ids"]
                 for wid in result:
                     try:
-                        success = deployer.wait_workload(wid, self.bot, 5, identity_name=self.identity.instance_name)
+                        success = deployer.wait_workload(
+                            wid, self.bot, 5, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                        )
                         if not success:
                             raise DeploymentFailed()
                     except DeploymentFailed:
@@ -294,7 +271,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 )
             for wid in result:
                 try:
-                    success = deployer.wait_workload(wid, self.bot, identity_name=self.identity.instance_name)
+                    success = deployer.wait_workload(
+                        wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    )
                     if not success:
                         raise DeploymentFailed()
                     wids.append(wid)
