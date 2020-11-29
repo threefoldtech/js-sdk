@@ -148,8 +148,13 @@ class Admin(BaseActor):
 
     @actor_method
     def get_sdk_version(self) -> str:
-        sdk_version = j.core.config.get_current_version()
-        return j.data.serializers.json.dumps({"data": sdk_version})
+        from importlib import metadata
+
+        packages = ["js-ng", "js-sdk"]
+        data = {}
+        for package in packages:
+            data[package] = metadata.version(package)
+        return j.data.serializers.json.dumps({"data": data})
 
     @actor_method
     def delete_identity(self, identity_instance_name: str) -> str:

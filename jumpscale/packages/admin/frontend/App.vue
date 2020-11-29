@@ -98,7 +98,7 @@
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
               </v-list-item-subtitle>
               <v-list-item-subtitle v-if="SDKVersion">
-                <v-chip class="mt-2" outlined>JS-SDK version: {{ SDKVersion }}</v-chip>
+                <v-chip class="mt-2 px-6 py-6" outlined>JS-NG: {{ NGVersion }}<br>JS-SDK: {{ SDKVersion }}</v-chip>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -194,6 +194,7 @@ module.exports = {
       notificationsCount: null,
       notificationsListOpen: false,
       notificationInterval: null,
+      NGVersion: null,
       SDKVersion: null,
       clockInterval: null,
       dialogs: {
@@ -242,7 +243,9 @@ module.exports = {
     },
     getSDKVersion() {
       this.$api.admins.getSDKVersion().then((response) => {
-        this.SDKVersion = JSON.parse(response.data).data;
+        const versions = JSON.parse(response.data).data;
+        this.NGVersion = versions["js-ng"];
+        this.SDKVersion = versions["js-sdk"];
       });
     },
     setTimeLocal() {
