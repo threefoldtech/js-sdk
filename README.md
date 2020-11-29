@@ -12,7 +12,7 @@ Threefold Grid extension based on [js-ng framework](https://github.com/threefold
 - Polls package
 - Marketplace
 - Threebot Deployer
-- threefoldtoken statistics APIs
+- ThreefoldToken statistics APIs
 
 ## Getting started
 - Our wiki https://threefoldtech.github.io/js-sdk/wiki
