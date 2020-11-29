@@ -9,6 +9,7 @@ class WalletTests(BaseTest):
         """Test case for creating a wallet and deleting it.
 
         **Test Scenario**
+
         - Create a wallet.
         - Check that the wallet has been created in the wallets cards.
         - Delete the wallet.

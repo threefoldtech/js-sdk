@@ -30,6 +30,7 @@ class DigitalOcean(BaseTests):
         """Test for deploying project on Digital Ocean Client.
 
         **Test Scenario**
+
         - Get project.
         - Set a random name to be used on Digital Ocean.
         - Wait for project deployment.
@@ -49,6 +50,7 @@ class DigitalOcean(BaseTests):
         """Test for deploying droplet on Digital Ocean Client.
 
         **Test Scenario**
+
         - Get droplet.
         - Set a random name to be used on Digital Ocean.
         - Wait for droplet deployment.
@@ -68,6 +70,7 @@ class DigitalOcean(BaseTests):
         """Test for getting a deployed project on Digital Ocean Client.
 
         **Test Scenario**
+
         - Get project.
         - Set a random name to be used on Digital Ocean.
         - Wait for project deployment.
@@ -87,6 +90,7 @@ class DigitalOcean(BaseTests):
         """Test for getting a deployed droplet on Digital Ocean Client.
 
         **Test Scenario**
+
         - Get droplet.
         - Set a random name to be used on Digital Ocean.
         - Wait for droplet deployment.
@@ -106,6 +110,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available images.
 
         **Test Scenario**
+
         - Get all the images.
         """
         self.assertIsNotNone(self.dg.images)
@@ -115,6 +120,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available image names.
 
         **Test Scenario**
+
         - Get all the images names.
         """
         self.assertIsNotNone(self.dg.get_image_names)
@@ -124,6 +130,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available images by specific name.
 
         **Test Scenario**
+
         - Get all the images by specific name.
         """
         self.assertIsNotNone(self.dg.get_image_names("centos"))
@@ -133,6 +140,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available sizes.
 
         **Test Scenario**
+
         - Get all the available sizes.
         """
         self.assertIsNotNone(self.dg.sizes)
@@ -142,6 +150,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available regions.
 
         **Test Scenario**
+
         - Get all the available regions.
         """
         self.assertIsNotNone(self.dg.regions)
@@ -151,6 +160,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available region names.
 
         **Test Scenario**
+
         - Get all the available region names.
         """
         self.assertIsNotNone(self.dg.region_names)
@@ -160,6 +170,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean specific region.
 
         **Test Scenario**
+
         - Get all the available regions.
         - Get specific region.
         """
@@ -171,6 +182,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean available sshkeys.
 
         **Test Scenario**
+
         - Get all the sshkeys.
         """
         self.assertIsNotNone(self.dg.sshkeys)
@@ -180,6 +192,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean default sshkey.
 
         **Test Scenario**
+
         - Get default sshkey.
         """
         self.assertIsNotNone(self.dg.get_default_sshkey())
@@ -189,6 +202,7 @@ class DigitalOcean(BaseTests):
         """Test for getting digital ocean specific sshkey.
 
         **Test Scenario**
+
         - Get all the available sshkeys .
         - Get specific sshkey by name.
         """
