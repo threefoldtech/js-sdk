@@ -392,7 +392,7 @@ class Stellar(Client):
             asset_code = assetStr[0]
             issuer = assetStr[1]
         else:
-            asset_code=asset
+            asset_code = asset
 
         if locked_until is not None:
             return self._transfer_locked_tokens(
@@ -825,7 +825,7 @@ class Stellar(Client):
             return Asset(code, issuer)
 
         if not code:
-            raise ValueError("An asset code is required") 
+            raise ValueError("An asset code is required")
 
         if not issuer and code not in KNOWN_ASSETS:
             raise ValueError(
@@ -837,11 +837,7 @@ class Stellar(Client):
             return Asset(code, asset_issuer)
 
     def cancel_sell_order(
-        self,
-        offer_id,
-        selling_asset: str,
-        buying_asset: str,
-        price: Union[str, decimal.Decimal],
+        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
     ):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
@@ -881,8 +877,8 @@ class Stellar(Client):
         Returns:
             (dict): response as the result of sumbit the transaction
         """
-        stellar_selling_asset=self._get_asset(selling_asset)
-        stellar_buying_asset=self._get_asset(buying_asset)
+        stellar_selling_asset = self._get_asset(selling_asset)
+        stellar_buying_asset = self._get_asset(buying_asset)
         server = self._get_horizon_server()
         tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
         try:

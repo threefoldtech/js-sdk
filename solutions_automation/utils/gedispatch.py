@@ -85,10 +85,7 @@ class GedisChatBotPatch(GedisChatBot):
         total_amount = "{0:f}".format(total_amount_dec)
         wallet = self.get_wallet()
         wallet.transfer(
-            escrow_address,
-            f"{total_amount_dec}",
-            asset=escrow_asset,
-            memo_text=f"p-{resv_id}",
+            escrow_address, f"{total_amount_dec}", asset=escrow_asset, memo_text=f"p-{resv_id}",
         )
 
     def fetch_param(self, msg, *args, **kwargs):
