@@ -116,7 +116,7 @@ class Wallets(Base):
             wallet_details = self.driver.find_element_by_class_name("v-data-table")
             # get spams that contain balances and check that there are spams elements
             balances_row = wallet_details.find_elements_by_class_name("v-chip__content")
-            if balances_row:
+            if len(balances_row) >= 2:
                 balances = [balances_row[0].text, balances_row[1].text]
                 buttons = self.driver.find_elements_by_class_name("v-btn")
             close_button = [button for button in buttons if button.text == "CLOSE"][0]
