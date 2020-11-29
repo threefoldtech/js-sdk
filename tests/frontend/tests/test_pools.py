@@ -8,6 +8,14 @@ from tests.frontend.tests.base_tests import BaseTest
 
 @pytest.mark.integration
 class PoolsTests(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        cls.info("Create a wallet")
+        cls.wallet_name = cls.random_name()
+        wallets = Wallets(cls.driver)
+        wallets.load()
+        wallets.add_funded(cls.wallet_name)
+
     def test01_create_pool(self):
         """Test case for creating a pool.
 
@@ -15,6 +23,7 @@ class PoolsTests(BaseTest):
         - Create a wallet.
         - Create a pool.
         - Check that the pool has been created in the pools card.
+        - Check that the pool has been created with the right amount of cus and sus.
         - Delete the a wallet.
         """
         self.info("Create a wallet")
@@ -27,13 +36,26 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=wallet_name)
+        cu = j.data.idgenerator.random_int(0, 2)
+        su = j.data.idgenerator.random_int(1, 2)
+        time_unit = "Day"
+        time_to_live = j.data.idgenerator.random_int(1, 2)
+        pools.create(
+            name=pool_name, wallet_name=wallet_name, cu=cu, su=su, duration_unit=time_unit, time_to_live=time_to_live
+        )
 
         self.info("Check that the pool has been created in the pools card")
         test_pools = Pools(self.driver)
         test_pools.load()
         pools_name = [name[0] for name in test_pools.list()]
         self.assertIn(pool_name, pools_name)
+
+        self.info("Check that the pool has been created with the right amount of cus and sus")
+        test_pools = Pools(self.driver)
+        test_pools.load()
+        calculated_su = (su + 1) * time_to_live * 60 * 60 * 24
+        calculated_cu = (cu + 1) * time_to_live * 60 * 60 * 24
+        self.assertIn((pool_name, float(calculated_cu), float(calculated_su)), test_pools.list())
 
         self.info("Delete the wallet.")
         wallets.load()

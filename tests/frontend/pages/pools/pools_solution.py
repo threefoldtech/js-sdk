@@ -2,8 +2,6 @@ from tests.frontend.pages.base import Base
 from urllib.parse import urljoin
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from gevent import sleep
 
 
@@ -19,78 +17,40 @@ class PoolsSolution(Base):
 
     def create(self, wallet_name, name, cu=1, su=1, duration_unit="Day", time_to_live=1):
         # switch driver to ifram and choose create option
-        self.wait("v-progress-linear__buffer")
-        iframe = self.driver.find_elements_by_tag_name("iframe")[0]
-        self.driver.switch_to_frame(iframe)
-        chat_box = self.driver.find_element_by_class_name("chat")
-        radios = chat_box.find_elements_by_class_name("v-radio")
-        create_radio = [radio for radio in radios if radio.text == "create"][0]
-        create_radio.click()
-        self.click_button("NEXT")
-
-        self.wait("v-progress-circular")
+        self.wait(self.driver, "v-progress-linear__buffer")
+        self.choose_option("create")
 
         # set pool name in input element
+        chat_box = self.driver.find_element_by_class_name("chat")
         name_element = chat_box.find_element_by_class_name("v-text-field__slot")
         name_input = name_element.find_element_by_tag_name("input")
         name_input.send_keys(name)
-
-        self.click_button("NEXT")
+        self.click_button(self.driver, "NEXT")
 
         # set cu, su and time to live to input elements
-        pool_details = {
-            "Required Amount of Compute Unit (CU)": cu,
-            "Required Amount of Storage Unit (SU)": su,
-            "Please choose the duration unit": duration_unit,
-            "Please specify the pools time-to-live": time_to_live,
-        }
-        input_form = self.driver.find_element_by_class_name("v-form")
-        div = input_form.find_element_by_class_name("mb-4")
-        inputs_elements = div.find_elements_by_xpath("following-sibling::div")
-        for input_element in inputs_elements:
-            text = input_element.find_element_by_class_name("mb-4").text
-            if text in pool_details.keys():
-                input = input_element.find_element_by_tag_name("input")
-                input.send_keys(pool_details[text])
-
-        self.click_button("NEXT")
-
-        self.wait("v-progress-circular")
+        self.set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
 
         # select the Freefarm
         farm_box = self.driver.find_element_by_class_name("v-select__selections")
         farm_input = farm_box.find_element_by_tag_name("input")
         farm_input.send_keys("Freefarm")
-
-        self.click_button("NEXT")
-        self.wait("v-progress-circular")
+        self.click_button(self.driver, "NEXT")
+        self.wait(self.driver, "v-progress-circular")
 
         # select the wallet
-        chat_box = self.driver.find_element_by_class_name("chat")
-        wallets_box = chat_box.find_element_by_class_name("v-input__slot")
-        wallets = wallets_box.find_elements_by_class_name("v-radio")
-        wallet = [wallet for wallet in wallets if wallet.text == wallet_name][0]
-        wallet.click()
+        self.select_wallet(wallet_name)
 
-        self.click_button("NEXT")
-        self.wait("v-progress-circular")
-        self.wait("progressbar")
-        self.click_button("FINISH")
+        self.wait(self.driver, "v-progress-circular")
+        self.wait(self.driver, "progressbar")
+        self.click_button(self.driver, "FINISH")
 
     def extend(self, wallet_name, name, cu=1, su=1, duration_unit="Day", time_to_live=1):
         # switch driver to ifram and choose extend option
-        self.wait("v-progress-linear__buffer")
-        iframe = self.driver.find_elements_by_tag_name("iframe")[0]
-        self.driver.switch_to_frame(iframe)
-        chat_box = self.driver.find_element_by_class_name("chat")
-        radios = chat_box.find_elements_by_class_name("v-radio")
-        create_radio = [radio for radio in radios if radio.text == "extend"][0]
-        create_radio.click()
-        self.click_button("NEXT")
-
-        self.wait("v-progress-circular")
+        self.wait(self.driver, "v-progress-linear__buffer")
+        self.choose_option("extend")
 
         # open the pools list
+        chat_box = self.driver.find_element_by_class_name("chat")
         form = chat_box.find_element_by_class_name("v-form")
         open_list = form.find_element_by_tag_name("i")
         open_list.click()
@@ -105,10 +65,31 @@ class PoolsSolution(Base):
             if name in pool.text:
                 pool.click()
                 break
-
-        self.click_button("NEXT")
+        self.click_button(self.driver, "NEXT")
 
         # set cu, su and time to live to input elements
+        self.set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
+
+        # select the wallet
+        self.select_wallet(wallet_name)
+
+        self.wait(self.driver, "v-progress-circular")
+        self.wait(self.driver, "progressbar")
+        self.click_button(self.driver, "FINISH")
+
+    def choose_option(self, option):
+
+        iframe = self.driver.find_elements_by_tag_name("iframe")[0]
+        self.driver.switch_to_frame(iframe)
+        chat_box = self.driver.find_element_by_class_name("chat")
+        radios = chat_box.find_elements_by_class_name("v-radio")
+        create_radio = [radio for radio in radios if radio.text == option][0]
+        create_radio.click()
+        self.click_button(self.driver, "NEXT")
+
+        self.wait(self.driver, "v-progress-circular")
+
+    def set_pool_details(self, cu=1, su=1, duration_unit="Day", time_to_live=1):
         pool_details = {
             "Required Amount of Compute Unit (CU)": cu,
             "Required Amount of Storage Unit (SU)": su,
@@ -124,27 +105,15 @@ class PoolsSolution(Base):
                 input = input_element.find_element_by_tag_name("input")
                 input.send_keys(pool_details[text])
 
-        self.click_button("NEXT")
-        self.wait("v-progress-circular")
+        self.click_button(self.driver, "NEXT")
 
-        # select the wallet
+        self.wait(self.driver, "v-progress-circular")
+
+    def select_wallet(self, wallet_name):
         chat_box = self.driver.find_element_by_class_name("chat")
         wallets_box = chat_box.find_element_by_class_name("v-input__slot")
         wallets = wallets_box.find_elements_by_class_name("v-radio")
         wallet = [wallet for wallet in wallets if wallet.text == wallet_name][0]
         wallet.click()
 
-        self.click_button("NEXT")
-
-        self.wait("v-progress-circular")
-        self.wait("progressbar")
-        self.click_button("FINISH")
-
-    def click_button(self, text):
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        next_button = [button for button in buttons if button.text == text][0]
-        next_button.click()
-
-    def wait(self, class_name):
-        wait = WebDriverWait(self.driver, 60)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
+        self.click_button(self.driver, "NEXT")
