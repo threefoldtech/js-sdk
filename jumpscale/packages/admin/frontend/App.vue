@@ -97,6 +97,9 @@
               <v-list-item-subtitle>
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
               </v-list-item-subtitle>
+              <v-list-item-subtitle v-if="SDKVersion">
+                <v-chip class="mt-2" outlined>JS-SDK version: {{ SDKVersion }}</v-chip>
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
           <v-list-item v-else>
@@ -106,8 +109,6 @@
           </v-list-item>
         </v-list>
       </v-sheet>
-
-      <div style="width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
         <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
@@ -193,6 +194,7 @@ module.exports = {
       notificationsCount: null,
       notificationsListOpen: false,
       notificationInterval: null,
+      SDKVersion: null,
       clockInterval: null,
       dialogs: {
         identity: false,
@@ -238,6 +240,11 @@ module.exports = {
         this.identity = JSON.parse(response.data);
       });
     },
+    getSDKVersion() {
+      this.$api.admins.getSDKVersion().then((response) => {
+        this.SDKVersion = JSON.parse(response.data).data;
+      });
+    },
     setTimeLocal() {
       this.timenow = new Date().toLocaleString('en-GB');
     },
@@ -275,6 +282,7 @@ module.exports = {
     this.getCurrentUser();
     this.getAnnouncementStatus();
     this.setTimeLocal();
+    this.getSDKVersion();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);

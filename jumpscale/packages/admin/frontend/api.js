@@ -176,6 +176,11 @@ const apiClient = {
                 url: `${baseURL}/admin/get_config`
             })
         },
+        getSDKVersion: () => {
+            return axios({
+                url: `${baseURL}/admin/get_sdk_version`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`
