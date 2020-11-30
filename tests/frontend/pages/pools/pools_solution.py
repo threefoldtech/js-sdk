@@ -8,6 +8,7 @@ from gevent import sleep
 class PoolsSolution(Base):
     def __init__(self, driver, *args, **kwargs):
         super().__init__(self, *args, **kwargs)
+        # test
         self.driver = driver
         self.endpoint = "/admin/#/solutions/pools"
 
