@@ -12,7 +12,6 @@ class FarmManagemenet(BaseActor):
     def update_farm(self, farm_id, farm):
         farm = Farm.from_dict(farm)
         farm.id = farm_id
-        print(farm.to_dict())
         self._explorer.farms.update(farm)
 
     @actor_method
