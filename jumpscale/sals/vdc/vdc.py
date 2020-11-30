@@ -10,6 +10,7 @@ from .deployer import VDCDeployer
 from .models import *
 from .size import VDCFlavor
 from .wallet import VDC_WALLET_FACTORY
+import netaddr
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -46,8 +47,8 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
-    def get_deployer(self, password, bot=None, proxy_farm_name=None, mgmt_kube_config_path=None):
-        return VDCDeployer(password, self, bot, proxy_farm_name, mgmt_kube_config_path)
+    def get_deployer(self, password, bot=None, proxy_farm_name=None):
+        return VDCDeployer(password, self, bot, proxy_farm_name)
 
     def load_info(self):
         self.kubernetes = []
@@ -59,7 +60,7 @@ class UserVDC(Base):
             self._update_instance(workload)
             if workload.info.workload_type == WorkloadType.Subdomain:
                 subdomains.append(workload)
-            self._get_s3_subdomain(subdomains)
+        self._get_s3_subdomain(subdomains)
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -90,6 +91,12 @@ class UserVDC(Base):
                 node.role = KubernetesRole.MASTER
             node.node_id = workload.info.node_id
             node.pool_id = workload.info.pool_id
+            if workload.public_ip:
+                zos = get_zos()
+                public_ip_workload = zos.workloads.get(workload.public_ip)
+                address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
+                node.public_ip = address
+
             self.size = workload.size
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:

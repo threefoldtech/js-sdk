@@ -1,7 +1,7 @@
 from enum import Enum
 
-S3_NO_DATA_NODES = 6
-S3_NO_PARITY_NODES = 4
+S3_NO_DATA_NODES = 4
+S3_NO_PARITY_NODES = 2
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
@@ -11,10 +11,10 @@ THREEBOT_CPU = 1
 THREEBOT_MEMORY = 2 * 1024  # in MB
 THREEBOT_DISK = 2 * 1024  # in MB
 
-S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
-ZDB_FARMS = ["freefarm", "freefarm"]
-PREFERED_FARM = "freefarm"
-NETWORK_FARM = "freefarm"
+S3_AUTO_TOPUP_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
+ZDB_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
+PREFERED_FARM = "lochristi_dev_lab"
+NETWORK_FARM = "lochristi_dev_lab"
 
 
 class K8SNodeFlavor(Enum):

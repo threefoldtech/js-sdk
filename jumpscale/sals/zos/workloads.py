@@ -13,6 +13,7 @@ from jumpscale.clients.explorer.models import (
     NextAction,
     Volume,
     ZdbNamespace,
+    PublicIP,
 )
 from jumpscale.loader import j
 
@@ -41,6 +42,7 @@ class Workloads:
             NetworkResource,
             Volume,
             ZdbNamespace,
+            PublicIP,
         ]
     ]:
         """list workloads and optionally filter them by owner or next_action state
@@ -50,7 +52,7 @@ class Workloads:
           next_action(Union[NextAction, str], optional): filter by next_action state, defaults to None
 
         Returns:
-          List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]: description]
+          List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]: description]
 
         """
         if isinstance(next_action, NextAction):
@@ -71,6 +73,7 @@ class Workloads:
             NetworkResource,
             Volume,
             ZdbNamespace,
+            PublicIP,
         ]
     ]:
         """
@@ -84,7 +87,7 @@ class Workloads:
             Iterator:
 
         Yields:
-            Iterator[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ] ]
+            Iterator[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]
         """
         return self._workloads.iter(customer_tid, next_action)
 
@@ -101,6 +104,7 @@ class Workloads:
         NetworkResource,
         Volume,
         ZdbNamespace,
+        PublicIP,
     ]:
         """get a specific workload
 
@@ -109,7 +113,7 @@ class Workloads:
           workload_id: int:
 
         Returns:
-          Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]: workload
+          Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ]: workload
 
         """
         return self._workloads.get(workload_id)
@@ -127,12 +131,13 @@ class Workloads:
             NetworkResource,
             Volume,
             ZdbNamespace,
+            PublicIP,
         ],
     ) -> int:
         """deploy a workload on a node
 
         Args:
-          workload(Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, ]): the workload to provision
+          workload(Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ]): the workload to provision
 
         Returns:
           int: the workload ID
