@@ -54,7 +54,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         return pool_id
 
-    def extend_cluster(self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, no_nodes=1, duration=None):
+    def extend_cluster(
+        self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, no_nodes=1, duration=None, public_ip=None
+    ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
         """
@@ -77,7 +79,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         scheduler = Scheduler(pool_id=pool_id)
         scheduler.exclude_nodes(*old_node_ids)
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor])
+        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor], public_ip=public_ip)
         solution_uuid = uuid.uuid4().hex
         wids = self._add_workers(
             pool_id,
@@ -99,7 +101,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         master_ip = None
         # deploy_master
         k8s_resources_dict = K8S_SIZES[k8s_flavor]
-        nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id)
+        nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id, public_ip=True)
         while not master_ip:
             try:
                 try:
