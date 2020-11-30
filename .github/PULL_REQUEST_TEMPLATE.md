@@ -12,6 +12,7 @@ List of related issues
 
 ### Checklist
 
+- [ ] [Pre-commit hook is installed](https://github.com/threefoldtech/js-ng#pre-commit) to do formatting checks before committing code...etc
 - [ ] Tests included
 - [ ] Build pass
 - [ ] Documentation
