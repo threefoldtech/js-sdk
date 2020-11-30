@@ -26,12 +26,7 @@ NO_DEPLOYMENT_BACKUP_NODES = 0
 
 class VDCDeployer:
     def __init__(
-        self,
-        password: str,
-        vdc_instance,
-        bot: GedisChatBot = None,
-        proxy_farm_name: str = None,
-        mgmt_kube_config_path: str = None,
+        self, password: str, vdc_instance, bot: GedisChatBot = None, proxy_farm_name: str = None,
     ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -44,7 +39,6 @@ class VDCDeployer:
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
-        self.mgmt_kube_config_path = mgmt_kube_config_path
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
         self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"

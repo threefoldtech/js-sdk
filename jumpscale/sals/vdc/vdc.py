@@ -46,8 +46,8 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
-    def get_deployer(self, password, bot=None, proxy_farm_name=None, mgmt_kube_config_path=None):
-        return VDCDeployer(password, self, bot, proxy_farm_name, mgmt_kube_config_path)
+    def get_deployer(self, password, bot=None, proxy_farm_name=None):
+        return VDCDeployer(password, self, bot, proxy_farm_name)
 
     def load_info(self):
         self.kubernetes = []
@@ -59,7 +59,7 @@ class UserVDC(Base):
             self._update_instance(workload)
             if workload.info.workload_type == WorkloadType.Subdomain:
                 subdomains.append(workload)
-            self._get_s3_subdomain(subdomains)
+        self._get_s3_subdomain(subdomains)
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
