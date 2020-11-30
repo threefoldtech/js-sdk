@@ -93,7 +93,7 @@ class Scheduler:
             return False
 
         for iface in node.ifaces:
-            if iface["name"] == "br-pub":
+            if iface.name == "br-pub":
                 return True
 
         return False
