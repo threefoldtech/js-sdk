@@ -131,8 +131,13 @@ class TFGridSolutionChatflows(ChatflowsBase):
         localclient.user = "rancher"
         localclient.save()
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
+        print("##########################################")
+        print(res)
         res = res.splitlines()
         res = res[2:]  # Remove master node and table's head.
+        print("##########################################")
+        print(res)
+        print(workernodes)
         self.assertEqual(workernodes, len(res))
 
     def test03_minio(self):
