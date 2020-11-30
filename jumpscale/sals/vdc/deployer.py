@@ -145,10 +145,10 @@ class VDCDeployer:
                 if not any([cus, sus, ipv4us]):
                     return pool.pool_id
                 node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
-                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, node_ids=node_ids)
+                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, 0, node_ids=node_ids)
                 self.zos.billing.payout_farmers(self.wallet, pool_info)
                 return pool.pool_id
-        pool_info = self.zos.pools.create(cus, sus, farm_name)
+        pool_info = self.zos.pools.create(cus, sus, 0, farm_name)
         self.zos.billing.payout_farmers(self.wallet, pool_info)
         return pool_info.reservation_id
 

@@ -122,7 +122,7 @@ class VDCProxy(VDCBaseComponent):
 
         self.vdc_deployer.info(f"reserving an empty pool on farm: {self.farm_name}")
         # no pool was found need to create a pool
-        pool_info = self.zos.pools.create(0, 0, self.farm_name)
+        pool_info = self.zos.pools.create(0, 0, 0, self.farm_name)
         self.vdc_deployer.info(f"gateway pool: {pool_info.reservation_id}")
         return pool_info.reservation_id
 

@@ -35,14 +35,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         trigger_cus = 0
         trigger_sus = 1
         if not pool_id:
-            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), farm_name)
+            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), 0, farm_name)
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"new pool {pool_info.reservation_id} for k8s cluster extension.")
         else:
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
             trigger_cus = (pool.cus + cus) * 0.75
             trigger_sus = (pool.sus + sus) * 0.75
-            pool_info = self.zos.pools.extend(pool_id, cus, sus, node_ids=node_ids)
+            pool_info = self.zos.pools.extend(pool_id, cus, sus, 0, node_ids=node_ids)
             self.vdc_deployer.info(
                 f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for k8s cluster extension."
             )

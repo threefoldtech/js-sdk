@@ -444,7 +444,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         farm = farm_messages[selected_farm]
         try:
-            pool_info = j.sals.zos.get().pools.create(cu, su, farm, currencies)
+            pool_info = j.sals.zos.get().pools.create(cu, su, 0, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -455,7 +455,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         cu, su, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         try:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currencies=currencies)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
