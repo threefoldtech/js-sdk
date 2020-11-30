@@ -81,6 +81,7 @@ class PoolsSolution(Base):
 
         iframe = self.driver.find_elements_by_tag_name("iframe")[0]
         self.driver.switch_to_frame(iframe)
+        self.wait(self.driver, "progressbar")
         chat_box = self.driver.find_element_by_class_name("chat")
         radios = chat_box.find_elements_by_class_name("v-radio")
         create_radio = [radio for radio in radios if radio.text == option][0]

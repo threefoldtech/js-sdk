@@ -10,10 +10,11 @@ class Base:
         pass
 
     def wait(self, driver, class_name):
-        wait = WebDriverWait(driver, 120)
+        wait = WebDriverWait(driver, 180)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
 
     def click_button(self, driver, text):
+        self.wait(driver, "progressbar")
         buttons = driver.find_elements_by_class_name("v-btn")
         next_button = [button for button in buttons if button.text == text][0]
         next_button.click()

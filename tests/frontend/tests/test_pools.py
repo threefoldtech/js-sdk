@@ -14,11 +14,9 @@ class PoolsTests(BaseTest):
             self.wallet_name = self.random_name()
             self.create_wallet(self.wallet_name)
 
-    def tearDown(self):
-        self.info("Delete the wallet")
-        wallets = Wallets(self.driver)
-        wallets.load()
-        wallets.delete(self.wallet_name)
+    def tearDownClass(cls):
+        cls.delete_wallet()
+        super().tearDownClass()
 
     def test01_create_pool(self):
         """Test case for creating a pool.
@@ -138,3 +136,9 @@ class PoolsTests(BaseTest):
         wallets = Wallets(self.driver)
         wallets.load()
         wallets.add_funded(wallet_name)
+
+    def delete_wallet(self):
+        self.info("Delete the wallet")
+        wallets = Wallets(self.driver)
+        wallets.load()
+        wallets.delete(self.wallet_name)
