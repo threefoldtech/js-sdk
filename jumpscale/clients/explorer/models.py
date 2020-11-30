@@ -42,10 +42,12 @@ class Location(Base):
     def __str__(self):
         return ",".join([x for x in [self.continent, self.country, self.city] if x])
 
+
 class FarmerIP(Base):
     address = fields.IPRange()
     gateway = fields.IPAddress()
     reservation_id = fields.Integer()
+
 
 class Farm(Base):
     id = fields.Integer()
@@ -61,6 +63,7 @@ class Farm(Base):
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
+
 
 class WorkloadsAmount(Base):
     network = fields.Integer()
@@ -577,6 +580,7 @@ class ZdbNamespace(Base):
             resource_units.sru += self.size
         return resource_units
 
+
 class PublicIP(Base):
     id = fields.Integer()
     ipaddress = fields.IPRange()
@@ -586,6 +590,7 @@ class PublicIP(Base):
         resource_units = ResourceUnitAmount()
         resource_units.ipv4u = 1
         return resource_units
+
 
 class ReservationData(Base):
     description = fields.String(default="")

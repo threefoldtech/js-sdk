@@ -10,6 +10,7 @@ from .base import BaseResource
 from .models import Farm, FarmerIP
 from .pagination import get_all, get_page
 
+
 def _build_query(threebot_id: int = None, name: str = None,) -> dict:
     query = {}
     if threebot_id:

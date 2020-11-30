@@ -24,4 +24,3 @@ class PublicIPSGenerator:
         public_ip.info.pool_id = pool_id
         public_ip.info.workload_type = WorkloadType.Public_IP
         return public_ip
-

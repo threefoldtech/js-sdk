@@ -215,6 +215,7 @@ def _network_resource_challenge(network):
             b.write(str(iprange))
     return b.getvalue()
 
+
 def _public_ip_challenge(public_ip):
     b = StringIO()
     b.write(str(public_ip.ipaddress))
