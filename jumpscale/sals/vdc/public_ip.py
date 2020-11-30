@@ -1,6 +1,9 @@
+from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .size import NETWORK_FARM
 import random
+from jumpscale.sals.reservation_chatflow import deployer
+import uuid
 
 
 class VDCPublicIP(VDCBaseComponent):
@@ -20,9 +23,37 @@ class VDCPublicIP(VDCBaseComponent):
         random.shuffle(addresses)
         return addresses
 
-    def get_public_ip(self, node_id):
+    def get_public_ip(self, pool_id, node_id, solution_uuid=None):
         """
         try to reserve a public ip on network farm and returns the wid
         """
-        for address in self.fetch_available_ips():
-            pass
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        self.vdc_deployer.info(f"searching for available public ip in farm {self.farm_name}")
+        for farmer_address in self.fetch_available_ips():
+            address = farmer_address.address
+            self.vdc_deployer.info(
+                f"attempting to reserve public ip: {address} on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+            )
+            wid = deployer.deploy_public_ip(
+                pool_id,
+                node_id,
+                address,
+                identity_name=self.identity.instance_name,
+                description=self.vdc_deployer.description,
+                solution_uuid=solution_uuid,
+            )
+            try:
+                success = deployer.wait_workload(
+                    wid, self.bot, 5, cancel_by_uuid=False, identity_name=self.identity.instance_name
+                )
+                if not success:
+                    raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
+                return wid
+            except DeploymentFailed as e:
+                self.vdc_deployer.error(
+                    f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
+                )
+                continue
+        self.vdc_deployer.error(
+            f"all tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+        )

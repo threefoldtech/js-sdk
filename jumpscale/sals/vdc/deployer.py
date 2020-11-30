@@ -1,4 +1,5 @@
 import hashlib
+from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
 import math
 
@@ -14,7 +15,8 @@ from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
-from .scheduler import CapacityChecker, GlobalScheduler, Scheduler
+from .public_ip import VDCPublicIP
+from .scheduler import GlobalScheduler, Scheduler
 from .size import *
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -55,6 +57,13 @@ class VDCDeployer:
         self._vdc_k8s_manager = None
         self._threebot = None
         self._monitoring = None
+        self._public_ip = None
+
+    @property
+    def public_ip(self):
+        if not self._public_ip:
+            self._public_ip = VDCPublicIP(self)
+        return self._public_ip
 
     @property
     def monitoring(self):
@@ -145,10 +154,10 @@ class VDCDeployer:
                 if not any([cus, sus, ipv4us]):
                     return pool.pool_id
                 node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
-                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, 0, node_ids=node_ids)
+                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, ipv4us, node_ids=node_ids)
                 self.zos.billing.payout_farmers(self.wallet, pool_info)
                 return pool.pool_id
-        pool_info = self.zos.pools.create(cus, sus, 0, farm_name)
+        pool_info = self.zos.pools.create(cus, sus, ipv4us, farm_name)
         self.zos.billing.payout_farmers(self.wallet, pool_info)
         return pool_info.reservation_id
 
@@ -181,7 +190,8 @@ class VDCDeployer:
         k8s = K8s()
         k8s.size = K8SNodeFlavor.SMALL.value
         cus, sus = get_cloud_units(k8s)
-        pool_id = self.get_pool_id(NETWORK_FARM, cus, sus)
+        ipv4us = duration * 60 * 60 * 24
+        pool_id = self.get_pool_id(NETWORK_FARM, cus, sus, ipv4us)
         self.wait_pool_payment(pool_id, trigger_cus=1)
 
         # create minio and threebot pool
@@ -227,6 +237,7 @@ class VDCDeployer:
                             identity_name=self.identity.instance_name,
                             bot=self.bot,
                             cancel_by_uuid=False,
+                            expiry=5,
                         )
                         network_success = network_success and success
                     except Exception as e:
@@ -271,6 +282,9 @@ class VDCDeployer:
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
+
+        Returns:
+            str: kube config in yaml
         """
         gs = scheduler or GlobalScheduler()
         master_pool_id = self.get_pool_id(NETWORK_FARM)
@@ -295,6 +309,7 @@ class VDCDeployer:
             [self.ssh_key.public_key.strip()],
             no_nodes,
             VDC_FLAFORS[self.flavor]["duration"],
+            solution_uuid=self.vdc_uuid,
         )
         return wids
 
@@ -311,10 +326,18 @@ class VDCDeployer:
             raise j.exceptions.Validation(
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
+
+        # initialize vdc pools
         self.init_vdc(farm_name)
-        self.deploy_vdc_network()
+        if not self.deploy_vdc_network():
+            self.error("failed to deploy network")
+            return False
         gs = GlobalScheduler()
+
+        # deploy zdbs for s3
         deployment_threads = self.deploy_vdc_zdb(gs)
+
+        # deploy k8s cluster
         k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
         deployment_threads.append(k8s_thread)
         gevent.joinall(deployment_threads)
@@ -323,11 +346,13 @@ class VDCDeployer:
                 continue
             self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
             self.rollback_vdc_deployment()
+            return False
 
         zdb_wids = deployment_threads[0].value + deployment_threads[1].value
-
         scheduler = Scheduler(farm_name)
         pool_id = self.get_pool_id(farm_name)
+
+        # deploy minio container
         minio_wid = self.s3.deploy_s3_minio_container(
             pool_id,
             minio_ak,
@@ -344,6 +369,7 @@ class VDCDeployer:
             self.rollback_vdc_deployment()
             return False
 
+        # deploy threebot container
         threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
         self.info(f"threebot_wid: {threebot_wid}")
         if not threebot_wid:
@@ -351,15 +377,27 @@ class VDCDeployer:
             self.rollback_vdc_deployment()
             return False
 
-        # download kube config from master
-        # k8s_workload = self.zos.workloads.get(k8s_wids[0])
-        # master_ip = k8s_workload.master_ips[0]
-        # kube_config = self.kubernetes.download_kube_config(master_ip)
-        # config_dict = j.data.serializers.yaml.loads(kube_config)
-        # config_dict["server"] = f"https://{master_ip}:6443"
+        # get kubernetes info
+        self.vdc_instance.load_info()
+        master_ip = None
+        for node in self.vdc_instance.kubernetes:
+            if node.role != KubernetesRole.MASTER:
+                continue
+            master_ip = node.public_ip
 
-        # minio_prometheus_job = self.s3.get_minio_prometheus_job(self.vdc_uuid, minio_api_subdomain)
-        # return j.data.serializers.yaml.dumps(config_dict)
+        if not master_ip:
+            self.error("couldn't get kubernetes master public ip")
+            self.rollback_vdc_deployment()
+
+        # download kube config from master
+        kube_config = self.kubernetes.download_kube_config(master_ip)
+
+        # deploy monitoring stack on kubernetes
+        if not self.monitoring.deploy_stack():
+            # TODO: rollback
+            self.error("failed to deploy monitoring stack on vdc cluster")
+
+        return kube_config
 
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
@@ -407,7 +445,8 @@ class VDCDeployer:
             pool = self.zos.pools.get(pool_id)
             sus = pool.active_su * duration * 60 * 60 * 24
             cus = pool.active_cu * duration * 60 * 60 * 24
-            pool_info = self.zos.pools.extend(pool_id, cus, sus)
+            ipv4us = pool.ipv4us * duration * 60 * 60 * 24
+            pool_info = self.zos.pools.extend(pool_id, cus, sus, ipv4us)
             self.info(
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )

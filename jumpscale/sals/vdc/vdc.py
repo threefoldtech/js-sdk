@@ -10,6 +10,7 @@ from .deployer import VDCDeployer
 from .models import *
 from .size import VDCFlavor
 from .wallet import VDC_WALLET_FACTORY
+import netaddr
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -90,6 +91,12 @@ class UserVDC(Base):
                 node.role = KubernetesRole.MASTER
             node.node_id = workload.info.node_id
             node.pool_id = workload.info.pool_id
+            if workload.public_ip:
+                zos = get_zos()
+                public_ip_workload = zos.workloads.get(workload.public_ip)
+                address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
+                node.public_ip = address
+
             self.size = workload.size
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
