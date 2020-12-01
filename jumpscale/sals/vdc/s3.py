@@ -126,7 +126,7 @@ class VDCS3Deployer(VDCBaseComponent):
                 except DeploymentFailed:
                     self.vdc_deployer.error(f"failed to deploy zdb wid: {wid}")
                     continue
-            if len(wids) == S3_NO_DATA_NODES + S3_NO_PARITY_NODES:
+            if len(wids) == no_nodes:
                 self.vdc_deployer.info(f"{no_nodes} zdbs deployed successfully on pool {pool_id}")
                 return wids
             deployment_nodes = []

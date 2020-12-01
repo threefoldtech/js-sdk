@@ -179,7 +179,7 @@ def extend_zdbs(
 
     for pool_id, su in pool_total_sus.items():
         su = su * (current_expiration - j.data.time.utcnow().timestamp)
-        pool_info = zos.pools.extend(pool_id, 0, su)
+        pool_info = zos.pools.extend(pool_id, 0, su, 0)
         j.logger.info(
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"
         )
@@ -259,7 +259,7 @@ def get_farm_pool_id(farm_name):
         pool_farm_name = zos._explorer.farms.get(farm_id).name
         if farm_name == pool_farm_name:
             return pool.pool_id
-    pool_info = zos.pools.create(0, 0, farm_name)
+    pool_info = zos.pools.create(0, 0, 0, farm_name)
     return pool_info.reservation_id
 
 

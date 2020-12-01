@@ -8,21 +8,26 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
+from jumpscale.clients.explorer.models import K8s, NextAction
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration):
+    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration, public_ip=False):
         """
         returns pool id after extension with enough cloud units
         duration in seconds
         """
-        k8s_resources_dict = K8S_SIZES[k8s_flavor]
-        cus, sus = deployer.calculate_capacity_units(**k8s_resources_dict)
-        cus = cus * duration * no_nodes
-        sus = sus * duration * no_nodes
+        k8s = K8s()
+        k8s.size = k8s_flavor.value
+        cloud_units = k8s.resource_units().cloud_units()
+        cus = cloud_units.cu * duration * no_nodes
+        sus = cloud_units.su * duration * no_nodes
+        ipv4us = 0
+        if public_ip:
+            ipv4us = duration
 
         farm = self.explorer.farms.get(farm_name=farm_name)
         pool_id = None
@@ -35,14 +40,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         trigger_cus = 0
         trigger_sus = 1
         if not pool_id:
-            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), farm_name)
+            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), ipv4us, farm_name)
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"new pool {pool_info.reservation_id} for k8s cluster extension.")
         else:
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
             trigger_cus = (pool.cus + cus) * 0.75
             trigger_sus = (pool.sus + sus) * 0.75
-            pool_info = self.zos.pools.extend(pool_id, cus, sus, node_ids=node_ids)
+            pool_info = self.zos.pools.extend(pool_id, cus, sus, ipv4us, node_ids=node_ids)
             self.vdc_deployer.info(
                 f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for k8s cluster extension."
             )
@@ -54,7 +59,18 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         return pool_id
 
-    def extend_cluster(self, farm_name, master_ip, k8s_flavor, cluster_secret, ssh_keys, no_nodes=1, duration=None):
+    def extend_cluster(
+        self,
+        farm_name,
+        master_ip,
+        k8s_flavor,
+        cluster_secret,
+        ssh_keys,
+        no_nodes=1,
+        duration=None,
+        public_ip=False,
+        solution_uuid=None,
+    ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
         """
@@ -70,15 +86,15 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     f"not enough capacity in farm {farm_name} for {no_nodes} k8s nodes of flavor {k8s_flavor}"
                 )
 
-        duration = duration or self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+        duration = duration * 60 * 60 * 24 or self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
-        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration)
+        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
         scheduler = Scheduler(pool_id=pool_id)
         scheduler.exclude_nodes(*old_node_ids)
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor])
-        solution_uuid = uuid.uuid4().hex
+        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor], public_ip=public_ip)
+        solution_uuid = solution_uuid or uuid.uuid4().hex
         wids = self._add_workers(
             pool_id,
             nodes_generator,
@@ -89,6 +105,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             network_view,
             master_ip,
             no_nodes,
+            public_ip,
         )
         if not wids:
             self.vdc_deployer.error(f"failed to extend k8s cluster with {no_nodes} nodes of flavor {k8s_flavor}")
@@ -99,7 +116,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         master_ip = None
         # deploy_master
         k8s_resources_dict = K8S_SIZES[k8s_flavor]
-        nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id)
+        nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id, public_ip=True)
         while not master_ip:
             try:
                 try:
@@ -129,6 +146,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 self.vdc_deployer.error("all tries to deploy k8s master node have failed")
                 raise j.exceptions.Runtime("all tries to deploy k8s master node have failed")
 
+            # reserve public_ip
+            public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
+                pool_id, master_node.node_id, solution_uuid=solution_uuid,
+            )
+            if not public_ip_wid:
+                self.vdc_deployer.error(f"failed to deploy reserve public ip on node {master_node.node_id}")
+                continue
+
             # deploy master
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(master_node)
@@ -147,6 +172,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 name=self.vdc_name,
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
+                public_ip_wid=public_ip_wid,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
@@ -158,6 +184,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 master_ip = ip_address
                 return master_ip
             except DeploymentFailed:
+                self.zos.workloads.decomission(public_ip_wid)
                 self.vdc_deployer.error(f"failed to deploy kubernetes master wid: {wid}")
                 continue
 
@@ -233,9 +260,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         network_view,
         master_ip,
         no_nodes,
+        public_ip=False,
     ):
         # deploy workers
         wids = []
+        public_wids = []
         while True:
             result = []
             deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, wids, no_nodes, network_view)
@@ -248,6 +277,13 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             network_view = network_view.copy()
             # deploy workers
             for node in deployment_nodes:
+                if public_ip:
+                    public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(pool_id, node.node_id, solution_uuid)
+                    if not public_ip_wid:
+                        self.vdc_deployer.error(f"failed to deploy reserve public ip on node {node.node_id}")
+                        continue
+                else:
+                    public_ip_wid = 0
                 self.vdc_deployer.info(f"deploying kubernetes worker on node {node.node_id}")
                 ip_address = network_view.get_free_ip(node)
                 self.vdc_deployer.info(f"kubernetes worker ip address: {ip_address}")
@@ -267,9 +303,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         name=self.vdc_name,
                         solution_uuid=solution_uuid,
                         description=self.vdc_deployer.description,
+                        public_ip_wid=public_ip_wid,
                     )
                 )
-            for wid in result:
+                public_wids.append(public_ip_wid)
+            for idx, wid in enumerate(result):
                 try:
                     success = deployer.wait_workload(
                         wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
@@ -279,7 +317,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     wids.append(wid)
                     self.vdc_deployer.info(f"kubernetes worker deployed sucessfully wid: {wid}")
                 except DeploymentFailed:
-                    self.vdc_deployer.error(f"failed to deploy kubernetes worker wid: {wid}")
+                    if public_wids[idx]:
+                        self.zos.workloads.decomission(public_wids[idx])
+                    self.vdc_deployer.error(f"failed t.o deploy kubernetes worker wid: {wid}")
                     pass
 
             self.vdc_deployer.info(f"successful kubernetes workers ids: {wids}")
@@ -292,7 +332,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
-        ssh_client = j.clients.sshclient.get(uuid.uuid4().hex, user="rancher", host=master_ip, sshkey=self.vdc_name)
+        ssh_client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
         rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
         if rc:
             j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
@@ -301,6 +341,22 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             )
             raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
         j.clients.sshclient.delete(ssh_client.instance_name)
+        config_dict = j.data.serializers.yaml.loads(out)
+        config_dict["clusters"][0]["cluster"]["server"] = f"https://{master_ip}:6443"
+        out = j.data.serializers.yaml.dumps(config_dict)
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
         return out
+
+    def delete_worker(self, wid):
+        workloads_to_delete = []
+        workload = self.zos.workloads.get(wid)
+        if workload.info.next_action == NextAction.DEPLOY:
+            workloads_to_delete.append(wid)
+        if workload.public_ip:
+            public_ip_workload = self.zos.workloads.get(workload.public_ip)
+            if public_ip_workload.info.next_action == NextAction.DEPLOY:
+                public_ip_workload.append(wid)
+        for wid in workloads_to_delete:
+            self.zos.workloads.decomission(wid)
+        return workloads_to_delete

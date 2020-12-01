@@ -346,7 +346,7 @@ class ChatflowDeployer:
             box = Box(sk, pk)
             return box.decrypt(base64.b85decode(encrypted_metadata.encode())).decode()
         except Exception as e:
-            j.logger.error(f"error when decrypting metadata. {str(e)}")
+            j.logger.warning(f"error when decrypting metadata. {str(e)}")
             return "{}"
 
     def list_networks(self, next_action=NextAction.DEPLOY, sync=True):
@@ -444,7 +444,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         farm = farm_messages[selected_farm]
         try:
-            pool_info = j.sals.zos.get().pools.create(cu, su, farm, currencies)
+            pool_info = j.sals.zos.get().pools.create(cu, su, 0, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -455,7 +455,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         cu, su, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         try:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currencies=currencies)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -1182,8 +1182,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         domain_delegate = j.sals.zos.get(identity_name).gateway.delegate_domain(gateway_id, domain_name, pool_id)
         if metadata:
             domain_delegate.info.metadata = self.encrypt_metadata(metadata, identity_name)
-            domain_delegate.info.description = description
-        return j.sals.zos.get().workloads.deploy(domain_delegate)
+        domain_delegate.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(domain_delegate)
+
+    def deploy_public_ip(self, pool_id, node_id, ip_address, identity_name=None, description="", **metadata):
+        zos = j.sals.zos.get(identity_name)
+        public_ip = zos.public_ip.create(node_id, pool_id, ip_address)
+        if metadata:
+            public_ip.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        public_ip.info.description = description
+        return zos.workloads.deploy(public_ip)
 
     def deploy_kubernetes_master(
         self,
@@ -1196,10 +1204,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         size=1,
         identity_name=None,
         description="",
+        public_ip_wid=0,
         **metadata,
     ):
         master = j.sals.zos.get(identity_name).kubernetes.add_master(
-            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
+            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id, public_ip_wid,
         )
         desc = {"role": "master"}
         if metadata:
@@ -1219,10 +1228,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         size=1,
         identity_name=None,
         description="",
+        public_ip_wid=0,
         **metadata,
     ):
         worker = j.sals.zos.get(identity_name).kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id, public_ip_wid,
         )
         desc = {"role": "worker"}
         if metadata:
