@@ -8,7 +8,7 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
-from jumpscale.clients.explorer.models import K8s
+from jumpscale.clients.explorer.models import K8s, NextAction
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
@@ -347,3 +347,16 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
         return out
+
+    def delete_worker(self, wid):
+        workloads_to_delete = []
+        workload = self.zos.workloads.get(wid)
+        if workload.info.next_action == NextAction.DEPLOY:
+            workloads_to_delete.append(wid)
+        if workload.public_ip:
+            public_ip_workload = self.zos.workloads.get(workload.public_ip)
+            if public_ip_workload.info.next_action == NextAction.DEPLOY:
+                public_ip_workload.append(wid)
+        for wid in workloads_to_delete:
+            self.zos.workloads.decomission(wid)
+        return workloads_to_delete
