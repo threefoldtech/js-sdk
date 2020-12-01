@@ -409,7 +409,7 @@ class VDCDeployer:
             return False
 
         # deploy monitoring stack on kubernetes
-        self.bot_show_update("Deploying monitroing stack")
+        self.bot_show_update("Deploying monitoring stack")
         try:
             self.monitoring.deploy_stack()
         except j.exceptions.Runtime as e:
