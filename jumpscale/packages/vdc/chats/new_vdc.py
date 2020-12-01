@@ -13,7 +13,7 @@ class VDCDeploy(GedisChatBot):
 
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
-        vdc_flavros = [flavor.name for flavor in VDCFlavor]
+        vdc_flavors = [flavor.name for flavor in VDCFlavor]
         form = self.new_form()
         self.vdc_name = form.string_ask(
             "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
@@ -22,7 +22,7 @@ class VDCDeploy(GedisChatBot):
         )
         self.vdc_secret = form.secret_ask("VDC Secret (will be used ...)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
-            "Choose the VDC Flavor", options=vdc_flavros, default=vdc_flavros[0], required=True
+            "Choose the VDC Flavor", options=vdc_flavors, default=vdc_flavors[0], required=True
         )
         form.ask()
 
