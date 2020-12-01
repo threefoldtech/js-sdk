@@ -2,7 +2,7 @@
   <div>
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>{{ $route.name }}</h1>
-      <v-btn class="float-right p-4" color="primary" text>
+      <v-btn class="float-right p-4" color="primary" text @click.stop='openChatflow("add_k3s_node")'>
         <v-icon left>mdi-plus</v-icon>Add node
       </v-btn>
     </div>
@@ -91,6 +91,12 @@ module.exports = {
     };
   },
   methods: {
+    openChatflow(topic) {
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: topic },
+      });
+    },
     open(record) {
       this.selected = record;
       this.dialogs.info = true;

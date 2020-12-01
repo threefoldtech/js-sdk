@@ -2,9 +2,6 @@
   <div>
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>{{ $route.name }}</h1>
-      <v-btn class="float-right p-4" color="primary" text>
-        <v-icon left>mdi-plus</v-icon>Add node
-      </v-btn>
     </div>
     <v-data-table
       :headers="headers"
