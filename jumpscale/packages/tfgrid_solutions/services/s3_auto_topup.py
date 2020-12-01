@@ -96,7 +96,7 @@ class S3AutoTopUp(BackgroundService):
                     f"AUTO_TOPUP: couldn't update minio config for solution {sol_config['name']} due to error: {str(e)}"
                 )
                 j.tools.alerthandler.alert_raise(
-                    appname="s3_auto_topup",
+                    app_name="s3_auto_topup",
                     category="internal_errors",
                     message=f"AUTO_TOPUP: couldn't update minio config for solution {sol_config['name']} due to error: {str(e)}",
                     alert_type="exception",
@@ -110,7 +110,7 @@ class S3AutoTopUp(BackgroundService):
         if not isinstance(config, dict):
             j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
             j.tools.alerthandler.alert_raise(
-                appname="s3_auto_topup",
+                app_name="s3_auto_topup",
                 category="validation",
                 message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
                 alert_type="exception",
@@ -125,7 +125,7 @@ class S3AutoTopUp(BackgroundService):
         if not all(defaults):
             j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!")
             j.tools.alerthandler.alert_raise(
-                appname="s3_auto_topup",
+                app_name="s3_auto_topup",
                 category="validation",
                 message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS config is not valid!",
                 alert_type="exception",
@@ -136,7 +136,7 @@ class S3AutoTopUp(BackgroundService):
         if not isinstance(targets, dict):
             j.logger.error("AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!")
             j.tools.alerthandler.alert_raise(
-                appname="s3_auto_topup",
+                app_name="s3_auto_topup",
                 category="validation",
                 message="AUTO_TOPUP: S3_AUTO_TOP_SOLUTIONS targets config is not valid!",
                 alert_type="exception",
@@ -159,7 +159,7 @@ class S3AutoTopUp(BackgroundService):
             ):
                 j.logger.error(f"AUTO_TOPUP: target {sol_name} config is not valid!")
                 j.tools.alerthandler.alert_raise(
-                    appname="s3_auto_topup",
+                    app_name="s3_auto_topup",
                     category="validation",
                     message=f"AUTO_TOPUP: target {sol_name} config is not valid!",
                     alert_type="exception",

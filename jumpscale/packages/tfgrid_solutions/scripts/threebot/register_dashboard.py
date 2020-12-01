@@ -9,16 +9,8 @@ def _encode_data(data):
     keys = [
         "tid",
         "tname",
-        "timestamp",
-        "level",
-        "message",
         "explorer_url",
         "vdc_name",
-        "app_name",
-        "status",
-        "category",
-        "type",
-        "count",
     ]
     b = StringIO()
     for key in keys:
@@ -28,7 +20,7 @@ def _encode_data(data):
     return b.getvalue().encode()
 
 
-def send_alert(alert):
+def register_dashboard():
     VDC_NAME = os.environ.get("VDC_NAME", "")
     EXPLORER_URL = os.environ.get("EXPLORER_URL", "")
     MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
@@ -40,14 +32,6 @@ def send_alert(alert):
             "tid": tid,
             "explorer_url": EXPLORER_URL,
             "vdc_name": VDC_NAME,
-            "app_name": alert.app_name,
-            "status": alert.status,
-            "category": alert.category,
-            "message": alert.message,
-            "level": alert.level,
-            "timestamp": alert.last_occurrence,
-            "count": alert.count,
-            "type": alert.type,
             "tname": j.core.identity.me.tname,
         }
         encoded_data = _encode_data(data)
@@ -55,6 +39,6 @@ def send_alert(alert):
         signature = binascii.hexlify(signature).decode()
         data["signature"] = signature
         try:
-            requests.post(f"{MONITORING_SERVER_URL}/alert", json=data)
+            requests.post(f"{MONITORING_SERVER_URL}/register", json=data)
         except Exception as e:
-            j.logger.error(f"Failed to send alert, URL:{MONITORING_SERVER_URL}/alert, exception: {str(e)}")
+            j.logger.error(f"Failed to register dashboard, URL:{MONITORING_SERVER_URL}/register, exception: {str(e)}")

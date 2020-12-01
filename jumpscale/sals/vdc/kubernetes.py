@@ -8,7 +8,7 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
-from jumpscale.clients.explorer.models import K8s
+from jumpscale.clients.explorer.models import K8s, NextAction
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
@@ -184,6 +184,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 master_ip = ip_address
                 return master_ip
             except DeploymentFailed:
+                self.zos.workloads.decomission(public_ip_wid)
                 self.vdc_deployer.error(f"failed to deploy kubernetes master wid: {wid}")
                 continue
 
@@ -263,6 +264,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     ):
         # deploy workers
         wids = []
+        public_wids = []
         while True:
             result = []
             deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, wids, no_nodes, network_view)
@@ -304,7 +306,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         public_ip_wid=public_ip_wid,
                     )
                 )
-            for wid in result:
+                public_wids.append(public_ip_wid)
+            for idx, wid in enumerate(result):
                 try:
                     success = deployer.wait_workload(
                         wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
@@ -314,6 +317,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     wids.append(wid)
                     self.vdc_deployer.info(f"kubernetes worker deployed sucessfully wid: {wid}")
                 except DeploymentFailed:
+                    if public_wids[idx]:
+                        self.zos.workloads.decomission(public_wids[idx])
                     self.vdc_deployer.error(f"failed t.o deploy kubernetes worker wid: {wid}")
                     pass
 
@@ -342,3 +347,16 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
         return out
+
+    def delete_worker(self, wid):
+        workloads_to_delete = []
+        workload = self.zos.workloads.get(wid)
+        if workload.info.next_action == NextAction.DEPLOY:
+            workloads_to_delete.append(wid)
+        if workload.public_ip:
+            public_ip_workload = self.zos.workloads.get(workload.public_ip)
+            if public_ip_workload.info.next_action == NextAction.DEPLOY:
+                public_ip_workload.append(wid)
+        for wid in workloads_to_delete:
+            self.zos.workloads.decomission(wid)
+        return workloads_to_delete
