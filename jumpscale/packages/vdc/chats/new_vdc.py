@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "success"]
+    steps = ["vdc_info", "deploy", "success", "expose_s3"]
 
     def _init(self):
         self.user_info_data = self.user_info()
@@ -67,7 +67,7 @@ Please fund this wallet's address with some TFTs to use in deployment:
             j.logger.error(str(err))
             StopChatFlow(str(err))
 
-    @chatflow_step(title="VDC Deployment Success", final_step=True)
+    @chatflow_step(title="VDC Deployment Success")
     def success(self):
         self.download_file(
             f"""
@@ -78,6 +78,15 @@ Please download the config file to `~/.kube/config` to start using your cluster 
             f"{self.vdc_name}.yaml",
             md=True,
         )
+
+    @chatflow_step(title="Expose S3", final_step=True)
+    def expose_s3(self):
+        result = self.single_choice(
+            "Do you wish to expose your s3 over public domain name?", ["Yes", "No"], default="No"
+        )
+        if result == "YES":
+            domain_name = self.deployer.expose_s3()
+            self.md_show(f"You can access your s3 cluster over domain {domain_name}")
 
 
 chat = VDCDeploy

@@ -143,8 +143,9 @@ class UserVDC(Base):
         self.load_info()
         j.logger.info(f"VDC: {self.solution_uuid}, GRACE_PERIOD_ACTION: initialization")
         for k8s in self.kubernetes:
-            # FIXME: replace master ip with the correct public ip when merged
-            ip_address = k8s.ip_address
+            ip_address = k8s.public_ip
+            if ip_address == "::/128":
+                continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
             vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
             ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
@@ -182,8 +183,9 @@ class UserVDC(Base):
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: intializing")
         self.is_blocked = False
         for k8s in self.kubernetes:
-            # FIXME: replace master ip with the correct public ip when merged
-            ip_address = k8s.ip_address
+            ip_address = k8s.public_ip
+            if ip_address == "::/128":
+                continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
             vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
             ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)

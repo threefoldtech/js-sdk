@@ -410,6 +410,19 @@ class VDCDeployer:
             self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
         return kube_config
 
+    def expose_s3(self):
+        self.vdc_instance.load_info()
+        if not self.vdc_instance.s3.minio or not self.vdc_instance.kubernetes:
+            self.error(f"can't find one or more required workloads to expose s3")
+            raise j.exceptions.Runtime(f"vdc {self.vdc_uuid} doesn't contain the required workloads")
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        self.info(f"exposing s3 over public ip: {master_ip}")
+        domain_name = self.proxy.ingress_proxy(
+            f"minio", f"{self.vdc_name}-s3", self.vdc_instance.s3.minio.wid, 9000, master_ip, uuid.uuid4().hex
+        )
+        self.info(f"s3 exposed over domain: {domain_name}")
+        return domain_name
+
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
