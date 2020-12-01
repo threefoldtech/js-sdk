@@ -40,7 +40,7 @@
           <span>Show Information</span>
         </v-tooltip>
 
-        <v-tooltip top>
+        <v-tooltip top v-if="item.role !== 'master'">
           <template v-slot:activator="{ on, attrs }">
             <v-btn icon @click.stop="deleteNode(item)">
               <v-icon v-bind="attrs" v-on="on" color="#810000"
