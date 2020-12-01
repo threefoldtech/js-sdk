@@ -12,6 +12,9 @@
         </v-row>
       </router-link>
       <v-spacer></v-spacer>
+      <v-btn text href="/vdc" target="_blank">
+        <v-icon color="primary" class="mr-2" right>mdi-server</v-icon>VDC DEPLOYER
+      </v-btn>
 
       <v-menu v-model="menu" :close-on-content-click="false" offset-x>
           <template v-slot:activator="{ on }">
