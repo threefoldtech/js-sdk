@@ -353,6 +353,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def delete_worker(self, wid):
         workloads_to_delete = []
         workload = self.zos.workloads.get(wid)
+        if not workload.master_ips:
+            raise j.exceptions.Input("can't delete controller node")
         if workload.info.next_action == NextAction.DEPLOY:
             workloads_to_delete.append(wid)
         if workload.public_ip:

@@ -28,7 +28,6 @@ class VDCDeploy(GedisChatBot):
 
     def _k3s_and_minio_form(self):
         form = self.new_form()
-        self.cluster_secret = form.secret_ask("K3s cluster secret (will be used ...)", min_length=8, required=True,)
         self.minio_access_key = form.string_ask("Minio access key (will be used ...)", required=True,)
         self.minio_secret_key = form.secret_ask("Minio secret key (will be used ...)", min_length=8, required=True,)
         form.ask()
@@ -44,7 +43,7 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDCFlavor[self.vdc_flavor.value]
         )
-        trans_hash = self.vdc.show_vdc_payment(self, expiry=1)
+        trans_hash = self.vdc.show_vdc_payment(self)
         if not trans_hash:
             j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(f"payment timedout")
@@ -61,9 +60,7 @@ class VDCDeploy(GedisChatBot):
         self.md_show_update("Deploying your VDC...")
         try:
             self.config = self.deployer.deploy_vdc(
-                cluster_secret=self.cluster_secret.value,
-                minio_ak=self.minio_access_key.value,
-                minio_sk=self.minio_secret_key.value,
+                minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
                 self.stop("Failed to deploy vdc. please try again later")

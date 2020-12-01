@@ -278,13 +278,13 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         amount = get_vdc_tft_price(self.flavor)
-        memo_text = self._show_payment(bot, amount)
-        return self._wait_payment(bot, amount, memo_text, expiry)
+        memo_text = self._show_payment(bot, amount, wallet_name)
+        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None):
         amount = get_kubernetes_tft_price(size) * no_nodes
-        memo_text = self._show_payment(bot, amount)
-        return self._wait_payment(bot, amount, memo_text, expiry)
+        memo_text = self._show_payment(bot, amount, wallet_name)
+        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
     def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
         j.logger.critical(

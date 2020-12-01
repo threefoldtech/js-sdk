@@ -18,12 +18,18 @@ from .threebot import VDCThreebotDeployer
 from .public_ip import VDCPublicIP
 from .scheduler import GlobalScheduler, Scheduler
 from .size import *
+from jumpscale.core.exceptions import exceptions
+
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
+
+
+class VDCIdentityError(exceptions.Base):
+    pass
 
 
 class VDCDeployer:
@@ -143,7 +149,7 @@ class VDCDeployer:
             self.identity.save()
         except Exception as e:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
-            raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
+            raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
         farm = self.explorer.farms.get(farm_name=farm_name)
@@ -313,7 +319,7 @@ class VDCDeployer:
             self.error("failed to deploy kubernetes workers")
         return wids
 
-    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -321,6 +327,7 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
+        cluster_secret = self.password_hash
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
             raise j.exceptions.Validation(
@@ -422,6 +429,26 @@ class VDCDeployer:
         )
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
+
+    def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1):
+        if isinstance(flavor, str):
+            flavor = K8SNodeFlavor[flavor.upper()]
+        cluster_secret = self.password_hash
+        self.vdc_instance.load_info()
+        self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        farm_name = farm_name if not public_ip else NETWORK_FARM
+        wids = self.kubernetes.extend_cluster(
+            farm_name,
+            master_ip,
+            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            cluster_secret,
+            [self.ssh_key.public_key.strip()],
+            no_nodes,
+            solution_uuid=uuid.uuid4().hex,
+        )
+        self.info(f"k8s cluster expansion result: {wids}")
+        return wids
 
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
