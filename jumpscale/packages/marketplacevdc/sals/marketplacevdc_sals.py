@@ -62,6 +62,8 @@ def get_deployments(solution_type: str = None) -> list:
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
         config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+        if not j.sals.fs.exists(config_path):
+            continue
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
         try:
             kubectl_deployment_info = k8s_client.execute_native_cmd(

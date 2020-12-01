@@ -17,6 +17,7 @@ CHART_LIMITS = {
 }
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/marketplace-charts/"}}
+VDC_ENDPOINT = "/vdc"
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
@@ -29,6 +30,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _get_kube_config(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
+        if not vdc_names:
+            raise StopChatFlow(
+                f'No Virtual Data Centres(VDC) were found. To deploy one please head to your <a href="{VDC_ENDPOINT}" target="_blank">VDC deployer</a>',
+                htmlAlert=True,
+            )
         vdc_selected = self.single_choice(
             f"Choose the vdc to install {self.SOLUTION_TYPE} on", options=vdc_names, required=True
         )
@@ -264,7 +270,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def get_release_name(self):
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         while True:
-            self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True,)
+            self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True)
             # TODO: Check if solution name exist
             releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
             if not self.release_name in releases:
