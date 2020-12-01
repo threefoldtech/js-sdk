@@ -12,9 +12,7 @@
           <div>{{ item.id }}</div>
         </template>
         <template v-slot:item.name="{ item }">
-          <router-link :to="`/workloads/${item.vdc_name}`">{{
-            item.vdc_name
-          }}</router-link>
+          {{item.vdc_name}}
         </template>
         <template v-slot:item.package="{ item }">
           <div :class="`${item.class}`">{{ item.flavor }}</div>
@@ -25,13 +23,11 @@
         <template v-slot:item.actions="{ item }">
           <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
-              <v-btn icon @click.stop="delete3Bot(item)">
-                <v-icon v-bind="attrs" v-on="on" color="#810000"
-                  >mdi-delete</v-icon
-                >
-              </v-btn>
+              <router-link style="text-decoration: none" :to="`/workloads/${item.vdc_name}`">
+               <v-icon v-bind="attrs" v-on="on" color="primary">mdi-information-outline</v-icon>
+              </router-link>
             </template>
-            <span>Destroy</span>
+            <span>Show Information</span>
           </v-tooltip>
         </template>
       </v-data-table>
@@ -59,10 +55,6 @@ module.exports = {
     };
   },
   methods: {
-    delete3Bot(record) {
-      this.selected = record;
-      this.dialogs.cancelWorkload = true;
-    },
   },
   computed: {
     deployedVdc() {

@@ -1,7 +1,7 @@
 import hashlib
 from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
-import math
+import uuid
 
 import gevent
 from jumpscale.loader import j
@@ -18,12 +18,18 @@ from .threebot import VDCThreebotDeployer
 from .public_ip import VDCPublicIP
 from .scheduler import GlobalScheduler, Scheduler
 from .size import *
+from jumpscale.core.exceptions import exceptions
+
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
+
+
+class VDCIdentityError(exceptions.Base):
+    pass
 
 
 class VDCDeployer:
@@ -141,7 +147,7 @@ class VDCDeployer:
             self.identity.save()
         except Exception as e:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
-            raise j.exceptions.Runtime(f"failed to generate identity for user {identity_name} due to error {str(e)}")
+            raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
         farm = self.explorer.farms.get(farm_name=farm_name)
@@ -294,6 +300,7 @@ class VDCDeployer:
             nv,
         )
         if not master_ip:
+            self.error("failed to deploy kubernetes master")
             return
         no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
         wids = self.kubernetes.extend_cluster(
@@ -306,9 +313,11 @@ class VDCDeployer:
             VDC_FLAFORS[self.flavor]["duration"],
             solution_uuid=self.vdc_uuid,
         )
+        if not wids:
+            self.error("failed to deploy kubernetes workers")
         return wids
 
-    def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -316,6 +325,7 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
+        cluster_secret = self.password_hash
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
             raise j.exceptions.Validation(
@@ -323,16 +333,20 @@ class VDCDeployer:
             )
 
         # initialize vdc pools
+        self.bot_show_update("Initializing vdc")
         self.init_vdc(farm_name)
+        self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
             return False
         gs = GlobalScheduler()
 
         # deploy zdbs for s3
+        self.bot_show_update("Deploying zdbs for s3")
         deployment_threads = self.deploy_vdc_zdb(gs)
 
         # deploy k8s cluster
+        self.bot_show_update("Deploying k8s cluster")
         k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
         deployment_threads.append(k8s_thread)
         gevent.joinall(deployment_threads)
@@ -348,6 +362,7 @@ class VDCDeployer:
         pool_id = self.get_pool_id(farm_name)
 
         # deploy minio container
+        self.bot_show_update("Deploying minio container")
         minio_wid = self.s3.deploy_s3_minio_container(
             pool_id,
             minio_ak,
@@ -365,6 +380,7 @@ class VDCDeployer:
             return False
 
         # deploy threebot container
+        self.bot_show_update("Deploying 3Bot container")
         threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
         self.info(f"threebot_wid: {threebot_wid}")
         if not threebot_wid:
@@ -373,28 +389,64 @@ class VDCDeployer:
             return False
 
         # get kubernetes info
+        self.bot_show_update("Preparing Kubernetes cluster configuration")
         self.vdc_instance.load_info()
-        master_ip = None
-        for node in self.vdc_instance.kubernetes:
-            if node.role != KubernetesRole.MASTER:
-                continue
-            master_ip = node.public_ip
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
 
-        if not master_ip:
-            self.error("couldn't get kubernetes master public ip")
+        if master_ip == "::/128":
+            self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
             self.rollback_vdc_deployment()
+            return False
 
-        # download kube config from master
-        kube_config = self.kubernetes.download_kube_config(master_ip)
+        try:
+            # download kube config from master
+            kube_config = self.kubernetes.download_kube_config(master_ip)
+        except Exception as e:
+            self.error(f"failed to download kube config due to error {str(e)}")
+            self.rollback_vdc_deployment()
+            return False
 
         # deploy monitoring stack on kubernetes
+        self.bot_show_update("Deploying monitoring stack")
         try:
             self.monitoring.deploy_stack()
         except j.exceptions.Runtime as e:
             # TODO: rollback
             self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
-
         return kube_config
+
+    def expose_s3(self):
+        self.vdc_instance.load_info()
+        if not self.vdc_instance.s3.minio or not self.vdc_instance.kubernetes:
+            self.error(f"can't find one or more required workloads to expose s3")
+            raise j.exceptions.Runtime(f"vdc {self.vdc_uuid} doesn't contain the required workloads")
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        self.info(f"exposing s3 over public ip: {master_ip}")
+        domain_name = self.proxy.ingress_proxy(
+            f"minio", f"{self.vdc_name}-s3", self.vdc_instance.s3.minio.wid, 9000, master_ip, uuid.uuid4().hex
+        )
+        self.info(f"s3 exposed over domain: {domain_name}")
+        return domain_name
+
+    def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1):
+        if isinstance(flavor, str):
+            flavor = K8SNodeFlavor[flavor.upper()]
+        cluster_secret = self.password_hash
+        self.vdc_instance.load_info()
+        self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        farm_name = farm_name if not public_ip else NETWORK_FARM
+        wids = self.kubernetes.extend_cluster(
+            farm_name,
+            master_ip,
+            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            cluster_secret,
+            [self.ssh_key.public_key.strip()],
+            no_nodes,
+            solution_uuid=uuid.uuid4().hex,
+        )
+        self.info(f"k8s cluster expansion result: {wids}")
+        return wids
 
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
@@ -421,6 +473,10 @@ class VDCDeployer:
 
     def error(self, msg):
         self._log(msg, "error")
+
+    def bot_show_update(self, msg):
+        if self.bot:
+            self.bot.md_show_update(msg)
 
     def renew_plan(self, duration):
         """before calling

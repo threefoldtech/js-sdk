@@ -35,6 +35,15 @@ validators = {
 
             return true;
         },
+        not_exist: (field, args) => {
+            let errmsg = `Invalid value. ${args[0]} with this name already exists`;
+
+            if (args[1].includes(field.val)) {
+                return errmsg;
+            }
+
+            return true;
+        },
     },
     int_ask: {
         min: (field, min) => {

@@ -6,7 +6,7 @@
       :loading="loading"
     >
       <template #actions>
-        <v-btn color="primary" text>
+        <v-btn color="primary" text @click.stop='openChatflow("new_vdc")'>
           <v-icon left>mdi-plus</v-icon>Add a new VDC
         </v-btn>
       </template>
@@ -14,7 +14,7 @@
         <template>
           <deployer-data-table
             :deployed="deployedvdcs"
-            :headers="headers3Bots"
+            :headers="headersvdcs"
             :loading="loading"
           >
           </deployer-data-table>
@@ -31,9 +31,8 @@ module.exports = {
   },
   data() {
     return {
-      threebot_data: APPS["threebot"],
       loading: true,
-      headers3Bots: [
+      headersvdcs: [
         { text: "ID", value: "id" },
         { text: "Name", value: "name" },
         { text: "Package", value: "package" },
@@ -44,10 +43,10 @@ module.exports = {
     };
   },
   methods: {
-    openChatflow(type, tname = "") {
+    openChatflow(topic, tname = "") {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: type, tname: tname },
+        params: { topic: topic, tname: tname },
       });
     },
     groupBy(list, keyGetter) {

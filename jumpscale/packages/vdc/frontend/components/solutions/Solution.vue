@@ -1,10 +1,10 @@
 <template>
   <div>
-    <v-parallax :src="threebot_data.bg" height="100%">
+    <v-parallax :src="vdc_data.bg" height="100%">
       <v-row align="center" justify="center">
         <v-col class="text-center" cols="12">
-          <h1 style="font-size: 60" class="mb-2">{{ threebot_data.header }}</h1>
-          <h3 class="subheading">{{ threebot_data.subheader }}</h3>
+          <h1 style="font-size: 60" class="mb-2">{{ vdc_data.header }}</h1>
+          <h3 class="subheading">{{ vdc_data.subheader }}</h3>
           <v-btn
             color="#4472B5"
             class="mt-8 mx-2"
@@ -19,7 +19,7 @@
             class="mt-8 mx-2"
             dark
             large
-            @click.stop="openChatflow()"
+            @click.stop="openChatflow('new_vdc')"
             >Deploy a VDC</v-btn
           >
         </v-col>
@@ -32,14 +32,14 @@
 module.exports = {
   data() {
     return {
-      threebot_data: APPS["threebot"],
+      vdc_data: APPS["vdc"],
     };
   },
   methods: {
-    openChatflow() {
+    openChatflow(topic) {
       this.$router.push({
         name: "SolutionChatflow",
-        params: { topic: this.threebot_data.type },
+        params: { topic: topic },
       });
     },
     viewWorkloads() {
