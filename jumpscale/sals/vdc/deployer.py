@@ -282,9 +282,6 @@ class VDCDeployer:
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
-
-        Returns:
-            str: kube config in yaml
         """
         gs = scheduler or GlobalScheduler()
         master_pool_id = self.get_pool_id(NETWORK_FARM)
@@ -393,9 +390,11 @@ class VDCDeployer:
         kube_config = self.kubernetes.download_kube_config(master_ip)
 
         # deploy monitoring stack on kubernetes
-        if not self.monitoring.deploy_stack():
+        try:
+            self.monitoring.deploy_stack()
+        except j.exceptions.Runtime as e:
             # TODO: rollback
-            self.error("failed to deploy monitoring stack on vdc cluster")
+            self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
 
         return kube_config
 
