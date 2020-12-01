@@ -36,7 +36,7 @@ class HeartBeatService(BackgroundService):
         if MONITORING_SERVER_URL:
             identity_name = j.core.identity.me.instance_name
             tid = j.core.identity.get(identity_name).tid
-            data = {"tid": tid, "vdc_name": VDC_NAME, "explorer_url": EXPLORER_URL, "tname": j.core.identity.me.tid}
+            data = {"tid": tid, "vdc_name": VDC_NAME, "explorer_url": EXPLORER_URL, "tname": j.core.identity.me.tname}
             encoded_data = self._encode_data(data)
             signature = j.core.identity.me.nacl.signing_key.sign(encoded_data).signature
 
