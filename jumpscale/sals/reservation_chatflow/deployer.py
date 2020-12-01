@@ -1001,7 +1001,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
     ):
         volume = j.sals.zos.get(identity_name).volume.create(node_id, pool_id, size, volume_type)
         if metadata:
-            volume.info.metadata = self.encrypt_metadata(metadata)
+            volume.info.metadata = self.encrypt_metadata(metadata, identity_name)
             volume.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(volume)
 
@@ -1486,7 +1486,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         metadata["password"] = password
         workload = j.sals.zos.get(identity_name).zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
+            workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
             workload.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(workload)
 

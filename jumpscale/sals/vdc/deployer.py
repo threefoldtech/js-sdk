@@ -1,7 +1,7 @@
 import hashlib
 from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
-import math
+import uuid
 
 import gevent
 from jumpscale.loader import j
