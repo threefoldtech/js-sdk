@@ -16,7 +16,7 @@ CHART_LIMITS = {
     "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
 }
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
-HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/marketplace-charts/"}}
+HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}}
 VDC_ENDPOINT = "/vdc"
 
 
@@ -46,6 +46,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             if node.role == KubernetesRole.MASTER:
                 self.vdc_info["master_ip"] = node.ip_address
                 self.vdc_info["pool_id"] = node.pool_id
+                self.vdc_info["public_ip"] = node.public_ip
                 self.vdc_info["farm_name"] = j.core.identity.me.explorer.farms.get(
                     j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
                 ).name
@@ -302,15 +303,16 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
+        public_ip = self.vdc_info["public_ip"]
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
 
         if not j.sals.reservation_chatflow.wait_http_test(
-            f"https://{self.domain}", timeout=300, verify=not j.config.get("TEST_CERT")
+            f"https://{public_ip}", timeout=300, verify=not j.config.get("TEST_CERT")
         ):
             stop_message = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
-                Domain: {self.domain}
+                Domain: {public_ip}
                 VDC Name: {self.vdc.vdc_name}
                 Farm name: {self.vdc_info["farm_name"]}
                 """
@@ -321,6 +323,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
-        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        - You can access it via the browser using: <a href="https://{public_ip}" target="_blank">https://{public_ip}</a>
         """
         self.md_show(dedent(message), md=True)

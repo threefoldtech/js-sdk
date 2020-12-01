@@ -22,14 +22,12 @@ from .size import *
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
-MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/marketplace-charts/"
+MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
 
 
 class VDCDeployer:
-    def __init__(
-        self, password: str, vdc_instance, bot: GedisChatBot = None, proxy_farm_name: str = None,
-    ):
+    def __init__(self, password: str, vdc_instance, bot: GedisChatBot = None, proxy_farm_name: str = None):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
         self.flavor = self.vdc_instance.flavor
@@ -227,7 +225,7 @@ class VDCDeployer:
                 self.info(f"deploying network on node {access_node.node_id}")
                 network_success = True
                 result = deployer.deploy_network(
-                    self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool.pool_id, self.identity.instance_name,
+                    self.vdc_name, access_node, IP_RANGE, IP_VERSION, pool.pool_id, self.identity.instance_name
                 )
                 for wid in result["ids"]:
                     try:

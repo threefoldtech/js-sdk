@@ -3,7 +3,7 @@ from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
-from jumpscale.packages.marketplace.bottle.models import UserEntry
+from jumpscale.packages.marketplacevdc.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
 app = Bottle()
@@ -21,9 +21,7 @@ def list_vdcs():
         vdc_dict.pop("kubernetes")
         vdc_dict.pop("threebot")
         result.append(vdc_dict)
-    return HTTPResponse(
-        j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"},
-    )
+    return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/vdcs/<name>", method="GET")
@@ -33,11 +31,11 @@ def get_vdc_info(name):
     username = user_info["username"]
     vdc = VDCFACTORY.find(vdc_name=name, owner_tname=username, load_info=True)
     if not vdc:
-        return HTTPResponse(status=404, headers={"Content-Type": "application/json"},)
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
     vdc_dict.pop("threebot")
     return HTTPResponse(
-        j.data.serializers.json.dumps(vdc.to_dict()), status=200, headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps(vdc.to_dict()), status=200, headers={"Content-Type": "application/json"}
     )
 
 

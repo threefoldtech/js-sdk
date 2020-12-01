@@ -9,7 +9,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     steps = [
         "select_vdc",
         "get_release_name",
-        "create_subdomain",
+        # "create_subdomain", # TODO
         "set_config",
         "install_chart",
         "initializing",
@@ -21,7 +21,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         # TODO: get config from user
         self._choose_flavor()
         self.chart_config = {
-            "ingress.host": self.domain,
+            "ingress.host": self.vdc_info["public_ip"],
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
