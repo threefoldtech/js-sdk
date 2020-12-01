@@ -296,6 +296,7 @@ class VDCDeployer:
             nv,
         )
         if not master_ip:
+            self.error("failed to deploy kubernetes master")
             return
         no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
         wids = self.kubernetes.extend_cluster(
@@ -308,6 +309,8 @@ class VDCDeployer:
             VDC_FLAFORS[self.flavor]["duration"],
             solution_uuid=self.vdc_uuid,
         )
+        if not wids:
+            self.error("failed to deploy kubernetes workers")
         return wids
 
     def deploy_vdc(self, cluster_secret, minio_ak, minio_sk, farm_name=PREFERED_FARM):
@@ -383,15 +386,12 @@ class VDCDeployer:
         # get kubernetes info
         self.bot_show_update("Preparing Kubernetes cluster configuration")
         self.vdc_instance.load_info()
-        master_ip = None
-        for node in self.vdc_instance.kubernetes:
-            if node.role != KubernetesRole.MASTER:
-                continue
-            master_ip = node.public_ip
+        master_ip = self.vdc_instance.kubernetes[0].public_ip
 
-        if not master_ip:
-            self.error("couldn't get kubernetes master public ip")
+        if master_ip == "::/128":
+            self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
             self.rollback_vdc_deployment()
+            return False
 
         try:
             # download kube config from master

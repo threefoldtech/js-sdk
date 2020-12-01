@@ -44,35 +44,44 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDCFlavor[self.vdc_flavor.value]
         )
-        self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
-        # TODO: price plan
-        message = f"""\
-Please fund this wallet's address with some TFTs to use in deployment:
-  - ### {self.vdc.wallet.address}
-        """
-        self.md_show(message, md=True)
+        trans_hash = self.vdc.show_vdc_payment(self, expiry=1)
+        trans_hash = True  # TODO: remove after development
+        if not trans_hash:
+            j.sals.vdc.delete(self.vdc.vdc_name)
+            self.stop(f"payment timedout")
+        self.md_show_update("Payment successful")
+
+        try:
+            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
+        except Exception as e:
+            j.logger.error(f"failed to initialize vdc deployer due to error {str(e)}")
+            self.vdc.refund_payment(trans_hash)
+            j.sals.vdc.delete(self.vdc.vdc_name)
+            self.stop("failed to initialize vdc deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
         try:
-            # yaml text to download self.config
-            # show IP
             self.config = self.deployer.deploy_vdc(
                 cluster_secret=self.cluster_secret.value,
                 minio_ak=self.minio_access_key.value,
                 minio_sk=self.minio_secret_key.value,
             )
-            # TODO: optional expose minio
+            if not self.config:
+                self.stop("Failed to deploy vdc. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except j.exceptions.Runtime as err:
             j.logger.error(str(err))
-            StopChatFlow(str(err))
+            self.stop(str(err))
 
     @chatflow_step(title="VDC Deployment Success")
     def success(self):
         self.download_file(
             f"""
 # Your VDC {self.vdc.vdc_name} has been deployed successfuly.
+
 Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+Kubernetes controller public IP: {self.public_ip}
         """,
             self.config,
             f"{self.vdc_name}.yaml",
