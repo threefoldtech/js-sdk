@@ -583,7 +583,7 @@ tests = ["coverage (>=4.0)", "pytest-cache (>=1.0)", "pytest-cov", "flake8", "py
 
 [[package]]
 name = "js-ng"
-version = "11.0b9"
+version = "11.0b10"
 description = "system automation, configuration management and RPC framework"
 category = "main"
 optional = false
@@ -1480,7 +1480,7 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "c6a5b8dccd113daefed620146cefd98a539976b51bef0a6603150a30cb103d3b"
+content-hash = "bc70df28fd2dc41e24b957d367ae29fe323d2e7630c4d4bb35e3b4e3ee5a7d2a"
 
 [metadata.files]
 acme = [
@@ -1772,8 +1772,8 @@ josepy = [
     {file = "josepy-1.4.0.tar.gz", hash = "sha256:c37ff4b93606e6a452b72cdb992da5e0544be12912fac01b31ddbdd61f6d5bd0"},
 ]
 js-ng = [
-    {file = "js-ng-11.0b9.tar.gz", hash = "sha256:487ccaaa6491c79a186888a22e852d09c89505bf76f1f9a4fdea2268e132e4f8"},
-    {file = "js_ng-11.0b9-py3-none-any.whl", hash = "sha256:8ee8c7b20b6a51bb70b68c48f056102b5bb0b57790016f4adc72fd7291434249"},
+    {file = "js-ng-11.0b10.tar.gz", hash = "sha256:d90c47a13607742accb33dd97c0c7c2e8ca07fc1f20a75b7ff267b12b4210bde"},
+    {file = "js_ng-11.0b10-py3-none-any.whl", hash = "sha256:4e88b2e4cb3e651aac6160b0ee5aa9bd609e988a68ca4b9c7f7d8a59c5be6979"},
 ]
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},
