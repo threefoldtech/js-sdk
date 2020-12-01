@@ -72,7 +72,7 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(str(err))
             self.stop(str(err))
 
-    @chatflow_step(title="VDC Deployment Success")
+    @chatflow_step(title="VDC Deployment Success", disable_previous=True)
     def success(self):
         self.download_file(
             f"""
