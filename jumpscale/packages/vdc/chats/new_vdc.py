@@ -69,10 +69,15 @@ Please fund this wallet's address with some TFTs to use in deployment:
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
-        message = f"""\
-        # Your VDC has been deployed successfuly.
-        """
-        self.md_show(message, md=True)
+        self.download_file(
+            f"""
+# Your VDC {self.vdc.vdc_name} has been deployed successfuly.
+Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+        """,
+            self.config,
+            f"{self.vdc_name}.yaml",
+            md=True,
+        )
 
 
 chat = VDCDeploy

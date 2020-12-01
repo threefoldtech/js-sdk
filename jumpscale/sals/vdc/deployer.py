@@ -325,16 +325,20 @@ class VDCDeployer:
             )
 
         # initialize vdc pools
+        self.bot_show_update("Initializing vdc")
         self.init_vdc(farm_name)
+        self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
             return False
         gs = GlobalScheduler()
 
         # deploy zdbs for s3
+        self.bot_show_update("Deploying zdbs for s3")
         deployment_threads = self.deploy_vdc_zdb(gs)
 
         # deploy k8s cluster
+        self.bot_show_update("Deploying k8s cluster")
         k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
         deployment_threads.append(k8s_thread)
         gevent.joinall(deployment_threads)
@@ -350,6 +354,7 @@ class VDCDeployer:
         pool_id = self.get_pool_id(farm_name)
 
         # deploy minio container
+        self.bot_show_update("Deploying minio container")
         minio_wid = self.s3.deploy_s3_minio_container(
             pool_id,
             minio_ak,
@@ -367,6 +372,7 @@ class VDCDeployer:
             return False
 
         # deploy threebot container
+        self.bot_show_update("Deploying 3Bot container")
         threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
         self.info(f"threebot_wid: {threebot_wid}")
         if not threebot_wid:
@@ -375,6 +381,7 @@ class VDCDeployer:
             return False
 
         # get kubernetes info
+        self.bot_show_update("Preparing Kubernetes cluster configuration")
         self.vdc_instance.load_info()
         master_ip = None
         for node in self.vdc_instance.kubernetes:
@@ -386,16 +393,21 @@ class VDCDeployer:
             self.error("couldn't get kubernetes master public ip")
             self.rollback_vdc_deployment()
 
-        # download kube config from master
-        kube_config = self.kubernetes.download_kube_config(master_ip)
+        try:
+            # download kube config from master
+            kube_config = self.kubernetes.download_kube_config(master_ip)
+        except Exception as e:
+            self.error(f"failed to download kube config due to error {str(e)}")
+            self.rollback_vdc_deployment()
+            return False
 
         # deploy monitoring stack on kubernetes
+        self.bot_show_update("Deploying monitroing stack")
         try:
             self.monitoring.deploy_stack()
         except j.exceptions.Runtime as e:
             # TODO: rollback
             self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
-
         return kube_config
 
     def rollback_vdc_deployment(self):
@@ -423,6 +435,10 @@ class VDCDeployer:
 
     def error(self, msg):
         self._log(msg, "error")
+
+    def bot_show_update(self, msg):
+        if self.bot:
+            self.bot.md_show_update(msg)
 
     def renew_plan(self, duration):
         """before calling
