@@ -45,7 +45,6 @@ class VDCDeploy(GedisChatBot):
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDCFlavor[self.vdc_flavor.value]
         )
         trans_hash = self.vdc.show_vdc_payment(self, expiry=1)
-        trans_hash = True  # TODO: remove after development
         if not trans_hash:
             j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(f"payment timedout")
