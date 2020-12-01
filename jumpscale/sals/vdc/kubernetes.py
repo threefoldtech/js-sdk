@@ -184,6 +184,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 master_ip = ip_address
                 return master_ip
             except DeploymentFailed:
+                self.zos.workloads.decomission(public_ip_wid)
                 self.vdc_deployer.error(f"failed to deploy kubernetes master wid: {wid}")
                 continue
 
@@ -263,6 +264,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     ):
         # deploy workers
         wids = []
+        public_wids = []
         while True:
             result = []
             deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, wids, no_nodes, network_view)
@@ -304,7 +306,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         public_ip_wid=public_ip_wid,
                     )
                 )
-            for wid in result:
+                public_wids.append(public_ip_wid)
+            for idx, wid in enumerate(result):
                 try:
                     success = deployer.wait_workload(
                         wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
@@ -314,6 +317,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     wids.append(wid)
                     self.vdc_deployer.info(f"kubernetes worker deployed sucessfully wid: {wid}")
                 except DeploymentFailed:
+                    if public_wids[idx]:
+                        self.zos.workloads.decomission(public_wids[idx])
                     self.vdc_deployer.error(f"failed t.o deploy kubernetes worker wid: {wid}")
                     pass
 
