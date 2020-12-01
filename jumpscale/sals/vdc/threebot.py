@@ -34,11 +34,14 @@ class VDCThreebotDeployer(VDCBaseComponent):
         }
         env = {
             "VDC_NAME": self.vdc_name,
+            "MONITORING_SERVER_URL": j.config.get("MONITORING_SERVER_URL"),
             "VDC_UUID": self.vdc_uuid,
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_MAX_STORAGE": str(
-                S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
-                * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
+                int(
+                    S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
+                    * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
+                )
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
             "VDC_MINIO_ADDRESS": minio_ip_address,
