@@ -55,6 +55,6 @@ def send_alert(alert):
         signature = binascii.hexlify(signature).decode()
         data["signature"] = signature
         try:
-            requests.post(f"{MONITORING_SERVER_URL}/alert", json=j.data.serializers.json.dumps(data))
+            requests.post(f"{MONITORING_SERVER_URL}/alert", json=data)
         except Exception as e:
             j.logger.error(f"Failed to send alert, URL:{MONITORING_SERVER_URL}/alert, exception: {str(e)}")
