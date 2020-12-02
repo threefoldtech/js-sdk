@@ -1,6 +1,7 @@
 import random
 import requests
 import uuid
+import os
 from textwrap import dedent
 
 from jumpscale.loader import j
@@ -22,25 +23,23 @@ VDC_ENDPOINT = "/vdc"
 
 class SolutionsChatflowDeploy(GedisChatBot):
     def _init_solution(self):
+        # TODO: te be removed
         self.user_info_data = self.user_info()
-        self.username = self.user_info_data["username"]
+        self.username = os.environ.get("VDC_OWNER_TNAME")
         self.solution_id = uuid.uuid4().hex
         self.ip_version = "IPv6"
         self.chart_config = {}
 
     def _get_kube_config(self):
-        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
-        if not vdc_names:
+        vdc_name = os.environ.get("VDC_NAME")
+        if not vdc_name:
             raise StopChatFlow(
-                f'No Virtual Data Centres(VDC) were found. To deploy one please head to your <a href="{VDC_ENDPOINT}" target="_blank">VDC deployer</a>',
-                htmlAlert=True,
+                f"No Virtual Data Centres(VDC) were found.", htmlAlert=True,
             )
-        vdc_selected = self.single_choice(
-            f"Choose the vdc to install {self.SOLUTION_TYPE} on", options=vdc_names, required=True
-        )
         self.vdc_info = {}
-        self.vdc = j.sals.vdc.find(vdc_name=vdc_selected, owner_tname=self.username, load_info=True)
-        self.identity_name = f"vdc_ident_{self.vdc.solution_uuid}"
+        # TODO: get config
+        self.vdc = j.sals.vdc.find(vdc_name=vdc_name, owner_tname=self.username, load_info=True)
+        self.identity_name = j.core.identity.me.instance_name
         self.secret = f"{self.vdc.identity_tid}:{uuid.uuid4().hex}"
         for node in self.vdc.kubernetes:
             if node.role == KubernetesRole.MASTER:
@@ -50,13 +49,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.vdc_info["farm_name"] = j.core.identity.me.explorer.farms.get(
                     j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
                 ).name
-                self.vdc_info[
-                    "kube_config_path"
-                ] = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.username.rstrip('.3bot')}/{vdc_selected}.yaml"
-                self.vdc_info["network_name"] = vdc_selected
-                self.vdc_info["network_view"] = deployer.get_network_view(
-                    vdc_selected, identity_name=self.identity_name
-                )
+                self.vdc_info["kube_config_path"] = "/root/.kube/config"
+                self.vdc_info["network_name"] = vdc_name
+                self.vdc_info["network_view"] = deployer.get_network_view(vdc_name, identity_name=self.identity_name)
                 break
 
     def _choose_flavor(self, chart_limits=None):
@@ -260,8 +255,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 wid=self.workload_ids[-1],
             )
 
-    @chatflow_step(title="VDC selection")
-    def select_vdc(self):
+    def _select_vdc(self):
         self.md_show_update("Preparing the chatflow...")
         self._init_solution()
         self._get_kube_config()
@@ -269,6 +263,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution Name")
     def get_release_name(self):
+        self._select_vdc()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         while True:
             self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True)

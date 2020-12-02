@@ -7,7 +7,6 @@ class MattermostDeploy(SolutionsChatflowDeploy):
     title = "Mattermost"
     HELM_REPO_NAME = "marketplace"
     steps = [
-        "select_vdc",
         "get_release_name",
         "create_subdomain",
         "set_config",
