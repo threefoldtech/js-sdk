@@ -1822,10 +1822,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         shards = ",".join(zdb_configs)
         secret_env["SHARDS"] = shards
         secret_env["SECRET_KEY"] = sk
+        secret_env["ACCESS_KEY"] = ak
         env = {
             "DATA": str(data),
             "PARITY": str(parity),
-            "ACCESS_KEY": ak,
             "SSH_KEY": ssh_key,
             "MINIO_PROMETHEUS_AUTH_TYPE": "public",
         }
