@@ -27,10 +27,15 @@ if $poetry_install; then
   poetry install
 fi
 
-echo "[*] Starting threebot in background ..."
-if [ $MINIMAL == "true" ]; then
-  python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
-else
+# Execute the initialization script from the newly fetched branch
+[ -f ./initialize.sh ] && bash ./initialize.sh
+
+
+# If the initialization script doesn't exist,
+# this branch is not updated with this script.
+# So we'll execute the original logic of the development
+# branch to keep them working without any changes
+if ! [ -f ./initialize.sh ]; then
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
   echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
   echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
@@ -41,5 +46,7 @@ else
   echo "EMAIL_HOST_USER=${EMAIL_HOST_USER}" >> ~/.bashrc
   echo "EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}" >> ~/.bashrc
   echo "ESCALATION_MAIL=${ESCALATION_MAIL}" >> ~/.bashrc
+
+  echo "[*] Starting threebot in background ..."
   python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/entrypoint.py
 fi
