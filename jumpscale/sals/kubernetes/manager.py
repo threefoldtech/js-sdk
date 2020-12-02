@@ -83,11 +83,11 @@ class Manager:
         return j.data.serializers.json.loads(out)
 
     @helm_required
-    def install_chart(self, release, chart_name, extra_config=None):
+    def install_chart(self, release, chart_name, namespace="default", extra_config=None):
         """deployes a helm chart
 
         Args:
-            release (str): name of the relase to be deployed
+            release (str): name of the release to be deployed
             chart_name (str): the name of the chart you need to deploy
             extra_config: dict containing extra paramters passed to install command with --set
 
@@ -103,7 +103,7 @@ class Manager:
             params += f" --set {key}={arg}"
 
         rc, out, err = j.sals.process.execute(
-            f"helm --kubeconfig {self.config_path} install {release} {chart_name} {params}"
+            f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
         )
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
@@ -128,13 +128,15 @@ class Manager:
         return out
 
     @helm_required
-    def list_deployed_releases(self):
+    def list_deployed_releases(self, namespace="default"):
         """list deployed helm releases
 
         Returns:
             list: output of the helm command as dicts
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} list -o json")
+        rc, out, err = j.sals.process.execute(
+            f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json"
+        )
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
         return j.data.serializers.json.loads(out)
@@ -164,3 +166,36 @@ class Manager:
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
         return out
+
+    @helm_required
+    def get_helm_chart_user_values(self, release, namespace="default"):
+        """Get helm chart user supplied values that were supplied during innstallation of the chart(using --set)
+
+        Args:
+            release (str): name of the relase to get chart values for
+        Raises:
+            j.exceptions.Runtime: in case the command failed to execute
+
+        Returns:
+            str: output of the helm command
+        """
+        rc, out, err = j.sals.process.execute(
+            f"helm get values --kubeconfig {self.config_path} --namespace={namespace} {release} -o json"
+        )
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to list calues of helm chart, error was {err}")
+        return out
+
+    @helm_required
+    def list_helm_repo(self):
+        """List helm repos
+        Raises:
+            j.exceptions.Runtime: in case the command failed to execute
+        Returns:
+            list: list of added repos
+        """
+        cmd = f"helm repo list -o json --kubeconfig {self.config_path}"
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
+        return j.data.serializers.json.loads(out)

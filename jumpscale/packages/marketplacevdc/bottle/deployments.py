@@ -1,37 +1,63 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse
+from bottle import Bottle, request, HTTPResponse, abort
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, authenticated
-from jumpscale.packages.marketplace.bottle.models import UserEntry
+from jumpscale.packages.marketplacevdc.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+
+from jumpscale.packages.marketplacevdc.sals.marketplacevdc_sals import get_all_deployments, get_deployments
 
 app = Bottle()
 
 
-@app.route("/api/solutions/<solution_type>")
+@app.route("/api/deployments/<solution_type>")
 @login_required
-def list_solutions(solution_type: str) -> str:
-    solutions = []
-    user_info = j.data.serializers.json.loads(get_user_info())
-    solutions = j.sals.marketplace.solutions.list_solutions(user_info["username"], solution_type.lower())
-    return j.data.serializers.json.dumps({"data": solutions})
+def list_deployments(solution_type: str) -> str:
+    if solution_type:
+        deployments = get_deployments(solution_type=solution_type)
+    else:
+        deployments = get_all_deployments()
+
+    return j.data.serializers.json.dumps({"data": deployments})
 
 
-@app.route("/api/solutions/count")
+@app.route("/api/deployments/install", method="POST")
 @login_required
-def count_solutions():
-    user_info = j.data.serializers.json.loads(get_user_info())
-    res = j.sals.marketplace.solutions.count_solutions(user_info["username"])
-    return j.data.serializers.json.dumps({"data": res})
-
-
-@app.route("/api/solutions/cancel", method="POST")
-@login_required
-def cancel_solution():
-    user_info = j.data.serializers.json.loads(get_user_info())
+def install_deployment():
+    # DEBUGGING PURPOSES
     data = j.data.serializers.json.loads(request.body.read())
-    j.sals.marketplace.solutions.cancel_solution(user_info["username"], data["wids"], delete_pool=False)
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_name = data.get("vdc_name")
+    if not vdc_name:
+        abort(400, "Error: Not all required params was passed.")
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+    k8s_client.add_helm_repo(data["repo_name"], data["repo_url"])
+    k8s_client.update_repos()
+    k8s_client.install_chart(
+        release=data["release"],
+        chart_name=data["chart_name"],
+        namespace=data["solution_type"],
+        extra_config=data["config"],
+    )
+    return j.data.serializers.json.dumps({"result": True})
+
+
+@app.route("/api/deployments/cancel", method="POST")
+@login_required
+def cancel_deployment():
+    data = j.data.serializers.json.loads(request.body.read())
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_name = data.get("vdc_name")
+    if not vdc_name:
+        abort(400, "Error: Not all required params was passed.")
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+    k8s_client.delete_deployed_release(data["release"])
+    j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})
 
 

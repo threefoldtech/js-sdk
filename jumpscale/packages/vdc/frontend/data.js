@@ -1,8 +1,8 @@
 
 const APPS = {
-    threebot: {
-        name: "3Bot",
-        type: "threebot",
+    vdc: {
+        name: "VDC",
+        type: "vdc",
         image: "./assets/3bot.png",
         bg: "./assets/background.png",
         header: "Welcome to VDC",

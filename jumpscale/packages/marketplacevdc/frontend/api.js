@@ -1,4 +1,5 @@
 // const axios = require('axios')
+const baseURL = "/marketplacevdc/api"
 
 const apiClient = {
   content: {
@@ -15,40 +16,26 @@ const apiClient = {
       })
     },
   },
-  explorers: {
-    get: () => {
-      return axios({
-        url: "/actors/admin/get_explorer/"
-      })
-    },
-  },
   solutions: {
-    getCount: () => {
+    getSolutions: (solutionType) => {
       return axios({
-        url: "/marketplace/api/solutions/count/",
-        method: "get"
+        url: `${baseURL}/deployments/${solutionType}`, // TODO Replace with bottle server api call
+        method: "get",
       })
     },
-    getDeployed: (solutionType) => {
+    deleteSolution: (releaseName, solutionId, vdcName) => {
       return axios({
-        url: `/marketplace/api/solutions/${solutionType}/`,
-        method: "get",
+        url: `${baseURL}/deployments/cancel/`, // TODO Replace with bottle server api call
+        method: "post",
+        data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName },
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    cancelReservation: (wids) => {
-      return axios({
-        url: `/marketplace/api/solutions/cancel`,
-        headers: { 'Content-Type': 'application/json' },
-        data: { wids: wids },
-        method: "post"
-      })
-    }
   },
   license: {
     accept: () => {
       return axios({
-        url: `/marketplace/api/accept/`,
+        url: `${baseURL}/accept/`,
         method: "get"
       })
     },

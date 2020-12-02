@@ -5,7 +5,7 @@ const DECENTRALIZED_OFFICE = {
             name: "Taiga",
             type: "taiga",
             image: "./assets/taiga.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/docs/dmcircles/",
             description: "Taiga is a P2P alternative to centralized project management tool for multi-functional agile teams."
         },
@@ -60,7 +60,7 @@ const DECENTRALIZED_WE = {
             name: "Blog",
             type: "blog",
             image: "./assets/blog.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Blog is a P2P alternative to centralized blogging platforms like Tumblr or Blogspot."
         },
@@ -68,7 +68,7 @@ const DECENTRALIZED_WE = {
             name: "Website",
             type: "website",
             image: "./assets/web.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Website is a P2P alternative to centralized cloud-hosted websites. Host your own website with access via a public web address."
         },
@@ -77,7 +77,7 @@ const DECENTRALIZED_WE = {
             name: "Wiki",
             type: "wiki",
             image: "./assets/doc-flat.svg",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Wiki is a versatile online encyclopedia builder, accessible via a public web address."
         },
@@ -85,7 +85,7 @@ const DECENTRALIZED_WE = {
             name: "Discourse",
             type: "discourse",
             image: "./assets/discourse.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },
@@ -93,7 +93,7 @@ const DECENTRALIZED_WE = {
             name: "Peertube",
             type: "peertube",
             image: "./assets/peertube.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/video-sharing/",
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
         },
@@ -101,7 +101,7 @@ const DECENTRALIZED_WE = {
             name: "Video Chat",
             type: "meetings",
             image: "./assets/video_chat.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/video-conf/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
         },
@@ -132,7 +132,7 @@ const DECENTRALIZED_DEV = {
             name: "Gitea",
             type: "gitea",
             image: "./assets/gitea.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/gitea/",
             description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
         },

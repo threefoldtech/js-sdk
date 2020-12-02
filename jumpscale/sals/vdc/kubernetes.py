@@ -187,6 +187,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 self.zos.workloads.decomission(public_ip_wid)
                 self.vdc_deployer.error(f"failed to deploy kubernetes master wid: {wid}")
                 continue
+        self.vdc_deployer.error("all tries to deploy k8s master have failed")
 
     def _add_nodes_to_network(self, pool_id, nodes_generator, wids, no_nodes, network_view):
         deployment_nodes = []
@@ -326,6 +327,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             if len(wids) == no_nodes:
                 self.vdc_deployer.info(f"all workers deployed successfully")
                 return wids
+        self.vdc_deployer.error("all tries to deploy k8s workers have failed")
 
     def download_kube_config(self, master_ip):
         """
@@ -351,6 +353,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def delete_worker(self, wid):
         workloads_to_delete = []
         workload = self.zos.workloads.get(wid)
+        if not workload.master_ips:
+            raise j.exceptions.Input("can't delete controller node")
         if workload.info.next_action == NextAction.DEPLOY:
             workloads_to_delete.append(wid)
         if workload.public_ip:

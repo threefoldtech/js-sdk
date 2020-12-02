@@ -22,6 +22,7 @@ const vuetify = new Vuetify({
 
 const baseComponent = httpVueLoader('./components/base/Component.vue')
 const baseDialog = httpVueLoader('./components/base/Dialog.vue')
+const JSONRender = httpVueLoader('./components/base/JSONRenderer.vue')
 const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
@@ -39,6 +40,7 @@ const disclaimer = httpVueLoader('./components/Disclaimer.vue')
 Vue.component("base-component", baseComponent)
 Vue.component("base-section", baseSection)
 Vue.component("base-dialog", baseDialog)
+Vue.component("json-renderer", JSONRender)
 Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
@@ -70,7 +72,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }).catch((e) => {
     if (to.name === "SolutionChatflow") {
-      let nextUrl = encodeURIComponent(`/marketplace/#${to.path}`)
+      let nextUrl = encodeURIComponent(`/marketplacevdc/#${to.path}`)
       window.location.href = `/auth/login?next_url=${nextUrl}`
     }
     else {

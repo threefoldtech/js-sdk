@@ -86,7 +86,7 @@
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
-    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :wids="selected.wids"></cancel-solution>
+    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :releasename="selected.Release" :solutionid="selected['User Supplied Values'].solution_uuid" :vdcname="selected['VDC Name']"></cancel-solution>
   </div>
 </template>
 
@@ -109,9 +109,12 @@ module.exports = {
         cancelSolution: false,
       },
       headers: [
-        { text: "Name", value: "Name" },
+        { text: "Release", value: "Release" },
+        { text: "VDC Name", value: "VDC Name" },
         { text: "URL", value: "domain" },
-        { text: "Expiration", value: "expiration" },
+        { text: "Version", value: "Version" },
+        { text: "Status", value: "Status" },
+        { text: "Creation Timestamp", value: "Creation Timestamp" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployedSolutions: [],
@@ -151,7 +154,7 @@ module.exports = {
     },
     getDeployedSolutions(solution_type) {
       this.$api.solutions
-        .getDeployed(solution_type)
+        .getSolutions(solution_type)
         .then((response) => {
           this.deployedSolutions = response.data.data;
         })

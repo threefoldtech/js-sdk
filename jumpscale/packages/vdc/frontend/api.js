@@ -38,13 +38,13 @@ const apiClient = {
         method: "get"
       })
     },
-  },
-  license: {
-    accept: () => {
-      return axios({
-        url: `/vdc/api/accept/`,
-        method: "get"
-      })
-    },
+    license: {
+      accept: () => {
+        return axios({
+          url: `/vdc/api/accept/`,
+          method: "get"
+        })
+      },
+    }
   }
 }
