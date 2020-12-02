@@ -310,6 +310,39 @@ def is_authorized():
     return get_user_info()
 
 
+@app.route("/package_authorized/<package>")
+@authenticated
+def is_package_authorized(package):
+    """
+    get user information if it is authorized user in the package config
+
+    Returns:
+        [JSON string]: [user information session]
+    """
+    authorized_users = j.core.config.get("PACKAGE_USERS", {}).get(package, [])
+    user_info = get_user_info()
+    user_dict = j.data.serializers.json.loads(user_info)
+    username = user_dict["username"]
+    if not any([username in authorized_users, username in j.core.identity.me.admins]):
+        return abort(403)
+    return user_info
+
+
+def package_authorized(package_name):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            authorized_users = j.core.config.get("PACKAGE_USERS", {}).get(package_name, [])
+            session = request.environ.get("beaker.session")
+            username = session.get("username")
+            if not any([username in authorized_users, username in j.core.identity.me.admins]):
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def login_required(func):
     """Decorator for the methods we want to secure
 
@@ -327,6 +360,15 @@ def login_required(func):
         return func(*args, **kwargs)
 
     return decorator
+
+
+def add_package_user(package_name, username):
+    all_admins = j.core.config.set_default("PACKAGE_ADMINS", {})
+    if not all_admins.get(package_name):
+        all_admins[package_name] = [username]
+    else:
+        all_admins[package_name].append(username)
+    j.core.config.set("PACKAGE_ADMINS", all_admins)
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
