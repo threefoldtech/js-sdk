@@ -10,6 +10,18 @@ Test for creating a pool with funded wallet.
 - Check that the pool has been created.
 - Check that the token has been transferred from the wallet.
 
+### test02_extend_pool_with_funded_wallet
+
+Test for extending a pool with funded wallet.
+
+**Test Scenario**
+
+- Get wallet.
+- Extend an existing pool.
+- Pay for the pool.
+- Check that the pool has been extended.
+- Check that the token has been transferred from the wallet.
+
 ### test03_create_pool_with_empty_wallet
 
 Test for creating a pool with empty wallet.
