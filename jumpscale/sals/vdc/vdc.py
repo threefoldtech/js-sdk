@@ -1,5 +1,5 @@
 import datetime
-import gevent
+from decimal import Decimal
 import uuid
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -269,7 +269,7 @@ class UserVDC(Base):
                 for effect in effects:
                     trans_amount += effect.amount
                 if trans_amount >= amount:
-                    diff = trans_amount - amount
+                    diff = Decimal(trans_amount) - Decimal(amount)
                     if diff > 0:
                         self.refund_payment(transaction_hash, wallet_name, diff)
                     return transaction_hash
@@ -299,7 +299,7 @@ class UserVDC(Base):
         if not amount:
             for effect in effects:
                 trans_amount += effect.amount
-        trans_amount -= 0.1
+        trans_amount -= Decimal(0.1)
         if trans_amount > 0:
             a = wallet.get_asset()
             sender_address = wallet.get_sender_wallet_address(transaction_hash)

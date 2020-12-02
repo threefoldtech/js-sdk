@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatf
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "success", "expose_s3"]
+    steps = ["vdc_info", "deploy", "expose_s3", "success"]
 
     def _init(self):
         self.user_info_data = self.user_info()
@@ -69,7 +69,16 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(str(err))
             self.stop(str(err))
 
-    @chatflow_step(title="VDC Deployment Success", disable_previous=True)
+    @chatflow_step(title="Expose S3", disable_previous=True)
+    def expose_s3(self):
+        result = self.single_choice(
+            "Do you wish to expose your s3 over public domain name?", ["Yes", "No"], default="No"
+        )
+        if result == "YES":
+            domain_name = self.deployer.expose_s3()
+            self.md_show(f"You can access your s3 cluster over domain {domain_name}")
+
+    @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
         self.download_file(
             f"""
@@ -85,15 +94,6 @@ Kubernetes controller public IP: {self.public_ip}
             f"{self.vdc.vdc_name}.yaml",
             md=True,
         )
-
-    @chatflow_step(title="Expose S3", final_step=True)
-    def expose_s3(self):
-        result = self.single_choice(
-            "Do you wish to expose your s3 over public domain name?", ["Yes", "No"], default="No"
-        )
-        if result == "YES":
-            domain_name = self.deployer.expose_s3()
-            self.md_show(f"You can access your s3 cluster over domain {domain_name}")
 
 
 chat = VDCDeploy
