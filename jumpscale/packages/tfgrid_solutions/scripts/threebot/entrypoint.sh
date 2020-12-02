@@ -28,14 +28,14 @@ if $poetry_install; then
 fi
 
 # Execute the initialization script from the newly fetched branch
-[ -f ./initialize.sh ] && bash ./initialize.sh
+[ -f jumpscale/packages/tfgrid_solutions/scripts/threebot/initialize.sh ] && bash jumpscale/packages/tfgrid_solutions/scripts/threebot/initialize.sh
 
 
 # If the initialization script doesn't exist,
 # this branch is not updated with this script.
 # So we'll execute the original logic of the development
 # branch to keep them working without any changes
-if ! [ -f ./initialize.sh ]; then
+if ! [ -f jumpscale/packages/tfgrid_solutions/scripts/threebot/initialize.sh ]; then
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
   echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
   echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
