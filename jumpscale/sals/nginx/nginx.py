@@ -93,6 +93,8 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -112,7 +114,7 @@ class Location(Base):
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get("threebot_connect", True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):

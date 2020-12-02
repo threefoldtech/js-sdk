@@ -49,12 +49,14 @@ class NginxPackageConfig:
 
         is_auth = self.package.config.get("is_auth", True)
         is_admin = self.package.config.get("is_admin", True)
+        is_package_authorized = self.package.config.get("is_package_authorized", False)
 
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
@@ -70,6 +72,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
@@ -86,6 +89,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "actors",
                     "host": GEDIS_HTTP_HOST,
@@ -101,6 +105,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "chats",
                     "host": CHATFLOW_SERVER_HOST,
@@ -177,6 +182,8 @@ class NginxPackageConfig:
                         loc.force_https = location.get("force_https")
                         loc.is_auth = location.get("is_auth", False)
                         loc.is_admin = location.get("is_admin", False)
+                        loc.is_package_authorized = location.get("is_package_authorized", False)
+                        loc.package_name = self.package.name
 
                 website.save()
                 website.configure()
