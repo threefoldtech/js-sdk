@@ -98,6 +98,10 @@ j.core.config.set(
     },
 )
 
+
+j.core.config.set("VDC_THREEBOT", True)
+
+
 j.config.set("SEND_REMOTE_ALERTS", True)
 
 from register_dashboard import register_dashboard
