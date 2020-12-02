@@ -310,16 +310,16 @@ def is_authorized():
     return get_user_info()
 
 
-@app.route("/package_authorized/<package>")
+@app.route("/package_authorized/<package_name>")
 @authenticated
-def is_package_authorized(package):
+def is_package_authorized(package_name):
     """
     get user information if it is authorized user in the package config
 
     Returns:
         [JSON string]: [user information session]
     """
-    authorized_users = j.core.config.get("PACKAGE_ADMINS", {}).get(package, [])
+    authorized_users = get_package_admins(package_name)
     user_info = get_user_info()
     user_dict = j.data.serializers.json.loads(user_info)
     username = user_dict["username"]
@@ -331,7 +331,7 @@ def is_package_authorized(package):
 def package_authorized(package_name):
     def decorator(function):
         def wrapper(*args, **kwargs):
-            authorized_users = j.core.config.get("PACKAGE_ADMINS", {}).get(package_name, [])
+            authorized_users = get_package_admins(package_name)
             session = request.environ.get("beaker.session")
             username = session.get("username")
             if not any([username in authorized_users, username in j.core.identity.me.admins]):
@@ -363,12 +363,17 @@ def login_required(func):
 
 
 def add_package_user(package_name, username):
-    all_admins = j.core.config.set_default("PACKAGE_ADMINS", {})
-    if not all_admins.get(package_name):
-        all_admins[package_name] = [username]
-    else:
-        all_admins[package_name].append(username)
-    j.core.config.set("PACKAGE_ADMINS", all_admins)
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"can't add admin to non installed package {package_name}")
+    package.admins.append(username)
+
+
+def get_package_admins(package_name):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"package {package_name} is not installed")
+    return package.admins
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

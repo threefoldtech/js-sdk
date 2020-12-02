@@ -205,7 +205,7 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
+    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None, admins=None):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -215,6 +215,7 @@ class Package:
         self.default_domain = default_domain
         self.default_email = default_email
         self.kwargs = kwargs or {}
+        self.admins = admins or []
 
     def _load_files(self, dir_path):
         for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
@@ -349,12 +350,14 @@ class PackageManager(Base):
             package_path = self.packages[package_name]["path"]
             package_giturl = self.packages[package_name]["giturl"]
             package_kwargs = self.packages[package_name].get("kwargs", {})
+            package_admins = self.packages[package_name].get("admins", [])
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
                 giturl=package_giturl,
                 kwargs=package_kwargs,
+                admins=package_admins,
             )
 
     def get_packages(self):
@@ -447,12 +450,15 @@ class PackageManager(Base):
             package_path = j.sals.fs.parent(path_for_package_toml)
             path = package_path
 
+        admins = kwargs.pop("admins", [])
+
         package = Package(
             path=path,
             default_domain=self.threebot.domain,
             default_email=self.threebot.email,
             giturl=giturl,
             kwargs=kwargs,
+            admins=admins,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
@@ -471,6 +477,7 @@ class PackageManager(Base):
             "path": package.path,
             "giturl": package.giturl,
             "kwargs": package.kwargs,
+            "admins": package.admins,
         }
 
         self.save()
