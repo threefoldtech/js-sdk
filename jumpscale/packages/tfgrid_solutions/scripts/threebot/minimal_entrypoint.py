@@ -98,6 +98,8 @@ j.core.config.set(
     },
 )
 
+j.config.set("SEND_REMOTE_ALERTS", True)
+
 from register_dashboard import register_dashboard
 
 register_dashboard()

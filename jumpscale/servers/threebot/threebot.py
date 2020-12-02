@@ -751,7 +751,8 @@ class ThreebotServer(Base):
         self.nginx.start()
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
-        j.tools.alerthandler.register_handler(send_alert)
+        if j.config.get("SEND_REMOTE_ALERTS", False):
+            j.tools.alerthandler.register_handler(send_alert)
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
