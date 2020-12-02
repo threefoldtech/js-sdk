@@ -1,6 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDCFlavor
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 
 
 class VDCDeploy(GedisChatBot):
@@ -43,7 +43,8 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDCFlavor[self.vdc_flavor.value]
         )
-        trans_hash = self.vdc.show_vdc_payment(self)
+        # trans_hash = self.vdc.show_vdc_payment(self)
+        trans_hash = True
         if not trans_hash:
             j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(f"payment timedout")
