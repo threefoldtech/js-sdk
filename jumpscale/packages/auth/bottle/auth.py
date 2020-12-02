@@ -319,7 +319,7 @@ def is_package_authorized(package):
     Returns:
         [JSON string]: [user information session]
     """
-    authorized_users = j.core.config.get("PACKAGE_USERS", {}).get(package, [])
+    authorized_users = j.core.config.get("PACKAGE_ADMINS", {}).get(package, [])
     user_info = get_user_info()
     user_dict = j.data.serializers.json.loads(user_info)
     username = user_dict["username"]
@@ -331,7 +331,7 @@ def is_package_authorized(package):
 def package_authorized(package_name):
     def decorator(function):
         def wrapper(*args, **kwargs):
-            authorized_users = j.core.config.get("PACKAGE_USERS", {}).get(package_name, [])
+            authorized_users = j.core.config.get("PACKAGE_ADMINS", {}).get(package_name, [])
             session = request.environ.get("beaker.session")
             username = session.get("username")
             if not any([username in authorized_users, username in j.core.identity.me.admins]):
