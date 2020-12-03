@@ -31,6 +31,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
             "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
+            "VDC_INSTANCE": j.data.serializers.json.dumps(self.vdc_instance.to_dict()),
         }
         env = {
             "VDC_NAME": self.vdc_name,
@@ -48,6 +49,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
+            "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
         }
 
         scheduler = Scheduler(pool_id=pool_id)
