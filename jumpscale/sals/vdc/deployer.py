@@ -29,6 +29,9 @@ MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-chart
 NO_DEPLOYMENT_BACKUP_NODES = 0
 
 
+VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "grid.tf")
+
+
 class new_vdc_context(ContextDecorator):
     def __init__(self, vdc_deployer, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -417,19 +420,20 @@ class VDCDeployer:
                 net = "-testnet"
             elif "devnet" in self.explorer.url:
                 net = "-devnet"
-            prefix = f"{self.tname}-{self.vdc_name}{net}"
-            # threebot_subdomain = self.proxy.proxy_container_over_custom_domain(
-            #     prefix=prefix,
-            #     wid=threebot_wid,
-            #     port=80,
-            #     tls_port=443,
-            #     solution_uuid=self.vdc_uuid
-            # )
+            prefix = f"{self.tname}-{self.vdc_name}{net}.vdc"
+            threebot_subdomain = self.proxy.proxy_container_over_custom_domain(
+                prefix=prefix,
+                parent_domain=VDC_PARENT_DOMAIN,
+                wid=threebot_wid,
+                port=80,
+                tls_port=443,
+                solution_uuid=self.vdc_uuid,
+            )
 
-            # if not threebot_subdomain:
-            #     self.error(f"failed to expose threebot container")
-            #     self.rollback_vdc_deployment()
-            #     return False
+            if not threebot_subdomain:
+                self.error(f"failed to expose threebot container")
+                self.rollback_vdc_deployment()
+                return False
 
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")

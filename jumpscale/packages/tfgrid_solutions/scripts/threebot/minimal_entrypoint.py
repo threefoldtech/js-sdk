@@ -5,6 +5,7 @@ monkey.patch_all(subprocess=False)  # noqa: E402
 import os
 from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
+import gevent
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -114,7 +115,12 @@ register_dashboard()
 
 vdc.load_info()
 
-vdc.threebot.domain
+# wait until threebot subdomain is created up to 10 mins
+deadline = j.data.time.now().timestamp + 10 * 60
+while not vdc.threebot.domain and deadline > j.data.time.now().timestamp:
+    gevent.sleep(10)
+    vdc.load_info()
+
 
 server = j.servers.threebot.get("default")
 # TODO: how to configure the package domain?

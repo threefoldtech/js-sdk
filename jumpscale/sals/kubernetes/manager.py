@@ -39,6 +39,11 @@ class Manager:
             raise j.exceptions.NotFound(f"No such file {config_path}")
         self.config_path = config_path
 
+    @staticmethod
+    def _execute(cmd):
+        j.logger.debug(f"kubernetes manager: {cmd}")
+        return j.sals.process.execute(cmd)
+
     @helm_required
     def update_repos(self):
         """Update helm repos
@@ -46,7 +51,7 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} repo update")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} repo update")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to update repos error was {err}")
         return out
@@ -65,7 +70,7 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} repo add {name} {url}")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} repo add {name} {url}")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to add repo: {name} with url:{url}, error was {err}")
         return out
@@ -77,7 +82,7 @@ class Manager:
         Returns:
             list: {"name":"stable","url":"https://charts.helm.sh/stable"}
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} repo list -o json")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} repo list -o json")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list repos. error was {err}")
         return j.data.serializers.json.loads(out)
@@ -102,7 +107,7 @@ class Manager:
         for key, arg in extra_config.items():
             params += f" --set {key}={arg}"
 
-        rc, out, err = j.sals.process.execute(
+        rc, out, err = self._execute(
             f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
         )
         if rc != 0:
@@ -122,7 +127,7 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} delete {release}")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} delete {release}")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
         return out
@@ -134,16 +139,14 @@ class Manager:
         Returns:
             list: output of the helm command as dicts
         """
-        rc, out, err = j.sals.process.execute(
-            f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json"
-        )
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
         return j.data.serializers.json.loads(out)
 
     @helm_required
     def get_deployed_release(self, release_name):
-        rc, out, err = j.sals.process.execute(f"helm --kubeconfig {self.config_path} get values {release_name}")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} get values {release_name}")
         if rc != 0:
             return None
         return j.data.serializers.yaml.loads(out)
@@ -162,7 +165,7 @@ class Manager:
             str: output of the kubectl/helm command
         """
         cmd = f"{cmd} --kubeconfig {self.config_path}"
-        rc, out, err = j.sals.process.execute(cmd)
+        rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
         return out
@@ -179,7 +182,7 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = j.sals.process.execute(
+        rc, out, err = self._execute(
             f"helm get values --kubeconfig {self.config_path} --namespace={namespace} {release} -o json"
         )
         if rc != 0:
@@ -195,7 +198,7 @@ class Manager:
             list: list of added repos
         """
         cmd = f"helm repo list -o json --kubeconfig {self.config_path}"
-        rc, out, err = j.sals.process.execute(cmd)
+        rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
         return j.data.serializers.json.loads(out)

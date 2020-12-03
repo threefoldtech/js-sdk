@@ -12,9 +12,6 @@ from .base_component import VDCBaseComponent
 from .scheduler import Scheduler
 
 
-VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "vdc.grid.tf")
-
-
 PROXY_SERVICE_TEMPLATE = """
 kind: Service
 apiVersion: v1
@@ -418,14 +415,14 @@ class VDCProxy(VDCBaseComponent):
                 continue
 
     def proxy_container_over_custom_domain(
-        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None, tls_port=None
+        self, prefix, parent_domain, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None, tls_port=None
     ):
         """
         Args:
-            prefix: MUST BE UNIQUE will be appended to VDC_PARENT_DOMAIN (vdc.grid.tf) if it already exist it willbe deleted and recreated
+            prefix: MUST BE UNIQUE will be appended to parent domain (vdc.grid.tf) if it already exist it will be deleted and recreated
             wid: workload id of the container to expose
         """
-        subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
+        subdomain = f"{prefix}.{parent_domain}"
         nc = j.clients.name.new(self.vdc_name)
         nc.username = os.environ.get("VDC_NAME_USER")
         nc.token = os.environ.get("VDC_NAME_TOKEN")
@@ -448,7 +445,7 @@ class VDCProxy(VDCBaseComponent):
         desc = j.data.serializers.json.dumps(desc)
         for gateway in gateways:
             # if old records exist for this prefix clean it.
-            existing_records = nc.nameclient.list_records_for_host(VDC_PARENT_DOMAIN, prefix)
+            existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
             if existing_records:
                 for record_dict in existing_records:
                     nc.nameclient.delete_record(record_dict["fqdn"], record_dict["id"])
@@ -456,7 +453,7 @@ class VDCProxy(VDCBaseComponent):
             # create a subdomain in domain provider that points to the gateway
             ip_addresses = self.get_gateway_addresses(gateways)
             for address in ip_addresses:
-                nc.nameclient.create_record(VDC_PARENT_DOMAIN, prefix, "A", address)
+                nc.nameclient.create_record(parent_domain, prefix, "A", address)
             if not tls_port:
                 result = self._deploy_nginx_proxy(
                     scheduler,
