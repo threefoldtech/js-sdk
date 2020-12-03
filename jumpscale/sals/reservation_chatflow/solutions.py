@@ -301,9 +301,11 @@ class ChatflowSolutions:
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.get(identity_name).workloads.list(
+            workloads = j.sals.zos.get(identity_name).workloads.list(
                 j.core.identity.get(identity_name).tid, next_action="DEPLOY"
-            ):
+            )
+            workloads.reverse()
+            for workload in workloads:
                 if solution_uuid == self.get_solution_uuid(workload, identity_name):
                     ids_to_delete.append(workload.id)
         else:
