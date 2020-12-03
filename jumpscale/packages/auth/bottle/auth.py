@@ -323,7 +323,8 @@ def is_package_authorized(package_name):
     user_info = get_user_info()
     user_dict = j.data.serializers.json.loads(user_info)
     username = user_dict["username"]
-    if not any([username in authorized_users, username in j.core.identity.me.admins]):
+    # if the package doesn't include admins then allow any authenticated user
+    if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
         return abort(403)
     return user_info
 
@@ -334,7 +335,7 @@ def package_authorized(package_name):
             authorized_users = get_package_admins(package_name)
             session = request.environ.get("beaker.session")
             username = session.get("username")
-            if not any([username in authorized_users, username in j.core.identity.me.admins]):
+            if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
                 return abort(403)
             return function(*args, **kwargs)
 
