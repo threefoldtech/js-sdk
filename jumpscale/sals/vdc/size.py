@@ -93,11 +93,7 @@ class VDCSize:
         # fills K8S_SIZES
         self.K8S_SIZES = dict()
         for key, val in self._workload_sizes["kubernetes"].items():
-            self.K8S_SIZES[self.K8SNodeFlavor[key.upper()]] = {
-                "cru": val["cru"],
-                "mru": val["mru"],
-                "sru": val["sru"],
-            }
+            self.K8S_SIZES[self.K8SNodeFlavor[key.upper()]] = {"cru": val["cru"], "mru": val["mru"], "sru": val["sru"]}
 
     def load_s3_zdb_size(self):
         # fills S3ZDBSize

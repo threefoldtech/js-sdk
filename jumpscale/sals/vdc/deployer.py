@@ -329,7 +329,7 @@ class VDCDeployer:
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv,
+            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")

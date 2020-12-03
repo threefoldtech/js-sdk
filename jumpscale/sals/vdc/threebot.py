@@ -4,7 +4,12 @@ from .size import (
     THREEBOT_CPU,
     THREEBOT_MEMORY,
     THREEBOT_DISK,
+<<<<<<< HEAD
     VDC_SIZE,
+=======
+    VDC_FLAVORS,
+    S3_ZDB_SIZES,
+>>>>>>> fixing a small typo in spelling
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
     S3_NO_PARITY_NODES,
@@ -113,7 +118,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
                 success = deployer.wait_workload(
-                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
                     return wid
