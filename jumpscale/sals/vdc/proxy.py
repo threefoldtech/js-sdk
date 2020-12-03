@@ -1,5 +1,6 @@
 import random
 import uuid
+import os
 
 import gevent
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -9,6 +10,9 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 
 from .base_component import VDCBaseComponent
 from .scheduler import Scheduler
+
+
+VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "vdc.grid.tf")
 
 
 PROXY_SERVICE_TEMPLATE = """
@@ -287,8 +291,18 @@ class VDCProxy(VDCBaseComponent):
         self.vdc_deployer.error(f"all tries to reserve a subdomain failed on farm {self.farm_name}")
 
     def proxy_container_over_custom_domain(
-        self, subdomain, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
+        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
     ):
+        """
+        Args:
+            prefix: MUST BE UNIQUE will be appended to VDC_PARENT_DOMAIN (vdc.grid.tf) if it already exist it willbe deleted and recreated
+            wid: workload id of the container to expose
+        """
+        subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
+        nc = j.clients.name.new(self.vdc_name)
+        nc.username = os.environ.get("VDC_NAME_USER")
+        nc.token = os.environ.get("VDC_NAME_TOKEN")
+
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
         scheduler = scheduler or Scheduler(self.farm_name)
@@ -306,7 +320,18 @@ class VDCProxy(VDCBaseComponent):
         desc["exposed_wid"] = wid
         desc = j.data.serializers.json.dumps(desc)
         for gateway in gateways:
+            # if old records exist for this prefix clean it.
+            existing_records = nc.nameclient.list_records_for_host(VDC_PARENT_DOMAIN, prefix)
+            if existing_records:
+                for record_dict in existing_records:
+                    nc.nameclient.delete_record(record_dict["fqdn"], record_dict["id"])
+
             # create a subdomain in domain provider that points to the gateway
+            ip_addresses = self.get_gateway_addresses(gateways)
+            for address in ip_addresses:
+                nc.nameclient.create_record(VDC_PARENT_DOMAIN, prefix, "A", address)
+
+            # proxy the conainer
             for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
                 try:
                     self.vdc_deployer.info(

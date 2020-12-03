@@ -19,6 +19,7 @@ from .public_ip import VDCPublicIP
 from .scheduler import GlobalScheduler, Scheduler
 from .size import *
 from jumpscale.core.exceptions import exceptions
+from contextlib import ContextDecorator
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -26,6 +27,19 @@ IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
+
+
+class new_vdc_context(ContextDecorator):
+    def __init__(self, vdc_deployer, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.vdc_deployer = vdc_deployer
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        if exc:
+            self.vdc_deployer.rollback_vdc_deployment()
 
 
 class VDCIdentityError(exceptions.Base):
@@ -350,79 +364,98 @@ class VDCDeployer:
             return False
         gs = GlobalScheduler()
 
-        # deploy zdbs for s3
-        self.bot_show_update("Deploying zdbs for s3")
-        deployment_threads = self.deploy_vdc_zdb(gs)
+        with new_vdc_context(self):
+            # deploy zdbs for s3
+            self.bot_show_update("Deploying zdbs for s3")
+            deployment_threads = self.deploy_vdc_zdb(gs)
 
-        # deploy k8s cluster
-        self.bot_show_update("Deploying k8s cluster")
-        k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
-        deployment_threads.append(k8s_thread)
-        gevent.joinall(deployment_threads)
-        for thread in deployment_threads:
-            if thread.value:
-                continue
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            self.rollback_vdc_deployment()
-            return False
+            # deploy k8s cluster
+            self.bot_show_update("Deploying k8s cluster")
+            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
+            deployment_threads.append(k8s_thread)
+            gevent.joinall(deployment_threads)
+            for thread in deployment_threads:
+                if thread.value:
+                    continue
+                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                return False
 
-        zdb_wids = deployment_threads[0].value + deployment_threads[1].value
-        scheduler = Scheduler(farm_name)
-        pool_id = self.get_pool_id(farm_name)
+            zdb_wids = deployment_threads[0].value + deployment_threads[1].value
+            scheduler = Scheduler(farm_name)
+            pool_id = self.get_pool_id(farm_name)
 
-        # deploy minio container
-        self.bot_show_update("Deploying minio container")
-        minio_wid = self.s3.deploy_s3_minio_container(
-            pool_id,
-            minio_ak,
-            minio_sk,
-            self.ssh_key.public_key.strip(),
-            scheduler,
-            zdb_wids,
-            self.vdc_uuid,
-            self.password,
-        )
-        self.info(f"minio_wid: {minio_wid}")
-        if not minio_wid:
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            self.rollback_vdc_deployment()
-            return False
+            # deploy minio container
+            self.bot_show_update("Deploying minio container")
+            minio_wid = self.s3.deploy_s3_minio_container(
+                pool_id,
+                minio_ak,
+                minio_sk,
+                self.ssh_key.public_key.strip(),
+                scheduler,
+                zdb_wids,
+                self.vdc_uuid,
+                self.password,
+            )
+            self.info(f"minio_wid: {minio_wid}")
+            if not minio_wid:
+                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                return False
 
-        # deploy threebot container
-        self.bot_show_update("Deploying 3Bot container")
-        threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
-        self.info(f"threebot_wid: {threebot_wid}")
-        if not threebot_wid:
-            self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            self.rollback_vdc_deployment()
-            return False
+            # deploy threebot container
+            self.bot_show_update("Deploying 3Bot container")
+            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
+            self.info(f"threebot_wid: {threebot_wid}")
+            if not threebot_wid:
+                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                return False
 
-        # get kubernetes info
-        self.bot_show_update("Preparing Kubernetes cluster configuration")
-        self.vdc_instance.load_info()
-        master_ip = self.vdc_instance.kubernetes[0].public_ip
+            net = ""
+            if "testnet" in self.explorer.url:
+                net = "-testnet"
+            elif "devnet" in self.explorer.url:
+                net = "-devnet"
+            prefix = f"{self.tname}-{self.vdc_name}{net}"
+            # threebot_subdomain = self.proxy.proxy_container_over_custom_domain(
+            #     prefix=prefix,
+            #     wid=threebot_wid,
+            #     port=443,
+            #     solution_uuid=self.vdc_uuid
+            # )
 
-        if master_ip == "::/128":
-            self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
-            self.rollback_vdc_deployment()
-            return False
+            # if not threebot_subdomain:
+            #     self.error(f"failed to expose threebot container")
+            #     self.rollback_vdc_deployment()
+            #     return False
 
-        try:
-            # download kube config from master
-            kube_config = self.kubernetes.download_kube_config(master_ip)
-        except Exception as e:
-            self.error(f"failed to download kube config due to error {str(e)}")
-            self.rollback_vdc_deployment()
-            return False
+            # get kubernetes info
+            self.bot_show_update("Preparing Kubernetes cluster configuration")
+            self.vdc_instance.load_info()
+            master_ip = self.vdc_instance.kubernetes[0].public_ip
 
-        # deploy monitoring stack on kubernetes
-        self.bot_show_update("Deploying monitoring stack")
-        try:
-            self.monitoring.deploy_stack()
-        except j.exceptions.Runtime as e:
-            # TODO: rollback
-            self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
-        return kube_config
+            if master_ip == "::/128":
+                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
+                self.rollback_vdc_deployment()
+                return False
+
+            try:
+                # download kube config from master
+                kube_config = self.kubernetes.download_kube_config(master_ip)
+            except Exception as e:
+                self.error(f"failed to download kube config due to error {str(e)}")
+                self.rollback_vdc_deployment()
+                return False
+
+            # deploy monitoring stack on kubernetes
+            self.bot_show_update("Deploying monitoring stack")
+            try:
+                self.monitoring.deploy_stack()
+            except j.exceptions.Runtime as e:
+                # TODO: rollback
+                self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
+            return kube_config
 
     def expose_s3(self):
         self.vdc_instance.load_info()

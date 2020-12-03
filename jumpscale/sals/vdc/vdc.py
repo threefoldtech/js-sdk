@@ -65,7 +65,7 @@ class UserVDC(Base):
             self._update_instance(workload)
             if workload.info.workload_type == WorkloadType.Subdomain:
                 subdomains.append(workload)
-        self._get_s3_subdomain(subdomains)
+        self._get_subdomains(subdomains)
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -127,8 +127,9 @@ class UserVDC(Base):
             zdb.size = workload.size
             self.s3.zdbs.append(zdb)
 
-    def _get_s3_subdomain(self, subdomain_workloads):
+    def _get_subdomains(self, subdomain_workloads):
         minio_wid = self.s3.minio.wid
+        threebot_wid = self.threebot.wid
         if not minio_wid:
             return
         for workload in subdomain_workloads:
@@ -142,7 +143,8 @@ class UserVDC(Base):
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == minio_wid:
                 self.s3.domain = workload.domain
-                return
+            elif exposed_wid == threebot_wid:
+                self.threebot.domain = workload.domain
 
     def grace_period_action(self):
         self.load_info()

@@ -41,7 +41,7 @@ class S3(Base):
 
 
 class VDCThreebot(VDCHostBase):
-    pass
+    domain = fields.String()
 
 
 __all__ = ["VDCThreebot", "S3", "S3ZDB", "S3Container", "KubernetesNode", "KubernetesRole"]
