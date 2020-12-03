@@ -40,6 +40,7 @@ VDC_S3_MAX_STORAGE = os.environ.get("VDC_S3_MAX_STORAGE")
 S3_AUTO_TOPUP_FARMS = os.environ.get("S3_AUTO_TOPUP_FARMS")
 VDC_MINIO_ADDRESS = os.environ.get("VDC_MINIO_ADDRESS")
 MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
+TEST_CERT = os.environ.get("TEST_CERT", "false")
 
 
 VDC_VARS = {
@@ -54,6 +55,7 @@ VDC_VARS = {
     "S3_AUTO_TOPUP_FARMS": S3_AUTO_TOPUP_FARMS,
     "VDC_MINIO_ADDRESS": VDC_MINIO_ADDRESS,
     "MONITORING_SERVER_URL": MONITORING_SERVER_URL,
+    "TEST_CERT": TEST_CERT,
 }
 
 if not all(list(VDC_VARS.values())):
@@ -101,9 +103,14 @@ j.core.config.set(
 
 j.core.config.set("VDC_THREEBOT", True)
 
-
 j.config.set("SEND_REMOTE_ALERTS", True)
 
 from register_dashboard import register_dashboard
 
 register_dashboard()
+
+server = j.servers.threebot.get("default")
+if TEST_CERT == "false":
+    server.domain = domain
+    server.email = email
+    server.save()

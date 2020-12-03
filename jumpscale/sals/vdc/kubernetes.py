@@ -166,7 +166,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 ssh_keys,
                 ip_address,
                 size=k8s_flavor.value,
-                secret=cluster_secret,
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "kubernetes"},
                 name=self.vdc_name,
