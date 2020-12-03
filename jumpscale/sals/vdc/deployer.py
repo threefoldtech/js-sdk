@@ -36,9 +36,6 @@ class VDCDeployer:
     def __init__(
         self, vdc_instance, password: str = None, bot: GedisChatBot = None, proxy_farm_name: str = None, identity=None
     ):
-        import pdb
-
-        pdb.set_trace()
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
         self.flavor = self.vdc_instance.flavor
