@@ -1036,7 +1036,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         encrypted_secret_env = {}
         if secret_env:
             for key, val in secret_env.items():
+                val = val or ""
                 encrypted_secret_env[key] = j.sals.zos.get(identity_name).container.encrypt_secret(node_id, val)
+        for key, val in env.items():
+            env[key] = val or ""
         container = j.sals.zos.get(identity_name).container.create(
             node_id,
             network_name,

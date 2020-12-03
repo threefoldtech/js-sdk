@@ -290,8 +290,135 @@ class VDCProxy(VDCBaseComponent):
                 self.zos.workloads.decomission(wid)
         self.vdc_deployer.error(f"all tries to reserve a subdomain failed on farm {self.farm_name}")
 
+    def _deploy_nginx_proxy(
+        self,
+        scheduler,
+        wid,
+        subdomain,
+        gateway,
+        pool_id,
+        secret,
+        ip_address,
+        port,
+        gateway_pool_id,
+        solution_uuid,
+        description,
+    ):
+        # proxy the conainer
+        cont_id = None
+        proxy_id = None
+        for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
+            try:
+                self.vdc_deployer.info(
+                    f"deploying nginx proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                )
+                cont_id, proxy_id = deployer.expose_and_create_certificate(
+                    pool_id=pool_id,
+                    gateway_id=gateway.node_id,
+                    network_name=self.vdc_name,
+                    trc_secret=secret,
+                    domain=subdomain,
+                    email=self.vdc_deployer.email,
+                    solution_ip=ip_address,
+                    solution_port=port,
+                    enforce_https=True,
+                    proxy_pool_id=gateway_pool_id,
+                    bot=self.bot,
+                    solution_uuid=solution_uuid,
+                    secret=secret,
+                    node_id=node.node_id,
+                    exposed_wid=wid,
+                    identity_name=self.identity.instance_name,
+                    public_key=self.vdc_deployer.ssh_key.public_key.strip(),
+                    description=description,
+                )
+                success = deployer.wait_workload(
+                    cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
+                if not success:
+                    self.vdc_deployer.error(
+                        f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
+                    )
+                    # container only failed. no need to decomission subdomain
+                    self.zos.workloads.decomission(proxy_id)
+                    continue
+                return subdomain
+            except DeploymentFailed:
+                self.vdc_deployer.error(
+                    f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                )
+                if cont_id:
+                    self.zos.workloads.decomission(cont_id)
+                if proxy_id:
+                    self.zos.workloads.decomission(proxy_id)
+                continue
+
+    def _deploy_trc_proxy(
+        self,
+        scheduler,
+        wid,
+        subdomain,
+        gateway,
+        pool_id,
+        secret,
+        ip_address,
+        port,
+        tls_port,
+        gateway_pool_id,
+        solution_uuid,
+        description,
+    ):
+        cont_id = None
+        proxy_id = None
+        for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
+            try:
+                self.vdc_deployer.info(
+                    f"deploying trc proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                )
+                cont_id, proxy_id = deployer.expose_address(
+                    pool_id=pool_id,
+                    gateway_id=gateway.node_id,
+                    network_name=self.vdc_name,
+                    trc_secret=secret,
+                    domain=subdomain,
+                    email=self.vdc_deployer.email,
+                    local_ip=ip_address,
+                    port=port,
+                    tls_port=tls_port,
+                    enforce_https=True,
+                    proxy_pool_id=gateway_pool_id,
+                    bot=self.bot,
+                    solution_uuid=solution_uuid,
+                    secret=secret,
+                    node_id=node.node_id,
+                    exposed_wid=wid,
+                    identity_name=self.identity.instance_name,
+                    public_key=self.vdc_deployer.ssh_key.public_key.strip(),
+                    description=description,
+                )
+                success = deployer.wait_workload(
+                    cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                )
+                if not success:
+                    self.vdc_deployer.error(
+                        f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
+                    )
+                    # container only failed. no need to decomission subdomain
+                    self.zos.workloads.decomission(proxy_id)
+                    continue
+                return subdomain
+            except DeploymentFailed:
+                self.vdc_deployer.error(
+                    f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                )
+                if cont_id:
+                    self.zos.workloads.decomission(cont_id)
+                if proxy_id:
+                    self.zos.workloads.decomission(proxy_id)
+                continue
+
     def proxy_container_over_custom_domain(
-        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
+        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None, tls_port=None
     ):
         """
         Args:
@@ -330,57 +457,41 @@ class VDCProxy(VDCBaseComponent):
             ip_addresses = self.get_gateway_addresses(gateways)
             for address in ip_addresses:
                 nc.nameclient.create_record(VDC_PARENT_DOMAIN, prefix, "A", address)
-
-            # proxy the conainer
-            for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
-                try:
-                    self.vdc_deployer.info(
-                        f"deploying proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
-                    )
-                    cont_id, proxy_id = deployer.expose_and_create_certificate(
-                        pool_id=pool_id,
-                        gateway_id=gateway.node_id,
-                        network_name=self.vdc_name,
-                        trc_secret=secret,
-                        domain=subdomain,
-                        email=self.vdc_deployer.email,
-                        solution_ip=ip_address,
-                        solution_port=port,
-                        enforce_https=True,
-                        proxy_pool_id=gateway_pool_id,
-                        bot=self.bot,
-                        solution_uuid=solution_uuid,
-                        secret=secret,
-                        node_id=node.node_id,
-                        exposed_wid=wid,
-                        identity_name=self.identity.instance_name,
-                        public_key=self.vdc_deployer.ssh_key.public_key.strip(),
-                        description=desc,
-                    )
-                    success = deployer.wait_workload(
-                        cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
-                    )
-                    if not success:
-                        self.vdc_deployer.error(
-                            f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
-                        )
-                        # container only failed. no need to decomission subdomain
-                        self.zos.workloads.decomission(proxy_id)
-                        continue
-                    return subdomain
-                except DeploymentFailed:
-                    self.vdc_deployer.error(
-                        f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
-                    )
-                    if cont_id:
-                        self.zos.workloads.decomission(cont_id)
-                    if proxy_id:
-                        self.zos.workloads.decomission(proxy_id)
-                    continue
+            if not tls_port:
+                result = self._deploy_nginx_proxy(
+                    scheduler,
+                    wid,
+                    subdomain,
+                    gateway,
+                    pool_id,
+                    secret,
+                    ip_address,
+                    port,
+                    gateway_pool_id,
+                    solution_uuid,
+                    desc,
+                )
+            else:
+                result = self._deploy_trc_proxy(
+                    scheduler,
+                    wid,
+                    subdomain,
+                    gateway,
+                    pool_id,
+                    secret,
+                    ip_address,
+                    port,
+                    tls_port,
+                    gateway_pool_id,
+                    solution_uuid,
+                    desc,
+                )
+            if result:
+                return result
             scheduler.refresh_nodes()
 
     def proxy_container_over_managed_domain(
-        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
+        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None, tls_port=None
     ):
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
@@ -402,53 +513,37 @@ class VDCProxy(VDCBaseComponent):
             for subdomain, subdomain_id in self.reserve_subdomain(
                 gateway, prefix, solution_uuid, gateway_pool_id, exposed_wid=wid
             ):
-                cont_id = None
-                proxy_id = None
-                for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
-                    try:
-                        self.vdc_deployer.info(
-                            f"deploying proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
-                        )
-                        cont_id, proxy_id = deployer.expose_and_create_certificate(
-                            pool_id=pool_id,
-                            gateway_id=gateway.node_id,
-                            network_name=self.vdc_name,
-                            trc_secret=secret,
-                            domain=subdomain,
-                            email=self.vdc_deployer.email,
-                            solution_ip=ip_address,
-                            solution_port=port,
-                            enforce_https=True,
-                            proxy_pool_id=gateway_pool_id,
-                            bot=self.bot,
-                            solution_uuid=solution_uuid,
-                            secret=secret,
-                            node_id=node.node_id,
-                            exposed_wid=wid,
-                            identity_name=self.identity.instance_name,
-                            public_key=self.vdc_deployer.ssh_key.public_key.strip(),
-                            description=desc,
-                        )
-                        success = deployer.wait_workload(
-                            cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
-                        )
-                        if not success:
-                            self.vdc_deployer.error(
-                                f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
-                            )
-                            # container only failed. no need to decomission subdomain
-                            self.zos.workloads.decomission(proxy_id)
-                            continue
-                        return subdomain
-                    except DeploymentFailed:
-                        self.vdc_deployer.error(
-                            f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
-                        )
-                        if cont_id:
-                            self.zos.workloads.decomission(cont_id)
-                        if proxy_id:
-                            self.zos.workloads.decomission(proxy_id)
-                        continue
+                if not tls_port:
+                    result = self._deploy_nginx_proxy(
+                        scheduler,
+                        wid,
+                        subdomain,
+                        gateway,
+                        pool_id,
+                        secret,
+                        ip_address,
+                        port,
+                        gateway_pool_id,
+                        solution_uuid,
+                        desc,
+                    )
+                else:
+                    result = self._deploy_trc_proxy(
+                        scheduler,
+                        wid,
+                        subdomain,
+                        gateway,
+                        pool_id,
+                        secret,
+                        ip_address,
+                        port,
+                        tls_port,
+                        gateway_pool_id,
+                        solution_uuid,
+                        desc,
+                    )
+                if result:
+                    return result
                 self.zos.workloads.decomission(subdomain_id)
                 self.vdc_deployer.error(f"failed to proxy wid: {wid} on subdomain {subdomain}")
                 scheduler.refresh_nodes()

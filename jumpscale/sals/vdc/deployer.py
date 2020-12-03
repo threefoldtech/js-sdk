@@ -421,7 +421,8 @@ class VDCDeployer:
             # threebot_subdomain = self.proxy.proxy_container_over_custom_domain(
             #     prefix=prefix,
             #     wid=threebot_wid,
-            #     port=443,
+            #     port=80,
+            #     tls_port=443,
             #     solution_uuid=self.vdc_uuid
             # )
 

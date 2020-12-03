@@ -35,7 +35,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
         }
         env = {
             "VDC_NAME": self.vdc_name,
-            "MONITORING_SERVER_URL": j.config.get("MONITORING_SERVER_URL"),
+            "MONITORING_SERVER_URL": j.config.get("MONITORING_SERVER_URL", ""),
             "VDC_UUID": self.vdc_uuid,
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_MAX_STORAGE": str(

@@ -112,6 +112,10 @@ from register_dashboard import register_dashboard
 
 register_dashboard()
 
+vdc.load_info()
+
+vdc.threebot.domain
+
 server = j.servers.threebot.get("default")
 # TODO: how to configure the package domain?
 # server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{VDC_OWNER_TNAME}.3bot"])
