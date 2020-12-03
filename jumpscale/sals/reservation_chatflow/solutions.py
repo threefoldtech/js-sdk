@@ -669,7 +669,10 @@ class ChatflowSolutions:
         identity_name = identity_name or j.core.identity.me.instance_name
         identity = j.core.identity.get(identity_name)
         # Get workloads with specific UUID
-        for workload in j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action="DEPLOY"):
+        workloads = j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action="DEPLOY")
+        # reverse workloads order to delete k8s vms before deleting the associated public ip reservation
+        workloads.reverse()
+        for workload in workloads:
             if solution_uuid == self.get_solution_uuid(workload, identity_name):
                 j.sals.zos.get(identity_name).workloads.decomission(workload.id)
 
