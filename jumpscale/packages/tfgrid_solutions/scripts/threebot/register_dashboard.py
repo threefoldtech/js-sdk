@@ -32,7 +32,7 @@ def register_dashboard():
             "tid": tid,
             "explorer_url": EXPLORER_URL,
             "vdc_name": VDC_NAME,
-            "tname": j.core.identity.me.tname,
+            "tname": os.environ.get("VDC_OWNER_TNAME"),
         }
         encoded_data = _encode_data(data)
         signature = j.core.identity.me.nacl.signing_key.sign(encoded_data).signature

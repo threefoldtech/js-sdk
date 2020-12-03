@@ -48,7 +48,7 @@ def send_alert(alert):
             "timestamp": alert.last_occurrence,
             "count": alert.count,
             "type": alert.type,
-            "tname": j.core.identity.me.tname,
+            "tname": os.environ.get("VDC_OWNER_TNAME"),
         }
         encoded_data = _encode_data(data)
         signature = j.core.identity.me.nacl.signing_key.sign(encoded_data).signature
