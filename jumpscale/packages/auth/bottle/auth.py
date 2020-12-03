@@ -367,6 +367,7 @@ def add_package_user(package_name, username):
     if not package:
         raise j.exceptions.Validation(f"can't add admin to non installed package {package_name}")
     package.admins.append(username)
+    j.servers.threebot.default.packages.save()
 
 
 def get_package_admins(package_name):
