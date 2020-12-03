@@ -2,7 +2,7 @@ from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, package_authorized
 from jumpscale.packages.marketplacevdc.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -10,7 +10,7 @@ app = Bottle()
 
 
 @app.route("/api/vdcs", method="GET")
-@login_required
+@package_authorized("vdc")
 def list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
@@ -25,7 +25,7 @@ def list_vdcs():
 
 
 @app.route("/api/vdcs/<name>", method="GET")
-@login_required
+@package_authorized("vdc")
 def get_vdc_info(name):
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
@@ -40,7 +40,7 @@ def get_vdc_info(name):
 
 
 @app.route("/api/allowed", method="GET")
-@login_required
+@package_authorized("vdc")
 def allowed():
     user_factory = StoredFactory(UserEntry)
     user_info = j.data.serializers.json.loads(get_user_info())
@@ -55,7 +55,7 @@ def allowed():
 
 
 @app.route("/api/accept", method="GET")
-@login_required
+@package_authorized("vdc")
 def accept():
     user_factory = StoredFactory(UserEntry)
 
