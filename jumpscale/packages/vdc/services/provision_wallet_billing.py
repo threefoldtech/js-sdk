@@ -1,0 +1,16 @@
+from jumpscale.loader import j
+from jumpscale.packages.vdc.utils import auto_extend_billing  
+from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+
+class AutoExtendbillingService(BackgroundService):
+    def __init__(self, name="auto_extend_billing_service",interval=60 * 60,*args, **kwargs)
+        """Provisioning wallet service that will run every hour to extend the vdc pool
+        """
+        super().__init__(name, interval, *args, **kwargs)
+
+
+    def job(self):
+        auto_extend_billing()
+        j.logger.info("Auto extend billing service")
+
+service = AutoExtendbillingService()
