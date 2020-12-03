@@ -10,11 +10,23 @@ PREPAID_WALLET = os.getenv("PREPAID_WALLET")
 
 
 def get_addon_price(addon):
+    """Gets the addon price 
+
+    Args:
+        addon (str) : Name of the addon, to get its price
+    Returns:
+        addon_price(float) : return each addon price
+    """
     # TODO: Get the addon_price
     return 0
 
 
 def calculate_addons_hourly_rate():
+    """Calcutlate the addons on hourly rate for all the addons by the user
+
+    Returns:
+        total_price (float): the total price for all addons
+    """
     vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     addons = vdc_instance.addons
@@ -27,12 +39,20 @@ def calculate_addons_hourly_rate():
 
 
 def calculate_hourly_rate():
+    """Calculate the total hourly rate of the user used plan and the addons.
+
+    Returns
+        hourly_amount(float): the total price for each hour, 
+                              including the price of the user plan and addons
+    """
     hourly_amount = ORIGINAL_USER_PLAN_TFT / (24 * 30)
     hourly_amount += calculate_addons_hourly_rate()
     return hourly_amount
 
 
 def tranfer_prepaid_to_provision_wallet():
+    """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
+    """
     prepaid_wallet = j.clients.stellar.get(PREPAID_WALLET)
     provision_wallet = j.clients.stellar.get(PROVISION_WALLET_NAME)
     tft = prepaid_wallet.get_asset("TFT")
@@ -41,6 +61,9 @@ def tranfer_prepaid_to_provision_wallet():
 
 
 def auto_extend_billing():
+    """Is used to get the pool in the VDC and extend them when the remaining time is less than 
+    half of the BASE_CAPACITY
+    """
     # TODO: get the VDC pool
     vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
     vdc_password = os.getenv("VDC_PASSWORD")
