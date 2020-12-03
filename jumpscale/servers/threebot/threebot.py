@@ -50,12 +50,14 @@ class NginxPackageConfig:
 
         is_auth = self.package.config.get("is_auth", True)
         is_admin = self.package.config.get("is_admin", True)
+        is_package_authorized = self.package.config.get("is_package_authorized", False)
 
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
@@ -71,6 +73,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
@@ -87,6 +90,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "actors",
                     "host": GEDIS_HTTP_HOST,
@@ -102,6 +106,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "chats",
                     "host": CHATFLOW_SERVER_HOST,
@@ -178,6 +183,8 @@ class NginxPackageConfig:
                         loc.force_https = location.get("force_https")
                         loc.is_auth = location.get("is_auth", False)
                         loc.is_admin = location.get("is_admin", False)
+                        loc.is_package_authorized = location.get("is_package_authorized", False)
+                        loc.package_name = self.package.name
 
                 website.save()
                 website.configure()
@@ -198,7 +205,7 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
+    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None, admins=None):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -208,6 +215,7 @@ class Package:
         self.default_domain = default_domain
         self.default_email = default_email
         self.kwargs = kwargs or {}
+        self.admins = admins or []
 
     def _load_files(self, dir_path):
         for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
@@ -342,12 +350,14 @@ class PackageManager(Base):
             package_path = self.packages[package_name]["path"]
             package_giturl = self.packages[package_name]["giturl"]
             package_kwargs = self.packages[package_name].get("kwargs", {})
+            package_admins = self.packages[package_name].get("admins", [])
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
                 giturl=package_giturl,
                 kwargs=package_kwargs,
+                admins=package_admins,
             )
 
     def get_packages(self):
@@ -440,12 +450,15 @@ class PackageManager(Base):
             package_path = j.sals.fs.parent(path_for_package_toml)
             path = package_path
 
+        admins = kwargs.pop("admins", [])
+
         package = Package(
             path=path,
             default_domain=self.threebot.domain,
             default_email=self.threebot.email,
             giturl=giturl,
             kwargs=kwargs,
+            admins=admins,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
@@ -464,6 +477,7 @@ class PackageManager(Base):
             "path": package.path,
             "giturl": package.giturl,
             "kwargs": package.kwargs,
+            "admins": package.admins,
         }
 
         self.save()
