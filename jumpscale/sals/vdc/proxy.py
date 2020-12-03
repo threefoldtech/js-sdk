@@ -286,7 +286,77 @@ class VDCProxy(VDCBaseComponent):
                 self.zos.workloads.decomission(wid)
         self.vdc_deployer.error(f"all tries to reserve a subdomain failed on farm {self.farm_name}")
 
-    def proxy_container(self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None):
+    def proxy_container_over_custom_domain(
+        self, subdomain, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
+    ):
+        secret = secret or uuid.uuid4().hex
+        secret = f"{self.identity.tid}:{secret}"
+        scheduler = scheduler or Scheduler(self.farm_name)
+        workload = self.zos.workloads.get(wid)
+        if workload.info.workload_type != WorkloadType.Container:
+            raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
+
+        pool_id = pool_id or workload.info.pool_id
+        ip_address = workload.network_connection[0].ipaddress
+        self.vdc_deployer.info(f"proxy container {wid} ip: {ip_address} port: {port} pool: {pool_id}")
+        gateways = self.fetch_myfarm_gateways()
+        random.shuffle(gateways)
+        gateway_pool_id = self.get_gateway_pool_id()
+        desc = j.data.serializers.json.loads(self.vdc_deployer.description)
+        desc["exposed_wid"] = wid
+        desc = j.data.serializers.json.dumps(desc)
+        for gateway in gateways:
+            # create a subdomain in domain provider that points to the gateway
+            for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
+                try:
+                    self.vdc_deployer.info(
+                        f"deploying proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                    )
+                    cont_id, proxy_id = deployer.expose_and_create_certificate(
+                        pool_id=pool_id,
+                        gateway_id=gateway.node_id,
+                        network_name=self.vdc_name,
+                        trc_secret=secret,
+                        domain=subdomain,
+                        email=self.vdc_deployer.email,
+                        solution_ip=ip_address,
+                        solution_port=port,
+                        enforce_https=True,
+                        proxy_pool_id=gateway_pool_id,
+                        bot=self.bot,
+                        solution_uuid=solution_uuid,
+                        secret=secret,
+                        node_id=node.node_id,
+                        exposed_wid=wid,
+                        identity_name=self.identity.instance_name,
+                        public_key=self.vdc_deployer.ssh_key.public_key.strip(),
+                        description=desc,
+                    )
+                    success = deployer.wait_workload(
+                        cont_id, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    )
+                    if not success:
+                        self.vdc_deployer.error(
+                            f"nginx container for wid: {wid} failed on node: {node.node_id} nginx_wid: {cont_id}"
+                        )
+                        # container only failed. no need to decomission subdomain
+                        self.zos.workloads.decomission(proxy_id)
+                        continue
+                    return subdomain
+                except DeploymentFailed:
+                    self.vdc_deployer.error(
+                        f"proxy reservation for wid: {wid} failed on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
+                    )
+                    if cont_id:
+                        self.zos.workloads.decomission(cont_id)
+                    if proxy_id:
+                        self.zos.workloads.decomission(proxy_id)
+                    continue
+            scheduler.refresh_nodes()
+
+    def proxy_container_over_managed_domain(
+        self, prefix, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None
+    ):
         secret = secret or uuid.uuid4().hex
         secret = f"{self.identity.tid}:{secret}"
         scheduler = scheduler or Scheduler(self.farm_name)
