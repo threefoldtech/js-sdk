@@ -48,8 +48,11 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
-    def get_deployer(self, password, bot=None, proxy_farm_name=None):
-        return VDCDeployer(password, self, bot, proxy_farm_name)
+    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
+        identity = identity or j.core.identity.me
+        return VDCDeployer(
+            vdc_instance=self, password=password, bot=bot, proxy_farm_name=proxy_farm_name, identity=identity
+        )
 
     def load_info(self):
         self.kubernetes = []

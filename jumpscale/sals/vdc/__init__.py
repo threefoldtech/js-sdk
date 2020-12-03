@@ -39,6 +39,16 @@ class VDCStoredFactory(StoredFactory):
             result.append(instance)
         return result
 
+    def from_dict(self, instance_dict):
+        vdc_name = instance_dict.pop("vdc_name")
+        owner_tname = instance_dict.pop("owner_tname")
+        flavor = instance_dict.pop("flavor")
+        instance = self.new(vdc_name, owner_tname, flavor)
+        for key, val in instance_dict.items():
+            setattr(instance, key, val)
+        instance.save()
+        return instance
+
 
 VDCFACTORY = VDCStoredFactory(UserVDC)
 VDCFACTORY.always_relaod = True

@@ -170,6 +170,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 identity_name=self.identity.instance_name,
                 form_info={"chatflow": "kubernetes"},
                 name=self.vdc_name,
+                secret=cluster_secret,
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
                 public_ip_wid=public_ip_wid,

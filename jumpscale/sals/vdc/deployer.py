@@ -33,15 +33,17 @@ class VDCIdentityError(exceptions.Base):
 
 
 class VDCDeployer:
-    def __init__(self, password: str, vdc_instance, bot: GedisChatBot = None, proxy_farm_name: str = None):
+    def __init__(
+        self, vdc_instance, password: str = None, bot: GedisChatBot = None, proxy_farm_name: str = None, identity=None
+    ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
         self.flavor = self.vdc_instance.flavor
         self.tname = j.data.text.removesuffix(self.vdc_instance.owner_tname, ".3bot")
         self.bot = bot
-        self.identity = None
+        self._identity = identity
         self.password = password
-        self.password_hash = hashlib.md5(self.password.encode()).hexdigest()
+        self.password_hash = None
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
@@ -134,17 +136,24 @@ class VDCDeployer:
             self._ssh_key.load_from_file_system()
         return self._ssh_key
 
+    @property
+    def identity(self):
+        return self._identity
+
     def _generate_identity(self):
         # create a user identity from an old one or create a new one
+        if self._identity:
+            return
+        self.password_hash = hashlib.md5(self.password.encode()).hexdigest()
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name)
         words = j.data.encryption.key_to_mnemonic(self.password_hash.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
-        self.identity = j.core.identity.get(
+        self._identity = j.core.identity.get(
             identity_name, tname=username, email=self.email, words=words, explorer_url=j.core.identity.me.explorer_url
         )
         try:
-            self.identity.register()
-            self.identity.save()
+            self._identity.register()
+            self._identity.save()
         except Exception as e:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
             raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
@@ -431,8 +440,11 @@ class VDCDeployer:
     def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1):
         if isinstance(flavor, str):
             flavor = K8SNodeFlavor[flavor.upper()]
-        cluster_secret = self.password_hash
         self.vdc_instance.load_info()
+        master_Workload = self.zos.workloads.get(self.vdc_instance.kubernetes[0].wid)
+        metadata = deployer.decrypt_metadata(master_Workload.info.metadata, self.identity.instance_name)
+        meta_dict = j.data.serializers.json.loads(metadata)
+        cluster_secret = meta_dict["secret"]
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].public_ip
         farm_name = farm_name if not public_ip else NETWORK_FARM

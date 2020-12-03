@@ -61,7 +61,7 @@ def test01_create_pool_with_funded_wallet():
     user_tft_amount = get_wallet_balance(wallet)
 
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, farm="freefarm", currencies=["TFT"])
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
 
     info("Pay for the pool")
     needed_tft_ammount = amount_paid_to_farmer(pool)
@@ -132,7 +132,7 @@ def test03_create_pool_with_empty_wallet():
     wallet = create_new_wallet()
 
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, farm="freefarm", currencies=["TFT"])
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
