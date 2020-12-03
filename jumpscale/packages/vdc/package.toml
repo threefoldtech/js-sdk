@@ -1,5 +1,6 @@
 name = "vdc"
-is_auth = true
+is_package_authorized = true
+is_auth = false
 is_admin = false
 frontend = "/vdc"
 
