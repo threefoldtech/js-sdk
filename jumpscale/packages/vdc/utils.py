@@ -1,6 +1,9 @@
 import os
 from decimal import Decimal
 from jumpscale.loader import j
+from jumpscale.sals.vdc.size import VDC_FLAVORS
+from jumpscale.sals.vdc.models import KubernetesRole
+from jumpscale.sals.vdc.models import K8SNodeFlavor
 
 
 PROVISION_WALLET_NAME = os.getenv("PROVISION_WALLET")
@@ -9,16 +12,26 @@ BASE_CAPACITY = os.getenv("BASE_CAPACITY")
 PREPAID_WALLET = os.getenv("PREPAID_WALLET")
 
 
-def get_addon_price(addon):
-    """Gets the addon price 
+def get_addons(flavor, kubernetes_addons):
+    plan = VDC_FLAVORS.get(flavor)
+    plan_nodes_count = plan.get("k8s").get("no_nodes")
+    plan_nodes_size = plan.get("k8s").get("size")
+    addons = list()
+    for addon in kubernetes_addons:
+        if addon.role.name != KubernetesRole.MASTER:
+            if addon.size == plan_nodes_size:
+                plan_nodes_count -= 1
+                if plan_nodes_count < 0:
+                    addons.append(addon)
+            else:
+                addons.append(addon)
+    return addons
 
-    Args:
-        addon (str) : Name of the addon, to get its price
-    Returns:
-        addon_price(float) : return each addon price
-    """
-    # TODO: Get the addon_price
-    return 0
+
+def calculate_addon_price(addon):
+    # TODO : get the price of each size
+    addon_price = 10
+    return addon_price
 
 
 def calculate_addons_hourly_rate():
@@ -29,12 +42,14 @@ def calculate_addons_hourly_rate():
     """
     vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
-    addons = vdc_instance.addons
+    # addons = vdc_instance.addons
     total_price = 0
     # Calculate all the hourly late for all addons
-    for addon_name, addon_amount in addons:
-        addon_price = get_addon_price(addon_name)
-        total_price += (addon_price / (24 * 30)) * addon_amount
+    addons = []
+    addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
+    for addon in addons:
+        addon_price = calculate_addon_price(addon)
+        total_price += addon_price / (24 * 30)
     return total_price
 
 
