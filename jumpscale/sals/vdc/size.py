@@ -30,7 +30,7 @@ def _convert_eur_to_tft(amount):
 def get_vdc_tft_price(flavor):
     if isinstance(flavor, str):
         flavor = VDCFlavor[flavor.upper()]
-    amount = VDC_FLAFORS[flavor]["price"]
+    amount = VDC_FLAVORS[flavor]["price"]
     return _convert_eur_to_tft(amount)
 
 
@@ -80,7 +80,7 @@ class VDCFlavor(Enum):
     PLATINUM = "platinum"
 
 
-VDC_FLAFORS = {
+VDC_FLAVORS = {
     VDCFlavor.SILVER: {
         "k8s": {"no_nodes": 1, "size": K8SNodeFlavor.SMALL, "dedicated": False},
         "s3": {"size": S3ZDBSize.SMALL},

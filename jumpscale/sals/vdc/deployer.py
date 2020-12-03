@@ -194,7 +194,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
-        duration = VDC_FLAFORS[self.flavor]["duration"]
+        duration = VDC_FLAVORS[self.flavor]["duration"]
 
         def get_cloud_units(workload):
             ru = workload.resource_units()
@@ -325,15 +325,15 @@ class VDCDeployer:
         if not master_ip:
             self.error("failed to deploy kubernetes master")
             return
-        no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
+        no_nodes = VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            VDC_FLAVORS[self.flavor]["k8s"]["size"],
             cluster_secret,
             [self.ssh_key.public_key.strip()],
             no_nodes,
-            VDC_FLAFORS[self.flavor]["duration"],
+            VDC_FLAVORS[self.flavor]["duration"],
             solution_uuid=self.vdc_uuid,
         )
         if not wids:
@@ -503,7 +503,7 @@ class VDCDeployer:
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            VDC_FLAVORS[self.flavor]["k8s"]["size"],
             cluster_secret,
             [public_key],
             no_nodes,

@@ -4,7 +4,7 @@ from .size import (
     THREEBOT_CPU,
     THREEBOT_MEMORY,
     THREEBOT_DISK,
-    VDC_FLAFORS,
+    VDC_FLAVORS,
     S3_ZDB_SIZES,
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
@@ -43,7 +43,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_MAX_STORAGE": str(
                 int(
-                    S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
+                    S3_ZDB_SIZES[VDC_FLAVORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
                     * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
                 )
             ),
@@ -113,7 +113,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
                 success = deployer.wait_workload(
-                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
                     return wid
