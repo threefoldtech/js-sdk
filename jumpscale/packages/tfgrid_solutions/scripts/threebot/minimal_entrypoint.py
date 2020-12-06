@@ -82,7 +82,8 @@ identity.register()
 identity.save()
 identity.set_default()
 
-vdc = j.sals.vdc.from_dict(vdc_dict)
+if not j.sals.vdc.list_all():
+    vdc = j.sals.vdc.from_dict(vdc_dict)
 
 network = "STD"
 
