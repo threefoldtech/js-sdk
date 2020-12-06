@@ -16,15 +16,14 @@ class Packages(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def wait(self):
-        wait = WebDriverWait(self.driver, 60)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "v-dialog")))
+    def wait(self, class_name):
+        wait = WebDriverWait(self.driver, 90)
+        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
 
     def click_button(self, button_type):
         buttons = self.driver.find_elements_by_class_name("v-btn")
         button = [button for button in buttons if button.text == button_type][0]
-        wait = WebDriverWait(self.driver, 60)
-        wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "v-btn")))
+        self.wait("progressbar")
         button.click()
 
     def check_threebot_deployer_package(self):
@@ -58,11 +57,13 @@ class Packages(Base):
         if git_url is not None:
             git_url_input.send_keys(git_url)
             self.click_button("SUBMIT")
-            self.wait()
+            self.wait("v-dialog")
         else:
+            # Clear git_url_input box
+            git_url_input.clear()
             path_input.send_keys(path)
             self.click_button("SUBMIT")
-            # self.wait()
+            self.wait("v-dialog")
 
     def check_packages_type(self):
         installed_packages = {}
@@ -88,8 +89,7 @@ class Packages(Base):
             if package == package_name:
                 package_card = installed_packages[package_name]
                 delete_icon = package_card.find_element_by_class_name("v-btn")
-                wait = WebDriverWait(self.driver, 60)
-                wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "v-btn")))
+                self.wait("v-btn")
                 delete_icon.click()
                 break
         else:
@@ -102,6 +102,7 @@ class Packages(Base):
         package_card = available_packages[random_package]
         install_icon = package_card.find_element_by_class_name("v-btn__content")
         install_icon.click()
+        self.wait("progressbar")
         return random_package
 
     def open_in_browser(self):
