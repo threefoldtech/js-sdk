@@ -36,7 +36,7 @@ class UserVDC(Base):
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
     is_blocked = fields.Boolean(default=False)
-    explorer_url = fields.String(default=j.core.identity.me.explorer_url)
+    explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
 
     @property
     def wallet(self):
