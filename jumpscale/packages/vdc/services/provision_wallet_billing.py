@@ -4,7 +4,7 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
 class AutoExtendbillingService(BackgroundService):
-    def __init__(self, name="auto_extend_billing_service", interval=60 * 60, *args, **kwargs):
+    def __init__(self, name="auto_extend_billing_service", interval=60 * 5, *args, **kwargs):
         """Provisioning wallet service that will run every hour to extend the vdc pool
         """
         super().__init__(name, interval, *args, **kwargs)

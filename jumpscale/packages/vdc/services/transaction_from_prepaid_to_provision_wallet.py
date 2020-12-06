@@ -4,7 +4,7 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
 class TransferPrepaidToProvisionWallet(BackgroundService):
-    def __init__(self, name="auto_transfer_funds_from_prepaid_provision_wallet", interval=60 * 60, *args, **kwargs):
+    def __init__(self, name="auto_transfer_funds_from_prepaid_provision_wallet", interval=60 * 5, *args, **kwargs):
         """Provisioning wallet service that will run every hour to transfer
         funds from prepaid to provision wallet
         """

@@ -153,9 +153,13 @@ server.save()
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
 # Register provisioning and prepaid wallets
 
-wallet = j.clients.stellar.new(name="prepaid", secret=PREPAID_WALLET_SECRET, network=network)
+wallet = j.clients.stellar.new(
+    name=f"{VDC_INSTANCE_NAME}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
+)
 wallet.save()
 
-wallet = j.clients.stellar.new(name="provisioning", secret=PROVISIONING_WALLET_SECRET, network=network)
+wallet = j.clients.stellar.new(
+    name=f"{VDC_INSTANCE_NAME}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
+)
 wallet.save()
 
