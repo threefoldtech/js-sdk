@@ -620,12 +620,16 @@ class VDCProxy(VDCBaseComponent):
         service_text = j.tools.jinja2.render_template(
             template_text=PROXY_SERVICE_TEMPLATE, service_name=name, port=port,
         )
-        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{service_text}' |  kubectl apply -f -")
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(
+            f"echo -e '{service_text}' |  kubectl --insecure-skip-tls-verify apply -f -"
+        )
 
         endpoint_text = j.tools.jinja2.render_template(
             template_text=PROXY_ENDPOINT_TEMPLATE, endpoint_name=name, addresses=addresses, port=port,
         )
-        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{endpoint_text}' |  kubectl apply -f -")
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(
+            f"echo -e '{endpoint_text}' |  kubectl --insecure-skip-tls-verify apply -f -"
+        )
 
         ingress_text = j.tools.jinja2.render_template(
             template_text=PROXY_INGRESS_TEMPLATE,
@@ -634,4 +638,6 @@ class VDCProxy(VDCBaseComponent):
             service_name=name,
             service_port=port,
         )
-        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")
+        self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(
+            f"echo -e '{ingress_text}' |  kubectl --insecure-skip-tls-verify apply -f -"
+        )
