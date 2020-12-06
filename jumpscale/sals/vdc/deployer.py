@@ -399,14 +399,6 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
-            # deploy monitoring stack on kubernetes
-            self.bot_show_update("Deploying monitoring stack")
-            try:
-                self.monitoring.deploy_stack()
-            except j.exceptions.Runtime as e:
-                # TODO: rollback
-                self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
-
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
             pool_id = self.get_pool_id(farm_name)
@@ -437,6 +429,14 @@ class VDCDeployer:
                 self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 return False
+
+            # deploy monitoring stack on kubernetes
+            self.bot_show_update("Deploying monitoring stack")
+            try:
+                self.monitoring.deploy_stack()
+            except j.exceptions.Runtime as e:
+                # TODO: rollback
+                self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
 
             return kube_config
 
