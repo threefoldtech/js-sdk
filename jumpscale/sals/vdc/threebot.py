@@ -1,4 +1,3 @@
-from hashlib import new
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .size import (
@@ -51,6 +50,15 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
         }
+        if not self.vdc_instance.kubernetes:
+            self.vdc_instance.load_info()
+
+        net = ""
+        if "testnet" in self.explorer.url:
+            net = "-testnet"
+        elif "devnet" in self.explorer.url:
+            net = "-devnet"
+        prefix = f"{self.vdc_deployer.tname}-{self.vdc_name}{net}.vdc"
 
         scheduler = Scheduler(pool_id=pool_id)
         for node in scheduler.nodes_by_capacity(THREEBOT_CPU, THREEBOT_DISK / 1024, THREEBOT_MEMORY / 1024):
@@ -87,6 +95,18 @@ class VDCThreebotDeployer(VDCBaseComponent):
             log_config = j.core.config.get("VDC_LOG_CONFIG", {})
             if log_config:
                 log_config["channel_name"] = self.vdc_instance.instance_name
+
+            subdomain = self.vdc_deployer.proxy.ingress_proxy_over_custom_domain(
+                name=f"threebot-{self.vdc_name}",
+                prefix=prefix,
+                port=443,
+                public_ip=self.vdc_instance.kubernetes[0].public_ip,
+                private_ip=ip_address,
+            )
+            if not subdomain:
+                return
+
+            env["DOMAIN_NAME"] = subdomain
 
             wid = deployer.deploy_container(
                 pool_id=pool_id,

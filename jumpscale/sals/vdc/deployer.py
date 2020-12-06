@@ -1,5 +1,4 @@
 import hashlib
-from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
 import uuid
 
@@ -27,9 +26,6 @@ IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
-
-
-VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "grid.tf")
 
 
 class new_vdc_context(ContextDecorator):
@@ -416,26 +412,6 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
-            net = ""
-            if "testnet" in self.explorer.url:
-                net = "-testnet"
-            elif "devnet" in self.explorer.url:
-                net = "-devnet"
-            prefix = f"{self.tname}-{self.vdc_name}{net}.vdc"
-            threebot_subdomain = self.proxy.proxy_container_over_custom_domain(
-                prefix=prefix,
-                parent_domain=VDC_PARENT_DOMAIN,
-                wid=threebot_wid,
-                port=80,
-                tls_port=443,
-                solution_uuid=self.vdc_uuid,
-            )
-
-            if not threebot_subdomain:
-                self.error(f"failed to expose threebot container")
-                self.rollback_vdc_deployment()
-                return False
-
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")
             self.vdc_instance.load_info()
@@ -470,7 +446,7 @@ class VDCDeployer:
             raise j.exceptions.Runtime(f"vdc {self.vdc_uuid} doesn't contain the required workloads")
         master_ip = self.vdc_instance.kubernetes[0].public_ip
         self.info(f"exposing s3 over public ip: {master_ip}")
-        domain_name = self.proxy.ingress_proxy(
+        domain_name = self.proxy.ingress_proxy_over_managed_domain(
             f"minio", f"{self.vdc_name}-s3", self.vdc_instance.s3.minio.wid, 9000, master_ip, uuid.uuid4().hex
         )
         self.info(f"s3 exposed over domain: {domain_name}")

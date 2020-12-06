@@ -11,6 +11,7 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .scheduler import Scheduler
 
+VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "grid.tf")
 
 PROXY_SERVICE_TEMPLATE = """
 kind: Service
@@ -412,13 +413,23 @@ class VDCProxy(VDCBaseComponent):
                 continue
 
     def proxy_container_over_custom_domain(
-        self, prefix, parent_domain, wid, port, solution_uuid, pool_id=None, secret=None, scheduler=None, tls_port=None
+        self,
+        prefix,
+        wid,
+        port,
+        solution_uuid,
+        pool_id=None,
+        secret=None,
+        scheduler=None,
+        tls_port=None,
+        parent_domain=None,
     ):
         """
         Args:
             prefix: MUST BE UNIQUE will be appended to parent domain (vdc.grid.tf) if it already exist it will be deleted and recreated
             wid: workload id of the container to expose
         """
+        parent_domain = parent_domain or VDC_PARENT_DOMAIN
         subdomain = f"{prefix}.{parent_domain}"
         nc = j.clients.name.new(self.vdc_name)
         nc.username = os.environ.get("VDC_NAME_USER")
@@ -544,7 +555,41 @@ class VDCProxy(VDCBaseComponent):
             self.vdc_deployer.error(f"failed to expose workload {wid} on gateway {gateway.node_id}")
         self.vdc_deployer.error(f"all tries to expose wid {wid} failed")
 
-    def ingress_proxy(self, name, prefix, wid, port, public_ip, solution_uuid):
+    def ingress_proxy_over_custom_domain(
+        self, name, prefix, port, public_ip, private_ip=None, wid=None, parent_domain=None
+    ):
+        if not any([private_ip, wid]):
+            raise j.exceptions.Input(f"must pass private ip or wid")
+        parent_domain = parent_domain or VDC_PARENT_DOMAIN
+        subdomain = f"{prefix}.{parent_domain}"
+        nc = j.clients.name.new(self.vdc_name)
+        nc.username = os.environ.get("VDC_NAME_USER")
+        nc.token = os.environ.get("VDC_NAME_TOKEN")
+
+        if not private_ip:
+            workload = self.zos.workloads.get(wid)
+            if workload.info.workload_type != WorkloadType.Container:
+                raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
+            ip_address = workload.network_connection[0].ipaddress
+        else:
+            ip_address = private_ip
+
+        self.vdc_deployer.info(
+            f"ingress proxy over custom domain: {subdomain}, name: {name}, ip_address: {ip_address}, public_ip: {public_ip}"
+        )
+
+        # if old records exist for this prefix clean it.
+        existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
+        if existing_records:
+            for record_dict in existing_records:
+                nc.nameclient.delete_record(record_dict["fqdn"][:-1], record_dict["id"])
+
+        # create a subdomain in domain provider that points to the gateway
+        nc.nameclient.create_record(parent_domain, prefix, "A", public_ip)
+        self._create_ingress(name, subdomain, [ip_address], port)
+        return subdomain
+
+    def ingress_proxy_over_managed_domain(self, name, prefix, wid, port, public_ip, solution_uuid):
         workload = self.zos.workloads.get(wid)
         if workload.info.workload_type != WorkloadType.Container:
             raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
@@ -560,6 +605,9 @@ class VDCProxy(VDCBaseComponent):
                 subdomain, subdomain_id = next(domain_generator)
             except StopIteration:
                 continue
+            self.vdc_deployer.info(
+                f"ingress proxy over custom domain: {subdomain}, name: {name}, ip_address: {ip_address}, public_ip: {public_ip}"
+            )
             try:
                 self._create_ingress(name, subdomain, [ip_address], port)
                 return subdomain

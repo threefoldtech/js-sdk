@@ -8,6 +8,7 @@ from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
+from .proxy import VDC_PARENT_DOMAIN
 from .models import *
 from .size import VDCFlavor, get_kubernetes_tft_price, get_vdc_tft_price
 from .wallet import VDC_WALLET_FACTORY
@@ -35,6 +36,7 @@ class UserVDC(Base):
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
     is_blocked = fields.Boolean(default=False)
+    explorer_url = fields.String(default=j.core.identity.me.explorer_url)
 
     @property
     def wallet(self):
@@ -133,7 +135,6 @@ class UserVDC(Base):
 
     def _get_s3_subdomains(self, subdomain_workloads):
         minio_wid = self.s3.minio.wid
-
         if not minio_wid:
             return
         for workload in subdomain_workloads:
@@ -149,20 +150,30 @@ class UserVDC(Base):
                 self.s3.domain = workload.domain
 
     def _get_threebot_subdomain(self, proxy_workloads):
-        threebot_wid = self.threebot.wid
-        if not threebot_wid:
-            return
-        for workload in proxy_workloads:
-            if not workload.info.description:
-                continue
-            try:
-                desc = j.data.serializers.json.loads(workload.info.description)
-            except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
-                continue
-            exposed_wid = desc.get("exposed_wid")
-            if exposed_wid == threebot_wid:
-                self.threebot.domain = workload.domain
+        if not proxy_workloads:
+            # threebot is exposed over ingress
+            net = ""
+            if "testnet" in self.explorer.url:
+                net = "-testnet"
+            elif "devnet" in self.explorer.url:
+                net = "-devnet"
+            self.threebot.domain = f"{self.owner_tname}-{self.vdc_name}{net}.vdc.{VDC_PARENT_DOMAIN}"
+        else:
+            # threebot is exposed over gateway
+            threebot_wid = self.threebot.wid
+            if not threebot_wid:
+                return
+            for workload in proxy_workloads:
+                if not workload.info.description:
+                    continue
+                try:
+                    desc = j.data.serializers.json.loads(workload.info.description)
+                except Exception as e:
+                    j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                    continue
+                exposed_wid = desc.get("exposed_wid")
+                if exposed_wid == threebot_wid:
+                    self.threebot.domain = workload.domain
 
     def grace_period_action(self):
         self.load_info()

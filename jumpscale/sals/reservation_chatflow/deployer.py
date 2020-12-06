@@ -1712,7 +1712,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             "REMOTE_IP": gateway.dns_nameserver[0],
             "REMOTE_PORT": str(gateway.tcp_router_port),
         }
-        print(log_config)
         resv_id = self.deploy_container(
             pool_id=pool_id,
             node_id=node_id,
