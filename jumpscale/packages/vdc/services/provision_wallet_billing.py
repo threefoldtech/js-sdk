@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.packages.vdc.utils import auto_extend_billing
+from jumpscale.packages.vdc.billing import auto_extend_billing
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 

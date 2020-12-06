@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.packages.vdc.utils import tranfer_prepaid_to_provision_wallet
+from jumpscale.packages.vdc.billing import tranfer_prepaid_to_provision_wallet
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
