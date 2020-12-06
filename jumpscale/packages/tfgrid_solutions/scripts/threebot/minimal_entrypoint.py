@@ -63,23 +63,28 @@ if not all(list(VDC_VARS.values())):
 
 
 for key, value in VDC_VARS.items():
-    j.sals.process.execute(f"""echo "{key}={value}" >> /etc/environment""")
+    j.sals.process.execute(f"""echo "{key}={value}" >> /root/.bashrc""")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
 
-vdc = j.sals.vdc.from_dict(vdc_dict)
 
-username = VDC_IDENTITY_FORMAT.format(vdc.owner_tname, vdc.vdc_name)
+username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"])
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
 
 identity = j.core.identity.get(
-    f"vdc_ident_{vdc.solution_uuid}", tname=username, email=vdc.email, words=words, explorer_url=EXPLORER_URL
+    f"vdc_ident_{vdc_dict['solution_uuid']}",
+    tname=username,
+    email=vdc_dict["email"],
+    words=words,
+    explorer_url=EXPLORER_URL,
 )
 
 identity.register()
 identity.save()
 identity.set_default()
+
+vdc = j.sals.vdc.from_dict(vdc_dict)
 
 network = "STD"
 
