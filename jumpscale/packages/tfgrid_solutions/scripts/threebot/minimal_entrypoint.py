@@ -6,6 +6,7 @@ import os
 from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
+import requests
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -44,7 +45,15 @@ TEST_CERT = os.environ.get("TEST_CERT", "false")
 VDC_INSTANCE = os.environ.get("VDC_INSTANCE")
 VDC_EMAIL = os.environ.get("VDC_EMAIL")
 KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
+PROVISIONING_WALLET_SECRET = os.environ.get("PROVISIONING_WALLET_SECRET")
+PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 
+
+vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
+vdc = j.sals.vdc.from_dict(vdc_dict)
+
+VDC_INSTANCE_NAME = vdc.instance_name
+os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
 
 VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
@@ -58,6 +67,9 @@ VDC_VARS = {
     "VDC_INSTANCE": VDC_INSTANCE,
     "VDC_EMAIL": VDC_EMAIL,
     "KUBE_CONFIG": KUBE_CONFIG,
+    "PROVISIONING_WALLET_SECRET": os.environ.get("PROVISIONING_WALLET_SECRET"),
+    "PREPAID_WALLET_SECRET": os.environ.get("PREPAID_WALLET_SECRET"),
+    "VDC_INSTANCE_NAME": VDC_INSTANCE_NAME,
 }
 
 
@@ -75,7 +87,7 @@ username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_nam
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
 
 identity = j.core.identity.get(
-    f"vdc_ident_{vdc_dict['solution_uuid']}", tname=username, email=VDC_EMAIL, words=words, explorer_url=EXPLORER_URL,
+    f"vdc_ident_{vdc_dict['solution_uuid']}", tname=username, email=VDC_EMAIL, words=words, explorer_url=EXPLORER_URL
 )
 
 identity.register()
@@ -134,7 +146,7 @@ while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
 server = j.servers.threebot.get("default")
 if TEST_CERT == "true":
     server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"]
     )
     server.packages.add(
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
@@ -143,11 +155,10 @@ if TEST_CERT == "true":
     )
 else:
     server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"]
     )
     server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
-        admins=[f"{vdc.owner_tname}.3bot"],
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
     )
 server.save()
 
@@ -157,3 +168,14 @@ j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_
 
 j.sals.fs.mkdirs("/root/.kube")
 j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
+# Register provisioning and prepaid wallets
+
+wallet = j.clients.stellar.new(name="prepaid", secret=PREPAID_WALLET_SECRET, network=network)
+wallet.save()
+
+wallet = j.clients.stellar.new(name="provisioning", secret=PROVISIONING_WALLET_SECRET, network=network)
+wallet.save()
+
+# Store prices from github
+prices = requests.get("https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json").json()
+j.config.set("VDC_PRICES", prices)
