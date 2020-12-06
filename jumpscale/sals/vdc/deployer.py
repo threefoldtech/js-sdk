@@ -42,6 +42,7 @@ class new_vdc_context(ContextDecorator):
 
     def __exit__(self, *exc):
         if exc:
+            self.vdc_deployer.error(f"new_vdc_context: deployment failed due to exception: {exc}")
             self.vdc_deployer.rollback_vdc_deployment()
 
 
