@@ -43,6 +43,7 @@ MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 TEST_CERT = os.environ.get("TEST_CERT", "false")
 VDC_INSTANCE = os.environ.get("VDC_INSTANCE")
 DOMAIN_NAME = os.environ.get("DOMAIN_NAME")
+VDC_EMAIL = os.environ.get("VDC_EMAIL")
 
 
 VDC_VARS = {
@@ -56,6 +57,7 @@ VDC_VARS = {
     "TEST_CERT": TEST_CERT,
     "VDC_INSTANCE": VDC_INSTANCE,
     "DOMAIN_NAME": DOMAIN_NAME,
+    "VDC_EMAIL": VDC_EMAIL,
 }
 
 if not all(list(VDC_VARS.values())):
@@ -73,11 +75,7 @@ username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_nam
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
 
 identity = j.core.identity.get(
-    f"vdc_ident_{vdc_dict['solution_uuid']}",
-    tname=username,
-    email=vdc_dict["email"],
-    words=words,
-    explorer_url=EXPLORER_URL,
+    f"vdc_ident_{vdc_dict['solution_uuid']}", tname=username, email=VDC_EMAIL, words=words, explorer_url=EXPLORER_URL,
 )
 
 identity.register()
