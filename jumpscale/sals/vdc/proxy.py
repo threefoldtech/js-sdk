@@ -449,7 +449,7 @@ class VDCProxy(VDCBaseComponent):
             existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
             if existing_records:
                 for record_dict in existing_records:
-                    nc.nameclient.delete_record(record_dict["fqdn"], record_dict["id"])
+                    nc.nameclient.delete_record(record_dict["fqdn"][:-1], record_dict["id"])
 
             # create a subdomain in domain provider that points to the gateway
             ip_addresses = self.get_gateway_addresses(gateway)
