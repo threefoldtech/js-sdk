@@ -90,6 +90,7 @@ def calculate_addons_hourly_rate():
     addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
     for addon in addons:
         addon_price = calculate_addon_price(addon)
+        j.logger.info(f"addon size {addon.size} with price {addon_price}")
         total_price += addon_price / (24 * 30)
     return total_price
 
@@ -103,6 +104,7 @@ def calculate_hourly_rate():
     """
     user_plan_price = calculate_plan_base_price()
     hourly_amount = user_plan_price / (24 * 30)
+    j.logger.info(f"base plan price {user_plan_price} with hourly amount {hourly_amount}")
     hourly_amount += calculate_addons_hourly_rate()
     return hourly_amount
 
@@ -114,6 +116,9 @@ def tranfer_prepaid_to_provision_wallet():
     provision_wallet = j.clients.stellar.get(PROVISION_WALLET_NAME)
     tft = prepaid_wallet.get_asset("TFT")
     hourly_amount = calculate_hourly_rate()
+    j.logger.info(
+        f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
+    )
     prepaid_wallet.transfer(provision_wallet.address, hourly_amount, asset=f"{tft.code}:{tft.issuer}")
 
 
@@ -123,12 +128,13 @@ def auto_extend_billing():
     """
     # Get the VDC and deployer instances
     vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
-    vdc_password = os.getenv("VDC_PASSWORD")
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
-    deployer = vdc_instance.get_deployer(vdc_password)
+    deployer = vdc_instance.get_deployer()
 
     # Calculating the duration to extend the pool
     remaining_days = (vdc_instance.expiration - j.data.time.now()).days
     days_to_extend = BASE_CAPACITY - remaining_days
+    j.logger.info(f"The days to extend {days_to_extend} compared to the base capacity{BASE_CAPACITY}")
     if days_to_extend >= BASE_CAPACITY / 2:
+        j.logger.info("starting extending the VDC pools")
         deployer.renew_plan(duration=days_to_extend)

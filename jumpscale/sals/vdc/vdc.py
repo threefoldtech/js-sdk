@@ -40,13 +40,25 @@ class UserVDC(Base):
     addons = field.Dict()
 
     @property
-    def wallet(self):
-        # wallet instance name is same as self.instance_name
-        wallet = j.clients.stellar.find(self.instance_name)
+    def prepaid_wallet(self):
+        wallet_name = f"{self.instance_name}_prepaid_wallet"
+        wallet = j.clients.stellar.find(wallet_name)
         if not wallet:
-            vdc_wallet = VDC_WALLET_FACTORY.find(self.instance_name)
+            vdc_wallet = VDC_WALLET_FACTORY.find(wallet_name)
             if not vdc_wallet:
-                vdc_wallet = VDC_WALLET_FACTORY.new(self.instance_name)
+                vdc_wallet = VDC_WALLET_FACTORY.new(wallet_name)
+                vdc_wallet.save()
+            wallet = vdc_wallet.stellar_wallet
+        return wallet
+
+    @property
+    def provision_wallet(self):
+        wallet_name = f"{self.instance_name}_provision_wallet"
+        wallet = j.clients.stellar.find(wallet_name)
+        if not wallet:
+            vdc_wallet = VDC_WALLET_FACTORY.find(wallet_name)
+            if not vdc_wallet:
+                vdc_wallet = VDC_WALLET_FACTORY.new(wallet_name)
                 vdc_wallet.save()
             wallet = vdc_wallet.stellar_wallet
         return wallet
@@ -252,7 +264,7 @@ class UserVDC(Base):
             wallet = j.clients.stellar.get(wallet_name)
             wallet_address = wallet.address
         else:
-            wallet_address = self.wallet.address
+            wallet_address = self.provision_wallet.address
         # TODO: properly generate and save memo text
         memo_text = j.data.idgenerator.chars(28)
         qr_code = f"TFT:{wallet_address}?amount={amount}&message={memo_text}&sender=me"
@@ -275,7 +287,7 @@ class UserVDC(Base):
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
-            wallet = self.wallet
+            wallet = self.provision_wallet
 
         deadline = j.data.time.now().timestamp + expiry * 60
         while j.data.time.now().timestamp < deadline:
@@ -320,7 +332,7 @@ class UserVDC(Base):
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
-            wallet = self.wallet
+            wallet = self.provision_wallet
         effects = wallet.get_transaction_effects(transaction_hash)
         trans_amount = amount or 0
         if not amount:

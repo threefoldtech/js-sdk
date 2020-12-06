@@ -4,12 +4,7 @@ from .size import (
     THREEBOT_CPU,
     THREEBOT_MEMORY,
     THREEBOT_DISK,
-<<<<<<< HEAD
     VDC_SIZE,
-=======
-    VDC_FLAVORS,
-    S3_ZDB_SIZES,
->>>>>>> fixing a small typo in spelling
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
     S3_NO_PARITY_NODES,
@@ -37,9 +32,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
-            "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
-            "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
             "KUBE_CONFIG": kube_config,
+            "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
+            "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
+            "VDC_INSTANCE": j.data.serializers.json.dumps(self.vdc_instance.to_dict()),
         }
         env = {
             "VDC_NAME": self.vdc_name,
