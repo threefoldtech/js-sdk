@@ -25,12 +25,16 @@ class VDCThreebotDeployer(VDCBaseComponent):
         if workload.info.workload_type != WorkloadType.Container:
             raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
         minio_ip_address = workload.network_connection[0].ipaddress
+        vdc_dict = self.vdc_instance.to_dict()
+        vdc_dict.pop("s3", None)
+        vdc_dict.pop("kubernetes", None)
+        vdc_dict.pop("threebot", None)
         secret_env = {
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
             "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
-            "VDC_INSTANCE": j.data.serializers.json.dumps(self.vdc_instance.to_dict()),
+            "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
         }
         env = {
             "VDC_NAME": self.vdc_name,
