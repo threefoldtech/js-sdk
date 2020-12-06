@@ -6,10 +6,10 @@ from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.vdc.models import K8SNodeFlavor
 
 
-PROVISION_WALLET_NAME = os.getenv("PROVISION_WALLET")
-ORIGINAL_USER_PLAN_TFT = os.getenv("ORIGINAL_USER_PLAN_TFT")
-BASE_CAPACITY = os.getenv("BASE_CAPACITY")
-PREPAID_WALLET = os.getenv("PREPAID_WALLET")
+PROVISION_WALLET_NAME = "provisioning"
+PREPAID_WALLET = "prepaid"
+ORIGINAL_USER_PLAN_TFT = int(os.getenv("ORIGINAL_USER_PLAN_TFT", 0))
+BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 0))
 
 
 def get_addons(flavor, kubernetes_addons):
@@ -29,9 +29,16 @@ def get_addons(flavor, kubernetes_addons):
 
 
 def calculate_addon_price(addon):
-    # TODO : get the price of each size
-    addon_price = 10
-    return addon_price
+    prices = j.config.get("VDC_PRICES")
+    size = addon.size.name.lower()
+    return prices["nodes"][size]
+
+
+def calculate_plan_base_price():
+    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    prices = j.config.get("VDC_PRICES")
+    return prices["plans"][vdc_instance.flavor.value]
 
 
 def calculate_addons_hourly_rate():
@@ -57,7 +64,7 @@ def calculate_hourly_rate():
     """Calculate the total hourly rate of the user used plan and the addons.
 
     Returns
-        hourly_amount(float): the total price for each hour, 
+        hourly_amount(float): the total price for each hour,
                               including the price of the user plan and addons
     """
     hourly_amount = ORIGINAL_USER_PLAN_TFT / (24 * 30)
@@ -76,7 +83,7 @@ def tranfer_prepaid_to_provision_wallet():
 
 
 def auto_extend_billing():
-    """Is used to get the pool in the VDC and extend them when the remaining time is less than 
+    """Is used to get the pool in the VDC and extend them when the remaining time is less than
     half of the BASE_CAPACITY
     """
     # TODO: get the VDC pool
