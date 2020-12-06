@@ -21,11 +21,12 @@ Required env variables:
 
 - VDC_PASSWORD_HASH  -> for identity generation
 - EXPLORER_URL  -> for identity generation and wallet network
-- VDC_WALLET_SECRET  -> for auto-top up
 - VDC_MINIO_ADDRESS  -> used for monitoring to trigger auto-top up and reconfig
 - VDC_S3_MAX_STORAGE  -> used for auto top up
 - S3_AUTO_TOPUP_FARMS  -> used for auto top up
 - VDC_INSTANCE -> json string from the vdc instance on deployer
+- PREPAID_WALLET_SECRET -> secret for prepaid wallet
+- PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
 
 
 Role:
@@ -36,7 +37,6 @@ Role:
 
 VDC_PASSWORD_HASH = os.environ.get("VDC_PASSWORD_HASH")
 EXPLORER_URL = os.environ.get("EXPLORER_URL")
-VDC_WALLET_SECRET = os.environ.get("VDC_WALLET_SECRET")
 VDC_S3_MAX_STORAGE = os.environ.get("VDC_S3_MAX_STORAGE")
 S3_AUTO_TOPUP_FARMS = os.environ.get("S3_AUTO_TOPUP_FARMS")
 VDC_MINIO_ADDRESS = os.environ.get("VDC_MINIO_ADDRESS")
@@ -57,7 +57,6 @@ os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
 VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
     "EXPLORER_URL": EXPLORER_URL,
-    "VDC_WALLET_SECRET": VDC_WALLET_SECRET,
     "VDC_S3_MAX_STORAGE": VDC_S3_MAX_STORAGE,
     "S3_AUTO_TOPUP_FARMS": S3_AUTO_TOPUP_FARMS,
     "VDC_MINIO_ADDRESS": VDC_MINIO_ADDRESS,
@@ -101,9 +100,6 @@ network = "STD"
 
 if "testnet" in EXPLORER_URL:
     network = "TEST"
-
-wallet = j.clients.stellar.new(name=vdc.instance_name, secret=VDC_WALLET_SECRET, network=network)
-wallet.save()
 
 j.core.config.set(
     "S3_AUTO_TOP_SOLUTIONS",
