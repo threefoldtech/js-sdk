@@ -373,6 +373,7 @@ class VDCProxy(VDCBaseComponent):
                     f"deploying trc proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
                 )
                 cont_id, proxy_id = deployer.expose_address(
+                    reserve_proxy=True,
                     pool_id=pool_id,
                     gateway_id=gateway.node_id,
                     network_name=self.vdc_name,

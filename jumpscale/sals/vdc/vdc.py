@@ -61,11 +61,15 @@ class UserVDC(Base):
         self.threebot = VDCThreebot()
         instance_vdc_workloads = self._filter_vdc_workloads()
         subdomains = []
+        proxies = []
         for workload in instance_vdc_workloads:
             self._update_instance(workload)
             if workload.info.workload_type == WorkloadType.Subdomain:
                 subdomains.append(workload)
-        self._get_subdomains(subdomains)
+            if workload.info.workload_type == WorkloadType.Reverse_proxy:
+                proxies.append(workload)
+        self._get_s3_subdomains(subdomains)
+        self._get_threebot_subdomain(proxies)
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -127,9 +131,9 @@ class UserVDC(Base):
             zdb.size = workload.size
             self.s3.zdbs.append(zdb)
 
-    def _get_subdomains(self, subdomain_workloads):
+    def _get_s3_subdomains(self, subdomain_workloads):
         minio_wid = self.s3.minio.wid
-        threebot_wid = self.threebot.wid
+
         if not minio_wid:
             return
         for workload in subdomain_workloads:
@@ -143,7 +147,21 @@ class UserVDC(Base):
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == minio_wid:
                 self.s3.domain = workload.domain
-            elif exposed_wid == threebot_wid:
+
+    def _get_threebot_subdomain(self, proxy_workloads):
+        threebot_wid = self.threebot.wid
+        if not threebot_wid:
+            return
+        for workload in proxy_workloads:
+            if not workload.info.description:
+                continue
+            try:
+                desc = j.data.serializers.json.loads(workload.info.description)
+            except Exception as e:
+                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                continue
+            exposed_wid = desc.get("exposed_wid")
+            if exposed_wid == threebot_wid:
                 self.threebot.domain = workload.domain
 
     def grace_period_action(self):
