@@ -163,6 +163,3 @@ wallet.save()
 wallet = j.clients.stellar.new(name="provisioning", secret=PROVISIONING_WALLET_SECRET, network=network)
 wallet.save()
 
-# Store prices from github
-prices = requests.get("https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json").json()
-j.config.set("VDC_PRICES", prices)
