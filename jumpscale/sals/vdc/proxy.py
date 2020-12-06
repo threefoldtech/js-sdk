@@ -431,7 +431,7 @@ class VDCProxy(VDCBaseComponent):
         """
         parent_domain = parent_domain or VDC_PARENT_DOMAIN
         subdomain = f"{prefix}.{parent_domain}"
-        nc = j.clients.name.new(self.vdc_name)
+        nc = j.clients.name.get("VDC")
         nc.username = os.environ.get("VDC_NAME_USER")
         nc.token = os.environ.get("VDC_NAME_TOKEN")
 
@@ -562,7 +562,7 @@ class VDCProxy(VDCBaseComponent):
             raise j.exceptions.Input(f"must pass private ip or wid")
         parent_domain = parent_domain or VDC_PARENT_DOMAIN
         subdomain = f"{prefix}.{parent_domain}"
-        nc = j.clients.name.new(self.vdc_name)
+        nc = j.clients.name.get("VDC")
         nc.username = os.environ.get("VDC_NAME_USER")
         nc.token = os.environ.get("VDC_NAME_TOKEN")
 
