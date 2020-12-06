@@ -84,6 +84,8 @@ identity.set_default()
 
 if not j.sals.vdc.list_all():
     vdc = j.sals.vdc.from_dict(vdc_dict)
+else:
+    vdc = j.sals.vdc.find(j.sals.vdc.list_all()[0])
 
 network = "STD"
 
