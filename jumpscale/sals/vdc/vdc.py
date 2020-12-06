@@ -153,9 +153,9 @@ class UserVDC(Base):
         if not proxy_workloads:
             # threebot is exposed over ingress
             net = ""
-            if "testnet" in self.explorer.url:
+            if "testnet" in self.explorer_url:
                 net = "-testnet"
-            elif "devnet" in self.explorer.url:
+            elif "devnet" in self.explorer_url:
                 net = "-devnet"
             self.threebot.domain = f"{self.owner_tname}-{self.vdc_name}{net}.vdc.{VDC_PARENT_DOMAIN}"
         else:
