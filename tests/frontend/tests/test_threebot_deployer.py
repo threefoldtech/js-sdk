@@ -79,7 +79,7 @@ class ThreebotDeployerTests(BaseTest):
         self.info("Create a wallet")
 
         self.info("Create a 3bot instance")
-        threebot_name = "threebot_{}".format(randint(1, 1000))
+        threebot_name = "threebot{}".format(randint(1, 1000))
         password = randint(1, 500000)
         self.threebot_deployer.deploy_new_3bot(
             my_3bot_instance_name=threebot_name, password=password, wallet_name=self.wallet_name
