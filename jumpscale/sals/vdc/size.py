@@ -1,6 +1,7 @@
 from enum import Enum
 from jumpscale.loader import j
 
+# TODO: set to 6 + 4 when merging to development
 S3_NO_DATA_NODES = 4
 S3_NO_PARITY_NODES = 2
 MINIO_CPU = 2
