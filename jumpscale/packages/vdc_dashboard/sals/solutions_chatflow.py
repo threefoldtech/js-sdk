@@ -31,8 +31,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.chart_config = {}
 
     def _get_kube_config(self):
-        self.vdc_name = "vdc_testing5_ranatarek"  # TODO os.environ.get("VDC_NAME")
-        if not self.vdc_name:
+        if j.sals.vdc.list_all():
+            self.vdc_name = list(j.sals.vdc.list_all())[0]
+        else:
             raise StopChatFlow(f"No Virtual Data Centres(VDC) were found.", htmlAlert=True)
         self.vdc_info = {}
         self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.username, load_info=True)
@@ -47,8 +48,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
                 ).name
                 self.vdc_info["kube_config_path"] = "/root/.kube/config"
-                self.vdc_info["network_name"] = vdc_name
-                self.vdc_info["network_view"] = deployer.get_network_view(vdc_name, identity_name=self.identity_name)
+                self.vdc_info["network_name"] = self.vdc_name
+                self.vdc_info["network_view"] = deployer.get_network_view(
+                    self.vdc_name, identity_name=self.identity_name
+                )
                 break
 
     def _choose_flavor(self, chart_limits=None):
