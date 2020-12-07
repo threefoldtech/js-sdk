@@ -491,12 +491,21 @@ class VDCDeployer:
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].public_ip
         farm_name = farm_name if not public_ip else NETWORK_FARM
+        public_key = None
+        try:
+            public_key = self.ssh_key.public_key.strip()
+        except Exception as e:
+            self.warning(f"failed to fetch key pair in k8s extension due to error: {str(e)}")
+
+        if not public_key:
+            key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
+            public_key = j.sals.fs.read_file(key_path)
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
             VDC_FLAFORS[self.flavor]["k8s"]["size"],
             cluster_secret,
-            [self.ssh_key.public_key.strip()],
+            [public_key],
             no_nodes,
             solution_uuid=uuid.uuid4().hex,
         )
@@ -528,6 +537,9 @@ class VDCDeployer:
 
     def error(self, msg):
         self._log(msg, "error")
+
+    def warning(self, msg):
+        self._log(msg, "warning")
 
     def bot_show_update(self, msg):
         if self.bot:

@@ -141,3 +141,5 @@ else:
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
     )
 server.save()
+
+j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
