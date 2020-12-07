@@ -132,10 +132,10 @@ except:
     pass
 
 deadline = j.data.time.now().timestamp + 10 * 60
-while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
-    j.logger.info("wating for threebot domain reservation")
-    vdc.load_info()
-    gevent.sleep(10)
+# while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
+#     j.logger.info("wating for threebot domain reservation")
+#     vdc.load_info()
+#     gevent.sleep(10)
 
 server = j.servers.threebot.get("default")
 if TEST_CERT == "true":
