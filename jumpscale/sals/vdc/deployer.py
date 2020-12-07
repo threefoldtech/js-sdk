@@ -391,14 +391,6 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
-            try:
-                # download kube config from master
-                kube_config = self.kubernetes.download_kube_config(master_ip)
-            except Exception as e:
-                self.error(f"failed to download kube config due to error {str(e)}")
-                self.rollback_vdc_deployment()
-                return False
-
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
             pool_id = self.get_pool_id(farm_name)
@@ -436,24 +428,32 @@ class VDCDeployer:
             elif "devnet" in self.explorer.url:
                 net = "-devnet"
             prefix = f"{self.tname}-{self.vdc_name}{net}.vdc"
-            # subdomain = self.proxy.proxy_container_over_custom_domain(
-            #    prefix=prefix,
-            #    wid=threebot_wid,
-            #    port=80,
-            #    solution_uuid=self.vdc_uuid,
-            #    pool_id=pool_id,
-            #    scheduler=scheduler,
-            #    tls_port=443,
-            #    parent_domain=VDC_PARENT_DOMAIN,
-            # )
-            # self.info(f"threebot subdomain: {subdomain}")
-            # if not subdomain:
-            #    self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-            #    self.rollback_vdc_deployment()
-            #    return False
-            #
-            ## deploy monitoring stack on kubernetes
-            # self.bot_show_update("Deploying monitoring stack")
+            subdomain = self.proxy.proxy_container_over_custom_domain(
+                prefix=prefix,
+                wid=threebot_wid,
+                port=80,
+                solution_uuid=self.vdc_uuid,
+                pool_id=pool_id,
+                scheduler=scheduler,
+                tls_port=443,
+                parent_domain=VDC_PARENT_DOMAIN,
+            )
+            self.info(f"threebot subdomain: {subdomain}")
+            if not subdomain:
+                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                return False
+
+            try:
+                # download kube config from master
+                kube_config = self.kubernetes.download_kube_config(master_ip)
+            except Exception as e:
+                self.error(f"failed to download kube config due to error {str(e)}")
+                self.rollback_vdc_deployment()
+                return False
+
+            # deploy monitoring stack on kubernetes
+            self.bot_show_update("Deploying monitoring stack")
             # try:
             #    self.monitoring.deploy_stack()
             # except j.exceptions.Runtime as e:
