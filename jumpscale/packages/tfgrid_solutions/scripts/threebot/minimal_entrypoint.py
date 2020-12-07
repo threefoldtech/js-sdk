@@ -58,11 +58,11 @@ VDC_VARS = {
     "VDC_EMAIL": VDC_EMAIL,
 }
 
-if not all(list(VDC_VARS.values())):
-    raise j.exceptions.Validation("MISSING ENVIRONMENT VARIABLES")
-
 
 for key, value in VDC_VARS.items():
+    # TODO: bring back when merging to development branch
+    # if not value:
+    #     raise j.exceptions.Validation(f"MISSING ENVIRONMENT VARIABLES. {key} is not set")
     j.sals.process.execute(f"""echo "{key}={value}" >> /root/.bashrc""")
 
 
@@ -115,9 +115,13 @@ j.core.config.set("VDC_THREEBOT", True)
 
 j.config.set("SEND_REMOTE_ALERTS", True)
 
-from register_dashboard import register_dashboard
+# TODO: remove empty exception when merging with development branch
+try:
+    from register_dashboard import register_dashboard
 
-register_dashboard()
+    register_dashboard()
+except:
+    pass
 
 deadline = j.data.time.now().timestamp + 10 * 60
 while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
