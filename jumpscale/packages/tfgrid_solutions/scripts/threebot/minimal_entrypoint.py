@@ -42,7 +42,6 @@ VDC_MINIO_ADDRESS = os.environ.get("VDC_MINIO_ADDRESS")
 MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 TEST_CERT = os.environ.get("TEST_CERT", "false")
 VDC_INSTANCE = os.environ.get("VDC_INSTANCE")
-DOMAIN_NAME = os.environ.get("DOMAIN_NAME")
 VDC_EMAIL = os.environ.get("VDC_EMAIL")
 
 
@@ -56,7 +55,6 @@ VDC_VARS = {
     "MONITORING_SERVER_URL": MONITORING_SERVER_URL,
     "TEST_CERT": TEST_CERT,
     "VDC_INSTANCE": VDC_INSTANCE,
-    "DOMAIN_NAME": DOMAIN_NAME,
     "VDC_EMAIL": VDC_EMAIL,
 }
 
@@ -121,10 +119,15 @@ from register_dashboard import register_dashboard
 
 register_dashboard()
 
+deadline = j.data.time.now().timestamp + 10 * 60
+while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
+    j.logger.info("wating for threebot domain reservation")
+    vdc.load_info()
+    gevent.sleep(10)
 
 server = j.servers.threebot.get("default")
 # TODO: remove domain assignment to server and use it for package
-server.domain = DOMAIN_NAME
+server.domain = vdc.threebot.domain
 # TODO: how to configure the package domain?
 # server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{VDC_OWNER_TNAME}.3bot"])
 server.save()

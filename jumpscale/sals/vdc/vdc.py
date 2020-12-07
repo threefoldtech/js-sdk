@@ -150,30 +150,21 @@ class UserVDC(Base):
                 self.s3.domain = workload.domain
 
     def _get_threebot_subdomain(self, proxy_workloads):
-        if not proxy_workloads:
-            # threebot is exposed over ingress
-            net = ""
-            if "testnet" in self.explorer_url:
-                net = "-testnet"
-            elif "devnet" in self.explorer_url:
-                net = "-devnet"
-            self.threebot.domain = f"{self.owner_tname}-{self.vdc_name}{net}.vdc.{VDC_PARENT_DOMAIN}"
-        else:
-            # threebot is exposed over gateway
-            threebot_wid = self.threebot.wid
-            if not threebot_wid:
-                return
-            for workload in proxy_workloads:
-                if not workload.info.description:
-                    continue
-                try:
-                    desc = j.data.serializers.json.loads(workload.info.description)
-                except Exception as e:
-                    j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
-                    continue
-                exposed_wid = desc.get("exposed_wid")
-                if exposed_wid == threebot_wid:
-                    self.threebot.domain = workload.domain
+        # threebot is exposed over gateway
+        threebot_wid = self.threebot.wid
+        if not threebot_wid:
+            return
+        for workload in proxy_workloads:
+            if not workload.info.description:
+                continue
+            try:
+                desc = j.data.serializers.json.loads(workload.info.description)
+            except Exception as e:
+                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                continue
+            exposed_wid = desc.get("exposed_wid")
+            if exposed_wid == threebot_wid:
+                self.threebot.domain = workload.domain
 
     def grace_period_action(self):
         self.load_info()
