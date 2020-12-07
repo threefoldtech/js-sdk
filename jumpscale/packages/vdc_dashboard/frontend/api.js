@@ -1,6 +1,5 @@
 // const axios = require('axios')
 const baseURL = "/vdc_dashboard/api"
-const vdcURL = "/vdc/api"
 
 const apiClient = {
   content: {
@@ -34,7 +33,7 @@ const apiClient = {
     },
     getVdcInfo: () => {
       return axios({
-        url: `${vdcURL}/threebot_vdc`,
+        url: `${baseURL}/threebot_vdc`,
         headers: { 'Content-Type': 'application/json' },
         method: "get"
       })

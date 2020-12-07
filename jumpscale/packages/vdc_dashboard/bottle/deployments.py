@@ -2,9 +2,16 @@ from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse, abort
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, authenticated
+from jumpscale.packages.auth.bottle.auth import (
+    SESSION_OPTS,
+    login_required,
+    get_user_info,
+    authenticated,
+    package_authorized,
+)
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.sals.vdc import VDCFACTORY
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 
@@ -20,6 +27,26 @@ def list_deployments(solution_type: str) -> str:
         deployments = get_all_deployments()
 
     return j.data.serializers.json.dumps({"data": deployments})
+
+
+@app.route("/api/threebot_vdc", method="GET")
+@package_authorized("vdc_dashboard")
+def threebot_vdc():
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_full_name)
+    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    # Add wallet address
+    vdc_dict = vdc.to_dict()
+    vdc_dict.pop("threebot")
+    wallet_address = j.clients.stellar.get(vdc_full_name).address
+    vdc_dict["wallet_address"] = wallet_address
+    return HTTPResponse(
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 @app.route("/api/deployments/install", method="POST")

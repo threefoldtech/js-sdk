@@ -38,26 +38,6 @@ def get_vdc_info(name):
     )
 
 
-@app.route("/api/threebot_vdc", method="GET")
-@package_authorized("vdc")
-def threebot_vdc():
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
-    if not vdc:
-        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
-    # Add wallet address
-    vdc_dict = vdc.to_dict()
-    vdc_dict.pop("threebot")
-    wallet_address = j.clients.stellar.get(vdc_full_name).address
-    vdc_dict["wallet_address"] = wallet_address
-    return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
-    )
-
-
 @app.route("/api/allowed", method="GET")
 @package_authorized("vdc")
 def allowed():

@@ -90,7 +90,7 @@ network = "STD"
 if "testnet" in EXPLORER_URL:
     network = "TEST"
 
-wallet = j.clients.stellar.new(name=vdc.instance_name, secret=VDC_WALLET_SECRET, network=network)
+wallet = j.clients.stellar.get(name=vdc.instance_name, secret=VDC_WALLET_SECRET, network=network)
 wallet.save()
 
 j.core.config.set(
