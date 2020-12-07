@@ -245,7 +245,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Installation")
     def install_chart(self):
-        helm_repos_urls = [repo["url"] for repo in self.k8s_client.list_helm_repo()]
+        try:
+            helm_repos_urls = [repo["url"] for repo in self.k8s_client.list_helm_repo()]
+        except Exception as e:
+            j.logger.warning(f"The following error happened with helm:\n {str(e)}")  # TODO: tweak this
+            helm_repos_urls = []
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
             self.k8s_client.add_helm_repo(
                 HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"]
