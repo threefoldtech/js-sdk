@@ -233,6 +233,7 @@ const BC_SOLUTIONS = {
     },
 }
 
+
 const SECTIONS = {
     "All Solutions": {
         titleToolTip: null,

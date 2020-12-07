@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.packages.marketplacevdc.sals.solutions_chatflow import SolutionsChatflowDeploy
+from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
 
 class MattermostDeploy(SolutionsChatflowDeploy):

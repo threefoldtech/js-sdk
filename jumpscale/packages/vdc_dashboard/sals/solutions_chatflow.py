@@ -25,20 +25,17 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _init_solution(self):
         # TODO: te be removed
         self.user_info_data = self.user_info()
-        self.username = os.environ.get("VDC_OWNER_TNAME")
+        self.username = os.environ.get("VDC_OWNER_TNAME") or j.core.identity.me.tname
         self.solution_id = uuid.uuid4().hex
         self.ip_version = "IPv6"
         self.chart_config = {}
 
     def _get_kube_config(self):
-        vdc_name = os.environ.get("VDC_NAME")
-        if not vdc_name:
-            raise StopChatFlow(
-                f"No Virtual Data Centres(VDC) were found.", htmlAlert=True,
-            )
+        self.vdc_name = "vdc_testing5_ranatarek"  # TODO os.environ.get("VDC_NAME")
+        if not self.vdc_name:
+            raise StopChatFlow(f"No Virtual Data Centres(VDC) were found.", htmlAlert=True)
         self.vdc_info = {}
-        # TODO: get config
-        self.vdc = j.sals.vdc.find(vdc_name=vdc_name, owner_tname=self.username, load_info=True)
+        self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.username, load_info=True)
         self.identity_name = j.core.identity.me.instance_name
         self.secret = f"{self.vdc.identity_tid}:{uuid.uuid4().hex}"
         for node in self.vdc.kubernetes:
@@ -193,27 +190,18 @@ class SolutionsChatflowDeploy(GedisChatBot):
             )
 
     @deployment_context()
-    def _deploy(self):
+    def _create_subdomain(self):
         self.workload_ids = []
         metadata = {
             "name": self.release_name,
             "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.release_name},
         }
-        # TODO: get node related to vdc
-        selected_node = deployer.schedule_container(self.vdc_info["pool_id"], ip_version=self.ip_version)
-        # TODO: Do we need logs?
-        self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
-        if self.nginx_log_config:
-            self.nginx_log_config[
-                "channel_name"
-            ] = f"{self.username}-{self.SOLUTION_TYPE}-{self.release_name}-nginx".lower()
-        # reserve subdomain
         self.workload_ids.append(
             deployer.create_subdomain(
                 pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
                 subdomain=self.domain,
-                addresses=self.addresses,
+                addresses=[self.vdc_info["public_ip"]],
                 solution_uuid=self.solution_id,
                 identity_name=self.identity_name,
                 **metadata,
@@ -226,36 +214,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 wid=self.workload_ids[0],
             )
 
-        # expose solution on nginx container
-        _id, _ = deployer.expose_and_create_certificate(
-            pool_id=self.vdc_info["pool_id"],
-            gateway_id=self.gateway.node_id,
-            network_name=self.vdc_info["network_view"].name,
-            trc_secret=self.secret,
-            domain=self.domain,
-            email=self.user_info_data["email"],
-            solution_ip=self.vdc_info["master_ip"],
-            solution_port=80,
-            enforce_https=False,
-            proxy_pool_id=self.gateway_pool.pool_id,
-            node_id=selected_node.node_id,
-            solution_uuid=self.solution_id,
-            log_config=self.nginx_log_config,
-            identity_name=self.identity_name,
-            **metadata,
-        )
-        self.workload_ids.append(_id)
-        success = deployer.wait_workload(_id, self)
-        if not success:
-            # solutions.cancel_solution(self.workload_ids)
-            raise DeploymentFailed(
-                f"Failed to create TRC container on node {selected_node.node_id}"
-                f" {_id}. The resources you paid for will be re-used in your upcoming deployments.",
-                solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
-            )
-
-    def _select_vdc(self):
+    def _get_vdc_info(self):
         self.md_show_update("Preparing the chatflow...")
         self._init_solution()
         self._get_kube_config()
@@ -263,7 +222,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution Name")
     def get_release_name(self):
-        self._select_vdc()
+        self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         while True:
             self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True)
@@ -279,7 +238,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.domain_type = self.single_choice("Select the domain type", choices, default="Create standard Domain")
         # get self.domain
         self._get_domain()
-        self._deploy()
+        self._create_subdomain()
 
     @chatflow_step(title="Installation")
     def install_chart(self):
@@ -308,7 +267,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
                 Domain: {public_ip}
-                VDC Name: {self.vdc.vdc_name}
+                VDC Name: {self.vdc_name}
                 Farm name: {self.vdc_info["farm_name"]}
                 """
             self.stop(dedent(stop_message))

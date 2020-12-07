@@ -29,6 +29,12 @@ const popup = httpVueLoader('./components/base/Popup.vue')
 const code = httpVueLoader('./components/base/Code.vue')
 const markdownViewer = httpVueLoader('./components/MarkdownViewer.vue')
 
+// vdc settings
+const s3 = httpVueLoader('./components/base/S3.vue')
+const kubernetes = httpVueLoader('./components/base/Kubernetes.vue')
+const ip = httpVueLoader('./components/base/IP.vue')
+const vdc = httpVueLoader('./components/base/VDC.vue')
+
 const app = httpVueLoader('./App.vue')
 const home = httpVueLoader('./components/Home.vue')
 const solution = httpVueLoader('./components/solutions/Solution.vue')
@@ -46,9 +52,34 @@ Vue.component("popup", popup)
 Vue.component("code-area", code)
 Vue.component("markdown-view", markdownViewer)
 
+// vdc components
+Vue.component("s3", s3)
+Vue.component("kubernetes", kubernetes)
+Vue.component("ip", ip)
+
 const router = new VueRouter({
   routes: [
-    { name: "Home", path: '/', component: home, meta: { icon: "mdi-tune" } },
+    {
+      name: "VDC",
+      path: '/',
+      redirect: '/s3',
+      component: vdc,
+      props: true,
+      children: [{
+        name: 'S3',
+        path: 's3',
+        component: s3,
+        props: (route) => ({ query: route.query.vdc })
+      },
+      {
+        name: 'Kubernetes',
+        path: 'kubernetes',
+        component: kubernetes,
+        props: (route) => ({ query: route.query.vdc })
+      }
+      ]
+    },
+    { name: "Home", path: '/marketplacevdc', component: home, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
     { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
@@ -72,7 +103,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }).catch((e) => {
     if (to.name === "SolutionChatflow") {
-      let nextUrl = encodeURIComponent(`/marketplacevdc/#${to.path}`)
+      let nextUrl = encodeURIComponent(`/vdc_dashboard/#${to.path}`)
       window.location.href = `/auth/login?next_url=${nextUrl}`
     }
     else {

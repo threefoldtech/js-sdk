@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-component title="Apps Menu" icon="mdi-menu-left" url="/" :loading="loading">
+    <base-component title="Apps Menu" icon="mdi-menu-left" url="/marketplacevdc" :loading="loading">
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">

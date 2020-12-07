@@ -3,10 +3,10 @@ from bottle import Bottle, request, HTTPResponse, abort
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, authenticated
-from jumpscale.packages.marketplacevdc.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
-from jumpscale.packages.marketplacevdc.sals.marketplacevdc_sals import get_all_deployments, get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 
 app = Bottle()
 

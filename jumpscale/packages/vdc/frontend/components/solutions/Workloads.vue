@@ -6,7 +6,7 @@
       :loading="loading"
     >
       <template #actions>
-        <v-btn color="primary" text @click.stop='openChatflow("new_vdc")'>
+        <v-btn color="primary" text @click.stop="openChatflow('new_vdc')">
           <v-icon left>mdi-plus</v-icon>Add a new VDC
         </v-btn>
       </template>

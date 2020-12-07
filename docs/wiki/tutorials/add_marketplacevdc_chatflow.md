@@ -1,15 +1,15 @@
-# Add New MarketplaceVDC Chatflow
+# Add New VDC dashboard Chatflow
 
 ## Index
 
 - [The structure of the chatflow file](#The-structure-of-the-chatflow-file)
 
 ## The structure of the chatflow file
-1. Create file with name `{your_app_name}.py` in `packages/marketplacevdc/chats` directory.
+1. Create file with name `{your_app_name}.py` in `packages/vdc_dashboard/chats` directory.
 2. You have to inherit from `SolutionsChatflowDeploy` baseclass.
 
     ```python
-    from jumpscale.packages.marketplacevdc.sals.solutions_chatflow import SolutionsChatflowDeploy
+    from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
     class AppDeploy(SolutionsChatflowDeploy):
     ```
 3. Define your `solution type` name, `helm repo` name and chatflow `title` that will be shown in frontend

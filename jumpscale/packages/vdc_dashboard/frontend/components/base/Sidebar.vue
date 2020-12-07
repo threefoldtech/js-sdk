@@ -53,9 +53,7 @@
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link class="d-block" :to="`/workloads/${name}/s3`">
-                s3</router-link
-              >
+              <router-link class="d-block" :to="`/s3`"> s3</router-link>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -67,10 +65,7 @@
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link
-                class="d-block"
-                :to="`/workloads/${name}/kubernetes`"
-              >
+              <router-link class="d-block" :to="`/kubernetes`">
                 kubernetes</router-link
               >
             </v-list-item-title>
@@ -84,12 +79,17 @@
 <script>
 module.exports = {
   name: "Sidebar",
-  props: ["name"],
+  props: {
+    name: String,
+    address: {
+      type: String,
+      default: "Wallet Address",
+    },
+  },
   data() {
     return {
       activeIndex: 1,
       dialog: false,
-      address: "THEADDRESSS",
     };
   },
   methods: {

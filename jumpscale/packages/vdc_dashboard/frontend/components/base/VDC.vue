@@ -3,7 +3,7 @@
     <v-row no-gutters>
       <v-col cols="6" md="2">
         <v-card width="256">
-          <sidebar :name="name" />
+          <sidebar :name="name" :address="address" />
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="10">
@@ -19,19 +19,22 @@ module.exports = {
   components: {
     sidebar: httpVueLoader("../base/Sidebar.vue"),
   },
-  props: ["name"],
   data() {
     return {
       loading: true,
       vdc: null,
+      name: null,
+      address: null,
     };
   },
   methods: {
     vdcInfo() {
       this.$api.solutions
-        .getVdcInfo(this.name)
+        .getVdcInfo()
         .then((response) => {
           this.vdc = response.data;
+          this.name = this.vdc.vdc_name;
+          this.address = this.vdc.wallet_address;
         })
         .finally(() => {
           this.loading = false;

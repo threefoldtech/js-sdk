@@ -3,7 +3,7 @@ from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, package_authorized
-from jumpscale.packages.marketplacevdc.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
 app = Bottle()
@@ -19,7 +19,6 @@ def list_vdcs():
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
-        vdc_dict.pop("threebot")
         result.append(vdc_dict)
     return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
 
@@ -35,7 +34,27 @@ def get_vdc_info(name):
     vdc_dict = vdc.to_dict()
     vdc_dict.pop("threebot")
     return HTTPResponse(
-        j.data.serializers.json.dumps(vdc.to_dict()), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
+@app.route("/api/threebot_vdc", method="GET")
+@package_authorized("vdc")
+def threebot_vdc():
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_full_name)
+    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    # Add wallet address
+    vdc_dict = vdc.to_dict()
+    vdc_dict.pop("threebot")
+    wallet_address = j.clients.stellar.get(vdc_full_name).address
+    vdc_dict["wallet_address"] = wallet_address
+    return HTTPResponse(
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
 
 

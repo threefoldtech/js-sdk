@@ -23,16 +23,13 @@
         <template v-slot:item.actions="{ item }">
           <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
-              <a
-                style="text-decoration: none"
-                :href="`https://${item.threebot.domain}`"
-              >
+              <router-link style="text-decoration: none" :to="`/`">
                 <v-icon v-bind="attrs" v-on="on" color="primary"
                   >mdi-information-outline</v-icon
                 >
-              </a>
+              </router-link>
             </template>
-            <span>Go to my VDC</span>
+            <span>Show Information</span>
           </v-tooltip>
         </template>
       </v-data-table>

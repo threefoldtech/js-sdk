@@ -132,13 +132,20 @@ while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
 server = j.servers.threebot.get("default")
 if TEST_CERT == "true":
     server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc",
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
+    )
+    server.packages.add(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
         admins=[f"{vdc.owner_tname}.3bot"],
         domain=vdc.threebot.domain,
     )
 else:
     server.packages.add(
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
+    )
+    server.packages.add(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
+        admins=[f"{vdc.owner_tname}.3bot"],
     )
 server.save()
 

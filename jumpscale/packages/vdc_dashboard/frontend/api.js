@@ -1,5 +1,6 @@
 // const axios = require('axios')
-const baseURL = "/marketplacevdc/api"
+const baseURL = "/vdc_dashboard/api"
+const vdcURL = "/vdc/api"
 
 const apiClient = {
   content: {
@@ -29,6 +30,13 @@ const apiClient = {
         method: "post",
         data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName },
         headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    getVdcInfo: () => {
+      return axios({
+        url: `${vdcURL}/threebot_vdc`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
       })
     },
   },

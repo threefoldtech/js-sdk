@@ -27,10 +27,6 @@ const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
 const code = httpVueLoader('./components/base/Code.vue')
-const vdc = httpVueLoader('./components/base/VDC.vue')
-const s3 = httpVueLoader('./components/base/S3.vue')
-const kubernetes = httpVueLoader('./components/base/Kubernetes.vue')
-const ip = httpVueLoader('./components/base/IP.vue')
 
 const app = httpVueLoader('./App.vue')
 const home = httpVueLoader('./components/solutions/Solution.vue')
@@ -55,10 +51,6 @@ Vue.component("external", external)
 Vue.component("popup", popup)
 Vue.component("code-area", code)
 Vue.component("markdown-view", markdownViewer)
-Vue.component("vdc", vdc)
-Vue.component("s3", s3)
-Vue.component("kubernetes", kubernetes)
-Vue.component("ip", ip)
 
 const router = new VueRouter({
     routes: [
@@ -68,26 +60,7 @@ const router = new VueRouter({
         { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
         { name: "SolutionChatflow", path: '/chats/:topic/:vdc_name', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
         { name: "Workloads", path: '/workloads', component: workloads, meta: { icon: "mdi-tune" }, },
-        {
-            name: "VDC",
-            path: '/workloads/:name',
-            redirect: '/workloads/:name/s3',
-            component: vdc,
-            props: true,
-            children: [{
-                    name: 'S3',
-                    path: 's3',
-                    component: s3,
-                    props: (route) => ({ query: route.query.vdc })
-                },
-                {
-                    name: 'Kubernetes',
-                    path: 'kubernetes',
-                    component: kubernetes,
-                    props: (route) => ({ query: route.query.vdc })
-                }
-            ]
-        }
+
     ]
 })
 
