@@ -28,7 +28,7 @@
                 :href="`https://${item.threebot.domain}`"
               >
                 <v-icon v-bind="attrs" v-on="on" color="primary"
-                  >mdi-information-outline</v-icon
+                  >mdi-web</v-icon
                 >
               </a>
             </template>

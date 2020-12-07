@@ -15,7 +15,8 @@ def list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
     result = []
-    for vdc in VDCFACTORY.list(username):
+    vdcs = VDCFACTORY.list(username, load_info=True)
+    for vdc in vdcs:
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
