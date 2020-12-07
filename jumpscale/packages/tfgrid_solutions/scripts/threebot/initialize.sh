@@ -1,4 +1,12 @@
 echo "[*] Starting threebot in background ..."
+
+curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+mv kubectl /sbin/
+
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+
 if [ $MINIMAL == "true" ]; then
   python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
 else
