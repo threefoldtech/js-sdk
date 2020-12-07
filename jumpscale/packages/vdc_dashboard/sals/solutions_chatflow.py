@@ -36,7 +36,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         else:
             raise StopChatFlow(f"No Virtual Data Centres(VDC) were found.", htmlAlert=True)
         self.vdc_info = {}
-        self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.username, load_info=True)
+        self.vdc = j.sals.vdc.find(name=self.vdc_name, owner_tname=self.username, load_info=True)
         self.identity_name = j.core.identity.me.instance_name
         self.secret = f"{self.vdc.identity_tid}:{uuid.uuid4().hex}"
         for node in self.vdc.kubernetes:
