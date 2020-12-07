@@ -86,7 +86,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     f"not enough capacity in farm {farm_name} for {no_nodes} k8s nodes of flavor {k8s_flavor}"
                 )
 
-        duration = duration * 60 * 60 * 24 or self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+        duration = (
+            duration * 60 * 60 * 24
+            if duration
+            else self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+        )
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
         pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
