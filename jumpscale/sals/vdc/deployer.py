@@ -59,7 +59,7 @@ class VDCDeployer:
         self.password = password
         self.password_hash = None
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
-        self.wallet_name = self.vdc_instance.wallet.instance_name
+        self.wallet_name = self.vdc_instance.provision_wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
