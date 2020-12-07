@@ -130,9 +130,14 @@ while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
     gevent.sleep(10)
 
 server = j.servers.threebot.get("default")
-server.packages.add(
-    "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc",
-    admins=[f"{vdc.owner_tname}.3bot"],
-    domain=vdc.threebot.domain,
-)
+if TEST_CERT == "true":
+    server.packages.add(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc",
+        admins=[f"{vdc.owner_tname}.3bot"],
+        domain=vdc.threebot.domain,
+    )
+else:
+    server.packages.add(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc", admins=[f"{vdc.owner_tname}.3bot"],
+    )
 server.save()
