@@ -37,7 +37,6 @@ class UserVDC(Base):
     expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
     is_blocked = fields.Boolean(default=False)
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
-    addons = field.Dict()
 
     @property
     def prepaid_wallet(self):
