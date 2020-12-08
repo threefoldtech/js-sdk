@@ -419,22 +419,22 @@ class VDCDeployer:
             self.vdc_instance.load_info()
             master_ip = self.vdc_instance.kubernetes[0].public_ip
 
-            if master_ip == "::/128":
-                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
-                self.rollback_vdc_deployment()
-                return False
+            # if master_ip == "::/128":
+            #     self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
+            #     self.rollback_vdc_deployment()
+            #     return False
 
-            try:
-                # download kube config from master
-                kube_config = self.kubernetes.download_kube_config(master_ip)
-            except Exception as e:
-                self.error(f"failed to download kube config due to error {str(e)}")
-                self.rollback_vdc_deployment()
-                return False
+            # try:
+            #     # download kube config from master
+            #     kube_config = self.kubernetes.download_kube_config(master_ip)
+            # except Exception as e:
+            #     self.error(f"failed to download kube config due to error {str(e)}")
+            #     self.rollback_vdc_deployment()
+            #     return False
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
+            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config="")
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
                 self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
