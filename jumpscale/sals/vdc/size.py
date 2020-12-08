@@ -28,15 +28,57 @@ class VDCSize:
     _LAST_LOADED = None
 
     def __init__(self):
-        self.K8SNodeFlavor = None
-        self.K8S_PRICES = None  # TODO: remove
-        self.K8S_SIZES = None
-        self.S3ZDBSize = None
-        self.S3_ZDB_SIZES = None
-        self.VDCFlavor = None
-        self.VDC_FLAVORS = None
+        self._K8SNodeFlavor = None
+        self._K8S_PRICES = None  # TODO: remove
+        self._K8S_SIZES = None
+        self._S3ZDBSize = None
+        self._S3_ZDB_SIZES = None
+        self._VDCFlavor = None
+        self._VDC_FLAVORS = None
         self._workload_sizes = None
         self._plans_data = None
+
+    @property
+    def K8SNodeFlavor(self):
+        if not self.is_updated:
+            self.load()
+        return self._K8SNodeFlavor
+
+    @property
+    def K8S_PRICES(self):
+        if not self.is_updated:
+            self.load()
+        return self._K8S_PRICES
+
+    @property
+    def K8S_SIZES(self):
+        if not self.is_updated:
+            self.load()
+        return self._K8S_SIZES
+
+    @property
+    def S3ZDBSize(self):
+        if not self.is_updated:
+            self.load()
+        return self._S3ZDBSize
+
+    @property
+    def S3_ZDB_SIZES(self):
+        if not self.is_updated:
+            self.load()
+        return self._S3_ZDB_SIZES
+
+    @property
+    def VDCFlavor(self):
+        if not self.is_updated:
+            self.load()
+        return self._VDCFlavor
+
+    @property
+    def VDC_FLAVORS(self):
+        if not self.is_updated:
+            self.load()
+        return self._VDC_FLAVORS
 
     @staticmethod
     def _convert_eur_to_tft(amount):
@@ -58,22 +100,25 @@ class VDCSize:
         amount = self.K8S_PRICES[flavor]
         return self._convert_eur_to_tft(amount)
 
-    def load(self):
-        update_flag = False
+    @property
+    def is_updated(self):
         if not self._LAST_LOADED:
-            update_flag = True
-        elif self._LAST_LOADED < j.data.time.now() + (24 * 60 * 60):
-            update_flag = True
-        if update_flag:
-            self.fetch_upstream_info()
-            self.load_k8s_flavor()
-            self.load_k8s_sizes()
-            self.load_s3_zdb_size()
-            self.load_s3_zdb_size_details()
-            self.load_vdc_flavors()
-            self.load_vdc_plans()
+            return False
+        elif self._LAST_LOADED + (24 * 60 * 60) < j.data.time.now().timestamp:
+            return False
+        return True
+
+    def load(self):
+        self.fetch_upstream_info()
+        self.load_k8s_flavor()
+        self.load_k8s_sizes()
+        self.load_s3_zdb_size()
+        self.load_s3_zdb_size_details()
+        self.load_vdc_flavors()
+        self.load_vdc_plans()
 
     def fetch_upstream_info(self):
+        self._LAST_LOADED = j.data.time.now().timestamp
         workloads_res = j.tools.http.get(WORKLOAD_SIZES_URL)
         workloads_res.raise_for_status()
         self._workload_sizes = workloads_res.json()
@@ -87,11 +132,11 @@ class VDCSize:
         values = dict()
         for key, val in self._workload_sizes["kubernetes"].items():
             values[key.upper()] = val["value"]
-        self.K8SNodeFlavor = Enum("K8SNodeFlavor", values)
+        self._K8SNodeFlavor = Enum("K8SNodeFlavor", values)
 
     def load_k8s_sizes(self):
         # fills K8S_SIZES
-        self.K8S_SIZES = dict()
+        self._K8S_SIZES = dict()
         for key, val in self._workload_sizes["kubernetes"].items():
             self.K8S_SIZES[self.K8SNodeFlavor[key.upper()]] = {"cru": val["cru"], "mru": val["mru"], "sru": val["sru"]}
 
@@ -100,11 +145,11 @@ class VDCSize:
         values = dict()
         for key, val in self._workload_sizes["zdb"].items():
             values[key.upper()] = val["value"]
-        self.S3ZDBSize = Enum("S3ZDBSize", values)
+        self._S3ZDBSize = Enum("S3ZDBSize", values)
 
     def load_s3_zdb_size_details(self):
         # fills S3_ZDB_SIZES
-        self.S3_ZDB_SIZES = dict()
+        self._S3_ZDB_SIZES = dict()
         for key, val in self._workload_sizes["zdb"].items():
             self.S3_ZDB_SIZES[self.S3ZDBSize[key.upper()]] = {"sru": val["sru"]}
 
@@ -113,11 +158,11 @@ class VDCSize:
         values = dict()
         for key in self._plans_data:
             values[key.upper()] = key
-        self.VDCFlavor = Enum("VDCFlavor", values)
+        self._VDCFlavor = Enum("VDCFlavor", values)
 
     def load_vdc_plans(self):
         # fills VDC_FLAVORS
-        self.VDC_FLAVORS = dict()
+        self._VDC_FLAVORS = dict()
         for key, val in self._plans_data.items():
             self.VDC_FLAVORS[self.VDCFlavor[key.upper()]] = {
                 "k8s": {
@@ -132,4 +177,3 @@ class VDCSize:
 
 
 VDC_SIZE = VDCSize()
-VDC_SIZE.load()

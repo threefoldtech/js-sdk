@@ -7,8 +7,6 @@ from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.vdc.models import K8SNodeFlavor
 
 
-PROVISION_WALLET_NAME = "provisioning"
-PREPAID_WALLET = "prepaid"
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
 
 
@@ -28,7 +26,7 @@ def get_addons(flavor, kubernetes_addons):
     plan_nodes_size = plan.get("k8s").get("size")
     addons = list()
     for addon in kubernetes_addons:
-        if addon.role.name != KubernetesRole.MASTER:
+        if addon.role != KubernetesRole.MASTER:
             if addon.size == plan_nodes_size:
                 plan_nodes_count -= 1
                 if plan_nodes_count < 0:
@@ -69,7 +67,7 @@ def calculate_plan_base_price():
     Returns:
         float(): the price of user plan
     """
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     prices = get_prices()
     return prices["plans"][vdc_instance.flavor.value]
@@ -81,12 +79,14 @@ def calculate_addons_hourly_rate():
     Returns:
         total_price (float): the total price for all addons
     """
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     # addons = vdc_instance.addons
     total_price = 0
     # Calculate all the hourly late for all addons
     addons = []
+    vdc_instance.load_info()
     addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
     for addon in addons:
         addon_price = calculate_addon_price(addon)
@@ -112,13 +112,16 @@ def calculate_hourly_rate():
 def tranfer_prepaid_to_provision_wallet():
     """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
     """
-    prepaid_wallet = j.clients.stellar.get(PREPAID_WALLET)
-    provision_wallet = j.clients.stellar.get(PROVISION_WALLET_NAME)
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    prepaid_wallet = vdc_instance.prepaid_wallet
+    provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet.get_asset("TFT")
     hourly_amount = calculate_hourly_rate()
     j.logger.info(
         f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
     )
+    hourly_amount = round(hourly_amount, 6)
     prepaid_wallet.transfer(provision_wallet.address, hourly_amount, asset=f"{tft.code}:{tft.issuer}")
 
 
@@ -127,7 +130,8 @@ def auto_extend_billing():
     half of the BASE_CAPACITY
     """
     # Get the VDC and deployer instances
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     deployer = vdc_instance.get_deployer()
 

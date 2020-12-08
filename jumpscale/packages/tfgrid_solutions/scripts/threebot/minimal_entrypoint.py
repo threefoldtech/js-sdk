@@ -100,7 +100,7 @@ else:
 
 network = "STD"
 
-if "testnet" in EXPLORER_URL:
+if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL:
     network = "TEST"
 
 j.core.config.set(
@@ -134,10 +134,10 @@ except:
     pass
 
 deadline = j.data.time.now().timestamp + 10 * 60
-while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
-    j.logger.info("wating for threebot domain reservation")
-    vdc.load_info()
-    gevent.sleep(10)
+# while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
+#     j.logger.info("wating for threebot domain reservation")
+#     vdc.load_info()
+#     gevent.sleep(10)
 
 server = j.servers.threebot.get("default")
 if TEST_CERT == "true":
@@ -164,11 +164,16 @@ j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_
 
 j.sals.fs.mkdirs("/root/.kube")
 j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
+
 # Register provisioning and prepaid wallets
 
-wallet = j.clients.stellar.new(name="prepaid", secret=PREPAID_WALLET_SECRET, network=network)
+wallet = j.clients.stellar.new(
+    name=f"{vdc.instance_name}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
+)
 wallet.save()
 
-wallet = j.clients.stellar.new(name="provisioning", secret=PROVISIONING_WALLET_SECRET, network=network)
+wallet = j.clients.stellar.new(
+    name=f"{vdc.instance_name}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
+)
 wallet.save()
 
