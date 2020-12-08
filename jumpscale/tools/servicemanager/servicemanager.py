@@ -112,7 +112,7 @@ class ServiceManager(Base):
         Returns:
             service: service object defined in the service file
         """
-        module = j.tools.codeloader.load_python_module(path)
+        module = j.tools.codeloader.load_python_module(path, force_reload=True)
         return module.service
 
     @staticmethod
@@ -132,7 +132,8 @@ class ServiceManager(Base):
             greenlet (Greenlet): greenlet object
         """
         greenlet.unlink(self.__callback)
-        self._running.pop(greenlet.service.name)
+        if greenlet.service.name in self._running:
+            self._running.pop(greenlet.service.name)
 
     def _schedule_service(self, service):
         """Runs a service job and schedules it to run again every period (interval) specified by the service
@@ -176,16 +177,15 @@ class ServiceManager(Base):
         """
 
         service = self._load_service(service_path)
-        if service.name in self.services:
-            raise j.exceptions.Value(f"Service with name {service.name} already exists")
 
-        # TODO: check if instance of the service is already running -> kill greenlet and spawn a new one?
         if service in self.services.values():
-            raise j.exceptions.Runtime(f"A {type(service).__name__} instance is already running")
+            j.logger.debug(f"Service {service.name} is running. Reloading..")
+            self.stop_service(service.name)
 
         next_start = ceil(self.seconds_to_next_interval(service.interval))
         self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
         self.services[service.name] = service
+        j.logger.debug(f"Service {service.name} is added.")
 
     def stop_service(self, service_name, block=True):
         """Stop a running background service and unschedule it if it's scheduled to run again
@@ -200,6 +200,7 @@ class ServiceManager(Base):
         # wait for service to finish if it's already running
         if service_name in self._running:
             greenlet = self._running[service_name]
+            greenlet.unlink(self.__callback)
             if block:
                 try:
                     greenlet.join()
@@ -216,6 +217,7 @@ class ServiceManager(Base):
         # unschedule service if it's scheduled to run again
         if service_name in self._scheduled:
             greenlet = self._scheduled[service_name]
+            greenlet.unlink(self.__callback)
             greenlet.kill()
             if not greenlet.dead:
                 raise j.exceptions.Runtime("Failed to unschedule greenlet")
