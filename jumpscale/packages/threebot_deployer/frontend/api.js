@@ -23,29 +23,30 @@ const apiClient = {
     },
   },
   solutions: {
-    getDeployed: () => {
+    getAllThreebots: () => {
       return axios({
         url: `/threebot_deployer/api/threebots/list`,
         method: "get",
         headers: { 'Content-Type': 'application/json' }
       })
+
     },
-    cancelReservation: (wids) => {
+    stopThreebot: (uuid, password) => {
       return axios({
-        url: `/threebot_deployer/api/solutions/cancel`,
+        url: `/threebot_deployer/api/threebots/stop`,
         headers: { 'Content-Type': 'application/json' },
-        data: { wids: wids },
+        data: { uuid: uuid , password: password },
         method: "post"
       })
     },
-    destroyBackup: (threebotName) => {
+    destroyThreebot: (uuid, password) => {
       return axios({
-        url: `/threebot_deployer/backup/destroy`,
+        url: `/threebot_deployer/api/threebots/destroy`,
         headers: { 'Content-Type': 'application/json' },
-        data: { "threebot_name": threebotName },
+        data: { uuid: uuid, password: password },
         method: "post"
       })
-    }
+    },
   },
   license: {
     accept: () => {

@@ -12,7 +12,7 @@ class Solutions(BaseActor):
     @actor_method
     def list_all_solutions(self) -> str:
         res = []
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid):
+        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid):
             w_dict = workload.to_dict()
             w_dict["workload_type"] = workload.info.workload_type.name
             w_dict["pool_id"] = workload.info.pool_id
@@ -43,7 +43,7 @@ class Solutions(BaseActor):
     @actor_method
     def has_migrated(self) -> str:
         try:
-            if j.sals.zos._explorer.conversion.initialize():
+            if j.sals.zos.get()._explorer.conversion.initialize():
                 return j.data.serializers.json.dumps({"result": False})
         except AlreadyConvertedError:
             pass
@@ -51,7 +51,7 @@ class Solutions(BaseActor):
 
     @actor_method
     def migrate(self) -> str:
-        j.sals.zos.conversion()
+        j.sals.zos.get().conversion()
         return j.data.serializers.json.dumps({"result": True})
 
     @actor_method
@@ -69,8 +69,8 @@ class Solutions(BaseActor):
         farm_names = {}
         node_to_farm = {}
         pool_factory = StoredFactory(PoolConfig)
-        workloads_dict = {w.id: w for w in j.sals.zos.workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
-        for pool in j.sals.zos.pools.list():
+        workloads_dict = {w.id: w for w in j.sals.zos.get().workloads.list(j.core.identity.me.tid, NextAction.DEPLOY)}
+        for pool in j.sals.zos.get().pools.list():
             if not pool.node_ids:
                 continue
             hidden = False
@@ -110,13 +110,13 @@ class Solutions(BaseActor):
 
     @actor_method
     def cancel_workload(self, wid) -> bool:
-        j.sals.zos.workloads.decomission(wid)
+        j.sals.zos.get().workloads.decomission(wid)
         return True
 
     @actor_method
     def patch_cancel_workloads(self, wids) -> bool:
         for wid in wids:
-            j.sals.zos.workloads.decomission(wid)
+            j.sals.zos.get().workloads.decomission(wid)
         return True
 
     @actor_method

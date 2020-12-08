@@ -6,7 +6,7 @@ class BlogDeploy(Publisher):
 
     title = "Deploy a Blog"
     SOLUTION_TYPE = "blog"  # chatflow used to deploy the solution
-    EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_threefold"
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_example"
 
     @chatflow_step(title="blog Setup")
     def configuration(self):

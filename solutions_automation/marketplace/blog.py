@@ -1,5 +1,5 @@
 from jumpscale.packages.marketplace.chats.blog import BlogDeploy
-from utils.gedispatch import GedisChatBotPatch
+from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 
 class BlogAutomated(GedisChatBotPatch, BlogDeploy):

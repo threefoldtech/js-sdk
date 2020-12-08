@@ -1,10 +1,16 @@
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse
+from jumpscale.packages.threebot_deployer.bottle.utils import (
+    list_threebot_solutions,
+    stop_threebot_solution,
+    delete_threebot_solution,
+)
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.core.exceptions import exceptions
 
 app = Bottle()
 
@@ -12,19 +18,53 @@ app = Bottle()
 @app.route("/api/threebots/list")
 @login_required
 def list_threebots() -> str:
-    solutions = []
     user_info = j.data.serializers.json.loads(get_user_info())
-    solutions = j.sals.marketplace.solutions.list_solutions(user_info["username"], "threebot")
-    return j.data.serializers.json.dumps({"data": solutions})
+    threebots = list_threebot_solutions(user_info["username"])
+    return j.data.serializers.json.dumps({"data": threebots})
 
 
-@app.route("/api/solutions/cancel", method="POST")
+@app.route("/api/threebots/stop", method="POST")
 @login_required
-def cancel_solution():
-    user_info = j.data.serializers.json.loads(get_user_info())
+def stop_threebot() -> str:
     data = j.data.serializers.json.loads(request.body.read())
-    j.sals.marketplace.solutions.cancel_solution(user_info["username"], data["wids"], delete_pool=True)
-    return j.data.serializers.json.dumps({"result": True})
+    user_info = j.data.serializers.json.loads(get_user_info())
+    if "password" not in data or "uuid" not in data:
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid body. missing keys"}),
+            status=400,
+            headers={"Content-Type": "application/json"},
+        )
+    try:
+        stop_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    except (exceptions.Permission, exceptions.Validation):
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid secret"}),
+            status=401,
+            headers={"Content-Type": "application/json"},
+        )
+    return j.data.serializers.json.dumps({"data": True})
+
+
+@app.route("/api/threebots/destroy", method="POST")
+@login_required
+def destroy_threebot() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    user_info = j.data.serializers.json.loads(get_user_info())
+    if "password" not in data or "uuid" not in data:
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid body. missing keys"}),
+            status=400,
+            headers={"Content-Type": "application/json"},
+        )
+    try:
+        delete_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    except (exceptions.Permission, exceptions.Validation):
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid secret"}),
+            status=401,
+            headers={"Content-Type": "application/json"},
+        )
+    return j.data.serializers.json.dumps({"data": True})
 
 
 @app.route("/api/allowed", method="GET")

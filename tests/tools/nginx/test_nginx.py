@@ -14,12 +14,14 @@ class TestNginx(TestCase):
         return conn.laddr[1]
 
     def test001_nginx_start_stop(self):
-        """Test case for start NGINX server and stop it.
-        **Test scenario**
-        #. Start nginx server .
-        #. check if it's running.
-        #. Stop nginx server server .
-        #. check if it's running.
+        """Test case for starting NGINX server and stop it.
+
+        **Test Scenario**
+
+        - Start nginx server .
+        - Check if it's running.
+        - Stop nginx server server .
+        - Check if it's running.
         """
         nginx_instance = self._get_instance()
         nginx_instance.save()
@@ -38,14 +40,15 @@ class TestNginx(TestCase):
         self.assertFalse(nginx_instance.is_running())
 
     def test002_nginx_restart(self):
-        """Test case for start NGINX server and stop it.
-        **Test scenario**
-        #. Start nginx server .
-        #. check if it's running.
-        #. restart nginx server server .
-        #. check if it's running.
-        """
+        """Test case for starting NGINX server and stop it.
 
+        **Test Scenario**
+
+        - Start nginx server .
+        - Check if it's running.
+        - Restart nginx server server.
+        - Check if it's running.
+        """
         nginx_instance = self._get_instance()
         nginx_instance.save()
         nginx_instance.start()

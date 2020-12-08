@@ -16,19 +16,19 @@ const apiClient = {
                 method: "post"
             })
         },
-        listLogs: (appname) => {
+        listLogs: (appName) => {
             return axios({
                 url: `${baseURL}/logs/list_logs`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { appname: appname }
+                data: { app_name: appName }
             })
         },
-        delete: (appname) => {
+        delete: (appName) => {
             return axios({
                 url: `${baseURL}/logs/remove_records`,
                 method: "post",
-                data: { appname: appname }
+                data: { app_name: appName }
             })
         }
     },
@@ -134,6 +134,14 @@ const apiClient = {
             return axios({
                 url: `${baseURL}/packages/packages_names`
             })
+        },
+        listChatEndpoints: (name) => {
+            return axios({
+                url: `${baseURL}/packages/list_chat_urls`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
+            })
         }
     },
     admins: {
@@ -163,24 +171,88 @@ const apiClient = {
                 url: `/auth/authenticated/`
             })
         },
+        getConfig: () => {
+            return axios({
+                url: `${baseURL}/admin/get_config`
+            })
+        },
+        getSDKVersion: () => {
+            return axios({
+                url: `${baseURL}/admin/get_sdk_version`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs) => {
+        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoExtendPools, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs }
+                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
             })
         },
         clearBlockedNodes: () => {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
+        },
+        getNotifications: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications`,
+            })
+        },
+        getNotificationsCount: () => {
+            return axios({
+                url: `${baseURL}/admin/get_notifications_count`,
+            })
         }
+    },
+    emailServerConfig: {
+        get: () => {
+            return axios({
+                url: `${baseURL}/admin/get_email_server_config`
+            })
+        },
+        set: (host, port, username, password) => {
+            return axios({
+                url: `${baseURL}/admin/set_email_server_config`,
+                method: "post",
+                headers: { "Content-Type": "application/json" },
+                data: {
+                    host: host,
+                    port: port,
+                    username: username,
+                    password: password
+                }
+            })
+        },
+    },
+    escalationEmails: {
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_escalation_emails`
+            })
+        },
+        add: (email) => {
+            return axios({
+                url: `${baseURL}/admin/add_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        },
+        delete: (email) => {
+            return axios({
+                url: `${baseURL}/admin/delete_escalation_email`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { email: email }
+            })
+        }
+
     },
     explorers: {
         get: () => {
@@ -200,12 +272,33 @@ const apiClient = {
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (identity_instance_name, tname, email, words, explorer_type) => {
+        add: (display_name, tname, email, words, explorer_type) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { identity_instance_name: identity_instance_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+                data: { display_name: display_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+            })
+        },
+        generateMnemonic: () => {
+            return axios({
+                url: `${baseURL}/admin/generate_mnemonic`
+            })
+        },
+        checkTNameExists: (tname, explorerType) => {
+            return axios({
+                url: `${baseURL}/admin/check_tname_exists`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { tname: tname, explorer_type: explorerType }
+            })
+        },
+        checkInstanceName: (name) => {
+            return axios({
+                url: `${baseURL}/admin/check_identity_instance_name`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { name: name }
             })
         },
         setIdentity: (identity_instance_name) => {
@@ -224,6 +317,11 @@ const apiClient = {
                 data: { identity_instance_name: identity_instance_name }
             })
         },
+        currentIdentity: () => {
+            return axios({
+                url: `${baseURL}/admin/get_current_identity_name`
+            })
+        },
         deleteIdentity: (identity_instance_name) => {
             return axios({
                 url: `${baseURL}/admin/delete_identity`,
@@ -233,7 +331,29 @@ const apiClient = {
             })
         }
     },
-
+    sshkeys: {
+        list: () => {
+            return axios({
+                url: `${baseURL}/admin/list_sshkeys`
+            })
+        },
+        add: (id, sshkey) => {
+            return axios({
+                url: `${baseURL}/admin/add_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id, sshkey: sshkey }
+            })
+        },
+        delete: (id) => {
+            return axios({
+                url: `${baseURL}/admin/delete_sshkey`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { key_id: id }
+            })
+        }
+    },
     solutions: {
         getCount: () => {
             return axios({
@@ -460,6 +580,20 @@ const apiClient = {
         accept: () => {
             return axios({
                 url: `/admin/api/accept/`,
+                method: "get"
+            })
+        },
+    },
+    announcement: {
+        announced: () => {
+            return axios({
+                url: `/admin/api/announced`,
+                method: "get"
+            })
+        },
+        announce: () => {
+            return axios({
+                url: `/admin/api/announce`,
                 method: "get"
             })
         },

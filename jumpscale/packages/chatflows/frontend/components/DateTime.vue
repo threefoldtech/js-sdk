@@ -26,7 +26,8 @@
             v-if="tab === 0"
             v-model="date"
             color="primary"
-            @click:date="tab = date ? 1 : 0;"
+            :min="new Date(this.minTime * 1000).toISOString()"
+            @click:date="tab = date ? 1 : 0"
             no-title
             scrollable
           />
@@ -49,13 +50,16 @@
 <script>
 module.exports = {
   mixins: [field],
-  props: { payload: Object },
+  props: {
+    payload: Object,
+  },
   data() {
     return {
       tab: 0,
       menu: false,
       date: null,
       time: null,
+      minTime: this.payload.kwargs.min_time ? Date.now()/1000 + this.payload.kwargs.min_time[0]:null ,
       dateTime: null,
       validators: {
         is_valid: true,
@@ -76,12 +80,12 @@ module.exports = {
         this.date && this.time
           ? new Date(`${this.date} ${this.time}`)
           : new Date();
-      this.dateTime = datetime.toLocaleString();
+      this.dateTime = datetime.toLocaleString('en-GB');
       this.val = Math.floor(datetime.getTime() / 1000);
     },
     setDateTimeValue() {
       let value = this.val; // value here in seconds
-      this.dateTime = new Date(value * 1000).toLocaleString();
+      this.dateTime = new Date(value * 1000).toLocaleString("en-GB");
     },
     update() {
       if (this.date && this.time) this.setValue();

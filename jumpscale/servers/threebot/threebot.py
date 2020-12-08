@@ -18,6 +18,7 @@ GEDIS = "gedis"
 GEDIS_HTTP = "gedis_http"
 GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
+SERVICE_MANAGER = "service_manager"
 CHATFLOW_SERVER_HOST = "127.0.0.1"
 CHATFLOW_SERVER_PORT = 8552
 DEFAULT_PACKAGES = {
@@ -207,6 +208,13 @@ class Package:
         self.default_email = default_email
         self.kwargs = kwargs or {}
 
+    def _load_files(self, dir_path):
+        for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
+            file_name = j.sals.fs.basename(file_path)
+            if file_name.endswith(".py"):
+                name = f"{self.name}_{file_name[:-3]}"
+                yield dict(name=name, path=file_path)
+
     def load_config(self):
         return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
 
@@ -245,6 +253,12 @@ class Package:
             return chats_dir
 
     @property
+    def services_dir(self):
+        services_dir = j.sals.fs.join_paths(self.path, self.config.get("services_dir", "services"))
+        if j.sals.fs.exists(services_dir):
+            return services_dir
+
+    @property
     def static_dirs(self):
         return self.config.get("static_dirs", [])
 
@@ -254,11 +268,11 @@ class Package:
 
     @property
     def actors(self):
-        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name = j.sals.fs.basename(file_path)
-            if file_name.endswith(".py"):
-                actor_name = f"{self.name}_{file_name[:-3]}"
-                yield dict(name=actor_name, path=file_path)
+        return self._load_files(self.actors_dir)
+
+    @property
+    def services(self):
+        return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         """Resolves path for static location in case we need it
@@ -341,16 +355,24 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            all_packages.append(
-                {
-                    "name": pkg,
-                    "path": package.path,
-                    "giturl": package.giturl,
-                    "system_package": pkg in DEFAULT_PACKAGES.keys(),
-                    "installed": True,
-                    "frontend": package.config.get("frontend", False),
-                }
-            )
+            if package:
+                if j.sals.fs.exists(package.path):
+                    chatflows = True if package.chats_dir else False
+                    all_packages.append(
+                        {
+                            "name": pkg,
+                            "path": package.path,
+                            "giturl": package.giturl,
+                            "system_package": pkg in DEFAULT_PACKAGES.keys(),
+                            "installed": True,
+                            "frontend": package.config.get("frontend", False),
+                            "chatflows": chatflows,
+                        }
+                    )
+                else:
+                    j.logger.error(f"path {package.path} for {pkg} doesn't exist anymore")
+            else:
+                j.logger.error("pkg {pkg} is in self.packages but it's None")
 
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
@@ -372,19 +394,35 @@ class PackageManager(Base):
         return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
+        # first check if public repo
         # TODO: Check if package already exists
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value("either path or giturl is required")
-
+        pkg_name = ""
         if giturl:
             url = urlparse(giturl)
-            url_parts = url.path.lstrip("/").split("/", 4)
+            url_parts = url.path.lstrip("/").split("/")
+            if len(url_parts) == 2:
+                pkg_name = url_parts[1].strip("/")
+                j.logger.debug(
+                    f"user didn't pass a URL containing branch {giturl}, try to guess (master, main, development) in order"
+                )
+                if j.tools.http.get(f"{giturl}/tree/master").status_code == 200:
+                    url_parts.extend(["tree", "master"])
+                elif j.tools.http.get(f"{giturl}/tree/main").status_code == 200:
+                    url_parts.extend(["tree", "main"])
+                elif j.tools.http.get(f"{giturl}/tree/development").status_code == 200:
+                    url_parts.extend(["tree", "development"])
+                else:
+                    raise j.exceptions.Value(f"couldn't guess the branch for {giturl}")
+            else:
+                pkg_name = url_parts[-1].strip("/")
 
-            if len(url_parts) != 5:
-                raise j.exceptions.Value("invalid path")
+            if len(url_parts) < 4:
+                raise j.exceptions.Value(f"invalid git URL {giturl}")
 
-            org, repo, _, branch, package_path = url_parts
-            repo_dir = f"{org}_{repo}_{branch}"
+            org, repo, _, branch = url_parts[:4]
+            repo_dir = f"{org}_{repo}_{pkg_name}_{branch}"
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f"{url.scheme}://{url.hostname}/{org}/{repo}"
 
@@ -392,7 +430,14 @@ class PackageManager(Base):
             j.sals.fs.rmtree(repo_path)
 
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
-            path = j.sals.fs.join_paths(repo_path, repo, package_path)
+            toml_paths = list(
+                j.sals.fs.walk(repo_path, "*", filter_fun=lambda x: str(x).endswith(f"{pkg_name}/package.toml"))
+            )
+            if not toml_paths:
+                raise j.exceptions.Value(f"couldn't find {pkg_name}/package.toml in {repo_path}")
+            path_for_package_toml = toml_paths[0]
+            package_path = j.sals.fs.parent(path_for_package_toml)
+            path = package_path
 
         package = Package(
             path=path,
@@ -438,6 +483,11 @@ class PackageManager(Base):
             if bottle_server.startswith(f"{package_name}_"):
                 self.threebot.rack.remove(bottle_server)
 
+        # stop background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service["name"])
+
         if self.threebot.started:
             # unregister gedis actors
             gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -450,9 +500,7 @@ class PackageManager(Base):
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
-                j.logger.warning(
-                    f"Couldn't unload the chats of package {package_name}, this is the the exception {str(e)}"
-                )
+                j.logger.warning(f"Couldn't unload the chats of package {package_name}, this is the exception {str(e)}")
 
             # reload nginx
             self.threebot.nginx.reload()
@@ -491,11 +539,17 @@ class PackageManager(Base):
         # register gedis actors
         if package.actors_dir:
             for actor in package.actors:
-                self.threebot.gedis._system_actor.register_actor(actor["name"], actor["path"])
+                self.threebot.gedis._system_actor.register_actor(actor["name"], actor["path"], force_reload=True)
 
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
+
+        # start background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.add_service(service["path"])
+
         # start servers
         self.threebot.rack.start()
 
@@ -512,6 +566,9 @@ class PackageManager(Base):
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f"{package_name} package not found")
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service["name"])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
@@ -530,7 +587,45 @@ class PackageManager(Base):
         for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f"Configuring package {package}")
-                self.install(self.get(package))
+                pkg = self.get(package)
+                if not pkg:
+                    j.logger.error(f"can't get package {package}")
+                else:
+                    if pkg.path and j.sals.fs.exists(pkg.path):
+                        self.install(pkg)
+                    else:
+                        j.logger.error(f"package {package} was installed before but {pkg.path} doesn't exist anymore.")
+
+    def scan_packages_paths_in_dir(self, path):
+        """Scans all packages in a path in any level and returns list of package paths
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            List[str]: list of all packages available under the path
+        """
+        filterfun = lambda x: str(x).endswith("package.toml")
+        pkgtoml_paths = j.sals.fs.walk(path, filter_fun=filterfun)
+        pkgs_paths = list(map(lambda x: x.replace("/package.toml", ""), pkgtoml_paths))
+        return pkgs_paths
+
+    def scan_packages_in_dir(self, path):
+        """Gets a dict from packages names to packages paths existing under a path that may have jumpscale packages at any level.
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            Dict[package_name, package_path]: dict of all packages available under the path
+        """
+        pkgname_to_path = {}
+        for p in self.scan_packages_paths_in_dir(path):
+            basename = j.sals.fs.basename(p).strip()
+            if basename:
+                pkgname_to_path[basename] = p
+
+        return pkgname_to_path
 
 
 class ThreebotServer(Base):
@@ -544,12 +639,14 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
+        self._services = None
         self._packages = None
         self._started = False
         self._nginx = None
         self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
+        self.rack.add(SERVICE_MANAGER, self.services)
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
@@ -598,6 +695,12 @@ class ThreebotServer(Base):
         if self._gedis_http is None:
             self._gedis_http = j.servers.gedis_http.get("threebot")
         return self._gedis_http
+
+    @property
+    def services(self):
+        if self._services is None:
+            self._services = j.tools.servicemanager.get("threebot")
+        return self._services
 
     @property
     def chatbot(self):
@@ -649,7 +752,7 @@ class ThreebotServer(Base):
         self.redis.start()
         self.nginx.start()
         self.rack.start()
-        j.application.start(f"threebot_{self.instance_name}")
+        j.logger.register(f"threebot_{self.instance_name}")
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
@@ -680,7 +783,7 @@ class ThreebotServer(Base):
             package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
-        j.application.stop()
+        j.logger.unregister()
         self.redis.stop()
         self.rack.stop()
         self._started = False

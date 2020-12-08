@@ -8,19 +8,12 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 
 
 class TaigaDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-restic-latest.flist"
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
-    steps = [
-        "get_solution_name",
-        "taiga_credentials",
-        "infrastructure_setup",
-        "reservation",
-        "initializing",
-        "success",
-    ]
+    steps = ["get_solution_name", "taiga_credentials", "infrastructure_setup", "reservation", "initializing", "success"]
 
-    resources = {"cru": 1, "mru": 1, "sru": 4}
+    container_resources = {"cru": 1, "mru": 1, "sru": 4}
     # main container + nginx container
     query = {"cru": 2, "mru": 2, "sru": 4.25}
 
@@ -36,13 +29,11 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
 
-        SECRET_KEY = form.secret_ask("Please add a secret key for your solution", required=True)
-
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
-        self.SECRET_KEY = SECRET_KEY.value
+        self.SECRET_KEY = j.data.idgenerator.idgenerator.chars(15)
 
     @deployment_context()
     def _deploy(self):
@@ -89,13 +80,12 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             network_name=self.network_view.name,
             ip_address=self.ip_address,
             flist=self.FLIST_URL,
-            cpu=self.resources["cru"],
-            memory=self.resources["mru"] * 1024,
-            disk_size=self.resources["sru"] * 1024,
+            cpu=self.container_resources["cru"],
+            memory=self.container_resources["mru"] * 1024,
+            disk_size=self.container_resources["sru"] * 1024,
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",
-            public_ipv6=True,
             secret_env={
                 "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                 "PRIVATE_KEY": private_key,

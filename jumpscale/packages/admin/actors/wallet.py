@@ -5,15 +5,17 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 
 class Wallet(BaseActor):
     @actor_method
-    def create_wallet(self, name: str) -> str:
+    def create_wallet(self, name: str, wallettype: str = None) -> str:
         explorer = j.core.identity.me.explorer
-        wallettype = "STD"
-        if "testnet" in explorer.url or "devnet" in explorer.url:
-            wallettype = "TEST"
+        if wallettype is None:
+            if "testnet" in explorer.url or "devnet" in explorer.url:
+                wallettype = "TEST"
+            else:
+                wallettype = "STD"
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
-            raise j.exceptions.Value("Name already exists")
+        if j.clients.stellar.find(name):
+            raise j.exceptions.Value(f"Wallet {name} already exists")
+
         wallet = j.clients.stellar.new(name=name, network=wallettype)
 
         try:
@@ -26,8 +28,13 @@ class Wallet(BaseActor):
             raise j.exceptions.JSException("Error on wallet activation")
 
         trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        try:
+            wallet.add_known_trustline("TFT")
+        except Exception:
+            j.clients.stellar.delete(name=name)
+            raise j.exceptions.JSException(
+                f"Failed to add trustlines to wallet {name}. Any changes made will be reverted."
+            )
 
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
@@ -73,8 +80,8 @@ class Wallet(BaseActor):
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if "TFT" in trustlines.keys():
+            wallet.add_known_trustline("TFT")
 
         wallet.save()
         return j.data.serializers.json.dumps({"data": trustlines})

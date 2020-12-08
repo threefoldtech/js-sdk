@@ -3,6 +3,31 @@
     <v-app-bar app>
       <v-switch v-model="darkTheme" hide-details inset label="Dark mode"></v-switch>
       <v-spacer></v-spacer>
+      <v-menu offset-y>
+        <template v-slot:activator="{ attrs, on }">
+          <div v-if="notificationsCount">
+            <v-badge color="red" offset-x="17" offset-y="12" class="mr-4" :content="notificationsCount">
+              <v-icon v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-ring</v-icon>
+            </v-badge>
+          </div>
+          <div v-else>
+              <v-icon class="pr-2" v-bind="attrs" v-on="on" color="primary" v-on:click="notificationsClick()" left>mdi-bell-outline</v-icon>
+          </div>
+        </template>
+
+        <v-list class="notificationlist" v-if="notifications.length">
+          <v-list-item v-for="item in notifications" :items="notifications" :key="item.id" link>
+            <v-list-item-icon>
+              <v-icon :color="notificationsIcons[item.level].color" class="ml-2" large>{{notificationsIcons[item.level].icon}}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+            <v-list-item-title v-text="item.category"></v-list-item-title>
+            <v-list-item-subtitle v-text="new Date(item.date * 1000).toLocaleString('en-GB')"></v-list-item-subtitle>
+              <v-list-item-title class="font-weight-bold" v-text="item.message"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <v-chip label flat color="transparent" class="pr-5">
         <v-icon color="primary" left>mdi-clock-outline</v-icon>
         {{ timenow }}
@@ -69,9 +94,11 @@
           <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
-              <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
               <v-list-item-subtitle>
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
+              </v-list-item-subtitle>
+              <v-list-item-subtitle v-if="SDKVersion">
+                <v-chip class="mt-2 px-6 py-6" outlined>JS-NG: {{ NGVersion }}<br>JS-SDK: {{ SDKVersion }}</v-chip>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -82,8 +109,6 @@
           </v-list-item>
         </v-list>
       </v-sheet>
-
-      <div style="width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
         <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
@@ -111,6 +136,33 @@
       <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
+     <v-dialog
+      v-model="announcement_dialog"
+      persistent
+      max-width="500"
+    >
+
+      <v-card>
+        <v-card-title class="headline">
+          Quick start guide
+        </v-card-title>
+        <v-card-text>
+        We've created a wallet for you. Make sure your wallet is funded to extend your 3Bot before it expires.
+        <br />
+        Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="announced = true"
+          >
+            Ok
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -124,18 +176,41 @@ module.exports = {
       menu: false,
       mini: false,
       timenow: null,
+      notifications: [],
+      notificationsIcons:{
+        info: {
+          icon: "mdi-information-outline",
+          color : "green"
+        },
+        warning: {
+          icon: "mdi-alert-circle",
+          color : "orange"
+        },
+        error: {
+          icon: "mdi-close-circle-outline",
+          color : "red"
+        },
+      },
+      notificationsCount: null,
+      notificationsListOpen: false,
+      notificationInterval: null,
+      NGVersion: null,
+      SDKVersion: null,
       clockInterval: null,
       dialogs: {
         identity: false,
       },
+      announced: true
     };
   },
   components: {
     identities: httpVueLoader("./Identity.vue"),
   },
-  computed: {},
   methods: {},
   computed: {
+    announcement_dialog() {
+      return !this.announced
+    },
     pages() {
       return this.$router.options.routes.filter((page) => {
         return page.meta.listed;
@@ -154,13 +229,27 @@ module.exports = {
         this.user = response.data;
       });
     },
+    getAnnouncementStatus() {
+      this.$api.announcement.announced().then((response) => {
+        console.log(response.data)
+        this.announced = response.data["announced"];
+        this.$api.announcement.announce();
+      });
+    },
     getIdentity() {
       this.$api.identity.get().then((response) => {
         this.identity = JSON.parse(response.data);
       });
     },
+    getSDKVersion() {
+      this.$api.admins.getSDKVersion().then((response) => {
+        const versions = JSON.parse(response.data).data;
+        this.NGVersion = versions["js-ng"];
+        this.SDKVersion = versions["js-sdk"];
+      });
+    },
     setTimeLocal() {
-      this.timenow = new Date().toLocaleString();
+      this.timenow = new Date().toLocaleString('en-GB');
     },
     getCookie(cname) {
       var name = cname + "=";
@@ -183,18 +272,38 @@ module.exports = {
         this.$vuetify.theme.dark = this.darkTheme =
           cookie == "1" ? true : false;
     },
+    notificationsClick() {
+        this.$api.admins.getNotifications().then((response) => {
+          this.notifications = JSON.parse(response.data).data;
+          this.notificationsCount = 0;
+        });
+    },
   },
   mounted() {
     this.checkDarkMode();
     this.getIdentity();
     this.getCurrentUser();
+    this.getAnnouncementStatus();
     this.setTimeLocal();
+    this.getSDKVersion();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);
+    this.notificationInterval = setInterval(() =>{
+      this.$api.admins.getNotificationsCount().then((response) => {
+        this.notificationsCount = JSON.parse(response.data).data;
+      });
+    },10000);
   },
   destroyed() {
     clearInterval(this.clockInterval);
+    clearInterval(this.notificationInterval);
   },
 };
 </script>
+<style>
+  .notificationlist{
+    height:400px;
+    overflow-y:auto
+  }
+</style>

@@ -10,22 +10,22 @@ from jumpscale.packages.backup.actors.threebot_deployer import Backup
 
 def main():
     BACKUP_ACTOR = Backup()
-
     instance_name = os.environ.get("INSTANCE_NAME")
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
     backup_password = os.environ.get("BACKUP_PASSWORD", None)
     test_cert = os.environ.get("TEST_CERT")
 
+    # email settings
+    email_host = os.environ.get("EMAIL_HOST")
+    email_host_user = os.environ.get("EMAIL_HOST_USER")
+    email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
+
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
     words = j.data.encryption.key_to_mnemonic(backup_password.encode().zfill(32))
 
     new = True
-
-    resp = requests.get("https://explorer.grid.tf/api/v1/users", params={"name": tname})
-    if resp.json():
-        new = False
 
     j.logger.info("Generating guest identity ...")
     identity_main = j.core.identity.get(
@@ -41,16 +41,24 @@ def main():
         identity.register()
         identity.save()
 
-    j.core.identity.set_default("main")
+    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+    j.core.identity.set_default(default_identity)
+
+    # configure escalation mailing
+    if all([email_host, email_host_user, email_host_password]):
+        try:
+            email_instance = j.clients.mail.get("escalation_instance")
+            email_instance.login = email_host_user
+            email_instance.smtp_port = 587
+            email_instance.smtp_server = email_host
+            email_instance.sender_email = email_host_user
+            email_instance.password = email_host_password
+            email_instance.name = threebot_name
+            email_instance.save()
+        except Exception as e:
+            j.logger.warning("Failed to set escalation mail settings")
 
     if backup_password:
-        # Seprate the logic of wallet creation in case of stellar failure it still takes the backup
-        # Create a funded wallet to the threebot testnet
-        try:
-            j.clients.stellar.create_testnet_funded_wallet(f"{threebot_name}_{instance_name}")
-        except Exception as e:
-            j.logger.error(str(e))
-
         # Sanitation for the case user deleted his old backups!
         try:
             BACKUP_ACTOR.init(backup_password, new=False)

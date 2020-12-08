@@ -24,7 +24,7 @@
                   >mdi-information-outline</v-icon>
                 </a>
               </template>
-              <span>Go to How-to Manual</span>
+              <span>Go to Wiki</span>
             </v-tooltip>
           </v-card-title>
 
@@ -52,7 +52,7 @@
                 <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
               </template>
               <template v-slot:item.Expiration="{ item }">
-                <div>{{ new Date(item.Expiration * 1000).toLocaleString() }}</div>
+                <div>{{ new Date(item.Expiration * 1000).toLocaleString('en-GB') }}</div>
               </template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>

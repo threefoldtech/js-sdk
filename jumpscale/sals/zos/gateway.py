@@ -20,32 +20,34 @@ from .crypto import encrypt_for_node
 class GatewayGenerator:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = self._identity.explorer
         self._gateways = explorer.gateway
-        
+
     def correct_domain(self, domain):
-      """
+        """
       removes any invalid chars from a domain and return a valid one
-      only for _ it replaces it with - and for other chars it is removed 
+      only for _ it replaces it with - and for other chars it is removed
       """
-      domain = domain.replace("_", "-")
-      domain_regex = r"^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,11}?$"
-      if not re.match(domain_regex, domain):
-        domain_copy = domain
-        chars = string.ascii_letters+string.digits + "-."
-        for c in domain_copy:
-          if c not in chars:
-            domain = domain.replace(c, "")
-      # maybe the user add - at the begining of the domain or at the end let's deal with it
-      domain_list = domain.split("//")
-      for idx, part in enumerate(domain_list):
-        domain_list[idx] = part.strip("-")
-      domain = "//".join(domain_list)
-      domain_list = domain.split(".")
-      for idx, part in enumerate(domain_list):
-        domain_list[idx] = part.strip("-")
-      domain = ".".join(domain_list)
-      return domain
+        domain = domain.replace("_", "-")
+        domain_regex = r"^(?!:\/\/)([a-zA-Z0-9-]+\.)*[a-zA-Z0-9][a-zA-Z0-9-]+\.[a-zA-Z]{2,11}?$"
+        if not re.match(domain_regex, domain):
+            domain_copy = domain
+            chars = string.ascii_letters + string.digits + "-."
+            for c in domain_copy:
+                if c not in chars:
+                    domain = domain.replace(c, "")
+        # maybe the user add - at the begining of the domain or at the end let's deal with it
+        domain_list = domain.split("//")
+        for idx, part in enumerate(domain_list):
+            domain_list[idx] = part.strip("-")
+        domain = "//".join(domain_list)
+        domain_list = domain.split(".")
+        for idx, part in enumerate(domain_list):
+            domain_list[idx] = part.strip("-")
+        domain = ".".join(domain_list)
+        return domain
 
     def sub_domain(self, gateway_id: str, domain: str, ips: List[str], pool_id: int) -> GatewaySubdomain:
         """create a sub-domain workload object
@@ -138,7 +140,7 @@ class GatewayGenerator:
         p.info.workload_type = WorkloadType.Reverse_proxy
         p.domain = domain
         node = self._gateways.get(gateway_id)
-        p.secret = encrypt_for_node(node.public_key_hex, secret).decode()
+        p.secret = encrypt_for_node(self._identity, node.public_key_hex, secret).decode()
         return p
 
     def gateway_4to6(self, gateway_id: str, public_key: str, pool_id: int) -> Gateway4to6:

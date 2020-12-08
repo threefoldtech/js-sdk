@@ -18,8 +18,8 @@ class ChatflowSolutions:
         nodes = {}
         farms = {}
         if networks:
-            nodes = {node.node_id: node.farm_id for node in j.sals.zos._explorer.nodes.list()}
-            farms = {farm.id: farm.name for farm in j.sals.zos._explorer.farms.list()}
+            nodes = {node.node_id: node.farm_id for node in j.sals.zos.get()._explorer.nodes.list()}
+            farms = {farm.id: farm.name for farm in j.sals.zos.get()._explorer.farms.list()}
         for n in networks.values():
             if not n.network_workloads:
                 continue
@@ -185,7 +185,7 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
-    def list_4to6gw_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+    def list_gw4to6_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Gateway4to6]:
@@ -291,23 +291,26 @@ class ChatflowSolutions:
                     result[domain]["wids"].append(container_workload.id)
         return list(result.values())
 
-    def cancel_solution(self, solution_wids):
+    def cancel_solution(self, solution_wids, identity_name=None):
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
         """
-        workload = j.sals.zos.workloads.get(solution_wids[0])
-        solution_uuid = self.get_solution_uuid(workload)
+        identity_name = identity_name or j.core.identity.me.instance_name
+        workload = j.sals.zos.get(identity_name).workloads.get(solution_wids[0])
+        solution_uuid = self.get_solution_uuid(workload, identity_name)
         ids_to_delete = []
         if solution_uuid:
             # solutions created by new chatflows
-            for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
-                if solution_uuid == self.get_solution_uuid(workload):
+            for workload in j.sals.zos.get(identity_name).workloads.list(
+                j.core.identity.get(identity_name).tid, next_action="DEPLOY"
+            ):
+                if solution_uuid == self.get_solution_uuid(workload, identity_name):
                     ids_to_delete.append(workload.id)
         else:
             ids_to_delete = solution_wids
 
         for wid in ids_to_delete:
-            j.sals.zos.workloads.decomission(wid)
+            j.sals.zos.get(identity_name).workloads.decomission(wid)
 
     def count_solutions(self, next_action=NextAction.DEPLOY):
         count_dict = {
@@ -318,7 +321,7 @@ class ChatflowSolutions:
             "monitoring": 0,
             "flist": 0,
             "gitea": 0,
-            "4to6gw": 0,
+            "gw4to6": 0,
             "delegated_domain": 0,
             "exposed": 0,
             "threebot": 0,
@@ -340,11 +343,11 @@ class ChatflowSolutions:
             count_dict[key] = len(method(next_action=next_action, sync=False))
         return count_dict
 
-    def get_solution_uuid(self, workload):
+    def get_solution_uuid(self, workload, identity_name=None):
         if workload.info.metadata:
             try:
                 metadata = j.data.serializers.json.loads(
-                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+                    j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata, identity_name)
                 )
             except:
                 return
@@ -407,6 +410,12 @@ class ChatflowSolutions:
         metadata_filters = metadata_filters or []
         result = {}
         values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container].values()
+        volume_values = j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Volume].values()
+        volumes_dict = {}
+        for volume_workloads in volume_values:
+            for workload in volume_workloads:
+                volumes_dict[workload.id] = workload
+
         for container_workloads in values:
             for workload in container_workloads:
                 metadata = self._validate_workload_metadata(chatflow, workload)
@@ -431,12 +440,19 @@ class ChatflowSolutions:
                     "farm": self.get_node_farm(workload.info.node_id),
                     "pool": workload.info.pool_id,
                     "vol_ids": [],
+                    "volumes_capacity": [],
                     "capacity": self.get_workload_capacity(workload),
                     "owner": metadata.get("owner"),
                 }
                 if workload.volumes:
                     for vol in workload.volumes:
-                        container_dict["vol_ids"].append(int(vol.volume_id.split("-")[0]))
+                        vol_id = int(vol.volume_id.split("-")[0])
+                        container_dict["vol_ids"].append(vol_id)
+                        vol_workload = volumes_dict.get(vol_id)
+                        if vol_workload:
+                            volume_data = self.get_workload_capacity(vol_workload)
+                            volume_data["Volume Id"] = vol_id
+                            container_dict["volumes_capacity"].append(volume_data)
                 if name not in result:
                     result[name] = [container_dict]
                 else:
@@ -541,7 +557,13 @@ class ChatflowSolutions:
         return result
 
     def _list_proxied_solution(
-        self, chatflow, next_action=NextAction.DEPLOY, sync=True, proxy_type="tcprouter", owner=None
+        self,
+        chatflow,
+        next_action=NextAction.DEPLOY,
+        sync=True,
+        proxy_type="tcprouter",
+        owner=None,
+        custom_domain=False,
     ):
         def meta_filter(metadata):
             if metadata.get("owner") != owner:
@@ -568,29 +590,30 @@ class ChatflowSolutions:
         for name in container_workloads:
             subdomain_dicts = subdomain_workloads.get(name)
             proxy_dicts = proxy_workloads.get(name)
-            if not subdomain_dicts or not proxy_dicts:
+            if not custom_domain and not subdomain_dicts:
                 continue
-            subdomain_dict = subdomain_dicts[-1]
+            if not proxy_dicts:
+                continue
             proxy_dict = proxy_dicts[-1]
+            wids = [proxy_dict["wid"]]
+            if not custom_domain:
+                subdomain_dict = subdomain_dicts[-1]
+                wids.append(subdomain_dict["wid"])
+            elif subdomain_dicts:
+                continue
             sol_name = name
             if owner:
                 if len(name) > len(owner) + 1:
                     sol_name = name[len(owner) + 1 :]
-            solution_dict = {
-                "wids": [subdomain_dict["wid"], proxy_dict["wid"]],
-                "Name": sol_name,
-                "Domain": subdomain_dict["domain"],
-            }
+            solution_dict = {"wids": wids, "Name": sol_name, "Domain": proxy_dict["domain"]}
             if chatflow == "threebot":
-                solution_dict.update(
-                    {"Owner": owner,}
-                )
+                solution_dict.update({"Owner": owner})
             if len(container_workloads[name]) != containers_len:
                 continue
             for c_dict in container_workloads[name]:
                 solution_dict["wids"].append(c_dict["wid"])
                 if (proxy_type and proxy_type not in c_dict["flist"]) or not proxy_type:
-                    pool = j.sals.zos.pools.get(c_dict["pool"])
+                    pool = j.sals.zos.get().pools.get(c_dict["pool"])
                     solution_dict.update(
                         {
                             "IPv4 Address": c_dict["ipv4"],
@@ -636,18 +659,26 @@ class ChatflowSolutions:
                 }
             )
             result[-1].update(c_dict["capacity"])
+            if c_dict["volumes_capacity"]:
+                result[-1]["Volumes"] = c_dict["volumes_capacity"]
+            if c_dict["vol_ids"]:
+                result[-1]["wids"] += c_dict["vol_ids"]
         return result
 
-    def cancel_solution_by_uuid(self, solution_uuid):
+    def cancel_solution_by_uuid(self, solution_uuid, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
         # Get workloads with specific UUID
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action="DEPLOY"):
-            if solution_uuid == self.get_solution_uuid(workload):
-                j.sals.zos.workloads.decomission(workload.id)
+        for workload in j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action="DEPLOY"):
+            if solution_uuid == self.get_solution_uuid(workload, identity_name):
+                j.sals.zos.get(identity_name).workloads.decomission(workload.id)
 
-    def get_workloads_by_uuid(self, solution_uuid, next_action=None):
+    def get_workloads_by_uuid(self, solution_uuid, next_action=None, identity_name=None):
+        identity_name = identity_name or j.core.identity.me.instance_name
+        identity = j.core.identity.get(identity_name)
         workloads = []
-        for workload in j.sals.zos.workloads.list(j.core.identity.me.tid, next_action=next_action):
-            if solution_uuid == self.get_solution_uuid(workload):
+        for workload in j.sals.zos.get(identity_name).workloads.list(identity.tid, next_action=next_action):
+            if solution_uuid == self.get_solution_uuid(workload, identity_name):
                 workloads.append(workload)
         return workloads
 

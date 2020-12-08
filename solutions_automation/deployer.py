@@ -1,23 +1,26 @@
-from dashboard_solutions.delegated_domain import DomainDelegationAutomated
-from dashboard_solutions.exposed import SolutionExposeDeployAutomated
-from dashboard_solutions.generic_flist import FlistAutomated
-from dashboard_solutions.kubernetes import KubernetesAutomated
-from dashboard_solutions.minio import MinioAutomated
-from dashboard_solutions.monitoring import MonitoringAutomated
-from dashboard_solutions.network import NetworkDeployAutomated
-from dashboard_solutions.pools import PoolAutomated
-from dashboard_solutions.ubuntu import UbuntuAutomated
-from marketplace.blog import BlogAutomated
-from marketplace.cryptpad import CryptpadAutomated
-from marketplace.discourse import DiscourseAutomated
-from marketplace.gitea import GiteaAutomated
-from marketplace.mattermost import MattermostAutomated
-from marketplace.peertube import PeertubeAutomated
-from marketplace.taiga import TaigaAutomated
-from marketplace.website import WebsiteAutomated
-from marketplace.wiki import WikiAutomated
-from threebot.deploy import ThreebotDeployAutomated
-from threebot.extend import ThreebotExtendAutomated
+from solutions_automation.dashboard_solutions.delegated_domain import DomainDelegationAutomated
+from solutions_automation.dashboard_solutions.exposed import SolutionExposeDeployAutomated
+from solutions_automation.dashboard_solutions.generic_flist import FlistAutomated
+from solutions_automation.dashboard_solutions.kubernetes import KubernetesAutomated
+from solutions_automation.dashboard_solutions.minio import MinioAutomated
+from solutions_automation.dashboard_solutions.monitoring import MonitoringAutomated
+from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
+from solutions_automation.dashboard_solutions.pools import PoolAutomated
+from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
+from solutions_automation.marketplace.blog import BlogAutomated
+from solutions_automation.marketplace.cryptpad import CryptpadAutomated
+from solutions_automation.marketplace.discourse import DiscourseAutomated
+from solutions_automation.marketplace.gitea import GiteaAutomated
+from solutions_automation.marketplace.mattermost import MattermostAutomated
+from solutions_automation.marketplace.meetings import MeetingsAutomated
+from solutions_automation.marketplace.peertube import PeertubeAutomated
+from solutions_automation.marketplace.taiga import TaigaAutomated
+from solutions_automation.marketplace.website import WebsiteAutomated
+from solutions_automation.marketplace.wiki import WikiAutomated
+from solutions_automation.threebot.deploy import ThreebotDeployAutomated
+from solutions_automation.threebot.change_size import ThreebotChangeSizeAutomated
+from solutions_automation.threebot.start import ThreebotStart
+from solutions_automation.threebot.change_location import ThreebotChangeLocation
 
 
 def deploy_gitea(solution_name, wg_config="NO", debug=True):
@@ -25,36 +28,40 @@ def deploy_gitea(solution_name, wg_config="NO", debug=True):
 
 
 def deploy_cryptpad(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return CryptpadAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return CryptpadAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
 
 
 def deploy_mattermost(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return MattermostAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return MattermostAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
+
+
+def deploy_meetings(solution_name, flavor="Silver", wg_config="NO", debug=True):
+    return MeetingsAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
 
 
 def deploy_wiki(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WikiAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
 def deploy_website(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return WebsiteAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
 def deploy_blog(solution_name, title, repo, branch, wg_config="NO", debug=True):
     return BlogAutomated(
-        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug,
+        solution_name=solution_name, title=title, repo=repo, branch=branch, wg_config=wg_config, debug=debug
     )
 
 
-def deploy_discourse(solution_name, host_email, stmp_host, host_email_password, wg_config="NO", debug=True):
+def deploy_discourse(solution_name, host_email, smtp_host, host_email_password, wg_config="NO", debug=True):
     return DiscourseAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         wg_config=wg_config,
         debug=debug,
@@ -62,14 +69,14 @@ def deploy_discourse(solution_name, host_email, stmp_host, host_email_password, 
 
 
 def deploy_peertube(solution_name, flavor="Silver", wg_config="NO", debug=True):
-    return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug,)
+    return PeertubeAutomated(solution_name=solution_name, flavor=flavor, wg_config=wg_config, debug=debug)
 
 
-def deploy_taiga(solution_name, host_email, stmp_host, host_email_password, secret, wg_config="NO", debug=True):
+def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secret, wg_config="NO", debug=True):
     return TaigaAutomated(
         solution_name=solution_name,
         host_email=host_email,
-        stmp_host=stmp_host,
+        smtp_host=smtp_host,
         host_email_password=host_email_password,
         secret=secret,
         wg_config=wg_config,
@@ -276,7 +283,13 @@ def deploy_monitoring(
 
 
 def create_network(
-    solution_name, ip_version="IPv4", ip_select="Choose ip range for me", ip_range="", debug=True,
+    solution_name,
+    ip_version="IPv4",
+    ip_select="Choose ip range for me",
+    ip_range="",
+    access_node="choose_random",
+    pool="choose_random",
+    debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
@@ -284,18 +297,26 @@ def create_network(
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
+        access_node=access_node,
+        pool=pool,
         debug=True,
     )
 
 
-def add_access_to_network(
-    network_name, ip_version="IPv4", debug=True,
-):
-    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True,)
+def add_access_to_network(network_name, ip_version="IPv4", debug=True):
+    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True)
 
 
 def deploy_exposed(
-    type, solution_to_expose, sub_domain, domain="choose_random", tls_port=6443, port=6443, debug=True,
+    type,
+    solution_to_expose,
+    sub_domain,
+    domain="choose_random",
+    tls_port=6443,
+    port=6443,
+    debug=True,
+    proxy_type="TRC",
+    force_https="NO",
 ):
     return SolutionExposeDeployAutomated(
         type=type,
@@ -305,11 +326,13 @@ def deploy_exposed(
         tls_port=tls_port,
         port=port,
         debug=debug,
+        proxy_type=proxy_type,
+        force_https=force_https,
     )
 
 
 def create_pool(
-    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
+    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True
 ):
     return PoolAutomated(
         type="create",
@@ -324,9 +347,7 @@ def create_pool(
     )
 
 
-def extend_pool(
-    pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True,
-):
+def extend_pool(pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="extend",
         pool_name=pool_name,
@@ -340,21 +361,48 @@ def extend_pool(
     )
 
 
-def deploy_threebot(solution_name, secret, expiration, debug=True):
+def deploy_threebot(
+    solution_name,
+    ssh,
+    secret,
+    expiration,
+    debug=True,
+    domain_type="Automatically Get a Domain",
+    domain_name=None,
+    public_key="",
+    email_host_user="",
+    email_host="",
+    email_host_password="",
+    escalation_mail_address="",
+    node_policy="Automatic",
+    flavor="Silver (CPU 1 - Memory 2 GB - Disk 2 GB [SSD])",
+):
     return ThreebotDeployAutomated(
-        type="Create", solution_name=solution_name, secret=secret, expiration=expiration, debug=debug
-    )
-
-
-def recover_threebot(solution_name, recover_password, expiration, debug=True):
-    return ThreebotDeployAutomated(
-        type="Recover",
+        type="Create",
+        ssh=ssh,
         solution_name=solution_name,
-        recover_password=recover_password,
+        secret=secret,
         expiration=expiration,
         debug=debug,
+        domain_type=domain_type,
+        domain_name=domain_name,
+        public_key=public_key,
+        email_host_user=email_host_user,
+        email_host=email_host,
+        email_host_password=email_host_password,
+        escalation_mail_address=escalation_mail_address,
+        node_policy=node_policy,
+        flavor=flavor,
     )
 
 
-def extend_threebot(name, expiration):
-    return ThreebotExtendAutomated(name=name, expiration=expiration)
+def start_threebot(name, password):
+    return ThreebotStart(tname=name, password=password,)
+
+
+def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - Disk 2 GB [SSD])"):
+    return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor)
+
+
+def change_threebot_location(name, password):
+    return ThreebotChangeLocation(tname=name, password=password)

@@ -23,7 +23,9 @@ class Network:
 
 
 class NetworkGenerator:
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        explorer = identity.explorer
+        self._identity = identity
         self._nodes = explorer.nodes
         self._farms = explorer.farms
         self._workloads = explorer.workloads
@@ -221,7 +223,7 @@ class NetworkGenerator:
                         peer.allowed_iprange.remove(routing_range)
         return network
 
-    def load_network(self, network_name: str) -> Network:
+    def load_network(self, network_name: str, customer_tid=None) -> Network:
         """load network fetch all network resource belonging to the same network
         and re-create the full network object
 
@@ -237,10 +239,11 @@ class NetworkGenerator:
           Network: Network object
 
         """
-        tid = j.core.identity.me.tid
+        if customer_tid is None:
+            customer_tid = self._identity.tid
         nrs = {}
         # first gather all the latest version of each network resource for this network
-        for w in self._workloads.iter(customer_tid=tid, next_action=NextAction.DEPLOY.name):
+        for w in self._workloads.iter(customer_tid=customer_tid, next_action=NextAction.DEPLOY.name):
             if w.info.workload_type == WorkloadType.Network_resource and w.name == network_name:
                 nrs[w.info.node_id] = w
 
@@ -251,7 +254,7 @@ class NetworkGenerator:
             if network is None:
                 network = Network(network_name, nr.network_iprange)
             else:
-                if w.network_iprange != network.iprange:
+                if nr.network_iprange != network.iprange:
                     raise j.exceptions.Value(
                         f"found a network resource with IP range ({nr.network_iprange}) different from the network IP range ({network.iprange})"
                     )

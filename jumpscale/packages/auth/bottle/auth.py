@@ -1,6 +1,6 @@
 from functools import wraps
 from json import JSONDecodeError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
@@ -25,14 +25,14 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (3bot connect)
+    """List available providers for login and redirect to the selected provider (Threefold Connect)
 
     Returns:
         Renders the template of login page
     """
     session = request.environ.get("beaker.session")
     provider = request.query.get("provider")
-    next_url = request.query.get("next_url", session.get("next_url"))
+    next_url = quote(request.query.get("next_url", session.get("next_url", "/")))
 
     if provider and provider == "3bot":
         state = j.data.idgenerator.chars(20)
@@ -145,8 +145,7 @@ def callback():
         j.logger.warning(
             f"Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}"
         )
-
-    return redirect(session.get("next_url", "/"))
+    return redirect(unquote(session.get("next_url", "/")))
 
 
 @app.route("/logout")
@@ -174,8 +173,24 @@ def access_denied():
         Renders access denied page
     """
     email = request.environ.get("beaker.session").get("email")
-    next_url = request.query.get("next_url")
+    next_url = request.query.get("next_url", "/auth/logout")
     return env.get_template("access_denied.html").render(email=email, next_url=next_url)
+
+
+@app.route("/auto_login")
+def auto_login():
+    """Auto login is used for testing for skipping login and use the current user's info instead.
+
+    Returns:
+        Redirect to the admin dashboard.
+    """
+    if j.core.config.get("AUTO_LOGIN"):
+        session = request.environ.get("beaker.session", {})
+        session["username"] = j.core.identity.me.tname
+        session["email"] = j.core.identity.me.email
+        session["authorized"] = True
+
+    return redirect("/admin")
 
 
 def get_user_info():

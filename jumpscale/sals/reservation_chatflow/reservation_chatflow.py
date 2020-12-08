@@ -79,7 +79,7 @@ class Network:
                     break
             else:
                 self._bot.stop("Failed to find free network")
-            j.sals.zos.network.add_node(self._network, node.node_id, str(subnet))
+            j.sals.zos.get().network.add_node(self._network, node.node_id, str(subnet))
             self._is_dirty = True
 
     def get_node_range(self, node):
@@ -107,7 +107,7 @@ class Network:
             bool: True if successful
         """
         if self._is_dirty:
-            reservation = j.sals.zos.reservation_create()
+            reservation = j.sals.zos.get().reservation_create()
             reservation.data_reservation.networks.append(self._network)
             form_info = {
                 "chatflow": "network",
@@ -129,7 +129,7 @@ class Network:
             if payment["free"]:
                 pass
             elif payment["wallet"]:
-                j.sals.zos.billing.payout_farmers(payment["wallet"], reservation_create)
+                j.sals.zos.get().billing.payout_farmers(payment["wallet"], reservation_create)
                 j.sals.reservation_chatflow.wait_payment(bot, rid, threebot_app=False)
             else:
                 j.sals.reservation_chatflow.wait_payment(
@@ -526,7 +526,7 @@ class ReservationChatflow:
         """
         Show in chatflow the QR code with the details of the escrow information for payment
         """
-        escrow_info = j.sals.zos.reservation_escrow_information_with_qrcodes(reservation_create_resp)
+        escrow_info = j.sals.zos.get().reservation_escrow_information_with_qrcodes(reservation_create_resp)
         escrow_address = escrow_info["escrow_address"]
         escrow_asset = escrow_info["escrow_asset"]
         reservationid = escrow_info["reservationid"]
@@ -622,7 +622,7 @@ class ReservationChatflow:
         if not (reservation_create_resp.escrow_information and reservation_create_resp.escrow_information.details):
             payment["free"] = True
             return payment, None
-        escrow_info = j.sals.zos.reservation_escrow_information_with_qrcodes(reservation_create_resp)
+        escrow_info = j.sals.zos.get().reservation_escrow_information_with_qrcodes(reservation_create_resp)
 
         escrow_address = escrow_info["escrow_address"]
         escrow_asset = escrow_info["escrow_asset"]
@@ -727,7 +727,7 @@ class ReservationChatflow:
                         res += f"\n### {x.category}: ```{x.message}```\n"
                 link = f"{self._explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(rid)
+                j.sals.zos.get().reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             if threebot_app and reservation_create_resp:
                 self.show_escrow_qr(bot, reservation_create_resp, reservation.data_reservation.expiration_provisioning)
@@ -735,7 +735,7 @@ class ReservationChatflow:
             reservation = self._explorer.reservations.get(rid)
 
     def _reservation_failed(self, bot, reservation):
-        failed = j.sals.zos.reservation_failed(reservation)
+        failed = j.sals.zos.get().reservation_failed(reservation)
         if failed:
             res = f"# Sorry your reservation ```{reservation.id}``` has failed :\n"
             for x in reservation.results:
@@ -743,7 +743,7 @@ class ReservationChatflow:
                     res += f"\n### {x.category}: ```{x.message}```\n"
             link = f"{self._explorer.url}/reservations/{reservation.id}"
             res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-            j.sals.zos.reservation_cancel(reservation.id)
+            j.sals.zos.get().reservation_cancel(reservation.id)
             bot.stop(res, md=True, html=True)
 
     def wait_reservation(self, bot, rid):
@@ -810,7 +810,7 @@ class ReservationChatflow:
                         res += f"\n### {x.category}: ```{x.message}```\n"
                 link = f"{self._explorer.url}/reservations/{reservation.id}"
                 res += f"<h2> <a href={link}>Full reservation info</a></h2>"
-                j.sals.zos.reservation_cancel(rid)
+                j.sals.zos.get().reservation_cancel(rid)
                 bot.stop(res, md=True, html=True)
             time.sleep(1)
             reservation = self._explorer.reservations.get(rid)
@@ -836,7 +836,7 @@ class ReservationChatflow:
         """
         expiration_provisioning += j.data.time.get().timestamp
         try:
-            reservation_create = j.sals.zos.reservation_register(
+            reservation_create = j.sals.zos.get().reservation_register(
                 reservation,
                 expiration,
                 expiration_provisioning=expiration_provisioning,
@@ -898,7 +898,7 @@ class ReservationChatflow:
 
         resv_id = reservation_create.reservation_id
         if payment["wallet"]:
-            j.sals.zos.billing.payout_farmers(payment["wallet"], reservation_create)
+            j.sals.zos.get().billing.payout_farmers(payment["wallet"], reservation_create)
             self.wait_payment(bot, resv_id, threebot_app=False)
         elif not payment["free"]:
             self.wait_payment(bot, resv_id, threebot_app=True, reservation_create_resp=reservation_create)
@@ -934,8 +934,8 @@ class ReservationChatflow:
         unknowns = ["", None, "Uknown", "Unknown"]
         gateways = {}
         farms = {}
-        for g in j.sals.zos._explorer.gateway.list():
-            if not j.sals.zos.nodes_finder.filter_is_up(g):
+        for g in j.sals.zos.get()._explorer.gateway.list():
+            if not j.sals.zos.get().nodes_finder.filter_is_up(g):
                 continue
             location = []
             for area in ["continent", "country", "city"]:
@@ -946,7 +946,7 @@ class ReservationChatflow:
 
             farm_id = g.farm_id
             if farm_id not in farms:
-                farms[farm_id] = j.sals.zos._explorer.farms.get(farm_id)
+                farms[farm_id] = j.sals.zos.get()._explorer.farms.get(farm_id)
 
             addresses = farms[farm_id].wallet_addresses
             for address in addresses:
@@ -990,7 +990,7 @@ class ReservationChatflow:
         Returns:
             [dict]: [domains names]
         """
-        reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
+        reservations = j.sals.zos.get().reservation_list(tid=customer_tid, next_action="DEPLOY")
         domains = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
@@ -1018,7 +1018,7 @@ class ReservationChatflow:
         Returns:
             [jumpscale.clients.explorer.models.TfgridWorkloadsReservationNetwork1]: nework object
         """
-        reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
+        reservations = j.sals.zos.get().reservation_list(tid=customer_tid, next_action="DEPLOY")
         networks = self.list_networks(customer_tid, reservations)
         for key in networks.keys():
             network, expiration, currency, resv_id = networks[key]
@@ -1036,7 +1036,7 @@ class ReservationChatflow:
             [type]: [description]
         """
         if not reservations:
-            reservations = j.sals.zos.reservation_list(tid=tid, next_action="DEPLOY")
+            reservations = j.sals.zos.get().reservation_list(tid=tid, next_action="DEPLOY")
         networks = dict()
         names = set()
         for reservation in sorted(reservations, key=lambda r: r.id, reverse=True):
@@ -1097,12 +1097,12 @@ class ReservationChatflow:
                                 break
                             if "parent_network" in network_metadata:
                                 parent_resv = self._explorer.reservations.get(network_metadata["parent_network"])
-                                j.sals.zos.reservation_cancel(parent_resv.id)
+                                j.sals.zos.get().reservation_cancel(parent_resv.id)
                                 curr_network_resv = parent_resv
                                 continue
                         curr_network_resv = None
 
-                j.sals.zos.reservation_cancel(solution.rid)
+                j.sals.zos.get().reservation_cancel(solution.rid)
                 self.solutions.delete(name)
 
     def get_solutions(self, solution_type):
@@ -1201,13 +1201,15 @@ class ReservationChatflow:
             [dict]: network config
         """
 
-        network = j.sals.zos.network.create(reservation, ip_range, network_name)
+        network = j.sals.zos.get().network.create(reservation, ip_range, network_name)
         node_subnets = netaddr.IPNetwork(ip_range).subnet(24)
         network_config = dict()
         use_ipv4 = ip_version == "IPv4"
 
-        j.sals.zos.network.add_node(network, access_node.node_id, str(next(node_subnets)))
-        wg_quick = j.sals.zos.network.add_access(network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4)
+        j.sals.zos.get().network.add_node(network, access_node.node_id, str(next(node_subnets)))
+        wg_quick = j.sals.zos.get().network.add_access(
+            network, access_node.node_id, str(next(node_subnets)), ipv4=use_ipv4
+        )
 
         network_config["wg"] = wg_quick
 
@@ -1268,7 +1270,7 @@ class ReservationChatflow:
         farms = self._explorer.farms.list()
         farm_names = []
         for f in farms:
-            if j.sals.zos.nodes_finder.filter_farm_currency(f, currency) and self.check_farm_resources(
+            if j.sals.zos.get().nodes_finder.filter_farm_currency(f, currency) and self.check_farm_resources(
                 farm_id=f.id, sru=sru, cru=cru, hru=hru, mru=mru, currency=currency
             ):
                 farm_names.append(f.name)
@@ -1281,7 +1283,7 @@ class ReservationChatflow:
         farm_nodes = self._explorer.nodes.list(farm_id=farm_id)
         nodes = []
         for node in farm_nodes:
-            if not j.sals.zos.nodes_finder.filter_is_up(node):
+            if not j.sals.zos.get().nodes_finder.filter_is_up(node):
                 continue
             if currency == "FreeTFT" and not node.free_to_use:
                 continue
@@ -1314,7 +1316,7 @@ class ReservationChatflow:
         Returns:
             Network object
         """
-        reservations = j.sals.zos.reservation_list(tid=customer_tid, next_action="DEPLOY")
+        reservations = j.sals.zos.get().reservation_list(tid=customer_tid, next_action="DEPLOY")
         networks = self.list_networks(customer_tid, reservations)
         names = []
         for n in networks.keys():
@@ -1345,7 +1347,7 @@ class ReservationChatflow:
             node = self._explorer.nodes.get(nodeid)
         except requests.exceptions.HTTPError:
             raise j.exceptions.NotFound(f"Node {nodeid} doesn't exists please enter a valid nodeid")
-        if not j.sals.zos.nodes_finder.filter_is_up(node):
+        if not j.sals.zos.get().nodes_finder.filter_is_up(node):
             raise j.exceptions.NotFound(f"Node {nodeid} doesn't seem to be up please choose another nodeid")
 
         if currency:
@@ -1357,7 +1359,7 @@ class ReservationChatflow:
             for unit, value in query.items():
                 if unit == "currency":
                     continue
-                freevalue = getattr(node.total_resources, unit) - getattr(node.used_resources, unit)
+                freevalue = getattr(node.total_resources, unit) - getattr(node.reserved_resources, unit)
                 if freevalue < value:
                     raise j.exceptions.Value(
                         f"Node {nodeid} does not have enough available {unit} resources for this request {value} required {freevalue} available, please choose another one"
@@ -1375,6 +1377,8 @@ class ReservationChatflow:
         ip_version=None,
         pool_ids=None,
         filter_blocked=True,
+        identity_name=None,
+        sort_by_disk_space=False,
     ):
         """get available nodes to deploy solutions on
 
@@ -1387,6 +1391,7 @@ class ReservationChatflow:
             mru (int, optional): memory resource. Defaults to None.
             hru (int, optional): hdd resources. Defaults to None.
             currency (str, optional): wanted currency. Defaults to "TFT".
+            sort_by_disk_space (bool, optional): return nodes with highest free disk space (sru). If set to False, can be overriden by SORT_NODES_BY_SRU in config
 
         Raises:
             StopChatFlow: if no nodes found
@@ -1394,6 +1399,7 @@ class ReservationChatflow:
         Returns:
             list of available nodes
         """
+        sort_by_disk_space = sort_by_disk_space or j.core.config.get("SORT_NODES_BY_SRU", False)
 
         def filter_disallowed_nodes(disallowed_node_ids, nodes):
             result = []
@@ -1416,20 +1422,35 @@ class ReservationChatflow:
             nodes_number = nodes_distribution[pool_id]
             if not pool_ids:
                 pool_id = None
-            nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
+            nodes = j.sals.zos.get(identity_name).nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
-            for i in range(nodes_number):
+            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in pool with id={pool_id}) for this reservation.
+                        If you are using a low resources environment like testnet,
+                        please make sure to allow over provisioning from the settings tab in dashboard.
+                        For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>
+                    """
+            if sort_by_disk_space:
+                nodes = sorted(nodes, key=lambda x: x.total_resources.sru - x.reserved_resources.sru, reverse=True)
+            for _ in range(nodes_number):
                 try:
-                    node = random.choice(nodes)
-                    while node.node_id in selected_ids:
+                    if sort_by_disk_space:
+                        if not nodes:
+                            raise StopChatFlow(
+                                err_msg, htmlAlert=True,
+                            )
+                        for node in nodes:
+                            if node.node_id not in selected_ids:
+                                break
+                    else:
                         node = random.choice(nodes)
+                        while node.node_id in selected_ids:
+                            node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow(
-                        "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
-                        htmlAlert=True,
+                        err_msg, htmlAlert=True,
                     )
                 nodes.remove(node)
                 nodes_selected.append(node)
@@ -1446,11 +1467,11 @@ class ReservationChatflow:
         Returns:
             list of filtered nodes
         """
-        nodes = filter(j.sals.zos.nodes_finder.filter_is_up, nodes)
+        nodes = filter(j.sals.zos.get().nodes_finder.filter_is_up, nodes)
         nodes = list(nodes)
         if free_to_use:
             nodes = list(nodes)
-            nodes = filter(j.sals.zos.nodes_finder.filter_is_free_to_use, nodes)
+            nodes = filter(j.sals.zos.get().nodes_finder.filter_is_free_to_use, nodes)
         elif not free_to_use:
             nodes = list(nodes)
 
@@ -1458,11 +1479,11 @@ class ReservationChatflow:
             use_ipv4 = ip_version == "IPv4"
 
             if use_ipv4:
-                nodefilter = j.sals.zos.nodes_finder.filter_public_ip4
+                nodefilter = j.sals.zos.get().nodes_finder.filter_public_ip4
             else:
-                nodefilter = j.sals.zos.nodes_finder.filter_public_ip6
+                nodefilter = j.sals.zos.get().nodes_finder.filter_public_ip6
 
-            nodes = filter(j.sals.zos.nodes_finder.filter_is_up, filter(nodefilter, nodes))
+            nodes = filter(j.sals.zos.get().nodes_finder.filter_is_up, filter(nodefilter, nodes))
             if not nodes:
                 raise StopChatFlow("Could not find available access node")
         return list(nodes)
@@ -1568,7 +1589,7 @@ class ReservationChatflow:
         nodes_distribution = self._distribute_nodes(number_of_nodes, farm_names)
         for farm_name in nodes_distribution:
             nodes_number = nodes_distribution[farm_name]
-            nodes = j.sals.zos.nodes_finder.nodes_by_capacity(
+            nodes = j.sals.zos.get().nodes_finder.nodes_by_capacity(
                 farm_name=farm_name, cru=cru, sru=sru, mru=mru, hru=hru, currency=currency
             )
             nodes = self.filter_nodes(nodes, currency == "FreeTFT")
@@ -1585,7 +1606,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable 3Bot connect : `j.core.config.set('threebot_connect', True)`
+            To enable Threefold Connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:
@@ -1598,7 +1619,7 @@ class ReservationChatflow:
         count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
         expiration = count * NODES_DISALLOW_EXPIRATION
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
-        j.core.db.set(node_key, expiration, ex=expiration)
+        j.core.db.set(node_key, j.data.time.utcnow().timestamp + expiration, ex=expiration)
 
     def unblock_node(self, node_id, reset=True):
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"

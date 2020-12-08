@@ -11,7 +11,9 @@ from .network import is_private
 class NodeFinder:
     """ """
 
-    def __init__(self, explorer):
+    def __init__(self, identity):
+        self._identity = identity
+        explorer = identity.explorer
         self._nodes = explorer.nodes
         self._farms = explorer.farms
         self._pools = explorer.pools

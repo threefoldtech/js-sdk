@@ -15,11 +15,13 @@ class TestRedis(TestCase):
 
     def test001_redis_start_stop(self):
         """Test case for start redis and stop it.
-        **Test scenario**
-        #. Start redis server .
-        #. check about port , pid and process.
-        #. Stop redis server .
-        #. check about pid and process.
+
+        **Test Scenario**
+
+        - Start redis server.
+        - Check about port, pid and process.
+        - Stop redis server.
+        - Check about pid and process.
         """
         port = random.randint(20000, 25000)
         redis_instance = self._get_instance()
@@ -44,11 +46,13 @@ class TestRedis(TestCase):
 
     def test001_redis_restart(self):
         """Test case for start redis and restart it.
-        **Test scenario**
-        #. Start redis server .
-        #. check about port , pid and process.
-        #. restart redis server .
-        #. check about port , pid and process.
+
+        **Test Scenario**
+
+        - Start redis server.
+        - Check about port, pid and process.
+        - Restart redis server.
+        - Check about port, pid and process.
         """
 
         port = random.randint(20000, 25000)

@@ -81,7 +81,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             msg = f&#34;{flavor} ({flavor_specs[:-3]})&#34;
             messages.append(msg)
         chosen_flavor = self.single_choice(
-            &#34;Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)&#34;,
+            &#34;Please choose the flavor you want to use (flavors define how much resources the deployed solution will use)&#34;,
             options=messages,
             required=True,
             default=messages[0],
@@ -396,7 +396,7 @@ any extra kwargs that is passed while creating the session
             msg = f&#34;{flavor} ({flavor_specs[:-3]})&#34;
             messages.append(msg)
         chosen_flavor = self.single_choice(
-            &#34;Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)&#34;,
+            &#34;Please choose the flavor you want to use (flavors define how much resources the deployed solution will use)&#34;,
             options=messages,
             required=True,
             default=messages[0],

@@ -6,7 +6,7 @@ class WikiDeploy(Publisher):
 
     title = "Deploy a Wiki"
     SOLUTION_TYPE = "wiki"  # chatflow used to deploy the solution
-    EXAMPLE_URL = "https://github.com/threefoldfoundation/info_gridmanual"
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/wiki_example"
 
     @chatflow_step(title="Wiki Setup")
     def configuration(self):

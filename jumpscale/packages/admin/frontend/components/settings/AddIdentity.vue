@@ -1,17 +1,37 @@
 <template>
-  <base-dialog title="Add identity" v-model="dialog" :error="error" :loading="loading">
+  <base-dialog title="Add identity" v-model="dialog" :error="error" :info="info" :loading="loading" :persistent="true">
     <template #default>
       <v-form>
-        <v-text-field v-model="form.instance_name" label="Identity name" dense></v-text-field>
-        <v-text-field v-model="form.tname" label="3Bot name" dense></v-text-field>
+        <v-text-field v-model="form.display_name" label="Display name" @blur="checkInstanceName(form.display_name)" dense>
+        <v-tooltip slot="append" left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on" :tabindex="10">
+                <v-icon color="grey lighten-1"> mdi-help-circle </v-icon>
+              </v-btn>
+            </template>
+            <span>The display name is used to reference the registered identity on TFGrid across the 3Bot.</span>
+        </v-tooltip>
+        </v-text-field>
+        <v-text-field v-model="form.tname" label="3Bot name" @blur="checkTNameExists(form.tname)" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
-        <v-text-field v-model="form.words" label="Words" dense></v-text-field>
-        <v-select v-model="form.explorer_type" label="Explorer type" :items="explorer_labels" dense></v-select>
+        <v-text-field v-model="words" label="Words" dense>
+          <template v-slot:append>
+              <v-btn
+                v-if="allowCreatMnemonics"
+                color="info"
+                class="mx-2 mb-2"
+                :tabindex="10"
+                @click="getMnemonics()">
+                create Words
+              </v-btn>
+          </template>
+        </v-text-field>
+        <v-select v-model="selected_explorer" label="Explorer type" @change="checkTNameExists(form.tname)" :items="Object.keys(explorers)" dense></v-select>
       </v-form>
     </template>
     <template #actions>
-      <v-btn text @click="close">Close</v-btn>
-      <v-btn text @click="submit">Add</v-btn>
+      <v-btn text color="red" @click="closeDialog()">Close</v-btn>
+      <v-btn text color="green" :disabled="disable" @click="submit">Add</v-btn>
     </template>
   </base-dialog>
 </template>
@@ -20,39 +40,82 @@
 
 module.exports = {
   mixins: [dialog],
-    data () {
-      return {
-        explorers: {
-          "Main Network": {url: "https://explorer.grid.tf", type: "main"},
-          "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"}
-        },
-        explorer_labels:["Main Network","Test Network"]
+  data () {
+    return {
+      explorers: {
+        "Main Network": {url: "https://explorer.grid.tf", type: "main"},
+        "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"}
+      },
+      selected_explorer: "Main Network",
+      display_name:"",
+      words: "",
+      allowCreatMnemonics: false,
+    }
+  },
+  computed: {
+    disable() {
+      if(!this.form.display_name || !this.form.tname || !this.form.email || !this.words || !this.selected_explorer || this.error !== ""){
+        return true;
+      }
+      return false;
+    },
+  },
+  methods: {
+    submit () {
+        this.loading = true
+        this.error = null
+        this.$api.identities.add(this.form.display_name, this.form.tname, this.form.email, this.words, this.explorers[this.selected_explorer].type).then((response) => {
+            this.done("New Identity added", "success")
+        }).catch((error) => {
+            this.error = error.response.data.error
+        }).finally(() => {
+            this.loading = false
+        })
+    },
+    getMnemonics(){
+      this.$api.identities.generateMnemonic().then((response) => {
+        mnemonics = JSON.parse(response.data).data
+        this.allowCreatMnemonics = false;
+        this.words = mnemonics;
+      })
+    },
+    checkTNameExists(tname){
+      if(tname){
+        this.$api.identities.checkTNameExists(tname, this.explorers[this.selected_explorer].type).then((response) => {
+          res = JSON.parse(response.data).data
+          if(res){
+              this.allowCreatMnemonics = false;
+              this.words = "";
+              this.info = "This 3Bot name existed in the explorer, you have to enter the right words";
+          }
+          else{
+            this.info = "";
+            this.allowCreatMnemonics = true;
+          }
+        })
+      }
+      else {
+        this.allowCreatMnemonics = false;
       }
     },
-    methods: {
-        submit () {
-            this.loading = true
-            this.error = null
-            if(!this.form.instance_name || !this.form.tname || !this.form.email || !this.form.words || !this.form.explorer_type){
-                this.error = "All fields required"
-                this.loading = false
-            }
-            else{
-                this.$api.identities.add(this.form.instance_name, this.form.tname, this.form.email, this.form.words, this.explorers[this.form.explorer_type].type).then((response) => {
-                    responseMessage = JSON.parse(response.data).data
-                    if(responseMessage == "Identity with the same instance name already exists"){
-                        this.error = responseMessage
-                    }
-                    else{
-                        this.done("New Identity added", "success")
-                    }
-                }).catch((error) => {
-                    this.error = error.response.data.error
-                }).finally(() => {
-                    this.loading = false
-                })
-            }
-        }
+    checkInstanceName(instance_name){
+      if(instance_name){
+        this.$api.identities.checkInstanceName(instance_name).then((response) => {
+          res = JSON.parse(response.data).data
+          if(res){
+            this.error = "This instance name is existed, Enter anther one.";
+          }
+          else{
+            this.error = "";
+          }
+        })
+      }
+    },
+    closeDialog(){
+      this.close()
+      // clear dialog
+      this.display_name = this.tname = this.email = this.words = "";
     }
+  }
 }
 </script>

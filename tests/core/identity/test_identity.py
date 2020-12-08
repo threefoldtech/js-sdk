@@ -13,7 +13,7 @@ class TestIdentity(TestCase):
         self.tname = os.getenv("TNAME")
         self.email = os.getenv("EMAIL")
         self.words = os.getenv("WORDS")
-        if not (self.tname and self.email and self.words):
+        if not all([self.tname, self.email, self.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 
     def _get_instance(self):
@@ -27,10 +27,12 @@ class TestIdentity(TestCase):
 
     def test001_register(self):
         """Test case for register and check identity.
-        **Test scenario**
-        #. Get identity instance.
-        #. Register an instance.
-        #. Check about correct word and name.
+
+        **Test Scenario**
+
+        - Get identity instance.
+        - Register an instance.
+        - Check about correct word and name.
         """
         identity = self._get_instance()
         id = identity.register()
@@ -45,11 +47,13 @@ class TestIdentity(TestCase):
 
     def test002_set_default(self):
         """Test case for set my identity as default.
-        **Test scenario**
-        #. Get identity instance.
-        #. Register an instance.
-        #. Set my instance as default.
-        #. Check if identity.me it's same of my identity.
+
+        **Test Scenario**
+
+        - Get identity instance.
+        - Register an instance.
+        - Set my instance as default.
+        - Check if identity.me it's same of my identity.
         """
         identity = self._get_instance()
         id = identity.register()
@@ -65,11 +69,13 @@ class TestIdentity(TestCase):
 
     def test003_delete(self):
         """Test case for delete my identity.
-        **Test scenario**
-        #. Get identity instance.
-        #. Register an instance.
-        #. Delete my identity.
-        #. Search if my identity exist or not.
+
+        **Test Scenario**
+
+        - Get identity instance.
+        - Register an instance.
+        - Delete my identity.
+        - Search if my identity exist or not.
         """
         identity = self._get_instance()
         identity.register()
@@ -83,11 +89,13 @@ class TestIdentity(TestCase):
 
     def test004_register_fake_identity(self):
         """Test case for delete my identity.
-        **Test scenario**
-        #. Get identity instance.
-        #. Register an instance.
-        #. Delete my identity.
-        #. Search if my identity exist or not.
+
+        **Test Scenario**
+
+        - Get identity instance.
+        - Register an instance.
+        - Delete my identity.
+        - Search if my identity exist or not.
         """
         with self.assertRaises(j.core.exceptions.exceptions.Input):
             identity = j.core.identity.new(
@@ -102,5 +110,5 @@ class TestIdentity(TestCase):
 
     def tearDown(self):
         if self.me:
-            j.core.identity.set_default(self.me.instance_name)
+            self.me.set_default()
         j.core.identity.delete(self.instance_name)

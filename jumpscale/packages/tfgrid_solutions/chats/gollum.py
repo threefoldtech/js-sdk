@@ -72,7 +72,7 @@ class GollumDeploy(GedisChatBot):
     def public_key_get(self):
         self.public_key = self.upload_file(
             """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True
-        ).split("\n")[0]
+        ).strip()
 
     @chatflow_step(title="Email")
     def gollum_email(self):
@@ -146,7 +146,7 @@ class GollumDeploy(GedisChatBot):
         self.gateway = domains[self.domain]["gateway"]
         self.gateway_pool = domains[self.domain]["pool"]
         self.domain = f"{self.threebot_name}-{self.solution_name}.{self.domain}"
-        self.domain = j.sals.zos.gateway.correct_domain(self.domain)
+        self.domain = j.sals.zos.get().gateway.correct_domain(self.domain)
 
         self.addresses = []
         for ns in self.gateway.dns_nameserver:
@@ -181,23 +181,22 @@ class GollumDeploy(GedisChatBot):
             )
 
         # expose container domain
-        self.workload_ids.append(
-            deployer.expose_address(
-                pool_id=self.pool_id,
-                gateway_id=self.gateway.node_id,
-                network_name=self.network_view.name,
-                local_ip=self.ip_address,
-                port=80,
-                tls_port=443,
-                trc_secret=self.secret,
-                node_id=self.selected_node.node_id,
-                reserve_proxy=True,
-                domain_name=self.domain,
-                proxy_pool_id=self.gateway_pool.pool_id,
-                solution_uuid=self.solution_id,
-                **self.solution_metadata,
-            )
+        wid, _ = deployer.expose_address(
+            pool_id=self.pool_id,
+            gateway_id=self.gateway.node_id,
+            network_name=self.network_view.name,
+            local_ip=self.ip_address,
+            port=80,
+            tls_port=443,
+            trc_secret=self.secret,
+            node_id=self.selected_node.node_id,
+            reserve_proxy=True,
+            domain_name=self.domain,
+            proxy_pool_id=self.gateway_pool.pool_id,
+            solution_uuid=self.solution_id,
+            **self.solution_metadata,
         )
+        self.workload_ids.append(wid)
         success = deployer.wait_workload(self.workload_ids[1], self)
         if not success:
             solutions.cancel_solution(self.workload_ids)

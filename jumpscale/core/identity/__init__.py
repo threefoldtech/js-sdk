@@ -154,7 +154,7 @@ class Identity(Base):
 
             resp = requests.post(f"{self.explorer_url}/users", json=user.to_dict())
             if resp.status_code == 409:  # conflict
-                raise Input("A user with same name or email exists om TFGrid phonebook.")
+                raise Input("A user with same name or email exists on TFGrid phonebook.")
             if resp.status_code != 201:
                 resp.raise_for_status()
 

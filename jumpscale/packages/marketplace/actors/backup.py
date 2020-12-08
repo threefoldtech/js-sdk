@@ -1,12 +1,14 @@
-from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.loader import j
+import binascii
+from shlex import quote
+
+import nacl.encoding
 import nacl.secret
+import nacl.signing
 import nacl.utils
 import requests
-import nacl.signing
-import binascii
+from jumpscale.loader import j
+from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from nacl.public import Box
-import nacl.encoding
 
 BACKUP_SERVER1 = "backup_server1"
 BACKUP_SERVER2 = "backup_server2"
@@ -39,10 +41,14 @@ class Backup(BaseActor):
         else:
             try:
                 self.ssh_server1.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    "cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}".format(
+                        threebot_name=quote(threebot_name), password_backup=quote(password_backup)
+                    )
                 )
                 self.ssh_server2.sshclient.run(
-                    f"cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}"
+                    "cd ~/backup; htpasswd -vb  .htpasswd {threebot_name} {password_backup}".format(
+                        threebot_name=quote(threebot_name), password_backup=quote(password_backup)
+                    )
                 )
             except:
                 raise j.exceptions.Value(f"3Bot name or password are incorrect")
@@ -50,7 +56,11 @@ class Backup(BaseActor):
         return [self.ssh_server1.host, self.ssh_server2.host]
 
     def _htpasswd(self, server, threebot_name, password_backup):
-        server.sshclient.run(f"cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}")
+        server.sshclient.run(
+            "cd ~/backup; htpasswd -Bb .htpasswd {threebot_name} {password_backup}".format(
+                threebot_name=quote(threebot_name), password_backup=quote(password_backup)
+            )
+        )
 
     @actor_method
     def public_key(self) -> str:

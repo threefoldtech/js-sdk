@@ -7,9 +7,7 @@ from .models import UserPool
 
 class MarketplaceSolutions(ChatflowSolutions):
     def list_network_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
-        networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action, sync=sync)
-        if not sync and not networks:
-            networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action, sync=False)
+        networks = j.sals.marketplace.deployer.list_networks(username, next_action=next_action)
         result = []
         for n in networks.values():
             if len(n.network_workloads) == 0:
@@ -44,6 +42,9 @@ class MarketplaceSolutions(ChatflowSolutions):
 
     def list_mattermost_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("mattermost", next_action, sync, "nginx", owner=username)
+
+    def list_meetings_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
+        return self._list_proxied_solution("meetings", next_action, sync, "nginx", owner=username)
 
     def list_publisher_solutions(self, username, next_action=NextAction.DEPLOY, sync=True):
         return self._list_proxied_solution("publisher", next_action, sync, None, owner=username)
@@ -331,6 +332,7 @@ class MarketplaceSolutions(ChatflowSolutions):
             "blog": 0,
             "website": 0,
             "taiga": 0,
+            "meetings": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():
@@ -352,7 +354,7 @@ class MarketplaceSolutions(ChatflowSolutions):
         valid = True
         pool_id = None
         for wid in solution_wids:
-            workload = j.sals.zos.workloads.get(wid)
+            workload = j.sals.zos.get().workloads.get(wid)
             if workload.info.workload_type == WorkloadType.Container:
                 pool_id = workload.info.pool_id
             metadata_json = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)

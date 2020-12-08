@@ -11,8 +11,7 @@ const vuetify = new Vuetify({
         themes: {
             dark: {
                 navbar: '#363636',
-                logo: '#363636',
-                primary: '#a793d1'
+                primary: '#0877be'
             },
             light: {
                 primary: '#1B4F72',
@@ -92,7 +91,7 @@ const router = new VueRouter({
         { name: "Wiki", path: '/wikis/:wiki', component: wiki, props: true, meta: { icon: "mdi-book-open" } },
         { name: "Backup", path: '/backup', component: backup, meta: { icon: "mdi-database", listed: true } },
         { name: "Capacity Explorer", path: '/capacity', component: capacity, meta: { icon: "mdi-server", listed: true } },
-        { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server", listed: true } },
+        { name: "Farm Management", path: '/farmmanagement', component: farmmanagement, meta: { icon: "mdi-server-network", listed: true } },
         { name: "Threefold Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
         { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
         { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },

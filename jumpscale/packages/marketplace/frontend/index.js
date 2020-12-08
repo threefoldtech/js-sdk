@@ -56,12 +56,25 @@ const router = new VueRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+const getUser = async () => {
+  return axios.get("/auth/authenticated/").then(res => true).catch(() => false)
+}
+
+router.beforeEach(async (to, from, next) => {
+  to.params.loggedin = await getUser()
   const AllowedEndPoint = "api/allowed";
   axios.get(AllowedEndPoint).then(results => {
     let agreed = results.data.allowed;
     if (to.name !== "License" && !agreed) {
       next("/license");
+    }
+  }).catch((e) => {
+    if (to.name === "SolutionChatflow") {
+      let nextUrl = encodeURIComponent(`/marketplace/#${to.path}`)
+      window.location.href = `/auth/login?next_url=${nextUrl}`
+    }
+    else {
+      next();
     }
   })
   next();

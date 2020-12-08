@@ -1,8 +1,9 @@
 from os import environ
 from random import randint
+
+from gevent import sleep
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
-from gevent import sleep
 
 
 class Test3BotServer(BaseTests):
@@ -11,11 +12,10 @@ class Test3BotServer(BaseTests):
     words = environ.get("WORDS")
     explorer_url = "https://explorer.testnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
-    JS_SDK_PARENT_LOCATION = __file__.split("js-sdk")[0]
 
     @classmethod
     def setUpClass(cls):
-        if not (cls.tname and cls.email and cls.words):
+        if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
         cls.me = None
         if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
@@ -24,7 +24,7 @@ class Test3BotServer(BaseTests):
             cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
         )
         myid.register()
-        j.core.identity.set_default(cls.MYID_NAME)
+        myid.set_default()
         myid.save()
 
     def tearDown(self):
@@ -34,7 +34,7 @@ class Test3BotServer(BaseTests):
     def tearDownClass(cls):
         j.core.identity.delete(cls.MYID_NAME)
         if cls.me:
-            j.core.identity.set_default(cls.me.instance_name)
+            cls.me.set_default()
 
     def wait_for_server_to_stop(self, host, port, timeout):
         for _ in range(timeout):
@@ -49,36 +49,35 @@ class Test3BotServer(BaseTests):
         self.info("*** nginx server ***")
         self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
         self.info(" * Check that nginx server connection works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 2))
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 5))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 5))
 
         self.info("*** redis server ***")
         self.assertTrue(j.sals.process.get_pids("redis"), "redis didn't start correctly")
         self.info(" * Check that redis server connection  works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 5))
 
         self.info("*** gedis server ***")
         self.info(" * Check that gedis server connection  works successfully and right port.")
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 16000, 2))
-        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 8000, 2))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 16000, 5))
+        self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 8000, 5))
 
     def check_threebot_main_running_servers_stopped_correctly(self):
         self.info("Check servers stopped successfully.")
         self.info("Make sure that server stopped successfully by check nginx_main, redis_default and gedis don't work.")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 80, 3), "Nginx still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 443, 3), "Nginx still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 16000, 3), "gedis still running")
-        self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 3), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 80, 5), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 443, 5), "Nginx still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 16000, 5), "gedis still running")
+        self.assertTrue(self.wait_for_server_to_stop("localhost", 8000, 5), "gedis still running")
 
     def test01_start_threebot(self):
-        """
-        Test start threebot server.
+        """Test start threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
-        """
+        **Test Scenario**
 
+        - Start threebot server.
+        - Check it works correctly.
+        """
         self.info("Start threebot server")
         j.servers.threebot.start_default()
 
@@ -86,16 +85,15 @@ class Test3BotServer(BaseTests):
         self.check_threebot_main_running_servers()
 
     def test02_stop_threebot(self):
-        """
-        Test stop threebot server.
+        """Test stop threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
-        #. Stop threebot server.
-        #. Check it stopped correctly.
-        """
+        **Test Scenario**
 
+        - Start threebot server.
+        - Check it works correctly.
+        - Stop threebot server.
+        - Check it stopped correctly.
+        """
         self.info("Start threebot server")
         j.servers.threebot.start_default()
 
@@ -109,16 +107,16 @@ class Test3BotServer(BaseTests):
         self.check_threebot_main_running_servers_stopped_correctly()
 
     def test03_is_running(self):
-        """
-        Test is_running method.
+        """Test is_running method.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check it works correctly.
-        #. Use is_running, The output should be True.
-        #. Stop threebot server.
-        #. Check it stopped correctly.
-        #. Use is_running, The output should be False.
+        **Test Scenario**
+
+        - Start threebot server.
+        - Check it works correctly.
+        - Use is_running, The output should be True.
+        - Stop threebot server.
+        - Check it stopped correctly.
+        - Use is_running, The output should be False.
         """
         self.info("Start threebot server")
         j.servers.threebot.start_default()
@@ -139,12 +137,12 @@ class Test3BotServer(BaseTests):
         self.assertFalse(j.servers.threebot.default.is_running())
 
     def test04_check_default_package_list(self):
-        """
-        Test default package list with threebot server.
+        """Test default package list with threebot server.
 
-        **Test scenario**
-        #. Start threebot server.
-        #. Check the package list that should be started by default with threebot server.
+        **Test Scenario**
+
+        - Start threebot server.
+        - Check the package list that should be started by default with threebot server.
         ['auth', 'chatflows', 'admin', 'weblibs', 'tfgrid_solutions', 'backup']
         """
         self.info("Start threebot server")
@@ -156,29 +154,24 @@ class Test3BotServer(BaseTests):
         self.assertTrue(set(default_packages_list).issubset(packages_list), "not all default packages exist")
 
     def test05_package_add_and_delete(self):
-        """
-        Test case for adding and deleting package in threebot server
+        """Test case for adding and deleting package in threebot server
 
-        **Test scenario**
-        #. Add a package.
-        #. Check that the package has been added.
-        #. Try to add wrong package, and make sure that the error has been raised.
-        #. Delete a package.
-        #. Check that the package is deleted correctly.
-        #. Try to delete non exists package, and make sure that the error has been raised.
+        **Test Scenario**
+
+        - Add a package.
+        - Check that the package has been added.
+        - Try to add wrong package, and make sure that the error has been raised.
+        - Delete a package.
+        - Check that the package is deleted correctly.
+        - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
-        marketplace = j.servers.threebot.default.packages.add(
-            "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION)
-        )
-        marketplace_dir = {
-            "marketplace": {
-                "name": "marketplace",
-                "path": "{}/js-sdk/jumpscale/packages/marketplace/".format(self.JS_SDK_PARENT_LOCATION),
-                "giturl": None,
-                "kwargs": {},
-            }
-        }
+        from jumpscale.packages import marketplace
+
+        path = j.sals.fs.dirname(marketplace.__file__)
+
+        marketplace = j.servers.threebot.default.packages.add(path)
+        marketplace_dir = {"marketplace": {"name": "marketplace", "path": path, "giturl": None, "kwargs": {},}}
         self.assertEqual(marketplace, marketplace_dir)
 
         self.info("Check that the package has been added")

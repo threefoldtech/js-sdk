@@ -1,8 +1,10 @@
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort
+from shlex import quote
 
+from beaker.middleware import SessionMiddleware
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, login_required
+
+from bottle import Bottle, HTTPResponse, abort, request
 
 app = Bottle()
 
@@ -24,16 +26,27 @@ def destroy():
     current_username = threebot_name.split("_")[0]
     logged_in_username = user_info["username"].split(".")[0]
 
+    # check if the user in explorer
+    explorer = j.core.identity.me.explorer
+    try:
+        explorer.users.get(name=threebot_name)
+    except j.exceptions.NotFound:
+        abort(403, "Forbidden")
+
     if current_username != logged_in_username:
         abort(401, "Unauthorized")
 
     status = "Failed to destroy backups, 3Bot name doesn't exist"
     try:
         ssh_server1.sshclient.run(
-            f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
+            "cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}".format(
+                threebot_name=quote(threebot_name)
+            )
         )
         ssh_server2.sshclient.run(
-            f"cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}"
+            "cd ~/backup; htpasswd -D  .htpasswd {threebot_name}; cd /home/backup_config; rm -r {threebot_name}".format(
+                threebot_name=quote(threebot_name)
+            )
         )
         status = "Destroyed successfully"
     except:

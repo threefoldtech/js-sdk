@@ -3,6 +3,9 @@
 tests:
 	pytest tests -sv
 
+testdocs:
+	jsng "j.sals.testdocs.generate_tests_docs(source='tests/', target='docs/tests', clean=True)"
+
 integrationtests:
 	pytest tests -sv -m "integration"
 
