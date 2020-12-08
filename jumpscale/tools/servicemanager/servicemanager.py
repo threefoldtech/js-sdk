@@ -23,9 +23,9 @@ It loads the file in this path as a module and gets the service object defined i
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 class TestService(BackgroundService):
-    def __init__(self, name="test", interval=20, *args, **kwargs):
+    def __init__(self, name="test", interval="* * * * *", *args, **kwargs):
         '''
-            Test service that runs every 1 hour
+            Test service that runs every 1 minute
         '''
         super().__init__(name, interval, *args, **kwargs)
 
