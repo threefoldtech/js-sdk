@@ -1,5 +1,6 @@
 name = "vdc_dashboard"
-is_auth = false
+is_auth = true
+is_package_authorized = true
 is_admin = false
 frontend = "/vdc_dashboard"
 
