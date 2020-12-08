@@ -51,12 +51,6 @@ PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
 vdc = j.sals.vdc.from_dict(vdc_dict)
 
-VDC_INSTANCE_NAME = vdc.instance_name
-os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
-
-with open("/root/.bashrc", "a") as bash_file:
-    bash_file.write(f"\nVDC_INSTANCE_NAME={VDC_INSTANCE_NAME}")
-
 
 VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
@@ -70,7 +64,6 @@ VDC_VARS = {
     "VDC_EMAIL": VDC_EMAIL,
     "PROVISIONING_WALLET_SECRET": os.environ.get("PROVISIONING_WALLET_SECRET"),
     "PREPAID_WALLET_SECRET": os.environ.get("PREPAID_WALLET_SECRET"),
-    "VDC_INSTANCE_NAME": VDC_INSTANCE_NAME,
 }
 
 
@@ -158,12 +151,12 @@ j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
 # Register provisioning and prepaid wallets
 
 wallet = j.clients.stellar.new(
-    name=f"{VDC_INSTANCE_NAME}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
+    name=f"{vdc.instance_name}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
 )
 wallet.save()
 
 wallet = j.clients.stellar.new(
-    name=f"{VDC_INSTANCE_NAME}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
+    name=f"{vdc.instance_name}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
 )
 wallet.save()
 
