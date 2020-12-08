@@ -54,6 +54,10 @@ vdc = j.sals.vdc.from_dict(vdc_dict)
 VDC_INSTANCE_NAME = vdc.instance_name
 os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
 
+with open("/root/.bashrc", "a") as bash_file:
+    bash_file.write(f"\nVDC_INSTANCE_NAME={VDC_INSTANCE_NAME}")
+
+
 VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
     "EXPLORER_URL": EXPLORER_URL,
