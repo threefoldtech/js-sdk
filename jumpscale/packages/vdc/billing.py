@@ -4,7 +4,6 @@ from decimal import Decimal
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.vdc.models import KubernetesRole
-from jumpscale.sals.vdc.models import K8SNodeFlavor
 
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
