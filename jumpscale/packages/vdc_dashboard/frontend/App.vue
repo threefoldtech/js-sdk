@@ -5,7 +5,7 @@
         <v-row>
           <img
             class="ml-2"
-            src="./assets/TFNOW-Recovered.png"
+            src="./assets/3bot.png"
             height="50"
             max-width="266"
           />
