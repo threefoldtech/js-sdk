@@ -2,6 +2,7 @@ from random import choice
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -60,7 +61,8 @@ class Packages(Base):
             self.wait("v-dialog")
         else:
             # Clear git_url_input box
-            git_url_input.clear()
+            git_url_input.send_keys(Keys.CONTROL + "a")
+            git_url_input.send_keys(Keys.DELETE)
             path_input.send_keys(path)
             self.click_button("SUBMIT")
             self.wait("v-dialog")
