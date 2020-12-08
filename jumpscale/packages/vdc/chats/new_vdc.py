@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDCFlavor
+from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 
 
@@ -13,7 +13,7 @@ class VDCDeploy(GedisChatBot):
 
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
-        vdc_flavors = [flavor.name for flavor in VDCFlavor]
+        vdc_flavors = [flavor.name for flavor in VDC_SIZE.VDCFlavor]
         form = self.new_form()
         self.vdc_name = form.string_ask(
             "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)",
@@ -41,7 +41,7 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
         self.vdc = j.sals.vdc.new(
-            vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDCFlavor[self.vdc_flavor.value]
+            vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor.value]
         )
         # trans_hash = self.vdc.show_vdc_payment(self)
         trans_hash = True

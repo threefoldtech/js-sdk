@@ -2,7 +2,7 @@ from enum import Enum
 
 from jumpscale.core.base import Base, fields
 
-from .size import K8SNodeFlavor
+from .size import VDC_SIZE
 
 
 class VDCWorkloadBase(Base):
@@ -22,7 +22,7 @@ class KubernetesRole(Enum):
 
 class KubernetesNode(VDCHostBase):
     role = fields.Enum(KubernetesRole)
-    size = fields.Enum(K8SNodeFlavor)
+    size = fields.Enum(VDC_SIZE.K8SNodeFlavor)
     public_ip = fields.IPRange()
 
 
