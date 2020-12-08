@@ -214,8 +214,9 @@ class VDCDeployer:
             self.wait_pool_payment(pool_id)
 
         # create kubernetes controller with small flavor on network farm
+        master_size = VDC_FLAFORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
-        k8s.size = K8SNodeFlavor.SMALL.value
+        k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
         ipv4us = duration * 60 * 60 * 24
         pool_id = self.get_pool_id(NETWORK_FARM, cus, sus, ipv4us)
@@ -318,19 +319,16 @@ class VDCDeployer:
         gs = scheduler or GlobalScheduler()
         master_pool_id = self.get_pool_id(NETWORK_FARM)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        master_size = VDC_FLAFORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id,
-            gs,
-            K8SNodeFlavor.SMALL,
-            cluster_secret,
-            [self.ssh_key.public_key.strip()],
-            self.vdc_uuid,
-            nv,
+            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
             return
         no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
+        if no_nodes < 1:
+            return [master_ip]
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
