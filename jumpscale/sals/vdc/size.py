@@ -20,10 +20,8 @@ NETWORK_FARM = "lochristi_dev_lab"
 
 
 # TODO: use the correct url
-WORKLOAD_SIZES_URL = (
-    "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/development_dynamic_size/workload_sizes.json"
-)
-PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/development_dynamic_size/plans.json"
+WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
+PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/plans.json"
 
 
 class VDCSize:
