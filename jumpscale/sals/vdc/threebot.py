@@ -35,6 +35,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
             "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
             "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
+            "KUBE_CONFIG": kube_config,
         }
         env = {
             "VDC_NAME": self.vdc_name,
@@ -53,7 +54,6 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
-            "KUBE_CONFIG": kube_config,
         }
         if not self.vdc_instance.kubernetes:
             self.vdc_instance.load_info()
