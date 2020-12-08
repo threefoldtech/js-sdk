@@ -474,15 +474,20 @@ class VDCDeployer:
             raise j.exceptions.Runtime(f"vdc {self.vdc_uuid} doesn't contain the required workloads")
         master_ip = self.vdc_instance.kubernetes[0].public_ip
         self.info(f"exposing s3 over public ip: {master_ip}")
+        solution_uuid = uuid.uuid4().hex
         domain_name = self.proxy.ingress_proxy_over_managed_domain(
             f"minio",
             f"{self.tname}-{self.vdc_name}-s3",
             self.vdc_instance.s3.minio.wid,
             9000,
             master_ip,
-            uuid.uuid4().hex,
+            solution_uuid,
             force_https=True,
         )
+        if not domain_name:
+            solutions.cancel_solution_by_uuid(solution_uuid, self.identity.instance_name)
+            self.error(f"failed to expose s3")
+            return
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
