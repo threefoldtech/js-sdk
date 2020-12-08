@@ -590,7 +590,7 @@ class VDCDeployer:
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )
             self.zos.billing.payout_farmers(self.wallet, pool_info)
-        self.vdc_instance.expiration = self.vdc_instance.expiration.timestamp + duration * 60 * 60 * 24
+        self.vdc_instance.expiration = self.vdc_instance.expiration.timestamp() + duration * 60 * 60 * 24
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
             self.vdc_instance.undo_grace_period_action()
