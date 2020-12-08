@@ -46,7 +46,8 @@ kind: Ingress
 metadata:
   name: {{ ingress_name }}
   {% if force_https %}
-  ingress.kubernetes.io/ssl-redirect: "true"
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
   {% endif %}
 spec:
   rules:
