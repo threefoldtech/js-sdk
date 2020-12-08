@@ -173,18 +173,26 @@ class VDCDeployer:
             raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+        self.info(f"getting pool on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}")
         farm = self.explorer.farms.get(farm_name=farm_name)
         for pool in self.zos.pools.list():
             farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
             if farm_id == farm.id:
                 # extend
+                self.info(f"found existing pool {pool.pool_id} on farm: {farm_name}. pool: {str(pool)}")
                 if not any([cus, sus, ipv4us]):
                     return pool.pool_id
                 node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
                 pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, ipv4us, node_ids=node_ids)
+                self.info(
+                    f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
+                )
                 self.zos.billing.payout_farmers(self.wallet, pool_info)
                 return pool.pool_id
         pool_info = self.zos.pools.create(cus, sus, ipv4us, farm_name)
+        self.info(
+            f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
+        )
         self.zos.billing.payout_farmers(self.wallet, pool_info)
         return pool_info.reservation_id
 

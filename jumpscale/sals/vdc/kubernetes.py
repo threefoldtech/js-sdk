@@ -20,6 +20,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         returns pool id after extension with enough cloud units
         duration in seconds
         """
+        self.vdc_deployer.info(
+            f"preperaring pool for k8s cluster extension on farm {farm_name}, flavor: {k8s_flavor}, no_nodes: {no_nodes}, duration: {duration}, public_ip: {public_ip}"
+        )
         k8s = K8s()
         k8s.size = k8s_flavor.value
         cloud_units = k8s.resource_units().cloud_units()
@@ -31,6 +34,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         farm = self.explorer.farms.get(farm_name=farm_name)
         pool_id = None
+        self.vdc_deployer.info(f"k8s cluster extension: searching for existing pool on farm {farm_name}")
         for pool in self.zos.pools.list():
             farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
             if farm_id == farm.id:
@@ -42,8 +46,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         if not pool_id:
             pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), ipv4us, farm_name)
             pool_id = pool_info.reservation_id
+            self.vdc_deployer.info(f"k8s cluster extension: creating a new pool {pool_id}")
             self.vdc_deployer.info(f"new pool {pool_info.reservation_id} for k8s cluster extension.")
         else:
+            self.vdc_deployer.info(f"k8s cluster extension: found pool {pool_id}")
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
             trigger_cus = (pool.cus + cus) * 0.75
             trigger_sus = (pool.sus + sus) * 0.75
