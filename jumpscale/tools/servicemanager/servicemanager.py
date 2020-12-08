@@ -52,8 +52,8 @@ class BackgroundService(ABC):
         """Abstract base class for background services managed by the service manager
 
         Arguments:
-            service_name {str}: identifier of the service
-            interval {int | CronTab object | str}: scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
+            service_name (str): identifier of the service
+            interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
         """
         self.name = service_name
         self.interval = interval
@@ -120,7 +120,7 @@ class ServiceManager(Base):
         """Callback to handle exception raised by service greenlet
 
         Arguments:
-            greenlet {Greenlet}: greenlet object
+            greenlet (Greenlet): greenlet object
         """
         message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
         j.tools.alerthandler.alert_raise(appname="servicemanager", message=message, alert_type="exception")
@@ -129,7 +129,7 @@ class ServiceManager(Base):
         """Callback runs after greenlet finishes execution
 
         Arguments:
-            greenlet {Greenlet}: greenlet object
+            greenlet (Greenlet): greenlet object
         """
         greenlet.unlink(self.__callback)
         self._running.pop(greenlet.service.name)
@@ -138,7 +138,7 @@ class ServiceManager(Base):
         """Runs a service job and schedules it to run again every period (interval) specified by the service
 
         Arguments:
-            service {BackgroundService}: background service object
+            service (BackgroundService): background service object
         """
         greenlet = gevent.Greenlet(service.job)
         greenlet.link(self.__callback)
@@ -172,7 +172,7 @@ class ServiceManager(Base):
         """Add a new background service to be managed and scheduled by the service manager
 
         Arguments:
-            service_path {str}: absolute path of the service file
+            service_path (str): absolute path of the service file
         """
 
         service = self._load_service(service_path)
@@ -191,8 +191,8 @@ class ServiceManager(Base):
         """Stop a running background service and unschedule it if it's scheduled to run again
 
         Arguments:
-            service_name {str}: name of the service to be stopped
-            block {bool}: wait for service job to finish. if False, service job will be killed without waiting
+            service_name (str): name of the service to be stopped
+            block (bool): wait for service job to finish. if False, service job will be killed without waiting
         """
         if service_name not in self.services:
             raise j.exceptions.Value(f"Service {service_name} is not running")
