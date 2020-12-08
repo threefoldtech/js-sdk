@@ -1377,6 +1377,7 @@ class ReservationChatflow:
         ip_version=None,
         pool_ids=None,
         filter_blocked=True,
+        identity_name=None,
         sort_by_disk_space=False,
     ):
         """get available nodes to deploy solutions on
@@ -1421,11 +1422,16 @@ class ReservationChatflow:
             nodes_number = nodes_distribution[pool_id]
             if not pool_ids:
                 pool_id = None
-            nodes = j.sals.zos.get().nodes_finder.nodes_by_capacity(
+            nodes = j.sals.zos.get(identity_name).nodes_finder.nodes_by_capacity(
                 cru=cru, sru=sru, mru=mru, hru=hru, currency=currency, pool_id=pool_id
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
+            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in pool with id={pool_id}) for this reservation.
+                        If you are using a low resources environment like testnet,
+                        please make sure to allow over provisioning from the settings tab in dashboard.
+                        For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>
+                    """
             if sort_by_disk_space:
                 nodes = sorted(nodes, key=lambda x: x.total_resources.sru - x.reserved_resources.sru, reverse=True)
             for _ in range(nodes_number):
@@ -1433,8 +1439,7 @@ class ReservationChatflow:
                     if sort_by_disk_space:
                         if not nodes:
                             raise StopChatFlow(
-                                "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
-                                htmlAlert=True,
+                                err_msg, htmlAlert=True,
                             )
                         for node in nodes:
                             if node.node_id not in selected_ids:
@@ -1445,8 +1450,7 @@ class ReservationChatflow:
                             node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow(
-                        "Failed to find resources for this reservation. If you are using a low resources environment like testnet, please make sure to allow over provisioning from the settings tab in dashboard. For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>",
-                        htmlAlert=True,
+                        err_msg, htmlAlert=True,
                     )
                 nodes.remove(node)
                 nodes_selected.append(node)
@@ -1602,7 +1606,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable 3Bot connect : `j.core.config.set('threebot_connect', True)`
+            To enable Threefold Connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:
@@ -1615,7 +1619,7 @@ class ReservationChatflow:
         count = j.core.db.hincrby(NODES_COUNT_KEY, node_id)
         expiration = count * NODES_DISALLOW_EXPIRATION
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"
-        j.core.db.set(node_key, expiration, ex=expiration)
+        j.core.db.set(node_key, j.data.time.utcnow().timestamp + expiration, ex=expiration)
 
     def unblock_node(self, node_id, reset=True):
         node_key = f"{NODES_DISALLOW_PREFIX}:{node_id}"

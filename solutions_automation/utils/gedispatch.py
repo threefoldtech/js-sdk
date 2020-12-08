@@ -14,7 +14,7 @@ class GedisChatBotPatch(GedisChatBot):
     NAME_MESSAGE = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
     CURRENCY_MESSAGE = "Please select the currency you want to pay with."
     FLAVOR_MESSAGE = (
-        "Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)"
+        "Please choose the flavor you want to use (flavors define how much resources the deployed solution will use)"
     )
     EXPIRATION_MESSAGE = "Please enter the solution's expiration time"
     WIREGUARD_CONFIG_MESSAGE = "Do you want to save the wireguard configration, it could help you to connect with your workload using ip address ?"
@@ -38,7 +38,7 @@ class GedisChatBotPatch(GedisChatBot):
             setattr(self, k, v)
 
         self.name_qs = 0
-        super().__init__(spawn=False)
+        super().__init__(spawn=False, **kwargs)
 
     def get_name(self, msg, *args, **kwargs):
         if self.name_qs == 0:

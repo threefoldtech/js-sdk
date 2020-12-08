@@ -11,14 +11,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = "https://hub.grid.tf/waleedhammam.3bot/waleedhammam-taiga-restic-latest.flist"
     SOLUTION_TYPE = "taiga"
     title = "Taiga"
-    steps = [
-        "get_solution_name",
-        "taiga_credentials",
-        "infrastructure_setup",
-        "reservation",
-        "initializing",
-        "success",
-    ]
+    steps = ["get_solution_name", "taiga_credentials", "infrastructure_setup", "reservation", "initializing", "success"]
 
     container_resources = {"cru": 1, "mru": 1, "sru": 4}
     # main container + nginx container
@@ -36,13 +29,11 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
         )
         EMAIL_HOST_PASSWORD = form.secret_ask("Please add the host e-mail password", required=True)
 
-        SECRET_KEY = form.secret_ask("Please add a secret key for your solution", required=True)
-
         form.ask()
         self.EMAIL_HOST_USER = EMAIL_HOST_USER.value
         self.EMAIL_HOST = EMAIL_HOST.value
         self.EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.value
-        self.SECRET_KEY = SECRET_KEY.value
+        self.SECRET_KEY = j.data.idgenerator.idgenerator.chars(15)
 
     @deployment_context()
     def _deploy(self):
@@ -95,7 +86,6 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             env=var_dict,
             interactive=False,
             entrypoint="/start_taiga.sh",
-            public_ipv6=True,
             secret_env={
                 "EMAIL_HOST_PASSWORD": self.EMAIL_HOST_PASSWORD,
                 "PRIVATE_KEY": private_key,

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="1000">
+  <v-dialog v-model="dialog" width="1000" :persistent="persistent">
     <v-card :loading="loading" :disabled="loading">
       <v-card-title class="headline">{{title}}</v-card-title>
       <v-card-text class="pa-5">
@@ -29,6 +29,10 @@ module.exports = {
     info: String,
     warning: String,
     loading: Boolean,
+    persistent: {
+      type: Boolean,
+      default: false
+    },
   },
   computed: {
     dialog: {

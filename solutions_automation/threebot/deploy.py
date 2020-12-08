@@ -5,7 +5,7 @@ from solutions_automation.utils.gedispatch import GedisChatBotPatch, read_file
 
 
 class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
-    TYPE = "Would you like to create a new 3Bot instance, or recover an existing one?"
+    TYPE = "Would you like to create a new 3Bot instance,*?"
     NAME = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
     RECOVER_NAME = "Please enter the 3Bot name you want to recover"
     SECRET = "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
@@ -17,6 +17,7 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
     EMAIL_HOST_USER = "E-mail address for your solution"
     EMAIL_HOST = "SMTP host example: `smtp.gmail.com`"
     EMAIL_HOST_PASSWORD = "Host e-mail password"
+    NODE_POLICY = "Please select the deployment location policy."
     ESCALATION_MAIL_ADDRESS = "Email address to receive email notifications on"
     WIREGUARD = dedent(
         """
@@ -38,6 +39,7 @@ class ThreebotDeployAutomated(GedisChatBotPatch, ThreebotDeploy):
         EMAIL_HOST: "email_host",
         EMAIL_HOST_PASSWORD: "email_host_password",
         ESCALATION_MAIL_ADDRESS: "escalation_mail_address",
+        NODE_POLICY: "node_policy",
     }
 
     def ask(self, msg, *args, **kwargs):

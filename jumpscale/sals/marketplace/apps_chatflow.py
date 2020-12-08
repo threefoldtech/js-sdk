@@ -16,18 +16,9 @@ from .deployer import deployer
 from .solutions import solutions
 from jumpscale.clients.explorer.models import WorkloadType
 
-FLAVORS = {
-    "Silver": {"sru": 2,},
-    "Gold": {"sru": 5,},
-    "Platinum": {"sru": 10,},
-}
+FLAVORS = {"Silver": {"sru": 2}, "Gold": {"sru": 5}, "Platinum": {"sru": 10}}
 
-RESOURCE_VALUE_KEYS = {
-    "cru": "CPU {}",
-    "mru": "Memory {} GB",
-    "sru": "Disk {} GB [SSD]",
-    "hru": "Disk {} GB [HDD]",
-}
+RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} GB [SSD]", "hru": "Disk {} GB [HDD]"}
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
@@ -42,11 +33,12 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.username = self.user_info()["username"]
         self.solution_metadata["owner"] = self.username
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
-        self.ip_version = "IPv6"
         self.expiration = 60 * 60 * 3  # expiration 3 hours
         self.retries = 3
         self.custom_domain = False
         self.allow_custom_domain = False
+        self.currency = "TFT"
+        self.identity_name = j.core.identity.me.instance_name
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -64,7 +56,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             msg = f"{flavor} ({flavor_specs[:-3]})"
             messages.append(msg)
         chosen_flavor = self.single_choice(
-            "Please choose the flavor you want ot use (flavors define how much resources the deployed solution will use)",
+            "Please choose the flavor you want to use (flavors define how much resources the deployed solution will use)",
             options=messages,
             required=True,
             default=messages[0],
@@ -72,39 +64,34 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.flavor = chosen_flavor.split()[0]
         self.flavor_resources = flavors[self.flavor]
 
+    def _select_farms(self):
+        self.farm_name = random.choice(self.available_farms).name
+        self.pool_farm_name = None
+
+    def _select_pool_node(self):
+        """Children should override this if they want to force the pool to contain a specific node id"""
+        self.pool_node_id = None
+
     def _get_pool(self):
-        self.currency = "TFT"
-        farm_names = [f.name for f in j.sals.zos.get()._explorer.farms.list()]
-        random.shuffle(farm_names)
-        # farm_names = ["freefarm"]  # DEUBGGING ONLY
-        self.farm_name = None
-
-        for farm_name in farm_names:
-            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4"
-            )
-            available_ipv6, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv6", **self.query
-            )
-            if available_ipv4 and available_ipv6:
-                self.farm_name = farm_name
-                break
-
-        if not self.farm_name:
-            raise StopChatFlow("Failed to find farm with the requested resources")
-
+        self._get_available_farms(only_one=True)
+        self._select_farms()
+        self._select_pool_node()
         user_networks = solutions.list_network_solutions(self.solution_metadata["owner"])
         networks_names = [n["Name"] for n in user_networks]
         if "apps" in networks_names:
             # old user
             self.md_show_update("Checking for free resources .....")
-            free_pools = deployer.get_free_pools(self.solution_metadata["owner"], **self.query)
+            free_pools = deployer.get_free_pools(
+                self.solution_metadata["owner"], farm_name=self.pool_farm_name, node_id=self.pool_node_id, **self.query
+            )
             if free_pools:
                 self.md_show_update(
                     "Searching for a best fit pool (best fit pool would try to find a pool that matches your resources or with least difference from the required specs)..."
                 )
                 # select free pool and extend if required
-                pool, cu_diff, su_diff = deployer.get_best_fit_pool(free_pools, self.expiration, **self.query)
+                pool, cu_diff, su_diff = deployer.get_best_fit_pool(
+                    free_pools, self.expiration, farm_name=self.pool_farm_name, node_id=self.pool_node_id, **self.query
+                )
                 if cu_diff < 0 or su_diff < 0:
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
@@ -152,12 +139,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 currency=self.currency,
                 **self.query,
             )
-            if not all(
-                [
-                    self.pool_info.escrow_information.address.strip() != "",
-                    self.pool_info.escrow_information.address.strip() != "",
-                ]
-            ):
+            if self.pool_info.escrow_information.address.strip() == "":
                 raise StopChatFlow(
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
@@ -170,7 +152,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
             self.pool_id = self.pool_info.reservation_id
 
+        self.network_view = deployer.get_network_view(
+            f"{self.solution_metadata['owner']}_apps", identity_name=self.identity_name
+        )
         return self.pool_id
+
+    def _select_node(self):
+        self.selected_node = deployer.schedule_container(self.pool_id, **self.query)
 
     @chatflow_step(title="New Expiration")
     def set_expiration(self):
@@ -180,7 +168,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def upload_public_key(self):
         self.public_key = (
             self.upload_file(
-                "Please upload your public ssh key, this will allow you to access your threebot container using ssh",
+                "Please upload your public ssh key, this will allow you to access your threebot container using ssh"
             )
             or ""
         )
@@ -205,16 +193,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     @deployment_context()
     def _deploy_network(self):
         # get ip address
-        self.network_view = deployer.get_network_view(f"{self.solution_metadata['owner']}_apps")
         self.ip_address = None
         while not self.ip_address:
-            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **self.query)
+            self._select_node()
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_node,
                 self.pool_id,
                 self.network_view,
                 bot=self,
+                identity_name=self.identity_name,
                 owner=self.solution_metadata.get("owner"),
             )
             if result:
@@ -298,7 +286,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.username, self.farm_name)
+        gateways = deployer.list_all_gateways(self.username, self.farm_name, identity_name=self.identity_name)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
@@ -318,7 +306,9 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 is_managed_domains = True
                 if domain in blocked_domains:
                     continue
-                success = deployer.test_managed_domain(gateway.node_id, domain, gw_dict["pool"].pool_id, gateway)
+                success = deployer.test_managed_domain(
+                    gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
+                )
                 if not success:
                     j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
                     deployer.block_managed_domain(domain)
@@ -326,7 +316,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 else:
                     deployer.unblock_managed_domain(domain)
                 try:
-                    if j.sals.crtsh.has_reached_limit(domain):
+                    if not j.core.config.get("TEST_CERT") and j.sals.crtsh.has_reached_limit(domain):
                         continue
                 except requests.exceptions.HTTPError:
                     is_http_failure = True
@@ -397,13 +387,19 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _config_logs(self):
         self.solution_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.solution_log_config:
-            self.solution_log_config["channel_name"] = self.solution_name
+            self.solution_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}".lower()
         self.nginx_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.nginx_log_config:
-            self.nginx_log_config["channel_name"] = self.solution_name + "-nginx"
+            self.nginx_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}-nginx".lower()
         self.trc_log_config = j.core.config.get("LOGGING_SINK", {})
         if self.trc_log_config:
-            self.trc_log_config["channel_name"] = self.solution_name + "-trc"
+            self.trc_log_config[
+                "channel_name"
+            ] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}-trc".lower()
 
     @chatflow_step(title="Solution Name")
     def get_solution_name(self):
@@ -425,6 +421,31 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     break
                 valid = True
         self.solution_name = f"{self.solution_metadata['owner']}-{self.solution_name}"
+
+    def _get_available_farms(self, only_one=True, identity_name=None):
+        if getattr(self, "available_farms", None) is not None:
+            return
+        self.currency = getattr(self, "currency", "TFT")
+        farm_message = f"""\
+        Fetching available farms..
+        """
+        self.md_show_update(dedent(farm_message))
+
+        self.available_farms = []
+        farms = j.sals.zos.get(identity_name)._explorer.farms.list()
+        # farm_names = ["freefarm"]  # DEUBGGING ONLY
+
+        for farm in farms:
+            farm_name = farm.name
+            available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
+                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+            )
+            if available_ipv4:
+                self.available_farms.append(farm)
+                if only_one:
+                    return
+        if not self.available_farms:
+            raise StopChatFlow("No available farms with enough resources for this deployment at the moment")
 
     @chatflow_step(title="Setup", disable_previous=True)
     def infrastructure_setup(self):
@@ -495,6 +516,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Payment")
     def solution_extension(self):
+        self.md_show_update("Extending pool...")
         self.currencies = ["TFT"]
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
@@ -507,7 +529,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
-        self.secret = f"{j.core.identity.me.tid}:{uuid.uuid4().hex}"
+        identity_tid = j.core.identity.get(self.identity_name).tid
+        self.secret = f"{identity_tid}:{uuid.uuid4().hex}"
         success = False
         while not success:
             try:
@@ -515,11 +538,12 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 success = True
             except DeploymentFailed as e:
                 j.logger.error(e)
+                self.retries -= 1
                 if self.retries > 0:
-                    self.retries -= 1
                     self.md_show_update(
                         f"Deployment failed on node {self.selected_node.node_id}. retrying {self.retries}...."
                     )
+                    gevent.sleep(3)
                     failed_workload = j.sals.zos.get().workloads.get(e.wid)
                     if failed_workload.info.workload_type in GATEWAY_WORKLOAD_TYPES:
                         self.addresses = []

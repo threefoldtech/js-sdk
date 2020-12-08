@@ -31,6 +31,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying a wiki.
 
         **Test Scenario**
+
         - Deploy a wiki.
         - Check that the wiki is reachable.
         """
@@ -51,6 +52,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying a blog.
 
         **Test Scenario**
+
         - Deploy a Blog.
         - Check that the blog is reachable.
         """
@@ -70,6 +72,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying a website.
 
         **Test Scenario**
+
         - Deploy a website.
         - Check that the website is reachable.
         """
@@ -90,6 +93,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying Mattermost.
 
         **Test Scenario**
+
         - Deploy Mattermost.
         - Check that Mattermost is reachable.
         """
@@ -106,6 +110,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying Cryptpad.
 
         **Test Scenario**
+
         - Deploy Cryptpad.
         - Check that Cryptpad is reachable.
         """
@@ -122,6 +127,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying Gitea.
 
         **Test Scenario**
+
         - Deploy Gitea.
         - Check that Gitea is reachable.
         """
@@ -134,10 +140,12 @@ class MarketplaceChatflows(ChatflowsBase):
         request = j.tools.http.get(f"https://{gitea.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test07_discourse(self):
         """Test case for deploy Discourse.
 
         **Test Scenario**
+
         - Deploy Discourse.
         - Check that Discourse is reachable.
         """
@@ -160,6 +168,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying Peertube.
 
         **Test Scenario**
+
         - Deploy Peertube
         - Check that Peertube is reachable.
         """
@@ -177,6 +186,7 @@ class MarketplaceChatflows(ChatflowsBase):
         """Test case for deploying Taiga.
 
         **Test Scenario**
+
         - Deploy Taiga.
         - Check that Taiga is reachable.
         """

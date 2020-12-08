@@ -94,9 +94,11 @@
           <v-list-item v-if="identity">
             <v-list-item-content>
               <v-list-item-title>{{identity.name}} ({{identity.id}})</v-list-item-title>
-              <v-list-item-subtitle>{{identity.email}}</v-list-item-subtitle>
               <v-list-item-subtitle>
                 <v-chip class="mt-2" outlined>{{ identity.network }} Network</v-chip>
+              </v-list-item-subtitle>
+              <v-list-item-subtitle v-if="SDKVersion">
+                <v-chip class="mt-2 px-6 py-6" outlined>JS-NG: {{ NGVersion }}<br>JS-SDK: {{ SDKVersion }}</v-chip>
               </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -107,8 +109,6 @@
           </v-list-item>
         </v-list>
       </v-sheet>
-
-      <div style="width:100%; height:5px"></div>
 
       <v-list class="mt-0 pt-0">
         <v-list-item v-for="page in pages" :key="page.name" :to="page.path" link>
@@ -136,6 +136,33 @@
       <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
+     <v-dialog
+      v-model="announcement_dialog"
+      persistent
+      max-width="500"
+    >
+
+      <v-card>
+        <v-card-title class="headline">
+          Quick start guide
+        </v-card-title>
+        <v-card-text>
+        We've created a wallet for you. Make sure your wallet is funded to extend your 3Bot before it expires.
+        <br />
+        Please visit the <a href="https://manual.threefold.io">manual</a> for more information.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="green darken-1"
+            text
+            @click="announced = true"
+          >
+            Ok
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -167,18 +194,23 @@ module.exports = {
       notificationsCount: null,
       notificationsListOpen: false,
       notificationInterval: null,
+      NGVersion: null,
+      SDKVersion: null,
       clockInterval: null,
       dialogs: {
         identity: false,
       },
+      announced: true
     };
   },
   components: {
     identities: httpVueLoader("./Identity.vue"),
   },
-  computed: {},
   methods: {},
   computed: {
+    announcement_dialog() {
+      return !this.announced
+    },
     pages() {
       return this.$router.options.routes.filter((page) => {
         return page.meta.listed;
@@ -197,9 +229,23 @@ module.exports = {
         this.user = response.data;
       });
     },
+    getAnnouncementStatus() {
+      this.$api.announcement.announced().then((response) => {
+        console.log(response.data)
+        this.announced = response.data["announced"];
+        this.$api.announcement.announce();
+      });
+    },
     getIdentity() {
       this.$api.identity.get().then((response) => {
         this.identity = JSON.parse(response.data);
+      });
+    },
+    getSDKVersion() {
+      this.$api.admins.getSDKVersion().then((response) => {
+        const versions = JSON.parse(response.data).data;
+        this.NGVersion = versions["js-ng"];
+        this.SDKVersion = versions["js-sdk"];
       });
     },
     setTimeLocal() {
@@ -237,7 +283,9 @@ module.exports = {
     this.checkDarkMode();
     this.getIdentity();
     this.getCurrentUser();
+    this.getAnnouncementStatus();
     this.setTimeLocal();
+    this.getSDKVersion();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);

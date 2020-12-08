@@ -7,8 +7,8 @@ gzip -d rest-server-0.9.7-linux-amd64.gz
 chmod +x rest-server-0.9.7-linux-amd64
 mv /root/rest-server-0.9.7-linux-amd64 /usr/bin/rest-server
 
-apt-get install  -y apache2
+apt-get install -y apache2
 /etc/init.d/apache2 restart
-mkdir /root/backup_config /root/backup
+mkdir /root/backup
 touch /root/backup/.htpasswd
-rest-server --private-repos --path /root/backup_config
+rest-server --private-repos --path /root/backup
