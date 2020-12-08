@@ -40,3 +40,12 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Build package
+        run: |
+          poetry build
+      - name: Extract tar files
+        run: |
+          tar xvzf dist/js-sdk-11.1a1.tar.gz
+      - name: Install
+        run: |
+          sudo python3 js-sdk-11.1a1/setup.py install
