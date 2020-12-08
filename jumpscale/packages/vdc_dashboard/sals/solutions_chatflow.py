@@ -266,9 +266,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def initializing(self):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
 
-        if not j.sals.reservation_chatflow.wait_http_test(
-            f"https://{self.domain}", timeout=300, verify=not j.config.get("TEST_CERT")
-        ):
+        if not j.sals.reservation_chatflow.wait_http_test(f"https://{self.domain}", timeout=300, verify=False):
             stop_message = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
