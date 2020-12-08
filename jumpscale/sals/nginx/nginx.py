@@ -122,9 +122,9 @@ class Location(Base):
 
 
 class AcmeServer(Enum):
-    LETSENCRYPT = 1
-    ZEROSSL = 2
-    CUSTOM = 3
+    LETSENCRYPT = "letsencrypt"
+    ZEROSSL = "zerossl"
+    CUSTOM = "custom"
 
 
 class Certbot(Base):
@@ -225,12 +225,15 @@ class Website(Base):
     locations = fields.Factory(Location)
     includes = fields.List(fields.String())
 
-    letsencryptemail = fields.String()
-    acme_server_url = fields.URL()
     selfsigned = fields.Boolean(default=True)
-    acme_server_type = fields.Enum(AcmeServer)
 
-    def get_certbot(self):
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+
+    @property
+    def certbot(self):
         kwargs = dict(domain=self.domain, email=self.letsencryptemail, server=self.acme_server_url)
 
         if self.acme_server_type == AcmeServer.LETSENCRYPT:
@@ -241,8 +244,6 @@ class Website(Base):
             certbot_type = CustomCertbot
 
         return certbot_type(**kwargs)
-
-    certbot = fields.Object(Certbot, compute=get_certbot)
 
     @property
     def cfg_dir(self):
