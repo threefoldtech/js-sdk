@@ -2,7 +2,7 @@ import os
 import requests
 from decimal import Decimal
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_FLAVORS
+from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.vdc.models import K8SNodeFlavor
 
@@ -21,7 +21,7 @@ def get_addons(flavor, kubernetes_addons):
         addons(list): list of addons used by the user over the basic chosen plan
 
     """
-    plan = VDC_FLAVORS.get(flavor)
+    plan = VDC_SIZE.VDC_FLAVORS.get(flavor)
     plan_nodes_count = plan.get("k8s").get("no_nodes")
     plan_nodes_size = plan.get("k8s").get("size")
     addons = list()
