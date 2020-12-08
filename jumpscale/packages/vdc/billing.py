@@ -139,6 +139,7 @@ def auto_extend_billing():
     remaining_days = (vdc_instance.expiration - j.data.time.now()).days
     days_to_extend = BASE_CAPACITY - remaining_days
     j.logger.info(f"The days to extend {days_to_extend} compared to the base capacity{BASE_CAPACITY}")
-    if days_to_extend >= BASE_CAPACITY / 2:
+    if days_to_extend >= BASE_CAPACITY / 2 or True:
         j.logger.info("starting extending the VDC pools")
+        days_to_extend = 1
         deployer.renew_plan(duration=days_to_extend)
