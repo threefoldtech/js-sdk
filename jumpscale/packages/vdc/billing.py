@@ -7,8 +7,6 @@ from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.vdc.models import K8SNodeFlavor
 
 
-PROVISION_WALLET_NAME = f"{os.getenv('VDC_INSTANCE_NAME')}_provision_wallet"
-PREPAID_WALLET = f"{os.getenv('VDC_INSTANCE_NAME')}_prepaid_wallet"
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
 
 
@@ -69,7 +67,7 @@ def calculate_plan_base_price():
     Returns:
         float(): the price of user plan
     """
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     prices = get_prices()
     return prices["plans"][vdc_instance.flavor.value]
@@ -81,7 +79,8 @@ def calculate_addons_hourly_rate():
     Returns:
         total_price (float): the total price for all addons
     """
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     # addons = vdc_instance.addons
     total_price = 0
@@ -112,8 +111,10 @@ def calculate_hourly_rate():
 def tranfer_prepaid_to_provision_wallet():
     """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
     """
-    prepaid_wallet = j.clients.stellar.get(PREPAID_WALLET)
-    provision_wallet = j.clients.stellar.get(PROVISION_WALLET_NAME)
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    prepaid_wallet = vdc_instance.prepaid_wallet
+    provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet.get_asset("TFT")
     hourly_amount = calculate_hourly_rate()
     j.logger.info(
@@ -127,7 +128,8 @@ def auto_extend_billing():
     half of the BASE_CAPACITY
     """
     # Get the VDC and deployer instances
-    vdc_instance_name = os.getenv("VDC_INSTANCE_NAME")
+
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_instance_name)
     deployer = vdc_instance.get_deployer()
 
