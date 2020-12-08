@@ -87,7 +87,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         cc.exclude_nodes(*old_node_ids)
 
         for _ in range(no_nodes):
-            if not cc.add_query(**K8S_SIZES[k8s_flavor]):
+            if not cc.add_query(**VDC_SIZE.K8S_SIZES[k8s_flavor]):
                 raise j.exceptions.Validation(
                     f"not enough capacity in farm {farm_name} for {no_nodes} k8s nodes of flavor {k8s_flavor}"
                 )
@@ -103,7 +103,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         scheduler = Scheduler(pool_id=pool_id)
         scheduler.exclude_nodes(*old_node_ids)
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        nodes_generator = scheduler.nodes_by_capacity(**K8S_SIZES[k8s_flavor], public_ip=public_ip)
+        nodes_generator = scheduler.nodes_by_capacity(**VDC_SIZE.K8S_SIZES[k8s_flavor], public_ip=public_ip)
         solution_uuid = solution_uuid or uuid.uuid4().hex
         wids = self._add_workers(
             pool_id,
@@ -125,7 +125,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
         master_ip = None
         # deploy_master
-        k8s_resources_dict = K8S_SIZES[k8s_flavor]
+        k8s_resources_dict = VDC_SIZE.K8S_SIZES[k8s_flavor]
         nodes_generator = scheduler.nodes_by_capacity(**k8s_resources_dict, pool_id=pool_id, public_ip=True)
         while not master_ip:
             try:

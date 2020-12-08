@@ -202,7 +202,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
-        duration = VDC_FLAFORS[self.flavor]["duration"]
+        duration = VDC_SIZE.VDC_FLAVORS[self.flavor]["duration"]
 
         def get_cloud_units(workload):
             ru = workload.resource_units()
@@ -222,7 +222,7 @@ class VDCDeployer:
             self.wait_pool_payment(pool_id)
 
         # create kubernetes controller with small flavor on network farm
-        master_size = VDC_FLAFORS[self.flavor]["k8s"]["controller_size"]
+        master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
@@ -327,24 +327,24 @@ class VDCDeployer:
         gs = scheduler or GlobalScheduler()
         master_pool_id = self.get_pool_id(NETWORK_FARM)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        master_size = VDC_FLAFORS[self.flavor]["k8s"]["controller_size"]
+        master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
             master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
             return
-        no_nodes = VDC_FLAFORS[self.flavor]["k8s"]["no_nodes"]
+        no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         if no_nodes < 1:
             return [master_ip]
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             cluster_secret,
             [self.ssh_key.public_key.strip()],
             no_nodes,
-            VDC_FLAFORS[self.flavor]["duration"],
+            VDC_SIZE.VDC_FLAVORS[self.flavor]["duration"],
             solution_uuid=self.vdc_uuid,
         )
         if not wids:
@@ -499,7 +499,7 @@ class VDCDeployer:
 
     def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1):
         if isinstance(flavor, str):
-            flavor = K8SNodeFlavor[flavor.upper()]
+            flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
         master_Workload = self.zos.workloads.get(self.vdc_instance.kubernetes[0].wid)
         metadata = deployer.decrypt_metadata(master_Workload.info.metadata, self.identity.instance_name)
@@ -520,7 +520,7 @@ class VDCDeployer:
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_FLAFORS[self.flavor]["k8s"]["size"],
+            VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             cluster_secret,
             [public_key],
             no_nodes,

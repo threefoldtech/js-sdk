@@ -5,7 +5,7 @@ from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 
 from .base_component import VDCBaseComponent
-from .size import *
+from .size import MINIO_CPU, MINIO_MEMORY, MINIO_DISK, S3_NO_DATA_NODES, S3_NO_PARITY_NODES
 
 
 class VDCS3Deployer(VDCBaseComponent):

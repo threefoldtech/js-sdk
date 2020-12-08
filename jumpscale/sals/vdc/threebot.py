@@ -4,8 +4,7 @@ from .size import (
     THREEBOT_CPU,
     THREEBOT_MEMORY,
     THREEBOT_DISK,
-    VDC_FLAFORS,
-    S3_ZDB_SIZES,
+    VDC_SIZE,
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
     S3_NO_PARITY_NODES,
@@ -44,7 +43,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "EXPLORER_URL": j.core.identity.me.explorer_url,
             "VDC_S3_MAX_STORAGE": str(
                 int(
-                    S3_ZDB_SIZES[VDC_FLAFORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
+                    VDC_SIZE.S3_ZDB_SIZES[VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["s3"]["size"]]["sru"]
                     * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
                 )
             ),

@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import K8SNodeFlavor
+from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
 
@@ -16,7 +16,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.username)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
-        node_flavors = [flavor.name for flavor in K8SNodeFlavor]
+        node_flavors = [flavor.name for flavor in VDC_SIZE.K8SNodeFlavor]
         self.node_flavor = self.single_choice(
             "Choose the Node Flavor", options=node_flavors, default=node_flavors[0], required=True
         )

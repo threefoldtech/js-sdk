@@ -10,7 +10,7 @@ from jumpscale.sals.zos import get as get_zos
 from .deployer import VDCDeployer
 from .proxy import VDC_PARENT_DOMAIN
 from .models import *
-from .size import VDCFlavor, get_kubernetes_tft_price, get_vdc_tft_price
+from .size import VDC_SIZE
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -28,7 +28,7 @@ class UserVDC(Base):
     owner_tname = fields.String()
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
-    flavor = fields.Enum(VDCFlavor)
+    flavor = fields.Enum(VDC_SIZE.VDCFlavor)
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
     threebot = fields.Object(VDCThreebot)
@@ -108,7 +108,7 @@ class UserVDC(Base):
                 address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
                 node.public_ip = address
 
-            self.size = workload.size
+            node.size = workload.size
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
             if "minio" in workload.flist:
@@ -303,12 +303,12 @@ class UserVDC(Base):
                     self.refund_payment(transaction_hash, wallet_name)
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
-        amount = get_vdc_tft_price(self.flavor)
+        amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
         memo_text = self._show_payment(bot, amount, wallet_name)
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None):
-        amount = get_kubernetes_tft_price(size) * no_nodes
+        amount = VDC_SIZE.get_kubernetes_tft_price(size) * no_nodes
         memo_text = self._show_payment(bot, amount, wallet_name)
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
