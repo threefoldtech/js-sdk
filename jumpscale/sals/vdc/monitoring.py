@@ -21,7 +21,7 @@ class VDCMonitoring(VDCBaseComponent):
         command_args = self._get_install_args(secret_key)
         self.vdc_deployer.info(f"helm install extra args {command_args}")
         return self.vdc_deployer.vdc_k8s_manager.install_chart(
-            "prometheusstack", "prometheus-community/kube-prometheus-stack", command_args
+            "prometheusstack", "prometheus-community/kube-prometheus-stack", extra_config=command_args
         )
 
     def configure_repos(self):

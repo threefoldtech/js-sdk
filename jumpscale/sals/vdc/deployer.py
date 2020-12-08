@@ -465,11 +465,11 @@ class VDCDeployer:
 
             # deploy monitoring stack on kubernetes
             self.bot_show_update("Deploying monitoring stack")
-            # try:
-            #    self.monitoring.deploy_stack()
-            # except j.exceptions.Runtime as e:
-            #    # TODO: rollback
-            #    self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
+            try:
+                self.monitoring.deploy_stack()
+            except j.exceptions.Runtime as e:
+                # TODO: rollback
+                self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
 
             return kube_config
 
