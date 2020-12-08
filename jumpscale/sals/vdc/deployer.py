@@ -386,24 +386,6 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
-            # get kubernetes info
-            self.bot_show_update("Preparing Kubernetes cluster configuration")
-            self.vdc_instance.load_info()
-            master_ip = self.vdc_instance.kubernetes[0].public_ip
-
-            if master_ip == "::/128":
-                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
-                self.rollback_vdc_deployment()
-                return False
-
-            try:
-                # download kube config from master
-                kube_config = self.kubernetes.download_kube_config(master_ip)
-            except Exception as e:
-                self.error(f"failed to download kube config due to error {str(e)}")
-                self.rollback_vdc_deployment()
-                return False
-
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
             pool_id = self.get_pool_id(farm_name)
@@ -423,6 +405,24 @@ class VDCDeployer:
             self.info(f"minio_wid: {minio_wid}")
             if not minio_wid:
                 self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                return False
+
+            # get kubernetes info
+            self.bot_show_update("Preparing Kubernetes cluster configuration")
+            self.vdc_instance.load_info()
+            master_ip = self.vdc_instance.kubernetes[0].public_ip
+
+            if master_ip == "::/128":
+                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
+                self.rollback_vdc_deployment()
+                return False
+
+            try:
+                # download kube config from master
+                kube_config = self.kubernetes.download_kube_config(master_ip)
+            except Exception as e:
+                self.error(f"failed to download kube config due to error {str(e)}")
                 self.rollback_vdc_deployment()
                 return False
 
