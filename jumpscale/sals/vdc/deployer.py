@@ -584,8 +584,8 @@ class VDCDeployer:
             pool = self.zos.pools.get(pool_id)
             sus = pool.active_su * duration * 60 * 60 * 24
             cus = pool.active_cu * duration * 60 * 60 * 24
-            ipv4us = pool.ipv4us * duration * 60 * 60 * 24
-            pool_info = self.zos.pools.extend(pool_id, cus, sus, ipv4us)
+            ipv4us = pool.active_ipv4 * duration * 60 * 60 * 24
+            pool_info = self.zos.pools.extend(pool_id, int(cus), int(sus), int(ipv4us))
             self.info(
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )
