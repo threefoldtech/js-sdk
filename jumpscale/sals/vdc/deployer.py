@@ -391,6 +391,14 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
+            try:
+                # download kube config from master
+                kube_config = self.kubernetes.download_kube_config(master_ip)
+            except Exception as e:
+                self.error(f"failed to download kube config due to error {str(e)}")
+                self.rollback_vdc_deployment()
+                return False
+
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
             pool_id = self.get_pool_id(farm_name)
@@ -415,7 +423,7 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id)
+            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
                 self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
@@ -441,14 +449,6 @@ class VDCDeployer:
             self.info(f"threebot subdomain: {subdomain}")
             if not subdomain:
                 self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
-                self.rollback_vdc_deployment()
-                return False
-
-            try:
-                # download kube config from master
-                kube_config = self.kubernetes.download_kube_config(master_ip)
-            except Exception as e:
-                self.error(f"failed to download kube config due to error {str(e)}")
                 self.rollback_vdc_deployment()
                 return False
 

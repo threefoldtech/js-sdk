@@ -20,7 +20,7 @@ THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-lates
 
 
 class VDCThreebotDeployer(VDCBaseComponent):
-    def deploy_threebot(self, minio_wid, pool_id):
+    def deploy_threebot(self, minio_wid, pool_id, kube_config):
         workload = self.zos.workloads.get(minio_wid)
         if workload.info.workload_type != WorkloadType.Container:
             raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
@@ -53,6 +53,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
+            "KUBE_CONFIG": kube_config,
         }
         if not self.vdc_instance.kubernetes:
             self.vdc_instance.load_info()

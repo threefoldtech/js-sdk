@@ -43,6 +43,7 @@ MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 TEST_CERT = os.environ.get("TEST_CERT", "false")
 VDC_INSTANCE = os.environ.get("VDC_INSTANCE")
 VDC_EMAIL = os.environ.get("VDC_EMAIL")
+KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 
 
 VDC_VARS = {
@@ -56,6 +57,7 @@ VDC_VARS = {
     "TEST_CERT": TEST_CERT,
     "VDC_INSTANCE": VDC_INSTANCE,
     "VDC_EMAIL": VDC_EMAIL,
+    "KUBE_CONFIG": KUBE_CONFIG,
 }
 
 
@@ -150,3 +152,4 @@ else:
 server.save()
 
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
+j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_name}.yaml", KUBE_CONFIG)
