@@ -566,6 +566,9 @@ class PackageManager(Base):
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f"{package_name} package not found")
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service["name"])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
