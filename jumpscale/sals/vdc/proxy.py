@@ -45,6 +45,9 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ ingress_name }}
+  {% if force_https %}
+  ingress.kubernetes.io/ssl-redirect: "true"
+  {% endif %}
 spec:
   rules:
     - host: {{ hostname }}
@@ -556,7 +559,7 @@ class VDCProxy(VDCBaseComponent):
         self.vdc_deployer.error(f"all tries to expose wid {wid} failed")
 
     def ingress_proxy_over_custom_domain(
-        self, name, prefix, port, public_ip, private_ip=None, wid=None, parent_domain=None
+        self, name, prefix, port, public_ip, private_ip=None, wid=None, parent_domain=None, force_https=True
     ):
         if not any([private_ip, wid]):
             raise j.exceptions.Input(f"must pass private ip or wid")
@@ -586,10 +589,10 @@ class VDCProxy(VDCBaseComponent):
 
         # create a subdomain in domain provider that points to the gateway
         nc.nameclient.create_record(parent_domain, prefix, "A", public_ip)
-        self._create_ingress(name, subdomain, [ip_address], port)
+        self._create_ingress(name, subdomain, [ip_address], port, force_https)
         return subdomain
 
-    def ingress_proxy_over_managed_domain(self, name, prefix, wid, port, public_ip, solution_uuid):
+    def ingress_proxy_over_managed_domain(self, name, prefix, wid, port, public_ip, solution_uuid, force_https=True):
         workload = self.zos.workloads.get(wid)
         if workload.info.workload_type != WorkloadType.Container:
             raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
@@ -609,14 +612,14 @@ class VDCProxy(VDCBaseComponent):
                 f"ingress proxy over custom domain: {subdomain}, name: {name}, ip_address: {ip_address}, public_ip: {public_ip}"
             )
             try:
-                self._create_ingress(name, subdomain, [ip_address], port)
+                self._create_ingress(name, subdomain, [ip_address], port, force_https)
                 return subdomain
             except Exception as e:
                 self.vdc_deployer.error(f"failed to create proxy ingress config due to error {str(e)}")
                 self.zos.workloads.decomission(subdomain_id)
                 return
 
-    def _create_ingress(self, name, domain, addresses, port):
+    def _create_ingress(self, name, domain, addresses, port, force_https=True):
         service_text = j.tools.jinja2.render_template(
             template_text=PROXY_SERVICE_TEMPLATE, service_name=name, port=port,
         )
@@ -633,5 +636,6 @@ class VDCProxy(VDCBaseComponent):
             hostname=domain,
             service_name=name,
             service_port=port,
+            force_https=force_https,
         )
         self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")

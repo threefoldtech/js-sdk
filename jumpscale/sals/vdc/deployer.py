@@ -476,6 +476,7 @@ class VDCDeployer:
             9000,
             master_ip,
             uuid.uuid4().hex,
+            force_https=True,
         )
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
