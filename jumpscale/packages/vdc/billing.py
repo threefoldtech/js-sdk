@@ -26,7 +26,7 @@ def get_addons(flavor, kubernetes_addons):
     plan_nodes_size = plan.get("k8s").get("size")
     addons = list()
     for addon in kubernetes_addons:
-        if addon.role.name != KubernetesRole.MASTER:
+        if addon.role != KubernetesRole.MASTER:
             if addon.size == plan_nodes_size:
                 plan_nodes_count -= 1
                 if plan_nodes_count < 0:
@@ -86,6 +86,7 @@ def calculate_addons_hourly_rate():
     total_price = 0
     # Calculate all the hourly late for all addons
     addons = []
+    vdc_instance.load_info()
     addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
     for addon in addons:
         addon_price = calculate_addon_price(addon)
@@ -120,6 +121,7 @@ def tranfer_prepaid_to_provision_wallet():
     j.logger.info(
         f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
     )
+    hourly_amount = round(hourly_amount, 6)
     prepaid_wallet.transfer(provision_wallet.address, hourly_amount, asset=f"{tft.code}:{tft.issuer}")
 
 

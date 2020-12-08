@@ -95,7 +95,7 @@ else:
 
 network = "STD"
 
-if "testnet" in EXPLORER_URL:
+if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL:
     network = "TEST"
 
 j.core.config.set(
