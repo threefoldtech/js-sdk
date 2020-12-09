@@ -77,11 +77,11 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="Expose S3", disable_previous=True)
     def expose_s3(self):
         result = self.single_choice(
-            "Do you wish to expose your s3 over public domain name?", ["Yes", "No"], default="No"
+            "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No"
         )
         if result == "YES":
             domain_name = self.deployer.expose_s3()
-            self.md_show(f"You can access your s3 cluster over domain {domain_name}")
+            self.md_show(f"You can access your S3 cluster over domain {domain_name}")
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
