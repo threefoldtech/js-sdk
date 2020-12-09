@@ -17,6 +17,7 @@ from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotS
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from collections import defaultdict
 
 FLAVORS = {
     "Silver": {"cru": 1, "mru": 2, "sru": 2},
@@ -26,7 +27,10 @@ FLAVORS = {
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = defaultdict(lambda: "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist")
+    FLIST_URL["master"] = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    # The master flist fails for the gevent host dns resolution issue
+
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -63,7 +67,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.query = {"cru": 2, "mru": 2, "sru": 2.25}
         self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 60 * 60  # 60 minutes for 3bot
-        self.ip_version = "IPv6"
         self.retries = 3
         self.allow_custom_domain = False
         self.custom_domain = False
@@ -127,7 +130,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.md_show_update(
-            f"Capacity pool {self.pool_id} created and funded with {payment_info['total_amount_dec']} TFT"
+            f"Capacity pool {self.pool_info.reservation_id} created and funded with {payment_info['total_amount_dec']} TFT"
         )
         gevent.sleep(2)
         self.wgcfg = deployer.init_new_user_network(
@@ -228,7 +231,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Deployment location policy")
     def choose_location(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=False)
         self.farms_by_continent = deployer.group_farms_by_continent(self.available_farms)
         choices = ["Automatic", "Farm", "Specific node"]
         if self.farms_by_continent:
@@ -383,7 +386,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 node_id=self.selected_node.node_id,
                 network_name=self.network_view.name,
                 ip_address=self.ip_address,
-                flist=self.FLIST_URL,
+                flist=self.FLIST_URL[self.branch],
                 env=environment_vars,
                 cpu=self.container_resources["cru"],
                 memory=self.container_resources["mru"] * 1024,
@@ -455,6 +458,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         user_threebot.trc_container_wid = self.workload_ids[-2]
         user_threebot.reverse_proxy_wid = self.workload_ids[-1]
         user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
+        user_threebot.hash_secret(self.backup_password)
         user_threebot.save()
 
     @chatflow_step(title="Initializing", disable_previous=True)

@@ -1,3 +1,22 @@
+"""
+This is an example script to create a minio cluster and test haigh availability by shutting down and replacing both ZDB and minio containers.
+
+Requirements:
+1- stellar wallet named "wallet" funded with enough TFTs
+
+Expected Result:
+1- a network named "management" created or extended with the nodes required for minio deployment
+2- minio cluster (primary/secondary) with 7 data nodes and 3 parity nodes.
+
+Running the script:
+```
+python minio.py
+```
+
+you will get prompted for each test phase to validate what's happening and continue the execution.
+"""
+
+
 from jumpscale.loader import j
 from time import sleep
 import random

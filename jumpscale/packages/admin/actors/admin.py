@@ -161,6 +161,16 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": config_obj})
 
     @actor_method
+    def get_sdk_version(self) -> str:
+        from importlib import metadata
+
+        packages = ["js-ng", "js-sdk"]
+        data = {}
+        for package in packages:
+            data[package] = metadata.version(package)
+        return j.data.serializers.json.dumps({"data": data})
+
+    @actor_method
     def delete_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:

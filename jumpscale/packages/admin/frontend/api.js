@@ -16,19 +16,19 @@ const apiClient = {
                 method: "post"
             })
         },
-        listLogs: (appname) => {
+        listLogs: (appName) => {
             return axios({
                 url: `${baseURL}/logs/list_logs`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { appname: appname }
+                data: { app_name: appName }
             })
         },
-        delete: (appname) => {
+        delete: (appName) => {
             return axios({
                 url: `${baseURL}/logs/remove_records`,
                 method: "post",
-                data: { appname: appname }
+                data: { app_name: appName }
             })
         }
     },
@@ -174,6 +174,11 @@ const apiClient = {
         getConfig: () => {
             return axios({
                 url: `${baseURL}/admin/get_config`
+            })
+        },
+        getSDKVersion: () => {
+            return axios({
+                url: `${baseURL}/admin/get_sdk_version`
             })
         },
         getDeveloperOptions: () => {
