@@ -354,7 +354,7 @@ class VDCDeployer:
             self.error("failed to deploy kubernetes workers")
         return wids
 
-    def _set_Wallet(self, alternate_wallet_name=None):
+    def _set_wallet(self, alternate_wallet_name=None):
         """
         Returns:
             old wallet name
@@ -445,7 +445,7 @@ class VDCDeployer:
                 f"not enough resources in farm {farm_name} to deploy vdc of flavor {self.flavor}"
             )
         # change the initial deployment wallet
-        extension_wallet_name = self._set_Wallet(initial_wallet_name)
+        extension_wallet_name = self._set_wallet(initial_wallet_name)
 
         cluster_secret = self.password_hash
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
@@ -561,7 +561,7 @@ class VDCDeployer:
                 self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
 
             # originally reserve for one hour using an initial wallet. then extend to 2 weeks using the customers wallet
-            self._set_Wallet(extension_wallet_name)
+            self._set_wallet(extension_wallet_name)
             self.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
             return kube_config
