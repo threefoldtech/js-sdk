@@ -116,14 +116,32 @@ class VDCSize:
         self.load_vdc_plans()
 
     def fetch_upstream_info(self):
-        self._LAST_LOADED = j.data.time.now().timestamp
-        workloads_res = j.tools.http.get(WORKLOAD_SIZES_URL)
-        workloads_res.raise_for_status()
-        self._workload_sizes = workloads_res.json()
+        j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/size")
+        try:
+            workloads_res = j.tools.http.get(WORKLOAD_SIZES_URL)
+            workloads_res.raise_for_status()
+            self._workload_sizes = workloads_res.json()
+            j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json", workloads_res.text)
+        except Exception as e:
+            j.logger.warning(f"failed to download workload_size due to error {str(e)}")
+            if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json"):
+                raise e
+            workloads_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json")
+            self._workload_sizes = j.data.serializers.json.loads(workloads_data)
 
-        plans_res = j.tools.http.get(PLANS_URL)
-        plans_res.raise_for_status()
-        self._plans_data = plans_res.json()
+        try:
+            plans_res = j.tools.http.get(PLANS_URL)
+            plans_res.raise_for_status()
+            self._plans_data = plans_res.json()
+            j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json", plans_res.text)
+        except Exception as e:
+            j.logger.warning(f"failed to download plans_data due to error {str(e)}")
+            if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json"):
+                raise e
+            plans_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json")
+            self._plans_data = j.data.serializers.json.loads(plans_data)
+
+        self._LAST_LOADED = j.data.time.now().timestamp
 
     def load_k8s_flavor(self):
         # fills K8SNodeFlavor
