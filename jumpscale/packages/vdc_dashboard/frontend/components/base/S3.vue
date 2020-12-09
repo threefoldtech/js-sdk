@@ -18,7 +18,7 @@
       </template>
 
       <template v-slot:item.size="{ item }">
-        <div>{{ item.size }}</div>
+        <div>{{ item.size }} GB</div>
       </template>
 
       <template v-slot:item.actions="{ item }">
@@ -59,7 +59,7 @@ module.exports = {
       headers: [
         { text: "WID", value: "wid" },
         { text: "Node", value: "node" },
-        { text: "Size", value: "size" },
+        { text: "Disk Size", value: "size" },
         { text: "Actions", value: "actions", sortable: false },
       ],
     };
