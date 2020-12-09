@@ -62,22 +62,21 @@ const router = new VueRouter({
     {
       name: "VDC",
       path: '/',
-      redirect: '/s3',
+      redirect: '/kubernetes',
       component: vdc,
       props: true,
       children: [{
-        name: 'S3',
-        path: 's3',
-        component: s3,
-        props: (route) => ({ query: route.query.vdc })
-      },
-      {
         name: 'Kubernetes',
         path: 'kubernetes',
         component: kubernetes,
         props: (route) => ({ query: route.query.vdc })
-      }
-      ]
+      },
+      {
+        name: 'S3',
+        path: 's3',
+        component: s3,
+        props: (route) => ({ query: route.query.vdc })
+      }]
     },
     { name: "Home", path: '/marketplacevdc', component: home, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
