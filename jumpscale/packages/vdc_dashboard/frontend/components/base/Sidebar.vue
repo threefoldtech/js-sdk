@@ -53,7 +53,9 @@
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link class="d-block" :to="`/s3`"> s3</router-link>
+              <router-link class="d-block" :to="`/kubernetes`">
+                kubernetes</router-link
+              >
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -65,9 +67,7 @@
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link class="d-block" :to="`/kubernetes`">
-                kubernetes</router-link
-              >
+              <router-link class="d-block" :to="`/s3`"> s3</router-link>
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
