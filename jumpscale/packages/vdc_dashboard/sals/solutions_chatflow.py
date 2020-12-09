@@ -238,7 +238,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
         choices = ["Choose subdomain for me on a gateway", "Choose a custom subdomain on a gateway"]
-        self.domain_type = self.single_choice("Select the domain type", choices, default="Create standard Domain")
+        self.domain_type = self.single_choice(
+            "Select the domain type", choices, default="Choose subdomain for me on a gateway"
+        )
         # get self.domain
         self._get_domain()
         self._create_subdomain()
