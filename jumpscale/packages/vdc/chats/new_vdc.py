@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE
+from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from textwrap import dedent
 
@@ -63,6 +63,7 @@ class VDCDeploy(GedisChatBot):
             self.stop("failed to initialize vdc deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
+        old_wallet = self.deployer._set_wallet(j.core.config.get("VDC_INITIALIZATION_WALLET"))
         try:
             self.config = self.deployer.deploy_vdc(
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
@@ -73,6 +74,8 @@ class VDCDeploy(GedisChatBot):
         except j.exceptions.Runtime as err:
             j.logger.error(str(err))
             self.stop(str(err))
+        self.deployer._set_wallet(old_wallet)
+        self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
     @chatflow_step(title="Expose S3", disable_previous=True)
     def expose_s3(self):

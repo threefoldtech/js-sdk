@@ -58,7 +58,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for kubernetes cluster extension."
             )
 
-        self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.vdc_deployer.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
+
         success = self.vdc_deployer.wait_pool_payment(pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         if not success:
             raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")

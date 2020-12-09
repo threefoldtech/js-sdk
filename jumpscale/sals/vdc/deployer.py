@@ -78,6 +78,17 @@ class VDCDeployer:
         self._threebot = None
         self._monitoring = None
         self._public_ip = None
+        self._transaction_hashes = []
+
+    @property
+    def transaction_hashes(self):
+        return self._transaction_hashes
+
+    @transaction_hashes.setter
+    def transaction_hashes(self, value):
+        self.info(f"adding transactions {value}")
+        if isinstance(value, list):
+            self._transaction_hashes += value
 
     @property
     def public_ip(self):
@@ -190,13 +201,13 @@ class VDCDeployer:
                 self.info(
                     f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
                 )
-                self.zos.billing.payout_farmers(self.wallet, pool_info)
+                self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
                 return pool.pool_id
         pool_info = self.zos.pools.create(cus, sus, ipv4us, farm_name)
         self.info(
             f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
         )
-        self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
         return pool_info.reservation_id
 
     def init_vdc(self, selected_farm=PREFERED_FARM):
@@ -444,8 +455,6 @@ class VDCDeployer:
             raise j.exceptions.Validation(
                 f"not enough resources in farm {farm_name} to deploy vdc of flavor {self.flavor}"
             )
-        # change the initial deployment wallet
-        extension_wallet_name = self._set_wallet(initial_wallet_name)
 
         cluster_secret = self.password_hash
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
@@ -559,10 +568,6 @@ class VDCDeployer:
             except j.exceptions.Runtime as e:
                 # TODO: rollback
                 self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
-
-            # originally reserve for one hour using an initial wallet. then extend to 2 weeks using the customers wallet
-            self._set_wallet(extension_wallet_name)
-            self.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
             return kube_config
 
@@ -680,7 +685,7 @@ class VDCDeployer:
             self.info(
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )
-            self.zos.billing.payout_farmers(self.wallet, pool_info)
+            self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
         self.vdc_instance.expiration = self.vdc_instance.expiration.timestamp() + duration * 60 * 60 * 24
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:

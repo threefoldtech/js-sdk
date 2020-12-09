@@ -14,6 +14,8 @@ from .size import VDC_SIZE
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
+from jumpscale.sals.vdc import size
+
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
     WorkloadType.Zdb,
@@ -263,7 +265,7 @@ class UserVDC(Base):
             wallet = j.clients.stellar.get(wallet_name)
             wallet_address = wallet.address
         else:
-            wallet_address = self.provision_wallet.address
+            wallet_address = self.prepaid_wallet.address
         # TODO: properly generate and save memo text
         memo_text = j.data.idgenerator.chars(28)
         qr_code = f"TFT:{wallet_address}?amount={amount}&message={memo_text}&sender=me"
@@ -286,7 +288,9 @@ class UserVDC(Base):
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
-            wallet = self.provision_wallet
+            wallet = self.prepaid_wallet
+
+        bot.md_show_update("wating for payment...")
 
         deadline = j.data.time.now().timestamp + expiry * 60
         while j.data.time.now().timestamp < deadline:
@@ -312,17 +316,26 @@ class UserVDC(Base):
                         self.refund_payment(transaction_hash, wallet_name, diff)
                     return transaction_hash
                 else:
+                    bot.md_show_update(
+                        f"received amount {trans_amount} which is less than required ({amount}). refunding...."
+                    )
                     self.refund_payment(transaction_hash, wallet_name)
+                    return
+        bot.md_show_update(f"payment timedout")
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
-        amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
+        # amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
+        amount = VDC_SIZE.PRICES["plans"][self.flavor]
         memo_text = self._show_payment(bot, amount, wallet_name)
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
-    def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None):
-        amount = VDC_SIZE.get_kubernetes_tft_price(size) * no_nodes
+    def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+        amount = VDC_SIZE.PRICES["nodes"][size]
         memo_text = self._show_payment(bot, amount, wallet_name)
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
+
+    def transfer_to_provisioning_wallet(self,):
+        pass
 
     def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
         j.logger.critical(
