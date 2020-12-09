@@ -15,7 +15,7 @@ from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
 from .public_ip import VDCPublicIP
-from .scheduler import GlobalScheduler, Scheduler
+from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler
 from .size import *
 from jumpscale.core.exceptions import exceptions
 from contextlib import ContextDecorator
@@ -202,7 +202,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
-        duration = VDC_SIZE.VDC_FLAVORS[self.flavor]["duration"]
+        duration = INITIAL_RESERVATION_DURATION / 24
 
         def get_cloud_units(workload):
             ru = workload.resource_units()
@@ -344,14 +344,92 @@ class VDCDeployer:
             cluster_secret,
             [self.ssh_key.public_key.strip()],
             no_nodes,
-            VDC_SIZE.VDC_FLAVORS[self.flavor]["duration"],
+            duration=INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=self.vdc_uuid,
         )
         if not wids:
             self.error("failed to deploy kubernetes workers")
         return wids
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM):
+    def _set_Wallet(self, alternate_wallet_name=None):
+        """
+        Returns:
+            old wallet name
+        """
+        self.info(f"using wallet: {alternate_wallet_name} instead of {self.wallet_name}")
+        if not alternate_wallet_name:
+            return self.wallet_name
+        old_wallet_name = self.wallet_name
+        self.wallet_name = alternate_wallet_name
+        self._wallet = None
+        return old_wallet_name
+
+    def check_capacity(self, farm_name):
+        # make sure there are available public ips
+        farm = self.explorer.farms.get(farm_name=NETWORK_FARM)
+        available_ips = False
+        for address in farm.ipaddresses:
+            if not address.reservation_id:
+                available_ips = True
+                break
+        if not available_ips:
+            return False
+
+        gcc = GlobalCapacityChecker()
+        # check zdb capacity
+        if len(ZDB_FARMS) != 2:
+            raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
+        zdb_query = {
+            "sru": ZDB_STARTING_SIZE,
+            "no_nodes": (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
+            "ip_version": "IPv6",
+        }
+        for farm in ZDB_FARMS:
+            if not gcc.add_query(farm, **zdb_query):
+                return False
+
+        plan = VDC_SIZE.VDC_FLAVORS[self.flavor]
+
+        # check kubernetes capacity
+        master_query = {"farm_name": NETWORK_FARM, "public_ip": True}
+        master_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["controller_size"]])
+        if not gcc.add_query(**master_query):
+            return False
+
+        worker_query = {"farm_name": farm_name, "no_nodes": plan["k8s"]["no_nodes"]}
+        worker_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["size"]])
+        if not gcc.add_query(**worker_query):
+            return False
+
+        # check minio container and volume capacity
+        minio_query = {
+            "farm_name": farm_name,
+            "cru": MINIO_CPU,
+            "mru": MINIO_MEMORY / 1024,
+            "sru": (MINIO_DISK / 1024) + 0.25,
+            "ip_version": "IPv6",
+        }
+        if not gcc.add_query(**minio_query):
+            return False
+
+        # check threebot container capacity
+        threebot_query = {
+            "farm_name": farm_name,
+            "cru": THREEBOT_CPU,
+            "mru": THREEBOT_MEMORY / 1024,
+            "sru": THREEBOT_DISK / 1024,
+        }
+        if not gcc.add_query(**threebot_query):
+            return False
+
+        # check trc container capacity
+        trc_query = {"farm_name": farm_name, "cru": 1, "mru": 1, "sru": 0.25}
+        if not gcc.add_query(**trc_query):
+            return False
+
+        return gcc.result
+
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM, initial_wallet_name=None):
         """deploys a new vdc
         Args:
             cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
@@ -359,6 +437,13 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
+        if not self.check_capacity(farm_name):
+            raise j.exceptions.Validation(
+                f"not enough resources in farm {farm_name} to deploy vdc of flavor {self.flavor}"
+            )
+        # change the initial deployment wallet
+        extension_wallet_name = self._set_Wallet(initial_wallet_name)
+
         cluster_secret = self.password_hash
         self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
@@ -471,6 +556,10 @@ class VDCDeployer:
             except j.exceptions.Runtime as e:
                 # TODO: rollback
                 self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
+
+            # originally reserve for one hour using an initial wallet. then extend to 2 weeks using the customers wallet
+            self._set_Wallet(extension_wallet_name)
+            self.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
             return kube_config
 

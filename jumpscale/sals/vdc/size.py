@@ -13,6 +13,8 @@ THREEBOT_CPU = 1
 THREEBOT_MEMORY = 2 * 1024  # in MB
 THREEBOT_DISK = 2 * 1024  # in MB
 
+INITIAL_RESERVATION_DURATION = 1  # in hours
+
 S3_AUTO_TOPUP_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
 ZDB_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
 PREFERED_FARM = "lochristi_dev_lab"

@@ -141,31 +141,6 @@ class Scheduler:
             self._excluded_node_ids = set()
 
 
-class CapacityChecker:
-    def __init__(self, farm_name):
-        self.farm_name = farm_name
-        self.scheduler = Scheduler(farm_name)
-        self.result = True
-
-    def exclude_nodes(self, *node_ids):
-        self.scheduler.exclude_nodes(*node_ids)
-
-    def add_query(
-        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
-    ):
-        nodes = []
-        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip):
-            nodes.append(node)
-            if len(nodes) == no_nodes + backup_no:
-                return self.result
-        self.result = False
-        return self.result
-
-    def refresh(self, clear_excluded=False):
-        self.result = True
-        self.scheduler.refresh_nodes(clear_excluded)
-
-
 class GlobalScheduler:
     def __init__(self) -> None:
         self.farm_schedulers = {}
@@ -217,3 +192,75 @@ class GlobalScheduler:
                     yield next(node_generator)
             except StopIteration:
                 continue
+
+
+class CapacityChecker:
+    def __init__(self, farm_name):
+        self.farm_name = farm_name
+        self.scheduler = Scheduler(farm_name)
+        self.result = True
+
+    def exclude_nodes(self, *node_ids):
+        self.scheduler.exclude_nodes(*node_ids)
+
+    def add_query(
+        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
+    ):
+        nodes = []
+        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip):
+            nodes.append(node)
+            if len(nodes) == no_nodes + backup_no:
+                return self.result
+        self.result = False
+        return self.result
+
+    def refresh(self, clear_excluded=False):
+        self.result = True
+        self.scheduler.refresh_nodes(clear_excluded)
+
+
+class GlobalCapacityChecker:
+    def __init__(self):
+        self._checkers = {}
+        self._result = True
+        self._excluded_node_ids = []
+
+    @property
+    def result(self):
+        for cc in self._checkers.values():
+            self._result = self._result and cc.result
+        return self._result
+
+    def get_checker(self, farm_name):
+        if farm_name not in self._checkers:
+            cc = CapacityChecker(farm_name)
+            cc.exclude_nodes(*self._excluded_node_ids)
+            self._checkers[farm_name] = cc
+        return self._checkers[farm_name]
+
+    def exclude_nodes(self, *node_ids):
+        self._excluded_node_ids += node_ids
+        for cc in self._checkers.values():
+            cc.exclude_nodes(*node_ids)
+
+    def add_query(
+        self,
+        farm_name,
+        cru=None,
+        mru=None,
+        hru=None,
+        sru=None,
+        ip_version=None,
+        public_ip=None,
+        no_nodes=1,
+        backup_no=0,
+    ):
+        cc = self.get_checker(farm_name)
+        result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no)
+        self._result = self._result and result
+        return self._result
+
+    def refresh(self, clear_excluded=False):
+        self._result = True
+        for cc in self._checkers.values():
+            cc.refresh(clear_excluded)
