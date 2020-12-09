@@ -58,7 +58,7 @@ class Admin(BaseActor):
                 j.logger.exception("error", exception=e)
                 # TODO: include traceback
                 j.tools.alerthandler.alert_raise(
-                    appname="admin",
+                    app_name="admin",
                     category="internal_errors",
                     message=f"failed to get identity {identity_name} info due to error {str(e)}",
                     alert_type="exception",
