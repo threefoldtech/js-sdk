@@ -20,7 +20,7 @@ class VDCDeploy(GedisChatBot):
             required=True,
             not_exist=["VDC", vdc_names],
         )
-        self.vdc_secret = form.secret_ask("VDC Secret (will be used ...)", min_length=8, required=True,)
+        self.vdc_secret = form.secret_ask("VDC Secret (Secret for your VDC protection)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
             "Choose the VDC Flavor", options=vdc_flavors, default=vdc_flavors[0], required=True
         )
@@ -28,8 +28,12 @@ class VDCDeploy(GedisChatBot):
 
     def _k3s_and_minio_form(self):
         form = self.new_form()
-        self.minio_access_key = form.string_ask("Minio access key (will be used ...)", required=True,)
-        self.minio_secret_key = form.secret_ask("Minio secret key (will be used ...)", min_length=8, required=True,)
+        self.minio_access_key = form.string_ask(
+            "S3 access key (Credentials used to access the VDC's S3)", required=True,
+        )
+        self.minio_secret_key = form.secret_ask(
+            "S3 secret key (Credentials used to access the VDC's S3)", min_length=8, required=True,
+        )
         form.ask()
 
     @chatflow_step(title="VDC Information")
