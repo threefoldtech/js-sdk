@@ -3,6 +3,7 @@ import binascii
 import requests
 from jumpscale.loader import j
 import os
+import urllib.parse
 
 
 def _encode_data(data):
@@ -38,7 +39,8 @@ def register_dashboard():
         signature = j.core.identity.me.nacl.signing_key.sign(encoded_data).signature
         signature = binascii.hexlify(signature).decode()
         data["signature"] = signature
+        url = urllib.parse.urljoin(MONITORING_SERVER_URL, "register")
         try:
-            requests.post(f"{MONITORING_SERVER_URL}/register", json=data)
+            requests.post(url, json=data)
         except Exception as e:
-            j.logger.error(f"Failed to register dashboard, URL:{MONITORING_SERVER_URL}/register, exception: {str(e)}")
+            j.logger.error(f"Failed to register dashboard, URL:{url}, exception: {str(e)}")
