@@ -18,7 +18,8 @@
       </template>
 
       <template v-slot:item.ip="{ item }">
-        <div>{{ item.ip_address }}</div>
+        <div v-if="item.ip_address != '::/128'">{{ item.ip_address }}</div>
+        <div v-else></div>
       </template>
 
       <template v-slot:item.role="{ item }">
