@@ -10,7 +10,7 @@ from jumpscale.sals.zos import get as get_zos
 from .deployer import VDCDeployer
 from .proxy import VDC_PARENT_DOMAIN
 from .models import *
-from .size import VDC_SIZE
+from .size import VDCSize, VDC_SIZE
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -290,8 +290,6 @@ class UserVDC(Base):
         else:
             wallet = self.prepaid_wallet
 
-        bot.md_show_update("wating for payment...")
-
         deadline = j.data.time.now().timestamp + expiry * 60
         while j.data.time.now().timestamp < deadline:
             # get transactions and identify memo text and amount
@@ -330,15 +328,22 @@ class UserVDC(Base):
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
-        amount = VDC_SIZE.PRICES["nodes"][size]
+        amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
+        if public_ip:
+            amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
         memo_text = self._show_payment(bot, amount, wallet_name)
         return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
 
-    def transfer_to_provisioning_wallet(self,):
-        pass
+    def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
+        if wallet_name:
+            wallet = j.clients.stellar.get(wallet_name)
+        else:
+            wallet = self.prepaid_wallet
+        a = wallet.get_asset()
+        return wallet.transfer(self.provision_wallet.address, amount=amount, asset=f"{a.code}:{a.issuer}")
 
     def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
-        j.logger.critical(
+        j.logger.info(
             f"refunding amount: {amount} transaction hash: {transaction_hash} from wallet: {wallet_name} for vdc {self.vdc_name} owner {self.owner_tname}"
         )
         if wallet_name:
@@ -362,3 +367,21 @@ class UserVDC(Base):
                 )
                 return False
         return True
+
+    def pay_initialization_fee(self, transaction_hashes, initial_wallet_name, wallet_name=None):
+        initial_wallet = j.clients.stellar.get(initial_wallet_name)
+        if wallet_name:
+            wallet = j.clients.stellar.get(wallet_name)
+        else:
+            wallet = self.provision_wallet
+        # get total amount
+        amount = 0
+        for t_hash in transaction_hashes:
+            effects = initial_wallet.get_transaction_effects(t_hash)
+            for effect in effects:
+                amount += effect.amount
+        amount = abs(amount)
+        if not amount:
+            return
+        a = wallet.get_asset()
+        return wallet.transfer(initial_wallet.address, amount=amount, asset=f"{a.code}:{a.issuer}")

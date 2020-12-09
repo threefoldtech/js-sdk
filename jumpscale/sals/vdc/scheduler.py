@@ -113,22 +113,22 @@ class Scheduler:
             if cru and total.cru - max(0, reserved.cru) < 0:
                 return False
 
-            if mru and total.mru - max(0, reserved.mru) < 0:
-                return False
-
             if cru and total.cru - max(0, reserved.cru) < cru:
                 return False
 
-            if mru and total.mru - max(0, reserved.mru) < mru:
-                return False
+        if mru and total.mru - max(0, reserved.mru) < 0:
+            return False
+
+        if mru and total.mru - max(0, reserved.mru) < mru:
+            return False
 
         if sru and total.sru - max(0, reserved.sru) < 0:
             return False
 
-        if hru and total.hru - max(0, reserved.hru) < 0:
+        if sru and total.sru - max(0, reserved.sru) < sru:
             return False
 
-        if sru and total.sru - max(0, reserved.sru) < sru:
+        if hru and total.hru - max(0, reserved.hru) < 0:
             return False
 
         if hru and total.hru - max(0, reserved.hru) < hru:

@@ -15,10 +15,10 @@ THREEBOT_DISK = 2 * 1024  # in MB
 
 INITIAL_RESERVATION_DURATION = 1  # in hours
 
-S3_AUTO_TOPUP_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
-ZDB_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
-PREFERED_FARM = "lochristi_dev_lab"
-NETWORK_FARM = "lochristi_dev_lab"
+S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
+ZDB_FARMS = ["freefarm", "freefarm"]
+PREFERED_FARM = "freefarm"
+NETWORK_FARM = "freefarm"
 
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
@@ -204,13 +204,13 @@ class VDCSize:
     def load_prices(self):
         self._prices = {"plans": {}, "nodes": {}, "services": {}}
         for plan, cost in self._prices_data["plans"].items():
-            self._prices[self.VDCFlavor[plan.upper()]] = cost
+            self._prices["plans"][self.VDCFlavor[plan.upper()]] = cost
 
         for node, cost in self._prices_data["nodes"].items():
-            self._prices[self.K8SNodeFlavor[node.upper()]] = cost
+            self._prices["nodes"][self.K8SNodeFlavor[node.upper()]] = cost
 
         for service, cost in self._prices_data["services"].items():
-            self._prices[self.Services[service.upper()]] = cost
+            self._prices["services"][self.Services[service.upper()]] = cost
 
 
 VDC_SIZE = VDCSize()

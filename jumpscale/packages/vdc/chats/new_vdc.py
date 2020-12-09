@@ -26,6 +26,7 @@ class VDCDeploy(GedisChatBot):
             "Please enter a name for your VDC (will be used in listing and deletions in the future and in having a unique url)",
             required=True,
             not_exist=["VDC", vdc_names],
+            is_identifier=True,
         )
         self.vdc_secret = form.secret_ask("VDC Secret (Secret for controlling the vdc)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
@@ -57,7 +58,6 @@ class VDCDeploy(GedisChatBot):
         )
         trans_hash = self.vdc.show_vdc_payment(self)
         if not trans_hash:
-            j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
 
@@ -66,11 +66,11 @@ class VDCDeploy(GedisChatBot):
         except Exception as e:
             j.logger.error(f"failed to initialize vdc deployer due to error {str(e)}")
             self.vdc.refund_payment(trans_hash)
-            j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop("failed to initialize vdc deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
-        old_wallet = self.deployer._set_wallet(j.core.config.get("VDC_INITIALIZATION_WALLET"))
+        initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
+        old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
             self.config = self.deployer.deploy_vdc(
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
@@ -81,7 +81,14 @@ class VDCDeploy(GedisChatBot):
         except j.exceptions.Runtime as err:
             j.logger.error(str(err))
             self.stop(str(err))
+        self.md_show_update("Adding funds to provisioning wallet...")
+        amount = VDC_SIZE.PRICES["plans"][self.vdc.flavor]
+        initial_transaction_hashes = self.deployer.transaction_hashes
+        self.vdc.transfer_to_provisioning_wallet(amount / 2)
+        if initialization_wallet_name:
+            self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
         self.deployer._set_wallet(old_wallet)
+        self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
     @chatflow_step(title="Expose S3", disable_previous=True)
