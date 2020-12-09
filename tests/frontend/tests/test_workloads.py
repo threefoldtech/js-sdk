@@ -27,6 +27,5 @@ class WorkloadsTests(BaseTest):
         self.workloads.delete_selected_workloads(workload_ID)
 
         self.info("Check that selected workload has been deleted correctly")
-        self.workloads.load()
         worklods_status = self.workloads.check_selected_workloads_status(workload_ID)
         self.assertEquals(worklods_status, "DELETED")
