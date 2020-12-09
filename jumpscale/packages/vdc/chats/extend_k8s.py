@@ -5,7 +5,7 @@ from jumpscale.sals.vdc.deployer import VDCIdentityError
 
 
 class ExtendKubernetesCluster(GedisChatBot):
-    title = "Extend K8S Cluster"
+    title = "Extend Kubernetes Cluster"
     steps = ["flavor", "use_public_ip", "add_node", "success"]
 
     @chatflow_step(title="Node Flavor")
