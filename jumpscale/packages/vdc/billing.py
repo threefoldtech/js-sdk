@@ -9,6 +9,20 @@ from jumpscale.sals.vdc.models import KubernetesRole
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
 
 
+def get_vdc_instance():
+    vdc_instance_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.find(name=vdc_instance_name, load_info=True)
+    if not vdc_instance:
+        j.logger.info(f"We couldn't find the vdc instance {vdc_instance}")
+        j.tools.alerthandler.alert_raise(
+            app_name="get_vdc_instance",
+            category="internal_errors",
+            message=f"threebot_vdc: couldn't get instance of vdc with name {vdc_instance} due to error: {str(e)}",
+            alert_type="exception",
+        )
+    return vdc_instance
+
+
 def get_addons(flavor, kubernetes_addons):
     """Get all the addons on the basic user plan
 
@@ -54,7 +68,7 @@ def calculate_addon_price(addon):
     Args:
         addon(obj): addon object 
     Returns:
-        (float): addon price
+       price(float): addon price
     """
     prices = get_prices()
     size = addon.size.name.lower()
@@ -64,10 +78,9 @@ def calculate_addon_price(addon):
 def calculate_plan_base_price():
     """Get user plan price
     Returns:
-        float(): the price of user plan
+       price(float): the price of user plan
     """
-    vdc_instance_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    vdc_instance = get_vdc_instance()
     prices = get_prices()
     return prices["plans"][vdc_instance.flavor.value]
 
@@ -79,13 +92,10 @@ def calculate_addons_hourly_rate():
         total_price (float): the total price for all addons
     """
 
-    vdc_instance_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_instance_name)
-    # addons = vdc_instance.addons
+    vdc_instance = get_vdc_instance()
     total_price = 0
     # Calculate all the hourly late for all addons
     addons = []
-    vdc_instance.load_info()
     addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
     for addon in addons:
         addon_price = calculate_addon_price(addon)
@@ -111,8 +121,7 @@ def calculate_hourly_rate():
 def tranfer_prepaid_to_provision_wallet():
     """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
     """
-    vdc_instance_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    vdc_instance = get_vdc_instance()
     prepaid_wallet = vdc_instance.prepaid_wallet
     provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet.get_asset("TFT")
@@ -130,8 +139,7 @@ def auto_extend_billing():
     """
     # Get the VDC and deployer instances
 
-    vdc_instance_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_instance_name)
+    vdc_instance = get_vdc_instance()
     deployer = vdc_instance.get_deployer()
 
     # Calculating the duration to extend the pool

@@ -134,10 +134,10 @@ except:
     pass
 
 deadline = j.data.time.now().timestamp + 10 * 60
-# while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
-#     j.logger.info("wating for threebot domain reservation")
-#     vdc.load_info()
-#     gevent.sleep(10)
+while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
+    j.logger.info("wating for threebot domain reservation")
+    vdc.load_info()
+    gevent.sleep(10)
 
 server = j.servers.threebot.get("default")
 if TEST_CERT == "true":
@@ -167,12 +167,12 @@ j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
 
 # Register provisioning and prepaid wallets
 
-wallet = j.clients.stellar.new(
+wallet = j.clients.stellar.get(
     name=f"{vdc.instance_name}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
 )
 wallet.save()
 
-wallet = j.clients.stellar.new(
+wallet = j.clients.stellar.get(
     name=f"{vdc.instance_name}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
 )
 wallet.save()
