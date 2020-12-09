@@ -35,7 +35,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "KUBE_CONFIG": kube_config,
             "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
-            "VDC_INSTANCE": j.data.serializers.json.dumps(self.vdc_instance.to_dict()),
+            "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
         }
         env = {
             "VDC_NAME": self.vdc_name,
