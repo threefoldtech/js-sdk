@@ -29,7 +29,7 @@ const popup = httpVueLoader('./components/base/Popup.vue')
 const code = httpVueLoader('./components/base/Code.vue')
 const markdownViewer = httpVueLoader('./components/MarkdownViewer.vue')
 
-// vdc settings
+// VDC settings
 const s3 = httpVueLoader('./components/base/S3.vue')
 const kubernetes = httpVueLoader('./components/base/Kubernetes.vue')
 const ip = httpVueLoader('./components/base/IP.vue')
@@ -52,7 +52,7 @@ Vue.component("popup", popup)
 Vue.component("code-area", code)
 Vue.component("markdown-view", markdownViewer)
 
-// vdc components
+// VDC components
 Vue.component("s3", s3)
 Vue.component("kubernetes", kubernetes)
 Vue.component("ip", ip)

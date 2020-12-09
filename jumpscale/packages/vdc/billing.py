@@ -13,11 +13,11 @@ def get_vdc_instance():
     vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.find(name=vdc_instance_name, load_info=True)
     if not vdc_instance:
-        j.logger.info(f"We couldn't find the vdc instance {vdc_instance}")
+        j.logger.info(f"We couldn't find the VDC instance {vdc_instance}")
         j.tools.alerthandler.alert_raise(
             app_name="get_vdc_instance",
             category="internal_errors",
-            message=f"threebot_vdc: couldn't get instance of vdc with name {vdc_instance} due to error: {str(e)}",
+            message=f"threebot_vdc: couldn't get instance of VDC with name {vdc_instance} due to error: {str(e)}",
             alert_type="exception",
         )
     return vdc_instance
@@ -28,8 +28,8 @@ def get_addons(flavor, kubernetes_addons):
 
     Args:
         flavor(str): user flavor for the plan
-        kubernetes_addons(list): all kubernetes nodes 
-    
+        kubernetes_addons(list): all kubernetes nodes
+
     Returns:
         addons(list): list of addons used by the user over the basic chosen plan
 
@@ -50,7 +50,7 @@ def get_addons(flavor, kubernetes_addons):
 
 
 def get_prices():
-    """Get the prices of the addons and plans from github 
+    """Get the prices of the addons and plans from github
     Returns:
         VDC_PRICES(dict): return VDC_prices dictionary form out config
     """
@@ -66,7 +66,7 @@ def get_prices():
 def calculate_addon_price(addon):
     """Calculate the price of a single addon
     Args:
-        addon(obj): addon object 
+        addon(obj): addon object
     Returns:
        price(float): addon price
     """

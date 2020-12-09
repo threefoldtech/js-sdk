@@ -14,7 +14,7 @@ minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
 
 Required env variables:
 - VDC_NAME  -> for identity generation
-- VDC_UUID  -> for vdc workload identification
+- VDC_UUID  -> for VDC workload identification
 - VDC_OWNER_TNAME  -> for identity generation
 - VDC_EMAIL ->  for identity generation
 
@@ -24,7 +24,7 @@ Required env variables:
 - VDC_MINIO_ADDRESS  -> used for monitoring to trigger auto-top up and reconfig
 - VDC_S3_MAX_STORAGE  -> used for auto top up
 - S3_AUTO_TOPUP_FARMS  -> used for auto top up
-- VDC_INSTANCE -> json string from the vdc instance on deployer
+- VDC_INSTANCE -> json string from the VDC instance on deployer
 - PREPAID_WALLET_SECRET -> secret for prepaid wallet
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
 
@@ -176,4 +176,3 @@ wallet = j.clients.stellar.get(
     name=f"{vdc.instance_name}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
 )
 wallet.save()
-
