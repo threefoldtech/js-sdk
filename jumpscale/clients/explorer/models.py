@@ -445,7 +445,7 @@ class K8s(Base):
         resource_units = ResourceUnitAmount()
         size = size_table.get(self.size)
         if not size:
-            raise j.exceptions.Input(f"k8s size {self.size} not supported")
+            raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
 
         resource_units.cru += size["cru"]
         resource_units.mru += size["mru"]

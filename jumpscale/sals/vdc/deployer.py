@@ -381,7 +381,7 @@ class VDCDeployer:
             deployment_threads = self.deploy_vdc_zdb(gs)
 
             # deploy k8s cluster
-            self.bot_show_update("Deploying k8s cluster")
+            self.bot_show_update("Deploying kubernetes cluster")
             k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
             deployment_threads.append(k8s_thread)
             gevent.joinall(deployment_threads)
@@ -513,7 +513,7 @@ class VDCDeployer:
         try:
             public_key = self.ssh_key.public_key.strip()
         except Exception as e:
-            self.warning(f"failed to fetch key pair in k8s extension due to error: {str(e)}")
+            self.warning(f"failed to fetch key pair in kubernetes extension due to error: {str(e)}")
 
         if not public_key:
             key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
@@ -527,7 +527,7 @@ class VDCDeployer:
             no_nodes,
             solution_uuid=uuid.uuid4().hex,
         )
-        self.info(f"k8s cluster expansion result: {wids}")
+        self.info(f"kubernetes cluster expansion result: {wids}")
         return wids
 
     def rollback_vdc_deployment(self):
