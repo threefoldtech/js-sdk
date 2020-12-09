@@ -1,6 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from textwrap import dedent
 
 
 class VDCDeploy(GedisChatBot):
@@ -85,19 +86,17 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
+        msg = dedent(
+            f"""\
+        # Your VDC {self.vdc.vdc_name} has been deployed successfuly.
+        <br />\n
+        Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+        Kubernetes controller public IP: {self.public_ip}
+        """
+        )
         self.download_file(
-            f"""
-# Your VDC {self.vdc.vdc_name} has been deployed successfuly.
-
-
-Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-
-
-Kubernetes controller public IP: {self.public_ip}
-        """,
-            self.config,
-            f"{self.vdc.vdc_name}.yaml",
-            md=True,
+            msg, self.config, f"{self.vdc.vdc_name}.yaml", md=True,
         )
 
 
