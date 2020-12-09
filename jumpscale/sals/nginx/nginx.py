@@ -168,7 +168,7 @@ class Certbot(Base):
 
 
 class NginxCertbot(Certbot):
-    nginx_server_root = fields.String()
+    nginx_server_root = fields.String(required=True)
     nginx = fields.Boolean(default=True)
 
 
@@ -234,7 +234,12 @@ class Website(Base):
 
     @property
     def certbot(self):
-        kwargs = dict(domain=self.domain, email=self.letsencryptemail, server=self.acme_server_url)
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+        )
 
         if self.acme_server_type == AcmeServer.LETSENCRYPT:
             certbot_type = LetsencryptCertbot

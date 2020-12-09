@@ -132,6 +132,10 @@ class NginxPackageConfig:
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")
                 )
+                website.acme_server_type = server.get(
+                    "acme_server_type", self.default_config[0].get("acme_server_type")
+                )
+                website.acme_server_url = server.get("acme_server_url", self.default_config[0].get("acme_server_url"))
 
                 for location in server.get("locations", []):
                     loc = None
