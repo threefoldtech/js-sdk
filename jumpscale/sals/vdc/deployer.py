@@ -59,7 +59,7 @@ class VDCDeployer:
         self.password = password
         self.password_hash = None
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
-        self.wallet_name = self.vdc_instance.wallet.instance_name
+        self.wallet_name = self.vdc_instance.provision_wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
@@ -329,7 +329,7 @@ class VDCDeployer:
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv,
+            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -417,6 +417,7 @@ class VDCDeployer:
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")
             self.vdc_instance.load_info()
+
             master_ip = self.vdc_instance.kubernetes[0].public_ip
 
             if master_ip == "::/128":
@@ -582,13 +583,13 @@ class VDCDeployer:
             pool = self.zos.pools.get(pool_id)
             sus = pool.active_su * duration * 60 * 60 * 24
             cus = pool.active_cu * duration * 60 * 60 * 24
-            ipv4us = pool.ipv4us * duration * 60 * 60 * 24
-            pool_info = self.zos.pools.extend(pool_id, cus, sus, ipv4us)
+            ipv4us = pool.active_ipv4 * duration * 60 * 60 * 24
+            pool_info = self.zos.pools.extend(pool_id, int(cus), int(sus), int(ipv4us))
             self.info(
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )
             self.zos.billing.payout_farmers(self.wallet, pool_info)
-        self.vdc_instance.expiration = self.vdc_instance.expiration + duration * 60 * 60 * 24
+        self.vdc_instance.expiration = self.vdc_instance.expiration.timestamp() + duration * 60 * 60 * 24
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
             self.vdc_instance.undo_grace_period_action()

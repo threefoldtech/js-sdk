@@ -32,9 +32,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
-            "VDC_WALLET_SECRET": self.vdc_deployer.wallet.secret,
-            "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
             "KUBE_CONFIG": kube_config,
+            "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
+            "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
+            "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
         }
         env = {
             "VDC_NAME": self.vdc_name,
@@ -113,7 +114,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
             try:
                 success = deployer.wait_workload(
-                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
                     return wid
