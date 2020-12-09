@@ -38,7 +38,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             deployer = self.vdc.get_deployer(password=vdc_secret, bot=self)
         except VDCIdentityError:
             self.stop(
-                f"Couldn't verify VDC secret. please make sure you are using the correct secret for vdc {self.vdc_name}"
+                f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
         # transaction_hash = self.vdc.show_external_node_payment(self, self.node_flavor, expiry=1)

@@ -347,9 +347,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         ssh_client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
         rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
         if rc:
-            j.logger.error(f"couldn't read k3s config for vdc {self.vdc_name}")
+            j.logger.error(f"couldn't read k3s config for VDC {self.vdc_name}")
             j.tools.alerthandler.alert_raise(
-                "vdc", f"couldn't read k3s config for vdc {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
+                "vdc", f"couldn't read k3s config for VDC {self.vdc_name} rc: {rc}, out: {out}, err: {err}"
             )
             raise j.exceptions.Runtime(f"Couldn't download kube config for vdc: {self.vdc_name}.")
         j.clients.sshclient.delete(ssh_client.instance_name)

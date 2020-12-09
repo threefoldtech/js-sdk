@@ -65,10 +65,10 @@ class VDCDeploy(GedisChatBot):
         try:
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
-            j.logger.error(f"failed to initialize vdc deployer due to error {str(e)}")
+            j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             self.vdc.refund_payment(trans_hash)
             j.sals.vdc.delete(self.vdc.vdc_name)
-            self.stop("failed to initialize vdc deployer. please contact support")
+            self.stop("failed to initialize VDC deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
         try:
@@ -76,7 +76,7 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                self.stop("Failed to deploy vdc. please try again later")
+                self.stop("Failed to deploy VDC. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except j.exceptions.Runtime as err:
             j.logger.error(str(err))

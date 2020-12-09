@@ -326,7 +326,7 @@ class UserVDC(Base):
 
     def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
         j.logger.critical(
-            f"refunding amount: {amount} transaction hash: {transaction_hash} from wallet: {wallet_name} for vdc {self.vdc_name} owner {self.owner_tname}"
+            f"refunding amount: {amount} transaction hash: {transaction_hash} from wallet: {wallet_name} for VDC {self.vdc_name} owner {self.owner_tname}"
         )
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
@@ -345,7 +345,7 @@ class UserVDC(Base):
                 wallet.transfer(sender_address, amount=trans_amount, asset=f"{a.code}:{a.issuer}")
             except Exception as e:
                 j.logger.critical(
-                    f"failed to refund transaction hash: {transaction_hash} from wallet: {wallet_name} for vdc {self.vdc_name} owner {self.owner_tname} due to error {str(e)}"
+                    f"failed to refund transaction hash: {transaction_hash} from wallet: {wallet_name} for VDC {self.vdc_name} owner {self.owner_tname} due to error {str(e)}"
                 )
                 return False
         return True
