@@ -45,7 +45,8 @@ jobs:
           poetry build
       - name: Extract tar files
         run: |
-          tar xvzf dist/js-sdk-11.1a1.tar.gz
+          tar xvzf dist/js-sdk-*.tar.gz -C /tmp
       - name: Install
         run: |
-          sudo python3 js-sdk-11.1a1/setup.py install
+          cd /tmp/js-sdk-*
+          sudo python3 setup.py install
