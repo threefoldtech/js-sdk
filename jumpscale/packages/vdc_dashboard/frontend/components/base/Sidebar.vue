@@ -4,7 +4,7 @@
       <v-list-item>
         <v-list-item-content>
           <v-list-item-title class="title">
-            <v-dialog v-model="dialog" persistent max-width="290">
+            <v-dialog v-model="dialog" persistent max-width="500">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn v-bind="attrs" v-on="on">
                   <v-icon left color="primary">mdi-wallet</v-icon> {{ name }}

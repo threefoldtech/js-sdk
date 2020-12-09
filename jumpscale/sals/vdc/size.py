@@ -23,82 +23,71 @@ NETWORK_FARM = "lochristi_dev_lab"
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
 PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/plans.json"
+PRICES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json"
 
 
 class VDCSize:
     def __init__(self):
         self._LAST_LOADED = None
-        self._K8SNodeFlavor = None
-        self._K8S_PRICES = None  # TODO: remove
-        self._K8S_SIZES = None
-        self._S3ZDBSize = None
-        self._S3_ZDB_SIZES = None
-        self._VDCFlavor = None
-        self._VDC_FLAVORS = None
+        self._k8s_node_flavor = None
+        self._k8s_sizes = None
+        self._s3_zdb_size = None
+        self._s3_zdb_sizes = None
+        self._vdc_flavor = None
+        self._vdc_flavors = None
+        self._services = None
+        self._prices = None
         self._workload_sizes = None
         self._plans_data = None
+        self._prices_data = None
 
     @property
     def K8SNodeFlavor(self):
         if not self.is_updated:
             self.load()
-        return self._K8SNodeFlavor
-
-    @property
-    def K8S_PRICES(self):
-        if not self.is_updated:
-            self.load()
-        return self._K8S_PRICES
+        return self._k8s_node_flavor
 
     @property
     def K8S_SIZES(self):
         if not self.is_updated:
             self.load()
-        return self._K8S_SIZES
+        return self._k8s_sizes
 
     @property
     def S3ZDBSize(self):
         if not self.is_updated:
             self.load()
-        return self._S3ZDBSize
+        return self._s3_zdb_size
 
     @property
     def S3_ZDB_SIZES(self):
         if not self.is_updated:
             self.load()
-        return self._S3_ZDB_SIZES
+        return self._s3_zdb_sizes
 
     @property
     def VDCFlavor(self):
         if not self.is_updated:
             self.load()
-        return self._VDCFlavor
+        return self._vdc_flavor
 
     @property
     def VDC_FLAVORS(self):
         if not self.is_updated:
             self.load()
-        return self._VDC_FLAVORS
+        return self._vdc_flavors
 
-    @staticmethod
-    def _convert_eur_to_tft(amount):
-        c = j.clients.liquid.get("vdc")
-        eur_btc_price = c.get_pair_price("BTCEUR")
-        tft_eur_price = c.get_pair_price("TFTBTC")
-        eur_to_tft = 1 / (tft_eur_price.ask * eur_btc_price.ask)
-        return eur_to_tft * amount
+    @property
+    def Services(self):
+        if not self.is_updated:
+            self.load()
+        return self._services
 
-    def get_vdc_tft_price(self, flavor):
-        if isinstance(flavor, str):
-            flavor = self.VDCFlavor[flavor.upper()]
-        amount = self.VDC_FLAVORS[flavor]["price"]
-        return self._convert_eur_to_tft(amount)
-
-    def get_kubernetes_tft_price(self, flavor):
-        if isinstance(flavor, str):
-            flavor = self.K8SNodeFlavor[flavor.upper()]
-        amount = self.K8S_PRICES[flavor]
-        return self._convert_eur_to_tft(amount)
+    @property
+    def PRICES(self):
+        if not self.is_updated:
+            self.load()
+        return self._prices
 
     @property
     def is_updated(self):
@@ -116,6 +105,8 @@ class VDCSize:
         self.load_s3_zdb_size_details()
         self.load_vdc_flavors()
         self.load_vdc_plans()
+        self.load_services()
+        self.load_prices()
 
     def fetch_upstream_info(self):
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/size")
@@ -143,6 +134,18 @@ class VDCSize:
             plans_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json")
             self._plans_data = j.data.serializers.json.loads(plans_data)
 
+        try:
+            prices_res = j.tools.http.get(PRICES_URL)
+            prices_res.raise_for_status()
+            self._prices_data = prices_res.json()
+            j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json", prices_res.text)
+        except Exception as e:
+            j.logger.warning(f"failed to download prices due to error {str(e)}")
+            if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json"):
+                raise e
+            prices_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json")
+            self._prices_data = j.data.serializers.json.loads(prices_data)
+
         self._LAST_LOADED = j.data.time.now().timestamp
 
     def load_k8s_flavor(self):
@@ -150,11 +153,11 @@ class VDCSize:
         values = dict()
         for key, val in self._workload_sizes["kubernetes"].items():
             values[key.upper()] = val["value"]
-        self._K8SNodeFlavor = Enum("K8SNodeFlavor", values)
+        self._k8s_node_flavor = Enum("K8SNodeFlavor", values)
 
     def load_k8s_sizes(self):
         # fills K8S_SIZES
-        self._K8S_SIZES = dict()
+        self._k8s_sizes = dict()
         for key, val in self._workload_sizes["kubernetes"].items():
             self.K8S_SIZES[self.K8SNodeFlavor[key.upper()]] = {"cru": val["cru"], "mru": val["mru"], "sru": val["sru"]}
 
@@ -163,11 +166,11 @@ class VDCSize:
         values = dict()
         for key, val in self._workload_sizes["zdb"].items():
             values[key.upper()] = val["value"]
-        self._S3ZDBSize = Enum("S3ZDBSize", values)
+        self._s3_zdb_size = Enum("S3ZDBSize", values)
 
     def load_s3_zdb_size_details(self):
         # fills S3_ZDB_SIZES
-        self._S3_ZDB_SIZES = dict()
+        self._s3_zdb_sizes = dict()
         for key, val in self._workload_sizes["zdb"].items():
             self.S3_ZDB_SIZES[self.S3ZDBSize[key.upper()]] = {"sru": val["sru"]}
 
@@ -176,22 +179,38 @@ class VDCSize:
         values = dict()
         for key in self._plans_data:
             values[key.upper()] = key
-        self._VDCFlavor = Enum("VDCFlavor", values)
+        self._vdc_flavor = Enum("VDCFlavor", values)
 
     def load_vdc_plans(self):
         # fills VDC_FLAVORS
-        self._VDC_FLAVORS = dict()
+        self._vdc_flavors = dict()
         for key, val in self._plans_data.items():
             self.VDC_FLAVORS[self.VDCFlavor[key.upper()]] = {
                 "k8s": {
                     "no_nodes": val["k8s"]["no_nodes"],
                     "size": self.K8SNodeFlavor[val["k8s"]["size"].upper()],
                     "controller_size": self.K8SNodeFlavor[val["k8s"]["controller_size"].upper()],
-                    "dedicated": val["k8s"]["dedicated"],
                 },
                 "s3": {"size": self.S3ZDBSize[val["s3"]["size"].upper()]},
                 "duration": val["duration"],
             }
+
+    def load_services(self):
+        values = {}
+        for service in self._prices_data["services"]:
+            values[service.upper()] = service
+        self._services = Enum("Services", values)
+
+    def load_prices(self):
+        self._prices = {"plans": {}, "nodes": {}, "services": {}}
+        for plan, cost in self._prices_data["plans"].items():
+            self._prices[self.VDCFlavor[plan.upper()]] = cost
+
+        for node, cost in self._prices_data["nodes"].items():
+            self._prices[self.K8SNodeFlavor[node.upper()]] = cost
+
+        for service, cost in self._prices_data["services"].items():
+            self._prices[self.Services[service.upper()]] = cost
 
 
 VDC_SIZE = VDCSize()
