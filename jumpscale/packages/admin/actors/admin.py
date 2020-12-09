@@ -49,6 +49,8 @@ class Admin(BaseActor):
         for identity_name in identities:
             try:
                 identity = j.core.identity.get(identity_name)
+                if identity.tid < 0:
+                    continue
                 identity_dict = identity.to_dict()
                 identity_dict["instance_name"] = identity.instance_name
                 identity_dict.pop("__words")
