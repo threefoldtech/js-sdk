@@ -1,9 +1,9 @@
 from enum import Enum
 from jumpscale.loader import j
 
-# TODO: set to 6 + 4 when merging to development
-S3_NO_DATA_NODES = 4
-S3_NO_PARITY_NODES = 2
+
+S3_NO_DATA_NODES = 6
+S3_NO_PARITY_NODES = 4
 MINIO_CPU = 2
 MINIO_MEMORY = 4 * 1024  # in MB
 MINIO_DISK = 4 * 1024  # in MB
@@ -19,15 +19,13 @@ PREFERED_FARM = "lochristi_dev_lab"
 NETWORK_FARM = "lochristi_dev_lab"
 
 
-# TODO: use the correct url
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
 PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/plans.json"
 
 
 class VDCSize:
-    _LAST_LOADED = None
-
     def __init__(self):
+        self._LAST_LOADED = None
         self._K8SNodeFlavor = None
         self._K8S_PRICES = None  # TODO: remove
         self._K8S_SIZES = None
