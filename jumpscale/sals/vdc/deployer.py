@@ -173,6 +173,9 @@ class VDCDeployer:
             raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+        cus = int(cus)
+        sus = int(sus)
+        ipv4us = int(ipv4us)
         self.info(f"getting pool on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}")
         farm = self.explorer.farms.get(farm_name=farm_name)
         for pool in self.zos.pools.list():

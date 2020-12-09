@@ -26,11 +26,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         k8s = K8s()
         k8s.size = k8s_flavor.value
         cloud_units = k8s.resource_units().cloud_units()
-        cus = cloud_units.cu * duration * no_nodes
-        sus = cloud_units.su * duration * no_nodes
+        cus = int(cloud_units.cu * duration * no_nodes)
+        sus = int(cloud_units.su * duration * no_nodes)
         ipv4us = 0
         if public_ip:
-            ipv4us = duration
+            ipv4us = int(duration)
 
         farm = self.explorer.farms.get(farm_name=farm_name)
         pool_id = None
