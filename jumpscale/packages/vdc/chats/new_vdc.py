@@ -1,6 +1,7 @@
+from jumpscale.sals.vdc import deployer
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
 
@@ -9,6 +10,10 @@ class VDCDeploy(GedisChatBot):
     steps = ["vdc_info", "deploy", "expose_s3", "success"]
 
     def _init(self):
+        self.md_show_update("Checking payment service...")
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow("Payment service is currently down, try again later")
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
 
@@ -56,8 +61,9 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
-        trans_hash = self.vdc.show_vdc_payment(self)
+        trans_hash, amount = self.vdc.show_vdc_payment(self)
         if not trans_hash:
+            j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
 
@@ -65,7 +71,7 @@ class VDCDeploy(GedisChatBot):
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
             j.logger.error(f"failed to initialize vdc deployer due to error {str(e)}")
-            self.vdc.refund_payment(trans_hash)
+            self.vdc.refund_payment(trans_hash, amount=amount)
             self.stop("failed to initialize vdc deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
@@ -76,15 +82,23 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                self.stop("Failed to deploy vdc. please try again later")
+                raise StopChatFlow("Failed to deploy vdc. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
-        except j.exceptions.Runtime as err:
+        except Exception as err:
             j.logger.error(str(err))
+            self.deployer.rollback_vdc_deployment()
+            self.vdc.refund_payment(trans_hash, amount=amount)
             self.stop(str(err))
         self.md_show_update("Adding funds to provisioning wallet...")
-        amount = VDC_SIZE.PRICES["plans"][self.vdc.flavor]
         initial_transaction_hashes = self.deployer.transaction_hashes
-        self.vdc.transfer_to_provisioning_wallet(amount / 2)
+        try:
+            self.vdc.transfer_to_provisioning_wallet(amount / 2)
+        except Exception as e:
+            j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}")
+            self.vdc.refund_payment(trans_hash, amount)
+            self.deployer.rollback_vdc_deployment()
+            raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
+
         if initialization_wallet_name:
             self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
         self.deployer._set_wallet(old_wallet)

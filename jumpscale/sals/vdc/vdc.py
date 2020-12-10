@@ -325,14 +325,14 @@ class UserVDC(Base):
         # amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
         amount = VDC_SIZE.PRICES["plans"][self.flavor]
         memo_text = self._show_payment(bot, amount, wallet_name)
-        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
+        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name), amount
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
         memo_text = self._show_payment(bot, amount, wallet_name)
-        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name)
+        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name), amount
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if wallet_name:
@@ -340,7 +340,7 @@ class UserVDC(Base):
         else:
             wallet = self.prepaid_wallet
         a = wallet.get_asset()
-        return wallet.transfer(self.provision_wallet.address, amount=amount, asset=f"{a.code}:{a.issuer}")
+        return self.pay_amount(self.provision_wallet.address, amount, wallet)
 
     def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
         j.logger.info(
@@ -349,18 +349,19 @@ class UserVDC(Base):
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
-            wallet = self.provision_wallet
+            wallet = self.prepaid_wallet
         effects = wallet.get_transaction_effects(transaction_hash)
         trans_amount = amount or 0
         if not amount:
             for effect in effects:
-                trans_amount += effect.amount
+                trans_amount += abs(effect.amount)
         trans_amount -= Decimal(0.1)
         if trans_amount > 0:
+            trans_amount = round(trans_amount, 6)
             a = wallet.get_asset()
             sender_address = wallet.get_sender_wallet_address(transaction_hash)
             try:
-                wallet.transfer(sender_address, amount=trans_amount, asset=f"{a.code}:{a.issuer}")
+                self.pay_amount(sender_address, amount, wallet)
             except Exception as e:
                 j.logger.critical(
                     f"failed to refund transaction hash: {transaction_hash} from wallet: {wallet_name} for vdc {self.vdc_name} owner {self.owner_tname} due to error {str(e)}"
@@ -380,8 +381,23 @@ class UserVDC(Base):
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
                 amount += effect.amount
-        amount = abs(amount)
+        amount = round(abs(amount), 6)
         if not amount:
             return
+        return self.pay_amount(initial_wallet.address, amount, wallet)
+
+    def pay_amount(self, address, amount, wallet):
+        j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
+        deadline = j.data.time.now().timestamp + 5 * 60
         a = wallet.get_asset()
-        return wallet.transfer(initial_wallet.address, amount=amount, asset=f"{a.code}:{a.issuer}")
+        while j.data.time.now().timestamp < deadline:
+            try:
+                return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}")
+            except Exception as e:
+                j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
+        j.logger.critical(
+            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+        )
+        raise j.exceptions.Runtime(
+            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+        )

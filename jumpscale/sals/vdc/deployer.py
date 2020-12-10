@@ -1,5 +1,6 @@
+from collections import defaultdict
 import hashlib
-from jumpscale.clients.explorer.models import ZdbNamespace, K8s, Volume, Container, DiskType
+from jumpscale.clients.explorer.models import WorkloadType, ZdbNamespace, K8s, Volume, Container, DiskType
 import uuid
 
 import gevent
@@ -89,6 +90,7 @@ class VDCDeployer:
         self.info(f"adding transactions {value}")
         if isinstance(value, list):
             self._transaction_hashes += value
+        self._transaction_hashes = list((set(self._transaction_hashes)))
 
     @property
     def public_ip(self):
@@ -201,13 +203,13 @@ class VDCDeployer:
                 self.info(
                     f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
                 )
-                self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
+                self.pay(pool_info)
                 return pool.pool_id
         pool_info = self.zos.pools.create(cus, sus, ipv4us, farm_name)
         self.info(
             f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
         )
-        self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.pay(pool_info)
         return pool_info.reservation_id
 
     def init_vdc(self, selected_farm=PREFERED_FARM):
@@ -229,7 +231,7 @@ class VDCDeployer:
         for farm_name in ZDB_FARMS:
             zdb = ZdbNamespace()
             zdb.size = ZDB_STARTING_SIZE
-            zdb.disk_type = DiskType.SSD
+            zdb.disk_type = DiskType.HDD
             _, sus = get_cloud_units(zdb)
             sus = sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2
             pool_id = self.get_pool_id(farm_name, 0, sus)
@@ -394,7 +396,7 @@ class VDCDeployer:
         if len(ZDB_FARMS) != 2:
             raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
         zdb_query = {
-            "sru": ZDB_STARTING_SIZE,
+            "hru": ZDB_STARTING_SIZE,
             "no_nodes": (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
             "ip_version": "IPv6",
         }
@@ -595,7 +597,7 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1):
+    def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1, duration=None):
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
@@ -622,6 +624,7 @@ class VDCDeployer:
             cluster_secret,
             [public_key],
             no_nodes,
+            duration=duration or INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=uuid.uuid4().hex,
         )
         self.info(f"kubernetes cluster expansion result: {wids}")
@@ -643,6 +646,39 @@ class VDCDeployer:
                 return True
             gevent.sleep(2)
         return False
+
+    def extend_k8s_workloads(self, duration, *wids):
+        """
+        duration in days
+        """
+        duration = duration * 24 * 60 * 60
+        pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
+        for wid in wids:
+            workload = self.zos.workloads.get(wid)
+            if workload.info.woprkload_type != WorkloadType.Kubernetes:
+                self.warning(f"workload {wid} is not a valid kubernetes workload")
+            pool_id = workload
+            resource_units = workload.resource_units()
+            cloud_units = resource_units.cloud_units()
+            pools_units[pool_id]["cu"] += cloud_units.cu * duration
+            pools_units[pool_id]["su"] += cloud_units.su * duration
+            if workload.public_ip:
+                pools_units["ipv4us"] += duration
+
+        for pool_id, units_dict in pools_units.items():
+            for key in units_dict:
+                units_dict[key] = int(units_dict[key])
+            pool_info = self.zos.pools.extend(pool_id, **units_dict)
+            deadline = j.data.time.now().timestamp + 5 * 60
+            success = False
+            while j.data.time.now().timestamp < deadline or success:
+                try:
+                    self.pay(pool_info)
+                    success = True
+                except Exception as e:
+                    self.warning(f"failed to submit payment to stellar due to error {str(e)}")
+            if not success:
+                raise j.exceptions.Runtime(f"failed to submit payment to stellar in time for {pool_info}")
 
     def _log(self, msg, loglevel="info"):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
@@ -685,8 +721,20 @@ class VDCDeployer:
             self.info(
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
             )
-            self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
+            self.pay(pool_info)
         self.vdc_instance.expiration = self.vdc_instance.expiration.timestamp() + duration * 60 * 60 * 24
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
             self.vdc_instance.undo_grace_period_action()
+
+    def pay(self, pool_info):
+        deadline = j.data.time.now().timestamp + 5 * 60
+        success = False
+        while j.data.time.now().timestamp < deadline and not success:
+            try:
+                self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
+                success = True
+            except Exception as e:
+                self.warning(f"failed to submit payment to stellar due to error {str(e)}")
+        if not success:
+            raise j.exceptions.Runtime(f"failed to submit payment to stellar in time for {pool_info}")

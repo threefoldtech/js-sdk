@@ -4,9 +4,9 @@ from jumpscale.loader import j
 
 S3_NO_DATA_NODES = 6
 S3_NO_PARITY_NODES = 4
-MINIO_CPU = 2
-MINIO_MEMORY = 4 * 1024  # in MB
-MINIO_DISK = 4 * 1024  # in MB
+MINIO_CPU = 1
+MINIO_MEMORY = 2 * 1024  # in MB
+MINIO_DISK = 2 * 1024  # in MB
 ZDB_STARTING_SIZE = 10  # in GB
 
 THREEBOT_CPU = 1
@@ -23,7 +23,7 @@ NETWORK_FARM = "freefarm"
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
 PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/plans.json"
-PRICES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json"
+PRICES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.jsonwsgvr"
 
 
 class VDCSize:
