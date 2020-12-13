@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
-from jumpscale.sals.nginx.nginx import LocationType, PORTS
+from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
 
 
 GEDIS = "gedis"
@@ -45,6 +45,8 @@ class NginxPackageConfig:
             "locations": [],
             "domain": self.package.default_domain,
             "letsencryptemail": self.package.default_email,
+            "acme_server_type": self.package.default_acme_server_type,
+            "acme_server_url": self.package.default_acme_server_url,
         }
 
         is_auth = self.package.config.get("is_auth", True)
@@ -130,6 +132,10 @@ class NginxPackageConfig:
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")
                 )
+                website.acme_server_type = server.get(
+                    "acme_server_type", self.default_config[0].get("acme_server_type")
+                )
+                website.acme_server_url = server.get("acme_server_url", self.default_config[0].get("acme_server_url"))
 
                 for location in server.get("locations", []):
                     loc = None
@@ -197,7 +203,16 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
+    def __init__(
+        self,
+        path,
+        default_domain,
+        default_email,
+        giturl="",
+        kwargs=None,
+        default_acme_server_type=AcmeServer.LETSENCRYPT,
+        default_acme_server_url=None,
+    ):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -206,6 +221,8 @@ class Package:
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.default_acme_server_type = default_acme_server_type
+        self.default_acme_server_url = default_acme_server_url
         self.kwargs = kwargs or {}
 
     def _load_files(self, dir_path):
@@ -345,6 +362,8 @@ class PackageManager(Base):
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
+                default_acme_server_type=self.threebot.acme_server_type,
+                default_acme_server_url=self.threebot.acme_server_url,
                 giturl=package_giturl,
                 kwargs=package_kwargs,
             )
@@ -566,6 +585,9 @@ class PackageManager(Base):
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f"{package_name} package not found")
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service["name"])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
@@ -629,6 +651,8 @@ class ThreebotServer(Base):
     _package_manager = fields.Factory(PackageManager)
     domain = fields.String()
     email = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
