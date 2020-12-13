@@ -51,8 +51,8 @@
               <template v-slot:item.domain="{ item }">
                 <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
               </template>
-              <template v-slot:item.Expiration="{ item }">
-                <div>{{ new Date(item.Expiration * 1000).toLocaleString('en-GB') }}</div>
+              <template v-slot:item.creation="{ item }">
+                <div>{{ new Date(item.creation * 1000).toLocaleString('en-GB') }}</div>
               </template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
@@ -114,7 +114,7 @@ module.exports = {
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
         { text: "Status", value: "Status" },
-        { text: "Creation Timestamp", value: "Creation Timestamp" },
+        { text: "Creation Time", value: "creation" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployedSolutions: [],
