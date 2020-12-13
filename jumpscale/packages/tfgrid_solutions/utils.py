@@ -18,18 +18,22 @@ def get_payment_amount(pool):
 
 def pay_pool(pool_info):
     # Get the amount of payment
-    resv_id, escrow_address, escrow_asset, total_amount = get_payment_amount(pool_info)
+    res = get_payment_amount(pool_info)
+    if not res:
+        j.logger.error(f"Faild to get payment info for {pool_info}")
+        return False
+    resv_id, escrow_address, escrow_asset, total_amount = res
     # Get the user wallets
     wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
     for wallet_name, wallet_val in wallets.items():
-        j.logger.info(f"Trying to pay pool {pool_info.pool_id} with wallet {wallet_name}")
+        j.logger.info(f"Trying to pay reservation: {resv_id} with wallet {wallet_name}")
         try:
             wallet_val.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}"
             )
             return True
         except:
-            j.logger.warning(f"failed to pay pool {pool_info.pool_id} with wallet {wallet_name}")
+            j.logger.warning(f"failed to reservation: {resv_id} with wallet {wallet_name}")
     return False
 
 
