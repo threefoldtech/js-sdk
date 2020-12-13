@@ -122,7 +122,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
 
-                if self.domain_type == "Custom domain":
+                if self.domain_type == "Choose a custom subdomain on a gateway":
                     self.custom_subdomain = self.string_ask(
                         f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True
                     )
@@ -159,9 +159,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
                         self.domain = full_domain
                         break
                     else:
-                        if self.domain_type == "Custom domain":
+                        if self.domain_type == "Choose a custom subdomain on a gateway":
                             self.custom_subdomain = self.string_ask(
-                                f"Please enter anthor subdomain as {self.custom_subdomain} is unavilable on {managed_domain}",
+                                f"Please enter another subdomain as {self.custom_subdomain} is unavailable on {managed_domain}",
                                 required=True,
                                 is_identifier=True,
                             )
