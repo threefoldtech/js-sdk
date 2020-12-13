@@ -116,11 +116,15 @@ class Scheduler:
             if cru and total.cru - max(0, reserved.cru) < cru:
                 return False
 
-        if mru and total.mru - max(0, reserved.mru) < 0:
-            return False
+            if mru and total.mru - max(0, reserved.mru) < 0:
+                return False
 
-        if mru and total.mru - max(0, reserved.mru) < mru:
-            return False
+            if mru and total.mru - max(0, reserved.mru) < mru:
+                return False
+        else:
+            # in case of over provisioning, make sure the selected node has total memory more than the reservation required
+            if mru and total.mru < mru:
+                return False
 
         if sru and total.sru - max(0, reserved.sru) < 0:
             return False
