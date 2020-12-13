@@ -11,7 +11,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.zos import get as get_zos
 
 from .kubernetes import VDCKubernetesDeployer
-from .proxy import VDCProxy
+from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
@@ -276,7 +276,7 @@ class VDCDeployer:
 
     def deploy_vdc_network(self):
         """
-        create a network for the vdc on any pool withing the ones created during initialization
+        create a network for the VDC on any pool withing the ones created during initialization
         """
         for pool in self.zos.pools.list():
             scheduler = Scheduler(pool_id=pool.pool_id)
@@ -460,13 +460,13 @@ class VDCDeployer:
             )
 
         cluster_secret = self.password_hash
-        self.info(f"deploying vdc flavor: {self.flavor} farm: {farm_name}")
+        self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
         if len(minio_ak) < 3 or len(minio_sk) < 8:
             raise j.exceptions.Validation(
                 "Access key length should be at least 3, and secret key length at least 8 characters"
             )
 
-        # initialize vdc pools
+        # initialize VDC pools
         self.bot_show_update("Initializing vdc")
         self.init_vdc(farm_name)
         self.bot_show_update("Deploying network")
@@ -711,7 +711,7 @@ class VDCDeployer:
     def renew_plan(self, duration):
         """before calling
         transfer current balance in vdc wallet to deployer wallet
-        transfer all amount of new payment to the vdc wallet (amount of package + amount of external nodes)
+        transfer all amount of new payment to the VDC wallet (amount of package + amount of external nodes)
         """
         self.vdc_instance.load_info()
         pool_ids = set()

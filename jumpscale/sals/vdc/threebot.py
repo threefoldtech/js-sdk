@@ -62,11 +62,11 @@ class VDCThreebotDeployer(VDCBaseComponent):
         scheduler = Scheduler(pool_id=pool_id)
         for node in scheduler.nodes_by_capacity(THREEBOT_CPU, THREEBOT_DISK / 1024, THREEBOT_MEMORY / 1024):
             network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-            self.vdc_deployer.info(f"vdc threebot: node {node.node_id} selected")
+            self.vdc_deployer.info(f"VDC threebot: node {node.node_id} selected")
             result = deployer.add_network_node(
                 network_view.name, node, pool_id, network_view, self.bot, self.identity.instance_name
             )
-            self.vdc_deployer.info(f"vdc threebot network update result for node {node.node_id} is {result}")
+            self.vdc_deployer.info(f"VDC threebot network update result for node {node.node_id} is {result}")
             if result:
                 network_updated = True
                 try:
@@ -87,7 +87,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     continue
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
-            self.vdc_deployer.info(f"vdc threebot container ip address {ip_address}")
+            self.vdc_deployer.info(f"VDC threebot container ip address {ip_address}")
             if not ip_address:
                 continue
 
@@ -112,7 +112,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 solution_uuid=self.vdc_uuid,
                 log_config=log_config,
             )
-            self.vdc_deployer.info(f"vdc threebot container wid: {wid}")
+            self.vdc_deployer.info(f"VDC threebot container wid: {wid}")
             try:
                 success = deployer.wait_workload(
                     wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False

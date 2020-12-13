@@ -27,7 +27,7 @@
       </template>
 
       <template v-slot:item.size="{ item }">
-        <div>{{ item.size }}</div>
+        <div>{{ item.size }} GB</div>
       </template>
       <template v-slot:item.actions="{ item }">
         <v-tooltip top>
@@ -86,7 +86,7 @@ module.exports = {
         { text: "WID", value: "wid" },
         { text: "IP Address", value: "ip" },
         { text: "Role", value: "role" },
-        { text: "Size", value: "size" },
+        { text: "Disk Size", value: "size" },
         { text: "Actions", value: "actions", sortable: false },
       ],
     };

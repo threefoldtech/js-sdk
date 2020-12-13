@@ -13,7 +13,7 @@
               <v-card>
                 <v-card-title class="headline"> </v-card-title>
                 <v-card-text
-                  >Please send TFT tokens to this wallet to fund your vdc.
+                  >Please send TFT tokens to this wallet to fund your VDC.
                   <br />
                   <br />
                   <span class="mr-2">Address: {{ address }}</span>

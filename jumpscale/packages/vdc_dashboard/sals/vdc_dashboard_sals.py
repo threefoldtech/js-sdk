@@ -8,7 +8,7 @@ def _filter_data(deployment):
         if status_obj["status"] == "False":
             status = "Error"
             break
-    # TODO: Add vdc name
+    # TODO: Add VDC name
     filtered_deployment = {
         "Release": deployment["metadata"]["labels"]["app.kubernetes.io/instance"],
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),

@@ -78,9 +78,10 @@ class VDCDeploy(GedisChatBot):
         try:
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
-            j.logger.error(f"failed to initialize vdc deployer due to error {str(e)}")
-            self.vdc.refund_payment(trans_hash, amount=amount)
-            self.stop("failed to initialize vdc deployer. please contact support")
+            j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
+            self.vdc.refund_payment(trans_hash)
+            j.sals.vdc.delete(self.vdc.vdc_name)
+            self.stop("failed to initialize VDC deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
@@ -90,7 +91,7 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                raise StopChatFlow("Failed to deploy vdc. please try again later")
+                self.stop("Failed to deploy VDC. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except Exception as err:
             j.logger.error(str(err))
@@ -118,7 +119,7 @@ class VDCDeploy(GedisChatBot):
         result = self.single_choice(
             "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No",
         )
-        if result == "YES":
+        if result == "Yes":
             domain_name = self.deployer.expose_s3()
             self.md_show(f"You can access your S3 cluster over domain {domain_name}")
 

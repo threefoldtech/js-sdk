@@ -234,7 +234,7 @@ class VDCProxy(VDCBaseComponent):
                 if not subdomain_workload:
                     # subdomain is not mine, get a new one
                     self.vdc_deployer.error(
-                        f"subdomain {subdomain} exists and not owned by vdc identity {self.identity.tid}"
+                        f"subdomain {subdomain} exists and not owned by VDC identity {self.identity.tid}"
                     )
                     continue
                 # verify the subdomain is pointing to the correct address or cancel it
