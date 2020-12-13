@@ -249,3 +249,23 @@ const SECTIONS = {
     "Decentralized Developer": DECENTRALIZED_DEV,
     "Blockchain Solutions": BC_SOLUTIONS,
 }
+const KUBERNETES_VM_SIZE_MAP =
+{
+    1: { "vcpu": 1, "memory": 2, "storage": 50 },
+    2: { "vcpu": 2, "memory": 4, "storage": 100 },
+    3: { "vcpu": 2, "memory": 8, "storage": 25 },
+    4: { "vcpu": 2, "memory": 8, "storage": 50 },
+    5: { "vcpu": 2, "memory": 8, "storage": 200 },
+    6: { "vcpu": 4, "memory": 16, "storage": 50 },
+    7: { "vcpu": 4, "memory": 16, "storage": 100 },
+    8: { "vcpu": 4, "memory": 16, "storage": 400 },
+    9: { "vcpu": 8, "memory": 32, "storage": 100 },
+    10: { "vcpu": 8, "memory": 32, "storage": 200 },
+    11: { "vcpu": 8, "memory": 32, "storage": 800 },
+    12: { "vcpu": 16, "memory": 64, "storage": 200 },
+    13: { "vcpu": 16, "memory": 64, "storage": 400 },
+    14: { "vcpu": 16, "memory": 64, "storage": 800 },
+    15: { "vcpu": 1, "memory": 2, "storage": 25 },
+    16: { "vcpu": 2, "memory": 4, "storage": 50 },
+    17: { "vcpu": 4, "memory": 8, "storage": 50 },
+}
