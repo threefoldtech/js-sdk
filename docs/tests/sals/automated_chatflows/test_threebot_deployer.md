@@ -7,23 +7,35 @@ Test case for deploying a threebot.
 - Deploy a threebot.
 - Check that threebot is reachable.
 
-### test02_recover_threebot
+### test02_start_deployed_threebot
 
-Test case for recovering a threebot.
-
-**Test Scenario**
-
-- Deploy a threebot.
-- Delete the threebot has been deployed.
-- Recover the threebot has been deleted.
-- Check that the threebot has been recovered is reachable.
-
-### test03_extend_threebot
-
-Test case for extending a threebot.
+Test case for starting a threebot.
 
 **Test Scenario**
 
 - Deploy a threebot.
-- Extend the threebot has been deployed.
-- Check that the expiration is increased with the extending time.
+- Stop the deployed threebot
+- Start the stopped threebot.
+- Check that threebot is reachable.
+
+### test03_change_deployed_threebot_size
+
+Test case for changing a threebot size.
+
+**Test Scenario**
+
+- Deploy a threebot.
+- Stop the deployed threebot.
+- Change the stopped threebot size.
+- Check that threebot is reachable.
+
+### test04_change_deployed_threebot_location
+
+Test case for changing a threebot location.
+
+**Test Scenario**
+
+- Deploy a threebot.
+- Stop the deployed threebot.
+- Change the stopped threebot location.
+- Check that threebot is reachable.

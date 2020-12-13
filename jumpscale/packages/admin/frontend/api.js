@@ -176,6 +176,11 @@ const apiClient = {
                 url: `${baseURL}/admin/get_config`
             })
         },
+        getSDKVersion: () => {
+            return axios({
+                url: `${baseURL}/admin/get_sdk_version`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`
@@ -555,12 +560,12 @@ const apiClient = {
                 url: `${baseURL}/identity/list_identities`
             })
         },
-        set: (label, tname, email, words, backup_password) => {
+        set: (label, tname, email, words, explorer_url, backup_password) => {
             return axios({
                 url: `${baseURL}/identity/set_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { label: label, tname: tname, email: email, words: words, backup_password: backup_password }
+                data: { label: label, tname: tname, email: email, words: words, explorer_url: explorer_url, backup_password: backup_password }
             })
         }
     },
