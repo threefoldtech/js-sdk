@@ -1,3 +1,4 @@
+from io import SEEK_CUR
 from jumpscale.sals.vdc import deployer
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
@@ -61,6 +62,13 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
+        try:
+            self.vdc.prepaid_Wallet
+            self.vdc.provision_wallet
+        except Exception as e:
+            j.sals.vdc.delete(self.vdc.instance_name)
+            self.stop(f"failed to initialize VDC wallets. please try again later")
+
         trans_hash, amount = self.vdc.show_vdc_payment(self)
         if not trans_hash:
             j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
