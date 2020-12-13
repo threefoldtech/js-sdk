@@ -8,13 +8,10 @@ from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
-from .proxy import VDC_PARENT_DOMAIN
 from .models import *
-from .size import VDCSize, VDC_SIZE
+from .size import VDC_SIZE
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
-
-from jumpscale.sals.vdc import size
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -162,6 +159,7 @@ class UserVDC(Base):
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == minio_wid:
                 self.s3.domain = workload.domain
+                self.s3.domain_wid = workload.id
 
     def _get_threebot_subdomain(self, proxy_workloads):
         # threebot is exposed over gateway
@@ -390,7 +388,29 @@ class UserVDC(Base):
         j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
         deadline = j.data.time.now().timestamp + 5 * 60
         a = wallet.get_asset()
+        has_funds = None
         while j.data.time.now().timestamp < deadline:
+            if not has_funds:
+                try:
+                    balances = wallet.get_balance().balances
+                    for b in balances:
+                        if b.asset_code != "TFT":
+                            continue
+                        if amount >= float(b.balance) + 0.1:
+                            has_funds = True
+                            break
+                        else:
+                            has_funds = False
+                            raise j.exceptions.Validation(
+                                f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}. current balance: {b.balance}"
+                            )
+                except Exception as e:
+                    if has_funds is False:
+                        j.logger.error(f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}")
+                        raise e
+                    j.logger.warning(f"failed to get wallet {wallet.instance_name} balance due to error: {str(e)}")
+                    continue
+
             try:
                 return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}")
             except Exception as e:
