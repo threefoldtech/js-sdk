@@ -87,7 +87,7 @@ class VDCDeploy(GedisChatBot):
         result = self.single_choice(
             "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No",
         )
-        if result == "YES":
+        if result == "Yes":
             domain_name = self.deployer.expose_s3()
             self.md_show(f"You can access your S3 cluster over domain {domain_name}")
 
