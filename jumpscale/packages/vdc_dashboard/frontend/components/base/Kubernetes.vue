@@ -26,8 +26,16 @@
         <div>{{ item.role }}</div>
       </template>
 
-      <template v-slot:item.size="{ item }">
-        <div>{{ item.size }} GB</div>
+      <template v-slot:item.vcpu="{ item }">
+        <div>{{ kubernetesSizeMap[item.size].vcpu }}</div>
+      </template>
+
+      <template v-slot:item.memory="{ item }">
+        <div>{{ kubernetesSizeMap[item.size].memory }} GB</div>
+      </template>
+
+      <template v-slot:item.storage="{ item }">
+        <div>{{ kubernetesSizeMap[item.size].storage }} GB</div>
       </template>
       <template v-slot:item.actions="{ item }">
         <v-tooltip top>
@@ -86,9 +94,12 @@ module.exports = {
         { text: "WID", value: "wid" },
         { text: "IP Address", value: "ip" },
         { text: "Role", value: "role" },
-        { text: "Disk Size", value: "size" },
+        { text: "vCPU", value: "vcpu" },
+        { text: "Memory", value: "memory" },
+        { text: "Disk Size", value: "storage" },
         { text: "Actions", value: "actions", sortable: false },
       ],
+      kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
     };
   },
   methods: {
