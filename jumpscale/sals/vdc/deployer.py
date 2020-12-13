@@ -11,7 +11,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.zos import get as get_zos
 
 from .kubernetes import VDCKubernetesDeployer
-from .proxy import VDCProxy, VDC_PARENT_DOMAIN
+from .proxy import VDCProxy
 from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
 from .threebot import VDCThreebotDeployer
@@ -20,6 +20,7 @@ from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler
 from .size import *
 from jumpscale.core.exceptions import exceptions
 from contextlib import ContextDecorator
+from jumpscale.sals.zos.billing import InsufficientFunds
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
@@ -745,6 +746,8 @@ class VDCDeployer:
             try:
                 self.transaction_hashes += self.zos.billing.payout_farmers(self.wallet, pool_info)
                 success = True
+            except InsufficientFunds as e:
+                raise e
             except Exception as e:
                 self.warning(f"failed to submit payment to stellar due to error {str(e)}")
         if not success:
