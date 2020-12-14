@@ -51,9 +51,6 @@ class BillingManager:
                     continue
                 refund_result = refund_result and transaction.refund(payment.wallet)
                 payment.save()
-            if refund_result:
-                payment.active = False
-                payment.save()
 
     def issue_refund(self, payment_id):
         instance_name = f"refund_{payment_id}"
