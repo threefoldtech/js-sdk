@@ -63,14 +63,14 @@ class VDCDeploy(GedisChatBot):
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
         try:
-            self.vdc.prepaid_Wallet
+            self.vdc.prepaid_wallet
             self.vdc.provision_wallet
         except Exception as e:
             j.sals.vdc.delete(self.vdc.instance_name)
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
-        trans_hash, amount = self.vdc.show_vdc_payment(self)
-        if not trans_hash:
+        success, amount, payment_id = self.vdc.show_vdc_payment(self)
+        if not success:
             j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
@@ -79,7 +79,7 @@ class VDCDeploy(GedisChatBot):
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
-            self.vdc.refund_payment(trans_hash)
+            j.sals.billing.issue_refund(payment_id)
             j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop("failed to initialize VDC deployer. please contact support")
 
@@ -91,25 +91,29 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                self.stop("Failed to deploy VDC. please try again later")
+                raise StopChatFlow("Failed to deploy VDC. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except Exception as err:
             j.logger.error(str(err))
             self.deployer.rollback_vdc_deployment()
-            self.vdc.refund_payment(trans_hash, amount=amount)
+            j.sals.billing.issue_refund(payment_id)
+            j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(str(err))
         self.md_show_update("Adding funds to provisioning wallet...")
         initial_transaction_hashes = self.deployer.transaction_hashes
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
-            j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}")
-            self.vdc.refund_payment(trans_hash, amount)
-            self.deployer.rollback_vdc_deployment()
+            j.logger.error(
+                f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}. please contact support"
+            )
             raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
 
         if initialization_wallet_name:
-            self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
+            try:
+                self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
+            except Exception as e:
+                j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
         self.deployer._set_wallet(old_wallet)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)

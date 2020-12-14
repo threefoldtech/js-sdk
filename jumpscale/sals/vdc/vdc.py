@@ -258,81 +258,28 @@ class UserVDC(Base):
         self.save()
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: reverted successfully")
 
-    def _show_payment(self, bot, amount, wallet_name=None):
-        if wallet_name:
-            wallet = j.clients.stellar.get(wallet_name)
-            wallet_address = wallet.address
-        else:
-            wallet_address = self.prepaid_wallet.address
-        # TODO: properly generate and save memo text
-        memo_text = j.data.idgenerator.chars(28)
-        qr_code = f"TFT:{wallet_address}?amount={amount}&message={memo_text}&sender=me"
-        qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-        msg_text = f"""Please scan the QR Code below for the payment details if you missed it from the previous screen
-        <div class="text-center">
-            <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
-        </div>
-        <h4> Destination Wallet Address: </h4>  {wallet_address} \n
-        <h4> Currency: </h4>  TFT \n
-        <h4> Memo Text: </h4>  {memo_text} \n
-        <h4> Total Amount: </h4> {amount} TFT \n
-
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 TFT will automatically occurs per transaction.</h5>
-        """
-        bot.md_show_update(msg_text, html=True)
-        return memo_text
-
-    def _wait_payment(self, bot, amount, memo_text, expiry=5, wallet_name=None):
-        if wallet_name:
-            wallet = j.clients.stellar.get(wallet_name)
-        else:
-            wallet = self.prepaid_wallet
-
-        deadline = j.data.time.now().timestamp + expiry * 60
-        while j.data.time.now().timestamp < deadline:
-            # get transactions and identify memo text and amount
-            for transaction in wallet.list_transactions():
-                transaction_hash = transaction.hash
-                trans_memo_text = transaction.memo_text
-                if memo_text != trans_memo_text:
-                    continue
-                try:
-                    effects = wallet.get_transaction_effects(transaction_hash)
-                except Exception as e:
-                    j.logger.warning(
-                        f"failed to get transaction effects of hash {transaction_hash} due to error {str(e)}"
-                    )
-                    continue
-                trans_amount = 0
-                for effect in effects:
-                    if effect.asset_code != "TFT":
-                        continue
-                    trans_amount += effect.amount
-                if trans_amount >= amount:
-                    diff = Decimal(trans_amount) - Decimal(amount)
-                    if diff > 0:
-                        self.refund_payment(transaction_hash, wallet_name, diff)
-                    return transaction_hash
-                else:
-                    bot.md_show_update(
-                        f"received amount {trans_amount} which is less than required ({amount}). refunding...."
-                    )
-                    self.refund_payment(transaction_hash, wallet_name)
-                    return
-        bot.md_show_update(f"payment timedout")
-
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         # amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
         amount = VDC_SIZE.PRICES["plans"][self.flavor]
-        memo_text = self._show_payment(bot, amount, wallet_name)
-        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name), amount
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+        )
+        return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
-        memo_text = self._show_payment(bot, amount, wallet_name)
-        return self._wait_payment(bot, amount, memo_text, expiry, wallet_name), amount
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+        )
+        return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if wallet_name:
@@ -341,35 +288,6 @@ class UserVDC(Base):
             wallet = self.prepaid_wallet
         a = wallet.get_asset()
         return self.pay_amount(self.provision_wallet.address, amount, wallet)
-
-    def refund_payment(self, transaction_hash, wallet_name=None, amount=None):
-        j.logger.critical(
-            f"refunding amount: {amount} transaction hash: {transaction_hash} from wallet: {wallet_name} for VDC {self.vdc_name} owner {self.owner_tname}"
-        )
-        if wallet_name:
-            wallet = j.clients.stellar.get(wallet_name)
-        else:
-            wallet = self.prepaid_wallet
-        effects = wallet.get_transaction_effects(transaction_hash)
-        trans_amount = amount or 0
-        if not amount:
-            for effect in effects:
-                if effect.asset_code != "TFT":
-                    continue
-                trans_amount += abs(effect.amount)
-        trans_amount -= Decimal(0.1)
-        if trans_amount > 0:
-            trans_amount = round(trans_amount, 6)
-            a = wallet.get_asset()
-            sender_address = wallet.get_sender_wallet_address(transaction_hash)
-            try:
-                self.pay_amount(sender_address, amount, wallet)
-            except Exception as e:
-                j.logger.critical(
-                    f"failed to refund transaction hash: {transaction_hash} from wallet: {wallet_name} for VDC {self.vdc_name} owner {self.owner_tname} due to error {str(e)}"
-                )
-                return False
-        return True
 
     def pay_initialization_fee(self, transaction_hashes, initial_wallet_name, wallet_name=None):
         initial_wallet = j.clients.stellar.get(initial_wallet_name)
