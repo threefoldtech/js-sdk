@@ -38,6 +38,13 @@ const apiClient = {
         method: "get"
       })
     },
+    exposeS3: () => {
+      return axios({
+        url: `${baseURL}/s3/expose`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
   },
   license: {
     accept: () => {

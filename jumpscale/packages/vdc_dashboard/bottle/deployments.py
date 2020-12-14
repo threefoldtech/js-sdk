@@ -19,7 +19,7 @@ app = Bottle()
 
 
 @app.route("/api/deployments/<solution_type>")
-@login_required
+@package_authorized("vdc_dashboard")
 def list_deployments(solution_type: str) -> str:
     if solution_type:
         deployments = get_deployments(solution_type=solution_type)
