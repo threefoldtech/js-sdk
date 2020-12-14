@@ -11,8 +11,18 @@
       >
         <v-icon color="primary" class="mr-2" left>mdi-web</v-icon>S3 Browser
       </v-btn>
-    </div>
 
+      <v-btn
+        v-else
+        class="float-right p-4"
+        :loading="loading"
+        text
+        @click.stop="exposeS3()"
+      >
+        <v-icon color="primary" class="mr-2" left>mdi-upload-multiple</v-icon
+        >Expose S3
+      </v-btn>
+    </div>
     <v-data-table :headers="headers" :items="zdbs" class="elevation-1">
       <template slot="no-data">No VDC instances available</template>
       <template v-slot:item.wid="{ item }">
@@ -69,12 +79,28 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       S3URL: null,
+      loading: false,
     };
   },
   methods: {
     deleteNode(record) {
       this.selected = record;
       this.dialogs.cancelWorkload = true;
+    },
+    exposeS3() {
+      this.loading = true;
+      this.$api.solutions
+        .exposeS3()
+        .then((response) => {
+          location.reload();
+        })
+        .catch((error) => {
+          console.log(`${error.message}`);
+          this.loading = false;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
   },
   computed: {
