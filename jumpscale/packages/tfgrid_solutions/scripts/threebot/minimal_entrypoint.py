@@ -82,7 +82,7 @@ for key, value in VDC_VARS.items():
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
 
 
-username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"])
+username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"], vdc_dict["solution_uuid"])
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
 
 identity = j.core.identity.get(
