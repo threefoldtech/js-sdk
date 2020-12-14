@@ -23,7 +23,7 @@ from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 
 
-VDC_IDENTITY_FORMAT = "vdc_{}_{}"  # tname, vdc_name
+VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
@@ -173,7 +173,7 @@ class VDCDeployer:
         if self._identity:
             return
         self.password_hash = hashlib.md5(self.password.encode()).hexdigest()
-        username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name)
+        username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name, self.vdc_uuid)
         words = j.data.encryption.key_to_mnemonic(self.password_hash.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
         self._identity = j.core.identity.get(
