@@ -56,7 +56,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         if not wids:
             j.sals.billing.issue_refund(payment_id)
             self.stop("failed to add nodes to your cluster. please contact support")
-        self.md_show_update("processing tansaction...")
+        self.md_show_update("Processing transaction...")
         initial_transaction_hashes = deployer.transaction_hashes
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
