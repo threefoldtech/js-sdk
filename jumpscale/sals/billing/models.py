@@ -141,8 +141,14 @@ class PaymentFactory(StoredFactory):
         for name in self.list_all():
             payment = self.find(name)
             payment.update_status()
-            if payment.is_finished() and not payment.result.success:
-                yield payment
+            if payment.is_finished():
+                if not payment.result.success:
+                    yield payment
+                else:
+                    for transaction in payment.result.transactions:
+                        if not transaction.success and not transaction.transaction_refund.success:
+                            yield payment
+                            break
 
     def list_active_payments(self):
         for name in self.list_all():
