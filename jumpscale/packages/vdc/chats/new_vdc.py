@@ -88,8 +88,7 @@ class VDCDeploy(GedisChatBot):
             "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No",
         )
         if result == "Yes":
-            domain_name = self.deployer.expose_s3()
-            self.md_show(f"You can access your S3 cluster over domain {domain_name}")
+            self.s3_domain_name = self.deployer.expose_s3()
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
@@ -102,6 +101,10 @@ class VDCDeploy(GedisChatBot):
         Kubernetes controller public IP: {self.public_ip}
         """
         )
+
+        if hasattr(self, "s3_domain_name") and self.s3_domain_name:
+            msg += f"\n\nYou can access your S3 cluster over domain https://{self.s3_domain_name}"
+
         self.download_file(
             msg, self.config, f"{self.vdc.vdc_name}.yaml", md=True,
         )
