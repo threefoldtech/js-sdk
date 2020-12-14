@@ -305,6 +305,8 @@ class UserVDC(Base):
                     continue
                 trans_amount = 0
                 for effect in effects:
+                    if effect.asset_code != "TFT":
+                        continue
                     trans_amount += effect.amount
                 if trans_amount >= amount:
                     diff = Decimal(trans_amount) - Decimal(amount)
@@ -352,6 +354,8 @@ class UserVDC(Base):
         trans_amount = amount or 0
         if not amount:
             for effect in effects:
+                if effect.asset_code != "TFT":
+                    continue
                 trans_amount += abs(effect.amount)
         trans_amount -= Decimal(0.1)
         if trans_amount > 0:

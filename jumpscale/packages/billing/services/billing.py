@@ -1,4 +1,5 @@
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+from jumpscale.loader import j
 
 
 class BillingService(BackgroundService):
@@ -6,4 +7,5 @@ class BillingService(BackgroundService):
         super().__init__(name, interval, *args, **kwargs)
 
     def job(self):
-        pass
+        j.sals.billing.process_payments()
+        j.sals.billing.process_refunds()

@@ -23,7 +23,7 @@ NETWORK_FARM = "freefarm"
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
 PLANS_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/plans.json"
-PRICES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.jsonwsgvr"
+PRICES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json"
 
 
 class VDCSize:

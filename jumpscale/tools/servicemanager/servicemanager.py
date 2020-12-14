@@ -141,12 +141,13 @@ class ServiceManager(Base):
         Arguments:
             service (BackgroundService): background service object
         """
-        greenlet = gevent.Greenlet(service.job)
-        greenlet.link(self.__callback)
-        greenlet.link_exception(self.__on_exception)
-        greenlet.start()
-        self._running[service.name] = greenlet
-        self._running[service.name].service = service
+        if service.name not in self._running:
+            greenlet = gevent.Greenlet(service.job)
+            greenlet.link(self.__callback)
+            greenlet.link_exception(self.__on_exception)
+            greenlet.start()
+            self._running[service.name] = greenlet
+            self._running[service.name].service = service
         next_start = ceil(self.seconds_to_next_interval(service.interval))
         self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
 
