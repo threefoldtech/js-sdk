@@ -49,7 +49,31 @@ class PaymentTransaction(Base):
 
 class PaymentResult(Base):
     success = fields.Boolean(default=False)
+    extra_paid = fields.Boolean(default=False)
     transactions = fields.List(fields.Object(PaymentTransaction))
+
+    def refund_extra(self):
+        if self.extra_paid and self.parent.refund_extra:
+            for transaction in self.transactions:
+                if transaction.success:
+                    trans_amount = transaction.get_amount(self.parent.wallet)
+                    diff = float(trans_amount) - self.parent.amount
+                    if diff <= 0.1:
+                        self.extra_paid = False
+                        break
+                    sender_address = self.parent.wallet.get_sender_wallet_address(transaction.transaction_hash)
+                    try:
+                        a = self.parent.wallet.get_asset()
+                        self.parent.wallet.transfer(
+                            sender_address, amount=round(diff - 0.1, 6), asset=f"{a.code}:{a.issuer}"
+                        )
+                        self.extra_paid = False
+                    except Exception as e:
+                        j.logger.critical(
+                            f"failed to refund extra amount {diff} for payment: {self.parent.payment_id} due to error: {str(e)}"
+                        )
+            self.parent.save()
+        return self.extra_paid
 
 
 class Payment(Base):
@@ -60,6 +84,7 @@ class Payment(Base):
     created_at = fields.DateTime(default=datetime.datetime.utcnow)
     deadline = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(minutes=5))
     result = fields.Object(PaymentResult, required=True)
+    refund_extra = fields.Boolean(default=True)
 
     def is_finished(self):
         if self.deadline.timestamp() < j.data.time.utcnow().timestamp or self.result.success:
@@ -102,6 +127,8 @@ class Payment(Base):
                 if trans_amount >= self.amount:
                     trans_obj.success = True
                     self.result.success = True
+                    if trans_amount > self.amount:
+                        self.result.extra_paid = True
             self.save()
 
 
@@ -121,6 +148,12 @@ class PaymentFactory(StoredFactory):
         for name in self.list_all():
             payment = self.find(name)
             if not payment.is_finished():
+                yield payment
+
+    def list_extra_paid_payments(self):
+        _, _, payments = self.find_many(refund_extra=True)
+        for payment in payments:
+            if payment.result.extra_paid and payment.is_finished():
                 yield payment
 
 

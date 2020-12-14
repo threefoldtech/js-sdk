@@ -5,10 +5,12 @@ from jumpscale.loader import j
 
 
 class BillingManager:
-    def submit_payment(self, amount, wallet_name, expiry=5):
+    def submit_payment(self, amount, wallet_name, refund_extra=True, expiry=5):
         payment_id = uuid.uuid4().hex
         instance_name = f"payment_{payment_id}"
-        payment = PAYMENT_FACTORY.new(instance_name, payment_id=payment_id, amount=amount, wallet_name=wallet_name)
+        payment = PAYMENT_FACTORY.new(
+            instance_name, payment_id=payment_id, amount=amount, wallet_name=wallet_name, refund_extra=refund_extra
+        )
         payment.deadline = datetime.datetime.utcnow() + datetime.timedelta(minutes=expiry)
         payment.save()
         return payment_id, payment.memo_text
@@ -73,3 +75,7 @@ class BillingManager:
     def process_payments(self):
         for payment in PAYMENT_FACTORY.list_active_payments():
             payment.update_status()
+
+    def refund_extra(self):
+        for payment in PAYMENT_FACTORY.list_extra_paid_payments():
+            payment.result.refund_extra()

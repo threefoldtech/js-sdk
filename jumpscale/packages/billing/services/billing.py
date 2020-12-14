@@ -1,5 +1,6 @@
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.loader import j
+import gevent
 
 
 class BillingService(BackgroundService):
@@ -8,4 +9,10 @@ class BillingService(BackgroundService):
 
     def job(self):
         j.sals.billing.process_payments()
+        j.sals.billing.refund_extra()
+        j.sals.billing.refund_failed_payments()
         j.sals.billing.process_refunds()
+        gevent.sleep(5)
+
+
+service = BillingService()
