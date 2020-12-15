@@ -1,10 +1,7 @@
 from random import choice
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
-from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 
 class Packages(Base):
@@ -16,16 +13,6 @@ class Packages(Base):
     def load(self):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
-
-    def wait(self, class_name):
-        wait = WebDriverWait(self.driver, 90)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
-
-    def click_button(self, button_type):
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        button = [button for button in buttons if button.text == button_type][0]
-        self.wait("progressbar")
-        button.click()
 
     def check_threebot_deployer_package(self):
         threebot_installed = 0
@@ -50,22 +37,22 @@ class Packages(Base):
         return system_packages
 
     def add_package(self, git_url=None, path=None):
-        self.click_button("ADD")
+        self.click_button(self.driver, "ADD")
         add_new_package_box = self.driver.find_elements_by_class_name("v-text-field__slot")
         path_input = add_new_package_box[0].find_element_by_tag_name("input")
         git_url_input = add_new_package_box[1].find_element_by_tag_name("input")
 
         if git_url is not None:
             git_url_input.send_keys(git_url)
-            self.click_button("SUBMIT")
-            self.wait("v-dialog")
+            self.click_button(self.driver, "SUBMIT")
+            self.wait(self.driver, "v-dialog")
         else:
             # Clear git_url_input box
             git_url_input.send_keys(Keys.CONTROL + "a")
             git_url_input.send_keys(Keys.DELETE)
             path_input.send_keys(path)
-            self.click_button("SUBMIT")
-            self.wait("v-dialog")
+            self.click_button(self.driver, "SUBMIT")
+            self.wait(self.driver, "v-dialog")
 
     def check_packages_type(self):
         installed_packages = {}
@@ -91,12 +78,11 @@ class Packages(Base):
             if package == package_name:
                 package_card = installed_packages[package_name]
                 delete_icon = package_card.find_element_by_class_name("v-btn")
-                self.wait("v-btn")
                 delete_icon.click()
                 break
         else:
             return
-        self.click_button("SUBMIT")
+        self.click_button(self.driver, "SUBMIT")
 
     def install_package(self):
         installed_packages, available_packages = self.check_packages_type()
@@ -104,7 +90,7 @@ class Packages(Base):
         package_card = available_packages[random_package]
         install_icon = package_card.find_element_by_class_name("v-btn__content")
         install_icon.click()
-        self.wait("progressbar")
+        self.wait(self.driver, "progressbar")
         return random_package
 
     def open_in_browser(self):
