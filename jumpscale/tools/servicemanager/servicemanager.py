@@ -179,7 +179,7 @@ class ServiceManager(Base):
         service.name = service_name
 
         if service in self.services.values():
-            j.logger.debug(f"Service {service.name} is running. Reloading..")
+            j.logger.debug(f"Service {service.name} is already running. Reloading...")
             self.stop_service(service.name)
 
         next_start = ceil(self.seconds_to_next_interval(service.interval))
