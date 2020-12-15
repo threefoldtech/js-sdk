@@ -584,7 +584,7 @@ class PackageManager(Base):
         # start background services
         if package.services_dir:
             for service in package.services:
-                self.threebot.services.add_service(service["path"])
+                self.threebot.services.add_service(service["name"], service["path"])
 
         # start servers
         self.threebot.rack.start()

@@ -12,12 +12,12 @@ MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 
 
 class HeartBeatService(BackgroundService):
-    # def __init__(self, name="heartbeat_service", interval=60 * 10, *args, **kwargs):
-    def __init__(self, name="heartbeat_service", interval=10, *args, **kwargs):
+    # def __init__(self, interval=60 * 10, *args, **kwargs):
+    def __init__(self, interval=10, *args, **kwargs):
         """
-        Check disk space every 12 hours
+        Check disk space every 10 seconds
         """
-        super().__init__(name, interval, *args, **kwargs)
+        super().__init__(interval, *args, **kwargs)
 
     def _encode_data(self, data):
         keys = [

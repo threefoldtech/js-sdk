@@ -35,8 +35,8 @@ S3_AUTO_TOP_SOLUTIONS: dict {
 
 
 class S3AutoTopUp(BackgroundService):
-    def __init__(self, name="s3_auto_topup", interval=60 * 60 * 2, *args, **kwargs):
-        super().__init__(name, interval, *args, **kwargs)
+    def __init__(self, interval=60 * 60 * 2, *args, **kwargs):
+        super().__init__(interval, *args, **kwargs)
 
     def job(self):
         """
