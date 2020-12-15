@@ -77,16 +77,6 @@ class PoolChatflows(ChatflowsBase):
 
         calculated_cu = (1 * 1 * 60 * 60 * 24) + (cu * time_to_live * 60 * 60 * 24)
         calculated_su = (1 * 1 * 60 * 60 * 24) + (su * time_to_live * 60 * 60 * 24)
-        self.assertTrue(
-            self.wait(calculated_su, calculated_cu, pool_data, self.timeout), "the pool has not been extended"
-        )
+
         self.assertEqual(pool_data.cus, float(calculated_cu))
         self.assertEqual(pool_data.sus, float(calculated_su))
-
-    def wait(self, calculated_su, calculated_cu, pool, timeout):
-        for _ in range(timeout):
-            if pool.cus == float(calculated_cu) and pool.sus == float(calculated_su):
-                return True
-            else:
-                sleep(1)
-        return False
