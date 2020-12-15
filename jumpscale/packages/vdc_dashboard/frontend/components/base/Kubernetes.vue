@@ -14,7 +14,7 @@
         class="float-right p-4"
         color="primary"
         text
-        @click.stop="openChatflow('add_k3s_node')"
+        @click.stop="openChatflow('extend_kubernetes')"
       >
         <v-icon left>mdi-plus</v-icon>Add node
       </v-btn>

@@ -36,7 +36,7 @@ class VDCDeploy(GedisChatBot):
         )
         self.vdc_secret = form.secret_ask("VDC Secret (Secret for controlling the vdc)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
-            "Choose the VDC Flavor", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
+            "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
         form.ask()
         self.vdc_flavor = self.vdc_flavor.value.split(":")[0]

@@ -8,22 +8,32 @@ class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
     steps = ["flavor", "use_public_ip", "add_node", "success"]
 
-    @chatflow_step(title="Node Flavor")
+    @chatflow_step(title="Node Size")
     def flavor(self):
         self.md_show_update("Checking payment service...")
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
-        self.vdc_name = self.kwargs["vdc_name"]
+        self.vdc_name = list(j.sals.vdc.list_all())[0]
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
-        self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.username)
+        self.vdc = j.sals.vdc.find(name=self.vdc_name, owner_tname=self.username)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
-        node_flavors = [flavor.name for flavor in VDC_SIZE.K8SNodeFlavor]
+
+        node_flavors = [flavor for flavor in VDC_SIZE.K8SNodeFlavor]
+
+        node_flavor_messages = []
+        for flavor in node_flavors:
+            plan = VDC_SIZE.K8S_SIZES[flavor]
+            node_flavor_messages.append(
+                f"{flavor.name}: {plan['cru']} vCPU, {plan['mru']} GB Memory, {plan['sru']} GB SSD storage"
+            )
+
         self.node_flavor = self.single_choice(
-            "Choose the Node Flavor", options=node_flavors, default=node_flavors[0], required=True
+            "Choose the Node size", options=node_flavor_messages, default=node_flavor_messages[0], required=True
         )
+        self.node_flavor = self.node_flavor.value.split(":")[0]
 
     @chatflow_step(title="Public IP")
     def use_public_ip(self):
