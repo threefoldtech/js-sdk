@@ -180,23 +180,26 @@ class RefundRequest(Base):
             return False
 
         self.last_tried = datetime.datetime.utcnow()
-        if payment.amount <= 0.1:
+        amount = payment.amount
+        # check if refund extra is False. then amount should be same as successful transaction in case of extra was paid but not refunded automatically
+        sender_address = None
+        for transaction in payment.result.transactions:
+            if transaction.success:
+                sender_address = payment.wallet.get_sender_wallet_address(transaction.transaction_hash)
+                if not payment.refund_extra:
+                    amount = float(transaction.get_amount(payment.wallet))
+
+        if amount <= 0.1 or not sender_address:
             self.success = True
         else:
-            for transaction in payment.result.transactions:
-                if transaction.success:
-                    sender_address = payment.wallet.get_sender_wallet_address(transaction.transaction_hash)
-                    try:
-                        a = payment.wallet.get_asset()
-                        self.refund_transaction_hash = payment.wallet.transfer(
-                            sender_address, amount=round(payment.amount - 0.1, 6), asset=f"{a.code}:{a.issuer}"
-                        )
-                        self.success = True
-                    except Exception as e:
-                        j.logger.critical(
-                            f"failed to apply refund request for payment {self.payment_id} due to error {str(e)}"
-                        )
-                    break
+            try:
+                a = payment.wallet.get_asset()
+                self.refund_transaction_hash = payment.wallet.transfer(
+                    sender_address, amount=round(amount - 0.1, 6), asset=f"{a.code}:{a.issuer}"
+                )
+                self.success = True
+            except Exception as e:
+                j.logger.critical(f"failed to apply refund request for payment {self.payment_id} due to error {str(e)}")
         self.save()
         return self.success
 
