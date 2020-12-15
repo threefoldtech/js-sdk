@@ -5,16 +5,16 @@ Service manager is the service that monitors and manages background services thr
 Each service defines an interval to define the period of the service and defines also a job method that is run each period.
 Any service should:
 - Inherit from `BackgroundService` class defined here: `from jumpscale.tools.servicemanager.servicemanager import BackgroundService`
-- Define a name and interval in the constructor
+- Define an interval in the constructor
 - Implement the abtsract `job` method of the `BackgroundService` base class.
 
 ### How it schedules services
 
 The service manager uses gevent greenlets to run jobs. It spawns the job in a greenlet after its interval period.
 Rescheduling the service job is done in by linking a callback to the greenlet which is run after the greenlet finishes.
-After the greenlet finishes execution the callback is fired which schedules the job to be run again after anothre interval.
+After the greenlet finishes execution the callback is fired which schedules the job to be run again after another interval.
 
-To add a service  to the service manager you should call the `add_service` method which takes the package path as a parameter.
+To add a service to the service manager you should call the `add_service` method which takes the package name and package path as parameters.
 It loads the file in this path as a module and gets the service object defined in the service.py file.
 
 ### Example service
