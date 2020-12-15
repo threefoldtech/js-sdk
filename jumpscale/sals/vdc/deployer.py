@@ -449,14 +449,14 @@ class VDCDeployer:
     def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM, initial_wallet_name=None):
         """deploys a new vdc
         Args:
-            cluster_secret: secretr for k8s cluster. used to join nodes in the cluster (will be stored in woprkload metadata)
+            cluster_secret: secret for k8s cluster. used to join nodes in the cluster (will be stored in workload metadata)
             minio_ak: access key for minio
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
         if not self.check_capacity(farm_name):
             raise j.exceptions.Validation(
-                f"not enough resources in farm {farm_name} to deploy vdc of flavor {self.flavor}"
+                f"not enough resources in farm {farm_name} to deploy VDC of flavor {self.flavor} resources: {VDC_SIZE.VDC_FLAVORS[self.flavor]}"
             )
 
         cluster_secret = self.password_hash
@@ -467,7 +467,7 @@ class VDCDeployer:
             )
 
         # initialize VDC pools
-        self.bot_show_update("Initializing vdc")
+        self.bot_show_update("Initializing VDC")
         self.init_vdc(farm_name)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
@@ -477,7 +477,7 @@ class VDCDeployer:
 
         with new_vdc_context(self):
             # deploy zdbs for s3
-            self.bot_show_update("Deploying zdbs for s3")
+            self.bot_show_update("Deploying ZDBs for s3")
             deployment_threads = self.deploy_vdc_zdb(gs)
 
             # deploy k8s cluster
@@ -488,7 +488,7 @@ class VDCDeployer:
             for thread in deployment_threads:
                 if thread.value:
                     continue
-                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 return False
 
@@ -510,7 +510,7 @@ class VDCDeployer:
             )
             self.info(f"minio_wid: {minio_wid}")
             if not minio_wid:
-                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 return False
 
@@ -538,7 +538,7 @@ class VDCDeployer:
             threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
-                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 return False
 
@@ -560,7 +560,7 @@ class VDCDeployer:
             )
             self.info(f"threebot subdomain: {subdomain}")
             if not subdomain:
-                self.error(f"failed to deploy vdc. cancelling workloads with uuid {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 return False
 
@@ -570,7 +570,7 @@ class VDCDeployer:
                 self.monitoring.deploy_stack()
             except j.exceptions.Runtime as e:
                 # TODO: rollback
-                self.error(f"failed to deploy monitoring stack on vdc cluster due to error {str(e)}")
+                self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
             return kube_config
 

@@ -332,7 +332,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     if public_wids[idx]:
                         self.zos.workloads.decomission(public_wids[idx])
                     self.vdc_deployer.error(f"failed to deploy kubernetes worker wid: {wid}")
-                    pass
 
             self.vdc_deployer.info(f"successful kubernetes workers ids: {wids}")
             if len(wids) == no_nodes:

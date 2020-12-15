@@ -67,6 +67,7 @@ class VDCDeploy(GedisChatBot):
             self.vdc.provision_wallet
         except Exception as e:
             j.sals.vdc.delete(self.vdc.instance_name)
+            j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         success, amount, payment_id = self.vdc.show_vdc_payment(self)
@@ -91,7 +92,7 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                raise StopChatFlow("Failed to deploy VDC. please try again later")
+                raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except Exception as err:
             j.logger.error(str(err))
