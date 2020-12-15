@@ -318,7 +318,7 @@ class UserVDC(Base):
                     for b in balances:
                         if b.asset_code != "TFT":
                             continue
-                        if amount >= float(b.balance) + 0.1:
+                        if amount <= float(b.balance) + 0.1:
                             has_funds = True
                             break
                         else:
