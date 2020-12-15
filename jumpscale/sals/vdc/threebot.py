@@ -90,10 +90,17 @@ class VDCThreebotDeployer(VDCBaseComponent):
             self.vdc_deployer.info(f"VDC threebot container ip address {ip_address}")
             if not ip_address:
                 continue
+            explorer = None
+            if "test" in j.core.identity.me.explorer_url:
+                explorer = "test"
+            elif "dev" in j.core.identity.me.explorer_url:
+                explorer = "dev"
+            else:
+                explorer = "main"
 
             log_config = j.core.config.get("VDC_LOG_CONFIG", {})
             if log_config:
-                log_config["channel_name"] = self.vdc_instance.instance_name
+                log_config["channel_name"] = f"{self.vdc_instance.instance_name}_{explorer}"
 
             wid = deployer.deploy_container(
                 pool_id=pool_id,
