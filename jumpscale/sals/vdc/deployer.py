@@ -21,6 +21,7 @@ from .size import *
 from jumpscale.core.exceptions import exceptions
 from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
+import os
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
@@ -446,10 +447,9 @@ class VDCDeployer:
 
         return gcc.result
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM, initial_wallet_name=None):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM):
         """deploys a new vdc
         Args:
-            cluster_secret: secret for k8s cluster. used to join nodes in the cluster (will be stored in workload metadata)
             minio_ak: access key for minio
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
@@ -542,12 +542,7 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 return False
 
-            net = ""
-            if "testnet" in self.explorer.url:
-                net = "-testnet"
-            elif "devnet" in self.explorer.url:
-                net = "-devnet"
-            prefix = f"{self.tname}-{self.vdc_name}{net}.vdc"
+            prefix = self.get_prefix()
             subdomain = self.proxy.proxy_container_over_custom_domain(
                 prefix=prefix,
                 wid=threebot_wid,
@@ -573,6 +568,14 @@ class VDCDeployer:
                 self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
             return kube_config
+
+    def get_prefix(self):
+        net = ""
+        if "testnet" in self.explorer.url:
+            net = "-testnet"
+        elif "devnet" in self.explorer.url:
+            net = "-devnet"
+        return f"{self.tname}-{self.vdc_name}{net}.vdc"
 
     def expose_s3(self, delete_previous=False):
         self.vdc_instance.load_info()
@@ -646,6 +649,19 @@ class VDCDeployer:
         return self.kubernetes.delete_worker(wid)
 
     def rollback_vdc_deployment(self):
+        self.vdc_instance.load_info()
+        if all([self.vdc_instance.threebot.domain, os.environ.get("VDC_NAME_USER"), os.environ.get("VDC_NAME_TOKEN")]):
+            # delete domain record from name.com
+            prefix = self.get_prefix()
+            parent_domain = VDC_PARENT_DOMAIN
+            nc = j.clients.name.get("VDC")
+            nc.username = os.environ.get("VDC_NAME_USER")
+            nc.token = os.environ.get("VDC_NAME_TOKEN")
+            existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
+            if existing_records:
+                for record_dict in existing_records:
+                    nc.nameclient.delete_record(record_dict["fqdn"][:-1], record_dict["id"])
+
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         if nv:

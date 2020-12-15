@@ -56,6 +56,8 @@ class VDCStoredFactory(StoredFactory):
             identity_instance_name = f"vdc_{vdc.solution_uuid}"
             identity = j.core.identity.find(identity_instance_name)
             if identity:
+                deployer = vdc.get_deployer(identity=identity)
+                deployer.rollback_vdc_deployment()
                 zos = j.sals.zos.get(identity_instance_name)
                 for workload in zos.worklads.list(identity.tid, next_action=NextAction.DEPLOY):
                     zos.worklads.decomission(workload.id)
