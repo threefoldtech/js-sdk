@@ -81,7 +81,7 @@ class VDCDeploy(GedisChatBot):
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             j.sals.billing.issue_refund(payment_id)
-            j.sals.vdc.delete(self.vdc.vdc_name)
+            j.sals.vdc.delete(self.vdc.instance_name)
             self.stop("failed to initialize VDC deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
@@ -105,9 +105,9 @@ class VDCDeploy(GedisChatBot):
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
-            j.logger.error(
-                f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}. please contact support"
-            )
+            j.sals.billing.issue_refund(payment_id)
+            j.sals.vdc.delete(self.vdc.instance_name)
+            j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
             raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
 
         if initialization_wallet_name:
