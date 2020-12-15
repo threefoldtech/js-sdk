@@ -74,8 +74,9 @@ class PoolChatflows(ChatflowsBase):
 
         self.info("Check that the pool has been extended with the same units.")
         pool_data = j.sals.zos.get().pools.get(reservation_id)
-        calculated_su = (su + 1) * time_to_live * 60 * 60 * 24
-        calculated_cu = (cu + 1) * time_to_live * 60 * 60 * 24
+
+        calculated_cu = (1 * 1 * 60 * 60 * 24) + (cu * time_to_live * 60 * 60 * 24)
+        calculated_su = (1 * 1 * 60 * 60 * 24) + (su * time_to_live * 60 * 60 * 24)
         self.assertTrue(
             self.wait(calculated_su, calculated_cu, pool_data, self.timeout), "the pool has not been extended"
         )

@@ -6,6 +6,7 @@ from jumpscale.loader import j
 from jumpscale.packages.admin.bottle.models import UserEntry as AdminUserEntry
 from jumpscale.packages.marketplace.bottle.models import UserEntry as MarkerplaceUserEntry
 from tests.base_tests import BaseTests
+from solutions_automation import deployer
 
 
 class ChatflowsBase(BaseTests):
@@ -47,6 +48,21 @@ class ChatflowsBase(BaseTests):
 
         cls.server = j.servers.threebot.get("default")
         cls.server.start()
+
+        # create a pool
+        cls.pool_name = cls.random_name()
+        cu = j.data.idgenerator.random_int(1, 2)
+        su = j.data.idgenerator.random_int(1, 2)
+        time_unit = "Day"
+        time_to_live = j.data.idgenerator.random_int(1, 2)
+        cls.pool = deployer.create_pool(
+            solution_name=cls.pool_name,
+            cu=cu,
+            su=su,
+            time_unit=time_unit,
+            time_to_live=time_to_live,
+            wallet_name="demos_wallet",
+        )
 
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 360
