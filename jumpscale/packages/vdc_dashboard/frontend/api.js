@@ -45,6 +45,13 @@ const apiClient = {
         method: "get"
       })
     },
+    getKubeConfig: () => {
+      return axios({
+        url: `${baseURL}/kube/get`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    }
   },
   license: {
     accept: () => {

@@ -6,6 +6,14 @@
         class="float-right p-4"
         color="primary"
         text
+        @click.stop="downloadKubeConfigFile()"
+      >
+        <v-icon left>mdi-download</v-icon>KubeConfig
+      </v-btn>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
         @click.stop="openChatflow('add_k3s_node')"
       >
         <v-icon left>mdi-plus</v-icon>Add node
@@ -76,6 +84,7 @@
       v-model="dialogs.cancelWorkload"
       :data="selected"
     ></cancel-workload>
+    <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
 </template>
 
@@ -85,6 +94,7 @@ module.exports = {
   components: {
     "solution-info": httpVueLoader("../solutions/Info.vue"),
     "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
+    "download-kubeconfig": httpVueLoader("../solutions/DownloadKubeconfig.vue"),
   },
   props: ["vdc"],
 
@@ -94,6 +104,7 @@ module.exports = {
       dialogs: {
         info: false,
         cancelWorkload: false,
+        downloadKube: false,
       },
       headers: [
         { text: "WID", value: "wid" },
@@ -121,6 +132,10 @@ module.exports = {
     deleteNode(record) {
       this.selected = record;
       this.dialogs.cancelWorkload = true;
+    },
+
+    downloadKubeConfigFile() {
+      this.dialogs.downloadKube = true;
     },
   },
   computed: {
