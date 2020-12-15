@@ -1,4 +1,3 @@
-from jumpscale.loader import j
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
 from selenium.webdriver.common.by import By
@@ -28,6 +27,8 @@ class workloads(Base):
         button.click()
 
     def select_workload_by_ID(self, workload_ID):
+        self.wait("progressbar")
+
         # Select workloads by ID.
         search_ID_box = self.driver.find_element_by_class_name("v-text-field__slot")
         input_search_ID = search_ID_box.find_element_by_tag_name("input")
@@ -66,5 +67,6 @@ class workloads(Base):
     def check_selected_workloads_status(self, workload_ID):
 
         self.driver.refresh()
+        self.wait("progressbar")
         self.select_workload_by_ID(workload_ID)
         return self.driver.find_elements_by_class_name("text-start")[10].text
