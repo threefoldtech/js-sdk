@@ -18,6 +18,21 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_dep
 app = Bottle()
 
 
+@app.route("/api/kube/get")
+@package_authorized("vdc_dashboard")
+def get_kubeconfig() -> str:
+    file_path = j.sals.fs.expanduser("~/.kube/config")
+    if not j.sals.fs.exists(file_path):
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+
+    file_content = j.sals.fs.read_file(file_path)
+
+    if not file_content:
+        return HTTPResponse(status=400, message="Invalid file!", headers={"Content-Type": "application/json"})
+
+    return j.data.serializers.json.dumps({"data": file_content})
+
+
 @app.route("/api/s3/expose")
 @package_authorized("vdc_dashboard")
 def expose_s3() -> str:
