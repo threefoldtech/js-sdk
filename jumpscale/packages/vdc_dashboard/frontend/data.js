@@ -37,7 +37,7 @@ const DECENTRALIZED_OFFICE = {
             name: "ZeroCI",
             type: "zeroci",
             image: "./assets/zero-ci-dark.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/zeroci/",
             description: "Continuous integration system useful for all programming languages."
         },
