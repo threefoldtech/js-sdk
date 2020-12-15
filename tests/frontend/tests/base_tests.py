@@ -70,9 +70,9 @@ class BaseTest(BaseTests):
         options = Options()
         options.add_argument("--no-sandbox")
         # For browser's head mode comment the next 3 lines
-        # options.add_argument("headless")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("ignore-certificate-errors")
         self.driver = webdriver.Chrome(options=options)
         self.driver.implicitly_wait(10)

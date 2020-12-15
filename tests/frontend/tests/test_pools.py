@@ -8,14 +8,15 @@ from tests.frontend.tests.base_tests import BaseTest
 
 @pytest.mark.integration
 class PoolsTests(BaseTest):
-    def setUp(self):
-        super().setUp()
-        if not hasattr(PoolsTests, "wallet_name"):
-            self.wallet_name = self.random_name()
-            self.create_wallet(self.wallet_name)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.wallet_name = cls.random_name().lower()
+        j.clients.stellar.create_testnet_funded_wallet(cls.wallet_name)
 
+    @classmethod
     def tearDownClass(cls):
-        cls.delete_wallet()
+        j.clients.stellar.delete(cls.wallet_name)
         super().tearDownClass()
 
     def test01_create_pool(self):
@@ -94,8 +95,10 @@ class PoolsTests(BaseTest):
         self.info("Check that pool has been Extended")
         test_pools = Pools(self.driver)
         test_pools.load()
-        calculated_su = (su + 1) * time_to_live * 60 * 60 * 24
-        calculated_cu = (cu + 1) * time_to_live * 60 * 60 * 24
+
+        calculated_cu = (1 * 1 * 60 * 60 * 24) + (cu * time_to_live * 60 * 60 * 24)
+        calculated_su = (1 * 1 * 60 * 60 * 24) + (su * time_to_live * 60 * 60 * 24)
+
         self.assertIn((pool_name, float(calculated_cu), float(calculated_su)), test_pools.list())
 
     def test03_hide_pool(self):
@@ -130,15 +133,3 @@ class PoolsTests(BaseTest):
         test_pools.load()
         pools_name = [name[0] for name in test_pools.list()]
         self.assertNotIn(pool_name, pools_name)
-
-    def create_wallet(self, wallet_name):
-        self.info("Create a wallet")
-        wallets = Wallets(self.driver)
-        wallets.load()
-        wallets.add_funded(wallet_name)
-
-    def delete_wallet(self):
-        self.info("Delete the wallet")
-        wallets = Wallets(self.driver)
-        wallets.load()
-        wallets.delete(self.wallet_name)
