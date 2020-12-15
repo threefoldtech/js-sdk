@@ -580,15 +580,15 @@ class VDCDeployer:
             self.error(f"can't find one or more required workloads to expose s3")
             raise j.exceptions.Runtime(f"vdc {self.vdc_uuid} doesn't contain the required workloads")
 
-        if self.vdc_instance.s3.subdomain:
+        if self.vdc_instance.s3.domain:
             # s3 is already exposed
             if not delete_previous:
                 # return existing subdomain
-                return self.vdc_instance.s3.subdomain
+                return self.vdc_instance.s3.domain
             else:
                 # delete old subdomain and re-expose
-                self.zos.workloads.decomission(self.vdc_instance.s3.subdomain_wid)
-                deployer.wait_workload_deletion(self.vdc_instance.s3.subdomain_wid)
+                self.zos.workloads.decomission(self.vdc_instance.s3.domain_wid)
+                deployer.wait_workload_deletion(self.vdc_instance.s3.domain_wid)
 
         master_ip = self.vdc_instance.kubernetes[0].public_ip
         self.info(f"exposing s3 over public ip: {master_ip}")
