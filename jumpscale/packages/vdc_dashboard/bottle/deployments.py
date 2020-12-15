@@ -18,6 +18,24 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_dep
 app = Bottle()
 
 
+@app.route("/api/s3/expose")
+@package_authorized("vdc_dashboard")
+def expose_s3() -> str:
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_full_name)
+    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+
+    vdc_deployer = vdc.get_deployer()
+    s3_domain = vdc_deployer.expose_s3()
+    if not s3_domain:
+        return HTTPResponse(status=400, message="Failed to expose S3", headers={"Content-Type": "application/json"})
+    return j.data.serializers.json.dumps({"data": s3_domain})
+
+
 @app.route("/api/deployments/<solution_type>")
 @package_authorized("vdc_dashboard")
 def list_deployments(solution_type: str) -> str:
