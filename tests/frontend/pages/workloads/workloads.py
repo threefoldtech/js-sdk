@@ -1,8 +1,5 @@
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
 
 
@@ -16,18 +13,8 @@ class workloads(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def wait(self, class_name):
-        wait = WebDriverWait(self.driver, 90)
-        wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
-
-    def click_button(self, button_type):
-        buttons = self.driver.find_elements_by_class_name("v-btn")
-        button = [button for button in buttons if button.text == button_type][0]
-        self.wait("progressbar")
-        button.click()
-
     def select_workload_by_ID(self, workload_ID):
-        self.wait("progressbar")
+        self.wait(self.driver, "v-progress-linear__buffer")
 
         # Select workloads by ID.
         search_ID_box = self.driver.find_element_by_class_name("v-text-field__slot")
@@ -55,18 +42,16 @@ class workloads(Base):
         return int(test_network_dict.get("ids")[0])
 
     def delete_selected_workloads(self, workload_ID):
-
         self.select_workload_by_ID(workload_ID)
 
         # Delete all selected workloads
-        self.click_button("DELETE SELECTED")
+        self.click_button(self.driver, "DELETE SELECTED")
 
         # Click confirm
-        self.click_button("CONFIRM")
+        self.click_button(self.driver, "CONFIRM")
 
     def check_selected_workloads_status(self, workload_ID):
-
         self.driver.refresh()
-        self.wait("progressbar")
+        self.wait(self.driver, "v-progress-linear__buffer")
         self.select_workload_by_ID(workload_ID)
         return self.driver.find_elements_by_class_name("text-start")[10].text
