@@ -868,7 +868,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                         j.sals.zos.get(identity_name).workloads.decomission(workload_id)
                     except Exception as e:
                         j.logger.error(f"failed to delete expired workload {workload_id} due to error {str(e)}")
-            raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
+            raise DeploymentFailed(
+                f"Workload {workload_id} failed to deploy because the node is down {node.node_id}",
+                wid=workload_id,
+                identity_name=identity_name,
+            )
 
         # wait for workload
         while True:
