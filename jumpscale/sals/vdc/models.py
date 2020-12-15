@@ -38,6 +38,7 @@ class S3(Base):
     minio = fields.Object(S3Container)
     zdbs = fields.List(fields.Object(S3ZDB))
     domain = fields.String()
+    domain_wid = fields.Integer()
 
 
 class VDCThreebot(VDCHostBase):

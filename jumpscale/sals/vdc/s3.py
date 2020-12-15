@@ -104,7 +104,7 @@ class VDCS3Deployer(VDCBaseComponent):
                         pool_id=pool_id,
                         node_id=node.node_id,
                         size=int(storage_per_zdb),
-                        disk_type=DiskType.SSD,
+                        disk_type=DiskType.HDD,
                         mode=ZDBMode.Seq,
                         password=password,
                         form_info={"chatflow": "minio"},

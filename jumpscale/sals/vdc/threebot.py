@@ -28,6 +28,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
         vdc_dict.pop("s3", None)
         vdc_dict.pop("kubernetes", None)
         vdc_dict.pop("threebot", None)
+        vdc_dict["expiration"] = j.data.time.utcnow().timestamp + 14 * 24 * 60 * 60
         secret_env = {
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,

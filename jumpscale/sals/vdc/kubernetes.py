@@ -26,11 +26,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         k8s = K8s()
         k8s.size = k8s_flavor.value
         cloud_units = k8s.resource_units().cloud_units()
-        cus = cloud_units.cu * duration * no_nodes
-        sus = cloud_units.su * duration * no_nodes
+        cus = int(cloud_units.cu * duration * no_nodes)
+        sus = int(cloud_units.su * duration * no_nodes)
         ipv4us = 0
         if public_ip:
-            ipv4us = duration
+            ipv4us = int(duration)
 
         farm = self.explorer.farms.get(farm_name=farm_name)
         pool_id = None
@@ -58,7 +58,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for kubernetes cluster extension."
             )
 
-        self.zos.billing.payout_farmers(self.wallet, pool_info)
+        self.vdc_deployer.pay(pool_info)
+
         success = self.vdc_deployer.wait_pool_payment(pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
         if not success:
             raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
@@ -330,8 +331,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 except DeploymentFailed:
                     if public_wids[idx]:
                         self.zos.workloads.decomission(public_wids[idx])
-                    self.vdc_deployer.error(f"failed t.o deploy kubernetes worker wid: {wid}")
-                    pass
+                    self.vdc_deployer.error(f"failed to deploy kubernetes worker wid: {wid}")
 
             self.vdc_deployer.info(f"successful kubernetes workers ids: {wids}")
             if len(wids) == no_nodes:

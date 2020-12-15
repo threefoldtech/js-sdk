@@ -4,19 +4,21 @@ from jumpscale.loader import j
 
 S3_NO_DATA_NODES = 6
 S3_NO_PARITY_NODES = 4
-MINIO_CPU = 2
-MINIO_MEMORY = 4 * 1024  # in MB
-MINIO_DISK = 4 * 1024  # in MB
+MINIO_CPU = 1
+MINIO_MEMORY = 1 * 1024  # in MB
+MINIO_DISK = 2 * 1024  # in MB
 ZDB_STARTING_SIZE = 10  # in GB
 
 THREEBOT_CPU = 1
-THREEBOT_MEMORY = 2 * 1024  # in MB
+THREEBOT_MEMORY = 1 * 1024  # in MB
 THREEBOT_DISK = 2 * 1024  # in MB
 
-S3_AUTO_TOPUP_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
-ZDB_FARMS = ["lochristi_dev_lab", "lochristi_dev_lab"]
-PREFERED_FARM = "lochristi_dev_lab"
-NETWORK_FARM = "lochristi_dev_lab"
+INITIAL_RESERVATION_DURATION = 1  # in hours
+
+S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
+ZDB_FARMS = ["freefarm", "freefarm"]
+PREFERED_FARM = "freefarm"
+NETWORK_FARM = "freefarm"
 
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
@@ -202,13 +204,13 @@ class VDCSize:
     def load_prices(self):
         self._prices = {"plans": {}, "nodes": {}, "services": {}}
         for plan, cost in self._prices_data["plans"].items():
-            self._prices[self.VDCFlavor[plan.upper()]] = cost
+            self._prices["plans"][self.VDCFlavor[plan.upper()]] = cost
 
         for node, cost in self._prices_data["nodes"].items():
-            self._prices[self.K8SNodeFlavor[node.upper()]] = cost
+            self._prices["nodes"][self.K8SNodeFlavor[node.upper()]] = cost
 
         for service, cost in self._prices_data["services"].items():
-            self._prices[self.Services[service.upper()]] = cost
+            self._prices["services"][self.Services[service.upper()]] = cost
 
 
 VDC_SIZE = VDCSize()

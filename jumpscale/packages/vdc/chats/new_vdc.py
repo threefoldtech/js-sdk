@@ -1,6 +1,8 @@
+from io import SEEK_CUR
+from jumpscale.sals.vdc import deployer
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
 
@@ -9,6 +11,10 @@ class VDCDeploy(GedisChatBot):
     steps = ["vdc_info", "deploy", "expose_s3", "success"]
 
     def _init(self):
+        self.md_show_update("Checking payment service...")
+        # check stellar service
+        if not j.clients.stellar.check_stellar_service():
+            raise StopChatFlow("Payment service is currently down, try again later")
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
 
@@ -26,6 +32,7 @@ class VDCDeploy(GedisChatBot):
             "Please enter a name for your VDC (will be used in listing and deletions in the future and in having a unique url)",
             required=True,
             not_exist=["VDC", vdc_names],
+            is_identifier=True,
         )
         self.vdc_secret = form.secret_ask("VDC Secret (Secret for controlling the vdc)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
@@ -55,10 +62,17 @@ class VDCDeploy(GedisChatBot):
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
-        # trans_hash = self.vdc.show_vdc_payment(self)
-        trans_hash = True
-        if not trans_hash:
-            j.sals.vdc.delete(self.vdc.vdc_name)
+        try:
+            self.vdc.prepaid_wallet
+            self.vdc.provision_wallet
+        except Exception as e:
+            j.sals.vdc.delete(self.vdc.instance_name)
+            j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
+            self.stop(f"failed to initialize VDC wallets. please try again later")
+
+        success, amount, payment_id = self.vdc.show_vdc_payment(self)
+        if not success:
+            j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
 
@@ -66,21 +80,44 @@ class VDCDeploy(GedisChatBot):
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
-            self.vdc.refund_payment(trans_hash)
+            j.sals.billing.issue_refund(payment_id)
             j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop("failed to initialize VDC deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
+        initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
+        old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
             self.config = self.deployer.deploy_vdc(
                 minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
             )
             if not self.config:
-                self.stop("Failed to deploy VDC. please try again later")
+                raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
-        except j.exceptions.Runtime as err:
+        except Exception as err:
             j.logger.error(str(err))
+            self.deployer.rollback_vdc_deployment()
+            j.sals.billing.issue_refund(payment_id)
+            j.sals.vdc.delete(self.vdc.vdc_name)
             self.stop(str(err))
+        self.md_show_update("Adding funds to provisioning wallet...")
+        initial_transaction_hashes = self.deployer.transaction_hashes
+        try:
+            self.vdc.transfer_to_provisioning_wallet(amount / 2)
+        except Exception as e:
+            j.logger.error(
+                f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}. please contact support"
+            )
+            raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
+
+        if initialization_wallet_name:
+            try:
+                self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
+            except Exception as e:
+                j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
+        self.deployer._set_wallet(old_wallet)
+        self.md_show_update("Updating expiration...")
+        self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
     @chatflow_step(title="Expose S3", disable_previous=True)
     def expose_s3(self):
