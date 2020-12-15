@@ -642,6 +642,9 @@ class VDCDeployer:
         self.info(f"kubernetes cluster expansion result: {wids}")
         return wids
 
+    def delete_k8s_node(self, wid):
+        return self.kubernetes.delete_worker(wid)
+
     def rollback_vdc_deployment(self):
         solutions.cancel_solution_by_uuid(self.vdc_uuid, self.identity.instance_name)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
