@@ -50,13 +50,11 @@ class ChatflowsBase(BaseTests):
         cls.server.start()
 
         # create a pool
-        cls.pool_name = cls.random_name()
-        cls.pool = deployer.create_pool(
-            solution_name=cls.pool_name, cu=2, su=2, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
-        )
-        import pdb
+        # cls.pool_name = cls.random_name()
+        # cls.pool = deployer.create_pool(
+        #     solution_name=cls.pool_name, cu=2, su=2, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
+        # )
 
-        pdb.set_trace()
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 360
 
