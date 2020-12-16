@@ -13,17 +13,17 @@ class ThreebotDeployerTests(BaseTest):
 
     def setUp(self):
         super().setUp()
-        if not hasattr(ThreebotDeployerTests, "wallet_name"):
-            self.wallet_name = self.random_name()
-            self.create_wallet(self.wallet_name)
+        # if not hasattr(ThreebotDeployerTests, "wallet_name"):
+        self.wallet_name = self.random_name()
+        self.create_wallet(self.wallet_name)
 
         self.threebot_deployer = ThreebotDeployer(self.driver)
         self.threebot_deployer.load()
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.delete_wallet()
-        super().tearDownClass()
+    def tearDown(self):
+        self.wallet_name = self.random_name()
+        self.create_wallet(self.wallet_name)
+        super().tearDown()
 
     def test01_deploy_and_delete_3bot(self):
         """
@@ -33,9 +33,9 @@ class ThreebotDeployerTests(BaseTest):
         #. Create a wallet.
         #. Create a threebot instance.
         #. Check that the threebot instance has been created successfully.
-        #. Delete the wallet.
         #. Delete the threebot instance.
         #. Check that the threebot instance has been deleted successfully.
+        #. Delete the wallet.
         """
         self.info("Create a wallet")
 
@@ -52,8 +52,6 @@ class ThreebotDeployerTests(BaseTest):
         my_3bot_instances = self.threebot_deployer.view_my_3bot("RUNNING")
         self.assertIn(threebot_name, my_3bot_instances)
 
-        self.info("Delete the wallet")
-
         self.info("Delete the threebot instance")
         self.threebot_deployer.delete_threebot_instance(my_3bot_instances=threebot_name, password=password)
 
@@ -61,13 +59,15 @@ class ThreebotDeployerTests(BaseTest):
         my_3bot_instances = self.threebot_deployer.view_my_3bot("DELETED")
         self.assertIn(threebot_name, my_3bot_instances)
 
+        self.info("Delete the wallet")
+
     def test02_start_and_stop_my_3bot_instance(self):
         """
         Test case to test start and stop a 3bot instance
 
         **Test Scenario**
         #. Create a wallet.
-        #. Create a 3bot instance.
+        #. Create a threebot instance.
         #. Stopped the new created 3bot instance.
         #. Check that the 3bot instance has been stopped successfully.
         #. Start the 3bot instance.
@@ -78,11 +78,11 @@ class ThreebotDeployerTests(BaseTest):
 
         self.info("Create a wallet")
 
-        self.info("Create a 3bot instance")
+        self.info("Create a threebot instance")
         threebot_name = "threebot{}".format(randint(1, 1000))
         password = randint(1, 500000)
         self.threebot_deployer.deploy_new_3bot(
-            my_3bot_instance_name=threebot_name, password=password, wallet_name=self.wallet_name
+            my_3bot_instances=threebot_name, password=password, wallet_name=self.wallet_name
         )
 
         self.info("Stopped the new created 3bot instance")
@@ -113,8 +113,8 @@ class ThreebotDeployerTests(BaseTest):
         wallets.load()
         wallets.add_funded(wallet_name)
 
-    def delete_wallet(self):
+    def delete_wallet(self, wallet_name):
         self.info("Delete the wallet")
         wallets = Wallets(self.driver)
         wallets.load()
-        wallets.delete(self.wallet_name)
+        wallets.delete(wallet_name)
