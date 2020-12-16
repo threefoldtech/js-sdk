@@ -490,7 +490,7 @@ class VDCDeployer:
                     continue
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy k8s or zdb")
 
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
@@ -512,7 +512,7 @@ class VDCDeployer:
             if not minio_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy minio")
 
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")
@@ -540,7 +540,7 @@ class VDCDeployer:
             if not threebot_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy 3bot")
 
             prefix = self.get_prefix()
             subdomain = self.proxy.proxy_container_over_custom_domain(
@@ -557,7 +557,7 @@ class VDCDeployer:
             if not subdomain:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to expose 3bot")
 
             # deploy monitoring stack on kubernetes
             self.bot_show_update("Deploying monitoring stack")
