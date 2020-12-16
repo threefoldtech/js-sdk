@@ -19,7 +19,7 @@ def list_vdcs():
     for vdc in vdcs:
         if vdc.is_empty():
             j.logger.warning(f"vdc {vdc.solution_uuid} is empty. deleting")
-            j.sals.vdc.delte(vdc.instance_name)
+            j.sals.vdc.delete(vdc.instance_name)
             continue
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
