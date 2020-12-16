@@ -1759,6 +1759,25 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         public_ipv6=False,
         **metadata,
     ):
+        """
+        Deploy single and cluster etcd nodes
+        Args:
+            pool_id : Pool used to deploy etcd solution
+            node_id : Node used to deploy etcd solution
+            network_name : Network name used to deploy etcd solution
+            ip_addresses (List): List of IP address for every etcd node
+            etcd_cluster (str): Contains ETCD_INITIAL_CLUSTER value
+            etcd_flist (str): ETCD flist image used
+            cpu (int): CPU resource value. Defaults to 1.
+            memory (int): Memory resource size in MB. Defaults to 1024.
+            disk_size (int): Disk resource size in MB. Defaults to 1024.
+            disk_type (DiskType): Disk resource type. Defaults to DiskType.SSD.
+            entrypoint (str): Command that run at the start of the container. Defaults to "etcd".
+            public_ipv6 (bool): Check for IPv6. Defaults to False.
+
+        Returns:
+            List: List of reservation ids
+        """
         etcd_cluster = etcd_cluster.rstrip(",")
         solution_uuid = metadata["solution_uuid"]
         env_cluster = {
