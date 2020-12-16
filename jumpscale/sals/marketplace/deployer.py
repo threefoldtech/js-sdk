@@ -305,7 +305,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         if not isinstance(currency, list):
             currency = [currency]
         if cu > 0 or su > 0:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currency)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currency)
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
@@ -313,7 +313,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
         cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.get().pools.create(int(cu * expiration), int(su * expiration), farm_name, [currency])
+        pool_info = j.sals.zos.get().pools.create(int(cu * expiration), int(su * expiration), 0, farm_name, [currency])
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -323,13 +323,13 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def create_3bot_pool(self, farm_name, expiration, currency, identity_name, **resources):
         cu, su = self.calculate_capacity_units(**resources)
         pool_info = j.sals.zos.get(identity_name).pools.create(
-            int(cu * expiration), int(su * expiration), farm_name, [currency]
+            int(cu * expiration), int(su * expiration), 0, farm_name, [currency]
         )
         return pool_info
 
     def create_gateway_emptypool(self, gwpool_name, farm_name, identity_name=None):
         identity_name = identity_name or j.core.identity.me.instance_name
-        pool_info = j.sals.zos.get(identity_name).pools.create(0, 0, farm_name, ["TFT"])
+        pool_info = j.sals.zos.get(identity_name).pools.create(0, 0, 0, farm_name, ["TFT"])
         user_pool = pool_factory.get(gwpool_name)
         user_pool.owner = gwpool_name
         user_pool.pool_id = pool_info.reservation_id
