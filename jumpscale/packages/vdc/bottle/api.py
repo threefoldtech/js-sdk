@@ -17,8 +17,9 @@ def list_vdcs():
     result = []
     vdcs = VDCFACTORY.list(username, load_info=True)
     for vdc in vdcs:
-        if not vdc.kubernetes:
-            j.logger.warning(f"skipping vdc {vdc.solution_uuid} in listing.")
+        if vdc.is_empty():
+            j.logger.warning(f"vdc {vdc.solution_uuid} is empty. deleting")
+            j.sals.vdc.delete(vdc.instance_name)
             continue
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
