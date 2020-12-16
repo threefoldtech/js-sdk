@@ -472,7 +472,7 @@ class VDCDeployer:
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
-            return False
+            raise j.exceptions.Runtime("failed to deploy network")
         gs = GlobalScheduler()
 
         with new_vdc_context(self):
@@ -490,7 +490,7 @@ class VDCDeployer:
                     continue
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
 
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
@@ -512,7 +512,7 @@ class VDCDeployer:
             if not minio_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
 
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")
@@ -523,7 +523,7 @@ class VDCDeployer:
             if master_ip == "::/128":
                 self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"couldn't get kubernetes master public ip {self.vdc_instance}")
 
             try:
                 # download kube config from master
@@ -531,7 +531,7 @@ class VDCDeployer:
             except Exception as e:
                 self.error(f"failed to download kube config due to error {str(e)}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"failed to download kube config due to error {str(e)}")
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
@@ -540,7 +540,7 @@ class VDCDeployer:
             if not threebot_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
 
             prefix = self.get_prefix()
             subdomain = self.proxy.proxy_container_over_custom_domain(
@@ -557,7 +557,7 @@ class VDCDeployer:
             if not subdomain:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                return False
+                raise j.exceptions.Runtime(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
 
             # deploy monitoring stack on kubernetes
             self.bot_show_update("Deploying monitoring stack")
