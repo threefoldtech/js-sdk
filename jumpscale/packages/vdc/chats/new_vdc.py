@@ -8,7 +8,7 @@ from textwrap import dedent
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "expose_s3", "success"]
+    steps = ["vdc_info", "deploy", "success"]
 
     def _init(self):
         self.md_show_update("Checking payment service...")
@@ -119,14 +119,6 @@ class VDCDeploy(GedisChatBot):
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
-    @chatflow_step(title="Expose S3", disable_previous=True)
-    def expose_s3(self):
-        result = self.single_choice(
-            "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No",
-        )
-        if result == "Yes":
-            self.s3_domain_name = self.deployer.expose_s3()
-
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
         msg = dedent(
@@ -140,9 +132,6 @@ class VDCDeploy(GedisChatBot):
         `WARINING: Please keep the kubeconfig file safe and secure. Anyone who has this file can access the kubernetes cluster`
         """
         )
-
-        if hasattr(self, "s3_domain_name") and self.s3_domain_name:
-            msg += f"\n\nYou can access your S3 cluster over domain https://{self.s3_domain_name}"
 
         self.download_file(
             msg, self.config, f"{self.vdc.vdc_name}.yaml", md=True,
