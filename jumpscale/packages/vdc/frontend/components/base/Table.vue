@@ -25,7 +25,8 @@
             <template v-slot:activator="{ on, attrs }">
               <a
                 style="text-decoration: none"
-                :href="`https://${item.threebot.domain}`"
+                :href="`https://${item.threebot.domain}/vdc_dashboard`"
+                target="_blank"
               >
                 <v-icon v-bind="attrs" v-on="on" color="primary"
                   >mdi-web</v-icon
