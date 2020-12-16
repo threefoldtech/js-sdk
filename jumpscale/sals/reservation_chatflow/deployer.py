@@ -1743,6 +1743,63 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             result.append(slave_cont_id)
         return result
 
+    def deploy_etcd_containers(
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        ip_addresses,
+        etcd_cluster,
+        etcd_flist,
+        cpu=1,
+        memory=1024,
+        disk_size=1024,
+        disk_type=DiskType.SSD,
+        entrypoint="etcd",
+        public_ipv6=False,
+        **metadata,
+    ):
+        etcd_cluster = etcd_cluster.rstrip(",")
+        solution_uuid = metadata["solution_uuid"]
+        env_cluster = {
+            "ETCD_INITIAL_CLUSTER_TOKEN": f"etcd_cluster_{solution_uuid}",
+            "ETCD_INITIAL_CLUSTER_STATE": "new",
+        }
+        result = []
+        for n, ip_address in enumerate(ip_addresses):
+            env = {}
+            if len(ip_addresses) > 1:
+                env.update(env_cluster)
+            env.update(
+                {
+                    "ALLOW_NONE_AUTHENTICATION": "yes",
+                    "ETCD_NAME": f"etcd_{n+1}",
+                    "ETCD_INITIAL_ADVERTISE_PEER_URLS": f"http://{ip_address}:2380",
+                    "ETCD_LISTEN_PEER_URLS": "http://0.0.0.0:2380",
+                    "ETCD_ADVERTISE_CLIENT_URLS": f"http://{ip_address}:2379",
+                    "ETCD_LISTEN_CLIENT_URLS": "http://0.0.0.0:2379",
+                    "ETCD_INITIAL_CLUSTER": etcd_cluster,
+                }
+            )
+            result.append(
+                self.deploy_container(
+                    pool_id,
+                    node_id,
+                    network_name,
+                    ip_address,
+                    etcd_flist,
+                    env,
+                    cpu,
+                    memory,
+                    disk_size,
+                    disk_type,
+                    entrypoint=entrypoint,
+                    public_ipv6=public_ipv6,
+                    **metadata,
+                )
+            )
+        return result
+
     def get_zdb_url(self, zdb_id, password):
         workload = j.sals.zos.get().workloads.get(zdb_id)
         result_json = j.data.serializers.json.loads(workload.info.result.data_json)
