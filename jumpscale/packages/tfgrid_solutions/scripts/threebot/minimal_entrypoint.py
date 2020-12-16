@@ -163,11 +163,11 @@ j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
 # Register provisioning and prepaid wallets
 
 wallet = j.clients.stellar.get(
-    name=f"{vdc.instance_name}_prepaid_wallet", secret=PREPAID_WALLET_SECRET, network=network
+    name=f"prepaid_wallet_{vdc.solution_uuid}", secret=PREPAID_WALLET_SECRET, network=network
 )
 wallet.save()
 
 wallet = j.clients.stellar.get(
-    name=f"{vdc.instance_name}_provision_wallet", secret=PROVISIONING_WALLET_SECRET, network=network
+    name=f"provision_wallet_{vdc.solution_uuid}", secret=PROVISIONING_WALLET_SECRET, network=network
 )
 wallet.save()

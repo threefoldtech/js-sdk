@@ -44,7 +44,7 @@ class UserVDC(Base):
 
     @property
     def prepaid_wallet(self):
-        wallet_name = f"{self.instance_name}_prepaid_wallet"
+        wallet_name = f"prepaid_wallet_{self.solution_uuid}"
         wallet = j.clients.stellar.find(wallet_name)
         if not wallet:
             vdc_wallet = VDC_WALLET_FACTORY.find(wallet_name)
@@ -56,7 +56,7 @@ class UserVDC(Base):
 
     @property
     def provision_wallet(self):
-        wallet_name = f"{self.instance_name}_provision_wallet"
+        wallet_name = f"provision_wallet_{self.solution_uuid}"
         wallet = j.clients.stellar.find(wallet_name)
         if not wallet:
             vdc_wallet = VDC_WALLET_FACTORY.find(wallet_name)
