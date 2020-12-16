@@ -33,7 +33,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_flavor = self.single_choice(
             "Choose the Node size", options=node_flavor_messages, default=node_flavor_messages[0], required=True
         )
-        self.node_flavor = self.node_flavor.value.split(":")[0]
+        self.node_flavor = self.node_flavor.split(":")[0]
 
     @chatflow_step(title="Public IP")
     def use_public_ip(self):
