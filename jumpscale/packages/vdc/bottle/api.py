@@ -2,7 +2,7 @@ from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info, package_authorized
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -17,6 +17,9 @@ def list_vdcs():
     result = []
     vdcs = VDCFACTORY.list(username, load_info=True)
     for vdc in vdcs:
+        if not vdc.kubernetes:
+            j.logger.warning(f"skipping vdc {vdc.solution_uuid} in listing.")
+            continue
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
