@@ -132,7 +132,7 @@ const DECENTRALIZED_DEV = {
             name: "Gitea",
             type: "gitea",
             image: "./assets/gitea.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/gitea/",
             description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
         },
