@@ -7,7 +7,7 @@ from jumpscale.core.exceptions import Input, NotFound
 
 from .auth import HTTPSignatureAuth
 from .base import BaseResource
-from .models import Farm
+from .models import Farm, FarmerIP
 from .pagination import get_all, get_page
 
 
@@ -119,3 +119,9 @@ class Farms(BaseResource):
     def delete(self, farm_id, node_id):
         self._session.delete(f"{self._url}/{farm_id}/{node_id}")
         return True
+
+    def add_public_ips(self, farm_id, public_ips):
+        self._session.post(f"{self._url}/{farm_id}/ip", json=public_ips)
+
+    def remove_public_ips(self, farm_id, public_ips):
+        self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
