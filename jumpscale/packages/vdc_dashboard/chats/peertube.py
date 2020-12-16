@@ -26,17 +26,19 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
+        user_info = self.user_info()
+        self.user_email = user_info["email"]
+
         self._choose_flavor()
-        self._get_smtp()
         self.chart_config = {
             "webserver.hostname": self.domain,
-            "adminEmail": self.admin_email,
+            "adminEmail": self.user_email,
             "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
             "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
-            "deps.smtp.hostname": self.email_host,
-            "deps.smtp.username": self.email_username,
-            "deps.smtp.password": self.email_password,
-            "deps.smtp.from": self.email_from,
+            "deps.smtp.hostname": None,
+            "deps.smtp.username": None,
+            "deps.smtp.password": None,
+            "deps.smtp.from": None,
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
