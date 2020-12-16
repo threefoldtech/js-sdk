@@ -26,3 +26,10 @@ class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):
     def ask(self, data):
         if data.get("msg"):
             self.md_show(data.get("msg"))
+
+    def single_choice(self, msg, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        if args:
+            if selected in args:
+                return selected
+            return selected

@@ -86,6 +86,7 @@ def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secr
 
 def deploy_ubuntu(
     solution_name,
+    pool,
     version="ubuntu-18.04",
     cpu=1,
     memory=1024,
@@ -98,11 +99,11 @@ def deploy_ubuntu(
     node="choose_random",
     ipv4="choose_random",
     network="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return UbuntuAutomated(
         solution_name=solution_name,
+        pool=pool,
         version=version,
         cpu=cpu,
         memory=memory,
@@ -115,7 +116,6 @@ def deploy_ubuntu(
         node=node,
         ipv4=ipv4,
         network=network,
-        pool=pool,
         debug=debug,
     )
 
@@ -286,21 +286,21 @@ def deploy_monitoring(
 
 def create_network(
     solution_name,
+    pool,
     ip_version="IPv4",
     ip_select="Choose ip range for me",
     ip_range="",
     access_node="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
+        pool=pool,
         type="Create",
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
         access_node=access_node,
-        pool=pool,
         debug=True,
     )
 
