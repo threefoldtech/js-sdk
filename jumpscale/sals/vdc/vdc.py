@@ -37,6 +37,11 @@ class UserVDC(Base):
     is_blocked = fields.Boolean(default=False)
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
 
+    def is_empty(self):
+        if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
+            return False
+        return True
+
     @property
     def prepaid_wallet(self):
         wallet_name = f"{self.instance_name}_prepaid_wallet"
