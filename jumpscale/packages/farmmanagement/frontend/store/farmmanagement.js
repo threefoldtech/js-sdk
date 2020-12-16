@@ -9,6 +9,7 @@ export default {
     tfgridUrl: null,
     nodes: [],
     farms: [],
+    farm: {},
     nodeSpecs: {
       amountregisteredNodes: 0,
       amountregisteredFarms: 0,
@@ -44,8 +45,12 @@ export default {
     },
     getFarms: context => {
       tfService.getFarms(context.getters.user.id).then(response => {
-        debugger;
         context.commit("setFarms", JSON.parse(response.data));
+      });
+    },
+    getFarm(context, farm_id) {
+      tfService.getFarm(farm_id).then(response => {
+        context.commit("setFarm", JSON.parse(response.data));
       });
     },
     registerFarm: (context, farm) => {
@@ -54,6 +59,17 @@ export default {
     updateFarm(context, farm) {
       return tfService.updateFarm(farm.id, farm);
     },
+    deleteIpAddress(context, toDel) {
+      return tfService.removePublicIPs(toDel.farm_id, [toDel.ipaddress])
+    },
+    createIpAddress(context, toInsert) {
+      return tfService.addPublicIPs(toInsert.farm_id, [
+        {
+          address: toInsert.address,
+          gateway: toInsert.gateway
+        }
+      ])
+    },
     deleteNodeFarm(context, node) {
       return tfService.deleteNodeFarm(node)
     }
@@ -61,6 +77,9 @@ export default {
   mutations: {
     setFarms(state, value) {
       state.farms = value;
+    },
+    setFarm(state, value) {
+      state.farm = value
     },
     setNodes(state, value) {
       state.nodes = value;
@@ -105,6 +124,7 @@ export default {
     tfgridUrl: state => state.tfgridUrl,
     nodes: state => state.nodes,
     farms: state => state.farms,
+    farm: state => state.farm,
     nodeSpecs: state => state.nodeSpecs,
     freeSwitchAlert: state => state.freeSwitchAlert
   }

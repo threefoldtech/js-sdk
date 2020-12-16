@@ -69,6 +69,7 @@ def _hash_signing_challenge(workload):
         WorkloadType.Domain_delegate: _delegate_challenge,
         WorkloadType.Gateway4to6: _gateway4to6_challenge,
         WorkloadType.Network_resource: _network_resource_challenge,
+        WorkloadType.Public_IP: _public_ip_challenge,
     }
     b = StringIO()
     b.write(_workload_info_challenge(workload.info))
@@ -158,6 +159,7 @@ def _k8s_challenge(k8s):
         b.write(str(ip))
     for key in k8s.ssh_keys:
         b.write(key)
+    b.write(str(k8s.public_ip))
     return b.getvalue()
 
 
@@ -211,4 +213,10 @@ def _network_resource_challenge(network):
         b.write(str(p.iprange))
         for iprange in p.allowed_iprange:
             b.write(str(iprange))
+    return b.getvalue()
+
+
+def _public_ip_challenge(public_ip):
+    b = StringIO()
+    b.write(str(public_ip.ipaddress))
     return b.getvalue()
