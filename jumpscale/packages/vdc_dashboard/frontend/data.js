@@ -93,7 +93,7 @@ const DECENTRALIZED_WE = {
             name: "Peertube",
             type: "peertube",
             image: "./assets/peertube.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/video-sharing/",
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
         },
