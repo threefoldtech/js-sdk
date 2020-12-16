@@ -286,7 +286,7 @@ def deploy_monitoring(
 
 def create_network(
     solution_name,
-    pool,
+    pool="choose_random",
     ip_version="IPv4",
     ip_select="Choose ip range for me",
     ip_range="",

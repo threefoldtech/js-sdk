@@ -19,7 +19,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         # Create Network
         cls.network_name = cls.random_name()
         cls.wg_conf_path = f"/tmp/{cls.random_name()}.conf"
-        network = deployer.create_network(solution_name=cls.network_name, pool=7055)
+        network = deployer.create_network(solution_name=cls.network_name)
         j.sals.fs.write_file(cls.wg_conf_path, network.wgconf)
         rc, out, err = j.sals.process.execute(f"sudo wg-quick up {cls.wg_conf_path}")
         TestCase().assertFalse(rc, f"out: {out} err: {err}")
@@ -81,7 +81,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy Ubuntu.")
         name = self.random_name()
         ubuntu = deployer.deploy_ubuntu(
-            solution_name=name, pool=7055, network=self.network_name, ssh=self.ssh_cl.public_key_path
+            solution_name=name, pool=cls.pool_id, network=self.network_name, ssh=self.ssh_cl.public_key_path
         )
         self.solution_uuid = ubuntu.solution_id
 
