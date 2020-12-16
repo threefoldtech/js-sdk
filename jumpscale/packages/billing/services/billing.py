@@ -4,8 +4,8 @@ import gevent
 
 
 class BillingService(BackgroundService):
-    def __init__(self, name="billing", interval=1, *args, **kwargs):
-        super().__init__(name, interval, *args, **kwargs)
+    def __init__(self, interval=1, *args, **kwargs):
+        super().__init__(interval, *args, **kwargs)
 
     def job(self):
         j.sals.billing.process_payments()

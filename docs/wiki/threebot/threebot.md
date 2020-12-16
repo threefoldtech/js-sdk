@@ -202,11 +202,11 @@ Some components will be defined by default based on the parent package classes i
         from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
         class TestService(BackgroundService):
-          def __init__(self, name="packagename_test", interval=20, *args, **kwargs):
+          def __init__(self, interval=20, *args, **kwargs):
             """
                 Test service that runs every 1 hour
             """
-            super().__init__(name, interval, *args, **kwargs)
+            super().__init__(interval, *args, **kwargs)
 
           def job(self):
             print("[Packagename - Test Service] Done")

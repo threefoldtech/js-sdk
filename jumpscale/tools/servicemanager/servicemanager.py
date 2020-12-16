@@ -5,16 +5,16 @@ Service manager is the service that monitors and manages background services thr
 Each service defines an interval to define the period of the service and defines also a job method that is run each period.
 Any service should:
 - Inherit from `BackgroundService` class defined here: `from jumpscale.tools.servicemanager.servicemanager import BackgroundService`
-- Define a name and interval in the constructor
+- Define an interval in the constructor
 - Implement the abtsract `job` method of the `BackgroundService` base class.
 
 ### How it schedules services
 
 The service manager uses gevent greenlets to run jobs. It spawns the job in a greenlet after its interval period.
 Rescheduling the service job is done in by linking a callback to the greenlet which is run after the greenlet finishes.
-After the greenlet finishes execution the callback is fired which schedules the job to be run again after anothre interval.
+After the greenlet finishes execution the callback is fired which schedules the job to be run again after another interval.
 
-To add a service  to the service manager you should call the `add_service` method which takes the package path as a parameter.
+To add a service to the service manager you should call the `add_service` method which takes the package name and package path as parameters.
 It loads the file in this path as a module and gets the service object defined in the service.py file.
 
 ### Example service
@@ -23,11 +23,11 @@ It loads the file in this path as a module and gets the service object defined i
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 class TestService(BackgroundService):
-    def __init__(self, name="test", interval="* * * * *", *args, **kwargs):
+    def __init__(self, interval="* * * * *", *args, **kwargs):
         '''
             Test service that runs every 1 minute
         '''
-        super().__init__(name, interval, *args, **kwargs)
+        super().__init__(interval, *args, **kwargs)
 
     def job(self):
         print("[Test Service] Done")
@@ -48,14 +48,12 @@ from jumpscale.core.base import Base
 
 
 class BackgroundService(ABC):
-    def __init__(self, service_name, interval=60, *args, **kwargs):
+    def __init__(self, interval=60, *args, **kwargs):
         """Abstract base class for background services managed by the service manager
 
         Arguments:
-            service_name (str): identifier of the service
             interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
         """
-        self.name = service_name
         self.interval = interval
 
     @abstractmethod
@@ -170,7 +168,7 @@ class ServiceManager(Base):
         for service in list(self.services.keys()):
             self.stop_service(service)
 
-    def add_service(self, service_path):
+    def add_service(self, service_name, service_path):
         """Add a new background service to be managed and scheduled by the service manager
 
         Arguments:
@@ -178,9 +176,10 @@ class ServiceManager(Base):
         """
 
         service = self._load_service(service_path)
+        service.name = service_name
 
         if service in self.services.values():
-            j.logger.debug(f"Service {service.name} is running. Reloading..")
+            j.logger.debug(f"Service {service.name} is already running. Reloading...")
             self.stop_service(service.name)
 
         next_start = ceil(self.seconds_to_next_interval(service.interval))
