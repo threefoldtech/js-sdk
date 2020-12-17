@@ -726,6 +726,9 @@ class VDCDeployer:
     def warning(self, msg):
         self._log(msg, "warning")
 
+    def critical(self, msg):
+        self._log(msg, "critical")
+
     def bot_show_update(self, msg):
         if self.bot:
             self.bot.md_show_update(msg)
