@@ -37,19 +37,6 @@
       <template v-slot:item.size="{ item }">
         <div>{{ item.size }} GB</div>
       </template>
-
-      <template v-slot:item.actions="{ item }">
-        <v-tooltip top>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click.stop="deleteNode(item)">
-              <v-icon v-bind="attrs" v-on="on" color="#810000"
-                >mdi-delete</v-icon
-              >
-            </v-btn>
-          </template>
-          <span>Destroy</span>
-        </v-tooltip>
-      </template>
     </v-data-table>
     <cancel-workload
       v-if="selected"
@@ -77,7 +64,6 @@ module.exports = {
         { text: "WID", value: "wid" },
         { text: "Node", value: "node" },
         { text: "Disk Size", value: "size" },
-        { text: "Actions", value: "actions", sortable: false },
       ],
       S3URL: null,
       loading: false,
