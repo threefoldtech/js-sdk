@@ -725,16 +725,8 @@ class VDCDeployer:
             for key in units_dict:
                 units_dict[key] = int(units_dict[key])
             pool_info = self.zos.pools.extend(pool_id, **units_dict)
-            deadline = j.data.time.now().timestamp + 5 * 60
-            success = False
-            while j.data.time.now().timestamp < deadline or success:
-                try:
-                    self.pay(pool_info)
-                    success = True
-                except Exception as e:
-                    self.warning(f"failed to submit payment to stellar due to error {str(e)}")
-            if not success:
-                raise j.exceptions.Runtime(f"failed to submit payment to stellar in time for {pool_info}")
+
+            self.pay(pool_info)
 
     def _log(self, msg, loglevel="info"):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
