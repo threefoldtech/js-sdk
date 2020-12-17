@@ -54,7 +54,7 @@
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
               <router-link class="d-block" :to="`/kubernetes`">
-                kubernetes</router-link
+                Compute Nodes</router-link
               >
             </v-list-item-title>
           </v-list-item-content>
