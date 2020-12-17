@@ -276,9 +276,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     ):
         # deploy workers
         wids = []
-        public_wids = []
         while True:
             result = []
+            public_wids = []
             deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, wids, no_nodes, network_view)
             if not deployment_nodes:
                 self.vdc_deployer.error("no available nodes to deploy kubernetes workers")
