@@ -9,7 +9,7 @@ from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
 from .models import *
-from .size import VDC_SIZE
+from .size import VDC_SIZE, PROXY_FARM
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -66,7 +66,7 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
+    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=PROXY_FARM):
         if not password:
             identity = identity or j.core.identity.me
         return VDCDeployer(
