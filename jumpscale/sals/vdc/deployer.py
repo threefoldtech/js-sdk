@@ -642,6 +642,7 @@ class VDCDeployer:
             no_nodes,
             duration=duration or INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=uuid.uuid4().hex,
+            public_ip=public_ip,
         )
         self.info(f"kubernetes cluster expansion result: {wids}")
         return wids
