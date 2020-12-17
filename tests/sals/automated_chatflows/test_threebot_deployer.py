@@ -38,6 +38,7 @@ class ThreebotChatflows(ChatflowsBase):
         """Test case for deploying a threebot.
 
         **Test Scenario**
+
         - Deploy a threebot.
         - Check that threebot is reachable.
         """
@@ -55,6 +56,7 @@ class ThreebotChatflows(ChatflowsBase):
         """Test case for starting a threebot.
 
         **Test Scenario**
+
         - Deploy a threebot.
         - Stop the deployed threebot
         - Start the stopped threebot.
@@ -81,6 +83,7 @@ class ThreebotChatflows(ChatflowsBase):
         """Test case for changing a threebot size.
 
         **Test Scenario**
+
         - Deploy a threebot.
         - Stop the deployed threebot.
         - Change the stopped threebot size.
@@ -114,6 +117,7 @@ class ThreebotChatflows(ChatflowsBase):
         """Test case for changing a threebot location.
 
         **Test Scenario**
+
         - Deploy a threebot.
         - Stop the deployed threebot.
         - Change the stopped threebot location.

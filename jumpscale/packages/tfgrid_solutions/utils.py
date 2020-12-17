@@ -18,18 +18,22 @@ def get_payment_amount(pool):
 
 def pay_pool(pool_info):
     # Get the amount of payment
-    resv_id, escrow_address, escrow_asset, total_amount = get_payment_amount(pool_info)
+    res = get_payment_amount(pool_info)
+    if not res:
+        j.logger.error(f"Faild to get payment info for {pool_info}")
+        return False
+    resv_id, escrow_address, escrow_asset, total_amount = res
     # Get the user wallets
     wallets = j.sals.reservation_chatflow.reservation_chatflow.list_wallets()
     for wallet_name, wallet_val in wallets.items():
-        j.logger.info(f"Trying to pay pool {pool_info.pool_id} with wallet {wallet_name}")
+        j.logger.info(f"Trying to pay reservation: {resv_id} with wallet {wallet_name}")
         try:
             wallet_val.transfer(
                 destination_address=escrow_address, amount=total_amount, asset=escrow_asset, memo_text=f"p-{resv_id}"
             )
             return True
         except:
-            j.logger.warning(f"failed to pay pool {pool_info.pool_id} with wallet {wallet_name}")
+            j.logger.warning(f"failed to reservation: {resv_id} with wallet {wallet_name}")
     return False
 
 
@@ -55,7 +59,7 @@ def auto_extend_pools():
 def auto_extend_pool(pool_id, cu, su, currencies=None):
     currencies = currencies or ["TFT"]
     try:
-        pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, currencies=currencies)
+        pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
     except Exception as e:
         send_pool_info_mail(pool_id)
         j.logger.error(f"Error happend during extending the pool, {str(e)}")

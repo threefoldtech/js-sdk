@@ -49,6 +49,7 @@ class GithubClientTest(BaseTests):
         """Test case for get access to client.
 
         **Test Scenario**
+
         - Get client userdata.
         - Check client email.
         """
@@ -58,6 +59,7 @@ class GithubClientTest(BaseTests):
         """Test case for creating a repository.
 
         **Test Scenario**
+
         - Get a github client.
         - Create a repository.
         - Check that this repository has been created.
@@ -73,6 +75,7 @@ class GithubClientTest(BaseTests):
         """Test case for deleting a repository.
 
         **Test Scenario**
+
         - Get a github client.
         - Create a repository.
         - Delete this repository.
@@ -94,6 +97,7 @@ class GithubClientTest(BaseTests):
         """Test case for set a file to repository.
 
         **Test Scenario**
+
         - Get a github client.
         - Create repository with auto init.
         - Create file and set to repository.
@@ -128,6 +132,7 @@ class GithubClientTest(BaseTests):
         """Test case for creating a milestones.
 
         **Test Scenario**
+
         - Get a github client.
         - Create repository with auto init.
         - Create milestones.
@@ -149,6 +154,7 @@ class GithubClientTest(BaseTests):
         """Test case for creating issue.
 
         **Test Scenario**
+
         - Get a github client.
         - Create repository with auto init.
         - Create issue.
@@ -170,6 +176,7 @@ class GithubClientTest(BaseTests):
         """Test case for creating issue with milestone.
 
         **Test Scenario**
+
         - Create repository with auto init.
         - Create milestone.
         - Create issue with milestone.

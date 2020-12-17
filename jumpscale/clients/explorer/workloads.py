@@ -17,6 +17,7 @@ from .models import (
     Volume,
     WorkloadType,
     ZdbNamespace,
+    PublicIP,
 )
 from .pagination import get_all, get_page
 
@@ -40,6 +41,7 @@ class Decoder:
             WorkloadType.Domain_delegate: GatewayDelegate,
             WorkloadType.Gateway4to6: Gateway4to6,
             WorkloadType.Network_resource: NetworkResource,
+            WorkloadType.Public_IP: PublicIP,
         }
 
     def workload(self):
@@ -107,6 +109,7 @@ class Workloads:
             NetworkResource,
             Volume,
             ZdbNamespace,
+            PublicIP,
         ]
     ]:
         """
@@ -141,6 +144,7 @@ class Workloads:
             NetworkResource,
             Volume,
             ZdbNamespace,
+            PublicIP,
         ]
     ]:
         """
@@ -179,6 +183,7 @@ class Workloads:
         NetworkResource,
         Volume,
         ZdbNamespace,
+        PublicIP,
     ]:
         """
         get a specific workload

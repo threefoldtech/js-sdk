@@ -67,7 +67,7 @@ def wait_workload(wid):
         raise j.exceptions.Runtime(f"workload {wid} failed due to {workload.info.result.message}")
 
 
-payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=["TFT"])
+payment_detail = zos.pools.create(cu=100, su=100, ipv4us=0, farm="freefarm", currencies=["TFT"])
 print(payment_detail)
 
 wallet = j.clients.stellar.get("wallet")
