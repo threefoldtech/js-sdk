@@ -82,7 +82,7 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"""# You VDC {self.vdc_name} has been extended successfuly""")
+        self.md_show(f"""Your VDC {self.vdc.vdc_name} has been extended successfuly""")
 
 
 chat = ExtendKubernetesCluster

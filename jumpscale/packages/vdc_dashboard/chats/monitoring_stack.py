@@ -28,7 +28,7 @@ class InstallMonitoringStack(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"""# You have deployed the monitoring stack on VDC: {self.vdc.vdc_name} successfuly""")
+        self.md_show(f"""You have deployed the monitoring stack on VDC: {self.vdc.vdc_name} successfuly""")
 
 
 chat = InstallMonitoringStack
