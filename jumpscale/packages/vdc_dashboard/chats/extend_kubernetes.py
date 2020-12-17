@@ -63,12 +63,13 @@ class ExtendKubernetesCluster(GedisChatBot):
 
         self.md_show_update("Payment successful")
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
-        wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
-        if not wids:
+        try:
+            wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
+        except Exception as e:
             j.sals.billing.issue_refund(payment_id)
-            self.stop("failed to add nodes to your cluster. please contact support")
-        self.md_show_update("Processing transaction...")
+            self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
 
+        self.md_show_update("Processing transaction...")
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:

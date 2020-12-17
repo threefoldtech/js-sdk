@@ -665,6 +665,8 @@ class VDCDeployer:
             public_ip=public_ip,
         )
         self.info(f"kubernetes cluster expansion result: {wids}")
+        if not wids:
+            raise j.exceptions.Runtime(f"all tries to deploy on farm {farm_name} has failed")
         return wids
 
     def delete_k8s_node(self, wid):
