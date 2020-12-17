@@ -47,9 +47,8 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Adding node")
     def add_node(self):
-        vdc_secret = self.secret_ask(f"Specify your VDC secret for {self.vdc_name}", min_length=8, required=True,)
         try:
-            deployer = self.vdc.get_deployer(password=vdc_secret, bot=self)
+            deployer = self.vdc.get_deployer(bot=self)
         except VDCIdentityError:
             self.stop(
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
