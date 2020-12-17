@@ -55,7 +55,9 @@ class ExtendKubernetesCluster(GedisChatBot):
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        success, amount, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, expiry=1)
+        success, amount, payment_id = self.vdc.show_external_node_payment(
+            self, self.node_flavor, expiry=1, public_ip=self.public_ip
+        )
         if not success:
             self.stop(f"payment timedout")
 
