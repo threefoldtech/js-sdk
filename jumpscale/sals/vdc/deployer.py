@@ -712,7 +712,8 @@ class VDCDeployer:
             workload = self.zos.workloads.get(wid)
             if workload.info.workload_type != WorkloadType.Kubernetes:
                 self.warning(f"workload {wid} is not a valid kubernetes workload")
-            pool_id = workload
+                continue
+            pool_id = workload.info.pool_id
             resource_units = workload.resource_units()
             cloud_units = resource_units.cloud_units()
             pools_units[pool_id]["cu"] += cloud_units.cu * duration
