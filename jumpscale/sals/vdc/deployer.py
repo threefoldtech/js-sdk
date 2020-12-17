@@ -710,7 +710,7 @@ class VDCDeployer:
         pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
         for wid in wids:
             workload = self.zos.workloads.get(wid)
-            if workload.info.woprkload_type != WorkloadType.Kubernetes:
+            if workload.info.workload_type != WorkloadType.Kubernetes:
                 self.warning(f"workload {wid} is not a valid kubernetes workload")
             pool_id = workload
             resource_units = workload.resource_units()
