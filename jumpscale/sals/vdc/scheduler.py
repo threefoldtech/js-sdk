@@ -35,8 +35,28 @@ class Scheduler:
                 for node in self.zos.nodes_finder.nodes_search(farm_name=self.farm_name)
                 if all([f(node) for f in filters])
             ]
-        random.shuffle(self._nodes)
+        self._order_nodes()
         return self._nodes
+
+    @staticmethod
+    def _weight_sorter(node, cru_weight, mru_weight, sru_weight, hru_weight):
+        cru = max(0, node.total_resources.cru - max(0, node.reserved_resources.cru))
+        mru = max(0, node.total_resources.mru - max(0, node.reserved_resources.mru))
+        sru = max(0, node.total_resources.sru - max(0, node.reserved_resources.sru))
+        hru = max(0, node.total_resources.hru - max(0, node.reserved_resources.hru))
+        return cru * cru_weight + mru * mru_weight + (sru / 1024) * sru_weight + (hru / 1024) * hru_weight
+
+    def _order_nodes(self, randomize=False):
+        if randomize:
+            random.shuffle(self._nodes)
+        else:
+            cru_weight = j.core.config.get("SCHEDULER_CRU_WEIGHT", 0)
+            mru_weight = j.core.config.get("SCHEDULER_MRU_WEIGHT", 0)
+            sru_weight = j.core.config.get("SCHEDULER_SRU_WEIGHT", 5)
+            hru_weight = j.core.config.get("SCHEDULER_HRU_WEIGHT", 0.75)
+            self._nodes = sorted(
+                self._nodes, key=lambda node: self._weight_sorter(node, cru_weight, mru_weight, sru_weight, hru_weight)
+            )
 
     def _update_node(self, selected_node, cru=None, mru=None, sru=None, hru=None):
         for node in self._nodes:

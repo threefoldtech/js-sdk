@@ -83,6 +83,23 @@ class VDCDeployer:
         self._public_ip = None
         self._transaction_hashes = []
 
+    def _retry_call(self, func, args=None, kwargs=None, timeout=5):
+        args = args or list()
+        kwargs = kwargs or dict()
+        deadline = j.data.time.now().timestamp + timeout * 60
+        while True:
+            try:
+                self.info(f"executing function: {func.__name__}")
+                result = func(*args, **kwargs)
+                self.info(f"function: {func.__name__} executed successfully. return {result}")
+                return result
+            except Exception as e:
+                if j.data.time.now().timestamp < deadline:
+                    self.warning(f"failed to execute function {func.__name__} due to error {str(e)}. retrying")
+                else:
+                    self.error(f"failed to execute function {func.__name__} due to error {str(e)}.")
+                    raise e
+
     @property
     def transaction_hashes(self):
         return self._transaction_hashes
@@ -201,13 +218,15 @@ class VDCDeployer:
                 if not any([cus, sus, ipv4us]):
                     return pool.pool_id
                 node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
-                pool_info = self.zos.pools.extend(pool.pool_id, cus, sus, ipv4us, node_ids=node_ids)
+                pool_info = self._retry_call(
+                    self.zos.pools.extend, args=[pool.pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
+                )
                 self.info(
                     f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
                 )
                 self.pay(pool_info)
                 return pool.pool_id
-        pool_info = self.zos.pools.create(cus, sus, ipv4us, farm_name)
+        pool_info = self._retry_call(self.zos.pools.create, args=[cus, sus, ipv4us, farm_name])
         self.info(
             f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
         )
@@ -632,7 +651,7 @@ class VDCDeployer:
 
         if not public_key:
             key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
-            public_key = j.sals.fs.read_file(key_path)
+            public_key = j.sals.fs.read_file(key_path).strip()
         self.bot_show_update(f"Deploying {no_nodes} Kubernetes Nodes")
         wids = self.kubernetes.extend_cluster(
             farm_name,

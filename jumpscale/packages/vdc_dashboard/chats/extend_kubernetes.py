@@ -62,7 +62,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(f"payment timedout")
 
         self.md_show_update("Payment successful")
-        old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet)
+        old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
         wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
         if not wids:
             j.sals.billing.issue_refund(payment_id)

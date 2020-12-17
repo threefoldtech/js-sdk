@@ -159,7 +159,7 @@ const DECENTRALIZED_DEV = {
             image: "./assets/monitoring.png",
             disable: false,
             helpLink: "",
-            description: "Monitoring Stack makes it easy to monitor your VDC using Graphana, Prometheus, Redis"
+            description: "Monitoring Stack makes it easy to monitor your VDC using Grafana, Prometheus, Redis"
         },
     },
 }
