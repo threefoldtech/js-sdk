@@ -4,7 +4,7 @@ from jumpscale.packages.auth.bottle.auth import get_user_info
 
 def _filter_data(deployment):
     status = "Running"
-    for status_obj in deployment["status"]["conditions"]:
+    for status_obj in deployment["status"].get("conditions", []):
         if status_obj["status"] == "False":
             status = "Error"
             break
@@ -16,7 +16,7 @@ def _filter_data(deployment):
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
         "creation": creation_time,
         "Status": status,
-        "Status Details": deployment["status"]["conditions"],
+        "Status Details": deployment["status"].get("conditions", []),
     }
     return filtered_deployment
 
@@ -69,17 +69,18 @@ def get_deployments(solution_type: str = None) -> list:
         kubectl_deployment_info = k8s_client.execute_native_cmd(
             cmd=f"kubectl get deployments -l app.kubernetes.io/name={solution_type} -o json"
         )
+        kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
 
         # get statefulsets if no result from deployments
         if not kubectl_deployment_info["items"]:
             kubectl_deployment_info = k8s_client.execute_native_cmd(
                 cmd=f"kubectl get statefulset -l app.kubernetes.io/name={solution_type} -o json"
             )
+            kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
 
         deployments = kubectl_deployment_info["items"]
 
-        for deployment_json_str in deployments:
-            deployment_info = j.data.serializers.json.loads(deployment_json_str)
+        for deployment_info in deployments:
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)

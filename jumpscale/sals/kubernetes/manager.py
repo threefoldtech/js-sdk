@@ -169,7 +169,7 @@ class Manager:
         rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
-        return j.data.serializers.json.loads(out)
+        return out
 
     @helm_required
     def get_helm_chart_user_values(self, release, namespace="default"):

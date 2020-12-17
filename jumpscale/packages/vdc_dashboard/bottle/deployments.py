@@ -114,7 +114,7 @@ def cancel_deployment():
     vdc_name = data.get("vdc_name")
     if not vdc_name:
         abort(400, "Error: Not all required params was passed.")
-    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    config_path = "/root/.kube/config"
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     k8s_client.delete_deployed_release(data["release"])
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
