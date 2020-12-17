@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="actions mb-3">
-      <h1 class="d-inline" color="primary" text>{{ $route.name }}</h1>
+      <h1 class="d-inline" color="primary" text>Compute Nodes</h1>
       <v-btn
         class="float-right p-4"
         color="primary"

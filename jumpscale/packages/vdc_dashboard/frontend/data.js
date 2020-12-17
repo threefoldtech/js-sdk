@@ -49,6 +49,7 @@ const DECENTRALIZED_OFFICE = {
             helpLink: "https://now.threefold.io/now/docs/commento/",
             description: "Collaborate on online content without giving up your privacy."
         },
+
     },
 }
 
@@ -151,6 +152,14 @@ const DECENTRALIZED_DEV = {
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/gridsome/",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
+        },
+        monitoring: {
+            name: "Monitoring Stack",
+            type: "monitoring_stack",
+            image: "./assets/monitoring.png",
+            disable: false,
+            helpLink: "",
+            description: "Monitoring Stack makes it easy to monitor your VDC using Grafana, Prometheus, Redis"
         },
     },
 }

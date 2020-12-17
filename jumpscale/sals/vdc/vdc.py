@@ -9,7 +9,7 @@ from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
 from .models import *
-from .size import VDC_SIZE
+from .size import VDC_SIZE, PROXY_FARM
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -66,7 +66,7 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
+    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=PROXY_FARM):
         if not password:
             identity = identity or j.core.identity.me
         return VDCDeployer(
@@ -275,6 +275,8 @@ class UserVDC(Base):
         return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+        if isinstance(size, str):
+            size = VDC_SIZE.K8SNodeFlavor[size.upper()]
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
