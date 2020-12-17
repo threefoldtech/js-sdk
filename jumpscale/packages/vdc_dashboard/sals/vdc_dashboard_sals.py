@@ -12,7 +12,7 @@ def _filter_data(deployment):
     creation_time = j.data.time.get(deployment["metadata"]["creationTimestamp"]).timestamp
     # TODO: Add VDC name
     filtered_deployment = {
-        "Release": deployment["metadata"]["labels"]["app.kubernetes.io/instance"],
+        "Release": deployment["metadata"]["labels"].get("app.kubernetes.io/instance"),
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
         "creation": creation_time,
         "Status": status,
@@ -67,16 +67,19 @@ def get_deployments(solution_type: str = None) -> list:
         if not j.sals.fs.exists(config_path):
             continue
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-        try:
-            kubectl_deployment_info = k8s_client.execute_native_cmd(
-                cmd=f'kubectl --kubeconfig {config_path} get deployments -o=jsonpath=\'{{range .items[?(@.metadata.labels.app\.kubernetes\.io/name=="{solution_type}")]}}{{@}}{{"\\n"}}{{end}}\''
-            )
-        except j.exceptions.Runtime:
-            # Empty response
-            return []
 
-        # TODO Improve splitting
-        deployments = kubectl_deployment_info.split("\n")[:-1]
+        # get deployments
+        kubectl_deployment_info = k8s_client.execute_native_cmd(
+            cmd=f"kubectl --kubeconfig {config_path} get deployments -l app.kubernetes.io/name={solution_type} -o json"
+        )
+
+        # get statefulsets if no result from deployments
+        if not kubectl_deployment_info["items"]:
+            kubectl_deployment_info = k8s_client.execute_native_cmd(
+                cmd=f"kubectl --kubeconfig {config_path} get statefulset -l app.kubernetes.io/name={solution_type} -o json"
+            )
+
+        deployments = kubectl_deployment_info["items"]
 
         for deployment_json_str in deployments:
             deployment_info = j.data.serializers.json.loads(deployment_json_str)
@@ -84,7 +87,7 @@ def get_deployments(solution_type: str = None) -> list:
             release_name = deployment_info["Release"]
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
             deployment_host = k8s_client.execute_native_cmd(
-                cmd=f"kubectl --kubeconfig {config_path} get ingress -o=jsonpath='{{.items[?(@.metadata.labels.app\.kubernetes\.io/instance==\"{release_name}\")].spec.rules[0].host}}'"
+                cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
             )
             deployment_info.update(
                 {
