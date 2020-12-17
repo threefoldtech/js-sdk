@@ -38,7 +38,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.ssh_cl.load_from_file_system()
         cls.ssh_cl.save()
         cls.solution_uuid = ""
-        cls.deployment_timeout = 360
+        cls.deployment_timeout = 60
 
     @classmethod
     def tearDownClass(cls):
@@ -82,7 +82,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy Ubuntu.")
         name = self.random_name()
         ubuntu = deployer.deploy_ubuntu(
-            solution_name=name, pool=cls.pool_id, network=self.network_name, ssh=self.ssh_cl.public_key_path
+            solution_name=name, pool=self.pool, network=self.network_name, ssh=self.ssh_cl.public_key_path
         )
         self.solution_uuid = ubuntu.solution_id
 

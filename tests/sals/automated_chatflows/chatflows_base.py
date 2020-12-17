@@ -54,10 +54,12 @@ class ChatflowsBase(BaseTests):
         pool = deployer.create_pool(
             solution_name=pool_name, cu=2, su=2, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
         )
-        cls.pool_id = pool.pool_data.reservation_id
-
+        reservation_id = pool.pool_data.reservation_id
+        pool_data = j.sals.zos.get().pools.get(reservation_id)
+        cls.pool = f"Pool: {reservation_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {pool_name}"
+        print("@" * 20, cls.pool)
         # Timeout for any exposed solution to be reachable.
-        cls.timeout = 360
+        cls.timeout = 60
 
     @classmethod
     def tearDownClass(cls):
