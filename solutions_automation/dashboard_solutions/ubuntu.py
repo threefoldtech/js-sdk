@@ -37,10 +37,3 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
         NODE_ID_MESSAGE: "node_automatic",
         NODE_SELECTION_MESSAGE: "node",
     }
-
-    def single_choice(self, msg, *args, **kwargs):
-        selected = self.fetch_param(msg, *args, **kwargs)
-        if args:
-            if selected in args:
-                return selected
-            return selected
