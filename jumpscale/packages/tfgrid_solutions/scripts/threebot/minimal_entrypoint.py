@@ -148,6 +148,7 @@ if TEST_CERT != "true":
         domain=vdc.threebot.domain,
     )
 else:
+    j.core.config.set("OVER_PROVISIONING", True)
     server.packages.add(
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
     )
