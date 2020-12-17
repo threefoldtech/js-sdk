@@ -497,7 +497,7 @@ class VDCDeployer:
             pool_id = self.get_pool_id(farm_name)
 
             # deploy minio container
-            self.bot_show_update("Deploying minio container")
+            # self.bot_show_update("Deploying minio container")
             minio_wid = self.s3.deploy_s3_minio_container(
                 pool_id,
                 minio_ak,

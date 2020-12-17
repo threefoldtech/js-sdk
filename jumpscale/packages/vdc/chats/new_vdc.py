@@ -55,7 +55,7 @@ class VDCDeploy(GedisChatBot):
     def vdc_info(self):
         self._init()
         self._vdc_form()
-        self._k3s_and_minio_form()
+        # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
@@ -88,9 +88,7 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(
-                minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
-            )
+            self.config = self.deployer.deploy_vdc(minio_ak="12345678", minio_sk="12345678",)
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
