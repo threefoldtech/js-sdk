@@ -633,6 +633,7 @@ class VDCDeployer:
         if not public_key:
             key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
             public_key = j.sals.fs.read_file(key_path)
+        self.bot_show_update(f"Deploying {no_nodes} Kubernetes Nodes")
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
