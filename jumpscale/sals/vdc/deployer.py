@@ -719,7 +719,7 @@ class VDCDeployer:
             pools_units[pool_id]["cu"] += cloud_units.cu * duration
             pools_units[pool_id]["su"] += cloud_units.su * duration
             if workload.public_ip:
-                pools_units["ipv4us"] += duration
+                pools_units[pool_id]["ipv4us"] += duration
 
         for pool_id, units_dict in pools_units.items():
             for key in units_dict:
