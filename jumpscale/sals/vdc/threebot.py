@@ -51,7 +51,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
             "VDC_MINIO_ADDRESS": minio_ip_address,
-            "SDK_VERSION": "development_vdc_fixextend",  # TODO: change when merged
+            "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",

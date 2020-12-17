@@ -139,6 +139,7 @@ while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
     vdc.load_info()
     gevent.sleep(10)
 
+j.core.config.set("OVER_PROVISIONING", True)
 server = j.servers.threebot.get("default")
 server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/billing")
 if TEST_CERT != "true":
@@ -148,7 +149,6 @@ if TEST_CERT != "true":
         domain=vdc.threebot.domain,
     )
 else:
-    j.core.config.set("OVER_PROVISIONING", True)
     server.packages.add(
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
     )
