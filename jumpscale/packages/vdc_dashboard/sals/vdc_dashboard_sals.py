@@ -29,13 +29,10 @@ def get_all_deployments() -> list:
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
-        config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
-
+        config_path = "/root/.kube/config"
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
         # Get all deployments
-        kubectl_deployment_info = k8s_client.execute_native_cmd(
-            cmd=f"kubectl --kubeconfig {config_path} get deployments -o json"
-        )
+        kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
         deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
 
         for deployment_info in deployments:
@@ -63,20 +60,20 @@ def get_deployments(solution_type: str = None) -> list:
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
-        config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+        config_path = "/root/.kube/config"
         if not j.sals.fs.exists(config_path):
             continue
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
 
         # get deployments
         kubectl_deployment_info = k8s_client.execute_native_cmd(
-            cmd=f"kubectl --kubeconfig {config_path} get deployments -l app.kubernetes.io/name={solution_type} -o json"
+            cmd=f"kubectl get deployments -l app.kubernetes.io/name={solution_type} -o json"
         )
 
         # get statefulsets if no result from deployments
         if not kubectl_deployment_info["items"]:
             kubectl_deployment_info = k8s_client.execute_native_cmd(
-                cmd=f"kubectl --kubeconfig {config_path} get statefulset -l app.kubernetes.io/name={solution_type} -o json"
+                cmd=f"kubectl get statefulset -l app.kubernetes.io/name={solution_type} -o json"
             )
 
         deployments = kubectl_deployment_info["items"]
