@@ -67,7 +67,9 @@
         >
           <v-list-item-content>
             <v-list-item-title class="text-capitalize">
-              <router-link class="d-block" :to="`/s3`"> s3</router-link>
+              <router-link class="d-block" :to="`/s3`">
+                Storage Nodes</router-link
+              >
             </v-list-item-title>
           </v-list-item-content>
         </v-list-item>

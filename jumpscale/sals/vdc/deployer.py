@@ -447,7 +447,7 @@ class VDCDeployer:
 
         return gcc.result
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM, install_monitoring_stack=False):
         """deploys a new vdc
         Args:
             minio_ak: access key for minio
@@ -559,13 +559,14 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to expose 3bot")
 
-            # deploy monitoring stack on kubernetes
-            self.bot_show_update("Deploying monitoring stack")
-            try:
-                self.monitoring.deploy_stack()
-            except j.exceptions.Runtime as e:
-                # TODO: rollback
-                self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
+            if install_monitoring_stack:
+                # deploy monitoring stack on kubernetes
+                self.bot_show_update("Deploying monitoring stack")
+                try:
+                    self.monitoring.deploy_stack()
+                except j.exceptions.Runtime as e:
+                    # TODO: rollback
+                    self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
             return kube_config
 

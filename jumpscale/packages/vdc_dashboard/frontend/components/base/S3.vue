@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="actions mb-3">
-      <h1 class="d-inline" color="primary" text>{{ $route.name }}</h1>
+      <h1 class="d-inline" color="primary" text>Storage Nodes</h1>
 
       <v-btn
         v-if="S3URL"
@@ -9,7 +9,8 @@
         text
         :href="`https://${S3URL}`"
       >
-        <v-icon color="primary" class="mr-2" left>mdi-web</v-icon>S3 Browser
+        <v-icon color="primary" class="mr-2" left>mdi-web</v-icon>Storage
+        Browser
       </v-btn>
 
       <v-btn
@@ -20,11 +21,11 @@
         @click.stop="exposeS3()"
       >
         <v-icon color="primary" class="mr-2" left>mdi-upload-multiple</v-icon
-        >Expose S3
+        >Expose storgae controller
       </v-btn>
     </div>
     <v-data-table :headers="headers" :items="zdbs" class="elevation-1">
-      <template slot="no-data">No VDC instances available</template>
+      <template slot="no-data">No VDC instance available</template>
       <template v-slot:item.wid="{ item }">
         <div>{{ item.wid }}</div>
       </template>
