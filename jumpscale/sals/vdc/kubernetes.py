@@ -121,6 +121,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         if not wids:
             self.vdc_deployer.error(f"failed to extend kubernetes cluster with {no_nodes} nodes of flavor {k8s_flavor}")
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(solution_uuid)
+            raise j.exceptions.Runtime(
+                f"failed to extend kubernetes cluster with {no_nodes} nodes of flavor {k8s_flavor}"
+            )
         return wids
 
     def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
