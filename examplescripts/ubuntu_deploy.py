@@ -90,7 +90,7 @@ def get_deploymnet_node(pool):
     return available_nodes[0]
 
 
-payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=["TFT"])
+payment_detail = zos.pools.create(cu=100, su=100, ipv4us=0, farm="freefarm", currencies=["TFT"])
 print(payment_detail)
 
 if not j.clients.stellar.find(WALLET_NAME):

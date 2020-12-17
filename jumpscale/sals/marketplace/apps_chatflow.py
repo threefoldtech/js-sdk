@@ -96,7 +96,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.get().pools.extend(
-                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
+                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), 0, currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
                     trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
