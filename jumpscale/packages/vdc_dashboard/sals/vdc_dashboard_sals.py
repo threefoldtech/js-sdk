@@ -4,7 +4,8 @@ from jumpscale.packages.auth.bottle.auth import get_user_info
 
 def _filter_data(deployment):
     status = "Running"
-    for status_obj in deployment["status"].get("conditions", []):
+    conditions = deployment["status"].get("conditions", [])
+    for status_obj in conditions:
         if status_obj["status"] == "False":
             status = "Error"
             break
@@ -16,7 +17,7 @@ def _filter_data(deployment):
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
         "creation": creation_time,
         "Status": status,
-        "Status Details": deployment["status"].get("conditions", []),
+        "Status Details": conditions,
     }
     return filtered_deployment
 
@@ -29,7 +30,7 @@ def get_all_deployments() -> list:
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
-        config_path = "/root/.kube/config"
+        config_path = j.sals.fs.expanduser("~/.kube/config")
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
         # Get all deployments
         kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
@@ -60,7 +61,7 @@ def get_deployments(solution_type: str = None) -> list:
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
-        config_path = "/root/.kube/config"
+        config_path = j.sals.fs.expanduser("~/.kube/config")
         if not j.sals.fs.exists(config_path):
             continue
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
