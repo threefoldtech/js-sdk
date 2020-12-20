@@ -54,7 +54,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _threebot_start(self):
         self._validate_user()
-        self.branch = "development_threebotdeployer_improvments"
+        self.branch = "development"
         self.solution_id = uuid.uuid4().hex
         self.username = self.user_info()["username"]
         self.threebot_name = j.data.text.removesuffix(self.username, ".3bot")
