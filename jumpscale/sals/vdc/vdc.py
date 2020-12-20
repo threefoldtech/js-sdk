@@ -266,11 +266,15 @@ class UserVDC(Base):
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         # amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
         amount = VDC_SIZE.PRICES["plans"][self.flavor]
+
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
             wallet_name=wallet_name or self.prepaid_wallet.instance_name,
             refund_extra=False,
             expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+            ),
         )
         return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
@@ -285,6 +289,9 @@ class UserVDC(Base):
             wallet_name=wallet_name or self.prepaid_wallet.instance_name,
             refund_extra=False,
             expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+            ),
         )
         return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
