@@ -656,7 +656,7 @@ class VDCDeployer:
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
+            flavor,
             cluster_secret,
             [public_key],
             no_nodes,
