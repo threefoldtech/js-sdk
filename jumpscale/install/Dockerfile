@@ -1,7 +1,7 @@
 FROM threefoldtech/phusion:20.04
 
 ARG BRANCH
-ARG TRC="false"
+ARG TRC=false
 RUN apt-get update && apt-get install curl wget git python3-pip python3-venv redis-server tmux nginx restic -y
 
 RUN pip3 install poetry
@@ -17,11 +17,11 @@ RUN python3 jumpscale/install/codeserver-install.py
 RUN wget https://github.com/threefoldtech/zinit/releases/download/v0.1/zinit -O /sbin/zinit \
     && chmod +x /sbin/zinit
 
-RUN wget https://github.com/threefoldtech/tcprouter/releases/download/v0.1.0/trc -O /sbin/trc \
-    && chmod +x /sbin/trc
+RUN if [ "$TRC" = "true" ] ; then wget https://github.com/threefoldtech/tcprouter/releases/download/v0.1.0/trc -O /sbin/trc \
+    && chmod +x /sbin/trc ; fi
 
 COPY rootfs /
 
-RUN if [[ "$TRC" == "false" ]] ; then rm /etc/zint/trc.yaml ; rm /sbin/trc ; fi
+RUN if [ "$TRC" = "false" ] ; then rm /etc/zinit/trc.yaml ; fi
 
 ENTRYPOINT [ "zinit", "init" ]
