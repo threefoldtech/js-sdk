@@ -34,7 +34,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
-        "create_or_recover",
         "get_solution_name",
         "deployer_info",
         "upload_public_key",
@@ -51,7 +50,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to import"
     CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
 
     def _threebot_start(self):
@@ -81,38 +79,39 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
-        if "testnet" in j.core.identity.me.explorer_url:
-            self.identity_name = self.testnet_identity_name
-        else:
-            self.identity_name = self.mainnet_identity_name
         try:
-            identity_main = j.core.identity.get(
-                self.mainnet_identity_name,
-                tname=tname,
-                email=email,
-                words=words,
-                explorer_url="https://explorer.grid.tf/api/v1",
-            )
-            identity_test = j.core.identity.get(
-                self.testnet_identity_name,
-                tname=tname,
-                email=email,
-                words=words,
-                explorer_url="https://explorer.testnet.grid.tf/api/v1",
-            )
-            identities = [identity_main, identity_test]
-            for identity in identities:
-                tname = identity.tname
-                identity.admins.append(f"{threebot_name}.3bot")
-                identity.register()
-                identity.save()
-                if identity.instance_name != self.identity_name:
-                    j.core.identity.delete(identity.instance_name)
+            if "testnet" in j.core.identity.me.explorer_url:
+                self.identity_name = self.testnet_identity_name
+                identity_test = j.core.identity.get(
+                    self.testnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.testnet.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_test)
+            else:
+                self.identity_name = self.mainnet_identity_name
+                identity_main = j.core.identity.get(
+                    self.mainnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_main)
 
         except:
             raise StopChatFlow(
-                f"Couldn't register new identites with the given name {tname}. Make sure you entered the correct password."
+                f"Couldn't register new identity with the given name {tname}. Make sure you entered the correct password."
             )
+
+    def _register_identity(self, threebot_name, identity_object):
+        identity_object.admins.append(f"{threebot_name}.3bot")
+        identity_object.register()
+        identity_object.save()
+        if identity_object.instance_name != self.identity_name:
+            j.core.identity.delete(identity_object.instance_name)
 
     def _get_pool(self):
         self._get_available_farms(only_one=False, identity_name=self.identity_name)
@@ -144,22 +143,15 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view("management", identity_name=self.identity_name)
 
-    @chatflow_step(title="Welcome")
-    def create_or_recover(self):
-        self.recovery_network_name = "testnet" if "test" not in j.core.identity.me.explorer_url else "mainnet"
-        self.action = self.single_choice(
-            f"Would you like to create a new 3Bot instance, or import one from {self.recovery_network_name}?",
-            ["Create", "Import"],
-            required=True,
-        )
-
     @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
-        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Import" else self.CREATE_NAME_MESSAGE
+
         while not valid:
-            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True)
+            self.solution_name = self.string_ask(
+                self.CREATE_NAME_MESSAGE, required=True, field="name", is_identifier=True
+            )
             threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
             valid = True
             for sol in threebot_solutions:
@@ -168,15 +160,13 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     self.md_show("The specified 3Bot name already exists. please choose another name.")
                     break
                 valid = True
-            if valid and self.action == "Create" and self._existing_3bot():
+
+            if valid and self._existing_3bot():
                 valid = False
                 self.md_show(
-                    f"The specified 3Bot name was deployed before on {self.recovery_network_name}. Please go to the previous step and choose import or enter a new name."
+                    f"The specified 3Bot name was deployed before. Please go to the previous step and enter a new name."
                 )
 
-            if valid and self.action == "Import" and not self._existing_3bot():
-                valid = False
-                self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
     @chatflow_step(title="Deployer Information")
@@ -280,14 +270,13 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
         message = (
-            "Please enter the recovery password"
-            if self.action == "Import"
-            else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
+            "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-        while self.action == "Import" and not self._verify_password(self.backup_password):
-            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
-            self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
+        if self._existing_3bot():
+            while not self._verify_password(self.backup_password):
+                error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
+                self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Email settings (Optional)")
     def email_settings(self):
