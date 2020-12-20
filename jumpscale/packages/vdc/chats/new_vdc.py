@@ -19,7 +19,7 @@ class VDCDeploy(GedisChatBot):
         self.username = self.user_info_data["username"]
 
     def _vdc_form(self):
-        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
+        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
         vdc_flavors = [flavor for flavor in VDC_SIZE.VDC_FLAVORS]
         vdc_flavor_messages = []
         for flavor in vdc_flavors:
@@ -39,6 +39,11 @@ class VDCDeploy(GedisChatBot):
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
         form.ask()
+        vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
+        if vdc:
+            j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
+            j.sals.vdc.delete(vdc.instance_name)
+
         self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
 
     def _k3s_and_minio_form(self):
