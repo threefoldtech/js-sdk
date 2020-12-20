@@ -45,26 +45,41 @@ class Wallet(BaseActor):
             raise j.exceptions.Value("Wallet does not exist")
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
+        error = ""
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+                )
 
-        ret = {
-            "address": wallet.address,
-            "network": wallet.network.value,
-            "secret": wallet.secret,
-            "balances": balances_data,
-        }
-        return j.data.serializers.json.dumps({"data": ret})
+            ret = {
+                "address": wallet.address,
+                "network": wallet.network.value,
+                "secret": wallet.secret,
+                "balances": balances_data,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({"data": ret, "error": error})
 
     @actor_method
     def get_wallets(self) -> str:
         wallets = j.clients.stellar.list_all()
         ret = []
         for name in wallets:
+            ## TOO SLOW
+            # wallet = j.clients.stellar.get(name=name)
+            # try:
+            #     wallet.get_balance()
+            # except Exception as e:
+            #     j.logger.warning(f"couldn't get balance for wallet {wallet}")
+            # else:
+            #     ret.append({"name": wallet.instance_name, "address": wallet.address, "network": wallet.network.name})
             wallet = j.clients.stellar.get(name=name)
             ret.append({"name": wallet.instance_name, "address": wallet.address, "network": wallet.network.name})
 
