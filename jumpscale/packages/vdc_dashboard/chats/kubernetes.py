@@ -2,11 +2,13 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
+from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
 
-class ExtendKubernetesCluster(GedisChatBot):
+class ExtendKubernetesCluster(SolutionsChatflowDeploy):
     title = "Extend Kubernetes Cluster"
     steps = ["flavor", "use_public_ip", "add_node", "success"]
+    SOLUTION_TYPE = "kubernetes"
 
     @chatflow_step(title="Node Size")
     def flavor(self):
