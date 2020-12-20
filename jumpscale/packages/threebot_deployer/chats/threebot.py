@@ -270,12 +270,10 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
         message = (
-            "Please enter the recovery password"
-            if self.action == "Import"
-            else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
+            "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-        while self.action == "Import" and not self._verify_password(self.backup_password):
+        while not self._verify_password(self.backup_password):
             error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
             self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
