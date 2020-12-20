@@ -133,6 +133,7 @@ def callback():
     if res.status_code != 200:
         return abort(400, "Email is not verified")
 
+    username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session["username"] = username
     session["email"] = email
     session["authorized"] = True
