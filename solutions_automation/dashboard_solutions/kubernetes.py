@@ -10,7 +10,7 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
     SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
     SECRET_MESSAGE = "Please add the cluster secret"
     IP_MASTER_MESSAGE = "Please choose IP Address for Master node"
-    IP_SLAVE_MESSAGE = "Please choose IP Address for Slave node"
+    IP_SLAVE_MESSAGE = r"Please choose IP Address for Slave node (.*)"
     POOL_MESSAGE = "Please select the pools you wish to distribute you Kubernetes nodes on"
 
     QS = {

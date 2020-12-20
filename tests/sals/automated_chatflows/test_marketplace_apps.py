@@ -27,6 +27,7 @@ class MarketplaceChatflows(ChatflowsBase):
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
         super().tearDown()
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test01_wiki(self):
         """Test case for deploying a wiki.
 
@@ -48,6 +49,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.assertEqual(request.status_code, 200)
         self.assertIn("TF Grid", request.content.decode())
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_blog(self):
         """Test case for deploying a blog.
 
@@ -68,6 +70,7 @@ class MarketplaceChatflows(ChatflowsBase):
         request = j.tools.http.get(f"https://{blog.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test03_website(self):
         """Test case for deploying a website.
 
@@ -89,6 +92,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.assertEqual(request.status_code, 200)
         self.assertIn("We are building companies", request.content.decode())
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test04_mattermost(self):
         """Test case for deploying Mattermost.
 
@@ -106,6 +110,7 @@ class MarketplaceChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{mattermost.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test05_cryptpad(self):
         """Test case for deploying Cryptpad.
 
@@ -123,6 +128,7 @@ class MarketplaceChatflows(ChatflowsBase):
         request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test06_gitea(self):
         """Test case for deploying Gitea.
 
@@ -164,6 +170,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.assertEqual(request.status_code, 200)
         self.assertIn("Congratulations, you installed TFT Forum!", request.content.decode())
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test08_peertube(self):
         """Test case for deploying Peertube.
 
@@ -182,6 +189,7 @@ class MarketplaceChatflows(ChatflowsBase):
         self.assertEqual(request.status_code, 200)
         self.assertIn("PeerTube", request.content.decode())
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test09_taiga(self):
         """Test case for deploying Taiga.
 

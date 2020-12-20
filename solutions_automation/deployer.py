@@ -333,9 +333,7 @@ def deploy_exposed(
     )
 
 
-def create_pool(
-    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True
-):
+def create_pool(solution_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="create",
         solution_name=solution_name,
@@ -349,7 +347,7 @@ def create_pool(
     )
 
 
-def extend_pool(pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
+def extend_pool(pool_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="extend",
         pool_name=pool_name,
