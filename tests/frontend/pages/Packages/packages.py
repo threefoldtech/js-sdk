@@ -14,26 +14,26 @@ class Packages(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def check_threebot_deployer_package(self):
-        threebot_installed = 0
-        installed_packages, available_packages = self.check_packages_type()
+    def add_threebot_deployer_package_if_not_added(self):
+        threebot_installed = False
+        installed_packages, available_packages = self.get_installed_and_available_packages()
         if "threebot_deployer" not in installed_packages.keys():
             git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
             self.add_package(git_url=git_url)
-            threebot_installed = 1
-        installed_packages, available_packages = self.check_packages_type()
+            threebot_installed = True
+        installed_packages, available_packages = self.get_installed_and_available_packages()
         package_card = installed_packages["threebot_deployer"]
         return package_card, threebot_installed
 
-    def system_packages(self):
+    def get_system_packages(self):
         system_packages = {}
         packages_category = self.driver.find_elements_by_class_name("row")
         system_packages_cards = packages_category[0].find_elements_by_class_name("v-card")
 
         for system_card in system_packages_cards:
             system_packages_cards_name = system_card.find_element_by_class_name("v-card__title")
-            system_name = system_packages_cards_name.text
-            system_packages[system_name] = system_card
+            system_package_name = system_packages_cards_name.text
+            system_packages[system_package_name] = system_card
         return system_packages
 
     def add_package(self, git_url=None, path=None):
@@ -54,7 +54,7 @@ class Packages(Base):
             self.click_button(self.driver, "SUBMIT")
             self.wait(self.driver, "v-dialog")
 
-    def check_packages_type(self):
+    def get_installed_and_available_packages(self):
         installed_packages = {}
         available_packages = {}
         packages_category = self.driver.find_elements_by_class_name("row")
@@ -62,18 +62,18 @@ class Packages(Base):
         available_packages_cards = packages_category[2].find_elements_by_class_name("v-card")
         for installed_card in installed_packages_cards:
             installed_package_card_name = installed_card.find_element_by_class_name("v-card__title")
-            installed_name = installed_package_card_name.text
-            installed_packages[installed_name] = installed_card
+            installed_package_name = installed_package_card_name.text
+            installed_packages[installed_package_name] = installed_card
 
         for available_card in available_packages_cards:
             available_package_card_name = available_card.find_element_by_class_name("v-card__title")
-            available_name = available_package_card_name.text
-            available_packages[available_name] = available_card
+            available_package_name = available_package_card_name.text
+            available_packages[available_package_name] = available_card
 
         return installed_packages, available_packages
 
     def delete_package(self, package_name):
-        installed_packages, available_packages = self.check_packages_type()
+        installed_packages, available_packages = self.get_installed_and_available_packages()
         for package in installed_packages.keys():
             if package == package_name:
                 package_card = installed_packages[package_name]
@@ -84,8 +84,8 @@ class Packages(Base):
             return
         self.click_button(self.driver, "SUBMIT")
 
-    def install_package(self):
-        installed_packages, available_packages = self.check_packages_type()
+    def install_random_package(self):
+        installed_packages, available_packages = self.get_installed_and_available_packages()
         random_package = choice(list(available_packages.keys()))
         package_card = available_packages[random_package]
         install_icon = package_card.find_element_by_class_name("v-btn__content")
@@ -94,17 +94,17 @@ class Packages(Base):
         return random_package
 
     def open_in_browser(self):
-        package_card, threebot_installed = self.check_threebot_deployer_package()
+        package_card, threebot_installed = self.add_threebot_deployer_package_if_not_added()
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
-        return self.driver.current_url, threebot_installed
+        return self.driver.current_url
 
     def chatflows(self):
-        package_card, threebot_installed = self.check_threebot_deployer_package()
+        package_card, threebot_installed = self.add_threebot_deployer_package_if_not_added()
         chatflows = package_card.find_elements_by_class_name("v-btn__content")[2]
         chatflows.click()
         cards = self.driver.find_elements_by_class_name("v-card__title")
         cards_name = []
         for card in cards:
             cards_name.append(card.text)
-        return cards_name, threebot_installed
+        return cards_name
