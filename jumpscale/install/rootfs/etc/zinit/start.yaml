@@ -3,3 +3,4 @@ test: bash -c "ss -nplt | grep -v grep | grep 16000"
 log: stdout
 after:
   - init
+  - trc
