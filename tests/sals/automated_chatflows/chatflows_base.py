@@ -50,14 +50,12 @@ class ChatflowsBase(BaseTests):
         cls.server.start()
 
         # create a pool
-        pool_name = cls.random_name()
+        cls.pool_name = cls.random_name()
         pool = deployer.create_pool(
-            solution_name=pool_name, cu=2, su=2, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
+            solution_name=cls.pool_name, cu=1, su=1, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
         )
-        reservation_id = pool.pool_data.reservation_id
-        pool_data = j.sals.zos.get().pools.get(reservation_id)
-        cls.pool = f"Pool: {reservation_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {pool_name}"
-        print("@" * 20, cls.pool)
+        cls.pool_id = pool.pool_data.reservation_id
+
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 60
 
