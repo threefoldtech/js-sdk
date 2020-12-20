@@ -2,7 +2,7 @@
   <base-dialog title="Wallet details" v-model="dialog" :loading="loading">
     <template #default>
       <template v-if="error">
-      <v-alert type="error">Failed to load wallet because of {{ error }}</v-alert>
+      <v-alert type="error">Failed to load wallet {{ name }}, is it possible the wallet isn't activated?</v-alert>
       </template>
 
       <v-simple-table v-if="wallet && wallet.network">
@@ -46,7 +46,7 @@
       </v-simple-table>
     </template>
     <template #actions>
-      <template v-if="!hasTft">
+      <template v-if="!hasTft && this.error">
             <v-btn text @click="updateTrustlines">Accept TFT</v-btn>
       </template>
       <v-btn text @click="close">Close</v-btn>
