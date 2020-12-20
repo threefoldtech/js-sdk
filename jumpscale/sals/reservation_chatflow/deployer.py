@@ -1914,7 +1914,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def wait_demo_payment(self, bot, pool_id, exp=5, trigger_cus=0, trigger_sus=1, identity_name=None):
         expiration = j.data.time.now().timestamp + exp * 60
-        msg = "<h2> Waiting for resources provisioning...</h2>"
+        msg = "<h2> Waiting on resource provisioning...</h2>"
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
