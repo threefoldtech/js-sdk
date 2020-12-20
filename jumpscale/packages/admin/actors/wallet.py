@@ -72,14 +72,6 @@ class Wallet(BaseActor):
         wallets = j.clients.stellar.list_all()
         ret = []
         for name in wallets:
-            ## TOO SLOW
-            # wallet = j.clients.stellar.get(name=name)
-            # try:
-            #     wallet.get_balance()
-            # except Exception as e:
-            #     j.logger.warning(f"couldn't get balance for wallet {wallet}")
-            # else:
-            #     ret.append({"name": wallet.instance_name, "address": wallet.address, "network": wallet.network.name})
             wallet = j.clients.stellar.get(name=name)
             ret.append({"name": wallet.instance_name, "address": wallet.address, "network": wallet.network.name})
 
