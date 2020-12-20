@@ -56,6 +56,8 @@ def build_solution_info(workloads, threebot):
             workload_result = json.loads(workload.info.result.data_json)
             if "trc" in workload.flist:
                 continue
+            if not workload_result:
+                continue
             solution_info.update(
                 {
                     "ipv4": workload_result["ipv4"],
