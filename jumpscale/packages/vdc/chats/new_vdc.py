@@ -8,7 +8,7 @@ from textwrap import dedent
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "expose_s3", "success"]
+    steps = ["vdc_info", "deploy", "success"]
 
     def _init(self):
         self.md_show_update("Checking payment service...")
@@ -55,7 +55,7 @@ class VDCDeploy(GedisChatBot):
     def vdc_info(self):
         self._init()
         self._vdc_form()
-        self._k3s_and_minio_form()
+        # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
@@ -88,9 +88,7 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(
-                minio_ak=self.minio_access_key.value, minio_sk=self.minio_secret_key.value,
-            )
+            self.config = self.deployer.deploy_vdc(minio_ak="12345678", minio_sk="12345678",)
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
@@ -119,14 +117,6 @@ class VDCDeploy(GedisChatBot):
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
-    @chatflow_step(title="Expose S3", disable_previous=True)
-    def expose_s3(self):
-        result = self.single_choice(
-            "Do you wish to expose your S3 over public domain name?", ["Yes", "No"], default="No",
-        )
-        if result == "Yes":
-            self.s3_domain_name = self.deployer.expose_s3()
-
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
         msg = dedent(
@@ -140,9 +130,6 @@ class VDCDeploy(GedisChatBot):
         `WARINING: Please keep the kubeconfig file safe and secure. Anyone who has this file can access the kubernetes cluster`
         """
         )
-
-        if hasattr(self, "s3_domain_name") and self.s3_domain_name:
-            msg += f"\n\nYou can access your S3 cluster over domain https://{self.s3_domain_name}"
 
         self.download_file(
             msg, self.config, f"{self.vdc.vdc_name}.yaml", md=True,

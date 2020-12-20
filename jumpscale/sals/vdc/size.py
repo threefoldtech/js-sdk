@@ -19,6 +19,7 @@ S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
 ZDB_FARMS = ["freefarm", "freefarm"]
 PREFERED_FARM = "freefarm"
 NETWORK_FARM = "freefarm"
+PROXY_FARM = "freefarm"
 
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"

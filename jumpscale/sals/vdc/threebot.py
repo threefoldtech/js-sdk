@@ -66,6 +66,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             result = deployer.add_network_node(
                 network_view.name, node, pool_id, network_view, self.bot, self.identity.instance_name
             )
+
             self.vdc_deployer.info(f"VDC threebot network update result for node {node.node_id} is {result}")
             if result:
                 network_updated = True

@@ -44,7 +44,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         trigger_cus = 0
         trigger_sus = 1
         if not pool_id:
-            pool_info = self.zos.pools.create(math.ceil(cus), math.ceil(sus), ipv4us, farm_name)
+            pool_info = self.vdc_deployer._retry_call(
+                self.zos.pools.create, args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name]
+            )
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"kubernetes cluster extension: creating a new pool {pool_id}")
             self.vdc_deployer.info(f"new pool {pool_info.reservation_id} for kubernetes cluster extension.")
@@ -53,7 +55,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
             trigger_cus = (pool.cus + cus) * 0.75
             trigger_sus = (pool.sus + sus) * 0.75
-            pool_info = self.zos.pools.extend(pool_id, cus, sus, ipv4us, node_ids=node_ids)
+            pool_info = self.vdc_deployer._retry_call(
+                self.zos.pools.extend, args=[pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
+            )
             self.vdc_deployer.info(
                 f"using pool {pool_id} extension reservation: {pool_info.reservation_id} for kubernetes cluster extension."
             )
@@ -121,6 +125,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         if not wids:
             self.vdc_deployer.error(f"failed to extend kubernetes cluster with {no_nodes} nodes of flavor {k8s_flavor}")
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(solution_uuid)
+            raise j.exceptions.Runtime(
+                f"failed to extend kubernetes cluster with {no_nodes} nodes of flavor {k8s_flavor}"
+            )
         return wids
 
     def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
@@ -276,9 +283,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     ):
         # deploy workers
         wids = []
-        public_wids = []
         while True:
             result = []
+            public_wids = []
             deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, wids, no_nodes, network_view)
             if not deployment_nodes:
                 self.vdc_deployer.error("no available nodes to deploy kubernetes workers")

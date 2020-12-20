@@ -33,7 +33,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_flavor = self.single_choice(
             "Choose the Node size", options=node_flavor_messages, default=node_flavor_messages[0], required=True
         )
-        self.node_flavor = self.node_flavor.value.split(":")[0]
+        self.node_flavor = self.node_flavor.split(":")[0].lower()
 
     @chatflow_step(title="Public IP")
     def use_public_ip(self):
@@ -47,26 +47,28 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Adding node")
     def add_node(self):
-        vdc_secret = self.secret_ask(f"Specify your VDC secret for {self.vdc_name}", min_length=8, required=True,)
         try:
-            deployer = self.vdc.get_deployer(password=vdc_secret, bot=self)
+            deployer = self.vdc.get_deployer(bot=self)
         except VDCIdentityError:
             self.stop(
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        success, amount, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, expiry=1)
+        success, amount, payment_id = self.vdc.show_external_node_payment(
+            self, self.node_flavor, expiry=1, public_ip=self.public_ip
+        )
         if not success:
             self.stop(f"payment timedout")
 
         self.md_show_update("Payment successful")
-        old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet)
-        wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
-        if not wids:
+        old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
+        try:
+            wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
+        except Exception as e:
             j.sals.billing.issue_refund(payment_id)
-            self.stop("failed to add nodes to your cluster. please contact support")
-        self.md_show_update("Processing transaction...")
+            self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
 
+        self.md_show_update("Processing transaction...")
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
@@ -80,7 +82,7 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"""# You VDC {self.vdc_name} has been extended successfuly""")
+        self.md_show(f"""Your VDC {self.vdc.vdc_name} has been extended successfuly""")
 
 
 chat = ExtendKubernetesCluster

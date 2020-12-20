@@ -1,3 +1,4 @@
+from shlex import quote
 from jumpscale.loader import j
 
 
@@ -105,7 +106,7 @@ class Manager:
         extra_config = extra_config or {}
         params = ""
         for key, arg in extra_config.items():
-            params += f" --set {key}={arg}"
+            params += f" --set {key}={quote(arg)}"
 
         rc, out, err = self._execute(
             f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
