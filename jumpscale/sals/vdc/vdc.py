@@ -66,6 +66,24 @@ class UserVDC(Base):
             wallet = vdc_wallet.stellar_wallet
         return wallet
 
+    @property
+    def vdc_workloads(self):
+        workloads = []
+        workloads += self.kubernetes
+        workloads += self.s3.zdbs
+        if self.threebot.wid:
+            workloads.append(self.threebot)
+        if self.s3.minio.wid:
+            workloads.append(self.s3.minio)
+        return workloads
+
+    @property
+    def active_pools(self):
+        my_pool_ids = [w.pool_id for w in self.vdc_workloads]
+        explorer = j.core.identity.me.explorer
+        active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
+        return active_pools
+
     def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=PROXY_FARM):
         if not password:
             identity = identity or j.core.identity.me
@@ -124,7 +142,7 @@ class UserVDC(Base):
                 address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
                 node.public_ip = address
 
-            node.size = workload.size
+            node.size = VDC_SIZE.K8SNodeFlavor(workload.size)
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
             if "minio" in workload.flist:
@@ -357,3 +375,73 @@ class UserVDC(Base):
         raise j.exceptions.Runtime(
             f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
         )
+
+    def get_pools_expiration(self):
+        active_pools = self.active_pools
+        if not active_pools:
+            return 0
+        if len(active_pools) < 2:
+            return active_pools[0].empty_at
+        return min(*[p.empty_at for p in active_pools])
+
+    def get_total_funds(self):
+        total_tfts = 0
+        for wallet in [self.prepaid_wallet, self.provision_wallet]:
+            for balance in wallet.get_balance().balances:
+                if balance.asset_code == "TFT":
+                    total_tfts += float(balance.balance)
+                    break
+        return total_tfts
+
+    def get_current_spec(self, load_info=True):
+        """
+        return
+        dict:
+            {
+                "plan": self.flavor,
+                "nodes": [additional_nodes_flavors],
+                "services": {
+                    "services.IP": count
+                }
+            }
+        """
+        if load_info:
+            self.load_info()
+        result = {"plan": self.flavor, "nodes": [], "services": {VDC_SIZE.Services.IP: 0}}
+        no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
+        node_flavor = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"]
+        for k8s in self.kubernetes:
+            if k8s.role == KubernetesRole.MASTER:
+                continue
+            if k8s.size == node_flavor and no_nodes > 0:
+                no_nodes -= 1
+                continue
+            result["nodes"].append(k8s.size)
+            if k8s.public_ip != "::/128":
+                result["services"][VDC_SIZE.Services.IP] += 1
+        return result
+
+    def calculate_spec_price(self):
+        current_spec = self.get_current_spec()
+        total_price = (
+            VDC_SIZE.PRICES["plans"][self.flavor]
+            + current_spec["services"][VDC_SIZE.Services.IP] * VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
+        )
+        for size in current_spec["nodes"]:
+            total_price += VDC_SIZE.PRICES["nodes"][size]
+        return total_price
+
+    def calculate_funded_period(self, load_info=True):
+        """
+        return how many days can the vdc be extended with prepaid + provisioning wallet
+        """
+        if load_info:
+            self.load_info()
+        total_funds = self.get_total_funds()
+        spec_price = self.calculate_spec_price()
+        return (total_funds / spec_price) * 30
+
+    def calculate_expiration_value(self, load_info=True):
+        funded_period = self.calculate_funded_period(load_info)
+        pools_expiration = self.get_pools_expiration()
+        return pools_expiration + funded_period * 24 * 60 * 60
