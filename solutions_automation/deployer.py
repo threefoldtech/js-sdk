@@ -86,7 +86,7 @@ def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secr
 
 def deploy_ubuntu(
     solution_name,
-    pool,
+    pool="choose_random",
     version="ubuntu-18.04",
     cpu=1,
     memory=1024,
