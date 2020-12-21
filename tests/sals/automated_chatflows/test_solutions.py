@@ -93,7 +93,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             pool=self.pool,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
-            node=self.node,
+            # node=self.node,
         )
         self.solution_uuid = ubuntu.solution_id
 
@@ -179,7 +179,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
             container_pool=self.pool,
-            node=self.node,
+            # node=self.node,
         )
         self.solution_uuid = minio.solution_id
 
@@ -210,9 +210,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
             redis_pool=self.pool,
             prometheus_pool=self.pool,
             grafana_pool=self.pool,
-            redis_node=self.node,
-            prometheus_node=self.node,
-            grafana_node=self.node,
+            # redis_node=self.node,
+            # prometheus_node=self.node,
+            # grafana_node=self.node,
         )
         self.solution_uuid = monitoring.solution_id
         self.info("Check that Prometheus UI is reachable. ")
@@ -249,7 +249,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
             pool=self.pool,
             network=self.network_name,
-            node=self.node,
+            # node=self.node,
         )
         self.solution_uuid = generic_flist.solution_id
 
@@ -273,7 +273,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
             pool=self.pool,
             network=self.network_name,
-            node=self.node,
+            # node=self.node,
         )
 
         self.info("Expose this container's coreX endpoint to a subdomain.")

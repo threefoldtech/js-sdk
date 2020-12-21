@@ -16,9 +16,10 @@ class ChatflowsBase(BaseTests):
         # set TEST_CERT and OVER_PROVISIONING to True.
         cls.test_cert = j.core.config.get("TEST_CERT", False)
         cls.over_provisioning = j.core.config.get("OVER_PROVISIONING", False)
+        cls.sort_nodes_by_sru = j.core.config.get("SORT_NODES_BY_SRU", False)
         j.core.config.set("TEST_CERT", True)
         j.core.config.set("OVER_PROVISIONING", True)
-
+        j.core.config.set("SORT_NODES_BY_SRU", True)
         # Get environment variables to create identity.
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
