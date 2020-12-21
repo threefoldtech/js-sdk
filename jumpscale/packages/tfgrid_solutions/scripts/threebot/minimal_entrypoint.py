@@ -27,6 +27,7 @@ Required env variables:
 - VDC_INSTANCE -> json string from the VDC instance on deployer
 - PREPAID_WALLET_SECRET -> secret for prepaid wallet
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
+- ACME_SERVER_URL -> to use for package certificate
 
 
 Role:
@@ -47,6 +48,7 @@ VDC_EMAIL = os.environ.get("VDC_EMAIL")
 KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 PROVISIONING_WALLET_SECRET = os.environ.get("PROVISIONING_WALLET_SECRET")
 PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
+ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -148,6 +150,9 @@ if TEST_CERT != "true":
         admins=[f"{vdc.owner_tname}.3bot"],
         domain=vdc.threebot.domain,
     )
+    if ACME_SERVER_URL:
+        server.acme_server_type = "custom"
+        server.acme_server_url = ACME_SERVER_URL
 else:
     server.packages.add(
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
