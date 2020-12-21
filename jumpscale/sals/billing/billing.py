@@ -54,7 +54,6 @@ class BillingManager:
         bot.md_show_update(msg_text, html=True)
 
     def refund_failed_payments(self):
-        j.logger.info("refunding failed payments")
         for payment in PAYMENT_FACTORY.list_failed_payments():
             refund_result = True
             for transaction in payment.result.transactions:
@@ -79,19 +78,16 @@ class BillingManager:
         return request.success
 
     def process_refunds(self):
-        j.logger.info("applying refund requests")
         for request in REFUND_FACTORY.list_active_requests():
             j.logger.info(f"applying active refund for payment: {request.payment_id}")
             request.apply()
 
     def process_payments(self):
-        j.logger.info("updating payments status")
         for payment in PAYMENT_FACTORY.list_active_payments():
             j.logger.info(f"updating active payment: {payment.payment_id}")
             payment.update_status()
 
     def refund_extra(self):
-        j.logger.info("refunding extra paid payments")
         for payment in PAYMENT_FACTORY.list_extra_paid_payments():
             j.logger.info(f"refund extra paid for payment: {payment.payment_id}")
             payment.result.refund_extra()
