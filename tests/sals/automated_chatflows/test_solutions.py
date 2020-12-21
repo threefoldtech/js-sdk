@@ -88,7 +88,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy Ubuntu.")
         name = self.random_name()
-        ubuntu = deployer.deploy_ubuntu(solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path,)
+        ubuntu = deployer.deploy_ubuntu(
+            solution_name=name, pool=self.pool, network=self.network_name, ssh=self.ssh_cl.public_key_path,
+        )
         self.solution_uuid = ubuntu.solution_id
 
         self.info("Check that Ubuntu is reachable.")
@@ -120,14 +122,14 @@ class TFGridSolutionChatflows(ChatflowsBase):
         secret = self.random_name()
         workernodes = j.data.idgenerator.random_int(1, 2)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
-        self.pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
+        pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
         kubernetes = deployer.deploy_kubernetes(
             solution_name=name,
             secret=secret,
             network=self.network_name,
             workernodes=workernodes,
             ssh=self.ssh_cl.public_key_path,
-            # pools=self.pool,
+            pools=pool,
         )
         self.solution_uuid = kubernetes.solution_id
         self.info("Check that kubernetes is reachable.")
@@ -166,7 +168,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             password=password,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
-            # container_pool=self.pool,
+            container_pool=self.pool,
         )
         self.solution_uuid = minio.solution_id
 
@@ -194,9 +196,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
             solution_name=name,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
-            # redis_pool=self.pool,
-            # prometheus_pool=self.pool,
-            # grafana_pool=self.pool,
+            redis_pool=self.pool,
+            prometheus_pool=self.pool,
+            grafana_pool=self.pool,
         )
         self.solution_uuid = monitoring.solution_id
         self.info("Check that Prometheus UI is reachable. ")
@@ -231,7 +233,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         generic_flist = deployer.deploy_generic_flist(
             solution_name=name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
-            # pool=self.pool,
+            pool=self.pool,
             network=self.network_name,
         )
         self.solution_uuid = generic_flist.solution_id
@@ -254,7 +256,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         deployer.deploy_generic_flist(
             solution_name=flist_name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
-            # pool=self.pool,
+            pool=self.pool,
             network=self.network_name,
         )
 

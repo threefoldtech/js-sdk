@@ -135,7 +135,6 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Start the stopped threebot")
         threebot = deployer.change_threebot_location(name, self.secret)
         self.solution_uuid = threebot.solution_id
-        print("#########################")
         self.info("Check that threebot is reachable.")
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
