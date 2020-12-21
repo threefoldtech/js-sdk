@@ -24,6 +24,23 @@ def list_vdcs():
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
         vdc_dict["vdc_expiration"] = vdc.calculate_expiration_value(False)
+        # Add wallet address
+        wallet = vdc.prepaid_wallet
+        balances = wallet.get_balance()
+        balances_data = []
+        for item in balances.balances:
+            # Add only TFT balance
+            if item.asset_code == "TFT":
+                balances_data.append(
+                    {"balance": item.balance, "asset_ode": item.asset_code, "asset_issuer": item.asset_issuer}
+                )
+
+        vdc_dict["wallet"] = {
+            "address": wallet.address,
+            "network": wallet.network.value,
+            "secret": wallet.secret,
+            "balances": balances_data,
+        }
         result.append(vdc_dict)
     return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
 
@@ -37,7 +54,6 @@ def get_vdc_info(name):
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
-    vdc_dict.pop("threebot")
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
