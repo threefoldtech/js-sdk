@@ -20,10 +20,10 @@ THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-lates
 
 class VDCThreebotDeployer(VDCBaseComponent):
     def deploy_threebot(self, minio_wid, pool_id, kube_config):
-        workload = self.zos.workloads.get(minio_wid)
-        if workload.info.workload_type != WorkloadType.Container:
-            raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
-        minio_ip_address = workload.network_connection[0].ipaddress
+        # workload = self.zos.workloads.get(minio_wid)
+        # if workload.info.workload_type != WorkloadType.Container:
+        #     raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
+        # minio_ip_address = workload.network_connection[0].ipaddress
         vdc_dict = self.vdc_instance.to_dict()
         vdc_dict.pop("s3", None)
         vdc_dict.pop("kubernetes", None)
@@ -50,7 +50,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 )
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
-            "VDC_MINIO_ADDRESS": minio_ip_address,
+            # "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
