@@ -2,13 +2,11 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
-from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
 
-class ExtendKubernetesCluster(SolutionsChatflowDeploy):
+class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
     steps = ["flavor", "use_public_ip", "add_node", "success"]
-    SOLUTION_TYPE = "kubernetes"
 
     @chatflow_step(title="Node Size")
     def flavor(self):
@@ -57,7 +55,7 @@ class ExtendKubernetesCluster(SolutionsChatflowDeploy):
             )
 
         success, amount, payment_id = self.vdc.show_external_node_payment(
-            self, self.node_flavor, expiry=1, public_ip=self.public_ip
+            self, self.node_flavor, public_ip=self.public_ip
         )
         if not success:
             self.stop(f"payment timedout")
