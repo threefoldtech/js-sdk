@@ -9,7 +9,7 @@
       <div class="mt-5">
         <v-data-table
           :loading="loading"
-          :headers="headers"
+          :headers="headersvdcs"
           :items="deployedvdcs"
           class="elevation-1"
         >
@@ -46,6 +46,7 @@
                 <v-icon
                   v-bind="attrs"
                   v-on="on"
+                  class="px-4"
                   @click="openWalletInfo(item.wallet)"
                   color="primary"
                   >mdi-wallet</v-icon
@@ -57,7 +58,7 @@
         </v-data-table>
       </div>
     </base-component>
-    <wallet-info v-model="dialogs.wallet" :name="selected"></wallet-info>
+    <wallet-info v-model="dialogs.wallet" :wallet="selected"></wallet-info>
   </div>
 </template>
 
@@ -103,8 +104,8 @@ module.exports = {
         .listVdcs()
         .then((response) => {
           let deployments = [...response.data];
-          for (let i = 0; i < this.deployedvdcs.length; i++) {
-            deployedvdc = this.deployedvdcs[i];
+          for (let i = 0; i < deployments.length; i++) {
+            deployedvdc = deployments[i];
             deployedvdc.alert = false;
             if (deployedvdc.expiration < DURATION_MAX) {
               let expiration = new Date(deployedvdc.expiration * 1000);

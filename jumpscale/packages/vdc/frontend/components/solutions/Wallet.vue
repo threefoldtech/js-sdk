@@ -36,7 +36,7 @@
                   v-for="(balance, i) in wallet.balances"
                   :key="i"
                 >
-                  {{ balance.asset_code }} {{ balance.balance }}
+                  {{ balance.balance }} {{ balance.asset_code }}
                 </v-chip>
               </td>
             </tr>
@@ -58,13 +58,6 @@ module.exports = {
     return {
       showSecret: false,
     };
-  },
-  watch: {
-    dialog(val) {
-      if (!val) {
-        this.wallet = null;
-      }
-    },
   },
 };
 </script>

@@ -32,7 +32,7 @@ def list_vdcs():
             # Add only TFT balance
             if item.asset_code == "TFT":
                 balances_data.append(
-                    {"balance": item.balance, "asset_ode": item.asset_code, "asset_issuer": item.asset_issuer}
+                    {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
                 )
 
         vdc_dict["wallet"] = {
