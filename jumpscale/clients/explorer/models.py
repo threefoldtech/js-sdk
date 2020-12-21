@@ -440,6 +440,7 @@ class K8s(Base):
             15: {"cru": 1, "mru": 2, "sru": 25},
             16: {"cru": 2, "mru": 4, "sru": 50},
             17: {"cru": 4, "mru": 8, "sru": 50},
+            18: {"cru": 1, "mru": 1, "sru": 25},
         }
 
         resource_units = ResourceUnitAmount()
