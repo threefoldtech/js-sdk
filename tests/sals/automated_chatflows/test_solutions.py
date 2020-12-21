@@ -106,7 +106,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
-    # @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_kubernetes(self):
         """Test case for Deploying a kubernetes.
 
@@ -145,13 +144,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
         localclient.save()
         _, res, _ = localclient.sshclient.run("kubectl get nodes")
 
-        print("##########################################")
-        print(res)
         res = res.splitlines()
         res = res[2:]  # Remove master node and table's head.
-        print("##########################################")
-        print(res)
-        print(workernodes)
         self.assertEqual(workernodes, len(res))
 
     def test03_minio(self):
