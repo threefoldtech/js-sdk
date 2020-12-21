@@ -28,20 +28,25 @@ def main():
     new = True
 
     j.logger.info("Generating guest identity ...")
-    identity_main = j.core.identity.get(
-        "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
-    )
-    identity_test = j.core.identity.get(
-        "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
-    )
 
-    identities = [identity_main, identity_test]
-    for identity in identities:
+    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+
+    def _save_identity(identity):
         identity.admins.append(f"{threebot_name}.3bot")
         identity.register()
         identity.save()
 
-    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+    if "test" in default_identity:
+        identity_test = j.core.identity.get(
+            "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
+        )
+        _save_identity(identity_test)
+    else:
+        identity_main = j.core.identity.get(
+            "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
+        )
+        _save_identity(identity_main)
+
     j.core.identity.set_default(default_identity)
 
     # configure escalation mailing

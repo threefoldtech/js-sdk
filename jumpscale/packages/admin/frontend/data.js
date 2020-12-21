@@ -75,6 +75,13 @@ const SOLUTIONS = {
     url: "/solutions/gw4to6",
     description: "4to6 Gateway gives you access to IPv6 networks using a wireguard tunnel"
   },
+  etcd: {
+    name: "etcd",
+    type: "etcd",
+    image: "./assets/etcd.png",
+    url: "/solutions/etcd",
+    description: "A distributed, reliable key-value store for the most critical data of a distributed system"
+  }
 }
 
 
