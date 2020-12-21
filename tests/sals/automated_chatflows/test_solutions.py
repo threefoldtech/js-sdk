@@ -89,11 +89,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy Ubuntu.")
         name = self.random_name()
         ubuntu = deployer.deploy_ubuntu(
-            solution_name=name,
-            pool=self.pool,
-            network=self.network_name,
-            ssh=self.ssh_cl.public_key_path,
-            # node=self.node,
+            solution_name=name, pool=self.pool, network=self.network_name, ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = ubuntu.solution_id
 
@@ -112,7 +108,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
+    # @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_kubernetes(self):
         """Test case for Deploying a kubernetes.
 
@@ -179,7 +175,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
             container_pool=self.pool,
-            # node=self.node,
         )
         self.solution_uuid = minio.solution_id
 
@@ -210,9 +205,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             redis_pool=self.pool,
             prometheus_pool=self.pool,
             grafana_pool=self.pool,
-            # redis_node=self.node,
-            # prometheus_node=self.node,
-            # grafana_node=self.node,
         )
         self.solution_uuid = monitoring.solution_id
         self.info("Check that Prometheus UI is reachable. ")
@@ -249,7 +241,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
             pool=self.pool,
             network=self.network_name,
-            # node=self.node,
         )
         self.solution_uuid = generic_flist.solution_id
 
@@ -273,7 +264,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
             pool=self.pool,
             network=self.network_name,
-            # node=self.node,
         )
 
         self.info("Expose this container's coreX endpoint to a subdomain.")
