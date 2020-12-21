@@ -563,23 +563,6 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy 3bot")
 
-            prefix = self.get_prefix()
-            subdomain = self.proxy.proxy_container_over_custom_domain(
-                prefix=prefix,
-                wid=threebot_wid,
-                port=80,
-                solution_uuid=self.vdc_uuid,
-                pool_id=pool_id,
-                scheduler=scheduler,
-                tls_port=443,
-                parent_domain=VDC_PARENT_DOMAIN,
-            )
-            self.info(f"threebot subdomain: {subdomain}")
-            if not subdomain:
-                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
-                self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to expose 3bot")
-
             if install_monitoring_stack:
                 # deploy monitoring stack on kubernetes
                 self.bot_show_update("Deploying monitoring stack")

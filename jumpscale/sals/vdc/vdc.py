@@ -189,6 +189,7 @@ class UserVDC(Base):
         threebot_wid = self.threebot.wid
         if not threebot_wid:
             return
+        non_matching_domains = []
         for workload in proxy_workloads:
             if not workload.info.description:
                 continue
@@ -200,6 +201,10 @@ class UserVDC(Base):
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == threebot_wid:
                 self.threebot.domain = workload.domain
+            else:
+                non_matching_domains.append(workload.domain)
+        if not self.threebot.domain and non_matching_domains:
+            self.threebot.domain = non_matching_domains[-1]
 
     def grace_period_action(self):
         self.load_info()
