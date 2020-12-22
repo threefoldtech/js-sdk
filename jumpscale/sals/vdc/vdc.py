@@ -319,11 +319,12 @@ class UserVDC(Base):
         return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
+        if not amount:
+            return True
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
             wallet = self.prepaid_wallet
-        a = wallet.get_asset()
         return self.pay_amount(self.provision_wallet.address, amount, wallet)
 
     def pay_initialization_fee(self, transaction_hashes, initial_wallet_name, wallet_name=None):
@@ -340,7 +341,7 @@ class UserVDC(Base):
                 amount += effect.amount
         amount = round(abs(amount), 6)
         if not amount:
-            return
+            return True
         return self.pay_amount(initial_wallet.address, amount, wallet)
 
     def pay_amount(self, address, amount, wallet):
