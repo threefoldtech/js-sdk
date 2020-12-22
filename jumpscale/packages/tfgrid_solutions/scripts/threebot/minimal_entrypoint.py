@@ -6,7 +6,6 @@ import os
 from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
-import requests
 import toml
 
 """

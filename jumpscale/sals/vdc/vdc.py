@@ -287,8 +287,10 @@ class UserVDC(Base):
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: reverted successfully")
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
-        # amount = VDC_SIZE.get_vdc_tft_price(self.flavor)
-        amount = VDC_SIZE.PRICES["plans"][self.flavor]
+        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
+            amount = 0
+        else:
+            amount = VDC_SIZE.PRICES["plans"][self.flavor]
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -307,6 +309,10 @@ class UserVDC(Base):
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
+
+        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
+            amount = 0
+
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
             wallet_name=wallet_name or self.prepaid_wallet.instance_name,
