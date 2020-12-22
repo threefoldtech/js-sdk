@@ -72,11 +72,25 @@ def threebot_vdc():
     vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
-    # Add wallet address
     vdc_dict = vdc.to_dict()
-    vdc_dict.pop("threebot")
-    wallet_address = j.clients.stellar.get(vdc_full_name).address
-    vdc_dict["wallet_address"] = wallet_address
+    # Add wallet address
+    wallet = vdc.prepaid_wallet
+    balances = wallet.get_balance()
+    balances_data = []
+    for item in balances.balances:
+        # Add only TFT balance
+        if item.asset_code == "TFT":
+            balances_data.append(
+                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+            )
+
+    vdc_dict["wallet"] = {
+        "address": wallet.address,
+        "network": wallet.network.value,
+        "secret": wallet.secret,
+        "balances": balances_data,
+    }
+
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )

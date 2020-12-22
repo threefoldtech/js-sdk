@@ -23,10 +23,16 @@ module.exports = {
         )
           return;
         let topic = event.data.slice(len);
-        this.$router.push({
-          name: "Solution",
-          params: { type: topic },
-        });
+        if (topic === "extend_kubernetes") {
+          this.$router.push({
+            name: "Home",
+          });
+        } else {
+          this.$router.push({
+            name: "Solution",
+            params: { type: topic },
+          });
+        }
       });
     }
   },

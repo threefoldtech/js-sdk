@@ -24,7 +24,7 @@
         >Expose storgae controller
       </v-btn>
     </div>
-    <v-data-table :headers="headers" :items="zdbs" class="elevation-1">
+    <v-data-table :headers="headers" :loading="loading" :items="zdbs" class="elevation-1">
       <template slot="no-data">No VDC instance available</template>
       <template v-slot:item.wid="{ item }">
         <div>{{ item.wid }}</div>
@@ -38,27 +38,15 @@
         <div>{{ item.size }} GB</div>
       </template>
     </v-data-table>
-    <cancel-workload
-      v-if="selected"
-      v-model="dialogs.cancelWorkload"
-      :data="selected"
-    ></cancel-workload>
   </div>
 </template>
 
 
 <script>
 module.exports = {
-  name: "S3",
-  components: {
-    "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
-  },
-  props: ["vdc"],
+  props: ["vdc", "loading"],
   data() {
     return {
-      dialogs: {
-        cancelWorkload: false,
-      },
       selected: null,
       headers: [
         { text: "WID", value: "wid" },
@@ -66,14 +54,9 @@ module.exports = {
         { text: "Disk Size", value: "size" },
       ],
       S3URL: null,
-      loading: false,
     };
   },
   methods: {
-    deleteNode(record) {
-      this.selected = record;
-      this.dialogs.cancelWorkload = true;
-    },
     exposeS3() {
       this.loading = true;
       this.$api.solutions

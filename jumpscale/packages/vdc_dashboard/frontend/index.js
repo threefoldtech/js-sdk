@@ -26,19 +26,18 @@ const JSONRender = httpVueLoader('./components/base/JSONRenderer.vue')
 const baseSection = httpVueLoader('./components/base/Section.vue')
 const external = httpVueLoader('./components/base/External.vue')
 const popup = httpVueLoader('./components/base/Popup.vue')
-const code = httpVueLoader('./components/base/Code.vue')
 const markdownViewer = httpVueLoader('./components/MarkdownViewer.vue')
 
 // VDC settings
-const s3 = httpVueLoader('./components/base/S3.vue')
-const kubernetes = httpVueLoader('./components/base/Kubernetes.vue')
-const ip = httpVueLoader('./components/base/IP.vue')
-const vdc = httpVueLoader('./components/base/VDC.vue')
+const s3 = httpVueLoader('./components/vdcSettings/S3.vue')
+const kubernetes = httpVueLoader('./components/vdcSettings/Kubernetes.vue')
+const vdcHome = httpVueLoader('./components/vdcSettings/Home.vue')
+const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
 
 const app = httpVueLoader('./App.vue')
-const home = httpVueLoader('./components/Home.vue')
-const solution = httpVueLoader('./components/solutions/Solution.vue')
-const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
+const marketplaceHome = httpVueLoader('./components/marketplace/Home.vue')
+const solution = httpVueLoader('./components/marketplace/Solution.vue')
+const solutionChatflow = httpVueLoader('./components/marketplace/SolutionChatflow.vue')
 const license = httpVueLoader('./components/License.vue')
 const terms = httpVueLoader('./components/Terms.vue')
 const disclaimer = httpVueLoader('./components/Disclaimer.vue')
@@ -49,36 +48,17 @@ Vue.component("base-dialog", baseDialog)
 Vue.component("json-renderer", JSONRender)
 Vue.component("external", external)
 Vue.component("popup", popup)
-Vue.component("code-area", code)
 Vue.component("markdown-view", markdownViewer)
 
 // VDC components
 Vue.component("s3", s3)
 Vue.component("kubernetes", kubernetes)
-Vue.component("ip", ip)
+Vue.component("wallet", wallet)
 
 const router = new VueRouter({
   routes: [
-    {
-      name: "VDC",
-      path: '/',
-      redirect: '/kubernetes',
-      component: vdc,
-      props: true,
-      children: [{
-        name: 'Kubernetes',
-        path: 'kubernetes',
-        component: kubernetes,
-        props: (route) => ({ query: route.query.vdc })
-      },
-      {
-        name: 'S3',
-        path: 's3',
-        component: s3,
-        props: (route) => ({ query: route.query.vdc })
-      }]
-    },
-    { name: "Home", path: '/marketplacevdc', component: home, meta: { icon: "mdi-tune" } },
+    { name: "Home", path: '/', component: vdcHome, meta: { icon: "mdi-tune" } },
+    { name: "Marketplace", path: '/marketplacevdc', component: marketplaceHome, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
     { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
