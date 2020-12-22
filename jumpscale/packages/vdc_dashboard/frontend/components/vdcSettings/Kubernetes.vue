@@ -23,6 +23,7 @@
     <v-data-table
       :headers="headers"
       :items="kubernetesData"
+      :loading="loading"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instances available</template>
@@ -90,13 +91,12 @@
 
 <script>
 module.exports = {
-  name: "Kubernetes",
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
     "cancel-workload": httpVueLoader("./Delete.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
   },
-  props: ["vdc"],
+  props: ["vdc", "loading"],
 
   data() {
     return {

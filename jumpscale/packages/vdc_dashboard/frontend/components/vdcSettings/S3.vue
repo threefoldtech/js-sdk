@@ -24,7 +24,7 @@
         >Expose storgae controller
       </v-btn>
     </div>
-    <v-data-table :headers="headers" :items="zdbs" class="elevation-1">
+    <v-data-table :headers="headers" :loading="loading" :items="zdbs" class="elevation-1">
       <template slot="no-data">No VDC instance available</template>
       <template v-slot:item.wid="{ item }">
         <div>{{ item.wid }}</div>
@@ -44,7 +44,7 @@
 
 <script>
 module.exports = {
-  props: ["vdc"],
+  props: ["vdc", "loading"],
   data() {
     return {
       selected: null,
@@ -54,7 +54,6 @@ module.exports = {
         { text: "Disk Size", value: "size" },
       ],
       S3URL: null,
-      loading: false,
     };
   },
   methods: {

@@ -14,7 +14,7 @@
       <v-spacer></v-spacer>
 
       <v-btn
-        v-if="!['Home', 'Solution'].includes(this.$route.name)"
+        v-if="!['Marketplace', 'Solution'].includes(this.$route.name)"
         text
         href="#/marketplacevdc"
       >
