@@ -23,7 +23,7 @@ def list_vdcs():
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
-        vdc_dict["vdc_expiration"] = vdc.calculate_expiration_value(False)
+        vdc_dict["expiration"] = vdc.calculate_expiration_value(False)
         result.append(vdc_dict)
     return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
 
