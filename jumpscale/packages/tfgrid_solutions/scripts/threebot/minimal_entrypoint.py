@@ -7,6 +7,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
 import requests
+import toml
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -145,18 +146,19 @@ j.core.config.set("OVER_PROVISIONING", True)
 server = j.servers.threebot.get("default")
 server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/billing")
 if TEST_CERT != "true":
-    server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
-        admins=[f"{vdc.owner_tname}.3bot"],
-        domain=vdc.threebot.domain,
+    package_config = toml.load(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml"
     )
+    package_config["servers"][0]["domain"] = vdc.threebot.domain
+    with open("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml", "w") as f:
+        toml.dump(package_config, f)
     if ACME_SERVER_URL:
         server.acme_server_type = "custom"
         server.acme_server_url = ACME_SERVER_URL
-else:
-    server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
-    )
+
+server.packages.add(
+    "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
+)
 server.save()
 
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")

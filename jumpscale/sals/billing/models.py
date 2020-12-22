@@ -113,6 +113,10 @@ class Payment(Base):
     def update_status(self):
         if self.is_finished():
             return
+        if self.amount == 0:
+            self.result.success = True
+            self.save()
+            return
         j.logger.info(f"updating payment: {self.payment_id} status")
         transactions = self.wallet.list_transactions()
         current_transactions = {t.transaction_hash: t for t in self.result.transactions}

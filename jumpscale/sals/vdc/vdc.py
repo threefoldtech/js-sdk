@@ -189,6 +189,7 @@ class UserVDC(Base):
         threebot_wid = self.threebot.wid
         if not threebot_wid:
             return
+        non_matching_domains = []
         for workload in proxy_workloads:
             if not workload.info.description:
                 continue
@@ -200,6 +201,10 @@ class UserVDC(Base):
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == threebot_wid:
                 self.threebot.domain = workload.domain
+            else:
+                non_matching_domains.append(workload.domain)
+        if not self.threebot.domain and non_matching_domains:
+            self.threebot.domain = non_matching_domains[-1]
 
     def grace_period_action(self):
         self.load_info()
@@ -314,11 +319,12 @@ class UserVDC(Base):
         return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
+        if not amount:
+            return True
         if wallet_name:
             wallet = j.clients.stellar.get(wallet_name)
         else:
             wallet = self.prepaid_wallet
-        a = wallet.get_asset()
         return self.pay_amount(self.provision_wallet.address, amount, wallet)
 
     def pay_initialization_fee(self, transaction_hashes, initial_wallet_name, wallet_name=None):
@@ -335,7 +341,7 @@ class UserVDC(Base):
                 amount += effect.amount
         amount = round(abs(amount), 6)
         if not amount:
-            return
+            return True
         return self.pay_amount(initial_wallet.address, amount, wallet)
 
     def pay_amount(self, address, amount, wallet):
@@ -438,7 +444,7 @@ class UserVDC(Base):
         if load_info:
             self.load_info()
         total_funds = self.get_total_funds()
-        spec_price = self.calculate_spec_price()
+        spec_price = self.calculate_spec_price() or 1
         return (total_funds / spec_price) * 30
 
     def calculate_expiration_value(self, load_info=True):
