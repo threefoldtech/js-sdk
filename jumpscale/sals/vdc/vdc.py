@@ -443,7 +443,7 @@ class UserVDC(Base):
         if load_info:
             self.load_info()
         total_funds = self.get_total_funds()
-        spec_price = self.calculate_spec_price()
+        spec_price = self.calculate_spec_price() or 1
         return (total_funds / spec_price) * 30
 
     def calculate_expiration_value(self, load_info=True):
