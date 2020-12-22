@@ -6,7 +6,7 @@
     :loading="loading"
   >
     <template #default>
-      Are you sure you want to cancel {{ releasename }}?
+      Are you sure you want to cancel?
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -18,21 +18,10 @@
 <script>
 module.exports = {
   mixins: [dialog],
-  props: ["releasename", "solutionid", "vdcname"],
+  props: ["data"],
   methods: {
     submit() {
-      this.loading = true;
-      this.error = null;
-      this.$api.solutions
-        .deleteSolution(this.releasename, this.solutionid, this.vdcname)
-        .then((response) => {
-          console.log("cancelled");
-          this.$router.go(0);
-        })
-        .catch((err) => {
-          console.log("failed");
-          this.close();
-        });
+      // TODO
     },
   },
 };
