@@ -65,13 +65,13 @@
 
         <v-tooltip top v-if="item.role !== 'master'">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click.stop="deleteNode(item)">
+            <v-btn icon @click.stop="deleteNode(item.wid)">
               <v-icon v-bind="attrs" v-on="on" color="#810000"
                 >mdi-delete</v-icon
               >
             </v-btn>
           </template>
-          <span>Destroy</span>
+          <span>Delete</span>
         </v-tooltip>
       </template>
     </v-data-table>
@@ -81,9 +81,9 @@
       :data="selected"
     ></solution-info>
     <cancel-workload
-      v-if="selected"
+      v-if="selectedworker"
       v-model="dialogs.cancelWorkload"
-      :data="selected"
+      :wid="selectedworker"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
@@ -101,6 +101,7 @@ module.exports = {
   data() {
     return {
       selected: null,
+      selectedworker: null,
       dialogs: {
         info: false,
         cancelWorkload: false,
@@ -129,8 +130,8 @@ module.exports = {
       this.selected = record;
       this.dialogs.info = true;
     },
-    deleteNode(record) {
-      this.selected = record;
+    deleteNode(wid) {
+      this.selectedworker = wid;
       this.dialogs.cancelWorkload = true;
     },
 
