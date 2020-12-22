@@ -210,8 +210,8 @@ class Admin(BaseActor):
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
-        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", True)
-        sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", True)
+        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", False)
+        sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {
                 "data": {
