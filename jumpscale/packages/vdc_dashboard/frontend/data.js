@@ -277,4 +277,5 @@ const KUBERNETES_VM_SIZE_MAP =
     15: { "vcpu": 1, "memory": 2, "storage": 25 },
     16: { "vcpu": 2, "memory": 4, "storage": 50 },
     17: { "vcpu": 4, "memory": 8, "storage": 50 },
+    18: { "vcpu": 1, "memory": 1, "storage": 25 },
 }
