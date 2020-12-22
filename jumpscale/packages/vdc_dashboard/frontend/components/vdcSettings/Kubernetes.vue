@@ -92,9 +92,9 @@
 module.exports = {
   name: "Kubernetes",
   components: {
-    "solution-info": httpVueLoader("../solutions/Info.vue"),
-    "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
-    "download-kubeconfig": httpVueLoader("../solutions/DownloadKubeconfig.vue"),
+    "solution-info": httpVueLoader("./Info.vue"),
+    "cancel-workload": httpVueLoader("./Delete.vue"),
+    "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
   },
   props: ["vdc"],
 

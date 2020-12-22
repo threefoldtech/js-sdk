@@ -38,27 +38,15 @@
         <div>{{ item.size }} GB</div>
       </template>
     </v-data-table>
-    <cancel-workload
-      v-if="selected"
-      v-model="dialogs.cancelWorkload"
-      :data="selected"
-    ></cancel-workload>
   </div>
 </template>
 
 
 <script>
 module.exports = {
-  name: "S3",
-  components: {
-    "cancel-workload": httpVueLoader("../solutions/Delete.vue"),
-  },
   props: ["vdc"],
   data() {
     return {
-      dialogs: {
-        cancelWorkload: false,
-      },
       selected: null,
       headers: [
         { text: "WID", value: "wid" },
@@ -70,10 +58,6 @@ module.exports = {
     };
   },
   methods: {
-    deleteNode(record) {
-      this.selected = record;
-      this.dialogs.cancelWorkload = true;
-    },
     exposeS3() {
       this.loading = true;
       this.$api.solutions
