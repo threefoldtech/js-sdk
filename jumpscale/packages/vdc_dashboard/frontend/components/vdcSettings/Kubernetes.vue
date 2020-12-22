@@ -92,7 +92,7 @@
 <script>
 module.exports = {
   components: {
-    "solution-info": httpVueLoader("./Info.vue"),
+    "solution-info": httpVueLoader("../base/Info.vue"),
     "cancel-workload": httpVueLoader("./Delete.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
   },
