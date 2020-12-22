@@ -377,7 +377,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         if workload.public_ip:
             public_ip_workload = self.zos.workloads.get(workload.public_ip)
             if public_ip_workload.info.next_action == NextAction.DEPLOY:
-                public_ip_workload.append(wid)
+                workloads_to_delete.append(public_ip_workload.id)
         for wid in workloads_to_delete:
             self.zos.workloads.decomission(wid)
         return workloads_to_delete
