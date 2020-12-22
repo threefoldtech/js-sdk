@@ -58,7 +58,6 @@ Vue.component("wallet", wallet)
 const router = new VueRouter({
   routes: [
     { name: "Home", path: '/', component: vdcHome, meta: { icon: "mdi-tune" } },
-    { name: "KubernetesExtend", path: '/extend_kubernetes', component: vdcHome, meta: { icon: "mdi-tune" } },
     { name: "Marketplace", path: '/marketplacevdc', component: marketplaceHome, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
