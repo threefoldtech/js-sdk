@@ -97,7 +97,7 @@ module.exports = {
   },
 
   components: {
-    "solution-info": httpVueLoader("./Info.vue"),
+    "solution-info": httpVueLoader("../base/Info.vue"),
     "cancel-solution": httpVueLoader("./Delete.vue"),
   },
   data() {

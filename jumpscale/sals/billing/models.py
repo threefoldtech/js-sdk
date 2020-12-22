@@ -25,10 +25,16 @@ class PaymentTransaction(Base):
             else:
                 a = wallet.get_asset()
                 sender_address = wallet.get_sender_wallet_address(self.transaction_hash)
+                j.logger.info(
+                    f"refunding transaction: {self.transaction_hash} with amount: {amount} to address: {sender_address}"
+                )
                 self.transaction_refund.transaction_hash = wallet.transfer(
                     sender_address, amount=amount, asset=f"{a.code}:{a.issuer}"
                 )
                 self.transaction_refund.success = True
+                j.logger.info(
+                    f"transaction: {self.transaction_hash} refunded successfully with amount: {amount} to address: {sender_address} in transaction: {self.transaction_refund.transaction_hash}"
+                )
         except Exception as e:
             j.logger.critical(f"failed to refund transaction: {self.transaction_hash} due to error: {str(e)}")
         return self.transaction_refund.success
@@ -62,15 +68,22 @@ class PaymentResult(Base):
                         self.extra_paid = False
                         break
                     sender_address = self.parent.wallet.get_sender_wallet_address(transaction.transaction_hash)
+                    amount = round(diff - 0.1, 6)
                     try:
+                        j.logger.info(
+                            f"refunding extra amount: {amount} of transaction {transaction.transaction_hash} to address: {sender_address}"
+                        )
                         a = self.parent.wallet.get_asset()
-                        self.parent.wallet.transfer(
-                            sender_address, amount=round(diff - 0.1, 6), asset=f"{a.code}:{a.issuer}"
+                        refund_hash = self.parent.wallet.transfer(
+                            sender_address, amount=amount, asset=f"{a.code}:{a.issuer}"
                         )
                         self.extra_paid = False
+                        j.logger.info(
+                            f"extra amount: {amount} of transaction {transaction.transaction_hash} refunded successfully in transaction: {refund_hash} to address: {sender_address}"
+                        )
                     except Exception as e:
                         j.logger.critical(
-                            f"failed to refund extra amount {diff} for payment: {self.parent.payment_id} due to error: {str(e)}"
+                            f"failed to refund extra amount {amount} for payment: {self.parent.payment_id} due to error: {str(e)}"
                         )
             self.parent.save()
         return self.extra_paid
@@ -85,6 +98,7 @@ class Payment(Base):
     deadline = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(minutes=5))
     result = fields.Object(PaymentResult, required=True)
     refund_extra = fields.Boolean(default=True)
+    description = fields.String()
 
     def is_finished(self):
         if self.deadline.timestamp() < j.data.time.utcnow().timestamp or self.result.success:
@@ -99,6 +113,11 @@ class Payment(Base):
     def update_status(self):
         if self.is_finished():
             return
+        if self.amount == 0:
+            self.result.success = True
+            self.save()
+            return
+        j.logger.info(f"updating payment: {self.payment_id} status")
         transactions = self.wallet.list_transactions()
         current_transactions = {t.transaction_hash: t for t in self.result.transactions}
         for transaction in transactions:
@@ -112,6 +131,8 @@ class Payment(Base):
             if trans_memo_text != self.memo_text:
                 continue
 
+            j.logger.info(f"adding transaction {transaction_hash} to payment: {self.payment_id}")
+
             trans_obj = PaymentTransaction()
             trans_obj.transaction_hash = transaction_hash
             self.result.transactions.append(trans_obj)
@@ -119,15 +140,22 @@ class Payment(Base):
             if not self.result.success:
                 try:
                     trans_amount = trans_obj.get_amount(self.wallet)
+                    j.logger.info(
+                        f"adding transaction {transaction_hash} to payment: {self.payment_id} with amount: {trans_amount}"
+                    )
                 except Exception as e:
                     j.logger.error(
                         f"failed to update payment {self.instance_name} with transaction {transaction_hash} due to error {str(e)}"
                     )
                     continue
                 if trans_amount >= self.amount:
+                    j.logger.info(
+                        f"payment: {self.payment_id} fulfilled by transaction: {transaction_hash} with amount: {trans_amount}"
+                    )
                     trans_obj.success = True
                     self.result.success = True
                     if trans_amount > self.amount:
+                        j.logger.info(f"payment: {self.payment_id} is marked as extra paid")
                         self.result.extra_paid = True
             self.save()
 
@@ -172,6 +200,7 @@ class RefundRequest(Base):
     success = fields.Boolean(default=False)
     refund_transaction_hash = fields.String()
     last_tried = fields.DateTime()
+    amount = fields.Float(default=-1)
 
     def apply(self):
         payment = PAYMENT_FACTORY.find_by_id(self.payment_id)
@@ -189,6 +218,10 @@ class RefundRequest(Base):
                 if not payment.refund_extra:
                     amount = float(transaction.get_amount(payment.wallet))
 
+        # if a specific amount was specified by the refund request
+        if self.amount > 0:
+            amount = self.amount
+
         if amount <= 0.1 or not sender_address:
             self.success = True
         else:
@@ -198,6 +231,9 @@ class RefundRequest(Base):
                     sender_address, amount=round(amount - 0.1, 6), asset=f"{a.code}:{a.issuer}"
                 )
                 self.success = True
+                j.logger.info(
+                    f"refund request successful for payment: {self.payment_id} amount: {amount} to address: {sender_address} in transaction: {self.refund_transaction_hash}"
+                )
             except Exception as e:
                 j.logger.critical(f"failed to apply refund request for payment {self.payment_id} due to error {str(e)}")
         self.save()

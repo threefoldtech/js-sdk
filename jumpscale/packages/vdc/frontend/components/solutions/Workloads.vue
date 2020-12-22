@@ -1,33 +1,71 @@
 <template>
   <div>
-    <base-component
-      title="MY VDCs"
-      icon="mdi-clipboard-list-outline"
-      :loading="loading"
-    >
+    <base-component title="MY VDCs" icon="mdi-clipboard-list-outline">
       <template #actions>
         <v-btn color="primary" text @click.stop="openChatflow('new_vdc')">
           <v-icon left>mdi-plus</v-icon>Add a new VDC
         </v-btn>
       </template>
       <div class="mt-5">
-        <template>
-          <deployer-data-table
-            :deployed="deployedvdcs"
-            :headers="headersvdcs"
-            :loading="loading"
-          >
-          </deployer-data-table>
-        </template>
+        <v-data-table
+          :loading="loading"
+          :headers="headersvdcs"
+          :items="deployedvdcs"
+          class="elevation-1"
+        >
+          <template slot="no-data">No VDC instances available</template>
+          <template v-slot:item.id="{ item }">
+            <div>{{ item.id }}</div>
+          </template>
+          <template v-slot:item.name="{ item }">
+            {{ item.vdc_name }}
+          </template>
+          <template v-slot:item.package="{ item }">
+            <div :class="`${item.class}`">{{ item.flavor }}</div>
+          </template>
+          <template v-slot:item.expiration="{ item }">
+            <div :class="`${item.class}`">{{ item.expiration }}</div>
+          </template>
+          <template v-slot:item.actions="{ item }">
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <a
+                  style="text-decoration: none"
+                  :href="`https://${item.threebot.domain}/vdc_dashboard`"
+                  target="_blank"
+                >
+                  <v-icon v-bind="attrs" v-on="on" color="primary"
+                    >mdi-web</v-icon
+                  >
+                </a>
+              </template>
+              <span>Go to my VDC</span>
+            </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-icon
+                  v-bind="attrs"
+                  v-on="on"
+                  class="px-4"
+                  @click="openWalletInfo(item.wallet)"
+                  color="primary"
+                  >mdi-wallet</v-icon
+                >
+              </template>
+              <span>Show Wallet Info</span>
+            </v-tooltip>
+          </template>
+        </v-data-table>
       </div>
     </base-component>
+    <wallet-info v-model="dialogs.wallet" :wallet="selected"></wallet-info>
   </div>
 </template>
 
 <script>
 module.exports = {
   components: {
-    "deployer-data-table": httpVueLoader("../base/Table.vue"),
+    "wallet-info": httpVueLoader("./Wallet.vue"),
   },
   data() {
     return {
@@ -40,6 +78,10 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployedvdcs: [],
+      dialogs: {
+        wallet: false,
+      },
+      selected: null,
     };
   },
   methods: {
@@ -49,18 +91,9 @@ module.exports = {
         params: { topic: topic, tname: tname },
       });
     },
-    groupBy(list, keyGetter) {
-      const map = new Map();
-      list.forEach((item) => {
-        const key = keyGetter(item);
-        const collection = map.get(key);
-        if (!collection) {
-          map.set(key, [item]);
-        } else {
-          collection.push(item);
-        }
-      });
-      return map;
+    openWalletInfo(wallet) {
+      this.selected = wallet;
+      this.dialogs.wallet = true;
     },
     getDeployedSolutions() {
       const DURATION_MAX = 9223372036854775807;
@@ -70,9 +103,9 @@ module.exports = {
       this.$api.solutions
         .listVdcs()
         .then((response) => {
-          this.deployedvdcs = [...response.data];
-          for (let i = 0; i < this.deployedvdcs.length; i++) {
-            deployedvdc = this.deployedvdcs[i];
+          let deployments = [...response.data];
+          for (let i = 0; i < deployments.length; i++) {
+            deployedvdc = deployments[i];
             deployedvdc.alert = false;
             if (deployedvdc.expiration < DURATION_MAX) {
               let expiration = new Date(deployedvdc.expiration * 1000);
@@ -84,6 +117,10 @@ module.exports = {
               deployedvdc.expiration = "-";
             }
           }
+          this.deployedvdcs = deployments.map((item, index) => ({
+            id: index + 1,
+            ...item,
+          }));
         })
         .finally(() => {
           this.loading = false;

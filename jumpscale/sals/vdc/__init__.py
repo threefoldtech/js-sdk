@@ -53,15 +53,14 @@ class VDCStoredFactory(StoredFactory):
         vdc = self.find(name)
         if vdc:
             # don't delete vdc wallets
-            identity_instance_name = f"vdc_{vdc.solution_uuid}"
+            identity_instance_name = f"vdc_ident_{vdc.solution_uuid}"
             identity = j.core.identity.find(identity_instance_name)
             if identity:
                 deployer = vdc.get_deployer(identity=identity)
                 deployer.rollback_vdc_deployment()
                 zos = j.sals.zos.get(identity_instance_name)
-                for workload in zos.worklads.list(identity.tid, next_action=NextAction.DEPLOY):
-                    zos.worklads.decomission(workload.id)
-                j.core.identity.delete(identity_instance_name)
+                for workload in zos.workloads.list(identity.tid, next_action=NextAction.DEPLOY):
+                    zos.workloads.decomission(workload.id)
         return super().delete(name)
 
 

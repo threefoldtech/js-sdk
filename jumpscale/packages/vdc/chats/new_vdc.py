@@ -19,13 +19,18 @@ class VDCDeploy(GedisChatBot):
         self.username = self.user_info_data["username"]
 
     def _vdc_form(self):
-        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username)]
+        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
         vdc_flavors = [flavor for flavor in VDC_SIZE.VDC_FLAVORS]
         vdc_flavor_messages = []
         for flavor in vdc_flavors:
             plan = VDC_SIZE.VDC_FLAVORS[flavor]
+            kubernetes_plan = VDC_SIZE.K8S_SIZES[plan["k8s"]["size"]]
+            zdb_size = VDC_SIZE.S3_ZDB_SIZES[plan["s3"]["size"]]["sru"]
+            zdb_human_readable_size = zdb_size if zdb_size < 1000 else zdb_size / 1024
+            zdb_identifier = "GB" if zdb_size < 1000 else "TB"
             vdc_flavor_messages.append(
-                f"{flavor.name}: {plan['k8s']['size'].name} Kubernetes cluster, {plan['s3']['size'].name} S3 with {VDC_SIZE.S3_ZDB_SIZES[plan['s3']['size']]['sru']:,} GB"
+                f"{flavor.name}: Kubernetes cluster ({kubernetes_plan['cru']} vCPU, {kubernetes_plan['mru']} GB Memory, {kubernetes_plan['sru']} GB SSD Storage)"
+                f", ZDB Storage ({zdb_human_readable_size} {zdb_identifier})"
             )
         form = self.new_form()
         self.vdc_name = form.string_ask(
@@ -39,6 +44,11 @@ class VDCDeploy(GedisChatBot):
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
         form.ask()
+        vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
+        if vdc:
+            j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
+            j.sals.vdc.delete(vdc.instance_name)
+
         self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
 
     def _k3s_and_minio_form(self):
@@ -88,7 +98,7 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(minio_ak="12345678", minio_sk="12345678",)
+            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None)
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip

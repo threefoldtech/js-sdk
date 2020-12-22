@@ -6,7 +6,7 @@ import os
 from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
-import requests
+import toml
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -27,6 +27,7 @@ Required env variables:
 - VDC_INSTANCE -> json string from the VDC instance on deployer
 - PREPAID_WALLET_SECRET -> secret for prepaid wallet
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
+- ACME_SERVER_URL -> to use for package certificate
 
 
 Role:
@@ -47,6 +48,7 @@ VDC_EMAIL = os.environ.get("VDC_EMAIL")
 KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 PROVISIONING_WALLET_SECRET = os.environ.get("PROVISIONING_WALLET_SECRET")
 PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
+ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -143,15 +145,19 @@ j.core.config.set("OVER_PROVISIONING", True)
 server = j.servers.threebot.get("default")
 server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/billing")
 if TEST_CERT != "true":
-    server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
-        admins=[f"{vdc.owner_tname}.3bot"],
-        domain=vdc.threebot.domain,
+    package_config = toml.load(
+        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml"
     )
-else:
-    server.packages.add(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
-    )
+    package_config["servers"][0]["domain"] = vdc.threebot.domain
+    with open("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml", "w") as f:
+        toml.dump(package_config, f)
+    if ACME_SERVER_URL:
+        server.acme_server_type = "custom"
+        server.acme_server_url = ACME_SERVER_URL
+
+server.packages.add(
+    "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
+)
 server.save()
 
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")

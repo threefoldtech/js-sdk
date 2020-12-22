@@ -5,17 +5,26 @@ from jumpscale.loader import j
 
 
 class BillingManager:
-    def submit_payment(self, amount, wallet_name, refund_extra=True, expiry=5):
+    def submit_payment(self, amount, wallet_name, refund_extra=True, expiry=5, description=""):
         payment_id = uuid.uuid4().hex
         instance_name = f"payment_{payment_id}"
         payment = PAYMENT_FACTORY.new(
-            instance_name, payment_id=payment_id, amount=amount, wallet_name=wallet_name, refund_extra=refund_extra
+            instance_name,
+            payment_id=payment_id,
+            amount=amount,
+            wallet_name=wallet_name,
+            refund_extra=refund_extra,
+            description=description,
         )
         payment.deadline = datetime.datetime.utcnow() + datetime.timedelta(minutes=expiry)
         payment.save()
+        j.logger.info(
+            f"payment {payment_id} submitted for wallet: {wallet_name} amount: {amount}, description: {description}, expiry: {expiry}, memo_text: {payment.memo_text}"
+        )
         return payment_id, payment.memo_text
 
     def wait_payment(self, payment_id, bot=None):
+        j.logger.info(f"waiting payment: {payment_id}")
         payment = PAYMENT_FACTORY.find_by_id(payment_id)
         if bot:
             self._show_payment(bot, payment)
@@ -23,6 +32,7 @@ class BillingManager:
         while not payment.is_finished():
             gevent.sleep(3)
             payment = PAYMENT_FACTORY.find_by_id(payment_id)
+        j.logger.info(f"payment: {payment_id} result {payment.result.success}")
         return payment.result.success
 
     def _show_payment(self, bot, payment_obj):
@@ -47,15 +57,17 @@ class BillingManager:
         for payment in PAYMENT_FACTORY.list_failed_payments():
             refund_result = True
             for transaction in payment.result.transactions:
-                if transaction.success:
+                if transaction.success or transaction.transaction_refund.success:
                     continue
+                j.logger.info(f"refunding transaction: {transaction.transaction_hash} of payment: {payment.payment_id}")
                 refund_result = refund_result and transaction.refund(payment.wallet)
                 payment.save()
 
-    def issue_refund(self, payment_id):
+    def issue_refund(self, payment_id, amount=-1):
         instance_name = f"refund_{payment_id}"
-        request = REFUND_FACTORY.new(instance_name, payment_id=payment_id)
+        request = REFUND_FACTORY.new(instance_name, payment_id=payment_id, amount=amount)
         request.save()
+        j.logger.info(f"refund request created for payment: {payment_id}")
         return
 
     def check_refund(self, payment_id):
@@ -67,12 +79,15 @@ class BillingManager:
 
     def process_refunds(self):
         for request in REFUND_FACTORY.list_active_requests():
+            j.logger.info(f"applying active refund for payment: {request.payment_id}")
             request.apply()
 
     def process_payments(self):
         for payment in PAYMENT_FACTORY.list_active_payments():
+            j.logger.info(f"updating active payment: {payment.payment_id}")
             payment.update_status()
 
     def refund_extra(self):
         for payment in PAYMENT_FACTORY.list_extra_paid_payments():
+            j.logger.info(f"refund extra paid for payment: {payment.payment_id}")
             payment.result.refund_extra()

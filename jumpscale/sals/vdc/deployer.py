@@ -268,11 +268,11 @@ class VDCDeployer:
         self.wait_pool_payment(pool_id, trigger_cus=1)
 
         # create minio and threebot pool
-        cont1 = Container()
-        cont1.capacity.cpu = MINIO_CPU
-        cont1.capacity.memory = MINIO_MEMORY
-        cont1.capacity.disk_size = 256
-        cont1.capacity.disk_type = DiskType.SSD
+        # cont1 = Container()
+        # cont1.capacity.cpu = MINIO_CPU
+        # cont1.capacity.memory = MINIO_MEMORY
+        # cont1.capacity.disk_size = 256
+        # cont1.capacity.disk_type = DiskType.SSD
         cont2 = Container()
         cont2.capacity.cpu = THREEBOT_CPU
         cont2.capacity.memory = THREEBOT_MEMORY
@@ -283,11 +283,12 @@ class VDCDeployer:
         cont3.capacity.memory = 1024
         cont3.capacity.disk_size = 256
         cont3.capacity.disk_type = DiskType.SSD
-        vol = Volume()
-        vol.size = int(MINIO_DISK / 1024)
-        vol.type = DiskType.SSD
+        # vol = Volume()
+        # vol.size = int(MINIO_DISK / 1024)
+        # vol.type = DiskType.SSD
         cus = sus = 0
-        for workload in [cont1, cont2, cont3, vol]:
+        # for workload in [cont1, cont2, cont3, vol]:
+        for workload in [cont2, cont3]:
             n_cus, n_sus = get_cloud_units(workload)
             cus += n_cus
             sus += n_sus
@@ -439,15 +440,15 @@ class VDCDeployer:
             return False
 
         # check minio container and volume capacity
-        minio_query = {
-            "farm_name": farm_name,
-            "cru": MINIO_CPU,
-            "mru": MINIO_MEMORY / 1024,
-            "sru": (MINIO_DISK / 1024) + 0.25,
-            "ip_version": "IPv6",
-        }
-        if not gcc.add_query(**minio_query):
-            return False
+        # minio_query = {
+        #     "farm_name": farm_name,
+        #     "cru": MINIO_CPU,
+        #     "mru": MINIO_MEMORY / 1024,
+        #     "sru": (MINIO_DISK / 1024) + 0.25,
+        #     "ip_version": "IPv6",
+        # }
+        # if not gcc.add_query(**minio_query):
+        #     return False
 
         # check threebot container capacity
         threebot_query = {
@@ -480,10 +481,10 @@ class VDCDeployer:
 
         cluster_secret = self.password_hash
         self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
-        if len(minio_ak) < 3 or len(minio_sk) < 8:
-            raise j.exceptions.Validation(
-                "Access key length should be at least 3, and secret key length at least 8 characters"
-            )
+        # if len(minio_ak) < 3 or len(minio_sk) < 8:
+        #     raise j.exceptions.Validation(
+        #         "Access key length should be at least 3, and secret key length at least 8 characters"
+        #     )
 
         # initialize VDC pools
         self.bot_show_update("Initializing VDC")
@@ -517,21 +518,22 @@ class VDCDeployer:
 
             # deploy minio container
             # self.bot_show_update("Deploying minio container")
-            minio_wid = self.s3.deploy_s3_minio_container(
-                pool_id,
-                minio_ak,
-                minio_sk,
-                self.ssh_key.public_key.strip(),
-                scheduler,
-                zdb_wids,
-                self.vdc_uuid,
-                self.password,
-            )
-            self.info(f"minio_wid: {minio_wid}")
-            if not minio_wid:
-                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
-                self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy minio")
+            minio_wid = 0
+            # minio_wid = self.s3.deploy_s3_minio_container(
+            #     pool_id,
+            #     minio_ak,
+            #     minio_sk,
+            #     self.ssh_key.public_key.strip(),
+            #     scheduler,
+            #     zdb_wids,
+            #     self.vdc_uuid,
+            #     self.password,
+            # )
+            # self.info(f"minio_wid: {minio_wid}")
+            # if not minio_wid:
+            #     self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+            #     self.rollback_vdc_deployment()
+            #     raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy minio")
 
             # get kubernetes info
             self.bot_show_update("Preparing Kubernetes cluster configuration")
@@ -560,23 +562,6 @@ class VDCDeployer:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy 3bot")
-
-            prefix = self.get_prefix()
-            subdomain = self.proxy.proxy_container_over_custom_domain(
-                prefix=prefix,
-                wid=threebot_wid,
-                port=80,
-                solution_uuid=self.vdc_uuid,
-                pool_id=pool_id,
-                scheduler=scheduler,
-                tls_port=443,
-                parent_domain=VDC_PARENT_DOMAIN,
-            )
-            self.info(f"threebot subdomain: {subdomain}")
-            if not subdomain:
-                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
-                self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to expose 3bot")
 
             if install_monitoring_stack:
                 # deploy monitoring stack on kubernetes
@@ -656,7 +641,7 @@ class VDCDeployer:
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
-            VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
+            flavor,
             cluster_secret,
             [public_key],
             no_nodes,

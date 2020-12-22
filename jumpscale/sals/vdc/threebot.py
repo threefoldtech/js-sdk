@@ -10,20 +10,24 @@ from .size import (
     S3_NO_PARITY_NODES,
 )
 from jumpscale.loader import j
-from jumpscale.clients.explorer.models import WorkloadType
 from .scheduler import Scheduler
 from jumpscale.sals.reservation_chatflow import deployer
-
+from .proxy import VDC_PARENT_DOMAIN
+import os
+import uuid
+import random
 
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
 
 
 class VDCThreebotDeployer(VDCBaseComponent):
-    def deploy_threebot(self, minio_wid, pool_id, kube_config):
-        workload = self.zos.workloads.get(minio_wid)
-        if workload.info.workload_type != WorkloadType.Container:
-            raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
-        minio_ip_address = workload.network_connection[0].ipaddress
+    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True):
+        flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
+        # workload = self.zos.workloads.get(minio_wid)
+        # if workload.info.workload_type != WorkloadType.Container:
+        #     raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")
+        # minio_ip_address = workload.network_connection[0].ipaddress
         vdc_dict = self.vdc_instance.to_dict()
         vdc_dict.pop("s3", None)
         vdc_dict.pop("kubernetes", None)
@@ -50,12 +54,22 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 )
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
-            "VDC_MINIO_ADDRESS": minio_ip_address,
+            # "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
+            "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
         }
+        if embed_trc:
+            _, secret, remote = self._prepare_proxy()
+            if not remote:
+                return
+            remote_ip, remote_port = remote.split(":")
+            env.update(
+                {"REMOTE_IP": remote_ip, "REMOTE_PORT": remote_port,}
+            )
+            secret_env["TRC_SECRET"] = secret
         if not self.vdc_instance.kubernetes:
             self.vdc_instance.load_info()
 
@@ -108,7 +122,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 node_id=node.node_id,
                 network_name=network_view.name,
                 ip_address=ip_address,
-                flist=THREEBOT_FLIST,
+                flist=flist,
                 env=env,
                 cpu=THREEBOT_CPU,
                 memory=THREEBOT_MEMORY,
@@ -131,3 +145,49 @@ class VDCThreebotDeployer(VDCBaseComponent):
             except DeploymentFailed:
                 self.vdc_deployer.error(f"failed to deploy threebot container on node: {node.node_id} wid: {wid}")
                 continue
+
+    def _prepare_proxy(self):
+        prefix = self.vdc_deployer.get_prefix()
+        parent_domain = VDC_PARENT_DOMAIN
+        subdomain = f"{prefix}.{parent_domain}"
+        nc = j.clients.name.get("VDC")
+        nc.username = os.environ.get("VDC_NAME_USER")
+        nc.token = os.environ.get("VDC_NAME_TOKEN")
+        secret = f"{self.identity.tid}:{uuid.uuid4().hex}"
+        gateways = self.vdc_deployer.proxy.fetch_myfarm_gateways()
+        random.shuffle(gateways)
+        gateway_pool_id = self.vdc_deployer.proxy.get_gateway_pool_id()
+        remote = None
+        for gateway in gateways:
+            # if old records exist for this prefix clean it.
+            wid = deployer.create_proxy(
+                gateway_pool_id,
+                gateway.node_id,
+                subdomain,
+                secret,
+                self.identity.instance_name,
+                self.vdc_deployer.description,
+                secret=secret,
+            )
+            self.vdc_deployer.info(
+                f"reserving proxy on gateway {gateway.node_id} for subdomain: {subdomain} wid: {wid}"
+            )
+            try:
+                success = deployer.wait_workload(wid, self.bot, expiry=5, identity_name=self.identity.instance_name)
+                if not success:
+                    raise DeploymentFailed()
+            except DeploymentFailed:
+                self.vdc_deployer.error(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
+                continue
+
+            existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
+            if existing_records:
+                for record_dict in existing_records:
+                    nc.nameclient.delete_record(record_dict["fqdn"][:-1], record_dict["id"])
+            ip_addresses = self.vdc_deployer.proxy.get_gateway_addresses(gateway)
+            for address in ip_addresses:
+                nc.nameclient.create_record(parent_domain, prefix, "A", address)
+            remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
+        if not remote:
+            self.vdc_deployer.error(f"all tries to reseve a proxy on pool: {gateway_pool_id} has failed")
+        return subdomain, secret, remote

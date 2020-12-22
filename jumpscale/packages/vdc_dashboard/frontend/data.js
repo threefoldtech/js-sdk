@@ -133,7 +133,7 @@ const DECENTRALIZED_DEV = {
             name: "Gitea",
             type: "gitea",
             image: "./assets/gitea.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/gitea/",
             description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
         },
@@ -153,7 +153,7 @@ const DECENTRALIZED_DEV = {
             helpLink: "https://now.threefold.io/now/docs/gridsome/",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
-        monitoring: {
+        monitoring_stack: {
             name: "Monitoring Stack",
             type: "monitoring_stack",
             image: "./assets/monitoring.png",
@@ -277,4 +277,5 @@ const KUBERNETES_VM_SIZE_MAP =
     15: { "vcpu": 1, "memory": 2, "storage": 25 },
     16: { "vcpu": 2, "memory": 4, "storage": 50 },
     17: { "vcpu": 4, "memory": 8, "storage": 50 },
+    18: { "vcpu": 1, "memory": 1, "storage": 25 },
 }

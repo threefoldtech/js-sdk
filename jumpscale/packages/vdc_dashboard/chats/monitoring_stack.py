@@ -1,11 +1,14 @@
 from jumpscale.loader import j
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.vdc import VDCFACTORY
+from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
 
-class InstallMonitoringStack(GedisChatBot):
+class InstallMonitoringStack(SolutionsChatflowDeploy):
     title = "Monitoring Stack"
     steps = ["confirm", "success"]
+    SOLUTION_TYPE = "monitoring_stack"
+    HELM_REPO_NAME = "marketplace"
 
     @chatflow_step(title="Confirmation")
     def confirm(self):
