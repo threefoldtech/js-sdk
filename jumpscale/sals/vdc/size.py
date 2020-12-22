@@ -205,13 +205,22 @@ class VDCSize:
     def load_prices(self):
         self._prices = {"plans": {}, "nodes": {}, "services": {}}
         for plan, cost in self._prices_data["plans"].items():
-            self._prices["plans"][self.VDCFlavor[plan.upper()]] = cost
+            if "devnet" in j.core.identity.me.explorer_url:
+                self._prices["plans"][self.VDCFlavor[plan.upper()]] = 0
+            else:
+                self._prices["plans"][self.VDCFlavor[plan.upper()]] = cost
 
         for node, cost in self._prices_data["nodes"].items():
-            self._prices["nodes"][self.K8SNodeFlavor[node.upper()]] = cost
+            if "devnet" in j.core.identity.me.explorer_url:
+                self._prices["nodes"][self.K8SNodeFlavor[node.upper()]] = 0
+            else:
+                self._prices["nodes"][self.K8SNodeFlavor[node.upper()]] = cost
 
         for service, cost in self._prices_data["services"].items():
-            self._prices["services"][self.Services[service.upper()]] = cost
+            if "devnet" in j.core.identity.me.explorer_url:
+                self._prices["services"][self.Services[service.upper()]] = 0
+            else:
+                self._prices["services"][self.Services[service.upper()]] = cost
 
 
 VDC_SIZE = VDCSize()
