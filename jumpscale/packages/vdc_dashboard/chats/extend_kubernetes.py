@@ -55,7 +55,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             )
 
         success, amount, payment_id = self.vdc.show_external_node_payment(
-            self, self.node_flavor, expiry=1, public_ip=self.public_ip
+            self, self.node_flavor, public_ip=self.public_ip
         )
         if not success:
             self.stop(f"payment timedout")
