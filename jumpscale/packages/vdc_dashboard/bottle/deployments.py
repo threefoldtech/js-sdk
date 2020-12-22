@@ -33,6 +33,28 @@ def get_kubeconfig() -> str:
     return j.data.serializers.json.dumps({"data": file_content})
 
 
+@app.route("/api/kube/nodes/delete", method="POST")
+@package_authorized("vdc_dashboard")
+def delete_node():
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
+    if not wid:
+        abort(400, "Error: Not all required params was passed.")
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_full_name)
+    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    deployer = vdc.get_deployer()
+    try:
+        deployer.delete_k8s_node(wid)
+    except j.exceptions.Input:
+        abort(400, "Error: Failed to delete workload")
+    return j.data.serializers.json.dumps({"result": True})
+
+
 @app.route("/api/s3/expose")
 @package_authorized("vdc_dashboard")
 def expose_s3() -> str:
