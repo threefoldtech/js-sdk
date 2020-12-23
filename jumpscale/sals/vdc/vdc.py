@@ -301,7 +301,10 @@ class UserVDC(Base):
                 {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
             ),
         )
-        return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+        if amount > 0:
+            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+        else:
+            return True, amount, payment_id
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         if isinstance(size, str):
