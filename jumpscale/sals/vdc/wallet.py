@@ -17,7 +17,8 @@ class VDCWallet(Base):
         wallet = j.clients.stellar.new(self.instance_name, secret=secret, network=self.wallet_network)
         if not secret:
             wallet.activate_through_friendbot()
-            wallet.add_known_trustline("TFT")
+            if "devnet" not in j.core.identity.me.explorer_url:
+                wallet.add_known_trustline("TFT")
         wallet.save()
         self.wallet_secret = wallet.secret
 
