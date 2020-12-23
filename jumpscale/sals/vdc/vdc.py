@@ -33,7 +33,6 @@ class UserVDC(Base):
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
-    expiration = fields.DateTime(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=30))
     is_blocked = fields.Boolean(default=False)
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
 
@@ -41,6 +40,11 @@ class UserVDC(Base):
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
             return False
         return True
+
+    @property
+    def expiration_date(self):
+        expiration = self.get_pools_expiration()
+        return j.data.time.get(expiration).datetime
 
     @property
     def prepaid_wallet(self):
