@@ -7,9 +7,9 @@ import uuid
 
 
 class VDCPublicIP(VDCBaseComponent):
-    def __init__(self, vdc_deployer, farm_name=NETWORK_FARM):
+    def __init__(self, vdc_deployer, farm_name=None):
         super().__init__(vdc_deployer)
-        self.farm_name = farm_name
+        self.farm_name = farm_name or NETWORK_FARM.get()
         self._farm = None
 
     @property
