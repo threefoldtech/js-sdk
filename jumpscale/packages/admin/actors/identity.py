@@ -7,7 +7,7 @@ from jumpscale.packages.backup.actors.marketplace import Backup
 
 BACKUP_ACTOR = Backup()
 
-explorers = {"explorer.grid.tf": "main", "explorer.testnet.grid.tf": "testnet"}
+explorers = {"explorer.grid.tf": "main", "explorer.testnet.grid.tf": "testnet", "explorer.devnet.grid.tf": "devnet"}
 
 
 class Identity(BaseActor):
