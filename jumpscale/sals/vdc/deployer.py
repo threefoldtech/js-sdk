@@ -233,7 +233,7 @@ class VDCDeployer:
         self.pay(pool_info)
         return pool_info.reservation_id
 
-    def init_vdc(self, selected_farm=PREFERED_FARM):
+    def init_vdc(self, selected_farm):
         """
         1- create 2 pool on storage farms (with the required capacity to have 50-50) as speced
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
@@ -247,9 +247,9 @@ class VDCDeployer:
             return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
         # create zdb pools
-        if len(ZDB_FARMS) != 2:
+        if len(ZDB_FARMS.get()) != 2:
             raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
-        for farm_name in ZDB_FARMS:
+        for farm_name in ZDB_FARMS.get():
             zdb = ZdbNamespace()
             zdb.size = ZDB_STARTING_SIZE
             zdb.disk_type = DiskType.HDD
@@ -342,7 +342,7 @@ class VDCDeployer:
         """
         gs = scheduler or GlobalScheduler()
         zdb_threads = []
-        for farm in ZDB_FARMS:
+        for farm in ZDB_FARMS.get():
             pool_id = self.get_pool_id(farm)
             zdb_threads.append(
                 gevent.spawn(
@@ -415,14 +415,14 @@ class VDCDeployer:
 
         gcc = GlobalCapacityChecker()
         # check zdb capacity
-        if len(ZDB_FARMS) != 2:
+        if len(ZDB_FARMS.get()) != 2:
             raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
         zdb_query = {
             "hru": ZDB_STARTING_SIZE,
             "no_nodes": (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
             "ip_version": "IPv6",
         }
-        for farm in ZDB_FARMS:
+        for farm in ZDB_FARMS.get():
             if not gcc.add_query(farm, **zdb_query):
                 return False
 
@@ -467,13 +467,14 @@ class VDCDeployer:
 
         return gcc.result
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=PREFERED_FARM, install_monitoring_stack=False):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False):
         """deploys a new vdc
         Args:
             minio_ak: access key for minio
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
+        farm_name = farm_name or PREFERED_FARM.get()
         if not self.check_capacity(farm_name):
             raise j.exceptions.Validation(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
@@ -617,7 +618,8 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=PREFERED_FARM, public_ip=False, no_nodes=1, duration=None):
+    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None):
+        farm_name = farm_name or PREFERED_FARM.get()
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()

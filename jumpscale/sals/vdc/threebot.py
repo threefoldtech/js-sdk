@@ -53,7 +53,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
                 )
             ),
-            "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS),
+            "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": "development_vdc",  # TODO: change when merged
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),

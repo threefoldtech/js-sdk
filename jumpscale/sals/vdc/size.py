@@ -15,11 +15,50 @@ THREEBOT_DISK = 2 * 1024  # in MB
 
 INITIAL_RESERVATION_DURATION = 1  # in hours
 
-S3_AUTO_TOPUP_FARMS = ["freefarm", "freefarm"]
-ZDB_FARMS = ["freefarm", "freefarm"]
-PREFERED_FARM = "freefarm"
-NETWORK_FARM = "freefarm"
-PROXY_FARM = "freefarm"
+
+class FarmConfigBase:
+    @classmethod
+    def get(cls):
+        network = get_explorer_network()
+        return getattr(cls, network)
+
+
+class S3_AUTO_TOPUP_FARMS(FarmConfigBase):
+    devnet = ["lochristi_dev_lab", "lochristi_dev_lab"]
+    testnet = ["freefarm", "freefarm"]
+    mainnet = ["freefarm", "freefarm"]
+
+
+class ZDB_FARMS(FarmConfigBase):
+    devnet = ["lochristi_dev_lab", "lochristi_dev_lab"]
+    testnet = ["freefarm", "freefarm"]
+    mainnet = ["freefarm", "freefarm"]
+
+
+class PREFERED_FARM(FarmConfigBase):
+    devnet = "lochristi_dev_lab"
+    testnet = "freefarm"
+    mainnet = "freefarm"
+
+
+class NETWORK_FARM(FarmConfigBase):
+    devnet = "lochristi_dev_lab"
+    testnet = "freefarm"
+    mainnet = "freefarm"
+
+
+class PROXY_FARM(FarmConfigBase):
+    devnet = "lochristi_dev_lab"
+    testnet = "freefarm"
+    mainnet = "freefarm"
+
+
+def get_explorer_network():
+    networks = ["devnet", "testnet"]
+    for net in networks:
+        if net in j.core.identity.me.explorer_url:
+            return net
+    return "mainnet"
 
 
 WORKLOAD_SIZES_URL = "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/workload_sizes.json"
