@@ -126,6 +126,11 @@ class UserVDC(Base):
         return result
 
     def _update_instance(self, workload):
+        k8s_sizes = [
+            VDC_SIZE.K8SNodeFlavor.SMALL.value,
+            VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
+            VDC_SIZE.K8SNodeFlavor.BIG.value,
+        ]
         if workload.info.workload_type == WorkloadType.Kubernetes:
             node = KubernetesNode()
             node.wid = workload.id
@@ -142,7 +147,9 @@ class UserVDC(Base):
                 address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
                 node.public_ip = address
 
-            node.size = VDC_SIZE.K8SNodeFlavor(workload.size)
+            node.size = (
+                VDC_SIZE.K8SNodeFlavor(workload.size) if workload.size in k8s_sizes else VDC_SIZE.K8SNodeFlavor.SMALL
+            )
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
             if "minio" in workload.flist:
