@@ -313,6 +313,15 @@ class UserVDC(Base):
         if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
             amount = 0
 
+        prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
+        if prepaid_balance >= amount:
+            result = bot.md_single_choice(
+                f"Do you want to use your existing balance to pay {amount}? (This will impact the overall expiration of your plan)",
+                ["Yes", "No"],
+            )
+            if result == "Yes":
+                amount = 0
+
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
             wallet_name=wallet_name or self.prepaid_wallet.instance_name,
@@ -322,7 +331,10 @@ class UserVDC(Base):
                 {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
             ),
         )
-        return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+        if amount > 0:
+            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+        else:
+            return True, amount, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
@@ -349,6 +361,14 @@ class UserVDC(Base):
         if not amount:
             return True
         return self.pay_amount(initial_wallet.address, amount, wallet)
+
+    def _get_wallet_balance(self, wallet):
+        balances = wallet.get_balance().balance
+        for b in balances:
+            if b.asset_code != "TFT":
+                continue
+            return float(b.balance)
+        return 0
 
     def pay_amount(self, address, amount, wallet):
         j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
