@@ -21,7 +21,7 @@
         @click.stop="exposeS3()"
       >
         <v-icon color="primary" class="mr-2" left>mdi-upload-multiple</v-icon
-        >Expose storgae controller
+        >Expose storage controller
       </v-btn>
     </div>
     <v-data-table :headers="headers" :loading="loading" :items="zdbs" class="elevation-1">
