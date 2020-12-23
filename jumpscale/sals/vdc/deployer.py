@@ -264,7 +264,7 @@ class VDCDeployer:
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
         ipv4us = duration * 60 * 60 * 24
-        pool_id = self.get_pool_id(NETWORK_FARM, cus, sus, ipv4us)
+        pool_id = self.get_pool_id(NETWORK_FARM.get(), cus, sus, ipv4us)
         self.wait_pool_payment(pool_id, trigger_cus=1)
 
         # create minio and threebot pool
@@ -363,7 +363,7 @@ class VDCDeployer:
         2- extend cluster with the flavor no_nodes
         """
         gs = scheduler or GlobalScheduler()
-        master_pool_id = self.get_pool_id(NETWORK_FARM)
+        master_pool_id = self.get_pool_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
@@ -404,7 +404,7 @@ class VDCDeployer:
 
     def check_capacity(self, farm_name):
         # make sure there are available public ips
-        farm = self.explorer.farms.get(farm_name=NETWORK_FARM)
+        farm = self.explorer.farms.get(farm_name=NETWORK_FARM.get())
         available_ips = False
         for address in farm.ipaddresses:
             if not address.reservation_id:
@@ -429,7 +429,7 @@ class VDCDeployer:
         plan = VDC_SIZE.VDC_FLAVORS[self.flavor]
 
         # check kubernetes capacity
-        master_query = {"farm_name": NETWORK_FARM, "public_ip": True}
+        master_query = {"farm_name": NETWORK_FARM.get(), "public_ip": True}
         master_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["controller_size"]])
         if not gcc.add_query(**master_query):
             return False
@@ -629,7 +629,7 @@ class VDCDeployer:
         cluster_secret = meta_dict["secret"]
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].public_ip
-        farm_name = farm_name if not public_ip else NETWORK_FARM
+        farm_name = farm_name if not public_ip else NETWORK_FARM.get()
         public_key = None
         try:
             public_key = self.ssh_key.public_key.strip()
