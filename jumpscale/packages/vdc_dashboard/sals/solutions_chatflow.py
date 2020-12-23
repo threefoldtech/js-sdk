@@ -72,6 +72,14 @@ class SolutionsChatflowDeploy(GedisChatBot):
         flavor = chosen_flavor.split()[0]
         self.resources_limits = chart_limits[flavor]
 
+    def _configure_admin_username_password(self):
+        form = self.new_form()
+        admin_user_message = "please enter the name of Admin User"
+        admin_pass_message = "please enter the password of Admin User"
+        self.admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
+        self.admin_password = form.string_ask(admin_pass_message, required=True, is_identifier=True)
+        form.ask()
+
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
@@ -265,10 +273,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self):
+    def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
 
-        if not j.sals.reservation_chatflow.wait_http_test(f"https://{self.domain}", timeout=300, verify=False):
+        if not j.sals.reservation_chatflow.wait_http_test(f"https://{self.domain}", timeout=timeout, verify=False):
             stop_message = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
