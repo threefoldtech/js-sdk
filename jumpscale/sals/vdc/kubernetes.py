@@ -100,7 +100,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         duration = (
             duration * 60 * 60 * 24
             if duration
-            else self.vdc_instance.expiration.timestamp() - j.data.time.utcnow().timestamp
+            else self.vdc_instance.expiration_date.timestamp() - j.data.time.utcnow().timestamp
         )
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
