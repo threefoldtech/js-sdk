@@ -363,7 +363,7 @@ class UserVDC(Base):
         return self.pay_amount(initial_wallet.address, amount, wallet)
 
     def _get_wallet_balance(self, wallet):
-        balances = wallet.get_balance().balance
+        balances = wallet.get_balance().balances
         for b in balances:
             if b.asset_code != "TFT":
                 continue
