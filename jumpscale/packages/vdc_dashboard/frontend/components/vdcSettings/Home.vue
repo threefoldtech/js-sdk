@@ -26,10 +26,35 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <wallet :wallet="wallet"></wallet>
+          <wallet
+            v-if="vdc"
+            :wallet="wallet"
+            :expirationdays="vdc.expiration_days"
+            :expirationdate="vdc.expiration_date"
+          ></wallet>
         </v-card>
       </v-tab-item>
     </v-tabs>
+    <v-dialog v-model="dialog.expiration" width="400">
+      <v-card
+        v-if="vdc"
+        :color="vdc.expiration_days < 2 ? 'error' : 'warning'"
+        dark
+      >
+        <v-card-text>
+          <v-row align="center" justify="center">
+            <v-icon class="my-4" align="center" x-large justify="center" center
+              >mdi-comment-alert-outline</v-icon
+            >
+          </v-row>
+          <b class="font-weight-bold"
+            >Your VDC will expire after
+            <ins> {{ vdc.expiration_days }} days</ins>,<br />
+            please fund the wallet with address: {{ wallet.address }}</b
+          >
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -41,6 +66,10 @@ module.exports = {
       vdc: null,
       name: null,
       wallet: null,
+      raiseExpirationAlert: true,
+      dialog: {
+        expiration: false,
+      },
     };
   },
   methods: {
@@ -60,6 +89,17 @@ module.exports = {
   },
   mounted() {
     this.vdcInfo();
+  },
+  updated() {
+    if (this.raiseExpirationAlert && this.vdc) {
+      if (this.vdc.expiration_days < 14) {
+        this.dialog.expiration = true;
+        this.raiseExpirationAlert = false;
+        setTimeout(() => {
+          this.raiseExpirationAlert = true;
+        }, 60 * 60 * 1000); // Allow show alert after one hour
+      }
+    }
   },
 };
 </script>

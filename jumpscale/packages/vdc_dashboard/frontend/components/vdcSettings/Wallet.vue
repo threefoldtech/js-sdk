@@ -35,12 +35,17 @@
               <v-chip
                 outlined
                 class="ma-2"
+                :color="expirationdays < 2 ? 'error': (expirationdays < 14 ? 'warning': 'primary')"
                 v-for="(balance, i) in wallet.balances"
                 :key="i"
               >
                 {{ balance.balance }} {{ balance.asset_code }}
               </v-chip>
             </td>
+          </tr>
+          <tr>
+            <td>VDC expiration date</td>
+            <td class="ml-2">{{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}</td>
           </tr>
         </tbody>
       </template>
@@ -50,7 +55,7 @@
 
 <script>
 module.exports = {
-  props: { wallet: Object },
+  props: { wallet: Object, expirationdays: Number, expirationdate: Number },
   mixins: [dialog],
   data() {
     return {

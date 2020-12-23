@@ -95,6 +95,8 @@ def threebot_vdc():
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
+    vdc_dict["expiration_days"] = vdc.calculate_funded_period(False)
+    vdc_dict["expiration_date"] = vdc.calculate_expiration_value(False)
     # Add wallet address
     wallet = vdc.prepaid_wallet
     balances = wallet.get_balance()
