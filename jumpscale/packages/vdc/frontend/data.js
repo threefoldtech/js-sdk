@@ -5,7 +5,7 @@ const APPS = {
         type: "vdc",
         image: "./assets/3bot.png",
         bg: "./assets/background.png",
-        header: "Welcome to VDC",
+        header: "Welcome to ThreeFold VDC Deployer",
         subheader: "VDC is your virtual datacenter",
     }
 }
