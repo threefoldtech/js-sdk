@@ -3,8 +3,8 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 
 
 class MattermostDeploy(SolutionsChatflowDeploy):
-    SOLUTION_TYPE = "mattermost"
-    title = "Mattermost"
+    SOLUTION_TYPE = "mattermostonsteroids"
+    title = "mattermostonsteroids"
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
@@ -31,7 +31,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "ingress.host": self.domain,
-            "ingress.certresolver": "ghanem",
+            "ingress.certresolver": "default",
             "mysql.mysqlUser": mysql_user.value,
             "mysql.mysqlPassword": mysql_password.value,
             "mysql.mysqlRootPassword": mysql_root_password.value,
