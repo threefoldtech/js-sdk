@@ -589,7 +589,7 @@ class VDCDeployer:
         helm_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
         helm_client.update_repos()
         checks = 12
-        while checks > 0 and not self._is_traefik_installed:
+        while checks > 0 and not self._is_traefik_installed(helm_client):
             gevent.sleep(5)
             checks -= 1
         if self._is_traefik_installed(helm_client):
