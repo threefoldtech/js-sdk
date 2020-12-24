@@ -575,12 +575,25 @@ class VDCDeployer:
             self.upgrade_traefik()
             return kube_config
 
+    def _is_traefik_installed(self, manager):
+        releases = manager.list_deployed_releases("kube-system")
+        # TODO: List only using names
+        for release in releases:
+            if release.get("name") == "traefik":
+                return True
+        return False
+
     def upgrade_traefik(self):
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
         helm_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         helm_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
         helm_client.update_repos()
-        helm_client.delete_deployed_release("traefik", "kube-system")
+        checks = 12
+        while checks > 0 and not self._is_traefik_installed:
+            gevent.sleep(5)
+            checks -= 1
+        if self._is_traefik_installed(helm_client):
+            helm_client.delete_deployed_release("traefik", "kube-system")
         helm_client.install_chart(
             "traefik",
             "traefik/traefik",
