@@ -89,7 +89,7 @@ class Manager:
         return j.data.serializers.json.loads(out)
 
     @helm_required
-    def install_chart(self, release, chart_name, namespace="default", extra_config=None):
+    def install_chart(self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None):
         """deployes a helm chart
 
         Args:
@@ -107,16 +107,16 @@ class Manager:
         params = ""
         for key, arg in extra_config.items():
             params += f" --set {key}={quote(arg)}"
-
-        rc, out, err = self._execute(
-            f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
-        )
+        cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
+        if chart_values_file:
+            cmd += f" -f {chart_values_file}"
+        rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
         return out
 
     @helm_required
-    def delete_deployed_release(self, release):
+    def delete_deployed_release(self, release, namespace="default"):
         """deletes deployed helm release
 
         Args:
@@ -128,7 +128,7 @@ class Manager:
         Returns:
             str: output of the helm command
         """
-        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} delete {release}")
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} delete {release}")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
         return out
