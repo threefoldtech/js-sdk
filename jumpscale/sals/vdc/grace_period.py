@@ -26,19 +26,19 @@ class VDCGracePeriodFactory(StoredFactory):
     def is_eligable(self, vdc_instance) -> bool:
         vdc_instance.load_info()
         if vdc_instance.is_empty():
-            j.log.debug(f"vdc {vdc_instance.name} is empty and not eligible")
+            j.log.debug(f"vdc {vdc_instance.vdc_name} is empty and not eligible")
             return False
 
         if self.check_grace_period(vdc_instance.instance_name):
-            j.log.debug(f"vdc {vdc_instance.name} is in grace period and not eligible")
+            j.log.debug(f"vdc {vdc_instance.vdc_name} is in grace period and not eligible")
             return False
 
         if vdc_instance.expiration_date.timestamp() > j.data.time.utcnow().timestamp + j.config.get(
             "GRACE_PERIOD_TRIGGER", 3
         ):
-            j.log.debug(f"vdc {vdc_instance.name} still has expiration and not eligible")
+            j.log.debug(f"vdc {vdc_instance.vdc_name} still has expiration and not eligible")
             return False
-        j.log.debug(f"vdc {vdc_instance.name} eligible to grace period")
+        j.log.debug(f"vdc {vdc_instance.vdc_name} eligible to grace period")
         return True
 
     def start_grace_period(self, vdc_instance):
@@ -49,7 +49,7 @@ class VDCGracePeriodFactory(StoredFactory):
             f"{vdc_instance.instance_name}_{j.data.time.utcnow().timestamp}",
             vdc_instance_name=vdc_instance.instance_name,
         )
-        j.log.debug(f"vdc {vdc_instance.name} enters grace period")
+        j.log.debug(f"vdc {vdc_instance.vdc_name} enters grace period")
         return gp.apply()
 
 
