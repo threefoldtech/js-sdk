@@ -388,6 +388,7 @@ def redeploy_threebot_solution(
                         "DEFAULT_IDENTITY": "test" if "test" in j.core.identity.me.explorer_url else "main",
                         "REMOTE_IP": f"{gateway.dns_nameserver[0]}",
                         "REMOTE_PORT": f"{gateway.tcp_router_port}",
+                        "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
                     }
                     j.logger.debug(f"deploying threebot container with environment {environment_vars}")
 

@@ -387,6 +387,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             # TRC
             "REMOTE_IP": f"{self.gateway.dns_nameserver[0]}",
             "REMOTE_PORT": f"{self.gateway.tcp_router_port}",
+            "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
         }
         self.network_view = self.network_view.copy()
 
