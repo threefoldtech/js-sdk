@@ -762,7 +762,7 @@ class VDCDeployer:
             self.pay(pool_info)
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
-            self.vdc_instance.undo_grace_period_action()
+            self.vdc_instance.revert_grace_period_action()
 
     def pay(self, pool_info):
         deadline = j.data.time.now().timestamp + 5 * 60

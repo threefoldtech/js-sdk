@@ -33,7 +33,7 @@ class UserVDC(Base):
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
-    is_blocked = fields.Boolean(default=False)
+    is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
 
     def is_empty(self):
@@ -90,8 +90,13 @@ class UserVDC(Base):
 
     def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
-        if not password:
-            identity = identity or j.core.identity.me
+        if not password and not identity:
+            instance_name = f"vdc_ident_{self.solution_uuid}"
+            if j.core.identity.find(instance_name):
+                identity = j.core.identity.find(instance_name)
+            else:
+                identity = j.core.identity.me
+
         return VDCDeployer(
             vdc_instance=self, password=password, bot=bot, proxy_farm_name=proxy_farm_name, identity=identity
         )
@@ -218,7 +223,7 @@ class UserVDC(Base):
         if not self.threebot.domain and non_matching_domains:
             self.threebot.domain = non_matching_domains[-1]
 
-    def grace_period_action(self):
+    def apply_grace_period_action(self):
         self.load_info()
         j.logger.info(f"VDC: {self.solution_uuid}, GRACE_PERIOD_ACTION: initialization")
         for k8s in self.kubernetes:
@@ -257,7 +262,7 @@ class UserVDC(Base):
         self.save()
         j.logger.info(f"VDC: {self.solution_uuid}, GRACE_PERIOD_ACTION: applied successfully")
 
-    def undo_grace_period_action(self):
+    def revert_grace_period_action(self):
         self.load_info()
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: intializing")
         self.is_blocked = False
@@ -386,7 +391,7 @@ class UserVDC(Base):
             return float(b.balance)
         return 0
 
-    def pay_amount(self, address, amount, wallet):
+    def pay_amount(self, address, amount, wallet, memo_text=""):
         j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
         deadline = j.data.time.now().timestamp + 5 * 60
         a = wallet.get_asset()
@@ -414,7 +419,7 @@ class UserVDC(Base):
                     continue
 
             try:
-                return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}")
+                return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}", memo_text=memo_text)
             except Exception as e:
                 j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
         j.logger.critical(
