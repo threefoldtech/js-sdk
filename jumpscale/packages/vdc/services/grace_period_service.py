@@ -14,7 +14,7 @@ class GracePeriodWatcher(BackgroundService):
         j.logger.info("Grace period service")
         for vdc_name in VDCFACTORY.list_all():
             vdc_instance = VDCFACTORY.find(vdc_name)
-            if GRACE_PERIOD_FACTORY.is_eligable(vdc_instance):
+            if GRACE_PERIOD_FACTORY.is_eligible(vdc_instance):
                 j.logger.info(f"{vdc_name} enters grace period")
                 try:
                     GRACE_PERIOD_FACTORY.start_grace_period(vdc_instance)

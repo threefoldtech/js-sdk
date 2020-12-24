@@ -23,7 +23,7 @@ class VDCGracePeriodFactory(StoredFactory):
 
         return False
 
-    def is_eligable(self, vdc_instance) -> bool:
+    def is_eligible(self, vdc_instance) -> bool:
         vdc_instance.load_info()
         if vdc_instance.is_empty():
             j.logger.debug(f"vdc {vdc_instance.vdc_name} is empty and not eligible")
@@ -42,7 +42,7 @@ class VDCGracePeriodFactory(StoredFactory):
         return True
 
     def start_grace_period(self, vdc_instance):
-        if not self.is_eligable(vdc_instance):
+        if not self.is_eligible(vdc_instance):
             return
 
         gp = self.new(
