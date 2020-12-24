@@ -103,7 +103,7 @@ class GracePeriodModel(Base):
 
         if balance > 0.1:
             grace_period_wallet = j.clients.stellar.find(GP_WALLET_NAME)
-            amount = self.fund_amount - self.paid_amount
+            amount = round(self.fund_amount - self.paid_amount, 6)
             if balance < amount + 0.1:
                 amount = balance - 0.1
             j.logger.info(
