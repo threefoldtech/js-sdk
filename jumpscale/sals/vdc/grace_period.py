@@ -26,19 +26,19 @@ class VDCGracePeriodFactory(StoredFactory):
     def is_eligable(self, vdc_instance) -> bool:
         vdc_instance.load_info()
         if vdc_instance.is_empty():
-            j.log.debug(f"vdc {vdc_instance.vdc_name} is empty and not eligible")
+            j.logger.debug(f"vdc {vdc_instance.vdc_name} is empty and not eligible")
             return False
 
         if self.check_grace_period(vdc_instance.instance_name):
-            j.log.debug(f"vdc {vdc_instance.vdc_name} is in grace period and not eligible")
+            j.logger.debug(f"vdc {vdc_instance.vdc_name} is in grace period and not eligible")
             return False
 
         if vdc_instance.expiration_date.timestamp() > j.data.time.utcnow().timestamp + j.config.get(
             "GRACE_PERIOD_TRIGGER", 3
         ):
-            j.log.debug(f"vdc {vdc_instance.vdc_name} still has expiration and not eligible")
+            j.logger.debug(f"vdc {vdc_instance.vdc_name} still has expiration and not eligible")
             return False
-        j.log.debug(f"vdc {vdc_instance.vdc_name} eligible to grace period")
+        j.logger.debug(f"vdc {vdc_instance.vdc_name} eligible to grace period")
         return True
 
     def start_grace_period(self, vdc_instance):
@@ -49,7 +49,7 @@ class VDCGracePeriodFactory(StoredFactory):
             f"{vdc_instance.instance_name}_{j.data.time.utcnow().timestamp}",
             vdc_instance_name=vdc_instance.instance_name,
         )
-        j.log.debug(f"vdc {vdc_instance.vdc_name} enters grace period")
+        j.logger.debug(f"vdc {vdc_instance.vdc_name} enters grace period")
         return gp.apply()
 
 
@@ -86,16 +86,16 @@ class GracePeriodModel(Base):
         deployer._set_wallet(GP_WALLET_NAME)
         renewal_days = j.config.get("GRACE_PERIOD_DAYS", 14)
         deployer.renew_plan(duration=renewal_days)
-        j.log.info(f"vdc {self.vdc_instance_name} renewed grace period plan")
+        j.logger.info(f"vdc {self.vdc_instance_name} renewed grace period plan")
         self.fund_amount = (vdc.calculate_spec_price() * renewal_days) / 30
         self.save()
         vdc.apply_grace_period_action()
-        j.log.info(f"vdc {self.vdc_instance_name} grace period action has been applied")
+        j.logger.info(f"vdc {self.vdc_instance_name} grace period action has been applied")
 
     def revert(self):
         vdc = j.sals.vdc.find(self.vdc_instance_name, load_info=True)
         vdc.revert_grace_period_action()
-        j.log.info(f"vdc {self.vdc_instance_name} grace period action has been reverted")
+        j.logger.info(f"vdc {self.vdc_instance_name} grace period action has been reverted")
 
     def update_status(self):
         vdc = j.sals.vdc.find(self.vdc_instance_name)
@@ -106,7 +106,7 @@ class GracePeriodModel(Base):
             amount = self.fund_amount - self.paid_amount
             if balance < amount + 0.1:
                 amount = balance - 0.1
-            j.log.info(
+            j.logger.info(
                 f"vdc {self.vdc_instance_name} has enough balance and transfering {amount} to grace period wallet"
             )
             vdc.pay_amount(grace_period_wallet.address, amount, vdc.prepaid_wallet, memo_text=self.user_grace_period_id)
@@ -114,7 +114,7 @@ class GracePeriodModel(Base):
             self.save()
 
         if self.paid_amount >= self.fund_amount:
-            j.log.info(f"vdc {self.vdc_instance_name} has paid, grace period action has been reverted")
+            j.logger.info(f"vdc {self.vdc_instance_name} has paid, grace period action has been reverted")
             self.revert()
 
 
