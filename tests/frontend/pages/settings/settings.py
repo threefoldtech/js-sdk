@@ -72,6 +72,13 @@ class Settings(Base):
         buttons = identity_details.find_element_by_tag_name("button")
         buttons[0].click()
 
+    def developer_options(self):
+        cards = self.driver.find_elements_by_class_name("mt-0")
+        developer_card = [card for card in cards if "Developer options" in card.text][0]
+        options = developer_card.find_elements_by_class_name("v-input--selection-controls__input")
+        for option in options:
+            option.click()
+
     def list(self, name):
         names = {}
         v_cards = self.driver.find_elements_by_class_name("v-card")

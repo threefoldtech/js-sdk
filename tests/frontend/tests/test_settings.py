@@ -90,3 +90,40 @@ class SettingsTests(BaseTest):
         self.info("Check that the email has been deleted from the escalation emails")
         emails = settings.list("Escalation Emails")
         self.assertNotIn(email, emails.keys())
+
+    def test04_developer_options(self):
+        """Test case for changing developer options.
+
+        **Test Scenario**
+
+        - Get the config for all options.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for all options")
+        options_before_changes = [
+            j.core.config.get("TEST_CERT", False),
+            j.core.config.set("OVER_PROVISIONING", False),
+            j.core.config.get("EXPLORER_LOGS", False),
+            j.core.config.get("ESCALATION_EMAILS_ENABLED", False),
+            j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),
+            j.core.config.get("SORT_NODES_BY_SRU", False),
+        ]
+
+        self.info("Change this config")
+        settings.developer_options()
+        options_after_changes = [
+            j.core.config.get("TEST_CERT", False),
+            j.core.config.set("OVER_PROVISIONING", False),
+            j.core.config.get("EXPLORER_LOGS", False),
+            j.core.config.get("ESCALATION_EMAILS_ENABLED", False),
+            j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),
+            j.core.config.get("SORT_NODES_BY_SRU", False),
+        ]
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(options_before_changes, options_after_changes)
