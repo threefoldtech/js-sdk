@@ -32,6 +32,7 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "webserver.hostname": self.domain,
+            "ingress.certresolver": "default",
             "adminEmail": self.user_email,
             "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
             "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
