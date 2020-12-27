@@ -20,7 +20,7 @@ FLAVORS = {
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -54,9 +54,6 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.cpu = self.query["cru"]
         self.memory = self.query["mru"] * 1024
         self.disk_size = self.query["sru"] * 1024
-        self.query["cru"] += 1
-        self.query["mru"] += 1
-        self.query["cru"] += 0.25
 
     @chatflow_step(title="New Expiration")
     def new_expiration(self):

@@ -354,19 +354,19 @@ def redeploy_threebot_solution(
                     identity_tid = identity.tid
                     secret = f"{identity_tid}:{uuid.uuid4().hex}"
                     proxy_id = deployer.create_proxy(
-                        gateway_pool_id, gateway.node_id, domain, secret, identity.identity_name, **metadata,
+                        gateway_pool_id, gateway.node_id, domain, secret, identity.instance_name, **metadata,
                     )
                     workload_ids.append(proxy_id)
 
                     success = deployer.wait_workload(
-                        workload_ids[-1], bot=msg_bot, identity_name=identity.identity_name
+                        workload_ids[-1], bot=msg_bot, identity_name=identity.instance_name
                     )
                     if not success:
                         raise DeploymentFailed(
                             f"Failed to create proxy with wid: {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
                             solution_uuid=new_solution_uuid,
                             wid=workload_ids[-1],
-                            identity_name=identity.identity_name,
+                            identity_name=identity.instance_name,
                         )
 
                     test_cert = j.config.get("TEST_CERT")

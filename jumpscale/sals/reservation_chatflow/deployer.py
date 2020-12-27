@@ -2021,5 +2021,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
 
+    def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
+        j.logger.info(f"waiting workload {wid} to be deleted")
+        zos = j.sals.zos.get(identity_name)
+        expiry = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < expiry:
+            workload = zos.workloads.get(wid)
+            if workload.info.next_action == NextAction.DELETED:
+                return True
+            gevent.sleep(2)
+        return False
+
 
 deployer = ChatflowDeployer()
