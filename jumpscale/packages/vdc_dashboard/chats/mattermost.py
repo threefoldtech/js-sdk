@@ -3,8 +3,8 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 
 
 class MattermostDeploy(SolutionsChatflowDeploy):
-    SOLUTION_TYPE = "mattermostonsteroids"
-    title = "mattermostonsteroids"
+    SOLUTION_TYPE = "mattermost"
+    title = "Mattermost"
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
