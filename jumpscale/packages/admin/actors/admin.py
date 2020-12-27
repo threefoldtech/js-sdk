@@ -47,10 +47,24 @@ class Admin(BaseActor):
         identities = j.core.identity.list_all()
         identity_data = {}
         for identity_name in identities:
-            identity = j.core.identity.get(identity_name)
-            identity_data[identity_name] = identity.to_dict()
-            identity_data[identity_name]["instance_name"] = identity.instance_name
-            identity_data[identity_name].pop("__words")
+            try:
+                identity = j.core.identity.get(identity_name)
+                if identity.tid < 0:
+                    continue
+                identity_dict = identity.to_dict()
+                identity_dict["instance_name"] = identity.instance_name
+                identity_dict.pop("__words")
+            except Exception as e:
+                j.logger.exception("error", exception=e)
+                # TODO: include traceback
+                j.tools.alerthandler.alert_raise(
+                    app_name="admin",
+                    category="internal_errors",
+                    message=f"failed to get identity {identity_name} info due to error {str(e)}",
+                    alert_type="exception",
+                )
+                continue
+            identity_data[identity_name] = identity_dict
         return j.data.serializers.json.dumps({"data": identity_data})
 
     @actor_method
@@ -147,6 +161,16 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": config_obj})
 
     @actor_method
+    def get_sdk_version(self) -> str:
+        from importlib import metadata
+
+        packages = ["js-ng", "js-sdk"]
+        data = {}
+        for package in packages:
+            data[package] = metadata.version(package)
+        return j.data.serializers.json.dumps({"data": data})
+
+    @actor_method
     def delete_identity(self, identity_instance_name: str) -> str:
         identity_names = j.core.identity.list_all()
         if identity_instance_name in identity_names:
@@ -186,7 +210,7 @@ class Admin(BaseActor):
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
-        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", False)
+        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", True)
         sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {

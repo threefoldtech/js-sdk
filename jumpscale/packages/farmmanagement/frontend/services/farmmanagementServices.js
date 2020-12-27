@@ -7,6 +7,11 @@ export default {
   getUser() {
     return axios.get("/admin/actors/identity/get_identity");
   },
+  getFarm(farm_id) {
+    return axios.post('/farmmanagement/actors/farm_management/get_farm', {
+      farm_id,
+    })
+  },
   getFarms(user_id) {
     return axios.post('/farmmanagement/actors/farm_management/list_farms', {
       user_id: user_id,
@@ -38,6 +43,18 @@ export default {
     return axios.post('/farmmanagement/actors/farm_management/mark_node_free', {
       node_id: node_id,
       free: free,
+    })
+  },
+  addPublicIPs(farm_id, ip_addresses) {
+    return axios.post('/farmmanagement/actors/farm_management/add_ip_addresses', {
+      farm_id,
+      ip_addresses,
+    })
+  },
+  removePublicIPs(farm_id, ip_addresses) {
+    return axios.post('/farmmanagement/actors/farm_management/remove_ip_addresses', {
+      farm_id: farm_id,
+      ip_addresses: ip_addresses,
     })
   }
 };

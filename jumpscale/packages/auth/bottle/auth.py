@@ -25,7 +25,7 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (Threefold Connect)
+    """List available providers for login and redirect to the selected provider (TF Connect)
 
     Returns:
         Renders the template of login page
@@ -133,6 +133,7 @@ def callback():
     if res.status_code != 200:
         return abort(400, "Email is not verified")
 
+    username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session["username"] = username
     session["email"] = email
     session["authorized"] = True
@@ -201,6 +202,8 @@ def get_user_info():
     """
 
     def _valid(tname, temail, explorer_url):
+        if not j.core.identity.is_configured:
+            return False
         if tname != j.core.identity.me.tname:
             return False
         if temail != j.core.identity.me.email:
@@ -212,10 +215,12 @@ def get_user_info():
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
-    tid = session.get("tid")
-    explorer_url = session.get("explorer")
+    tid = session.get("tid", 0)
+    explorer_url = session.get("explorer", "")
     # update tid in session when the identity changes
-    if not _valid(tname, temail, explorer_url):
+    devmode = not j.core.identity.is_configured
+
+    if not devmode and not _valid(tname, temail, explorer_url):
         session["tid"] = None
         session["explorer"] = j.core.identity.me.explorer_url
         try:
@@ -247,8 +252,11 @@ def is_admin(tname):
     Returns:
         [Bool]: [True if the user is an admin]
     """
-    threebot_me = j.core.identity.me
-    return threebot_me.tname == tname or tname in threebot_me.admins
+    if j.core.identity.is_configured:
+        threebot_me = j.core.identity.me
+        return threebot_me.tname == tname or tname in threebot_me.admins
+    else:
+        return True
 
 
 def authenticated(handler):
@@ -260,7 +268,7 @@ def authenticated(handler):
 
     def decorator(*args, **kwargs):
         session = request.environ.get("beaker.session")
-        if j.core.config.get_config().get("threebot_connect", True):
+        if j.core.config.get_config().get("threebot_connect", True) and j.core.identity.is_configured:
             if not session.get("authorized", False):
                 return abort(401)
         return handler(*args, **kwargs)

@@ -83,6 +83,7 @@ def start(identity=None, background=False, local=False, development=False, domai
     """
     if j.config.get("ANNOUNCED") is None:
         j.config.set("ANNOUNCED", False)
+
     create_wallets_if_not_exists()
     check_for_bins()
     PORTS.init_default_ports(local)
@@ -274,10 +275,14 @@ def create_main_wallet(wallet_name):
 
 def create_wallets_if_not_exists():
     test, main = have_wallets()
-    if not test and "testnet" in j.core.identity.me.explorer_url:
-        create_test_wallet("test")
-    if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
-        create_main_wallet("main")
+    if not j.core.identity.is_configured:
+        j.logger.warning("skipping wallets creation, identity isn't configured yet")
+        return
+    else:
+        if not test and "testnet" in j.core.identity.me.explorer_url:
+            create_test_wallet("test")
+        if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
+            create_main_wallet("main")
 
 
 cli.add_command(start)
