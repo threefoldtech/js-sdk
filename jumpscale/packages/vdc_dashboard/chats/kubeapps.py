@@ -12,22 +12,9 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
         self._choose_flavor()
-        # self._configure_admin_username_password()
 
         self.chart_config = {
-            # "discourse.host": self.domain,
-            # "discourse.siteName": self.release_name,
-            # "discourse.username": self.admin_username.value,
-            # "discourse.password": self.admin_password.value,
             "ingress.hostname": self.domain,
-        #     "ingress.certresolver": "default",
-        #     "resources.limits.cpu": self.resources_limits["cpu"],
-        #     "resources.limits.memory": self.resources_limits["memory"],
-        # }
-
-    # @chatflow_step(title="Initializing", disable_previous=True)
-    # def initializing(self):
-    #     super().initializing(timeout=1200)
-
+         }
 
 chat = KubeappsDeploy
