@@ -90,6 +90,15 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },
+        },
+        kubeapps: {
+            name: "Kubeapps",
+            type: "kubeapps",
+            image: "./assets/kubeapps.png",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/kubeapps/",
+            description: "Kubeapps is a web-based UI for deploying and managing applications in Kubernetes clusters."
+        },
         peertube: {
             name: "Peertube",
             type: "peertube",
