@@ -54,11 +54,26 @@
               </template>
               <span>Show Wallet Info</span>
             </v-tooltip>
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="deleteVDC(item.vdc_name)">
+                  <v-icon v-bind="attrs" v-on="on" color="#810000"
+                    >mdi-delete</v-icon
+                  >
+                </v-btn>
+              </template>
+              <span>Delete</span>
+            </v-tooltip>
           </template>
         </v-data-table>
       </div>
     </base-component>
     <wallet-info v-model="dialogs.wallet" :wallet="selected"></wallet-info>
+    <delete-vdc
+      v-if="selectedvdc"
+      v-model="dialogs.delete"
+      :vdcname="selectedvdc"
+    ></delete-vdc>
   </div>
 </template>
 
@@ -66,6 +81,7 @@
 module.exports = {
   components: {
     "wallet-info": httpVueLoader("./Wallet.vue"),
+    "delete-vdc": httpVueLoader("./Delete.vue"),
   },
   data() {
     return {
@@ -80,8 +96,10 @@ module.exports = {
       deployedvdcs: [],
       dialogs: {
         wallet: false,
+        delete: false,
       },
       selected: null,
+      selectedvdc: null,
     };
   },
   methods: {
@@ -125,6 +143,10 @@ module.exports = {
         .finally(() => {
           this.loading = false;
         });
+    },
+    deleteVDC(name) {
+      this.selectedvdc = name;
+      this.dialogs.delete = true;
     },
   },
   mounted() {

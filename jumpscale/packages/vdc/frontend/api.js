@@ -38,13 +38,21 @@ const apiClient = {
         method: "get"
       })
     },
+    deleteVDC: (name) => {
+      return axios({
+        url: `/vdc/api/vdcs/delete`,
+        method: "post",
+        data: { name: name },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
   },
-    license: {
-      accept: () => {
-        return axios({
-          url: `/vdc/api/accept/`,
-          method: "get"
-        })
-      },
-    }
+  license: {
+    accept: () => {
+      return axios({
+        url: `/vdc/api/accept/`,
+        method: "get"
+      })
+    },
+  }
 }

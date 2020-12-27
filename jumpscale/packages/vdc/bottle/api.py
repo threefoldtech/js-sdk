@@ -1,6 +1,6 @@
 from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, HTTPResponse
+from bottle import Bottle, HTTPResponse, request, abort
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
@@ -57,6 +57,28 @@ def get_vdc_info(name):
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
+
+
+@app.route("/api/vdcs/delete", method="POST")
+@package_authorized("vdc")
+def delete_vdc():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    if not name:
+        abort(400, "Error: Not all required params was passed.")
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc = VDCFACTORY.find(vdc_name=name, owner_tname=username, load_info=True)
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+
+    try:
+        VDCFACTORY.delete(f"vdc_{vdc.vdc_name}_{vdc.owner_tname}")
+    except Exception as e:
+        j.logger.error(f"Error deleting VDC {name} due to {str(e)}")
+        return HTTPResponse(f"Error deleteing VDC {name}", status=400, headers={"Content-Type": "application/json"})
+
+    return HTTPResponse("Sucess", status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/allowed", method="GET")
