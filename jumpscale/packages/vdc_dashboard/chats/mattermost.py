@@ -31,6 +31,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "ingress.host": self.domain,
+            "ingress.certresolver": "default",
             "mysql.mysqlUser": mysql_user.value,
             "mysql.mysqlPassword": mysql_password.value,
             "mysql.mysqlRootPassword": mysql_root_password.value,

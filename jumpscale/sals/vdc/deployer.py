@@ -573,7 +573,66 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
+            self.upgrade_traefik()
+
             return kube_config
+
+    # TODO: better implementatiom
+    def upgrade_traefik(self):
+        """
+        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
+        """
+
+        def is_traefik_installed(self, manager):
+            releases = manager.list_deployed_releases("kube-system")
+            # TODO: List only using names
+            for release in releases:
+                if release.get("name") == "traefik":
+                    return True
+            return False
+
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
+
+        # wait until traefik chart is installed on the cluster then uninstall it
+        checks = 12
+        while checks > 0 and not self.is_traefik_installed(k8s_client):
+            gevent.sleep(5)
+            checks -= 1
+        if self.is_traefik_installed(k8s_client):
+            k8s_client.delete_deployed_release("traefik", "kube-system")
+
+        # install traefik v2.3.3 chart
+        # TODO: better code for the values
+        k8s_client.install_chart(
+            "traefik",
+            "traefik/traefik",
+            "kube-system",
+            chart_values_file="""<(echo -e 'image:
+  tag: "2.3.3"
+additionalArguments:
+  - "--certificatesresolvers.default.acme.tlschallenge"
+  - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.default.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.default.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+  - "--certificatesresolvers.default.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.ghanem.acme.tlschallenge"
+  - "--certificatesresolvers.ghanem.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.ghanem.acme.storage=/data/acme1.json"
+  - "--certificatesresolvers.ghanem.acme.caserver=https://ca1.grid.tf"
+  - "--certificatesresolvers.ghanem.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.le.acme.tlschallenge"
+  - "--certificatesresolvers.le.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.le.acme.storage=/data/acme2.json"
+  - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+  - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+ports:
+  websecure:
+    tls:
+      enabled: true')""",
+        )
 
     def get_prefix(self):
         net = ""

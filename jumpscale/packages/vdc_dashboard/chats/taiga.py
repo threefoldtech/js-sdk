@@ -14,6 +14,7 @@ class TaigaDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "domain": self.domain,
+            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }

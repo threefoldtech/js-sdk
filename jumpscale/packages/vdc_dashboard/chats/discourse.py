@@ -20,6 +20,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "discourse.username": self.admin_username.value,
             "discourse.password": self.admin_password.value,
             "ingress.hostname": self.domain,
+            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
@@ -27,7 +28,6 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
         super().initializing(timeout=1200)
-
 
 
 chat = DiscourseDeploy

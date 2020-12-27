@@ -14,6 +14,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "ingress.host": self.domain,
+            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }

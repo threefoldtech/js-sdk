@@ -15,6 +15,7 @@ class ZeroCIDeploy(SolutionsChatflowDeploy):
         self.chart_config = {
             "ingress.hosts[0].host": self.domain,
             "ingress.hosts[0].paths[0]": "/",
+            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
