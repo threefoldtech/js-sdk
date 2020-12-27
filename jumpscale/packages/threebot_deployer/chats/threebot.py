@@ -20,7 +20,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from collections import defaultdict
 
 FLAVORS = {
-    "Silver": {"cru": 1, "mru": 2, "sru": 2},
+    "Silver": {"cru": 1, "mru": 2, "sru": 4},
     "Gold": {"cru": 2, "mru": 4, "sru": 4},
     "Platinum": {"cru": 4, "mru": 8, "sru": 8},
 }
@@ -62,9 +62,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
-        # the main container + the nginx container with 0.25 GB disk
-        self.query = {"cru": 2, "mru": 2, "sru": 2.25}
-        self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 60 * 60  # 60 minutes for 3bot
         self.retries = 3
         self.allow_custom_domain = False
@@ -174,8 +171,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     def deployer_info(self):
         self.user_email = self.user_info()["email"]
         self._choose_flavor(FLAVORS)
-        self.vol_size = self.flavor_resources["sru"]
-        self.container_resources = self.flavor_resources
+        self.query = self.flavor_resources
 
     @chatflow_step(title="SSH key (Optional)")
     def upload_public_key(self):
@@ -388,9 +384,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL[self.branch],
                 env=environment_vars,
-                cpu=self.container_resources["cru"],
-                memory=self.container_resources["mru"] * 1024,
-                disk_size=self.container_resources["sru"] * 1024,
+                cpu=self.query["cru"],
+                memory=self.query["mru"] * 1024,
+                disk_size=self.query["sru"] * 1024,
                 secret_env={
                     "BACKUP_PASSWORD": self.backup_password,
                     "BACKUP_TOKEN": backup_token,

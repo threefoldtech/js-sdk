@@ -16,7 +16,7 @@ from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
-
+from jumpscale.clients.explorer.models import ResourceUnitAmount
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -1125,13 +1125,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return cu, su
         """
-        cu = min((mru - 1) / 4, cru * 4 / 2)
-        su = (hru / 1000 + sru / 100 / 2) / 1.2
-        if cu < 0:
-            cu = 0
-        if su < 0:
-            su = 0
-        return cu, su
+
+        cloud_units = ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru).cloud_units()
+        return cloud_units.cu, cloud_units.su
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
         return NetworkView(network_name, workloads, identity_name=identity_name)
