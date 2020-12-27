@@ -583,7 +583,7 @@ class VDCDeployer:
         Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
         """
 
-        def is_traefik_installed(self, manager):
+        def is_traefik_installed(manager):
             releases = manager.list_deployed_releases("kube-system")
             # TODO: List only using names
             for release in releases:
