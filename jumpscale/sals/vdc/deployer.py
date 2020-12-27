@@ -598,10 +598,10 @@ class VDCDeployer:
 
         # wait until traefik chart is installed on the cluster then uninstall it
         checks = 12
-        while checks > 0 and not self.is_traefik_installed(k8s_client):
+        while checks > 0 and not is_traefik_installed(k8s_client):
             gevent.sleep(5)
             checks -= 1
-        if self.is_traefik_installed(k8s_client):
+        if is_traefik_installed(k8s_client):
             k8s_client.delete_deployed_release("traefik", "kube-system")
 
         # install traefik v2.3.3 chart
