@@ -153,13 +153,17 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
-
+        farms_names_with_gateways = ["csfarmer"]  # TODO: for later
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
             if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
                 gw_pool_name, identity_name
             ):
-                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name, identity_name)
+                try:
+                    gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name, identity_name)
+                except Exception as e:
+                    j.logger.warning(f"Error creating farm on {farm_name}, due to:\n{str(e)}")
+                    continue
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
                 pool_id = pool_factory.get(gw_pool_name).pool_id
