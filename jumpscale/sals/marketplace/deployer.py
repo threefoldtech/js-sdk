@@ -153,7 +153,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
-
+        farms_names_with_gateways = ["csfarmer"]  # TODO: for later
         for farm_name in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name}"
             if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
