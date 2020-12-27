@@ -572,29 +572,41 @@ class VDCDeployer:
                 except j.exceptions.Runtime as e:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
+
             self.upgrade_traefik()
+
             return kube_config
 
-    def _is_traefik_installed(self, manager):
-        releases = manager.list_deployed_releases("kube-system")
-        # TODO: List only using names
-        for release in releases:
-            if release.get("name") == "traefik":
-                return True
-        return False
-
+    # TODO: better implementatiom
     def upgrade_traefik(self):
+        """
+        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
+        """
+
+        def is_traefik_installed(self, manager):
+            releases = manager.list_deployed_releases("kube-system")
+            # TODO: List only using names
+            for release in releases:
+                if release.get("name") == "traefik":
+                    return True
+            return False
+
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
-        helm_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
-        helm_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
-        helm_client.update_repos()
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
+
+        # wait until traefik chart is installed on the cluster then uninstall it
         checks = 12
-        while checks > 0 and not self._is_traefik_installed:
+        while checks > 0 and not self.is_traefik_installed(k8s_client):
             gevent.sleep(5)
             checks -= 1
-        if self._is_traefik_installed(helm_client):
-            helm_client.delete_deployed_release("traefik", "kube-system")
-        helm_client.install_chart(
+        if self.is_traefik_installed(k8s_client):
+            k8s_client.delete_deployed_release("traefik", "kube-system")
+
+        # install traefik v2.3.3 chart
+        # TODO: better code for the values
+        k8s_client.install_chart(
             "traefik",
             "traefik/traefik",
             "kube-system",
