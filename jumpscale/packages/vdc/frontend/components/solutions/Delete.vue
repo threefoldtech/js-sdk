@@ -9,7 +9,7 @@
       Are you sure you want to delete this VDC, this action can't be undone?
       <br />
       <strong class="red--text text--lighten-1">
-        WARNING: This action can't be undone, you will lose any balance.
+        WARNING: This action can't be undone.
       </strong>
       <br /><br />
       Please type <b class="font-weight-black">{{ vdcname }}</b> to confirm.
