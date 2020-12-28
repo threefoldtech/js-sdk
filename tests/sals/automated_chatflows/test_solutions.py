@@ -82,6 +82,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy Ubuntu.")
         name = self.random_name()
+        sleep(10)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
         ubuntu = deployer.deploy_ubuntu(
@@ -117,6 +118,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         name = self.random_name()
         secret = self.random_name()
         workernodes = j.data.idgenerator.random_int(1, 2)
+        sleep(10)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
         kubernetes = deployer.deploy_kubernetes(
@@ -158,6 +160,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         name = self.random_name()
         username = self.random_name()
         password = self.random_name()
+        sleep(10)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
         minio = deployer.deploy_minio(
@@ -191,6 +194,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy a monitoring solution.")
         name = self.random_name()
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
+        sleep(10)
         pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
         monitoring = deployer.deploy_monitoring(
             solution_name=name,
@@ -230,6 +234,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy a container with a flist.")
         name = self.random_name()
+        sleep(10)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
         generic_flist = deployer.deploy_generic_flist(
@@ -255,6 +260,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy a container with a flist.")
         flist_name = self.random_name()
+        sleep(10)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
         deployer.deploy_generic_flist(
