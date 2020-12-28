@@ -19,6 +19,7 @@ CHART_LIMITS = {
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}}
 VDC_ENDPOINT = "/vdc"
+PREFERRED_FARM = "csfarmer"
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
@@ -97,13 +98,20 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(
-            self.username, self.vdc_info["farm_name"], identity_name=self.identity_name
-        )
+        self.preferred_farm_gw = True
+        gateways = {}
+
+        # try preferred farm gateways first
+        gateways = deployer.list_all_gateways(self.username, PREFERRED_FARM, identity_name=self.identity_name)
         if not gateways:
-            raise StopChatFlow(
-                "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
+            self.preferred_farm_gw = False
+            gateways = deployer.list_all_gateways(
+                self.username, self.vdc_info["farm_name"], identity_name=self.identity_name
             )
+            if not gateways:
+                raise StopChatFlow(
+                    "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
+                )
 
         domains = dict()
         is_http_failure = False

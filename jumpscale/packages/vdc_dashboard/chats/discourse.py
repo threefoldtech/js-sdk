@@ -21,7 +21,6 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "discourse.username": self.admin_username,
             "discourse.password": self.admin_password,
             "ingress.hostname": self.domain,
-            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
             "discourse.extraEnvVars[0].name": "SMTP_HOST",
@@ -41,6 +40,9 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "sidekiq.extraEnvVars[3].name": "SMTP_PASSWORD",
             "sidekiq.extraEnvVars[3].value": self.smtp_password,
         }
+        # subdomain selected on gateway on preferred farm
+        if self.preferred_farm_gw:
+            self.chart_config.update({"ingress.certresolver": "gridca"})
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
