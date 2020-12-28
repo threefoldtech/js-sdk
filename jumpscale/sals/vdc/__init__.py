@@ -13,7 +13,7 @@ class VDCStoredFactory(StoredFactory):
             flavor = VDC_SIZE.VDCFlavor(flavor.lower())
         owner_tname = j.data.text.removesuffix(owner_tname, ".3bot")
         instance_name = VDC_INSTANCE_NAME_FORMAT.format(vdc_name, owner_tname)
-        return super().get(instance_name, vdc_name=vdc_name, owner_tname=owner_tname, flavor=flavor)
+        return super().new(instance_name, vdc_name=vdc_name, owner_tname=owner_tname, flavor=flavor)
 
     def find(self, name=None, vdc_name=None, owner_tname=None, load_info=False):
         owner_tname = j.data.text.removesuffix(owner_tname, ".3bot") if owner_tname else None
@@ -43,7 +43,7 @@ class VDCStoredFactory(StoredFactory):
         vdc_name = instance_dict.pop("vdc_name")
         owner_tname = instance_dict.pop("owner_tname")
         flavor = instance_dict.pop("flavor")
-        instance = self.get(vdc_name, owner_tname, flavor)
+        instance = self.new(vdc_name, owner_tname, flavor)
         for key, val in instance_dict.items():
             setattr(instance, key, val)
         instance.save()
