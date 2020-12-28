@@ -275,6 +275,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self._get_domain()
         self._create_subdomain()
 
+        # subdomain selected on gateway on preferred farm
+        if self.preferred_farm_gw:
+            self.chart_config.update({"ingress.certresolver": "gridca"})
+
     @chatflow_step(title="Installation")
     def install_chart(self):
         try:

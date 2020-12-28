@@ -30,21 +30,20 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
         self.user_email = user_info["email"]
 
         self._choose_flavor()
-        self.chart_config = {
-            "webserver.hostname": self.domain,
-            "adminEmail": self.user_email,
-            "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
-            "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
-            "deps.smtp.hostname": None,
-            "deps.smtp.username": None,
-            "deps.smtp.password": None,
-            "deps.smtp.from": None,
-            "resources.limits.cpu": self.resources_limits["cpu"],
-            "resources.limits.memory": self.resources_limits["memory"],
-        }
-        # subdomain selected on gateway on preferred farm
-        if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "gridca"})
+        self.chart_config.update(
+            {
+                "webserver.hostname": self.domain,
+                "adminEmail": self.user_email,
+                "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
+                "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
+                "deps.smtp.hostname": None,
+                "deps.smtp.username": None,
+                "deps.smtp.password": None,
+                "deps.smtp.from": None,
+                "resources.limits.cpu": self.resources_limits["cpu"],
+                "resources.limits.memory": self.resources_limits["memory"],
+            }
+        )
 
 
 chat = PeertubeDeploy
