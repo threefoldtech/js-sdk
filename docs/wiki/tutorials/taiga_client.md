@@ -103,7 +103,7 @@ custom_fields = client.get_story_custom_fields(123)
 
 ### Validate
 
-To validate custom field accoriding to [specs](https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields)
+To validate custom field according to [specs](https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields)
 
 ```
 client.validate_custom_fields(custom_fields)
@@ -198,13 +198,15 @@ This will import resources (projects, issues, stories, tasks) as a new instance 
 ### Move a story to a project
 
 ```
-client.move_story_to_cirlce(789, 123) # story id, project id
+client.move_story_to_circle(789, 123) # story id, project id
 ```
 
-or using a project object
+### Copy and Move Issue using project object
 ```
+project_object.copy_issue(issue_id_or_issue_object, project_id_or_project_object)
 project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object)
 ```
+> Keep in mind that move will delete the issue from the original project
 
 ### Resources urls
 All of resources e.g (user, issue, user_story, circle, task) have `url, as_md and as_yaml` properties
