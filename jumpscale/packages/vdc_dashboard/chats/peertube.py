@@ -32,7 +32,6 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "webserver.hostname": self.domain,
-            "ingress.certresolver": "default",
             "adminEmail": self.user_email,
             "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
             "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
@@ -43,6 +42,9 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
+        # subdomain selected on gateway on preferred farm
+        if self.preferred_farm_gw:
+            self.chart_config.update({"ingress.certresolver": "ghanem"})
 
 
 chat = PeertubeDeploy

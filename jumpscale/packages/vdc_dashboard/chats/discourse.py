@@ -20,10 +20,12 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "discourse.username": self.admin_username.value,
             "discourse.password": self.admin_password.value,
             "ingress.hostname": self.domain,
-            "ingress.certresolver": "default",
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
+        # subdomain selected on gateway on preferred farm
+        if self.preferred_farm_gw:
+            self.chart_config.update({"ingress.certresolver": "ghanem"})
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
