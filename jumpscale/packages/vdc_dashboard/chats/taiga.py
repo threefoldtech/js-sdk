@@ -12,14 +12,13 @@ class TaigaDeploy(SolutionsChatflowDeploy):
     def set_config(self):
 
         self._choose_flavor()
-        self.chart_config = {
-            "domain": self.domain,
-            "resources.limits.cpu": self.resources_limits["cpu"],
-            "resources.limits.memory": self.resources_limits["memory"],
-        }
-        # subdomain selected on gateway on preferred farm
-        if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "gridca"})
+        self.chart_config.update(
+            {
+                "domain": self.domain,
+                "resources.limits.cpu": self.resources_limits["cpu"],
+                "resources.limits.memory": self.resources_limits["memory"],
+            }
+        )
 
 
 chat = TaigaDeploy

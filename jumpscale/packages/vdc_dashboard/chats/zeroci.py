@@ -12,15 +12,14 @@ class ZeroCIDeploy(SolutionsChatflowDeploy):
     def set_config(self):
         # TODO: get config from user
         self._choose_flavor()
-        self.chart_config = {
-            "ingress.hosts[0].host": self.domain,
-            "ingress.hosts[0].paths[0]": "/",
-            "resources.limits.cpu": self.resources_limits["cpu"],
-            "resources.limits.memory": self.resources_limits["memory"],
-        }
-        # subdomain selected on gateway on preferred farm
-        if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "gridca"})
+        self.chart_config.update(
+            {
+                "ingress.hosts[0].host": self.domain,
+                "ingress.hosts[0].paths[0]": "/",
+                "resources.limits.cpu": self.resources_limits["cpu"],
+                "resources.limits.memory": self.resources_limits["memory"],
+            }
+        )
 
 
 chat = ZeroCIDeploy
