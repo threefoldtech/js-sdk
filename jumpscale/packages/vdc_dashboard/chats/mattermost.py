@@ -31,13 +31,15 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         self._choose_flavor()
         self.chart_config = {
             "ingress.host": self.domain,
-            "ingress.certresolver": "default",
             "mysql.mysqlUser": mysql_user.value,
             "mysql.mysqlPassword": mysql_password.value,
             "mysql.mysqlRootPassword": mysql_root_password.value,
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
         }
+        # subdomain selected on gateway on preferred farm
+        if self.preferred_farm_gw:
+            self.chart_config.update({"ingress.certresolver": "ghanem"})
 
 
 chat = MattermostDeploy

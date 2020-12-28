@@ -84,11 +84,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
+        self.preferred_farm_gw = True
         gateways = {}
 
-        # try csfarmer gateways first
+        # try preferred farm gateways first
         gateways = deployer.list_all_gateways(self.username, PREFERRED_FARM, identity_name=self.identity_name)
         if not gateways:
+            self.preferred_farm_gw = False
             gateways = deployer.list_all_gateways(
                 self.username, self.vdc_info["farm_name"], identity_name=self.identity_name
             )
