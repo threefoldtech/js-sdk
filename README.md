@@ -11,8 +11,12 @@ Threefold Grid extension based on [js-ng framework](https://github.com/threefold
 - Farm management
 - Polls package
 - Marketplace
-- Threebot Deployer
+- 3Bot Deployer
 - ThreefoldToken statistics APIs
+
+## Versioning
+- Latest Version: [JS-SDK v11.0-b14 (pre-release)](https://github.com/threefoldtech/js-sdk/releases/tag/v11.0-b14)
+- Next Release: JS-NG v11.1.0, Link to [Project](https://github.com/threefoldtech/js-sdk/projects/1)
 
 ## Getting started
 - Our wiki https://threefoldtech.github.io/js-sdk/wiki
