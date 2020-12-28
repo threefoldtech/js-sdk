@@ -74,11 +74,25 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _configure_admin_username_password(self):
         form = self.new_form()
-        admin_user_message = "please enter the name of Admin User"
-        admin_pass_message = "please enter the password of Admin User"
-        self.admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
-        self.admin_password = form.string_ask(admin_pass_message, required=True, is_identifier=True)
+        admin_user_message = "Admin username"
+        admin_pass_message = "Admin Password (should be at least 10 characters long)"
+        admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
+        admin_password = form.secret_ask(admin_pass_message, required=True, is_identifier=True, min_length=10)
         form.ask()
+        self.admin_username = admin_username.value
+        self.admin_password = admin_password.value
+
+    def _ask_smtp_settings(self):
+        form = self.new_form()
+        smtp_host = form.string_ask("SMTP Host", required=True)
+        smtp_port = form.string_ask("SMTP Port", required=True)
+        smtp_username = form.string_ask("SMTP Username", required=True)
+        smtp_password = form.secret_ask("SMTP Password", required=True)
+        form.ask()
+        self.smtp_host = smtp_host.value
+        self.smtp_port = f'"{smtp_port.value}"'
+        self.smtp_username = smtp_username.value
+        self.smtp_password = smtp_password.value
 
     def _get_domain(self):
         # get domain for the ip address
