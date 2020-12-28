@@ -25,7 +25,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
         }
         # subdomain selected on gateway on preferred farm
         if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "ghanem"})
+            self.chart_config.update({"ingress.certresolver": "gridca"})
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):

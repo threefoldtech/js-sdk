@@ -39,7 +39,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         }
         # subdomain selected on gateway on preferred farm
         if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "ghanem"})
+            self.chart_config.update({"ingress.certresolver": "gridca"})
 
 
 chat = MattermostDeploy
