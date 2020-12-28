@@ -2,11 +2,11 @@
   <v-container fluid class="grey lighten-5 mt-5">
     <v-tabs class="text--left" background-color="transparent" vertical>
       <v-tab>
-        <v-icon left> mdi-comment-processing-outline </v-icon>
+        <v-icon left> mdi-memory </v-icon>
         Compute Nodes
       </v-tab>
       <v-tab>
-        <v-icon left> mdi-memory </v-icon>
+        <v-icon left> mdi-server </v-icon>
         Storage Nodes
       </v-tab>
       <v-tab>
