@@ -1914,7 +1914,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            if pool.cus >= trigger_cus or pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
                 return True
             gevent.sleep(2)
