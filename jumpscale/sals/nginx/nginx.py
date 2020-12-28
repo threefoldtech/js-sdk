@@ -295,11 +295,14 @@ class Website(Base):
     def get_config(self):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
-            if rc > 0:
-                j.logger.error(f"Generating certificate failed {out}\n{err}")
+            for _ in range(retries):
+                rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
+                if rc > 0:
+                    j.logger.error(f"Generating certificate failed {out}\n{err}")
+                else:
+                    break
 
     def generate_self_signed_certificates(self):
         keypempath = f"{self.parent.cfg_dir}/key.pem"
