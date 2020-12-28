@@ -5,8 +5,8 @@
         <v-row>
           <img
             class="ml-2"
-            src="./assets/3bot.png"
-            height="50"
+            src="./assets/vdc_logo.png"
+            height="30"
             max-width="266"
           />
         </v-row>
