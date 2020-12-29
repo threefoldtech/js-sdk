@@ -59,7 +59,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         super().tearDownClass()
 
     def setUp(self):
-        sleep(20)
+        sleep(30)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         self.pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
 
@@ -120,7 +120,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         name = self.random_name()
         secret = self.random_name()
         workernodes = j.data.idgenerator.random_int(1, 2)
-        sleep(20)
+        sleep(30)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
         kubernetes = deployer.deploy_kubernetes(
