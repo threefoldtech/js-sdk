@@ -21,11 +21,20 @@ from .exceptions import UnAuthorized
 XLM_TRANSACTION_FEES = 0.00001
 ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
 
-_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
-_HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
+_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+    "TEST": "testnet.threefold.io",
+    "STD": "tokenservices.threefold.io",
+    "TFTECHTEST": None,
+}  # TODO: add tftech link
+_HORIZON_NETWORKS = {
+    "TEST": "https://horizon-testnet.stellar.org",
+    "STD": "https://horizon.stellar.org",
+    "TFTECHTEST": "https://horizon.testnet.threefold.io",
+}
 _NETWORK_PASSPHRASES = {
     "TEST": stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
     "STD": stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
+    "TFTECHTEST": "TFTech Test Network ; December 2020",
 }
 _NETWORK_KNOWN_TRUSTS = {
     "TEST": {
@@ -37,6 +46,11 @@ _NETWORK_KNOWN_TRUSTS = {
         "TFT": "GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47",
         "FreeTFT": "GCBGS5TFE2BPPUVY55ZPEMWWGR6CLQ7T6P46SOFGHXEBJ34MSP6HVEUT",
         "TFTA": "GBUT4GP5GJ6B3XW5PXENHQA7TXJI5GOPW3NF4W3ZIW6OOO4ISY6WNLN2",
+    },
+    "TFTECHTEST": {
+        "TFT": "GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3",
+        "FreeTFT": "GBLDUINEFYTF7XEE7YNWA3JQS4K2VD37YU7I2YAE7R5AHZDKQXSS2J6R",
+        "TFTA": "GB55A4RR4G2MIORJTQA4L6FENZU7K4W7ATGY6YOT2CW47M5SZYGYKSCT",
     },
 }
 _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
@@ -51,6 +65,7 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
 class Network(Enum):
     STD = "STD"
     TEST = "TEST"
+    TFTECHTEST = "TFTECHTEST"
 
 
 class Stellar(Client):
@@ -230,7 +245,7 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using riendbot
+        """Activates and funds a testnet account using friendbot
         """
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
@@ -241,7 +256,7 @@ class Stellar(Client):
 
     def activate_through_threefold_service(self):
         """
-        Activate your weallet through threefold services
+        Activate your wallet through threefold services
         """
         resp = self._activation_account()
         loaded_json = j.data.serializers.json.loads(resp)
