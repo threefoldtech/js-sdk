@@ -327,7 +327,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         while time() - start_time <= POD_INITIALIZING_TIMEOUT:
             if not self.doesnt_contain_resources():
                 break
-                gevent.sleep(1)
+            gevent.sleep(1)
 
         if self.doesnt_contain_resources():
             stop_message = error_message_template.format(
