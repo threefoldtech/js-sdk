@@ -194,6 +194,10 @@ class IdentityFactory(StoredFactory):
         return instance
 
     @property
+    def is_configured(self):
+        return self._me is not None
+
+    @property
     def me(self):
         if not self._me:
             config = get_config()

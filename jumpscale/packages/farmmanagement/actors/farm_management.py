@@ -6,7 +6,10 @@ from jumpscale.loader import j
 class FarmManagemenet(BaseActor):
     def __init__(self):
         super().__init__()
-        self._explorer = j.core.identity.me.explorer
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     @actor_method
     def update_farm(self, farm_id, farm):
@@ -25,6 +28,18 @@ class FarmManagemenet(BaseActor):
     @actor_method
     def list_farms(self, user_id) -> str:
         return j.data.serializers.json.dumps([f.to_dict() for f in self._explorer.farms.list(user_id)])
+
+    @actor_method
+    def get_farm(self, farm_id) -> str:
+        return j.data.serializers.json.dumps(self._explorer.farms.get(farm_id).to_dict())
+
+    @actor_method
+    def add_ip_addresses(self, farm_id, ip_addresses):
+        return self._explorer.farms.add_public_ips(farm_id, ip_addresses)
+
+    @actor_method
+    def remove_ip_addresses(self, farm_id, ip_addresses):
+        return self._explorer.farms.remove_public_ips(farm_id, ip_addresses)
 
 
 Actor = FarmManagemenet

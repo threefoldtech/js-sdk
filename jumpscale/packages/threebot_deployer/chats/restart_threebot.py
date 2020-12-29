@@ -13,7 +13,7 @@ from jumpscale.loader import j
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -39,15 +39,21 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.threebot_info = self.non_running_names[self.name]
         self.pool_id = self.threebot_info["compute_pool"]
         self.query = {
-            "cru": self.threebot_info["cpu"] + 1,
-            "mru": self.threebot_info["memory"] / 1024 + 1,
-            "sru": self.threebot_info["disk_size"] / 1024 + 0.25,
+            "cru": self.threebot_info["cpu"],
+            "mru": self.threebot_info["memory"] / 1024,
+            "sru": self.threebot_info["disk_size"] / 1024,
         }
 
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
         self.pool = j.sals.zos.get().pools.get(self.pool_id)
-        cu, su = deployer.calculate_capacity_units(**self.query)
+        cloud_units = deployer._calculate_cloud_units(**self.query)
+        cu, su = cloud_units.cu, cloud_units.su
+        # guard in case of extending of 0 will raise zero division
+        if not cu:
+            cu = 1
+        if not su:
+            su = 1
         expiration_time = min(self.pool.cus / cu, self.pool.sus / su)
         if expiration_time < 60 * 60:
             default_time = j.data.time.utcnow().timestamp + 1209600

@@ -50,6 +50,7 @@ def test01_create_pool_with_funded_wallet():
     """Test for creating a pool with funded wallet.
 
     **Test Scenario**
+
     - Get wallet.
     - Create a pool.
     - Pay for this pool.
@@ -61,7 +62,7 @@ def test01_create_pool_with_funded_wallet():
     user_tft_amount = get_wallet_balance(wallet)
 
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, farm="freefarm", currencies=["TFT"])
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
 
     info("Pay for the pool")
     needed_tft_ammount = amount_paid_to_farmer(pool)
@@ -84,6 +85,7 @@ def test02_extend_pool_with_funded_wallet():
     """Test for extending a pool with funded wallet.
 
     **Test Scenario**
+
     - Get wallet.
     - Extend an existing pool.
     - Pay for the pool.
@@ -101,7 +103,7 @@ def test02_extend_pool_with_funded_wallet():
     pool_info = pools[-1]
     exist_cus = pool_info.cus
     exist_sus = pool_info.sus
-    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, currencies=["TFT"])
+    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, ipv4us=0, currencies=["TFT"])
 
     info("Pay for the pool")
     needed_tft_ammount = amount_paid_to_farmer(pool)
@@ -123,6 +125,7 @@ def test03_create_pool_with_empty_wallet():
     """Test for creating a pool with empty wallet.
 
     **Test Scenario**
+
     - Create empty wallet.
     - Create a pool.
     - Pay for the pool, should fail.
@@ -132,7 +135,7 @@ def test03_create_pool_with_empty_wallet():
     wallet = create_new_wallet()
 
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, farm="freefarm", currencies=["TFT"])
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
@@ -153,6 +156,7 @@ def test04_extend_pool_with_empty_wallet():
     """Test for extending a pool with empty wallet.
 
     **Test Scenario**
+
     - Create empty wallet.
     - Extend existing pool.
     - Pay for the pool, should fail.
@@ -168,7 +172,7 @@ def test04_extend_pool_with_empty_wallet():
     pool_info = pools[-1]
     exist_cus = pool_info.cus
     exist_sus = pool_info.sus
-    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, currencies=["TFT"])
+    pool = zos.pools.extend(pool_id=pool_info.pool_id, cu=1, su=1, ipv4us=0, currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
