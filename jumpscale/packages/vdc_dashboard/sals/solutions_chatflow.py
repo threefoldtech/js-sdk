@@ -22,6 +22,7 @@ RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}}
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
+POD_INITIALIZING_TIMEOUT = 120
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
@@ -323,7 +324,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Reason: {{reason}}
                 """
         start_time = time()
-        POD_INITIALIZING_TIMEOUT = 120
         while time() - start_time <= POD_INITIALIZING_TIMEOUT:
             if self.chart_pods_started():
                 break
