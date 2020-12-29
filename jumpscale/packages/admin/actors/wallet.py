@@ -45,20 +45,27 @@ class Wallet(BaseActor):
             raise j.exceptions.Value("Wallet does not exist")
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
+        error = ""
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+                )
 
-        ret = {
-            "address": wallet.address,
-            "network": wallet.network.value,
-            "secret": wallet.secret,
-            "balances": balances_data,
-        }
-        return j.data.serializers.json.dumps({"data": ret})
+            ret = {
+                "address": wallet.address,
+                "network": wallet.network.value,
+                "secret": wallet.secret,
+                "balances": balances_data,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({"data": ret, "error": error})
 
     @actor_method
     def get_wallets(self) -> str:

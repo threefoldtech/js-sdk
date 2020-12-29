@@ -35,7 +35,7 @@ module.exports = {
       dialogs: {
         cancelSolution: false,
       },
-      KeysWithTypeList: ["Node ids", "wids", "Active workload ids"],
+      KeysWithTypeList: ["Node ids", "wids", "Active workload ids","IPv4 Address(es)", "IPv6 Address(es)"],
       KeysWithTypeDict: ["nodes", "Volumes"]
     };
   },

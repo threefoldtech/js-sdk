@@ -331,7 +331,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
                 full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
-
                 metafilter = lambda metadata: metadata.get("owner") == self.username
                 # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
                 user_subdomains = {}
@@ -356,6 +355,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                                     break
                             if is_free:
                                 solutions.cancel_solution_by_uuid(sol_uuid)
+                                deployer.wait_workload_deletion(dom["wid"], timeout=3, identity_name=self.identity_name)
 
                     if j.tools.dnstool.is_free(full_domain):
                         self.domain = full_domain
@@ -518,6 +518,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def solution_extension(self):
         self.md_show_update("Extending pool...")
         self.currencies = ["TFT"]
+
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
