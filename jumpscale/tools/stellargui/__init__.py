@@ -309,6 +309,13 @@ class StellarGUI:
             asset = assetvar.get()
             memo = memovar.get()
             # amount = int(amountvar.get())
+
+            if not (self._stellarwallet and destvar.get() and amountvar.get() and assetvar.get()):
+                showinfo(
+                    "Here to help",
+                    "choose a wallet from the left side and fill in the destination, amount and the asset",
+                )
+                return
             amount_str = amountvar.get()
             asset_str = self.asset_str_from_code(asset)
             try:
