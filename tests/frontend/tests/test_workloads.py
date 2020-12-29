@@ -13,12 +13,10 @@ class WorkloadsTests(BaseTest):
 
     def test01_delete_selected_workloads(self):
         """
-        Check that selected workload has been deleted correctly.
-
-        **Test Scenario**
-        #. Create a workload.
-        #. Delete selected workload.
-        #. Check that selected workload has been deleted correctly.
+        # Check that selected workload has been deleted correctly.
+        - Create a workload.
+        - Delete selected workload.
+        - Check that selected workload has been deleted correctly.
         """
 
         self.info("Create a workload")

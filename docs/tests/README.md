@@ -11,6 +11,7 @@
 ### Frontend
 
 - [test_wallets](frontend/tests/test_wallets.md)
+- [test_workloads](frontend/tests/test_workloads.md)
 
 ### Sals
 
