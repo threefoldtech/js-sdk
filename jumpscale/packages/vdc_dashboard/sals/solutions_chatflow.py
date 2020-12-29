@@ -4,6 +4,7 @@ import requests
 import uuid
 import os
 from textwrap import dedent
+from time import time
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -21,7 +22,6 @@ RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}}
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
-from time import time
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
