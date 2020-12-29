@@ -1,4 +1,5 @@
 import random
+import gevent
 import requests
 import uuid
 import os
@@ -10,7 +11,6 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 from jumpscale.sals.marketplace import deployer, solutions
 from jumpscale.clients.explorer.models import WorkloadType
 from jumpscale.sals.vdc.models import KubernetesRole
-import gevent
 
 CHART_LIMITS = {
     "Silver": {"cpu": "1000m", "memory": "1024Mi"},
@@ -300,7 +300,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             extra_config=self.chart_config,
         )
 
-    def doesnt_contain_resources(self):
+    def chart_pods_started(self):
         pods_info = self.k8s_client.execute_native_cmd(
             cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[0].message}}'"
         )
@@ -308,8 +308,8 @@ class SolutionsChatflowDeploy(GedisChatBot):
             cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
         )
         if "Pending" in pods_status_info and "Insufficient" in pods_info:
-            return True
-        return False
+            return False
+        return True
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=300):
@@ -325,7 +325,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         start_time = time()
         POD_INITIALIZING_TIMEOUT = 120
         while time() - start_time <= POD_INITIALIZING_TIMEOUT:
-            if not self.doesnt_contain_resources():
+            if self.chart_pods_started():
                 break
             gevent.sleep(1)
 
