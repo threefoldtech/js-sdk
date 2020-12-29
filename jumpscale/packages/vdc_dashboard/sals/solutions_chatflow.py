@@ -10,6 +10,7 @@ from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFa
 from jumpscale.sals.marketplace import deployer, solutions
 from jumpscale.clients.explorer.models import WorkloadType
 from jumpscale.sals.vdc.models import KubernetesRole
+import gevent
 
 CHART_LIMITS = {
     "Silver": {"cpu": "1000m", "memory": "1024Mi"},
@@ -326,6 +327,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         while time() - start_time <= POD_INITIALIZING_TIMEOUT:
             if not self.doesnt_contain_resources():
                 break
+                gevent.sleep(1)
 
         if self.doesnt_contain_resources():
             stop_message = error_message_template.format(
