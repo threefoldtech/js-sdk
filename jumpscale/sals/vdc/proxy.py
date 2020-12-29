@@ -219,9 +219,11 @@ class VDCProxy(VDCBaseComponent):
         if not pool_id:
             return None
 
-        random.shuffle(gateway.managed_domains)
         for managed_domain in gateway.managed_domains:
             self.vdc_deployer.info(f"reserving subdomain of {managed_domain}")
+            # vdc 3bot to be vdctest.grid.tf, solutions to be webg1test.grid.tf or alike
+            if not managed_domain.startswith("vdc"):
+                continue
             subdomain = f"{prefix}.{managed_domain}"
             addresses = None
 
