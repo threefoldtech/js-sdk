@@ -125,6 +125,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
             for domain in gateway.managed_domains:
                 self.addresses = []
                 is_managed_domains = True
+                # vdc 3bot to be vdctest.grid.tf, solutions to be webg1test.grid.tf or alike
+                if domain.startswith("vdc") or domain.startswith("3bot"):
+                    continue
                 if domain in blocked_domains:
                     continue
                 success = deployer.test_managed_domain(

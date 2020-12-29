@@ -13,6 +13,7 @@ from jumpscale.loader import j
 from .scheduler import Scheduler
 from jumpscale.sals.reservation_chatflow import deployer
 from .proxy import VDC_PARENT_DOMAIN
+from .namemanager import NameManager
 import os
 import uuid
 import random
@@ -149,15 +150,25 @@ class VDCThreebotDeployer(VDCBaseComponent):
         prefix = self.vdc_deployer.get_prefix()
         parent_domain = VDC_PARENT_DOMAIN
         subdomain = f"{prefix}.{parent_domain}"
-        nc = j.clients.name.get("VDC")
-        nc.username = os.environ.get("VDC_NAME_USER")
-        nc.token = os.environ.get("VDC_NAME_TOKEN")
         secret = f"{self.identity.tid}:{uuid.uuid4().hex}"
         gateways = self.vdc_deployer.proxy.fetch_myfarm_gateways()
         random.shuffle(gateways)
         gateway_pool_id = self.vdc_deployer.proxy.get_gateway_pool_id()
         remote = None
+        domain_source = j.core.config.get("VDC_DOMAIN_SOURCE", "gateway")
+
         for gateway in gateways:
+            # deploy subdomain
+            ip_addresses = self.vdc_deployer.proxy.get_gateway_addresses(gateway)
+            namemanager = NameManager(
+                domain_source, gateway=gateway, pool_id=gateway_pool_id, proxy_instance=self.vdc_deployer.proxy
+            )
+            subdomain, subdomain_id = namemanager.create_subdomain(
+                parent_domain=parent_domain, prefix=prefix, ip_addresses=ip_addresses, vdc_uuid=self.vdc_uuid
+            )
+
+            j.logger.info(f"Created subdomain successfully on {domain_source} with id: {subdomain_id}")
+
             # if old records exist for this prefix clean it.
             wid = deployer.create_proxy(
                 gateway_pool_id,
@@ -179,13 +190,6 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 self.vdc_deployer.error(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
                 continue
 
-            existing_records = nc.nameclient.list_records_for_host(parent_domain, prefix)
-            if existing_records:
-                for record_dict in existing_records:
-                    nc.nameclient.delete_record(record_dict["fqdn"][:-1], record_dict["id"])
-            ip_addresses = self.vdc_deployer.proxy.get_gateway_addresses(gateway)
-            for address in ip_addresses:
-                nc.nameclient.create_record(parent_domain, prefix, "A", address)
             remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         if not remote:
             self.vdc_deployer.error(f"all tries to reseve a proxy on pool: {gateway_pool_id} has failed")

@@ -48,9 +48,9 @@ class NETWORK_FARM(FarmConfigBase):
 
 
 class PROXY_FARM(FarmConfigBase):
-    devnet = "lochristi_dev_lab"
-    testnet = "freefarm"
-    mainnet = "freefarm"
+    devnet = "csfarmer"
+    testnet = "csfarmer"
+    mainnet = "csfarmer"
 
 
 def get_explorer_network():
