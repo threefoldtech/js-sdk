@@ -626,8 +626,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if workload_name:
             msg += f" for {workload_name}"
         pool = bot.drop_down_choice(msg, list(pool_messages.keys()), required=True)
-        print("#" * 30)
-        print(pool_messages)
         return pool_messages[pool]
 
     def get_pool_farm_id(self, pool_id=None, pool=None):
