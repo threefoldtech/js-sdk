@@ -1,6 +1,6 @@
 from urllib.parse import urljoin
+from solutions_automation import deployer
 from tests.frontend.pages.base import Base
-from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
 
 
 class workloads(Base):
@@ -27,17 +27,8 @@ class workloads(Base):
         click_ID.click()
 
     def create_workload(self, workload_name):
-        test_network = NetworkDeployAutomated(
-            solution_name=workload_name,
-            type="Create",
-            ip_version="IPv4",
-            ip_select="Choose ip range for me",
-            ip_range="",
-            access_node="choose_random",
-            pool="choose_random",
-            debug=True,
-        )
 
+        test_network = deployer.create_network(solution_name=workload_name)
         test_network_dict = test_network.config
         return int(test_network_dict.get("ids")[0])
 
