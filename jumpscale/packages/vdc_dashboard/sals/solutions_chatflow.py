@@ -323,7 +323,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Reason: {{reason}}
                 """
         start_time = time()
-        POD_INITIALIZING_TIMEOUT = 60
+        POD_INITIALIZING_TIMEOUT = 120
         while time() - start_time <= POD_INITIALIZING_TIMEOUT:
             if not self.doesnt_contain_resources():
                 break
