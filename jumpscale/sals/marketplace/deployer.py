@@ -152,10 +152,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
-        # if farm_name in farms_names_with_gateways:
-        #     farms_names_with_gateways = [farm_name]
-
-        farms_names_with_gateways = ["csfarmer"]  # TODO: for later remove and uncomment the previous 2 lines
+        if farm_name in farms_names_with_gateways:
+            farms_names_with_gateways = [farm_name]
 
         for farm_name_with_gw in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name_with_gw}"
