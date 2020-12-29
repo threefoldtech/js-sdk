@@ -35,6 +35,7 @@ crontab = "^0.22.9"
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
+stellargui = "jumpscale.tools.stellargui:run"
 
 [build-system]
 requires = ["poetry>=0.12"]

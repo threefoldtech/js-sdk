@@ -90,7 +90,6 @@ class StellarGUI:
 
             def add():
                 nonlocal should_reload
-                print("Adding .. ", networkvar.get(), newwalletaddrvar.get(), newwalletsecretvar.get())
                 network = networkvar.get()
                 displayname = walletdisplaynamevar.get()
                 secret = newwalletsecretvar.get()
@@ -105,7 +104,6 @@ class StellarGUI:
 
             def generate():
                 nonlocal should_reload
-                print("generating .. ", networkvar.get(), newwalletaddrvar.get(), newwalletsecretvar.get())
 
                 network = networkvar.get()
                 displayname = walletdisplaynamevar.get()
@@ -300,11 +298,9 @@ class StellarGUI:
             if selectiontup:
                 idx = selectiontup[0]
                 wallets_listbox.see(idx)
-                print("WALLETS_NAMES: ", wallets_names, "len: ", len(wallets_names))
                 self._horizon_server_url = None
 
                 self._stellarwallet = j.clients.stellar.get(wallets_names[idx])
-                print("updating active wallet to ", self._stellarwallet)
 
                 reload_vars()
 
@@ -315,7 +311,6 @@ class StellarGUI:
             # amount = int(amountvar.get())
             amount_str = amountvar.get()
             asset_str = self.asset_str_from_code(asset)
-            print(f"sending {amount_str} {asset} to {dest} from {addr} memo: {memo}, {asset_str}")
             try:
                 self._stellarwallet.transfer(dest, amount_str, asset_str)
                 showinfo(title="Success!", message="Money sent successfully")
@@ -324,13 +319,10 @@ class StellarGUI:
                 showerror(title="Error!", message=err)
 
         def togglesecret():
-            # nonlocal showsecretvar
-            # print("showsecretvar: ", showsecretvar.get())
             if showsecretvar.get():
                 secretvar.set(self._stellarwallet.secret)
             else:
                 secretvar.set(secret_holder)
-            #     showsecretvar.set(1)
 
         def add_wallet():
             should_reload_vars = show_add_dialog()
