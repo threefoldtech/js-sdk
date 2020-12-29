@@ -52,7 +52,11 @@ ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
-vdc = j.sals.vdc.from_dict(vdc_dict)
+
+if not j.sals.vdc.list_all():
+    vdc = j.sals.vdc.from_dict(vdc_dict)
+else:
+    vdc = j.sals.vdc.find(list(j.sals.vdc.list_all())[0])
 
 VDC_INSTANCE_NAME = vdc.instance_name
 os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
@@ -79,9 +83,6 @@ for key, value in VDC_VARS.items():
     # if not value:
     #     raise j.exceptions.Validation(f"MISSING ENVIRONMENT VARIABLES. {key} is not set")
     j.sals.process.execute(f"""echo "{key}='{value}'" >> /root/.bashrc""")
-
-
-vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
 
 
 username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"], vdc_dict["solution_uuid"])
