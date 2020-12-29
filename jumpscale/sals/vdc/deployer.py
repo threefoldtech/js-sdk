@@ -629,6 +629,8 @@ additionalArguments:
   - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
   - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
 ports:
+  web:
+    redirectTo: websecure
   websecure:
     tls:
       enabled: true')""",
