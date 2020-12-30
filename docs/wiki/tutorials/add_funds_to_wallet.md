@@ -18,69 +18,28 @@ To watch a quick video with the next steps go to [Create wallet and exchange in 
 To get yourself FreeTFTs and TFTs on testnet network you can follow the following steps where you create a wallet and configure it:
 
 ## From js-ng shell (advanced)
-1. Create a new empty stellar wallet instance from the jsng shell with the network type(TEST or STD) you will be using
+1. Create a new empty stellar wallet instance from the jsng shell  using
 
     ```python
-    wallet = j.clients.stellar.get(name="new_wallet", network="TEST")
+    wallet = j.clients.stellar.get(name="new_wallet")
     ```
 
-2. Activate the wallet through friendbot to recieve XLMs into the wallet
+2. Activate the wallet through threefold
 
     ```python
-    wallet.activate_through_friendbot()
-    ```
-
-    Wallet with XLMs
-
-    ```python
-    JS-NG> wallet.get_balance()
-    Balances
-        10000.0000000 XLM
+    wallet.activate_through_threefold_service()
     ```
 
 3. Add trustlines to the wallet and save it
 
     ```python
     wallet.add_known_trustline("TFT")
-    wallet.add_known_trustline("FreeTFT")
     wallet.save()
     ```
 
-4. To get FreeTFTs
-    - Get the address of the wallet ready
-
-        ```python
-        JS-NG> wallet.address
-        'GBUBCC4BB2WKZPC6EDMNVXXSXCXN2IYPREQLFBKJDZTJPDZPZK7AUDOR'
-        ```
-
-    - Each wallet is eligable to a one time 1000 FreeTFTs. They can be transfered to the user's wallet through [https://getfreetft.testnet.threefold.io/](https://getfreetft.testnet.threefold.io/) when adding the wallet's address after logging in with their 3bot app
-    ![freetft_faucet](../images/freetft_faucet.png)
-
-    - Wallet with added FreeTFTs
-
-        ```python
-        JS-NG> wallet.get_balance()
-        Balances
-            1000.0000000 FreeTFT:GBLDUINEFYTF7XEE7YNWA3JQS4K2VD37YU7I2YAE7R5AHZDKQXSS2J6R
-            0.0000000 TFT:GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3
-            9999.9999800 XLM
-        ```
-
-5. To get TFTs
-    - Get the address and the secret of the wallet ready
-
-        ```python
-        JS-NG> wallet.address
-        'GBUBCC4BB2WKZPC6EDMNVXXSXCXN2IYPREQLFBKJDZTJPDZPZK7AUDOR'
-
-        JS-NG> wallet.secret
-        'SA7LWIZAQQAJ2HCDVGL3IM2V6EJTVWK6G5SUJTLAH2BSB4RVBZALNSKW'
-        ```
-        
 ## From the admin dashboard
-  
-From your 3bot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using friendbot
+
+From your 3bot (local or deployed on the grid) you can go to wallet manager and create a new wallet (will be test if you are using identity against testnet) and it will add the trustlines and activate using threefold services
 ![admin walletmanager](../images/walletmanager.jpg)
 
 and after creating a new wallet it will be funded with 10000 XLM
@@ -123,4 +82,4 @@ and after creating a new wallet it will be funded with 10000 XLM
             8999.9999650 XLM
         ```
 
-You are now ready with a new wallet with the required TFT and FreeTFT
+You are now ready with a new wallet with the required TFT
