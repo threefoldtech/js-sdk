@@ -58,17 +58,10 @@ class TFGridSolutionChatflows(ChatflowsBase):
         cls.user_factory.delete(cls.user_entry_name)
         super().tearDownClass()
 
-    # def setUp(self):
-    #     sleep(5)
-    #     all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
-    #     for pool in all_pools:
-    #         if pool.pool_id == self.pool_id:
-    #             cus = pool.cus
-    #             sus = pool.sus
-    #             break
-    #     # pool_data = j.sals.zos.get().pools.get(self.pool_id)
-    #     # self.pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
-    #     self.pool = f"Pool: {self.pool_id} cu: {cus} su: {sus} Name: {self.pool_name}"
+    def setUp(self):
+        sleep(5)
+        pool_data = j.sals.zos.get().pools.get(self.pool_id)
+        self.pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
 
     def tearDown(self):
         if self.solution_uuid:
@@ -94,7 +87,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """
         self.info("Deploy Ubuntu.")
         name = self.random_name()
-        ubuntu = deployer.deploy_ubuntu(solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path,)
+        ubuntu = deployer.deploy_ubuntu(
+            solution_name=name, pool=self.pool, network=self.network_name, ssh=self.ssh_cl.public_key_path,
+        )
         self.solution_uuid = ubuntu.solution_id
 
         self.info("Check that Ubuntu is reachable.")
@@ -126,23 +121,16 @@ class TFGridSolutionChatflows(ChatflowsBase):
         secret = self.random_name()
         workernodes = j.data.idgenerator.random_int(1, 2)
 
-        # sleep(5)
-        # all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
-        # for pool in all_pools:
-        #     if pool.pool_id == self.pool_id:
-        #         cus = pool.cus
-        #         sus = pool.sus
-        #         break
-        # pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {cus} SU: {sus}"]
-        # sleep(30)
-        # pool_data = j.sals.zos.get().pools.get(self.pool_id)
-        # pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
+        sleep(30)
+        pool_data = j.sals.zos.get().pools.get(self.pool_id)
+        pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
         kubernetes = deployer.deploy_kubernetes(
             solution_name=name,
             secret=secret,
             network=self.network_name,
             workernodes=workernodes,
             ssh=self.ssh_cl.public_key_path,
+            pools=pool,
         )
         self.solution_uuid = kubernetes.solution_id
         self.info("Check that kubernetes is reachable.")
@@ -181,6 +169,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             password=password,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
+            container_pool=self.pool,
         )
         self.solution_uuid = minio.solution_id
 
@@ -205,7 +194,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy a monitoring solution.")
         name = self.random_name()
         monitoring = deployer.deploy_monitoring(
-            solution_name=name, network=self.network_name, ssh=self.ssh_cl.public_key_path,
+            solution_name=name,
+            network=self.network_name,
+            ssh=self.ssh_cl.public_key_path,
+            redis_pool=self.pool,
+            prometheus_pool=self.pool,
+            grafana_pool=self.pool,
         )
         self.solution_uuid = monitoring.solution_id
         self.info("Check that Prometheus UI is reachable. ")
@@ -240,6 +234,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         generic_flist = deployer.deploy_generic_flist(
             solution_name=name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
+            pool=self.pool,
             network=self.network_name,
         )
         self.solution_uuid = generic_flist.solution_id
@@ -262,18 +257,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         deployer.deploy_generic_flist(
             solution_name=flist_name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
+            pool=self.pool,
             network=self.network_name,
         )
-
-        # all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
-        # for pool in all_pools:
-        #     if pool.pool_id == self.pool_id:
-        #         cus = pool.cus
-        #         sus = pool.sus
-        #         break
-        # pool_data = j.sals.zos.get().pools.get(self.pool_id)
-        # self.pool = f"Pool: {self.pool_id} cu: {pool_data.cus} su: {pool_data.sus} Name: {self.pool_name}"
-        # self.pool = f"Pool: {self.pool_id} cu: {cus} su: {sus} Name: {self.pool_name}"
 
         self.info("Expose this container's coreX endpoint to a subdomain.")
         sub_domain = self.random_name()
