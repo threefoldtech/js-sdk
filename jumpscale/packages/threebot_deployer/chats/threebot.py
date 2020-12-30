@@ -77,6 +77,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
+        self.devnet_identity_name = f"{tname}_dev"
         try:
             if "testnet" in j.core.identity.me.explorer_url:
                 self.identity_name = self.testnet_identity_name
@@ -88,6 +89,16 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     explorer_url="https://explorer.testnet.grid.tf/api/v1",
                 )
                 self._register_identity(threebot_name, identity_test)
+            elif "devnet" in j.core.identity.me.explorer_url:
+                self.identity_name = self.testnet_identity_name
+                identity_dev = j.core.identity.get(
+                    self.testnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.devnet.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_dev)
             else:
                 self.identity_name = self.mainnet_identity_name
                 identity_main = j.core.identity.get(
