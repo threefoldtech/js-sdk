@@ -15,7 +15,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
             "memory": 0,
         }
         form = self.new_form()
-        self.no_replicas = form.int_ask("Enter number of etcd nodes", default=1, required=True, min=100)
+        self.no_replicas = form.int_ask("Enter number of etcd nodes", default=1, required=True, min=1)
         self.resources_limits["cpu"] = form.int_ask(
             "Enter limit for cpu in millicpu", default=250, required=True, min=100
         )
