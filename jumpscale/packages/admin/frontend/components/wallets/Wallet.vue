@@ -82,7 +82,8 @@ module.exports = {
       this.hasTft = false
       this.$api.wallets.get(this.name).then((response) => {
         this.error = JSON.parse(response.data).error
-        if (this.error !== "") {
+        if ( this.error ) {
+          console.log(this.error)
           return
         }
         this.wallet = JSON.parse(response.data).data
