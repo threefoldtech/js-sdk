@@ -302,15 +302,20 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
 
     def chart_pods_started(self):
-        pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[0].message}}'"
-        )
         pods_status_info = self.k8s_client.execute_native_cmd(
             cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
         )
-        if "Pending" in pods_status_info and "Insufficient" in pods_info:
+        if "Pending" in pods_status_info:
             return False
         return True
+
+    def chart_resource_failure(self):
+        pods_info = self.k8s_client.execute_native_cmd(
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+        )  # Gets the last event message
+        if "Insufficient" in pods_info:
+            return True
+        return False
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=300):
@@ -329,7 +334,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 break
             gevent.sleep(1)
 
-        if self.doesnt_contain_resources():
+        if self.chart_pods_started() and self.chart_resource_failure():
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
