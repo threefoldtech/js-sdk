@@ -1,8 +1,10 @@
 import random
+import gevent
 import requests
 import uuid
 import os
 from textwrap import dedent
+from time import time
 
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -20,6 +22,7 @@ RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {"marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}}
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
+POD_INITIALIZING_TIMEOUT = 120
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
@@ -301,18 +304,50 @@ class SolutionsChatflowDeploy(GedisChatBot):
             extra_config=self.chart_config,
         )
 
+    def chart_pods_started(self):
+        pods_status_info = self.k8s_client.execute_native_cmd(
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
+        )
+        if "Pending" in pods_status_info:
+            return False
+        return True
+
+    def chart_resource_failure(self):
+        pods_info = self.k8s_client.execute_native_cmd(
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+        )  # Gets the last event message
+        if "Insufficient" in pods_info:
+            return True
+        return False
+
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
-
-        if not j.sals.reservation_chatflow.wait_http_test(f"https://{self.domain}", timeout=timeout, verify=False):
-            stop_message = f"""\
+        error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
                 Domain: {self.domain}
                 VDC Name: {self.vdc_name}
                 Farm name: {self.vdc_info["farm_name"]}
+                Reason: {{reason}}
                 """
+        start_time = time()
+        while time() - start_time <= POD_INITIALIZING_TIMEOUT:
+            if self.chart_pods_started():
+                break
+            gevent.sleep(1)
+
+        if not self.chart_pods_started() and self.chart_resource_failure():
+            stop_message = error_message_template.format(
+                reason="Couldn't find resources in the cluster for the solution"
+            )
+            self.k8s_client.delete_deployed_release(self.release_name)
+            self.stop(dedent(stop_message))
+
+        if not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
+        ):
+            stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
