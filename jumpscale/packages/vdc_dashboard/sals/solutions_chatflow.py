@@ -334,7 +334,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 break
             gevent.sleep(1)
 
-        if self.chart_pods_started() and self.chart_resource_failure():
+        if not self.chart_pods_started() and self.chart_resource_failure():
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
