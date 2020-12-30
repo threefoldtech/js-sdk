@@ -20,6 +20,7 @@ def main():
     email_host = os.environ.get("EMAIL_HOST")
     email_host_user = os.environ.get("EMAIL_HOST_USER")
     email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
+    ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -88,6 +89,9 @@ def main():
 
     server = j.servers.threebot.get("default")
     if test_cert == "false":
+        if ACME_SERVER_URL:
+            server.acme_server_type = "custom"
+            server.acme_server_url = ACME_SERVER_URL
         server.domain = domain
         server.email = email
         server.save()

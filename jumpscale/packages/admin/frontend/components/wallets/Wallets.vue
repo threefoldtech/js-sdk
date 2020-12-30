@@ -2,17 +2,20 @@
   <div>
     <base-component title="Wallets" icon="mdi-wallet" :loading="loading">
       <template #actions>
-        <v-btn color="primary" text @click.stop="dialogs.create = true">
-          <v-icon left>mdi-plus</v-icon>Create
-        </v-btn>
+            <v-btn color="primary" text @click.stop="dialogs.create = true">
+              <v-icon left>mdi-plus</v-icon>Create
+            </v-btn>
 
         <v-btn color="primary" text @click.stop="dialogs.import = true">
           <v-icon left>mdi-import</v-icon>Import
         </v-btn>
 
-        <v-btn color="primary" text @click.stop="dialogs.funded = true">
-          <v-icon left>mdi-wallet-giftcard</v-icon>Add Testnet funded wallet
-        </v-btn>
+        <template v-if="isTestnetExplorer">
+          <v-btn color="primary" text @click.stop="dialogs.funded = true">
+            <v-icon left>mdi-wallet-giftcard</v-icon>Add Testnet funded wallet
+          </v-btn>
+        </template>
+
       </template>
 
       <template #default>
@@ -59,6 +62,7 @@ module.exports = {
     return {
       wallets: [],
       selected: null,
+      isTestnetExplorer: false,
       dialogs: {
         create: null,
         funded: null,
@@ -76,6 +80,19 @@ module.exports = {
     },
     listWallets() {
       this.loading = true;
+
+      this.$api.explorers
+      .get().then((response) => {
+        let explorer = JSON.parse(response.data).data;
+        console.log(explorer);
+        console.log(explorer.url.includes("testnet") === true);
+        this.isTestnetExplorer = explorer.url.includes("testnet") === true;
+
+      }).catch( (error) => {
+        console.log(error)
+        this.isTestnetExplorer = false;
+      })
+
       this.$api.wallets
         .list()
         .then((response) => {

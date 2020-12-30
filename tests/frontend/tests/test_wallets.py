@@ -4,6 +4,7 @@ from tests.frontend.tests.base_tests import BaseTest
 
 
 @pytest.mark.integration
+@pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2062")
 class WalletTests(BaseTest):
     def test01_create_delete_wallet(self):
         """Test case for creating a wallet and deleting it.

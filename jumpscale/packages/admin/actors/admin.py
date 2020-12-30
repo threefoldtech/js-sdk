@@ -4,7 +4,7 @@ from jumpscale.core.exceptions import JSException
 from requests import HTTPError
 import json
 
-explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
+explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf", "devnet": "explorer.devnet.grid.tf"}
 
 
 class Admin(BaseActor):
@@ -111,6 +111,7 @@ class Admin(BaseActor):
         explorer_clients = {
             "main": j.clients.explorer.get("user_checker_mainnet", f"https://{explorers['main']}/api/v1"),
             "testnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
+            "devnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
         }
         explorer_client = explorer_clients[explorer_type]
         try:
@@ -210,7 +211,7 @@ class Admin(BaseActor):
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
         explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
-        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", False)
+        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", True)
         sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {

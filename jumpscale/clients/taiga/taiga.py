@@ -104,7 +104,7 @@ custom_fields = client.get_story_custom_fields(123)
 
 ### Validate
 
-To validate custom field accoriding to [specs](https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields)
+To validate custom field according to [specs](https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields)
 
 ```
 client.validate_custom_fields(custom_fields)
@@ -199,13 +199,15 @@ This will import resources (projects, issues, stories, tasks) as a new instance 
 ### Move a story to a project
 
 ```
-client.move_story_to_cirlce(789, 123) # story id, project id
+client.move_story_to_circle(789, 123) # story id, project id
 ```
 
-or using a project object
+### Copy and Move Issue using project object
 ```
+project_object.copy_issue(issue_id_or_issue_object, project_id_or_project_object)
 project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object)
 ```
+> Keep in mind that move will delete the issue from the original project
 
 ### Resources urls
 All of resources e.g (user, issue, user_story, circle, task) have `url, as_md and as_yaml` properties
@@ -453,8 +455,8 @@ class TaigaClient(Client):
             project_id (int): circle/project id
 
         Raises:
-            j.exceptions.NotFound: No user story with speicifed id found
-            j.exceptions.NotFound: No project with speicifed id found
+            j.exceptions.NotFound: No user story with specified id found
+            j.exceptions.NotFound: No project with specified id found
             j.exceptions.Runtime: [description]
 
         Returns:
@@ -520,49 +522,85 @@ class TaigaClient(Client):
         self.api.user_stories.delete(story_id)
         return migrate_story.id
 
-    def list_all_issues(self, username=""):
+    def list_all_issues(self, username="", full_info=False):
         """
         List all issues for specific user if you didn't pass user_id will list all the issues
+        HINT: Using full_info will take a longer time
 
         Args:
             username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
 
         Returns:
             List: List of taiga.models.models.Issue.
         """
         if username:
             user_id = self._get_user_id(username)
-            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list(assigned_to=user_id)]
         else:
-            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list()]
 
-    def list_all_tasks(self, username=""):
+    def list_all_tasks(self, username="", full_info=False):
         """
         List all tasks for specific user if you didn't pass user_id will list all the tasks
+        HINT: Using full_info will take a longer time
 
         Args:
             username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
 
         Returns:
             List: List of taiga.models.models.Task.
         """
         if username:
             user_id = self._get_user_id(username)
-            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list(assigned_to=user_id)]
         else:
-            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list()]
 
-    def list_all_projects(self):
+    def list_all_projects(self, full_info=False):
         """
         List all projects
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info(bool): flag used to get object with full info. Defaults to False.
 
         Returns:
             List: List of taiga.models.models.Project.
         """
-        return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
+        if not full_info:
+            return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
+        else:
+            return [Circle(self, self.api.projects.get(x.id)) for x in self.api.projects.list()]
 
-    def list_all_active_projects(self):
-        return [Circle(self, p) for p in self.list_projects_by(lambda x: not x.name.startswith("ARCHIVE_"))]
+    def list_all_active_projects(self, full_info=False):
+        """
+        List all projects not starting with "ARHCIVE"
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info (bool): [description]. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        """
+        return [
+            Circle(self, p)
+            for p in self.list_projects_by(lambda x: not x.name.startswith("ARCHIVE_"), full_info=full_info)
+        ]
 
     def list_all_milestones(self):
         """
@@ -573,29 +611,42 @@ class TaigaClient(Client):
         """
         return [self._resolve_object(x) for x in self.api.milestones.list()]
 
-    def list_all_user_stories(self, username=""):
+    def list_all_user_stories(self, username="", full_info=False):
         """
         List all user stories for specific user if you didn't pass user_id will list all the available user stories
+        HINT: Using full_info will take a longer time
 
         Args:
             username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
 
         Returns:
             List: List of CircleStory.
         """
         if username:
             user_id = self._get_user_id(username)
-
-            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)]
+            if not full_info:
+                return [
+                    CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
+            else:
+                return [
+                    CircleStory(self, self.api.user_stories.get(x.id))
+                    for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
         else:
-            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+            if not full_info:
+                return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+            else:
+                return [CircleStory(self, self.api.user_stories.get(x.id)) for x in self.api.user_stories.list()]
 
-    def list_all_users(self):
+    def list_all_users(self, full_info=False):
         """
         List all user stories for specific user if you didn't pass user_id will list all the available user stories
-
+        HINT: Using full_info will take a longer time
         Args:
             username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
 
         Returns:
             List: List of CircleUser.
@@ -657,8 +708,8 @@ class TaigaClient(Client):
 
         return newobj
 
-    def list_projects_by(self, fn=lambda x: True):
-        return [p for p in self.list_all_projects() if fn(p)]
+    def list_projects_by(self, fn=lambda x: True, full_info=False):
+        return [p for p in self.list_all_projects(full_info=full_info) if fn(p)]
 
     def list_team_circles(self):
         return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith("TEAM_"))]
@@ -1036,16 +1087,18 @@ class TaigaClient(Client):
             ),
         )
 
-    def export_circles_as_md(self, wikipath="/tmp/taigawiki", modified_only=True):
+    def export_circles_as_md(self, wikipath="/tmp/taigawiki", modified_only=True, full_info=False):
         """export circles into {wikipath}/src/circles
+        HINT: Using full_info will take longer time
 
         Args:
             wikipath (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+            full_info (bool): export object with full info. Defaults to False
         """
         path = j.sals.fs.join_paths(wikipath, "src", "circles")
 
         j.sals.fs.mkdirs(path)
-        circles = self.list_all_active_projects()
+        circles = self.list_all_active_projects(full_info=full_info)
 
         def write_md_for_circle(circle):
             circle_md = circle.as_md
@@ -1065,16 +1118,19 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
         gevent.joinall(greenlets)
 
-    def export_users_as_md(self, wikipath="/tmp/taigawiki", modified_only=True):
+    def export_users_as_md(self, wikipath="/tmp/taigawiki", modified_only=True, full_info=False):
         """export users into {wikipath}/src/users
+        HINT: Using full_info will take longer time
 
         Args:
             wikipath (str, optional): wiki path. Defaults to "/tmp/taigawiki".
+            modified_only (bool): export moidified objects only
+            full_info (bool): export object with full info. Defaults to False
         """
 
         path = j.sals.fs.join_paths(wikipath, "src", "users")
         j.sals.fs.mkdirs(path)
-        users_objects = self.list_all_users()
+        users_objects = self.list_all_users(full_info=full_info)
 
         users_mdpath = j.sals.fs.join_paths(path, "users.md")
         users_mdcontent = "# users\n\n"
@@ -1093,17 +1149,19 @@ class TaigaClient(Client):
         greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
         gevent.joinall(greenlets)
 
-    def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only: bool = True):
+    def export_as_md(self, wiki_path="/tmp/taigawiki", modified_only: bool = True, full_info=False):
         """export taiga instance into a wiki  showing users and circles
+        HINT: Using full_info will take longer time
 
         Args:
             wiki_src_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
             modified_only (bool): write modified objects only. Defaults to True
+            full_info (bool): export object with full info. Defaults to False
         """
         j.logger.info("Start Exporting Wiki ...")
         gs = []
-        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only))
-        gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only))
+        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only, full_info))
+        gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only, full_info))
         gevent.joinall(gs)
 
         template_file = j.sals.fs.join_paths(Path(__file__).parent, "template.html")
@@ -1123,31 +1181,38 @@ class TaigaClient(Client):
         j.sals.fs.copy_file(template_file, index_html_path)
         j.logger.info(f"Exported at {wiki_path}")
 
-    def export_as_md_periodically(self, wiki_path="/tmp/taigawiki", period: int = 300, modified_only: bool = True):
+    def export_as_md_periodically(
+        self, wiki_path="/tmp/taigawiki", period: int = 300, modified_only: bool = True, full_info=False
+    ):
         """export taiga instance into a wiki  showing users and circles periodically
+        HINT: Using full_info will take longer time
 
         Args:
             wiki_path (str, optional): wiki path. Defaults to "/tmp/taigawiki".
             period (int): Time to wait between each export in "Seconds". Defaults to 300 (5 Min).
             modified_only (bool): write modified objects only.. Defaults to True.
+            full_info (bool): export object with full info. Defaults to False
+
         """
         repeater = Event()
         while True:
             j.logger.info("Start Exporting ....")
-            self.export_as_md(wiki_path, modified_only)
+            self.export_as_md(wiki_path, modified_only, full_info)
             j.logger.info(f"Exported at {wiki_path}")
             repeater.wait(period)
 
-    def export_as_yaml(self, export_dir="/tmp/export_dir"):
+    def export_as_yaml(self, export_dir="/tmp/export_dir", full_info=False):
         """export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+        HINT: Using full_info will take longer time
 
         Args:
             export_dir (str, optional): [description]. Defaults to "/tmp/export_dir".
+            full_info (bool): export object with full info. Defaults to False
         """
 
-        def _export_objects_to_dir(objects_dir, objects_fun):
+        def _export_objects_to_dir(objects_dir, objects_fun, full_info):
             j.sals.fs.mkdirs(objects_dir)
-            objects = objects_fun()
+            objects = objects_fun(full_info=full_info)
             for obj in objects:
                 try:
                     outpath = j.sals.fs.join_paths(objects_dir, f"{obj.id}.yaml")
@@ -1174,13 +1239,13 @@ class TaigaClient(Client):
         j.logger.info("Start Export as YAML")
 
         gs = []
-        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects))
-        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories))
-        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues))
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues, full_info))
         # Milestones is not one of our model objects
         # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
-        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users))
-        gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks))
+        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks, full_info))
         gevent.joinall(gs)
 
         j.logger.info("Finish Export as YAML")
