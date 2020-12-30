@@ -9,13 +9,6 @@
         <v-btn color="primary" text @click.stop="dialogs.import = true">
           <v-icon left>mdi-import</v-icon>Import
         </v-btn>
-
-        <template v-if="isTestnetExplorer">
-          <v-btn color="primary" text @click.stop="dialogs.funded = true">
-            <v-icon left>mdi-wallet-giftcard</v-icon>Add Testnet funded wallet
-          </v-btn>
-        </template>
-
       </template>
 
       <template #default>
@@ -42,7 +35,6 @@
     </base-component>
 
     <create-wallet v-model="dialogs.create" @done="listWallets"></create-wallet>
-    <create-funded v-model="dialogs.funded" @done="listWallets"></create-funded>
     <import-wallet v-model="dialogs.import" @done="listWallets"></import-wallet>
     <delete-wallet v-model="dialogs.delete" @done="listWallets" :name="selected"></delete-wallet>
     <wallet-info v-model="dialogs.wallet" :name="selected"></wallet-info>
@@ -53,7 +45,6 @@
 module.exports = {
   components: {
     "create-wallet": httpVueLoader("./Create.vue"),
-    "create-funded": httpVueLoader("./CreateTestFunded.vue"),
     "import-wallet": httpVueLoader("./Import.vue"),
     "delete-wallet": httpVueLoader("./Delete.vue"),
     "wallet-info": httpVueLoader("./Wallet.vue"),
@@ -62,7 +53,6 @@ module.exports = {
     return {
       wallets: [],
       selected: null,
-      isTestnetExplorer: false,
       dialogs: {
         create: null,
         funded: null,
@@ -80,19 +70,6 @@ module.exports = {
     },
     listWallets() {
       this.loading = true;
-
-      this.$api.explorers
-      .get().then((response) => {
-        let explorer = JSON.parse(response.data).data;
-        console.log(explorer);
-        console.log(explorer.url.includes("testnet") === true);
-        this.isTestnetExplorer = explorer.url.includes("testnet") === true;
-
-      }).catch( (error) => {
-        console.log(error)
-        this.isTestnetExplorer = false;
-      })
-
       this.$api.wallets
         .list()
         .then((response) => {
