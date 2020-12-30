@@ -6,7 +6,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "etcd"
     title = "ETCD"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = ["get_release_name", "set_config", "install_chart", "initializing", "success"]
 
     @chatflow_step(title="Configurations")
     def set_config(self):
