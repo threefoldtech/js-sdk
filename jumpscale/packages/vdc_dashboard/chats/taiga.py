@@ -15,6 +15,7 @@ class TaigaDeploy(SolutionsChatflowDeploy):
         self.chart_config.update(
             {
                 "domain": self.domain,
+                "postgresql.fullnameOverride": f"taiga-postgresql-{self.release_name}",
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
             }
