@@ -10,6 +10,10 @@ class EtcdDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
+        self.resources_limits = {
+            "cpu": 0,
+            "memory": 0,
+        }
         form = self.new_form()
         self.no_replicas = form.int_ask("Enter number of etcd nodes", default=1, required=True, min=100)
         self.resources_limits["cpu"] = form.int_ask(
