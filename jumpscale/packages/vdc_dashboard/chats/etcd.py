@@ -32,7 +32,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
                 "persistence.size": self.pvc_size,
-                "disasterRecovery.pvc.size": self.pvc_size / 4,
+                "disasterRecovery.pvc.size": self.pvc_size.value / 4,
             }
         )
 
