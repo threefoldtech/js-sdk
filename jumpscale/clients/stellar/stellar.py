@@ -18,6 +18,8 @@ from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
 
+XLM_TRANSACTION_FEES = 0.00001
+ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
 _HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
@@ -344,6 +346,16 @@ class Stellar(Client):
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
             raise e
+
+    def return_xlms_to_activation(self):
+        xlm_balance = 0
+        for balance in self.get_balances():
+            if balance.asset_code == "XLM":
+                xlm_balance = balance.balance
+        trustlines = len(self.get_balances()) - 1
+        minimum_balance = 1 + 0.5 * trustlines
+        amount = xlm_balance - minimum_balance - XLM_TRANSACTION_FEES
+        self.transfer(ACTIVATION_ADDRESS, amount)
 
     def transfer(
         self,
@@ -864,7 +876,7 @@ class Stellar(Client):
 
         Args:
             selling_asset (str): Selling Asset
-            buying_asset str): Buying Asset 
+            buying_asset str): Buying Asset
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
