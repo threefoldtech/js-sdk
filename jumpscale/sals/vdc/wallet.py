@@ -9,16 +9,10 @@ class VDCWallet(Base):
     wallet_network = fields.Enum(StellarNetwork)
 
     def _init_wallet(self, secret=None):
-        if "testnet" in j.core.identity.me.explorer_url or "devnet" in j.core.identity.me.explorer_url:
-            self.wallet_network = StellarNetwork.TEST
-        else:
-            self.wallet_network = StellarNetwork.STD
-
-        wallet = j.clients.stellar.new(self.instance_name, secret=secret, network=self.wallet_network)
+        wallet = j.clients.stellar.new(self.instance_name, secret=secret)
         if not secret:
-            wallet.activate_through_friendbot()
-            if "devnet" not in j.core.identity.me.explorer_url:
-                wallet.add_known_trustline("TFT")
+            wallet.activate_through_threefold_service()
+            wallet.add_known_trustline("TFT")
         wallet.save()
         self.wallet_secret = wallet.secret
 
