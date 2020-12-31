@@ -8,7 +8,7 @@ from textwrap import dedent
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "success"]
+    steps = ["vdc_info", "deploy", "initializing", "success"]
 
     def _init(self):
         self.md_show_update("Checking payment service...")
@@ -126,6 +126,15 @@ class VDCDeploy(GedisChatBot):
         self.deployer._set_wallet(old_wallet)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self):
+        self.md_show_update("Initializing your VDC ...")
+        threebot_url = f"https://{self.vdc.threebot.domain}/"
+        if not j.sals.reservation_chatflow.wait_http_test(
+            threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
+        ):
+            self.stop(f"Failed to initialize VDV on {threebot_url} , please contact support")
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
