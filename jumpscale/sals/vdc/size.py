@@ -53,6 +53,12 @@ class PROXY_FARM(FarmConfigBase):
     mainnet = "csfarmer"
 
 
+class FARM_DISCOUNT(FarmConfigBase):
+    devnet = 0.99
+    testnet = 0.9
+    mainnet = 0
+
+
 def get_explorer_network():
     networks = ["devnet", "testnet"]
     for net in networks:

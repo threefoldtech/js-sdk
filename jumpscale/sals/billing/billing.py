@@ -23,11 +23,11 @@ class BillingManager:
         )
         return payment_id, payment.memo_text
 
-    def wait_payment(self, payment_id, bot=None):
+    def wait_payment(self, payment_id, bot=None, notes=None):
         j.logger.info(f"waiting payment: {payment_id}")
         payment = PAYMENT_FACTORY.find_by_id(payment_id)
         if bot:
-            self._show_payment(bot, payment)
+            self._show_payment(bot, payment, notes)
 
         while not payment.is_finished():
             gevent.sleep(3)
@@ -35,10 +35,12 @@ class BillingManager:
         j.logger.info(f"payment: {payment_id} result {payment.result.success}")
         return payment.result.success
 
-    def _show_payment(self, bot, payment_obj):
+    def _show_payment(self, bot, payment_obj, notes=None):
+        notes = notes or []
         qr_code = (
             f"TFT:{payment_obj.wallet.address}?amount={payment_obj.amount}&message={payment_obj.memo_text}&sender=me"
         )
+        notes_text = "\n".join([f"<h4>Note: {note}</h4>" for note in notes])
         qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
         msg_text = f"""Please scan the QR Code below for the payment details if you missed it from the previous screen
         <div class="text-center">
@@ -48,7 +50,7 @@ class BillingManager:
         <h4> Currency: </h4>  TFT \n
         <h4> Memo Text: </h4>  {payment_obj.memo_text} \n
         <h4> Total Amount: </h4> {payment_obj.amount} TFT \n
-
+        {notes_text}
         <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 TFT will automatically occurs per transaction.</h5>
         """
         bot.md_show_update(msg_text, html=True)
