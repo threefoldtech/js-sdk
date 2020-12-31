@@ -305,10 +305,7 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
-        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
-            amount = 0
-        else:
-            amount = VDC_SIZE.PRICES["plans"][self.flavor] * discount
+        amount = VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount)
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
