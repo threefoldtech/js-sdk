@@ -120,7 +120,7 @@ class Stellar(Client):
         return resp.json()
 
     def _create_activation_code(self):
-        data = {"address": self.address}
+        data = {"address": self.address, "token": j.core.config.get("TF_TRUSTED_SERVICE_TOKEN", "")}
         resp = j.tools.http.post(self._get_url("CREATE_ACTIVATION_CODE"), json={"args": data})
         resp.raise_for_status()
         return resp.json()
@@ -257,8 +257,16 @@ class Stellar(Client):
         """
         Activate your wallet through threefold services
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        try:
+            activationdata = self._create_activation_code()
+            self._activation_account(activationdata["activation_code"])
+        except Exception as e:
+            if j.core.config.get("TF_TRUSTED_SERVICE_TOKEN"):
+                raise j.exceptions.Runtime(str(e)) from e
+            else:
+                return False
+        else:
+            return True
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
