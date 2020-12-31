@@ -19,7 +19,7 @@ class VDCDeploy(GedisChatBot):
             raise StopChatFlow("Payment service is currently down, try again later")
         if j.clients.stellar.get_activation_wallet_xlms() < MINIMUM_ACTIVATION_XLMS:
             raise StopChatFlow(
-                f"The activation service wallet contains less than {MINIMUM_ACTIVATION_XLMS}, try again latter"
+                f"The activation service wallet contains less than {MINIMUM_ACTIVATION_XLMS}, try again later"
             )
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
