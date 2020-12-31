@@ -85,9 +85,14 @@ def get_deployments(solution_type: str = None) -> list:
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
-            deployment_host = k8s_client.execute_native_cmd(
-                cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
-            )
+            deployment_host = ""
+            try:
+                deployment_host = k8s_client.execute_native_cmd(
+                    cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+                )
+            except:
+                pass
+
             deployment_info.update(
                 {
                     "VDC Name": vdc_name,
