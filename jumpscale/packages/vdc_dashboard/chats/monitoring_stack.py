@@ -9,7 +9,7 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed
 class InstallMonitoringStack(SolutionsChatflowDeploy):
     title = "Monitoring Stack"
     steps = ["confirm", "success"]
-    SOLUTION_TYPE = "monitoring_stack"
+    SOLUTION_TYPE = "monitoring-stack"
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
