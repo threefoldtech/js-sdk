@@ -1044,3 +1044,31 @@ class Stellar(Client):
         for data_name, data_value in response["data"].items():
             data[data_name] = base64.b64decode(data_value).decode("utf-8")
         return data
+
+    def merge_into_account(self, destination_address: str):
+        """Merges XLMs into destination address
+
+        Args:
+            destination_address (str): address to send XLMs to
+        """
+        server = self._get_horizon_server()
+        source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
+
+        source_account = self.load_account()
+
+        base_fee = server.fetch_base_fee()
+        transaction = (
+            stellar_sdk.TransactionBuilder(
+                source_account=source_account,
+                network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
+                base_fee=base_fee,
+            )
+            .append_account_merge_op(destination=destination_address)
+            .build()
+        )
+        transaction.sign(source_keypair)
+        try:
+            response = server.submit_transaction(transaction)
+            j.logger.info("Transaction hash: {}".format(response["hash"]))
+        except stellar_sdk.exceptions.BadRequestError as e:
+            j.logger.debug(e)
