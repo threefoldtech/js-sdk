@@ -278,20 +278,13 @@ class VDCDeployer:
         cont2.capacity.memory = THREEBOT_MEMORY
         cont2.capacity.disk_size = THREEBOT_DISK
         cont2.capacity.disk_type = DiskType.SSD
-        cont3 = Container()
-        cont3.capacity.cpu = 1
-        cont3.capacity.memory = 1024
-        cont3.capacity.disk_size = 256
-        cont3.capacity.disk_type = DiskType.SSD
         # vol = Volume()
         # vol.size = int(MINIO_DISK / 1024)
         # vol.type = DiskType.SSD
         cus = sus = 0
-        # for workload in [cont1, cont2, cont3, vol]:
-        for workload in [cont2, cont3]:
-            n_cus, n_sus = get_cloud_units(workload)
-            cus += n_cus
-            sus += n_sus
+        n_cus, n_sus = get_cloud_units(cont2)
+        cus += n_cus
+        sus += n_sus
         pool_id = self.get_pool_id(selected_farm, cus, sus)
         self.wait_pool_payment(pool_id, trigger_cus=1)
 
