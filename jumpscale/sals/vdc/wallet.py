@@ -17,7 +17,7 @@ class VDCWallet(Base):
             if not secret:
                 wallet.activate_through_threefold_service()
                 wallet.add_known_trustline("TFT")
-            wallet.save()
+        wallet.save()
         self.wallet_secret = wallet.secret
 
     @property
