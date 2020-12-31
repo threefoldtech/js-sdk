@@ -49,7 +49,8 @@
             >
               <template slot="no-data">No {{solution.name.toLowerCase()}} instances available</p></template>
               <template v-slot:item.domain="{ item }">
-                <a :href="`https://${item.Domain}/`">{{item.Domain}}</a>
+                <a v-if="item.domain !== ''" :href="`https://${item.Domain}/`">{{item.Domain}}</a>
+                <p v-else> - </p>
               </template>
               <template v-slot:item.creation="{ item }">
                 <div>{{ new Date(item.creation * 1000).toLocaleString('en-GB') }}</div>
