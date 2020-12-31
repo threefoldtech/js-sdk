@@ -305,7 +305,7 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
-        amount = VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount)
+        amount = round(VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount))
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
