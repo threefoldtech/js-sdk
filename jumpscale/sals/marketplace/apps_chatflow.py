@@ -368,7 +368,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         self.domain = full_domain
                         break
                     else:
-                        random_number = random.randint(100, 1000000)
+                        random_number = random.randint(1, 1000)
                         full_domain = f"{solution_name}-{random_number}.{managed_domain}"
 
                 for ns in self.gateway.dns_nameserver:
