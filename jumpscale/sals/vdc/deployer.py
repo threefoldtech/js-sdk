@@ -630,12 +630,7 @@ ports:
         )
 
     def get_prefix(self):
-        net = ""
-        if "testnet" in self.explorer.url:
-            net = "-testnet"
-        elif "devnet" in self.explorer.url:
-            net = "-devnet"
-        return f"{self.tname}-{self.vdc_name}{net}.vdc"
+        return f"{self.tname}-{self.vdc_name}.vdc"
 
     def expose_s3(self, delete_previous=False):
         self.vdc_instance.load_info()

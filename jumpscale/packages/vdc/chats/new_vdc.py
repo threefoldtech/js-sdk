@@ -140,7 +140,7 @@ class VDCDeploy(GedisChatBot):
     def success(self):
         msg = dedent(
             f"""\
-        # Your VDC {self.vdc.vdc_name} has been deployed successfuly.
+        # Your VDC {self.vdc.vdc_name} has been deployed successfully.
         <br />\n
         Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
