@@ -258,10 +258,13 @@ class Stellar(Client):
         """
         Activate your wallet through threefold services
         """
-        resp = self._activation_account()
-        loaded_json = j.data.serializers.json.loads(resp)
-        xdr = loaded_json["activation_transaction"]
-        self.sign(xdr, submit=True)
+        ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
+        ## this activator should be imported on the system.
+        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+            j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+        else:
+            activationdata = self._create_activation_code()
+            self._activation_account(activationdata["activation_code"])
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
