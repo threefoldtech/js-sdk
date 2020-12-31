@@ -3,6 +3,8 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 
 class WikiDeploy(Publisher):
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/wiki_example"
+
     title = "Deploy a Wiki"
 
     @chatflow_step(title="Configurations")

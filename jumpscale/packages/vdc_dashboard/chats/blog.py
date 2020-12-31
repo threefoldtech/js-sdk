@@ -3,6 +3,8 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 
 
 class BlogDeploy(Publisher):
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_example"
+
     title = "Deploy a Blog"
 
     @chatflow_step(title="Configurations")

@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
@@ -5,6 +7,7 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 class Publisher(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "publishingtools"
     HELM_REPO_NAME = "marketplace"
+    EXAMPLE_URL = "https://github.com/threefoldfoundation/info_gridmanual"
 
     title = "Publisher"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
