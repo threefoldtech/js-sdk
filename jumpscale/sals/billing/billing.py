@@ -23,7 +23,7 @@ class BillingManager:
         )
         return payment_id, payment.memo_text
 
-    def wait_payment(self, payment_id, bot=None, notes=[]):
+    def wait_payment(self, payment_id, bot=None, notes=None):
         j.logger.info(f"waiting payment: {payment_id}")
         payment = PAYMENT_FACTORY.find_by_id(payment_id)
         if bot:
@@ -35,7 +35,8 @@ class BillingManager:
         j.logger.info(f"payment: {payment_id} result {payment.result.success}")
         return payment.result.success
 
-    def _show_payment(self, bot, payment_obj, notes=[]):
+    def _show_payment(self, bot, payment_obj, notes=None):
+        notes = notes or []
         qr_code = (
             f"TFT:{payment_obj.wallet.address}?amount={payment_obj.amount}&message={payment_obj.memo_text}&sender=me"
         )
