@@ -9,7 +9,7 @@ from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
 from .models import *
-from .size import VDC_SIZE, PROXY_FARM
+from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -304,10 +304,11 @@ class UserVDC(Base):
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: reverted successfully")
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
+        discount = FARM_DISCOUNT.get()
         if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
             amount = 0
         else:
-            amount = VDC_SIZE.PRICES["plans"][self.flavor]
+            amount = VDC_SIZE.PRICES["plans"][self.flavor] * discount
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -318,8 +319,12 @@ class UserVDC(Base):
                 {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
             ),
         )
+
         if amount > 0:
-            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
 
