@@ -326,14 +326,15 @@ class UserVDC(Base):
             return True, amount, payment_id
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+        discount = FARM_DISCOUNT.get()
+
         if isinstance(size, str):
             size = VDC_SIZE.K8SNodeFlavor[size.upper()]
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
 
-        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
-            amount = 0
+        amount *= 1 - discount
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -355,7 +356,10 @@ class UserVDC(Base):
             ),
         )
         if amount > 0:
-            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
 
