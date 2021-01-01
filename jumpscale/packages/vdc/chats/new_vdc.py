@@ -129,8 +129,8 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        self.md_show_update("Initializing your VDC ...")
         threebot_url = f"https://{self.vdc.threebot.domain}/"
+        self.md_show_update(f"Initializing your VDC 3Bot container at {threebot_url} ...")
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
