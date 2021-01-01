@@ -6,7 +6,7 @@ from jumpscale.sals.vdc.deployer import VDCIdentityError
 
 class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
-    steps = ["flavor", "use_public_ip", "add_node", "success"]
+    steps = ["flavor", "add_node", "success"]
 
     @chatflow_step(title="Node Size")
     def flavor(self):
@@ -34,16 +34,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             "Choose the Node size", options=node_flavor_messages, default=node_flavor_messages[0], required=True
         )
         self.node_flavor = self.node_flavor.split(":")[0].lower()
-
-    @chatflow_step(title="Public IP")
-    def use_public_ip(self):
-        self.public_ip = self.single_choice(
-            "Do you want to allow public ip for your node?", options=["No", "Yes"], default="No", required=True
-        )
-        if self.public_ip == "Yes":
-            self.public_ip = True
-        else:
-            self.public_ip = False
+        self.public_ip = False
 
     @chatflow_step(title="Adding node")
     def add_node(self):
