@@ -52,11 +52,7 @@ ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
-
-if not j.sals.vdc.list_all():
-    vdc = j.sals.vdc.from_dict(vdc_dict)
-else:
-    vdc = j.sals.vdc.find(list(j.sals.vdc.list_all())[0])
+vdc = j.sals.vdc.from_dict(vdc_dict)
 
 VDC_INSTANCE_NAME = vdc.instance_name
 os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
@@ -85,6 +81,9 @@ for key, value in VDC_VARS.items():
     j.sals.process.execute(f"""echo "{key}='{value}'" >> /root/.bashrc""")
 
 
+vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
+
+
 username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"], vdc_dict["solution_uuid"])
 words = j.data.encryption.key_to_mnemonic(VDC_PASSWORD_HASH.encode())
 
@@ -95,6 +94,12 @@ identity = j.core.identity.get(
 identity.register()
 identity.save()
 identity.set_default()
+
+if not j.sals.vdc.list_all():
+    vdc = j.sals.vdc.from_dict(vdc_dict)
+else:
+    vdc = j.sals.vdc.find(list(j.sals.vdc.list_all())[0])
+
 network = "STD"
 
 j.core.config.set(
