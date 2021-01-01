@@ -28,9 +28,11 @@ class VDCDeploy(GedisChatBot):
             zdb_size = VDC_SIZE.S3_ZDB_SIZES[plan["s3"]["size"]]["sru"]
             zdb_human_readable_size = zdb_size if zdb_size < 1000 else zdb_size / 1024
             zdb_identifier = "GB" if zdb_size < 1000 else "TB"
+            zdb_limit = plan["s3"]["upto"]
+            no_nodes = plan["k8s"]["no_nodes"]
             vdc_flavor_messages.append(
-                f"{flavor.name}: Kubernetes cluster ({kubernetes_plan['cru']} vCPU, {kubernetes_plan['mru']} GB Memory, {kubernetes_plan['sru']} GB SSD Storage)"
-                f", ZDB Storage ({zdb_human_readable_size} {zdb_identifier}) for {VDC_SIZE.PRICES['plans'][flavor]} TFT/Month"
+                f"{flavor.name}: Kubernetes cluster (small controller, {no_nodes} worker(s) {kubernetes_plan['cru']} vCPU, {kubernetes_plan['mru']} GB Memory, {kubernetes_plan['sru']} GB SSD Storage)"
+                f", ZDB Storage ({zdb_limit}) for {VDC_SIZE.PRICES['plans'][flavor]} TFT/Month"
             )
         form = self.new_form()
         self.vdc_name = form.string_ask(
