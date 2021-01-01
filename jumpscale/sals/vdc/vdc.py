@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from math import ceil
 import uuid
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -305,7 +306,7 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
-        amount = round(VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount))
+        amount = ceil(VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount))
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
