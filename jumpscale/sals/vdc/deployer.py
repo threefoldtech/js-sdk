@@ -760,5 +760,6 @@ class VDCDeployer:
                 raise e
             except Exception as e:
                 self.warning(f"failed to submit payment to stellar due to error {str(e)}")
+                gevent.sleep(3)
         if not success:
             raise j.exceptions.Runtime(f"failed to submit payment to stellar in time for {pool_info}")
