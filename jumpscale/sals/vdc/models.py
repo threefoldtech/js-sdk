@@ -30,8 +30,10 @@ class S3Container(VDCHostBase):
     pass
 
 
-class S3ZDB(VDCWorkloadBase):
+class S3ZDB(VDCHostBase):
     size = fields.Integer()
+    port = fields.Integer()
+    namespace = fields.String()
 
 
 class S3(Base):

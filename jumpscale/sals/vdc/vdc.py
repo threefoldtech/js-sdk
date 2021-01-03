@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from math import ceil
 import uuid
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -137,6 +138,7 @@ class UserVDC(Base):
 
     def _update_instance(self, workload):
         k8s_sizes = [
+            VDC_SIZE.K8SNodeFlavor.MICRO.value,
             VDC_SIZE.K8SNodeFlavor.SMALL.value,
             VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
             VDC_SIZE.K8SNodeFlavor.BIG.value,
@@ -177,11 +179,21 @@ class UserVDC(Base):
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
         elif workload.info.workload_type == WorkloadType.Zdb:
+            result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+            if "IPs" in result_json:
+                ip = result_json["IPs"][0]
+            else:
+                ip = result_json["IP"]
+            namespace = result_json["Namespace"]
+            port = result_json["Port"]
             zdb = S3ZDB()
             zdb.node_id = workload.info.node_id
             zdb.pool_id = workload.info.pool_id
             zdb.wid = workload.id
             zdb.size = workload.size
+            zdb.ip_address = ip
+            zdb.port = port
+            zdb.namespace = namespace
             self.s3.zdbs.append(zdb)
 
     def _get_s3_subdomains(self, subdomain_workloads):
@@ -305,7 +317,7 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
-        amount = VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount)
+        amount = ceil(VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount))
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -320,7 +332,7 @@ class UserVDC(Base):
         if amount > 0:
             notes = []
             if discount:
-                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
@@ -358,7 +370,7 @@ class UserVDC(Base):
         if amount > 0:
             notes = []
             if discount:
-                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
@@ -481,6 +493,7 @@ class UserVDC(Base):
         return result
 
     def calculate_spec_price(self):
+        discount = FARM_DISCOUNT.get()
         current_spec = self.get_current_spec()
         total_price = (
             VDC_SIZE.PRICES["plans"][self.flavor]
@@ -488,7 +501,7 @@ class UserVDC(Base):
         )
         for size in current_spec["nodes"]:
             total_price += VDC_SIZE.PRICES["nodes"][size]
-        return total_price
+        return total_price * (1 - discount)
 
     def calculate_funded_period(self, load_info=True):
         """

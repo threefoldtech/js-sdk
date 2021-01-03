@@ -5,6 +5,8 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
+MINIMUM_ACTIVATION_XLMS = 15
+
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
@@ -15,6 +17,10 @@ class VDCDeploy(GedisChatBot):
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
+        if j.clients.stellar.get_activation_wallet_xlms() < MINIMUM_ACTIVATION_XLMS:
+            raise StopChatFlow(
+                f"The activation service wallet contains less than {MINIMUM_ACTIVATION_XLMS}, try again later"
+            )
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
 
@@ -28,9 +34,11 @@ class VDCDeploy(GedisChatBot):
             zdb_size = VDC_SIZE.S3_ZDB_SIZES[plan["s3"]["size"]]["sru"]
             zdb_human_readable_size = zdb_size if zdb_size < 1000 else zdb_size / 1024
             zdb_identifier = "GB" if zdb_size < 1000 else "TB"
+            zdb_limit = plan["s3"]["upto"]
+            no_nodes = plan["k8s"]["no_nodes"]
             vdc_flavor_messages.append(
-                f"{flavor.name}: Kubernetes cluster ({kubernetes_plan['cru']} vCPU, {kubernetes_plan['mru']} GB Memory, {kubernetes_plan['sru']} GB SSD Storage)"
-                f", ZDB Storage ({zdb_human_readable_size} {zdb_identifier}) for {VDC_SIZE.PRICES['plans'][flavor]} TFT/Month"
+                f"{flavor.name}: Kubernetes cluster (small controller, {no_nodes} worker(s) {kubernetes_plan['cru']} vCPU, {kubernetes_plan['mru']} GB Memory, {kubernetes_plan['sru']} GB SSD Storage)"
+                f", ZDB Storage ({zdb_limit}) for {VDC_SIZE.PRICES['plans'][flavor]} TFT/Month"
             )
         form = self.new_form()
         self.vdc_name = form.string_ask(
@@ -129,8 +137,8 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        self.md_show_update("Initializing your VDC ...")
         threebot_url = f"https://{self.vdc.threebot.domain}/"
+        self.md_show_update(f"Initializing your VDC 3Bot container at {threebot_url} ...")
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
@@ -140,7 +148,7 @@ class VDCDeploy(GedisChatBot):
     def success(self):
         msg = dedent(
             f"""\
-        # Your VDC {self.vdc.vdc_name} has been deployed successfuly.
+        # Your VDC {self.vdc.vdc_name} has been deployed successfully.
         <br />\n
         Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 

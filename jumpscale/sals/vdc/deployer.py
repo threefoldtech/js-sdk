@@ -239,6 +239,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
+        farm_resources = defaultdict(lambda: dict(cus=0, sus=0, ipv4us=0))
         duration = INITIAL_RESERVATION_DURATION / 24
 
         def get_cloud_units(workload):
@@ -246,7 +247,6 @@ class VDCDeployer:
             cloud_units = ru.cloud_units()
             return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
-        # create zdb pools
         if len(ZDB_FARMS.get()) != 2:
             raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
         for farm_name in ZDB_FARMS.get():
@@ -255,45 +255,32 @@ class VDCDeployer:
             zdb.disk_type = DiskType.HDD
             _, sus = get_cloud_units(zdb)
             sus = sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2
-            pool_id = self.get_pool_id(farm_name, 0, sus)
-            self.wait_pool_payment(pool_id)
+            farm_resources[farm_name]["sus"] += sus
 
-        # create kubernetes controller with small flavor on network farm
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
         ipv4us = duration * 60 * 60 * 24
-        pool_id = self.get_pool_id(NETWORK_FARM.get(), cus, sus, ipv4us)
-        self.wait_pool_payment(pool_id, trigger_cus=1)
+        farm_resources[NETWORK_FARM.get()]["cus"] += cus
+        farm_resources[NETWORK_FARM.get()]["sus"] += sus
+        farm_resources[NETWORK_FARM.get()]["ipv4us"] += ipv4us
 
-        # create minio and threebot pool
-        # cont1 = Container()
-        # cont1.capacity.cpu = MINIO_CPU
-        # cont1.capacity.memory = MINIO_MEMORY
-        # cont1.capacity.disk_size = 256
-        # cont1.capacity.disk_type = DiskType.SSD
         cont2 = Container()
         cont2.capacity.cpu = THREEBOT_CPU
         cont2.capacity.memory = THREEBOT_MEMORY
         cont2.capacity.disk_size = THREEBOT_DISK
         cont2.capacity.disk_type = DiskType.SSD
-        cont3 = Container()
-        cont3.capacity.cpu = 1
-        cont3.capacity.memory = 1024
-        cont3.capacity.disk_size = 256
-        cont3.capacity.disk_type = DiskType.SSD
-        # vol = Volume()
-        # vol.size = int(MINIO_DISK / 1024)
-        # vol.type = DiskType.SSD
         cus = sus = 0
-        # for workload in [cont1, cont2, cont3, vol]:
-        for workload in [cont2, cont3]:
-            n_cus, n_sus = get_cloud_units(workload)
-            cus += n_cus
-            sus += n_sus
-        pool_id = self.get_pool_id(selected_farm, cus, sus)
-        self.wait_pool_payment(pool_id, trigger_cus=1)
+        n_cus, n_sus = get_cloud_units(cont2)
+        cus += n_cus
+        sus += n_sus
+        farm_resources[selected_farm]["cus"] += cus
+        farm_resources[selected_farm]["sus"] += sus
+
+        for farm_name, cloud_units in farm_resources.items():
+            pool_id = self.get_pool_id(farm_name, **cloud_units)
+            self.wait_pool_payment(pool_id, trigger_sus=1)
 
     def deploy_vdc_network(self):
         """
@@ -573,76 +560,13 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
-            self.upgrade_traefik()
+            self.bot_show_update("Updating Traefik")
+            self.kubernetes.upgrade_traefik()
 
             return kube_config
 
-    # TODO: better implementatiom
-    def upgrade_traefik(self):
-        """
-        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
-        """
-
-        def is_traefik_installed(manager):
-            releases = manager.list_deployed_releases("kube-system")
-            # TODO: List only using names
-            for release in releases:
-                if release.get("name") == "traefik":
-                    return True
-            return False
-
-        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
-        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
-        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
-        k8s_client.update_repos()
-
-        # wait until traefik chart is installed on the cluster then uninstall it
-        checks = 12
-        while checks > 0 and not is_traefik_installed(k8s_client):
-            gevent.sleep(5)
-            checks -= 1
-        if is_traefik_installed(k8s_client):
-            k8s_client.delete_deployed_release("traefik", "kube-system")
-
-        # install traefik v2.3.3 chart
-        # TODO: better code for the values
-        k8s_client.install_chart(
-            "traefik",
-            "traefik/traefik",
-            "kube-system",
-            chart_values_file="""<(echo -e 'image:
-  tag: "2.3.3"
-additionalArguments:
-  - "--certificatesresolvers.default.acme.tlschallenge"
-  - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
-  - "--certificatesresolvers.default.acme.storage=/data/acme.json"
-  - "--certificatesresolvers.default.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-  - "--certificatesresolvers.default.acme.httpchallenge.entrypoint=web"
-  - "--certificatesresolvers.gridca.acme.tlschallenge"
-  - "--certificatesresolvers.gridca.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
-  - "--certificatesresolvers.gridca.acme.storage=/data/acme1.json"
-  - "--certificatesresolvers.gridca.acme.caserver=https://ca1.grid.tf"
-  - "--certificatesresolvers.gridca.acme.httpchallenge.entrypoint=web"
-  - "--certificatesresolvers.le.acme.tlschallenge"
-  - "--certificatesresolvers.le.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
-  - "--certificatesresolvers.le.acme.storage=/data/acme2.json"
-  - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
-  - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-ports:
-  web:
-    redirectTo: websecure
-  websecure:
-    tls:
-      enabled: true')""",
-        )
-
     def get_prefix(self):
-        net = ""
-        if "testnet" in self.explorer.url:
-            net = "-testnet"
-        elif "devnet" in self.explorer.url:
-            net = "-devnet"
-        return f"{self.tname}-{self.vdc_name}{net}.vdc"
+        return f"{self.tname}-{self.vdc_name}.vdc"
 
     def expose_s3(self, delete_previous=False):
         self.vdc_instance.load_info()

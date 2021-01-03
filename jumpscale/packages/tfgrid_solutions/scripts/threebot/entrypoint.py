@@ -12,7 +12,7 @@ def main():
     instance_name = os.environ.get("INSTANCE_NAME")
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
-    backup_password = os.environ.get("BACKUP_PASSWORD", None)
+    backup_password = os.environ.get("BACKUP_PASSWORD", "")
     test_cert = os.environ.get("TEST_CERT")
 
     # email settings

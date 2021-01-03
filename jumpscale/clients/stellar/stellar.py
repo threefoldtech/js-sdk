@@ -224,12 +224,14 @@ class Stellar(Client):
             if balance.is_native():
                 continue
             # Step 1: Transfer custom assets
-            transaction_builder.append_payment_op(
-                destination=self.address,
-                amount=balance.balance,
-                asset_code=balance.asset_code,
-                asset_issuer=balance.asset_issuer,
-            )
+            if decimal.Decimal(balance.balance) > decimal.Decimal(0):
+                transaction_builder.append_payment_op(
+                    destination=self.address,
+                    amount=balance.balance,
+                    asset_code=balance.asset_code,
+                    asset_issuer=balance.asset_issuer,
+                    source=account.account_id,
+                )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
                 asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
@@ -257,8 +259,13 @@ class Stellar(Client):
         """
         Activate your wallet through threefold services
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
+        ## this activator should be imported on the system.
+        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+            j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+        else:
+            activationdata = self._create_activation_code()
+            self._activation_account(activationdata["activation_code"])
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
@@ -986,3 +993,31 @@ class Stellar(Client):
         for data_name, data_value in response["data"].items():
             data[data_name] = base64.b64decode(data_value).decode("utf-8")
         return data
+
+    def merge_into_account(self, destination_address: str):
+        """Merges XLMs into destination address
+
+        Args:
+            destination_address (str): address to send XLMs to
+        """
+        server = self._get_horizon_server()
+        source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
+
+        source_account = self.load_account()
+
+        base_fee = server.fetch_base_fee()
+        transaction = (
+            stellar_sdk.TransactionBuilder(
+                source_account=source_account,
+                network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
+                base_fee=base_fee,
+            )
+            .append_account_merge_op(destination=destination_address)
+            .build()
+        )
+        transaction.sign(source_keypair)
+        try:
+            response = server.submit_transaction(transaction)
+            j.logger.info("Transaction hash: {}".format(response["hash"]))
+        except stellar_sdk.exceptions.BadRequestError as e:
+            j.logger.debug(e)

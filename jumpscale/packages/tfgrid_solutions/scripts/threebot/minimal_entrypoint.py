@@ -102,9 +102,6 @@ else:
 
 network = "STD"
 
-if "testnet" in EXPLORER_URL or "devnet" in EXPLORER_URL:
-    network = "TEST"
-
 j.core.config.set(
     "S3_AUTO_TOP_SOLUTIONS",
     {

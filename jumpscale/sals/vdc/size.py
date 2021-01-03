@@ -237,7 +237,7 @@ class VDCSize:
                     "size": self.K8SNodeFlavor[val["k8s"]["size"].upper()],
                     "controller_size": self.K8SNodeFlavor[val["k8s"]["controller_size"].upper()],
                 },
-                "s3": {"size": self.S3ZDBSize[val["s3"]["size"].upper()]},
+                "s3": {"size": self.S3ZDBSize[val["s3"]["size"].upper()], "upto": val["s3"]["upto"]},
                 "duration": val["duration"],
             }
 
