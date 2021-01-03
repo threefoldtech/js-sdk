@@ -1073,7 +1073,7 @@ class Stellar(Client):
             # Step 1: Transfer custom assets
             if decimal.Decimal(balance.balance) > decimal.Decimal(0):
                 transaction_builder.append_payment_op(
-                    destination=self.destination_address,
+                    destination=destination_address,
                     amount=balance.balance,
                     asset_code=balance.asset_code,
                     asset_issuer=balance.asset_issuer,
