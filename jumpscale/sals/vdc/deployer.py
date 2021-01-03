@@ -560,6 +560,7 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
+            self.bot_show_update("Updating Traefik")
             self.kubernetes.upgrade_traefik()
 
             return kube_config
