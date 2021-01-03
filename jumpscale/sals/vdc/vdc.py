@@ -320,7 +320,7 @@ class UserVDC(Base):
         if amount > 0:
             notes = []
             if discount:
-                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
@@ -358,7 +358,7 @@ class UserVDC(Base):
         if amount > 0:
             notes = []
             if discount:
-                notes = ["For testing purposes, we applied a discount of {:.2f}".format(discount)]
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
