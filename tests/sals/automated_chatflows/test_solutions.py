@@ -114,7 +114,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         name = self.random_name()
         secret = self.random_name()
         workernodes = j.data.idgenerator.random_int(1, 2)
-
+        sleep(5)
         pool_data = j.sals.zos.get().pools.get(self.pool_id)
         pool = [f"Name: {self.pool_name} Pool: {self.pool_id} CU: {pool_data.cus} SU: {pool_data.sus}"]
         kubernetes = deployer.deploy_kubernetes(
