@@ -527,7 +527,10 @@ class UserVDC(Base):
         destination_wallet_name = destination_wallet_name or self.provision_wallet.instance_name
         dst_wallet = j.clients.stellar.find(destination_wallet_name)
         current_balance = self._get_wallet_balance(dst_wallet)
+        j.logger.info(f"current balance in {destination_wallet_name} is {current_balance}")
         vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2 + 0.5
+        j.logger.info(f"vdc_cost: {vdc_cost}")
         if vdc_cost > current_balance:
             diff = float(vdc_cost) - float(current_balance)
+            j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
             self.pay_amount(dst_wallet.address, diff, wallet)
