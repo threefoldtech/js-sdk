@@ -239,6 +239,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
+        farm_resources = defaultdict(lambda: dict(cus=0, sus=0, ipv4us=0))
         duration = INITIAL_RESERVATION_DURATION / 24
 
         def get_cloud_units(workload):
@@ -246,7 +247,6 @@ class VDCDeployer:
             cloud_units = ru.cloud_units()
             return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
-        # create zdb pools
         if len(ZDB_FARMS.get()) != 2:
             raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
         for farm_name in ZDB_FARMS.get():
@@ -255,38 +255,32 @@ class VDCDeployer:
             zdb.disk_type = DiskType.HDD
             _, sus = get_cloud_units(zdb)
             sus = sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2
-            pool_id = self.get_pool_id(farm_name, 0, sus)
-            self.wait_pool_payment(pool_id)
+            farm_resources[farm_name]["sus"] += sus
 
-        # create kubernetes controller with small flavor on network farm
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
         ipv4us = duration * 60 * 60 * 24
-        pool_id = self.get_pool_id(NETWORK_FARM.get(), cus, sus, ipv4us)
-        self.wait_pool_payment(pool_id, trigger_cus=1)
+        farm_resources[NETWORK_FARM.get()]["cus"] += cus
+        farm_resources[NETWORK_FARM.get()]["sus"] += sus
+        farm_resources[NETWORK_FARM.get()]["ipv4us"] += ipv4us
 
-        # create minio and threebot pool
-        # cont1 = Container()
-        # cont1.capacity.cpu = MINIO_CPU
-        # cont1.capacity.memory = MINIO_MEMORY
-        # cont1.capacity.disk_size = 256
-        # cont1.capacity.disk_type = DiskType.SSD
         cont2 = Container()
         cont2.capacity.cpu = THREEBOT_CPU
         cont2.capacity.memory = THREEBOT_MEMORY
         cont2.capacity.disk_size = THREEBOT_DISK
         cont2.capacity.disk_type = DiskType.SSD
-        # vol = Volume()
-        # vol.size = int(MINIO_DISK / 1024)
-        # vol.type = DiskType.SSD
         cus = sus = 0
         n_cus, n_sus = get_cloud_units(cont2)
         cus += n_cus
         sus += n_sus
-        pool_id = self.get_pool_id(selected_farm, cus, sus)
-        self.wait_pool_payment(pool_id, trigger_cus=1)
+        farm_resources[selected_farm]["cus"] += cus
+        farm_resources[selected_farm]["sus"] += sus
+
+        for farm_name, cloud_units in farm_resources.items():
+            pool_id = self.get_pool_id(farm_name, **cloud_units)
+            self.wait_pool_payment(pool_id, trigger_sus=1)
 
     def deploy_vdc_network(self):
         """
