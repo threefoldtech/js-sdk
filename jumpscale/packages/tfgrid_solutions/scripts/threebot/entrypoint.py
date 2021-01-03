@@ -42,6 +42,11 @@ def main():
             "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
         )
         _save_identity(identity_test)
+    elif "dev" in default_identity:
+        identity_dev = j.core.identity.get(
+            "dev", tname=tname, email=email, words=words, explorer_url="https://explorer.devnet.grid.tf/api/v1"
+        )
+        _save_identity(identity_dev)
     else:
         identity_main = j.core.identity.get(
             "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"

@@ -336,10 +336,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 managed_domain = domain
 
                 solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-                owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
-                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
+                full_domain = f"{solution_name}.{managed_domain}"
                 metafilter = lambda metadata: metadata.get("owner") == self.username
                 # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
                 user_subdomains = {}
@@ -370,8 +368,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         self.domain = full_domain
                         break
                     else:
-                        random_number = random.randint(1000, 100000)
-                        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
+                        random_number = random.randint(1, 1000)
+                        full_domain = f"{solution_name}-{random_number}.{managed_domain}"
 
                 for ns in self.gateway.dns_nameserver:
                     try:

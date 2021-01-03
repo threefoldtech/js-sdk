@@ -77,6 +77,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
+        self.devnet_identity_name = f"{tname}_dev"
         try:
             if "testnet" in j.core.identity.me.explorer_url:
                 self.identity_name = self.testnet_identity_name
@@ -88,6 +89,16 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     explorer_url="https://explorer.testnet.grid.tf/api/v1",
                 )
                 self._register_identity(threebot_name, identity_test)
+            elif "devnet" in j.core.identity.me.explorer_url:
+                self.identity_name = self.devnet_identity_name
+                identity_dev = j.core.identity.get(
+                    self.devnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.devnet.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_dev)
             else:
                 self.identity_name = self.mainnet_identity_name
                 identity_main = j.core.identity.get(
@@ -351,6 +362,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.backup_model.tname = self.solution_metadata["owner"]
         self.backup_model.save()
         # 3- deploy threebot container
+        if "test" in j.core.identity.me.explorer_url:
+            default_identity = "test"
+        elif "dev" in j.core.identity.me.explorer_url:
+            default_identity = "dev"
+        else:
+            default_identity = "main"
         environment_vars = {
             "SDK_VERSION": self.branch,
             "INSTANCE_NAME": self.solution_name,
@@ -359,7 +376,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
-            "DEFAULT_IDENTITY": "test" if "test" in j.core.identity.me.explorer_url else "main",
+            "DEFAULT_IDENTITY": default_identity,
             # email settings
             "EMAIL_HOST": "",
             "EMAIL_HOST_USER": "",

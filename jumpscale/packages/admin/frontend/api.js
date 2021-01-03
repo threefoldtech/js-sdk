@@ -70,18 +70,11 @@ const apiClient = {
                 data: { name: name }
             })
         },
-        create_testnet_funded: (name) => {
-            return axios({
-                url: `${baseURL}/wallet/create_testnet_funded`,
-                method: "post",
-                data: { name: name }
-            })
-        },
-        import: (name, secret, network) => {
+        import: (name, secret) => {
             return axios({
                 url: `${baseURL}/wallet/import_wallet`,
                 method: "post",
-                data: { name: name, secret: secret, network: network }
+                data: { name: name, secret: secret }
             })
         },
         delete: (name) => {
