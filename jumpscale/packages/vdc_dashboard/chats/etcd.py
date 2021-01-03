@@ -11,7 +11,7 @@ CHART_LIMITS = {
 RESOURCE_VALUE_TEMPLATE = {
     "cpu": "CPU {}",
     "memory": "Memory {}",
-    "no_nodes": "Numhber of Nodes {}",
+    "no_nodes": "Number of Nodes {}",
     "volume_size": "Volume {}",
 }
 
@@ -31,14 +31,14 @@ class EtcdDeploy(SolutionsChatflowDeploy):
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
                 "persistence.size": self.resources_limits["volume_size"],
-                "auth.rbac.enabled": False,
+                "auth.rbac.enabled": "false",
             }
         )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
 
-        replicas_name = [f"<br />-{self.release_name}-{i}" for i in range(self.resources_limits["no_nodes"])]
+        replicas_name = [f"<br />-{self.release_name}-{i}" for i in range(int(self.resources_limits["no_nodes"]))]
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
