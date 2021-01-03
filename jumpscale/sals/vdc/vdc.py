@@ -1,5 +1,7 @@
 import datetime
 from decimal import Decimal
+import decimal
+from math import ceil
 import uuid
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -9,7 +11,7 @@ from jumpscale.sals.zos import get as get_zos
 
 from .deployer import VDCDeployer
 from .models import *
-from .size import VDC_SIZE, PROXY_FARM
+from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
 from .wallet import VDC_WALLET_FACTORY
 import netaddr
 
@@ -137,6 +139,7 @@ class UserVDC(Base):
 
     def _update_instance(self, workload):
         k8s_sizes = [
+            VDC_SIZE.K8SNodeFlavor.MICRO.value,
             VDC_SIZE.K8SNodeFlavor.SMALL.value,
             VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
             VDC_SIZE.K8SNodeFlavor.BIG.value,
@@ -177,11 +180,21 @@ class UserVDC(Base):
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
         elif workload.info.workload_type == WorkloadType.Zdb:
+            result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+            if "IPs" in result_json:
+                ip = result_json["IPs"][0]
+            else:
+                ip = result_json["IP"]
+            namespace = result_json["Namespace"]
+            port = result_json["Port"]
             zdb = S3ZDB()
             zdb.node_id = workload.info.node_id
             zdb.pool_id = workload.info.pool_id
             zdb.wid = workload.id
             zdb.size = workload.size
+            zdb.ip_address = ip
+            zdb.port = port
+            zdb.namespace = namespace
             self.s3.zdbs.append(zdb)
 
     def _get_s3_subdomains(self, subdomain_workloads):
@@ -304,10 +317,8 @@ class UserVDC(Base):
         j.logger.info(f"VDC: {self.solution_uuid}, REVERT_GRACE_PERIOD_ACTION: reverted successfully")
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
-        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
-            amount = 0
-        else:
-            amount = VDC_SIZE.PRICES["plans"][self.flavor]
+        discount = FARM_DISCOUNT.get()
+        amount = VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount)
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -318,20 +329,26 @@ class UserVDC(Base):
                 {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
             ),
         )
+
         if amount > 0:
-            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, amount, payment_id
 
     def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+        discount = FARM_DISCOUNT.get()
+
         if isinstance(size, str):
             size = VDC_SIZE.K8SNodeFlavor[size.upper()]
         amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
         if public_ip:
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
 
-        if j.core.identity.is_configured and "devnet" in j.core.identity.me.explorer_url:
-            amount = 0
+        amount *= 1 - discount
+        node_price = amount
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -353,9 +370,12 @@ class UserVDC(Base):
             ),
         )
         if amount > 0:
-            return j.sals.billing.wait_payment(payment_id, bot=bot), amount, payment_id
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
-            return True, amount, payment_id
+            return True, node_price, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
@@ -419,7 +439,9 @@ class UserVDC(Base):
                     continue
 
             try:
-                return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}", memo_text=memo_text)
+                return wallet.transfer(
+                    address, amount=round(amount, 6), asset=f"{a.code}:{a.issuer}", memo_text=memo_text
+                )
             except Exception as e:
                 j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
         j.logger.critical(
@@ -475,6 +497,7 @@ class UserVDC(Base):
         return result
 
     def calculate_spec_price(self):
+        discount = FARM_DISCOUNT.get()
         current_spec = self.get_current_spec()
         total_price = (
             VDC_SIZE.PRICES["plans"][self.flavor]
@@ -482,7 +505,7 @@ class UserVDC(Base):
         )
         for size in current_spec["nodes"]:
             total_price += VDC_SIZE.PRICES["nodes"][size]
-        return total_price
+        return total_price * (1 - discount)
 
     def calculate_funded_period(self, load_info=True):
         """
@@ -498,3 +521,16 @@ class UserVDC(Base):
         funded_period = self.calculate_funded_period(load_info)
         pools_expiration = self.get_pools_expiration()
         return pools_expiration + funded_period * 24 * 60 * 60
+
+    def fund_difference(self, funding_wallet_name, destination_wallet_name=None):
+        wallet = j.clients.stellar.find(funding_wallet_name)
+        destination_wallet_name = destination_wallet_name or self.provision_wallet.instance_name
+        dst_wallet = j.clients.stellar.find(destination_wallet_name)
+        current_balance = self._get_wallet_balance(dst_wallet)
+        j.logger.info(f"current balance in {destination_wallet_name} is {current_balance}")
+        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2 + 0.5
+        j.logger.info(f"vdc_cost: {vdc_cost}")
+        if vdc_cost > current_balance:
+            diff = float(vdc_cost) - float(current_balance)
+            j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
+            self.pay_amount(dst_wallet.address, diff, wallet)

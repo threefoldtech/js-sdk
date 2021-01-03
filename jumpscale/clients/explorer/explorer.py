@@ -16,6 +16,7 @@ from .nodes import Nodes
 from .pools import Pools
 from .users import Users
 from .workloads import Workloads
+from .prices import Prices
 
 from jumpscale.loader import j
 
@@ -55,3 +56,4 @@ class Explorer(Client):
         self.pools = Pools(self)
         self.workloads = Workloads(self)
         self.conversion = Conversion(self)
+        self.prices = Prices(self)

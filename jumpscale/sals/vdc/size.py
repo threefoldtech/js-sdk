@@ -53,6 +53,12 @@ class PROXY_FARM(FarmConfigBase):
     mainnet = "csfarmer"
 
 
+class FARM_DISCOUNT(FarmConfigBase):
+    devnet = 0.99
+    testnet = 0.9
+    mainnet = 0
+
+
 def get_explorer_network():
     networks = ["devnet", "testnet"]
     for net in networks:
@@ -231,7 +237,7 @@ class VDCSize:
                     "size": self.K8SNodeFlavor[val["k8s"]["size"].upper()],
                     "controller_size": self.K8SNodeFlavor[val["k8s"]["controller_size"].upper()],
                 },
-                "s3": {"size": self.S3ZDBSize[val["s3"]["size"].upper()]},
+                "s3": {"size": self.S3ZDBSize[val["s3"]["size"].upper()], "upto": val["s3"]["upto"]},
                 "duration": val["duration"],
             }
 
