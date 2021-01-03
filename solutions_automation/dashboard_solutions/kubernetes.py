@@ -28,3 +28,13 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
         # multi choice
         POOL_MESSAGE: "pools",
     }
+
+    def multi_list_choice(self, msg, options, *args, **kwargs):
+
+        selected = self.fetch_param(msg, *args, **kwargs)
+
+        if options:
+            for m in options:
+                if str(selected) in m:
+                    return [m]
+            return [selected]
