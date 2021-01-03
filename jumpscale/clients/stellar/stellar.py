@@ -230,6 +230,7 @@ class Stellar(Client):
                     amount=balance.balance,
                     asset_code=balance.asset_code,
                     asset_issuer=balance.asset_issuer,
+                    source=account.account_id,
                 )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
