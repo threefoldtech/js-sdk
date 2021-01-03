@@ -11,7 +11,7 @@ class BillingManager:
         payment = PAYMENT_FACTORY.new(
             instance_name,
             payment_id=payment_id,
-            amount=amount,
+            amount=round(amount, 6),
             wallet_name=wallet_name,
             refund_extra=refund_extra,
             description=description,
