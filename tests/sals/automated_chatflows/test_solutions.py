@@ -82,7 +82,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Deploy Ubuntu.")
         name = self.random_name()
         ubuntu = deployer.deploy_ubuntu(
-            solution_name=name, pool=self.pool_name, network=self.network_name, ssh=self.ssh_cl.public_key_path,
+            solution_name=name, pool=self.pool_id, network=self.network_name, ssh=self.ssh_cl.public_key_path,
         )
         self.solution_uuid = ubuntu.solution_id
 
