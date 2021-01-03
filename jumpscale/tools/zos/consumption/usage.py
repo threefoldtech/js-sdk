@@ -85,7 +85,7 @@ def cost(
     return price
 
 
-def calculate_vdc_price(flavor):
+def calculate_vdc_price(flavor, farm_name=None):
     """calculate the workloads price for vdcs in TFT
 
     Args:
@@ -153,7 +153,8 @@ def calculate_vdc_price(flavor):
 
     # create empty pool and get the payment amount
     zos = j.sals.zos.get()
-    pool = zos.pools.create(round(all_cus), round(all_sus), round(all_ipv4us), "freefarm")
+    farm_name = farm_name or zos._explorer.farms.list()[0].name
+    pool = zos.pools.create(round(all_cus), round(all_sus), round(all_ipv4us), farm_name)
     amount = pool.escrow_information.amount
     total_amount_dec = Decimal(amount) / Decimal(1e7)
     total_amount = "{0:f}".format(total_amount_dec)
