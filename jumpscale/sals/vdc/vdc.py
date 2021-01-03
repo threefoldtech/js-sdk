@@ -483,6 +483,7 @@ class UserVDC(Base):
         return result
 
     def calculate_spec_price(self):
+        discount = FARM_DISCOUNT.get()
         current_spec = self.get_current_spec()
         total_price = (
             VDC_SIZE.PRICES["plans"][self.flavor]
@@ -490,7 +491,7 @@ class UserVDC(Base):
         )
         for size in current_spec["nodes"]:
             total_price += VDC_SIZE.PRICES["nodes"][size]
-        return total_price
+        return total_price * (1 - discount)
 
     def calculate_funded_period(self, load_info=True):
         """
