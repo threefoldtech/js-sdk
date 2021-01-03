@@ -179,11 +179,21 @@ class UserVDC(Base):
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
         elif workload.info.workload_type == WorkloadType.Zdb:
+            result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+            if "IPs" in result_json:
+                ip = result_json["IPs"][0]
+            else:
+                ip = result_json["IP"]
+            namespace = result_json["Namespace"]
+            port = result_json["Port"]
             zdb = S3ZDB()
             zdb.node_id = workload.info.node_id
             zdb.pool_id = workload.info.pool_id
             zdb.wid = workload.id
             zdb.size = workload.size
+            zdb.ip_address = ip
+            zdb.port = port
+            zdb.namespace = namespace
             self.s3.zdbs.append(zdb)
 
     def _get_s3_subdomains(self, subdomain_workloads):
