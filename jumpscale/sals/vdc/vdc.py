@@ -138,6 +138,7 @@ class UserVDC(Base):
 
     def _update_instance(self, workload):
         k8s_sizes = [
+            VDC_SIZE.K8SNodeFlavor.MICRO.value,
             VDC_SIZE.K8SNodeFlavor.SMALL.value,
             VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
             VDC_SIZE.K8SNodeFlavor.BIG.value,
