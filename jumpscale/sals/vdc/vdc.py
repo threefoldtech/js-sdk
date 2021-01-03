@@ -437,7 +437,9 @@ class UserVDC(Base):
                     continue
 
             try:
-                return wallet.transfer(address, amount=amount, asset=f"{a.code}:{a.issuer}", memo_text=memo_text)
+                return wallet.transfer(
+                    address, amount=round(amount, 6), asset=f"{a.code}:{a.issuer}", memo_text=memo_text
+                )
             except Exception as e:
                 j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
         j.logger.critical(
