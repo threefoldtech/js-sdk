@@ -1059,15 +1059,33 @@ class Stellar(Client):
         source_account = self.load_account()
 
         base_fee = server.fetch_base_fee()
-        transaction = (
-            stellar_sdk.TransactionBuilder(
-                source_account=source_account,
-                network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
-                base_fee=base_fee,
-            )
-            .append_account_merge_op(destination=destination_address)
-            .build()
+
+        transaction_builder = stellar_sdk.TransactionBuilder(
+            source_account=source_account,
+            network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
+            base_fee=base_fee,
         )
+
+        balances = self.get_balance()
+        for balance in balances.balances:
+            if balance.is_native():
+                continue
+            # Step 1: Transfer custom assets
+            if decimal.Decimal(balance.balance) > decimal.Decimal(0):
+                transaction_builder.append_payment_op(
+                    destination=self.address,
+                    amount=balance.balance,
+                    asset_code=balance.asset_code,
+                    asset_issuer=balance.asset_issuer,
+                )
+            # Step 2: Delete trustlines
+            transaction_builder.append_change_trust_op(
+                asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
+            )
+
+        transaction_builder.append_account_merge_op(destination=destination_address)
+        transaction = transaction_builder.build()
+
         transaction.sign(source_keypair)
         try:
             response = server.submit_transaction(transaction)
