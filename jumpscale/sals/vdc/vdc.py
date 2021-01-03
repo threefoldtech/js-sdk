@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+import decimal
 from math import ceil
 import uuid
 
@@ -317,7 +318,7 @@ class UserVDC(Base):
 
     def show_vdc_payment(self, bot, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
-        amount = ceil(VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount))
+        amount = VDC_SIZE.PRICES["plans"][self.flavor] * (1 - discount)
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -520,3 +521,16 @@ class UserVDC(Base):
         funded_period = self.calculate_funded_period(load_info)
         pools_expiration = self.get_pools_expiration()
         return pools_expiration + funded_period * 24 * 60 * 60
+
+    def fund_difference(self, funding_wallet_name, destination_wallet_name=None):
+        wallet = j.clients.stellar.find(funding_wallet_name)
+        destination_wallet_name = destination_wallet_name or self.provision_wallet.instance_name
+        dst_wallet = j.clients.stellar.find(destination_wallet_name)
+        current_balance = self._get_wallet_balance(dst_wallet)
+        j.logger.info(f"current balance in {destination_wallet_name} is {current_balance}")
+        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2 + 0.5
+        j.logger.info(f"vdc_cost: {vdc_cost}")
+        if vdc_cost > current_balance:
+            diff = float(vdc_cost) - float(current_balance)
+            j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
+            self.pay_amount(dst_wallet.address, diff, wallet)

@@ -159,4 +159,4 @@ def calculate_vdc_price(flavor, farm_name=None):
     total_amount_dec = Decimal(amount) / Decimal(1e7)
     total_amount = "{0:f}".format(total_amount_dec)
 
-    return f"{float(total_amount)} TFT"
+    return total_amount
