@@ -43,6 +43,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
         print(args)
         if args:
             for m in args[0]:
-                if selected in m:
+                if str(selected) in m:
                     return m
             return selected
