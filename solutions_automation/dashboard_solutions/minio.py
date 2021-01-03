@@ -55,6 +55,6 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
         selected = self.fetch_param(msg, *args, **kwargs)
         if args:
             for m in args[0]:
-                if selected in m:
+                if str(selected) in m:
                     return m
             return selected

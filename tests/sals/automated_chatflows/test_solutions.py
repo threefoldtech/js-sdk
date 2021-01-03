@@ -162,7 +162,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
             password=password,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
-            container_pool=self.pool_name,
+            container_pool=self.pool_id,
         )
         self.solution_uuid = minio.solution_id
 
@@ -190,9 +190,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
             solution_name=name,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
-            redis_pool=self.pool_name,
-            prometheus_pool=self.pool_name,
-            grafana_pool=self.pool_name,
+            redis_pool=self.pool_id,
+            prometheus_pool=self.pool_id,
+            grafana_pool=self.pool_id,
         )
         self.solution_uuid = monitoring.solution_id
         self.info("Check that Prometheus UI is reachable. ")
@@ -227,7 +227,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         generic_flist = deployer.deploy_generic_flist(
             solution_name=name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
-            pool=self.pool_name,
+            pool=self.pool_id,
             network=self.network_name,
         )
         self.solution_uuid = generic_flist.solution_id
@@ -250,7 +250,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         deployer.deploy_generic_flist(
             solution_name=flist_name,
             flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
-            pool=self.pool_name,
+            pool=self.pool_id,
             network=self.network_name,
         )
 
