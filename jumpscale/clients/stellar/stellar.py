@@ -268,7 +268,7 @@ class Stellar(Client):
             activationdata = self._create_activation_code()
             self._activation_account(activationdata["activation_code"])
 
-    def activate_account(self, destination_address, starting_balance="12.50"):
+    def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
 
         Args:
