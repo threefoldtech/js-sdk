@@ -9,6 +9,7 @@ from .base_component import VDCBaseComponent
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
 from jumpscale.clients.explorer.models import K8s, NextAction
+import gevent
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
@@ -381,3 +382,62 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         for wid in workloads_to_delete:
             self.zos.workloads.decomission(wid)
         return workloads_to_delete
+
+    # TODO: better implementatiom
+    def upgrade_traefik(self):
+        """
+        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
+        """
+
+        def is_traefik_installed(manager):
+            releases = manager.list_deployed_releases("kube-system")
+            # TODO: List only using names
+            for release in releases:
+                if release.get("name") == "traefik":
+                    return True
+            return False
+
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
+
+        # wait until traefik chart is installed on the cluster then uninstall it
+        checks = 12
+        while checks > 0 and not is_traefik_installed(k8s_client):
+            gevent.sleep(5)
+            checks -= 1
+        if is_traefik_installed(k8s_client):
+            k8s_client.delete_deployed_release("traefik", "kube-system")
+
+        # install traefik v2.3.3 chart
+        # TODO: better code for the values
+        k8s_client.install_chart(
+            "traefik",
+            "traefik/traefik",
+            "kube-system",
+            chart_values_file="""<(echo -e 'image:
+  tag: "2.3.3"
+additionalArguments:
+  - "--certificatesresolvers.default.acme.tlschallenge"
+  - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.default.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.default.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+  - "--certificatesresolvers.default.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.gridca.acme.tlschallenge"
+  - "--certificatesresolvers.gridca.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.gridca.acme.storage=/data/acme1.json"
+  - "--certificatesresolvers.gridca.acme.caserver=https://ca1.grid.tf"
+  - "--certificatesresolvers.gridca.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.le.acme.tlschallenge"
+  - "--certificatesresolvers.le.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
+  - "--certificatesresolvers.le.acme.storage=/data/acme2.json"
+  - "--certificatesresolvers.le.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+  - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+ports:
+  web:
+    redirectTo: websecure
+  websecure:
+    tls:
+      enabled: true')""",
+        )
