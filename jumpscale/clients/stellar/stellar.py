@@ -225,12 +225,14 @@ class Stellar(Client):
             if balance.is_native():
                 continue
             # Step 1: Transfer custom assets
-            transaction_builder.append_payment_op(
-                destination=self.address,
-                amount=balance.balance,
-                asset_code=balance.asset_code,
-                asset_issuer=balance.asset_issuer,
-            )
+            if decimal.Decimal(balance.balance) > decimal.Decimal(0):
+                transaction_builder.append_payment_op(
+                    destination=self.address,
+                    amount=balance.balance,
+                    asset_code=balance.asset_code,
+                    asset_issuer=balance.asset_issuer,
+                    source=account.account_id,
+                )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
                 asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
