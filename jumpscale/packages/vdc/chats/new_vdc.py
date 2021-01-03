@@ -5,6 +5,8 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
+MINIMUM_ACTIVATION_XLMS = 15
+
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
@@ -15,6 +17,10 @@ class VDCDeploy(GedisChatBot):
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
+        if j.clients.stellar.get_activation_wallet_xlms() < MINIMUM_ACTIVATION_XLMS:
+            raise StopChatFlow(
+                f"The activation service wallet contains less than {MINIMUM_ACTIVATION_XLMS}, try again later"
+            )
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
 
