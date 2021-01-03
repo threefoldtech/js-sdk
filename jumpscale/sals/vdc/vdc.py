@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+import decimal
 from math import ceil
 import uuid
 
@@ -520,3 +521,13 @@ class UserVDC(Base):
         funded_period = self.calculate_funded_period(load_info)
         pools_expiration = self.get_pools_expiration()
         return pools_expiration + funded_period * 24 * 60 * 60
+
+    def fund_difference(self, funding_wallet_name, destination_wallet_name=None):
+        wallet = j.clients.stellar.find(funding_wallet_name)
+        destination_wallet_name = destination_wallet_name or self.provision_wallet.instance_name
+        dst_wallet = j.clients.stellar.find(destination_wallet_name)
+        current_balance = self._get_wallet_balance(dst_wallet)
+        vdc_cost = j.tools.zos.consumption.calculate_vdc_price(self.flavor.value) / 2 + 0.5
+        if vdc_cost > current_balance:
+            diff = float(vdc_cost) - float(current_balance)
+            self.pay_amount(dst_wallet.address, diff, wallet)

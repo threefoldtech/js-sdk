@@ -132,6 +132,8 @@ class VDCDeploy(GedisChatBot):
             except Exception as e:
                 j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
         self.deployer._set_wallet(old_wallet)
+        self.md_show_update("Funding difference...")
+        self.vdc.fund_difference(initialization_wallet_name)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
