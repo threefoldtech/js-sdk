@@ -347,6 +347,7 @@ class UserVDC(Base):
             amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
 
         amount *= 1 - discount
+        node_price = amount
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -373,7 +374,7 @@ class UserVDC(Base):
                 notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
-            return True, amount, payment_id
+            return True, node_price, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
