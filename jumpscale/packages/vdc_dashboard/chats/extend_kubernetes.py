@@ -21,8 +21,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
 
-        node_flavors = [flavor for flavor in VDC_SIZE.K8SNodeFlavor]
-
+        node_flavors = [VDC_SIZE.K8SNodeFlavor.MEDIUM, VDC_SIZE.K8SNodeFlavor.BIG]
         node_flavor_messages = []
         for flavor in node_flavors:
             plan = VDC_SIZE.K8S_SIZES[flavor]
