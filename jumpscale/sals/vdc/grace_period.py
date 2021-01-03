@@ -119,4 +119,4 @@ class GracePeriodModel(Base):
 
 
 GRACE_PERIOD_FACTORY = VDCGracePeriodFactory(GracePeriodModel)
-GRACE_PERIOD_FACTORY.always_relaod = True
+GRACE_PERIOD_FACTORY.always_reload = True
