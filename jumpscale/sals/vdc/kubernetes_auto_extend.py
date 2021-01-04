@@ -22,7 +22,7 @@ class KubernetesMonitor:
     def __init__(self, vdc_instance):
         self.vdc_instance = vdc_instance
         self.manager = Manager()
-        self._node_stats = {}
+        self._node_stats = dict()
         self.stats_history = StatsHistory(self.vdc_instance)
 
     @property
@@ -33,8 +33,6 @@ class KubernetesMonitor:
 
     @property
     def node_stats(self):
-        if not self._node_stats:
-            self.update_stats()
         return self._node_stats
 
     @node_stats.setter
@@ -54,7 +52,7 @@ class KubernetesMonitor:
             cpu_percentage = float(splits[2][:-1]) / 100
             memory_usage = float(splits[3][:-2])
             memory_percentage = float(splits[4][:-1]) / 100
-            self._node_stats[node_name] = {
+            self.node_stats[node_name] = {
                 "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
             }
@@ -64,7 +62,7 @@ class KubernetesMonitor:
         for node in result_dict["items"]:
             node_name = node["metadata"]["labels"]["k3s.io/hostname"]
             node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
-            self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
+            self.node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"kubernetes stats: {self.node_stats}")
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
