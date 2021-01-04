@@ -1,6 +1,6 @@
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.loader import j
-from jumpscale.sals.vdc.auto_topup import (
+from jumpscale.sals.vdc.s3_auto_topup import (
     check_s3_utilization,
     extend_zdbs,
     get_zdb_farms_distribution,
@@ -47,6 +47,7 @@ class S3AutoTopUp(BackgroundService):
         5- extend_zdbs
         6- get new config
         """
+        return  # disabled as there is no longer s3 (minio) part of the vdc TODO: remove when new zdb topup is running
         for sol_config in self.list_auto_top_up_config():
             _, required_cap = check_s3_utilization(
                 sol_config["minio_api_url"],

@@ -1,7 +1,4 @@
 import datetime
-from decimal import Decimal
-import decimal
-from math import ceil
 import uuid
 
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
@@ -13,6 +10,7 @@ from .deployer import VDCDeployer
 from .models import *
 from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
 from .wallet import VDC_WALLET_FACTORY
+from .zdb_auto_topup import ZDBMonitor
 import netaddr
 
 VDC_WORKLOAD_TYPES = [
@@ -102,6 +100,9 @@ class UserVDC(Base):
         return VDCDeployer(
             vdc_instance=self, password=password, bot=bot, proxy_farm_name=proxy_farm_name, identity=identity
         )
+
+    def get_zdb_monitor(self):
+        return ZDBMonitor(self)
 
     def load_info(self):
         self.kubernetes = []
