@@ -11,6 +11,7 @@ from .models import *
 from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
+from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
 
 VDC_WORKLOAD_TYPES = [
@@ -103,6 +104,9 @@ class UserVDC(Base):
 
     def get_zdb_monitor(self):
         return ZDBMonitor(self)
+
+    def get_kubernetes_monitor(self):
+        return KubernetesMonitor(self)
 
     def load_info(self):
         self.kubernetes = []
