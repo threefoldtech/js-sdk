@@ -15,7 +15,7 @@ class StatsHistory:
 
     def get(self):
         items = self.client.lrange(self.key, 0, self.rotation_len - 1)
-        return [j.data.serializers.loads(item.decode()) for item in items]
+        return [j.data.serializers.json.loads(item.decode()) for item in items]
 
 
 class KubernetesMonitor:
