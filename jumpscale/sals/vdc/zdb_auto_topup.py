@@ -56,7 +56,10 @@ class ZDBMonitor:
     def _parse_info(self, info: str):
         result = {}
         for line in info.splitlines():
-            key, val = line.split(": ")
+            splits = line.split(": ")
+            if len(splits) != 2:
+                continue
+            key, val = splits[0], splits[1]
             result[key] = val
         return result
 
