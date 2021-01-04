@@ -159,6 +159,14 @@ def cancel_deployment():
     return j.data.serializers.json.dumps({"result": True})
 
 
+@app.route("/api/formattoml", method="POST")
+@authenticated
+def formattoml():
+    request_data = j.data.serializers.json.loads(request.body.read())
+    data = request_data.get("data")
+    return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
+
+
 @app.route("/api/allowed", method="GET")
 @authenticated
 def allowed():
