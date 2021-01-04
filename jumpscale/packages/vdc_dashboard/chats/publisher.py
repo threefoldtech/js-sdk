@@ -47,7 +47,7 @@ class Publisher(SolutionsChatflowDeploy):
                 "env.url": url.value,
                 "env.branch": branch.value,
                 "env.srcdir": srcdir.value,
-                "domain": self.domain,
+                "ingress.host": self.domain,
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
             }
