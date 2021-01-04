@@ -12,6 +12,7 @@ class ZDBAutoTopUp(BackgroundService):
         )
         for instance_name in j.sals.vdc.list_all():
             vdc = j.sals.vdc.find(instance_name)
+            vdc.load_info()
             monitor = vdc.get_zdb_monitor()
 
             required_cap = monitor.get_extension_capacity(
