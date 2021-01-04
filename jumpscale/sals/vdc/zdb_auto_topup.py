@@ -118,6 +118,7 @@ class ZDBMonitor:
             password,
             self.vdc_instance.get_pools_expiration(),
             extension_size,
+            wallet_name=self.vdc_instance.provision_wallet.instance_name,
         )
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:
