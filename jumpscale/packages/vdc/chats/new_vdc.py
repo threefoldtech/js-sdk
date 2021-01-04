@@ -5,7 +5,7 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
-MINIMUM_ACTIVATION_XLMS = 15
+MINIMUM_ACTIVATION_XLMS = 0
 
 
 class VDCDeploy(GedisChatBot):
