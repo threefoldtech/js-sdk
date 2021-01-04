@@ -42,7 +42,7 @@ class ZDBMonitor:
             client.hostname = zdb.ip_address
             client.port = zdb.port
             try:
-                result = client.execute_cmd("nsinfo", zdb.namespace)
+                result = client.execute_command("nsinfo", zdb.namespace)
             except Exception as e:
                 j.logger.error(f"failed to fetch namespace info for zdb: {zdb} due to error {str(e)}")
                 continue
