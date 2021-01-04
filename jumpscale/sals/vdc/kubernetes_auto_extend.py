@@ -35,6 +35,13 @@ class KubernetesMonitor:
                 "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
             }
+        out = self.manager.execute_native_cmd("kubectl get nodes -o wide -o json")
+        result_dict = j.data.serializers.json.loads(out)
+        ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
+        for node in result_dict["items"]:
+            node_name = node["metadata"]["labels"]["k3s.io/hostname"]
+            node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
+            self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"kubernetes stats: {self.node_stats}")
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
