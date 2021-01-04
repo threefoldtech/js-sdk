@@ -1,5 +1,21 @@
+from collections import defaultdict
 from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
+
+
+class StatsHistory:
+    def __init__(self, vdc_instance, rotation_len=5):
+        self.client = j.clients.redis.get(vdc_instance.vdc_name)
+        self.key = f"{vdc_instance.vdc_name}_K8S_STATS"
+        self.rotation_len = rotation_len
+
+    def update(self, node_stats):
+        self.client.lpush(self.key, j.data.serializers.json.dumps(node_stats))
+        self.client.ltrim(self.key, 0, self.rotation_len - 1)
+
+    def get(self):
+        items = self.client.lrange(self.key, 0, self.rotation_len - 1)
+        return [j.data.serializers.loads(item.decode()) for item in items]
 
 
 class KubernetesMonitor:
@@ -7,6 +23,7 @@ class KubernetesMonitor:
         self.vdc_instance = vdc_instance
         self.manager = Manager()
         self._node_stats = {}
+        self.stats_history = StatsHistory(self.vdc_instance)
 
     @property
     def nodes(self):
@@ -20,7 +37,13 @@ class KubernetesMonitor:
             self.update_stats()
         return self._node_stats
 
+    @node_stats.setter
+    def node_stats(self, value):
+        self._node_stats.update(value)
+        self.stats_history.update(value)
+
     def update_stats(self):
+        self.vdc_instance.load_info()
         out = self.manager.execute_native_cmd("kubectl top nodes  --no-headers=true")
         for line in out.splitlines():
             splits = line.split()
