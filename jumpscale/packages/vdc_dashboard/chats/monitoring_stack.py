@@ -62,7 +62,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     @chatflow_step
     def success(self):
         extra_info = f"Grafana can be accessed by {self.grafana_domain}"
-        super.success(extra_info=extra_info)
+        super().success(extra_info=extra_info)
 
 
 chat = InstallMonitoringStack
