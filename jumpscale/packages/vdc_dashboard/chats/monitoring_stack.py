@@ -18,7 +18,6 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
         "set_config",
         "install_chart",
         "initializing",
-        "add_extra_info",
         "success",
     ]
 
