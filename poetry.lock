@@ -1229,7 +1229,7 @@ six = "*"
 
 [[package]]
 name = "stellar-sdk"
-version = "2.4.1"
+version = "2.10.0"
 description = "The Python Stellar SDK library provides APIs to build transactions and connect to Horizon."
 category = "main"
 optional = false
@@ -1488,7 +1488,7 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "a9177d6bc4cb606d19977aa8baae8708e28a964ed4fe4e540babba74e304e7b0"
+content-hash = "774fc8311984ada2c73dc721c137d4f24f0a201f45161b9a100460918f8128d4"
 
 [metadata.files]
 acme = [
@@ -2176,8 +2176,8 @@ stellar-base-sseclient = [
     {file = "stellar-base-sseclient-0.0.21.tar.gz", hash = "sha256:2a500f3015dede4e9fac0f9d6d9d85f4fdd7fe1c9c10b2b111a6ae190cc5dc00"},
 ]
 stellar-sdk = [
-    {file = "stellar-sdk-2.4.1.tar.gz", hash = "sha256:505468d74e321d914bc4aacfa9674f17b02d6d5502190afd7a694c0d48310cf2"},
-    {file = "stellar_sdk-2.4.1-py3-none-any.whl", hash = "sha256:9303f78233864a2534736ed7fe8edb6e2a17306718115ec08eea509aa49afc50"},
+    {file = "stellar-sdk-2.10.0.tar.gz", hash = "sha256:543411588da9e049bf7e643510d36f959b42568a63527240a24bf57a0f7f34ec"},
+    {file = "stellar_sdk-2.10.0-py3-none-any.whl", hash = "sha256:582153e165203b02745788962a067a707bf964c26167b64a3c539bc08672efd8"},
 ]
 terminaltables = [
     {file = "terminaltables-3.1.0.tar.gz", hash = "sha256:f3eb0eb92e3833972ac36796293ca0906e998dc3be91fbe1f8615b331b853b81"},
