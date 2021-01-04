@@ -46,7 +46,7 @@ class ZDBMonitor:
             except Exception as e:
                 j.logger.error(f"failed to fetch namespace info for zdb: {zdb} due to error {str(e)}")
                 continue
-            nsinfo = self._parse_info(result)
+            nsinfo = self._parse_info(result.decode())
             if not all(["data_size_bytes" in nsinfo, "data_limits_bytes" in nsinfo]):
                 j.logger.warning(f"missing data_size and data_limits keys in namespace info for zdb: {zdb}")
                 continue
