@@ -37,10 +37,6 @@ class KubernetesMonitor:
             self.update_stats()
         return self._node_stats
 
-    @node_stats.setter
-    def node_stats(self, value):
-        self._node_stats.update(value)
-
     def update_stats(self):
         self.vdc_instance.load_info()
         out = self.manager.execute_native_cmd("kubectl top nodes  --no-headers=true")
