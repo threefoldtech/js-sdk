@@ -86,7 +86,7 @@ class ZDBMonitor:
         zos = j.sals.zos.get()
         for zdb in self.zdbs:
             workload = zos.workloads.get(zdb.wid)
-            metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.metadata)
+            metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
             try:
                 metadata_dict = j.data.serializers.json.loads(metadata)
             except Exception as e:
