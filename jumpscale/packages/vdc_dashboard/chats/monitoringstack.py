@@ -66,10 +66,12 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
         self._choose_flavor()
-        self.chart_config = {
-            "prometheus.ingress.hosts[0]": self.domain,
-            "grafana.ingress.hosts[0]": self.grafana_domain,
-        }
+        self.chart_config.update(
+            {
+                "prometheus.ingress.hosts[0]": self.domain,
+                "grafana.ingress.hosts[0]": self.grafana_domain,
+            }
+        )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
