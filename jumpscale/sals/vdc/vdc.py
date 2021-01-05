@@ -170,8 +170,10 @@ class UserVDC(Base):
                 address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
                 node.public_ip = address
 
-            node.size = (
-                VDC_SIZE.K8SNodeFlavor(workload.size) if workload.size in k8s_sizes else VDC_SIZE.K8SNodeFlavor.SMALL
+            node._size = (
+                VDC_SIZE.K8SNodeFlavor(workload.size).value
+                if workload.size in k8s_sizes
+                else VDC_SIZE.K8SNodeFlavor.SMALL.value
             )
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
