@@ -263,6 +263,10 @@ class Stellar(Client):
         ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
         ## this activator should be imported on the system.
 
+        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+            j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+            self.add_known_trustline("TFT")
+            return  # TODO update to activation service once it works better
         try:
             resp = self._activation_account()
             loaded_json = j.data.serializers.json.loads(resp)
@@ -272,10 +276,6 @@ class Stellar(Client):
         except Exception as e:
             j.logger.error(f"failed to activate using the activation service {e}")
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
-
-            if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
-                j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
-                self.add_known_trustline("TFT")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
