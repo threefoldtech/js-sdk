@@ -31,8 +31,8 @@ class EtcdDeploy(SolutionsChatflowDeploy):
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
                 "persistence.size": self.resources_limits["volume_size"],
-                "auth.rbac.enabled": False,
-                "metrics.enabled": True,
+                "auth.rbac.enabled": "false",
+                "metrics.enabled": "true",
             }
         )
 
