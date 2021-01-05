@@ -268,12 +268,13 @@ class Stellar(Client):
             loaded_json = j.data.serializers.json.loads(resp)
             xdr = loaded_json["activation_transaction"]
             self.sign(xdr, submit=True)
+
         except Exception as e:
             j.logger.error(f"failed to activate using the activation service {e}")
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
 
             if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
-                j.clients.stellar.activation_wallet.activate_account(self.address, "2.6")
+                j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
