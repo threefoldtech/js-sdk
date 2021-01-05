@@ -27,7 +27,6 @@ class UserVDC(Base):
     owner_tname = fields.String()
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
-    flavor = fields.Enum(VDC_SIZE.VDCFlavor)
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
     threebot = fields.Object(VDCThreebot)
@@ -35,6 +34,16 @@ class UserVDC(Base):
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
+    _flavor = fields.String()
+
+    @property
+    def flavor(self):
+        return VDC_SIZE.VDCFlavor(self._flavor)
+
+    def to_dict(self):
+        d = super().to_dict()
+        d["flavor"] = self._flavor
+        return d
 
     def is_empty(self):
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
