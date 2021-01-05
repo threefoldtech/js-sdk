@@ -28,22 +28,19 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Generating access token")
     def get_access_token(self):
         self._get_vdc_info()
-        services=self.k8s_client.execute_native_cmd("kubectl get services -o json")
-        all_services = json.loads(services)
         # Validate service account 
-        if not get_specific_service(all_services, "serviceaccount"):
+        services=self.k8s_client.execute_native_cmd("kubectl get serviceaccount -o json")
+        all_service_account = json.loads(services)
+        if not self.get_specific_service(all_service_account, "kubeapps-operator"):
             self.k8s_client.execute_native_cmd(
-                cmd="kubectl create serviceaccount"
-            )
-
-        # Validate kubeapps
-        if not get_specific_service(all_services, "kubeapps-operator"):
-            self.k8s_client.execute_native_cmd(
-                cmd="kubectl create kubeapps-operator"
+                cmd="kubectl create serviceaccount kubeapps-operator"
             )
 
         # Validate clusterrolebinding
-        if not get_specific_service(all_services, "clusterrolebinding"):
+        services=self.k8s_client.execute_native_cmd("kubectl get clusterrolebinding -o json")
+        all_cluster_rolebinding = json.loads(services)
+
+        if not self.get_specific_service(all_cluster_rolebinding, "kubeapps-operator"):
             self.k8s_client.execute_native_cmd(
                 cmd="kubectl create clusterrolebinding kubeapps-operator --clusterrole=cluster-admin --serviceaccount=default:kubeapps-operator"
             )
@@ -56,7 +53,6 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
             raise StopChatFlow(
                 "There is an issue happened during getting access token to be able to access kubeapps solution"
             )
-
 
         if not self.access_token :
             raise StopChatFlow(
