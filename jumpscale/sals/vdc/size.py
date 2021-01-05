@@ -139,8 +139,8 @@ class VDCSize:
     def is_updated(self):
         if not self._LAST_LOADED:
             return False
-        elif self._LAST_LOADED + (24 * 60 * 60) < j.data.time.now().timestamp:
-            return False
+        # elif self._LAST_LOADED + (24 * 60 * 60) < j.data.time.now().timestamp:
+        #     return False
         return True
 
     def load(self):
