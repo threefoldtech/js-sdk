@@ -275,6 +275,7 @@ class Stellar(Client):
 
             if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
                 j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+                self.add_known_trustline("TFT")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
