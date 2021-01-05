@@ -320,6 +320,11 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        balances = self.get_balance()
+        for b in balances.balances:
+            if b.asset_code == asset_code:
+                j.logger.info(f"trustline {asset_code} is already added.")
+                return
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
             raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
