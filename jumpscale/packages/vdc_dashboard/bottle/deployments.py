@@ -14,6 +14,7 @@ from jumpscale.core.base import StoredFactory
 from jumpscale.sals.vdc import VDCFACTORY
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+import os
 
 app = Bottle()
 
@@ -217,6 +218,30 @@ def accept():
         return HTTPResponse(
             j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
+
+
+@app.route("/api/update", method="GET")
+@package_authorized("vdc_dashboard")
+def update():
+    branch = os.environ.get("SDK_VERSION", "development")
+    cmds = [f"git checkout {branch}", "git pull"]
+    for cmd in cmds:
+        rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")
+        if rc:
+            return HTTPResponse(
+                j.data.serializers.json.dumps(
+                    {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd}
+                ),
+                status=500,
+                headers={"Content-Type": "application/json"},
+            )
+    j.core.executors.run_tmux(
+        "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
+        "restart",
+    )
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

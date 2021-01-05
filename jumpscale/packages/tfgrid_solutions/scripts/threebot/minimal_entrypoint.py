@@ -71,6 +71,7 @@ VDC_VARS = {
     "PROVISIONING_WALLET_SECRET": os.environ.get("PROVISIONING_WALLET_SECRET"),
     "PREPAID_WALLET_SECRET": os.environ.get("PREPAID_WALLET_SECRET"),
     "VDC_INSTANCE_NAME": VDC_INSTANCE_NAME,
+    "SDK_VERSION": os.environ.get("SDK_VERSION", "development"),
 }
 
 
