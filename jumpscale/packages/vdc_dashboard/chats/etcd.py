@@ -31,7 +31,8 @@ class EtcdDeploy(SolutionsChatflowDeploy):
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
                 "persistence.size": self.resources_limits["volume_size"],
-                "auth.rbac.enabled": "false",
+                "auth.rbac.enabled": False,
+                "metrics.enabled": True,
             }
         )
 
@@ -54,7 +55,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
             `kubectl exec -it POD_NAME -- etcdctl get message`
 
         - To connect to your etcd server from outside the cluster execute the following commands:
-            `kubectl port-forward --namespace default svc/my-etcd 2379:2379`
+            `kubectl port-forward --namespace default svc/{self.release_name} 2379:2379`
         """
         self.md_show(dedent(message), md=True)
 
