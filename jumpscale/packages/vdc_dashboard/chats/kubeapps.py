@@ -1,13 +1,14 @@
 from textwrap import dedent
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
+import json
 
 
 class KubeappsDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "kubeapps"
     title = "Kubeapps"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "generate_access_token","success"]
+    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "get_access_token","success"]
     access_token= None
     @chatflow_step(title="Configurations")
     def set_config(self):
@@ -17,12 +18,46 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
             "ingress.hostname": self.domain,
          }
 
+    def get_specific_service(all_services,service_name):
+        service_account = [service_account['metadata']['name'] for service_account in all_services['items'] if service_account['metadata']['name'] == service_name] 
+        if service_account:
+            return True
+        
+        return False
+
     @chatflow_step(title="Generating access token")
-    def generate_access_token(self):
+    def get_access_token(self):
         self._get_vdc_info()
-        self.access_token = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get secret $(kubectl get serviceaccount kubeapps-operator -o jsonpath='{range .secrets[*]}{.name}{"\n"}{end}' | grep kubeapps-operator-token) -o jsonpath='{.data.token}' -o go-template='{{.data.token | base64decode}}'"
-        )
+        services=self.k8s_client.execute_native_cmd("kubectl get services -o json")
+        all_services = json.loads(services)
+        # Validate service account 
+        if not get_specific_service(all_services, "serviceaccount"):
+            self.k8s_client.execute_native_cmd(
+                cmd="kubectl create serviceaccount"
+            )
+
+        # Validate kubeapps
+        if not get_specific_service(all_services, "kubeapps-operator"):
+            self.k8s_client.execute_native_cmd(
+                cmd="kubectl create kubeapps-operator"
+            )
+
+        # Validate clusterrolebinding
+        if not get_specific_service(all_services, "clusterrolebinding"):
+            self.k8s_client.execute_native_cmd(
+                cmd="kubectl create clusterrolebinding kubeapps-operator --clusterrole=cluster-admin --serviceaccount=default:kubeapps-operator"
+            )
+
+        try:
+            self.access_token = self.k8s_client.execute_native_cmd(
+                cmd="kubectl get secret $(kubectl get serviceaccount kubeapps-operator -o jsonpath='{range .secrets[*]}{.name}{'\n'}{end}' | grep kubeapps-operator-token) -o jsonpath='{.data.token}' -o go-template='{.data.token | base64decode}'"
+            )
+        except Exception as ex:
+            raise StopChatFlow(
+                "There is an issue happened during getting access token to be able to access kubeapps solution"
+            )
+
+
         if not self.access_token :
             raise StopChatFlow(
                 "There is an issue happened during getting access token to be able to access kubeapps solution"
