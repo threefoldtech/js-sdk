@@ -220,10 +220,8 @@ def accept():
         )
 
 
-def up_to_date():
-    pass
-
-
+@app.route("/api/update", method="GET")
+@package_authorized("vdc_dashboard")
 def update():
     branch = os.environ.get("SDK_VERSION", "development")
     cmds = [f"git checkout {branch}", "git pull"]
@@ -231,10 +229,24 @@ def update():
         rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")
         if rc:
             return HTTPResponse(
-                j.data.serializers.json.dumps({"stderr": err, "stdout": out, "code": rc, "cmd": cmd}),
+                j.data.serializers.json.dumps(
+                    {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd}
+                ),
                 status=500,
                 headers={"Content-Type": "application/json"},
             )
+    rc = os.system(
+        "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5 &"
+    )
+    if rc:
+        return HTTPResponse(
+            j.data.serializers.json.dumps(
+                {{"error": "failed to restart server", "stderr": "", "stdout": "", "code": rc, "cmd": ""}}
+            ),
+            status=500,
+            headers={"Content-Type": "application/json"},
+        )
+    return HTTPResponse(status=200, headers={"Content-Type": "application/json"})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
