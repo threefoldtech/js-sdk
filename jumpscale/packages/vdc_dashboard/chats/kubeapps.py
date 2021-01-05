@@ -18,7 +18,7 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
             "ingress.hostname": self.domain,
          }
 
-    def get_specific_service(all_services,service_name):
+    def get_specific_service(self,all_services,service_name):
         service_account = [service_account['metadata']['name'] for service_account in all_services['items'] if service_account['metadata']['name'] == service_name] 
         if service_account:
             return True
