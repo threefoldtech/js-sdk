@@ -125,9 +125,8 @@ class Stellar(Client):
         resp.raise_for_status()
         return resp.json()
 
-    def _activation_account(self, activation_code):
-        data = {"activation_code": activation_code}
-        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"args": data})
+    def _activation_account(self):
+        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"address": self.address})
         resp.raise_for_status()
         return resp.json()
 
@@ -261,11 +260,10 @@ class Stellar(Client):
         """
         ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
         ## this activator should be imported on the system.
-        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
-            j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
-        else:
-            activationdata = self._create_activation_code()
-            self._activation_account(activationdata["activation_code"])
+        resp = self._activation_account()
+        loaded_json = j.data.serializers.json.loads(resp)
+        xdr = loaded_json["activation_transaction"]
+        self.sign(xdr, submit=True)
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
