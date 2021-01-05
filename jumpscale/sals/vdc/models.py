@@ -29,11 +29,6 @@ class KubernetesNode(VDCHostBase):
     def size(self):
         return VDC_SIZE.K8SNodeFlavor(self._size)
 
-    def to_dict(self):
-        d = super().to_dict()
-        d["size"] = self._size
-        return d
-
 
 class S3Container(VDCHostBase):
     pass
