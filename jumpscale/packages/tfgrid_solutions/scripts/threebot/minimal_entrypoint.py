@@ -52,7 +52,6 @@ ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
-vdc = j.sals.vdc.from_dict(vdc_dict)
 
 if not j.sals.vdc.list_all():
     vdc = j.sals.vdc.from_dict(vdc_dict)
