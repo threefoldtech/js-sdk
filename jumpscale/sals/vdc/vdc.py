@@ -43,6 +43,8 @@ class UserVDC(Base):
     def to_dict(self):
         d = super().to_dict()
         d["flavor"] = self._flavor
+        for node in d["kubernetes"]:
+            node["size"] = node["_size"]
         return d
 
     def is_empty(self):
