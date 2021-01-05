@@ -239,7 +239,9 @@ def update():
         "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
         "restart",
     )
-    return HTTPResponse(status=200, headers={"Content-Type": "application/json"})
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
