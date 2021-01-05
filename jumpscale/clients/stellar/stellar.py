@@ -262,7 +262,7 @@ class Stellar(Client):
         """
         ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
         ## this activator should be imported on the system.
-
+        j.logger.info(f"activation wallet {self.instance_name}")
         if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
             j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
             self.add_known_trustline("TFT")
