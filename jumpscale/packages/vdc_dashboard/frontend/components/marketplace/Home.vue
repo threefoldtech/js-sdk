@@ -103,6 +103,7 @@ module.exports = {
               name: app.name,
               group: section,
               avatar: app.image,
+              type: app.type,
             });
         }
         ret.push({ divider: true });
@@ -115,7 +116,7 @@ module.exports = {
       this.$router.push({
         name: "Solution",
         params: {
-          type: this.selectedObject.name.toLowerCase(),
+          type: this.selectedObject.type.toLowerCase(),
         },
       });
     },

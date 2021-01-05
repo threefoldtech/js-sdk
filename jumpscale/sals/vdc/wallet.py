@@ -12,7 +12,6 @@ class VDCWallet(Base):
         wallet = j.clients.stellar.new(self.instance_name, secret=secret)
         if not secret:
             wallet.activate_through_threefold_service()
-            wallet.add_known_trustline("TFT")
         wallet.save()
         self.wallet_secret = wallet.secret
 

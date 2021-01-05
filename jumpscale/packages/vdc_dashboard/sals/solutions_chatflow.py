@@ -283,7 +283,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
         # subdomain selected on gateway on preferred farm
         if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "gridca"})
+            self.chart_config.update({"global.ingress.certresolver": "gridca"})
 
     @chatflow_step(title="Installation")
     def install_chart(self):
@@ -351,10 +351,15 @@ class SolutionsChatflowDeploy(GedisChatBot):
             self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
+    def success(self, extra_info=None):
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
         - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        """
+        if extra_info:
+            message = f"""
+            {message}<br />\n 
+            {extra_info}
         """
         self.md_show(dedent(message), md=True)
