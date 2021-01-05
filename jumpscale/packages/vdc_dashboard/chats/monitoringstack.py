@@ -11,6 +11,11 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     steps = ["confirm", "success"]
     SOLUTION_TYPE = "monitoringstack"
     HELM_REPO_NAME = "marketplace"
+    CHART_LIMITS = {
+        "Silver": {"cpu": "1000m", "memory": "1536Mi"},
+        "Gold": {"cpu": "2000m", "memory": "2048Mi"},
+        "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
+    }
     steps = [
         "check_already_deployed",
         "get_release_name",
@@ -65,11 +70,13 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
+        self._choose_flavor(chart_limits=self.CHART_LIMITS)
         self.chart_config.update(
             {
                 "prometheus.ingress.hosts[0]": self.domain,
                 "grafana.ingress.hosts[0]": self.grafana_domain,
+                "prometheus.prometheusSpec.resources.limits.cpu": self.resources_limits["cpu"],
+                "prometheus.prometheusSpec.resources.limits.memory": self.resources_limits["memory"],
             }
         )
 
