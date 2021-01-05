@@ -235,17 +235,10 @@ def update():
                 status=500,
                 headers={"Content-Type": "application/json"},
             )
-    rc = os.system(
-        "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5 &"
+    j.core.executors.run_tmux(
+        "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
+        "restart",
     )
-    if rc:
-        return HTTPResponse(
-            j.data.serializers.json.dumps(
-                {{"error": "failed to restart server", "stderr": "", "stdout": "", "code": rc, "cmd": ""}}
-            ),
-            status=500,
-            headers={"Content-Type": "application/json"},
-        )
     return HTTPResponse(status=200, headers={"Content-Type": "application/json"})
 
 
