@@ -82,7 +82,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        extra_info = f'Grafana can be accessed by <a href="https://{self.grafana_domain}" target="_blank">https://{self.grafana_domain}</a>'
+        extra_info = f'Grafana can be accessed by <a href="https://{self.grafana_domain}" target="_blank">https://{self.grafana_domain}</a>, user/pass: admin/prom-operator'
         super().success(extra_info=extra_info)
 
 
