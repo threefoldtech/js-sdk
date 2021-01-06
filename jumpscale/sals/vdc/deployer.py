@@ -205,6 +205,7 @@ class VDCDeployer:
             raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
     def get_pool_id_and_reservation_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+        # used for compute, storage and ipv4 units.
         cus = int(cus)
         sus = int(sus)
         ipv4us = int(ipv4us)
@@ -214,21 +215,22 @@ class VDCDeployer:
         farm = self.explorer.farms.get(farm_name=farm_name)
         for pool in self.zos.pools.list():
             farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
-            if farm_id == farm.id:
-                # extend
-                self.info(f"found existing pool {pool.pool_id} on farm: {farm_name}. pool: {str(pool)}")
-                if not any([cus, sus, ipv4us]):
-                    return pool.pool_id, reservation_id
-                node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
-                pool_info = self._retry_call(
-                    self.zos.pools.extend, args=[pool.pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
-                )
-                self.info(
-                    f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
-                )
-                self.pay(pool_info)
-                reservation_id = pool_info.reservation_id
+            if farm_id != farm.id or not any([pool.cus, pool.sus, pool.ipv4us]):
+                continue
+            # extend
+            self.info(f"found existing pool {pool.pool_id} on farm: {farm_name}. pool: {str(pool)}")
+            if not any([cus, sus, ipv4us]):
                 return pool.pool_id, reservation_id
+            node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
+            pool_info = self._retry_call(
+                self.zos.pools.extend, args=[pool.pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
+            )
+            self.info(
+                f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
+            )
+            self.pay(pool_info)
+            reservation_id = pool_info.reservation_id
+            return pool.pool_id, reservation_id
         pool_info = self._retry_call(self.zos.pools.create, args=[cus, sus, ipv4us, farm_name])
         reservation_id = pool_info.reservation_id
         self.info(
