@@ -23,9 +23,7 @@ def _filter_data(deployment):
 
 
 def get_all_deployments() -> list:
-    """List all deployments from kubectl and corresponding helm list info
-
-    """
+    """List all deployments from kubectl and corresponding helm list info"""
     all_deployments = []
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
@@ -80,10 +78,13 @@ def get_deployments(solution_type: str = None) -> list:
             kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
 
         deployments = kubectl_deployment_info["items"]
-
+        releases = []
         for deployment_info in deployments:
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
+            if release_name in releases:
+                continue
+            releases.append(release_name)
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
             deployment_host = ""
             try:
