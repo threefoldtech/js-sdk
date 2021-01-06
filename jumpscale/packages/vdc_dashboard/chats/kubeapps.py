@@ -14,9 +14,11 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     def set_config(self):
         self._choose_flavor()
 
-        self.chart_config = {
+        self.chart_config.update({
             "ingress.hostname": self.domain,
-         }
+            "kubeops.resources.limits.cpu": self.resources_limits["cpu"],
+            "kubeops.resources.limits.memory": self.resources_limits["memory"],
+         })
 
     def get_specific_service(self,all_services,service_name):
         service_account = [service_account['metadata']['name'] for service_account in all_services['items'] if service_account['metadata']['name'] == service_name] 
