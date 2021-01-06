@@ -667,3 +667,16 @@ class PoolEscrow(Base):
 class PoolCreated(Base):
     reservation_id = fields.Integer()
     escrow_information = fields.Object(PoolEscrow)
+
+
+class PoolPayment(Base):
+    id = fields.Integer()
+    farmer_id = fields.Integer()
+    address = fields.String()
+    expiration = fields.DateTime()
+    asset = fields.String()
+    amount = fields.Integer()
+    paid = fields.Boolean()
+    released = fields.Boolean()
+    canceled = fields.Boolean()
+    cause = fields.String()
