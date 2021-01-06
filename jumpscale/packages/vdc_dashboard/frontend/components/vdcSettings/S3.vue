@@ -131,8 +131,12 @@ module.exports = {
         for (i in this.vdc.s3.zdbs) {
           let zdb = this.vdc.s3.zdbs[i];
           data.groups.push({
-            address: `[${zdb.ip_address}]:${zdb.port}`,
-            namespace: zdb.namespace,
+            backends: [
+              {
+                address: `[${zdb.ip_address}]:${zdb.port}`,
+                namespace: zdb.namespace,
+              },
+            ],
           });
         }
         this.loading = true;
