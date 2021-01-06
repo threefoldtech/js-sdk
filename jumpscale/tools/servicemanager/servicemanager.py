@@ -42,9 +42,11 @@ from abc import ABC, abstractmethod
 from signal import SIGTERM, SIGKILL
 from crontab import CronTab
 import gevent
+from gevent.pool import Pool
 
 from jumpscale.loader import j
 from jumpscale.core.base import Base
+from multiprocessing import cpu_count
 
 
 class BackgroundService(ABC):
@@ -74,6 +76,7 @@ class ServiceManager(Base):
         self.services = {}  # service objects
         self._scheduled = {}  # greenlets of scheduled services
         self._running = {}  # greenlets of currently running services
+        self._pool = Pool(cpu_count())
 
     @staticmethod
     def seconds_to_next_interval(interval):
@@ -140,7 +143,7 @@ class ServiceManager(Base):
             service (BackgroundService): background service object
         """
         if service.name not in self._running:
-            greenlet = gevent.Greenlet(service.job)
+            greenlet = self._pool.apply_async(service.job)
             greenlet.link(self.__callback)
             greenlet.link_exception(self.__on_exception)
             greenlet.start()
