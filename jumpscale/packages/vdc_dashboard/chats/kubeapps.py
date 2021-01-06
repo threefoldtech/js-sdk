@@ -48,8 +48,9 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
             )
 
         try:
+            cmd = r"""kubectl get secret $(kubectl get serviceaccount kubeapps-operator -o jsonpath='{range .secrets[*]}{.name}{"\n"}{end}' | grep kubeapps-operator-token) -o jsonpath='{.data.token}' -o go-template='{{.data.token | base64decode}}'"""
             self.access_token = self.k8s_client.execute_native_cmd(
-                cmd="kubectl get secret $(kubectl get serviceaccount kubeapps-operator -o jsonpath='{range .secrets[*]}{.name}{'\n'}{end}' | grep kubeapps-operator-token) -o jsonpath='{.data.token}' -o go-template='{.data.token | base64decode}'"
+                cmd = cmd
             )
         except Exception as ex:
             raise StopChatFlow(
