@@ -42,8 +42,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 pool_id = pool.pool_id
                 break
 
-        trigger_cus = 0
-        trigger_sus = 1
         if not pool_id:
             pool_info = self.vdc_deployer._retry_call(
                 self.zos.pools.create, args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name]
@@ -54,8 +52,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         else:
             self.vdc_deployer.info(f"kubernetes cluster extension: found pool {pool_id}")
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
-            trigger_cus = (pool.cus + cus) * 0.75
-            trigger_sus = (pool.sus + sus) * 0.75
             pool_info = self.vdc_deployer._retry_call(
                 self.zos.pools.extend, args=[pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
             )
@@ -65,7 +61,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         self.vdc_deployer.pay(pool_info)
 
-        success = self.vdc_deployer.wait_pool_payment(pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
+        success = self.vdc_deployer.wait_pool_payment(pool_info.reservation_id)
         if not success:
             raise j.exceptions.Runtime(f"Pool {pool_info.reservation_id} resource reservation timedout")
 

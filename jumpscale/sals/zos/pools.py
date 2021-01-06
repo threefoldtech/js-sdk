@@ -1,7 +1,7 @@
-from jumpscale.loader import j
-from jumpscale.clients.explorer.models import PoolCreated, Pool
+from typing import Iterator, List
 
-from typing import List, Iterator
+from jumpscale.clients.explorer.models import Pool, PoolCreated, PoolPayment
+from jumpscale.loader import j
 
 
 class Pools:
@@ -133,10 +133,13 @@ class Pools:
         """
         return self._pools.list(customer_tid=self._identity.tid)
 
-    def get_payment_info(self, reservation_id):
+    def get_payment_info(self, reservation_id) -> PoolPayment:
         """get pool payment info
 
-      Args:
-          reservation_id (int):
-      """
+        Args:
+            reservation_id (int)
+
+        Returns:
+            PoolPayment: pool payment info
+        """
         return self._pools.get_payment_info(reservation_id)

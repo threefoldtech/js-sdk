@@ -284,7 +284,8 @@ class VDCDeployer:
 
         for farm_name, cloud_units in farm_resources.items():
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
-            self.wait_pool_payment(reservation_id)
+            if reservation_id and not self.wait_pool_payment(reservation_id):
+                raise j.exceptions.Runtime(f"Failed to pay for pool: {reservation_id}")
 
     def deploy_vdc_network(self):
         """

@@ -81,11 +81,14 @@ class Pools:
         resp = self._session.get(url)
         return Pool.from_dict(resp.json())
 
-    def get_payment_info(self, reservation_id: int):
+    def get_payment_info(self, reservation_id: int) -> PoolPayment:
         """get pool payment info
 
         Args:
-            reservation_id (int):
+            reservation_id (int)
+
+        Returns:
+            PoolPayment: pool payment info
         """
         url = self._base_url + f"/payment/{reservation_id}"
         resp = self._session.get(url)
