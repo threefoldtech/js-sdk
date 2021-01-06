@@ -43,7 +43,7 @@ class VDCStoredFactory(StoredFactory):
         cp = instance_dict.copy()
         vdc_name = cp.pop("vdc_name")
         owner_tname = cp.pop("owner_tname")
-        flavor = cp.pop("_flavor")
+        flavor = cp.pop("flavor")
         instance = self.new(vdc_name, owner_tname, flavor)
         for key, val in cp.items():
             setattr(instance, key, val)
