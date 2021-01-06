@@ -351,15 +351,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
             self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self, extra_info=None):
+    def success(self, extra_info=""):
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
-        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
-        """
-        if extra_info:
-            message = f"""
-            {message}<br />\n 
-            {extra_info}
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a><br />\n
+        {extra_info}
         """
         self.md_show(dedent(message), md=True)
