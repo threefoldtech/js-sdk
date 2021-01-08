@@ -38,7 +38,14 @@ class UserVDC(Base):
 
     @property
     def flavor(self):
-        return VDC_SIZE.VDCFlavor(self._flavor)
+        d = self.to_dict()
+        if not self._flavor:
+            flavors = {0: "silver", 1: "gold", 2: "platinum", 3: "diamond"}
+            self._flavor = d.get(d["flavor"], flavors[0])
+            # TODO: should we do a save here?
+            return VDC_SIZE.VDCFlavor(self._flavor)
+        else:
+            return VDC_SIZE.VDCFlavor(self._flavor)
 
     def to_dict(self):
         d = super().to_dict()
