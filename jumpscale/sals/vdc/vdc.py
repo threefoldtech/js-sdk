@@ -41,7 +41,7 @@ class UserVDC(Base):
         d = self.to_dict()
         if not self._flavor:
             flavors = {0: "silver", 1: "gold", 2: "platinum", 3: "diamond"}
-            self._flavor = d.get(d["flavor"], flavors[0])
+            self._flavor = d.get(flavors["flavor"], flavors[0])
             self.save()
             # TODO: should we do a save here?
             return VDC_SIZE.VDCFlavor(self._flavor)
