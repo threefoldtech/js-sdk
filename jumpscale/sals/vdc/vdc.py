@@ -40,6 +40,8 @@ class UserVDC(Base):
     def flavor(self):
         d = self.to_dict()
         oldflavor = d["flavor"]
+        if oldflavor is None:
+            oldflavor = 0
         if not self._flavor:
             flavors = {0: "silver", 1: "gold", 2: "platinum", 3: "diamond"}
             self._flavor = d.get(flavors[oldflavor], flavors[0])
