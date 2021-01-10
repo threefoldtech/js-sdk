@@ -56,6 +56,8 @@ class EtcdDeploy(SolutionsChatflowDeploy):
 
         - To connect to your etcd server from outside the cluster execute the following commands:
             `kubectl port-forward --namespace default svc/{self.release_name} 2379:2379`
+
+        - You can visit <a href="https://etcd.io/docs/v3.4.0/" target="_blank">ETCD Docs</a> for more informations
         """
         self.md_show(dedent(message), md=True)
 
