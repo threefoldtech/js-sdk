@@ -154,27 +154,22 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
+        self.md_show_update("Starting The Chatflow")
         self._threebot_start()
-        valid = False
 
-        while not valid:
-            self.solution_name = self.string_ask(
-                self.CREATE_NAME_MESSAGE, required=True, field="name", is_identifier=True
+        threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
+        threebot_solutions_names = [threebot["name"] for threebot in threebot_solutions]
+        self.solution_name = self.string_ask(
+            self.CREATE_NAME_MESSAGE,
+            required=True,
+            field="name",
+            is_identifier=True,
+            not_exist=["3Bot", threebot_solutions_names],
+        )
+        if self._existing_3bot():
+            self.stop(
+                f"The specified 3Bot name was deployed before. Please go to the previous step and enter a new name."
             )
-            threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
-            valid = True
-            for sol in threebot_solutions:
-                if sol["name"] == self.solution_name:
-                    valid = False
-                    self.md_show("The specified 3Bot name already exists. please choose another name.")
-                    break
-                valid = True
-
-            if valid and self._existing_3bot():
-                valid = False
-                self.md_show(
-                    f"The specified 3Bot name was deployed before. Please go to the previous step and enter a new name."
-                )
 
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
