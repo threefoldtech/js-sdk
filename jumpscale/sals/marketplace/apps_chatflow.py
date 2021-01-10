@@ -531,7 +531,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         )
         if self.pool_info and self.qr_code:
             # cru = 1 so cus will be = 0
-            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, qr_code=self.qr_code, bot=self)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 

@@ -112,9 +112,8 @@ class Stellar(Client):
         resp.raise_for_status()
         return resp.json()
 
-    def _activation_account(self, activation_code):
-        data = {"activation_code": activation_code}
-        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"args": data})
+    def _activation_account(self):
+        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"address": self.address})
         resp.raise_for_status()
         return resp.json()
 
@@ -236,7 +235,7 @@ class Stellar(Client):
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
-        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
+        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"address": self.address})
         resp.raise_for_status()
         j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
@@ -244,8 +243,10 @@ class Stellar(Client):
         """
         Activate your weallet through threefold services
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        resp = self._activation_account()
+        loaded_json = j.data.serializers.json.loads(resp)
+        xdr = loaded_json["activation_transaction"]
+        self.sign(xdr, submit=True)
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
@@ -293,10 +294,15 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        balances = self.get_balance()
+        for b in balances.balances:
+            if b.asset_code == asset_code:
+                j.logger.info(f"trustline {asset_code} is already added.")
+                return
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
             raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
-        self.add_trustline(asset_code, issuer)
+        self._change_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
         """Deletes a trustline
