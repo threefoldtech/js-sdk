@@ -15,11 +15,11 @@ class ChatFlows(BaseActor):
 
     @actor_method
     def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -> dict:
-        package = self.chats.get(package)
-        if not package:
+        package_object = self.chats.get(package)
+        if not package_object:
             raise j.exceptions.Value(f"Package {package} not found")
 
-        chatflow = package.get(chat)
+        chatflow = package_object.get(chat)
         if not chatflow:
             raise j.exceptions.Value(f"Chat {chat} not found")
 
@@ -75,7 +75,7 @@ class ChatFlows(BaseActor):
         for syspath in paths:
             absolute_sys_path = os.path.abspath(syspath)
             if absolute_path.startswith(absolute_sys_path):
-                parts = absolute_path[len(absolute_sys_path) + 1: -3].split(os.path.sep)
+                parts = absolute_path[len(absolute_sys_path) + 1 : -3].split(os.path.sep)
                 if "__init__" in parts:
                     parts.remove("__init__")
                 module_name = ".".join(parts)

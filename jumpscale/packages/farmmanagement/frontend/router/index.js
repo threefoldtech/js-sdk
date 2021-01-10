@@ -8,7 +8,7 @@ export default new VueRouter({
   routes: [
     {
       path: "/",
-      component: httpVueLoader("./views/farmmanagement/"), 
+      component: httpVueLoader("./views/farmmanagement/"),
       name: 'home',
       meta: {
         icon: 'fa-home',
@@ -17,7 +17,7 @@ export default new VueRouter({
     },
     {
       path: "/edit/:id",
-      component: httpVueLoader("./views/farmedit/"), 
+      component: httpVueLoader("./views/farmedit/"),
       name: 'farmedit'
     },
   ]

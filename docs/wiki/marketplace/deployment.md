@@ -2,7 +2,7 @@
 
 ## Overview
 
-Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an identity registered in the explorer or even have a 3bot running. All the user needs is to have Threefold Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
+Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an identity registered in the explorer or even have a 3bot running. All the user needs is to have TF Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
 
 ### Components
 

@@ -8,8 +8,9 @@
       return {
         package: true,
         name: "farmmanagement",
-        url: "/farmmanagement/"
+        url: "/farmmanagement/",
+        giturl: null
       }
-    }
+    },
   }
 </script>

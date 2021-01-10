@@ -25,7 +25,7 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (Threefold Connect)
+    """List available providers for login and redirect to the selected provider (TF Connect)
 
     Returns:
         Renders the template of login page
@@ -133,6 +133,7 @@ def callback():
     if res.status_code != 200:
         return abort(400, "Email is not verified")
 
+    username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session["username"] = username
     session["email"] = email
     session["authorized"] = True

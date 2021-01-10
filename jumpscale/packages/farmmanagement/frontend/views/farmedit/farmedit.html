@@ -16,7 +16,7 @@
           </v-select>
 
           <v-text-field v-model="farm.email" label="Email"></v-text-field>
-          
+
           <br />
           <br />
 
@@ -58,13 +58,13 @@
             <v-col cols="12" sm="8">
               <div class="create-ip">
                 <p>An IP address must be a public IP in format: "x.x.x.x/x"</p>
-                <v-text-field 
-                  v-model="newIpAddress.ipaddress" 
+                <v-text-field
+                  v-model="newIpAddress.ipaddress"
                   label="IP Address"
                   :rules="[rules.required, rules.validIp]"
                 ></v-text-field>
-                <v-text-field 
-                  v-model="newIpAddress.gatewayIP" 
+                <v-text-field
+                  v-model="newIpAddress.gatewayIP"
                   label="Gateway IP"
                   :rules="[rules.required, rules.validIp]"
                 ></v-text-field>
@@ -78,12 +78,12 @@
           </v-card>
         </v-dialog>
 
-        <v-data-table 
-          item-key="ipaddress" 
-          :headers="headers" 
-          :items="farm.ipaddresses" 
+        <v-data-table
+          item-key="ipaddress"
+          :headers="headers"
+          :items="farm.ipaddresses"
         >
-          
+
           <template v-slot:item.action="{ item }">
             <v-btn v-if="item.reservation_id == 0" fab small text @click="openDeleteModal = true">
               <v-icon small>

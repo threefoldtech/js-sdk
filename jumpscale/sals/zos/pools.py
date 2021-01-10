@@ -67,7 +67,7 @@ class Pools:
         return self._reserve(pool)
 
     def extend(
-        self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: list = None
+        self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None
     ) -> PoolCreated:
         """extend an existing capacity pool
 

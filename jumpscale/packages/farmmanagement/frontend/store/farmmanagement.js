@@ -64,9 +64,9 @@ export default {
     },
     createIpAddress(context, toInsert) {
       return tfService.addPublicIPs(toInsert.farm_id, [
-        { 
+        {
           address: toInsert.address,
-          gateway: toInsert.gateway 
+          gateway: toInsert.gateway
         }
       ])
     },

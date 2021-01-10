@@ -20,28 +20,28 @@ from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_con
 from collections import defaultdict
 
 FLAVORS = {
-    "Silver": {"cru": 1, "mru": 2, "sru": 2},
+    "Silver": {"cru": 1, "mru": 2, "sru": 4},
     "Gold": {"cru": 2, "mru": 4, "sru": 4},
     "Platinum": {"cru": 4, "mru": 8, "sru": 8},
 }
 
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = defaultdict(lambda: "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist")
-    FLIST_URL["master"] = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = defaultdict(
+        lambda: "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
+    )  # embedded with TRC
+    FLIST_URL["master"] = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
     # The master flist fails for the gevent host dns resolution issue
 
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
-        "create_or_recover",
         "get_solution_name",
         "deployer_info",
         "upload_public_key",
         "set_backup_password",
         "choose_location",
         "choose_deployment_location",
-        "email_settings",
         "infrastructure_setup",
         "reservation",
         "initializing",
@@ -51,7 +51,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    RECOVER_NAME_MESSAGE = "Please enter the 3Bot name you want to import"
     CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
 
     def _threebot_start(self):
@@ -63,9 +62,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.explorer = j.core.identity.me.explorer
         self.solution_metadata = {}
         self.solution_metadata["owner"] = self.username
-        # the main container + the nginx container with 0.25 GB disk
-        self.query = {"cru": 2, "mru": 2, "sru": 2.25}
-        self.container_resources = {"cru": 1, "mru": 1, "sru": 2}
         self.expiration = 60 * 60  # 60 minutes for 3bot
         self.retries = 3
         self.allow_custom_domain = False
@@ -81,38 +77,50 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         words = j.data.encryption.key_to_mnemonic(self.backup_password.encode().zfill(32))
         self.mainnet_identity_name = f"{tname}_main"
         self.testnet_identity_name = f"{tname}_test"
-        if "testnet" in j.core.identity.me.explorer_url:
-            self.identity_name = self.testnet_identity_name
-        else:
-            self.identity_name = self.mainnet_identity_name
+        self.devnet_identity_name = f"{tname}_dev"
         try:
-            identity_main = j.core.identity.get(
-                self.mainnet_identity_name,
-                tname=tname,
-                email=email,
-                words=words,
-                explorer_url="https://explorer.grid.tf/api/v1",
-            )
-            identity_test = j.core.identity.get(
-                self.testnet_identity_name,
-                tname=tname,
-                email=email,
-                words=words,
-                explorer_url="https://explorer.testnet.grid.tf/api/v1",
-            )
-            identities = [identity_main, identity_test]
-            for identity in identities:
-                tname = identity.tname
-                identity.admins.append(f"{threebot_name}.3bot")
-                identity.register()
-                identity.save()
-                if identity.instance_name != self.identity_name:
-                    j.core.identity.delete(identity.instance_name)
+            if "testnet" in j.core.identity.me.explorer_url:
+                self.identity_name = self.testnet_identity_name
+                identity_test = j.core.identity.get(
+                    self.testnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.testnet.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_test)
+            elif "devnet" in j.core.identity.me.explorer_url:
+                self.identity_name = self.devnet_identity_name
+                identity_dev = j.core.identity.get(
+                    self.devnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.devnet.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_dev)
+            else:
+                self.identity_name = self.mainnet_identity_name
+                identity_main = j.core.identity.get(
+                    self.mainnet_identity_name,
+                    tname=tname,
+                    email=email,
+                    words=words,
+                    explorer_url="https://explorer.grid.tf/api/v1",
+                )
+                self._register_identity(threebot_name, identity_main)
 
         except:
             raise StopChatFlow(
-                f"Couldn't register new identites with the given name {tname}. Make sure you entered the correct password."
+                f"Couldn't register new identity with the given name {tname}. Make sure you entered the correct password."
             )
+
+    def _register_identity(self, threebot_name, identity_object):
+        identity_object.admins.append(f"{threebot_name}.3bot")
+        identity_object.register()
+        identity_object.save()
+        if identity_object.instance_name != self.identity_name:
+            j.core.identity.delete(identity_object.instance_name)
 
     def _get_pool(self):
         self._get_available_farms(only_one=False, identity_name=self.identity_name)
@@ -144,22 +152,15 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.pool_id = self.pool_info.reservation_id
         self.network_view = deployer.get_network_view("management", identity_name=self.identity_name)
 
-    @chatflow_step(title="Welcome")
-    def create_or_recover(self):
-        self.recovery_network_name = "testnet" if "test" not in j.core.identity.me.explorer_url else "mainnet"
-        self.action = self.single_choice(
-            f"Would you like to create a new 3Bot instance, or import one from {self.recovery_network_name}?",
-            ["Create", "Import"],
-            required=True,
-        )
-
     @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
         self._threebot_start()
         valid = False
-        name_message = self.RECOVER_NAME_MESSAGE if self.action == "Import" else self.CREATE_NAME_MESSAGE
+
         while not valid:
-            self.solution_name = self.string_ask(name_message, required=True, field="name", is_identifier=True)
+            self.solution_name = self.string_ask(
+                self.CREATE_NAME_MESSAGE, required=True, field="name", is_identifier=True
+            )
             threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
             valid = True
             for sol in threebot_solutions:
@@ -168,23 +169,20 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     self.md_show("The specified 3Bot name already exists. please choose another name.")
                     break
                 valid = True
-            if valid and self.action == "Create" and self._existing_3bot():
+
+            if valid and self._existing_3bot():
                 valid = False
                 self.md_show(
-                    f"The specified 3Bot name was deployed before on {self.recovery_network_name}. Please go to the previous step and choose import or enter a new name."
+                    f"The specified 3Bot name was deployed before. Please go to the previous step and enter a new name."
                 )
 
-            if valid and self.action == "Import" and not self._existing_3bot():
-                valid = False
-                self.md_show("The specified 3Bot name doesn't exist.")
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
     @chatflow_step(title="Deployer Information")
     def deployer_info(self):
         self.user_email = self.user_info()["email"]
         self._choose_flavor(FLAVORS)
-        self.vol_size = self.flavor_resources["sru"]
-        self.container_resources = self.flavor_resources
+        self.query = self.flavor_resources
 
     @chatflow_step(title="SSH key (Optional)")
     def upload_public_key(self):
@@ -280,29 +278,13 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Recovery Password")
     def set_backup_password(self):
         message = (
-            "Please enter the recovery password"
-            if self.action == "Import"
-            else "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
+            "Please create a secure password for your new 3Bot. This password is used to recover your hosted 3Bot."
         )
         self.backup_password = self.secret_ask(message, required=True, max_length=32)
-        while self.action == "Import" and not self._verify_password(self.backup_password):
-            error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
-            self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
-
-    @chatflow_step(title="Email settings (Optional)")
-    def email_settings(self):
-        form = self.new_form()
-        email_host_user = form.string_ask("E-mail address for your solution")
-        email_host = form.string_ask("SMTP host example: `smtp.gmail.com`", default="smtp.gmail.com", md=True)
-        email_host_password = form.secret_ask("Host e-mail password")
-
-        escalation_mail_address = form.string_ask("Email address to receive email notifications on")
-
-        form.ask("Please fill in these email configuration settings if you want to receive notifications on")
-        self.email_host_user = email_host_user.value or ""
-        self.email_host = email_host.value or ""
-        self.email_host_password = email_host_password.value or ""
-        self.escalation_mail_address = escalation_mail_address.value or ""
+        if self._existing_3bot():
+            while not self._verify_password(self.backup_password):
+                error = message + f"<br><br><code>Incorrect recovery password for 3Bot name {self.solution_name}</code>"
+                self.backup_password = self.secret_ask(error, required=True, max_length=32, md=True)
 
     @chatflow_step(title="Select your preferred payment currency")
     def payment_currency(self):
@@ -351,6 +333,27 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     wid=self.workload_ids[-1],
                     identity_name=self.identity_name,
                 )
+
+        # Deploy proxy
+        proxy_id = deployer.create_proxy(
+            self.gateway_pool.pool_id,
+            self.gateway.node_id,
+            self.domain,
+            self.secret,
+            self.identity_name,
+            **self.solution_metadata,
+        )
+        self.workload_ids.append(proxy_id)
+
+        success = deployer.wait_workload(self.workload_ids[-1], identity_name=self.identity_name)
+        if not success:
+            raise DeploymentFailed(
+                f"Failed to create proxy with wid: {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                solution_uuid=self.solution_id,
+                wid=self.workload_ids[-1],
+                identity_name=self.identity_name,
+            )
+
         test_cert = j.config.get("TEST_CERT")
 
         # Generate a one-time token to create a user for backup
@@ -359,6 +362,12 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         self.backup_model.tname = self.solution_metadata["owner"]
         self.backup_model.save()
         # 3- deploy threebot container
+        if "test" in j.core.identity.me.explorer_url:
+            default_identity = "test"
+        elif "dev" in j.core.identity.me.explorer_url:
+            default_identity = "dev"
+        else:
+            default_identity = "main"
         environment_vars = {
             "SDK_VERSION": self.branch,
             "INSTANCE_NAME": self.solution_name,
@@ -367,11 +376,15 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
             "SSHKEY": self.public_key,
             "TEST_CERT": "true" if test_cert else "false",
             "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
-            "DEFAULT_IDENTITY": "test" if "test" in j.core.identity.me.explorer_url else "main",
+            "DEFAULT_IDENTITY": default_identity,
             # email settings
-            "EMAIL_HOST": self.email_host,
-            "EMAIL_HOST_USER": self.email_host_user,
-            "ESCALATION_MAIL": self.escalation_mail_address,
+            "EMAIL_HOST": "",
+            "EMAIL_HOST_USER": "",
+            "ESCALATION_MAIL": "",
+            # TRC
+            "REMOTE_IP": f"{self.gateway.dns_nameserver[0]}",
+            "REMOTE_PORT": f"{self.gateway.tcp_router_port}",
+            "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
         }
         self.network_view = self.network_view.copy()
 
@@ -388,13 +401,14 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 ip_address=self.ip_address,
                 flist=self.FLIST_URL[self.branch],
                 env=environment_vars,
-                cpu=self.container_resources["cru"],
-                memory=self.container_resources["mru"] * 1024,
-                disk_size=self.container_resources["sru"] * 1024,
+                cpu=self.query["cru"],
+                memory=self.query["mru"] * 1024,
+                disk_size=self.query["sru"] * 1024,
                 secret_env={
                     "BACKUP_PASSWORD": self.backup_password,
                     "BACKUP_TOKEN": backup_token,
-                    "EMAIL_HOST_PASSWORD": self.email_host_password,
+                    "EMAIL_HOST_PASSWORD": "",
+                    "TRC_SECRET": self.secret,
                 },
                 interactive=False,
                 log_config=log_config,
@@ -412,34 +426,6 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 identity_name=self.identity_name,
             )
 
-        # 4- expose threebot container
-        wid, proxy_id = deployer.expose_address(
-            pool_id=self.pool_id,
-            gateway_id=self.gateway.node_id,
-            network_name=self.network_view.name,
-            local_ip=self.ip_address,
-            port=80,
-            tls_port=443,
-            trc_secret=self.secret,
-            node_id=self.selected_node.node_id,
-            reserve_proxy=True,
-            domain_name=self.domain,
-            proxy_pool_id=self.gateway_pool.pool_id,
-            solution_uuid=self.solution_id,
-            log_config=self.trc_log_config,
-            identity_name=self.identity_name,
-            **self.solution_metadata,
-        )
-        self.workload_ids.append(wid)
-        self.workload_ids.append(proxy_id)
-        success = deployer.wait_workload(self.workload_ids[-1], identity_name=self.identity_name)
-        if not success:
-            raise DeploymentFailed(
-                f"Failed to create TRC container on node {self.selected_node.node_id} {self.workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
-                solution_uuid=self.solution_id,
-                wid=self.workload_ids[-1],
-                identity_name=self.identity_name,
-            )
         self.threebot_url = f"https://{self.domain}/admin"
 
         instance_name = f"threebot_{self.solution_id}"
@@ -453,10 +439,9 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if hasattr(self, "continent"):
             user_threebot.continent = self.continent
         if not self.custom_domain:
-            user_threebot.subdomain_wid = self.workload_ids[-4]
-        user_threebot.threebot_container_wid = self.workload_ids[-3]
-        user_threebot.trc_container_wid = self.workload_ids[-2]
-        user_threebot.reverse_proxy_wid = self.workload_ids[-1]
+            user_threebot.subdomain_wid = self.workload_ids[-3]
+        user_threebot.proxy_wid = self.workload_ids[-2]
+        user_threebot.threebot_container_wid = self.workload_ids[-1]
         user_threebot.explorer_url = j.core.identity.get(self.identity_name).explorer_url
         user_threebot.hash_secret(self.backup_password)
         user_threebot.save()

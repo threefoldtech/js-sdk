@@ -15,6 +15,10 @@
           <template slot="no-data">No pools available</p></template>
           <template v-slot:item.node_ids="{ item }">{{ item.node_ids.length }}</template>
           <template v-slot:item.active_workload_ids="{ item }">{{ item.active_workload_ids.length }}</template>
+          <template v-slot:item.cus="{ item }">{{ item.cus.toFixed(0) }} </template>
+          <template v-slot:item.sus="{ item }">{{ item.sus.toFixed(4) }} </template>
+          <template v-slot:item.active_cu="{ item }">{{ ( item.active_cu / (30*24*60*60) ).toFixed(7) }} </template>
+          <template v-slot:item.active_su="{ item }">{{ ( item.active_su / (30*24*60*60) ).toFixed(7) }} </template>
           <template v-slot:item.empty_at="{ item }">
             <div :class="`${item.class}`">{{ item.empty_at }}</div>
           </template>
@@ -48,10 +52,10 @@ module.exports = {
         { text: "Expiration", value: "empty_at" },
         { text: "Compute Units", value: "cus" },
         { text: "Storage Units", value: "sus" },
-        { text: "Active Compute Units", value: "active_cu" },
-        { text: "Active Storage Units", value: "active_su" },
-        { text: "Number of Nodes", value: "node_ids" },
-        { text: "Number of Active Workloads", value: "active_workload_ids" },
+        { text: "Active Compute Units / month", value: "active_cu" },
+        { text: "Active Storage Units / month", value: "active_su" },
+        { text: "# Nodes", value: "node_ids" },
+        { text: "# Active Workloads", value: "active_workload_ids" },
       ],
     };
   },
