@@ -1,3 +1,7 @@
+# this will setup the required bridge, NAT and DHCP to be able to connect to vdcs later
+# requires an execution argument for the host ip address which will be used for SNAT
+# example: ./init.sh 192.168.1.8
+
 host_ip=$1
 
 echo "net.ipv4.ip_forward = 1" > /etc/sysctl.conf
