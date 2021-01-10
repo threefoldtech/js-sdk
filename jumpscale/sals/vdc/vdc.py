@@ -437,7 +437,7 @@ class UserVDC(Base):
     def pay_amount(self, address, amount, wallet, memo_text=""):
         j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
         deadline = j.data.time.now().timestamp + 5 * 60
-        a = wallet.get_asset()
+        a = wallet._get_asset()
         has_funds = None
         while j.data.time.now().timestamp < deadline:
             if not has_funds:

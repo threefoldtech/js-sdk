@@ -6,7 +6,7 @@ dst_wallet = j.clients.stellar.test
 # underpayment. need refund
 payment_id, memo_text = j.sals.billing.submit_payment(amount=10, wallet_name=dst_wallet.instance_name, expiry=1)
 
-a = client_wallet.get_asset()
+a = client_wallet._get_asset()
 transaction_hash = client_wallet.transfer(
     dst_wallet.address, amount=9, memo_text=memo_text, asset=f"{a.code}:{a.issuer}"
 )
@@ -24,7 +24,7 @@ assert float(transaction_effect.amount) == 8.9
 
 payment_id, memo_text = j.sals.billing.submit_payment(amount=10, wallet_name=dst_wallet.instance_name)
 
-a = client_wallet.get_asset()
+a = client_wallet._get_asset()
 transaction_hash = client_wallet.transfer(
     dst_wallet.address, amount=12, memo_text=memo_text, asset=f"{a.code}:{a.issuer}"
 )
@@ -53,7 +53,7 @@ assert float(transaction_effect.amount) == 1.9
 # two payments
 payment_id, memo_text = j.sals.billing.submit_payment(amount=10, wallet_name=dst_wallet.instance_name, expiry=2)
 
-a = client_wallet.get_asset()
+a = client_wallet._get_asset()
 transaction_hash = client_wallet.transfer(
     dst_wallet.address, amount=9, memo_text=memo_text, asset=f"{a.code}:{a.issuer}"
 )
@@ -76,7 +76,7 @@ payment_id, memo_text = j.sals.billing.submit_payment(
     amount=10, wallet_name=dst_wallet.instance_name, refund_extra=False
 )
 
-a = client_wallet.get_asset()
+a = client_wallet._get_asset()
 transaction_hash = client_wallet.transfer(
     dst_wallet.address, amount=12, memo_text=memo_text, asset=f"{a.code}:{a.issuer}"
 )
@@ -97,7 +97,7 @@ payment_id, memo_text = j.sals.billing.submit_payment(
     amount=10, wallet_name=dst_wallet.instance_name, refund_extra=False
 )
 
-a = client_wallet.get_asset()
+a = client_wallet._get_asset()
 transaction_hash = client_wallet.transfer(
     dst_wallet.address, amount=12, memo_text=memo_text, asset=f"{a.code}:{a.issuer}"
 )
