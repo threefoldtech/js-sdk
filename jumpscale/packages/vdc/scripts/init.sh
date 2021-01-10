@@ -2,7 +2,6 @@
 # requires an execution argument for the host ip address which will be used for SNAT
 # example: ./init.sh 192.168.1.8
 
-systemctl stop
 apt install dnsmasq -y
 sed -i '/nameserver.*/c\nameserver 8.8.8.8' /etc/resolv.conf
 systemctl stop systemd-resolved.service
