@@ -134,7 +134,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
             )
         payment_info = deployer.pay_for_pool(self.pool_info)
-        result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+        result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.md_show_update(

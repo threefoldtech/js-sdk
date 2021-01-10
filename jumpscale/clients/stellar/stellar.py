@@ -376,6 +376,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        retries: int = 5,
     ):
         """Transfer assets to another address
 
@@ -469,10 +470,18 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
-        response = horizon_server.submit_transaction(transaction)
-        tx_hash = response["hash"]
-        j.logger.info(f"Transaction hash: {tx_hash}")
-        return tx_hash
+
+        while retries:
+            try:
+                response = horizon_server.submit_transaction(transaction)
+                tx_hash = response["hash"]
+                j.logger.info(f"Transaction hash: {tx_hash}")
+                return tx_hash
+            except Exception as e:
+                retries -= 1
+                j.logger.warning(str(e))
+
+        raise j.exceptions.Runtime("All 5 retries failed to make transaction, Please try again later")
 
     def list_payments(self, address: str = None, asset: str = None, cursor: str = None):
         """Get the transactions for an adddress
