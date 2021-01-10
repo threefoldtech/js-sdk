@@ -2,6 +2,15 @@
 # requires an execution argument for the host ip address which will be used for SNAT
 # example: ./init.sh 192.168.1.8
 
+systemctl stop
+apt install dnsmasq -y
+sed -i '/nameserver.*/c\nameserver 8.8.8.8' /etc/resolv.conf
+systemctl stop systemd-resolved.service
+systemctl disable systemd-resolved.service
+
+systemctl stop dnsmasq.service
+systemctl disable dnsmasq.service
+
 host_ip=$1
 
 echo "net.ipv4.ip_forward = 1" > /etc/sysctl.conf
