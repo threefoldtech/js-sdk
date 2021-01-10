@@ -225,7 +225,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
     @deployment_context()
