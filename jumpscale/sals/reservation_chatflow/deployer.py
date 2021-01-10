@@ -2043,6 +2043,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
 
+    def clear_blocked_managed_domains(self):
+        blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
+
+        if blocked_domains_keys:
+            j.core.db.delete(*blocked_domains_keys)
+        j.core.db.delete(DOMAINS_COUNT_KEY)
+
+        return True
+
     def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
         j.logger.info(f"waiting workload {wid} to be deleted")
         zos = j.sals.zos.get(identity_name)
