@@ -338,9 +338,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def _calculate_cloud_units(self, **resources):
         cont1 = Container()
-        cont1.capacity.cpu = resources["cru"]
-        cont1.capacity.memory = resources["mru"] * 1024
-        cont1.capacity.disk_size = resources["sru"] * 1024
+        cont1.capacity.cpu = round(resources["cru"])
+        cont1.capacity.memory = round(resources["mru"] * 1024)
+        cont1.capacity.disk_size = round(resources["sru"] * 1024)
         cont1.capacity.disk_type = DiskType.SSD
         return cont1.resource_units().cloud_units()
 
