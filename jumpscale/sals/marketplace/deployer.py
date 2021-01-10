@@ -1,6 +1,7 @@
 import math
 import random
 
+from jumpscale.sals.zos.billing import InsufficientFunds
 from jumpscale.clients.explorer.models import Container, DiskType, NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -74,13 +75,18 @@ class MarketPlaceDeployer(ChatflowDeployer):
         info = self.get_payment_info(pool)
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         wallet = j.clients.stellar.get(name=WALLET_NAME)
-        wallet.transfer(
-            destination_address=info["escrow_address"],
-            amount=info["total_amount_dec"],
-            asset=info["escrow_asset"],
-            memo_text=f"p-{info['resv_id']}",
-        )
-        return info
+        # try payment for 5 mins
+        zos = j.sals.zos.get()
+        now = j.data.time.utcnow().timestamp
+        while j.data.time.utcnow().timestamp <= now + 5 * 60:
+            try:
+                zos.billing.payout_farmers(wallet, pool)
+                return info
+            except InsufficientFunds as e:
+                raise e
+            except Exception as e:
+                j.logger.warning(str(e))
+        raise StopChatFlow(f"Failed to pay for pool {pool} in time, Please try again later")
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
