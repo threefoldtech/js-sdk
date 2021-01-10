@@ -120,7 +120,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             )
         msg, qr_code = deployer.get_qr_code_payment_info(self.pool_info)
         deployer.msg_payment_info = msg
-        result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+        result = deployer.wait_pool_reservation(
+            self.pool_info.reservation_id, qr_code=qr_code, bot=self, identity_name=identity.instance_name
+        )
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.pool_id = self.pool_info.reservation_id
