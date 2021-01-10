@@ -492,7 +492,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         qr_code = self.show_payment(pool_info, bot)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        result = self.wait_pool_reservation(pool_info.reservation_id, qr_code=qr_code, bot=bot)
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
 

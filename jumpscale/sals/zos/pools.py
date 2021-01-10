@@ -128,3 +128,10 @@ class Pools:
 
         """
         return self._pools.list(customer_tid=self._identity.tid)
+
+    def get_payment_info(self, reservation_id):
+        """get pool payment info
+      Args:
+          reservation_id (int):
+      """
+        return self._pools.get_payment_info(reservation_id)
