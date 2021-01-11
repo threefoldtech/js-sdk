@@ -64,6 +64,8 @@ class KubernetesMonitor:
         for node in result_dict["items"]:
             node_name = node["metadata"]["labels"]["k3s.io/hostname"]
             node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
+            if not node_name in self._node_stats:
+                continue
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
