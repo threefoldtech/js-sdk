@@ -46,10 +46,14 @@ class KubernetesMonitor:
             if len(splits) != 5:
                 continue
             node_name = splits[0]
-            cpu_mill = float(splits[1][:-1])
-            cpu_percentage = float(splits[2][:-1]) / 100
-            memory_usage = float(splits[3][:-2])
-            memory_percentage = float(splits[4][:-1]) / 100
+            try:
+                cpu_mill = float(splits[1][:-1])
+                cpu_percentage = float(splits[2][:-1]) / 100
+                memory_usage = float(splits[3][:-2])
+                memory_percentage = float(splits[4][:-1]) / 100
+            except Exception as e:
+                j.logger.warning(f"k8s monitor: failed to get node: {node_name} usage due to error: {e}")
+                continue
             self._node_stats[node_name] = {
                 "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
