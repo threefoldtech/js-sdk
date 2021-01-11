@@ -49,4 +49,4 @@ class FlistAutomated(GedisChatBotPatch, FlistDeploy):
             for m in args[0]:
                 if str(selected) in m:
                     return m
-            return selected
+        return selected

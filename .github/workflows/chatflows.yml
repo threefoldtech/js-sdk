@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: development
       - name: Gathering deps
         run: |
           sudo apt-get update

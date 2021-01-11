@@ -45,4 +45,4 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
             for m in args[0]:
                 if str(selected) in m:
                     return m
-            return selected
+        return selected
