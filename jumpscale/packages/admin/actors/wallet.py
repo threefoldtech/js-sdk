@@ -9,10 +9,10 @@ class Wallet(BaseActor):
     def create_wallet(self, name: str) -> str:
         if j.clients.stellar.find(name):
             raise j.exceptions.Value(f"Wallet {name} already exists")
-        if not os.environ.get("THREEBOT_WALLET_SECRET"):
-            raise j.exceptions.Value(f"Wallet {name} already secret is not passed")
+
         wallet = j.clients.stellar.get(name=name)
-        wallet.secret = os.environ.get("THREEBOT_WALLET_SECRET")
+        if os.environ.get("THREEBOT_WALLET_SECRET"):
+            wallet.secret = os.environ.get("THREEBOT_WALLET_SECRET")
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
 
