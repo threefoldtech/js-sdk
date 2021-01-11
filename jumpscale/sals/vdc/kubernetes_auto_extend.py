@@ -96,8 +96,8 @@ class KubernetesMonitor:
         for stats in self.node_stats.values():
             if all(
                 [
-                    stats["memory"]["total"] - self.node_stats["memory"]["used"] > memory,
-                    stats["cpu"]["total"] - self.node_stats["cpu"]["used"] > cpu,
+                    stats["memory"]["total"] - stats["memory"]["used"] > memory,
+                    stats["cpu"]["total"] - stats["cpu"]["used"] > cpu,
                 ]
             ):
                 return True
