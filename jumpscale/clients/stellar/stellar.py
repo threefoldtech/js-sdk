@@ -129,7 +129,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=txe.to_xdr())
 
     def get_balance(self, address=None):
-        """Gets balance for a stellar address
+        """Gets the balances for a stellar address
         """
         if address is None:
             address = self.address
@@ -283,6 +283,7 @@ class Stellar(Client):
             secret (str, optional): Secret to use will use instance property if empty. Defaults to None.
         """
         self._change_trustline(asset_code, issuer, secret=secret)
+        j.logger.info(f"Added trustline {asset_code}:{issuer} to account {self.address}")
 
     def add_known_trustline(self, asset_code):
         """Will add a trustline known by threefold for chosen asset_code
@@ -293,7 +294,7 @@ class Stellar(Client):
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
             raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
-        self._change_trustline(asset_code, issuer)
+        self.add_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
         """Deletes a trustline
@@ -304,6 +305,7 @@ class Stellar(Client):
             secret (str, optional): Secret to use will use instance property if empty. Defaults to None.
         """
         self._change_trustline(asset_code, issuer, limit="0", secret=secret)
+        j.logger.info(f"Removed trustline {asset_code}:{issuer} from account {self.address}")
 
     def _change_trustline(self, asset_code, issuer, limit=None, secret=None):
         """Create a trustline between you and the issuer of an asset
@@ -339,8 +341,6 @@ class Stellar(Client):
 
         try:
             server.submit_transaction(transaction)
-            if limit is None:
-                j.logger.info(f"Added trustline {asset_code}:{issuer} to account {self.address}")
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
             raise e
@@ -389,14 +389,16 @@ class Stellar(Client):
             assetStr = asset.split(":")
             if len(assetStr) != 2:
                 raise Exception(f"Wrong asset format should be in format 'assetcode:issuer', but received {assetStr}")
-            asset = assetStr[0]
+            asset_code = assetStr[0]
             issuer = assetStr[1]
+        else:
+            asset_code = asset
 
         if locked_until is not None:
             return self._transfer_locked_tokens(
                 destination_address,
                 amount,
-                asset,
+                asset_code,
                 issuer,
                 locked_until,
                 memo_text=memo_text,
@@ -424,7 +426,7 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset_code=asset,
+            asset_code=asset_code,
             asset_issuer=issuer,
             source=source_account.account_id,
         )
@@ -437,7 +439,7 @@ class Stellar(Client):
         transaction = transaction_builder.build()
         transaction = transaction.to_xdr()
 
-        if asset == "TFT" or asset == "FreeTFT":
+        if asset_code in _NETWORK_KNOWN_TRUSTS[self.network.value]:
             if fund_transaction:
                 transaction = self._fund_transaction(transaction=transaction)
                 transaction = transaction["transaction_xdr"]
@@ -800,7 +802,7 @@ class Stellar(Client):
         results = response["_embedded"]["records"][0]
         return results["type"] == "payment"
 
-    def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
+    def _get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
         """Gets an stellar_sdk.Asset object by code.
         if the code is TFT or TFTA we quickly return the Asset object based on the code.
         if the code is native (XLM) we return the Asset object with None issuer.
@@ -823,7 +825,7 @@ class Stellar(Client):
             return Asset(code, issuer)
 
         if not code:
-            raise ValueError("need to provide code")
+            raise ValueError("An asset code is required")
 
         if not issuer and code not in KNOWN_ASSETS:
             raise ValueError(
@@ -835,17 +837,13 @@ class Stellar(Client):
             return Asset(code, asset_issuer)
 
     def cancel_sell_order(
-        self,
-        offer_id,
-        selling_asset: stellar_sdk.Asset,
-        buying_asset: stellar_sdk.Asset,
-        price: Union[str, decimal.Decimal],
+        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
     ):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
-            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
-            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            selling_asset (str): Selling Asset
+            buying_asset (str): Buying Asset
             offer_id (int): pass the current offer id and set the amount to 0 to cancel this offer
             price (str): order price
         """
@@ -855,8 +853,8 @@ class Stellar(Client):
 
     def _manage_sell_order(
         self,
-        selling_asset: stellar_sdk.Asset,
-        buying_asset: stellar_sdk.Asset,
+        selling_asset: str,
+        buying_asset: str,
         amount: Union[str, decimal.Decimal],
         price: Union[str, decimal.Decimal],
         timeout=30,
@@ -865,8 +863,8 @@ class Stellar(Client):
         """Places/Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
-            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
-            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            selling_asset (str): Selling Asset
+            buying_asset str): Buying Asset 
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
@@ -879,15 +877,17 @@ class Stellar(Client):
         Returns:
             (dict): response as the result of sumbit the transaction
         """
+        stellar_selling_asset = self._get_asset(selling_asset)
+        stellar_buying_asset = self._get_asset(buying_asset)
         server = self._get_horizon_server()
         tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
         try:
             tx = (
                 tb.append_manage_sell_offer_op(
-                    selling_code=selling_asset.code,
-                    selling_issuer=selling_asset.issuer,
-                    buying_code=buying_asset.code,
-                    buying_issuer=buying_asset.issuer,
+                    selling_code=stellar_selling_asset.code,
+                    selling_issuer=stellar_selling_asset.issuer,
+                    buying_code=stellar_buying_asset.code,
+                    buying_issuer=stellar_buying_asset.issuer,
                     amount=amount,
                     price=price,
                     offer_id=offer_id,
@@ -899,7 +899,7 @@ class Stellar(Client):
             raise ValueError("invalid issuer") from e
         except Exception as e:
             raise RuntimeError(
-                f"error happened for placing selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
+                f"error while creating order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
             ) from e
         else:
             tx.sign(self.secret)

@@ -20,10 +20,11 @@ class UserThreebot(Base):
     continent = fields.String()
     explorer_url = fields.String()
     threebot_container_wid = fields.Integer()
-    trc_container_wid = fields.Integer()
-    reverse_proxy_wid = fields.Integer()
+    trc_container_wid = fields.Integer()  # deprecated for embeding trc # FIXME: Remove
+    reverse_proxy_wid = fields.Integer()  # deprecated for embeding trc # FIXME: Remove
     subdomain_wid = fields.Integer()
     secret_hash = fields.String()
+    proxy_wid = fields.Integer()
 
     def verify_secret(self, secret):
         if not self.secret_hash:

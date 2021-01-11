@@ -233,7 +233,15 @@ class Package:
                 yield dict(name=name, path=file_path)
 
     def load_config(self):
-        return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
+        return toml.load(self.package_config_path)
+
+    @property
+    def package_config_path(self):
+        return j.sals.fs.join_paths(self.path, "package.toml")
+
+    @property
+    def package_module_path(self):
+        return j.sals.fs.join_paths(self.path, "package.py")
 
     @property
     def module(self):
@@ -339,6 +347,13 @@ class Package:
             self.module.stop()
             self.module.start()
 
+    def exists(self):
+        return j.sals.fs.exists(self.package_config_path)
+
+    def is_valid(self):
+        # more constraints, but for now let's say it's not ok if the main files don't exist
+        return self.exists()
+
 
 class PackageManager(Base):
     packages = fields.Typed(dict, default=DEFAULT_PACKAGES.copy())
@@ -374,7 +389,7 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            if package:
+            if package and package.is_valid():
                 if j.sals.fs.exists(package.path):
                     chatflows = True if package.chats_dir else False
                     all_packages.append(
@@ -396,7 +411,9 @@ class PackageManager(Base):
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
             for pkg in os.listdir(path):
-                if pkg not in self.packages:
+                pkg_path = j.sals.fs.join_paths(path, pkg)
+                pkgtoml_path = j.sals.fs.join_paths(pkg_path, "package.toml")
+                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path):
                     all_packages.append(
                         {
                             "name": pkg,
@@ -610,7 +627,7 @@ class PackageManager(Base):
                 if not pkg:
                     j.logger.error(f"can't get package {package}")
                 else:
-                    if pkg.path and j.sals.fs.exists(pkg.path):
+                    if pkg.path and pkg.is_valid():
                         self.install(pkg)
                     else:
                         j.logger.error(f"package {package} was installed before but {pkg.path} doesn't exist anymore.")

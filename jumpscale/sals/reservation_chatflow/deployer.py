@@ -16,7 +16,7 @@ from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
-
+from jumpscale.clients.explorer.models import ResourceUnitAmount
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -1125,13 +1125,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return cu, su
         """
-        cu = min((mru - 1) / 4, cru * 4 / 2)
-        su = (hru / 1000 + sru / 100 / 2) / 1.2
-        if cu < 0:
-            cu = 0
-        if su < 0:
-            su = 0
-        return cu, su
+
+        cloud_units = ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru).cloud_units()
+        return cloud_units.cu, cloud_units.su
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
         return NetworkView(network_name, workloads, identity_name=identity_name)
@@ -1918,7 +1914,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            if pool.cus >= trigger_cus or pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
                 return True
             gevent.sleep(2)
@@ -2024,6 +2020,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             failure_count = int(failure_count_dict[key])
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
+
+    def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
+        j.logger.info(f"waiting workload {wid} to be deleted")
+        zos = j.sals.zos.get(identity_name)
+        expiry = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < expiry:
+            workload = zos.workloads.get(wid)
+            if workload.info.next_action == NextAction.DELETED:
+                return True
+            gevent.sleep(2)
+        return False
 
 
 deployer = ChatflowDeployer()
