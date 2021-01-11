@@ -1,3 +1,4 @@
+import os
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
@@ -8,22 +9,10 @@ class Wallet(BaseActor):
     def create_wallet(self, name: str) -> str:
         if j.clients.stellar.find(name):
             raise j.exceptions.Value(f"Wallet {name} already exists")
-
-        wallet = j.clients.stellar.new(name=name)
-        try:
-            wallet.activate_through_threefold_service()
-        except Exception:
-            j.clients.stellar.delete(name=name)
-            raise j.exceptions.JSException("Error on wallet activation")
-
-        try:
-            wallet.add_known_trustline("TFT")
-        except Exception:
-            j.clients.stellar.delete(name=name)
-            raise j.exceptions.JSException(
-                f"Failed to add trustlines to wallet {name}. Any changes made will be reverted."
-            )
-
+        if not os.environ.get("THREEBOT_WALLET_SECRET"):
+            raise j.exceptions.Value(f"Wallet {name} already secret is not passed")
+        wallet = j.clients.stellar.get(name=name)
+        wallet.secret = os.environ.get("THREEBOT_WALLET_SECRET")
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
 
