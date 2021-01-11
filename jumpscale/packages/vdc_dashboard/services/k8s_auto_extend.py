@@ -3,7 +3,7 @@ from jumpscale.loader import j
 
 
 class KubernetesAutoExtend(BackgroundService):
-    def __init__(self, interval=60 * 60 * 2, *args, **kwargs):
+    def __init__(self, interval=60 * 15, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
