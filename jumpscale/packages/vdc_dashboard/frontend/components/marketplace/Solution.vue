@@ -128,7 +128,7 @@ module.exports = {
   computed: {
     solution() {
       if(this.type==='all'){
-        return {name: "My Workloads",type: "all"}
+        return {name: "Deployed Solutions",type: "all"}
       }
       for (section in this.sections) {
         if (Object.keys(this.sections[section].apps).includes(this.type)) {
@@ -165,7 +165,7 @@ module.exports = {
         .getAllSolutions()
         .then((response) => {
           this.deployedSolutions = response.data.data;
-          chartTypeHeader = { text: "Chart", value: "Chart"}
+          chartTypeHeader = { text: "Deployment", value: "Chart"}
           this.headers = [this.headers[0],chartTypeHeader,...this.headers.slice(1)]
         })
         .finally(() => {

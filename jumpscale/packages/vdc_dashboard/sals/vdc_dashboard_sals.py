@@ -34,9 +34,15 @@ def get_all_deployments() -> list:
         kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
         deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
 
+        kubectl_statefulset_info = k8s_client.execute_native_cmd(cmd=f"kubectl get statefulset -o json")
+        kubectl_statefulset_info = j.data.serializers.json.loads(kubectl_statefulset_info)["items"]
+
+        deployments.extend(kubectl_statefulset_info)
+        deployment_names = []
         for deployment_info in deployments:
             if "app.kubernetes.io/name" not in deployment_info["metadata"]["labels"]:
                 continue
+
             solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
@@ -57,6 +63,7 @@ def get_all_deployments() -> list:
                 }
             )
             all_deployments.append(deployment_info)
+            deployment_names.append(release_name)
 
     return all_deployments
 

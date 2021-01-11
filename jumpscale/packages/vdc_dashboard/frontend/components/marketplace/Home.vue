@@ -52,7 +52,7 @@
               >{{ key }} ({{ appsLength(key) }})</v-tab
             >
             <v-tab-item v-for="(section, key) in filteredSections" :key="key">
-                <v-btn color="primary" class="float-right mr-16" @click="viewAllWorkloads()">All My Workloads</v-btn>
+                <v-btn color="primary" class="float-right" @click="viewAllWorkloads()">Deployed Solutions</v-btn>
 
               <solutions-section
                 :title="key"
