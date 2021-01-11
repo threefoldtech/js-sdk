@@ -92,15 +92,19 @@ class UserVDC(Base):
     def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
-            instance_name = f"vdc_ident_{self.solution_uuid}"
-            if j.core.identity.find(instance_name):
-                identity = j.core.identity.find(instance_name)
-            else:
-                identity = j.core.identity.me
+            identity = self._get_identity()
 
         return VDCDeployer(
             vdc_instance=self, password=password, bot=bot, proxy_farm_name=proxy_farm_name, identity=identity
         )
+
+    def _get_identity(self):
+        instance_name = f"vdc_ident_{self.solution_uuid}"
+        if j.core.identity.find(instance_name):
+            identity = j.core.identity.find(instance_name)
+        else:
+            identity = j.core.identity.me
+        return identity
 
     def get_zdb_monitor(self):
         return ZDBMonitor(self)
@@ -494,7 +498,8 @@ class UserVDC(Base):
         for k8s in self.kubernetes:
             if k8s.role == KubernetesRole.MASTER:
                 continue
-            if k8s.size == node_flavor and no_nodes > 0:
+            metadata = self._decrypt_metadata(k8s.wid)
+            if k8s.size == node_flavor and no_nodes > 0 and not metadata.get("external"):
                 no_nodes -= 1
                 continue
             result["nodes"].append(k8s.size)
@@ -502,6 +507,12 @@ class UserVDC(Base):
                 result["services"][VDC_SIZE.Services.IP] += 1
         result["no_nodes"] = no_nodes
         return result
+
+    def _decrypt_metadata(self, wid, workload=None):
+        identity = self._get_identity()
+        workload = workload or j.sals.zos.get(identity.instance_name).workloads.get(wid)
+        metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata, identity.instance_name)
+        return j.data.serializers.json.loads(metadata)
 
     def calculate_spec_price(self):
         discount = FARM_DISCOUNT.get()

@@ -371,6 +371,7 @@ class VDCDeployer:
             no_nodes,
             duration=INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=self.vdc_uuid,
+            external=False,
         )
         if not wids:
             self.error("failed to deploy kubernetes workers")
@@ -603,7 +604,7 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None):
+    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=False):
         farm_name = farm_name or PREFERED_FARM.get()
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
@@ -635,6 +636,7 @@ class VDCDeployer:
             duration=duration or INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=uuid.uuid4().hex,
             public_ip=public_ip,
+            external=external,
         )
         self.info(f"kubernetes cluster expansion result: {wids}")
         if not wids:
