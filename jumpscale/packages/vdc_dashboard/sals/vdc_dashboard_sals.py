@@ -35,9 +35,9 @@ def get_all_deployments() -> list:
         deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
 
         for deployment_info in deployments:
+            solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
-            solution_type = deployment_info["labels"]["app.kubernetes.io/name"]
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
             try:
                 deployment_host = k8s_client.execute_native_cmd(
