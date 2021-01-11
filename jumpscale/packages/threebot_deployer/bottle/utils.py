@@ -22,7 +22,7 @@ from contextlib import ContextDecorator
 THREEBOT_WORKLOAD_TYPES = [
     WorkloadType.Container,
     WorkloadType.Subdomain,
-    WorkloadType.Reverse_proxy,
+    WorkloadType.Proxy,
 ]
 
 
@@ -40,13 +40,13 @@ class threebot_identity_context(ContextDecorator):
 def build_solution_info(workloads, threebot):
     """used to build to dict containing Threebot information
     Args:
-        workloads: list of workloads that makeup the threebot solution (subdomain, threebot container, trc container, reverse_proxy)
+        workloads: list of workloads that makeup the threebot solution (subdomain, threebot container, proxy)
     """
     solution_info = {"wids": [], "name": threebot.name}
     for workload in workloads:
         solution_info["wids"].append(workload.id)
         if workload.info.workload_type in [
-            WorkloadType.Reverse_proxy,
+            WorkloadType.Proxy,
             WorkloadType.Subdomain,
         ]:
             solution_info["domain"] = workload.domain
@@ -54,7 +54,9 @@ def build_solution_info(workloads, threebot):
             solution_info["gateway"] = workload.info.node_id
         elif workload.info.workload_type == WorkloadType.Container:
             workload_result = json.loads(workload.info.result.data_json)
-            if "trc" in workload.flist:
+            if "trc" in workload.flist and "SOLUTION_IP" in workload.environment:  # for backward comptability
+                continue
+            if not workload_result:
                 continue
             solution_info.update(
                 {
@@ -79,9 +81,8 @@ def group_threebot_workloads_by_uuid(threebot, zos):
     solutions = {threebot.solution_uuid: []}
     threebot_wids = [
         threebot.threebot_container_wid,
-        threebot.trc_container_wid,
         threebot.subdomain_wid,
-        threebot.reverse_proxy_wid,
+        threebot.proxy_wid,
     ]
     for workload in zos.workloads.list(threebot.identity_tid):
         if workload.id in threebot_wids:
@@ -349,6 +350,25 @@ def redeploy_threebot_solution(
                             identity_name=identity.instance_name,
                         )
 
+                    # Deploy proxy for trc
+                    identity_tid = identity.tid
+                    secret = f"{identity_tid}:{uuid.uuid4().hex}"
+                    proxy_id = deployer.create_proxy(
+                        gateway_pool_id, gateway.node_id, domain, secret, identity.instance_name, **metadata,
+                    )
+                    workload_ids.append(proxy_id)
+
+                    success = deployer.wait_workload(
+                        workload_ids[-1], bot=msg_bot, identity_name=identity.instance_name
+                    )
+                    if not success:
+                        raise DeploymentFailed(
+                            f"Failed to create proxy with wid: {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
+                            solution_uuid=new_solution_uuid,
+                            wid=workload_ids[-1],
+                            identity_name=identity.instance_name,
+                        )
+
                     test_cert = j.config.get("TEST_CERT")
                     j.logger.debug("creating backup token")
                     backup_token = str(j.data.idgenerator.idgenerator.uuid.uuid4())
@@ -366,6 +386,9 @@ def redeploy_threebot_solution(
                         "TEST_CERT": "true" if test_cert else "false",
                         "MARKETPLACE_URL": f"https://{j.sals.nginx.main.websites.threebot_deployer_threebot_deployer_root_proxy_443.domain}/",
                         "DEFAULT_IDENTITY": "test" if "test" in j.core.identity.me.explorer_url else "main",
+                        "REMOTE_IP": f"{gateway.dns_nameserver[0]}",
+                        "REMOTE_PORT": f"{gateway.tcp_router_port}",
+                        "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
                     }
                     j.logger.debug(f"deploying threebot container with environment {environment_vars}")
 
@@ -384,7 +407,11 @@ def redeploy_threebot_solution(
                             cpu=new_solution_info["cpu"],
                             memory=new_solution_info["memory"],
                             disk_size=new_solution_info["disk_size"],
-                            secret_env={"BACKUP_PASSWORD": backup_password, "BACKUP_TOKEN": backup_token},
+                            secret_env={
+                                "BACKUP_PASSWORD": backup_password,
+                                "BACKUP_TOKEN": backup_token,
+                                "TRC_SECRET": secret,
+                            },
                             interactive=False,
                             log_config=log_config,
                             solution_uuid=new_solution_uuid,
@@ -405,44 +432,6 @@ def redeploy_threebot_solution(
                         )
                     j.logger.debug(f"threebot container workload {workload_ids[-1]} deployed successfuly")
 
-                    trc_log_config = j.core.config.get("LOGGING_SINK", {})
-                    if trc_log_config:
-                        trc_log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}-trc'.lower()
-                    identity_tid = identity.tid
-                    secret = f"{identity_tid}:{uuid.uuid4().hex}"
-                    j.logger.debug(f"deploying trc container")
-                    workload_ids.extend(
-                        deployer.expose_address(
-                            pool_id=compute_pool_id,
-                            gateway_id=gateway.node_id,
-                            network_name=network_view.name,
-                            local_ip=ip_address,
-                            port=80,
-                            tls_port=443,
-                            trc_secret=secret,
-                            node_id=selected_node.node_id,
-                            reserve_proxy=True,
-                            domain_name=domain,
-                            proxy_pool_id=gateway_pool_id,
-                            solution_uuid=new_solution_uuid,
-                            log_config=trc_log_config,
-                            identity_name=identity.instance_name,
-                            **metadata,
-                        )
-                    )
-                    j.logger.debug(f"wating for trc container workload {workload_ids[-1]} to be deployed")
-                    success = deployer.wait_workload(
-                        workload_ids[-1], bot=msg_bot, identity_name=identity.instance_name
-                    )
-                    if not success:
-                        raise DeploymentFailed(
-                            f"Failed to create TRC container on node {selected_node.node_id} {workload_ids[-1]}. The resources you paid for will be re-used in your upcoming deployments.",
-                            solution_uuid=new_solution_uuid,
-                            wid=workload_ids[-1],
-                            identity_name=identity.instance_name,
-                        )
-                    j.logger.debug(f"trc container workload {workload_ids[-1]} deployed successfuly")
-
                     j.logger.debug(f"fetching farm information of pool {compute_pool_id}")
                     farm_id = deployer.get_pool_farm_id(compute_pool_id)
                     farm = zos._explorer.farms.get(farm_id)
@@ -458,10 +447,9 @@ def redeploy_threebot_solution(
                     user_threebot.state = ThreebotState.RUNNING
                     user_threebot.continent = farm.location.continent
                     user_threebot.explorer_url = identity.explorer_url
-                    user_threebot.subdomain_wid = workload_ids[-4]
-                    user_threebot.threebot_container_wid = workload_ids[-3]
-                    user_threebot.trc_container_wid = workload_ids[-2]
-                    user_threebot.reverse_proxy_wid = workload_ids[-1]
+                    user_threebot.subdomain_wid = workload_ids[-3]
+                    user_threebot.proxy_wid = workload_ids[-2]
+                    user_threebot.threebot_container_wid = workload_ids[-1]
                     user_threebot.save()
                     j.logger.debug(f"threebot local config of uuid {new_solution_uuid} saved")
                     j.logger.debug(f"deleting old threebot local config with uuid {solution_uuid}")

@@ -61,6 +61,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for deploying Ubuntu.
 
         **Test Scenario**
+
         - Deploy Ubuntu.
         - Check that Ubuntu is reachable.
         - Check that Ubuntu has been deployed with the same version.
@@ -90,6 +91,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for Deploying a kubernetes.
 
         **Test Scenario**
+
         - Deploy kubernetes.
         - Check that kubernetes is reachable.
         - Check that kubernetes has been deployed with the same number of workers.
@@ -129,6 +131,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for deploying Minio.
 
         **Test Scenario**
+
         - Deploy Minio.
         - Check that Minio is reachable.
         """
@@ -158,6 +161,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for deploying a monitoring solution.
 
         **Test Scenario**
+
         - Deploy a monitoring solution.
         - Check that Prometheus UI is reachable.
         - Check that Grafana UI is reachable.
@@ -192,6 +196,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for deploying a container with a generic flist.
 
         **Test Scenario**
+
         - Deploy a container with a flist.
         - Check that the container coreX is reachable.
         """
@@ -212,6 +217,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for exposing a container with generic flist.
 
         **Test Scenario**
+
         - Deploy a container with a flist.
         - Expose this container's coreX endpoint to a subdomain.
         - Check that the container coreX is reachable through the subdomain.

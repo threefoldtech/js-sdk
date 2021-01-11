@@ -28,6 +28,7 @@ class PoolChatflows(ChatflowsBase):
         """Test case for creating a pool.
 
         **Test Scenario**
+
         - Create a pool with some CU and SU units.
         - Check that the pool has been created with the same units.
         """
@@ -54,6 +55,7 @@ class PoolChatflows(ChatflowsBase):
         """Test case for extending a pool.
 
         **Test Scenario**
+
         - Create a pool with some CU and SU units.
         - Extend the pool has been created.
         - Check that the pool has been extended with the same units.

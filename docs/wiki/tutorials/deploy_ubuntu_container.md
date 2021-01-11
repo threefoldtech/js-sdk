@@ -142,8 +142,6 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 def create_wallet(name):
         explorer = j.core.identity.me.explorer
         wallettype = "STD"
-        if "testnet" in explorer.url or "devnet" in explorer.url:
-            wallettype = "TEST"
 
         # Why while not if?
         while j.clients.stellar.find(name):

@@ -9,7 +9,7 @@ assignees: ''
 
 ### Search first
 
-Search for similar issues first, if not complete the following template
+Search for similar issues first, if you got no results, complete the following template
 
 ### Description
 

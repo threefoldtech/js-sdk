@@ -18,6 +18,7 @@ from .signature import sign_workload
 from .volumes import VolumesGenerator
 from .workloads import Workloads
 from .zdb import ZDBGenerator
+from .public_ip import PublicIPSGenerator
 
 
 class Zosv2:
@@ -75,6 +76,10 @@ class Zosv2:
     @property
     def gateway(self):
         return GatewayGenerator(self._identity)
+
+    @property
+    def public_ip(self):
+        return PublicIPSGenerator()
 
     def conversion(self):
         me = self._identity

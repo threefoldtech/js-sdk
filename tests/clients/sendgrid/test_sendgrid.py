@@ -39,6 +39,7 @@ class Sendgrid(BaseTests):
         """Test for sending an email without attachment.
 
         **Test Scenario**
+
         - Get sendgrid object.
         - Send the email.
         - Validate that the email send by accessing the receiver mail and check the inbox for the send email.
@@ -51,6 +52,7 @@ class Sendgrid(BaseTests):
         """Test for sending an email without attachment.
 
         **Test Scenario**
+
         - Get sendgrid object.
         - Create attachment.
         - Add the attachment to sendgrid object.

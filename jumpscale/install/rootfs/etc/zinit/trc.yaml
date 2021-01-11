@@ -1,0 +1,4 @@
+exec: bash -c "trc -local 127.0.0.1:80 -local-tls 127.0.0.1:443 -remote $REMOTE_IP:$REMOTE_PORT"
+log: stdout
+after:
+  - init

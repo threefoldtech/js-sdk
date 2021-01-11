@@ -74,6 +74,7 @@ class Test3BotServer(BaseTests):
         """Test start threebot server.
 
         **Test Scenario**
+
         - Start threebot server.
         - Check it works correctly.
         """
@@ -87,6 +88,7 @@ class Test3BotServer(BaseTests):
         """Test stop threebot server.
 
         **Test Scenario**
+
         - Start threebot server.
         - Check it works correctly.
         - Stop threebot server.
@@ -108,6 +110,7 @@ class Test3BotServer(BaseTests):
         """Test is_running method.
 
         **Test Scenario**
+
         - Start threebot server.
         - Check it works correctly.
         - Use is_running, The output should be True.
@@ -137,6 +140,7 @@ class Test3BotServer(BaseTests):
         """Test default package list with threebot server.
 
         **Test Scenario**
+
         - Start threebot server.
         - Check the package list that should be started by default with threebot server.
         ['auth', 'chatflows', 'admin', 'weblibs', 'tfgrid_solutions', 'backup']
@@ -153,6 +157,7 @@ class Test3BotServer(BaseTests):
         """Test case for adding and deleting package in threebot server
 
         **Test Scenario**
+
         - Add a package.
         - Check that the package has been added.
         - Try to add wrong package, and make sure that the error has been raised.

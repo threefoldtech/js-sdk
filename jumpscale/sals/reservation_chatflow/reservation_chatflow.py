@@ -508,10 +508,7 @@ class ReservationChatflow:
         List all stellar client wallets from bcdb. Based on explorer instance only either wallets with network type TEST or STD are returned
         rtype: list
         """
-        if "devnet" in self._explorer.url or "testnet" in self._explorer.url:
-            network_type = StellarNetwork.TEST
-        else:
-            network_type = StellarNetwork.STD
+        network_type = StellarNetwork.STD
 
         wallets_list = j.clients.stellar.list_all()
         wallets = dict()
@@ -1413,7 +1410,6 @@ class ReservationChatflow:
             disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
-            mru = 0
         nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
@@ -1606,7 +1602,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable Threefold Connect : `j.core.config.set('threebot_connect', True)`
+            To enable TF Connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:

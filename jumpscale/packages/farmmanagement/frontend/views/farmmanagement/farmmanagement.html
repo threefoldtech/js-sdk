@@ -33,7 +33,7 @@
                   fa-eye
                 </v-icon>
               </v-btn>
-              <v-btn fab small text @click.stop="viewSettings(item)">
+              <v-btn fab small text @click.stop="goToEdit(item)">
                 <v-icon small>
                   fa-cog
                 </v-icon>
@@ -63,90 +63,6 @@
     <nodesTable style="height: 100%; width:100%;" :farmselected="farmSelected" v-if="farmSelected && farmSelected.name">
     </nodesTable>
   </v-row>
-  <v-dialog v-model="settingsDialog" scrollable v-if="settingsDialog" max-width="700px">
-    <v-card style="width: 100%;">
-      <v-card-title primary-title class="primary py-3 mb-5 white--text">
-        <v-icon color="white" left>fa-server</v-icon>
-        Farm Settings - {{farmToEdit.name}}
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <!--<v-col>
-            <h2>Pricing</h2>
-
-            <br>
-            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.cru"
-              label="Compute unit">
-            </v-text-field>
-            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.mru"
-              label="Memory unit">
-            </v-text-field>
-            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.sru"
-              label="SSD unit">
-            </v-text-field>
-            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.hru"
-              label="HDD unit">
-            </v-text-field>
-            <v-text-field prefix="$" type="number" step="0.01" min="0" v-model="farmToEdit.resource_prices.nru"
-              label="Network unit">
-            </v-text-field>
-          </v-col>-->
-
-          <v-col>
-            <v-text-field v-model="farmToEdit.threebot_id" label="3Bot ID"
-              hint="Be careful when changing this field. This is what define who owns the farm.">
-            </v-text-field>
-            <v-text-field v-model="farmToEdit.name" label="Farm name"></v-text-field>
-            <!-- </v-textarea> -->
-
-            <!-- <h3>Location</h3> -->
-            <!-- <v-row>
-              <v-col cols=6>
-                <v-text-field v-model="farmToEdit.location.latitude" label="Latitude"></v-text-field>
-              </v-col>
-              <v-col cols=6>
-                <v-text-field v-model="farmToEdit.location.longitude" label="Longitude"></v-text-field>
-              </v-col>
-            </v-row> -->
-            <v-select v-model="farmToEdit.location.country" menu-props="auto" :items="countries" label="Country">
-            </v-select>
-
-            <v-text-field v-model="farmToEdit.email" label="Email"></v-text-field>
-
-            <v-container>
-              <v-row v-for="(wallet, i) in farmToEdit.wallet_addresses" :key="wallet.id">
-                <v-col cols="12" sm="4">
-                  <v-text-field v-model="wallet.address" label="Wallet address"></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <v-text-field v-model="wallet.asset" label="Asset Code"></v-text-field>
-                </v-col>
-                <v-col>
-                  <v-btn @click="removeWallet(farmToEdit, i)" fab dark small color="warning">
-                    <v-icon small>fa-minus</v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
-              <v-row>
-                <v-col>
-                  <v-btn @click="addWallet(farmToEdit)" dark small color="success">Add a wallet address</v-btn>
-                </v-col>
-              </v-row>
-            </v-container>
-
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-alert :type="editFarmAlert.type" v-if=editFarmAlert border="right" colored-border elevation="2">
-          {{editFarmAlert.message}}
-        </v-alert>
-        <v-btn text class="mr-3" @click="cancelEditFarm">Cancel</v-btn>
-        <v-btn text color="secondary" class="mr-3" @click="saveFarm">Save</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 
   <v-dialog v-model="addFarmDialog" scrollable max-width="700px">
     <v-card style="width: 100%;">

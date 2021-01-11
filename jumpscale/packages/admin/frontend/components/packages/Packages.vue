@@ -65,6 +65,7 @@
     methods: {
       listPackages () {
         this.loading = true
+        this.$emit("updatesidebarlist");
         this.$api.packages.list().then((response) => {
           this.packages = JSON.parse(response.data).data
         }).finally (() => {

@@ -96,14 +96,10 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     cu_diff = abs(cu_diff) if cu_diff < 0 else 0
                     su_diff = abs(su_diff) if su_diff < 0 else 0
                     pool_info = j.sals.zos.get().pools.extend(
-                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), currencies=[self.currency]
+                        pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), 0, currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
-                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
-                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_demo_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
-                    )
+                    result = deployer.wait_pool_reservation(pool_info.reservation_id, bot=self)
                     if not result:
                         raise StopChatFlow(
                             f"can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
@@ -125,7 +121,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     **self.query,
                 )
                 deployer.pay_for_pool(self.pool_info)
-                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+                result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
                 if not result:
                     raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
@@ -144,7 +140,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
             deployer.pay_for_pool(self.pool_info)
-            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, self)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
             self.wgcfg = deployer.init_new_user_network(
@@ -286,7 +282,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.username, self.farm_name, identity_name=self.identity_name)
+        prefered_gw_farm = "csfarmer"
+        gateways = deployer.list_all_gateways(self.username, prefered_gw_farm, identity_name=self.identity_name)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
@@ -304,8 +301,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             for domain in gateway.managed_domains:
                 self.addresses = []
                 is_managed_domains = True
-                if domain in blocked_domains:
+                if domain in blocked_domains or domain.startswith("vdc"):
                     continue
+
+                # use 3bot with 3bot domains and solutions with webgw1 and webgw2
+                if self.SOLUTION_TYPE == "threebot" and not domain.startswith("3bot"):
+                    continue
+
+                if self.SOLUTION_TYPE != "threebot" and not domain.startswith("webg"):
+                    continue
+
                 success = deployer.test_managed_domain(
                     gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
                 )
@@ -327,11 +332,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 managed_domain = domain
 
                 solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-                owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
-                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
-
+                full_domain = f"{solution_name}.{managed_domain}"
                 metafilter = lambda metadata: metadata.get("owner") == self.username
                 # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
                 user_subdomains = {}
@@ -356,13 +358,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                                     break
                             if is_free:
                                 solutions.cancel_solution_by_uuid(sol_uuid)
+                                deployer.wait_workload_deletion(dom["wid"], timeout=3, identity_name=self.identity_name)
 
                     if j.tools.dnstool.is_free(full_domain):
                         self.domain = full_domain
                         break
                     else:
-                        random_number = random.randint(1000, 100000)
-                        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
+                        random_number = random.randint(1, 1000)
+                        full_domain = f"{solution_name}-{random_number}.{managed_domain}"
 
                 for ns in self.gateway.dns_nameserver:
                     try:
@@ -518,12 +521,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def solution_extension(self):
         self.md_show_update("Extending pool...")
         self.currencies = ["TFT"]
+
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
         if self.pool_info and self.qr_code:
             # cru = 1 so cus will be = 0
-            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, qr_code=self.qr_code, bot=self)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
 

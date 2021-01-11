@@ -215,6 +215,14 @@
                 @click="clearBlockedNodes()"
                 >Clear blocked nodes</v-btn
               >
+              <v-btn
+                hide-details
+                class="my-2 ml-2"
+                small
+                color="success"
+                @click="clearBlockedManagedDomains()"
+                >Clear blocked domains</v-btn
+              >
             </base-section>
           </v-col>
         </v-row>
@@ -463,10 +471,23 @@ module.exports = {
       this.$api.admins
         .clearBlockedNodes()
         .then((response) => {
-          this.alert("Blocked nodes been cleared successfully", "success");
+          this.alert("Blocked nodes have been cleared successfully", "success");
         })
         .catch((error) => {
           this.alert("Failed to clear blocked nodes", "error");
+        });
+    },
+    clearBlockedManagedDomains() {
+      this.$api.admins
+        .clearBlockedManagedDomains()
+        .then((response) => {
+          this.alert(
+            "Blocked managed domains have been cleared successfully",
+            "success"
+          );
+        })
+        .catch((error) => {
+          this.alert("Failed to clear blocked managed domains", "error");
         });
     },
   },

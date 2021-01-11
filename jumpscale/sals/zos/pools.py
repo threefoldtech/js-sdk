@@ -23,12 +23,13 @@ class Pools:
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu: int, su: int, farm: str, currencies: List[str] = None) -> PoolCreated:
+    def create(self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None) -> PoolCreated:
         """create a new capacity pool
 
         Args:
           cu(int): amount of compute unit to reserve
           su(int): amount of storage unit to reserve
+          ipv4us(int): amount of ipv4 unit to reserve
           farm(str): name of the farm where to reserve capacity
           currencies(List[str], optional): list of currency you are willing to pay with, defaults to None
 
@@ -58,11 +59,14 @@ class Pools:
         pool.data_reservation.pool_id = 0
         pool.data_reservation.cus = cu
         pool.data_reservation.sus = su
+        pool.data_reservation.ipv4us = ipv4us
         pool.data_reservation.node_ids = node_ids
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
 
-    def extend(self, pool_id: int, cu: int, su: int, currencies: List[str] = None) -> PoolCreated:
+    def extend(
+        self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None
+    ) -> PoolCreated:
         """extend an existing capacity pool
 
         Args:
@@ -83,7 +87,8 @@ class Pools:
         pool.data_reservation.pool_id = p.pool_id
         pool.data_reservation.cus = cu
         pool.data_reservation.sus = su
-        pool.data_reservation.node_ids = p.node_ids
+        pool.data_reservation.ipv4us = ipv4us
+        pool.data_reservation.node_ids = list(set(node_ids).union(set(p.node_ids))) if node_ids else p.node_ids
         pool.data_reservation.currencies = currencies
         return self._reserve(pool)
 
@@ -123,3 +128,10 @@ class Pools:
 
         """
         return self._pools.list(customer_tid=self._identity.tid)
+
+    def get_payment_info(self, reservation_id):
+        """get pool payment info
+      Args:
+          reservation_id (int):
+      """
+        return self._pools.get_payment_info(reservation_id)

@@ -1,0 +1,119 @@
+<v-card style="width: 80%; margin: auto;">
+    <v-card-title primary-title class="primary py-3 mb-5 white--text">
+      <v-icon color="white" left>fa-server</v-icon>
+      Farm Settings - {{farm.name}}
+    </v-card-title>
+    <v-card-text>
+      <v-row>
+
+        <v-col>
+          <v-text-field v-model="farm.threebot_id" label="3Bot ID"
+            hint="Be careful when changing this field. This is what define who owns the farm.">
+          </v-text-field>
+          <v-text-field v-model="farm.name" label="Farm name"></v-text-field>
+
+          <!-- <v-select v-model="farm.location.country" menu-props="auto" :items="countries" label="Country"> -->
+          </v-select>
+
+          <v-text-field v-model="farm.email" label="Email"></v-text-field>
+
+          <br />
+          <br />
+
+          <h3>Wallet Address management</h3>
+            <v-row v-for="(wallet, i) in farm.wallet_addresses" :key="wallet.id">
+              <v-col cols="12" sm="4">
+                <v-text-field v-model="wallet.address" label="Wallet address"></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <v-text-field v-model="wallet.asset" label="Asset Code"></v-text-field>
+              </v-col>
+              <v-col>
+                <v-btn @click="removeWallet(farm, i)" fab dark small color="warning">
+                  <v-icon small>fa-minus</v-icon>
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col>
+                <v-btn @click="addWallet(farm)" dark small color="success">Add a wallet address</v-btn>
+              </v-col>
+            </v-row>
+
+        <br />
+        <br />
+
+        <div class="header-with-action">
+          <h3>IP Address management</h3>
+          <v-btn class="plus-button" fab small text @click="openCreateModal = true">
+            <v-icon small>
+              fa-plus
+            </v-icon>
+          </v-btn>
+        </div>
+
+        <v-dialog v-model="openCreateModal" persistent max-width="800">
+          <v-card>
+            <v-card-title class="headline">Create a new IP address</v-card-title>
+            <v-col cols="12" sm="8">
+              <div class="create-ip">
+                <p>An IP address must be a public IP in format: "x.x.x.x/x"</p>
+                <v-text-field
+                  v-model="newIpAddress.ipaddress"
+                  label="IP Address"
+                  :rules="[rules.required, rules.validIp]"
+                ></v-text-field>
+                <v-text-field
+                  v-model="newIpAddress.gatewayIP"
+                  label="Gateway IP"
+                  :rules="[rules.required, rules.validIp]"
+                ></v-text-field>
+              </div>
+            </v-col>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn x-small color="black darken-1" text @click="openCreateModal = false">Cancel</v-btn>
+              <v-btn x-small color="red darken-1" text @click="createIpAddressFarmer()">Save</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-data-table
+          item-key="ipaddress"
+          :headers="headers"
+          :items="farm.ipaddresses"
+        >
+
+          <template v-slot:item.action="{ item }">
+            <v-btn v-if="item.reservation_id == 0" fab small text @click="openDeleteModal = true">
+              <v-icon small>
+                fa-trash
+              </v-icon>
+            </v-btn>
+
+            <v-dialog v-model="openDeleteModal" persistent max-width="800">
+              <v-card>
+                <v-card-title class="headline">Are you sure you want to delete ipaddress: {{ item.ipaddress }}?</v-card-title>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
+                  <v-btn x-small color="red darken-1" text @click="deleteIpAddressFarmer(item)">Delete</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </template>
+
+        </v-data-table>
+
+        </v-col>
+      </v-row>
+    </v-card-text>
+    <v-card-actions>
+      <v-alert :type="editFarmAlert.type" v-if=editFarmAlert border="right" colored-border elevation="2">
+        {{editFarmAlert.message}}
+      </v-alert>
+      <v-spacer></v-spacer>
+      <v-btn text class="mr-3" @click="cancelEditFarm">Cancel</v-btn>
+      <v-btn text color="secondary" class="mr-3" @click="saveFarm(true)">Save</v-btn>
+    </v-card-actions>
+</v-card>

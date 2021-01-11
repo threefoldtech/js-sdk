@@ -17,6 +17,7 @@ class TestRedis(TestCase):
         """Test case for start redis and stop it.
 
         **Test Scenario**
+
         - Start redis server.
         - Check about port, pid and process.
         - Stop redis server.
@@ -47,6 +48,7 @@ class TestRedis(TestCase):
         """Test case for start redis and restart it.
 
         **Test Scenario**
+
         - Start redis server.
         - Check about port, pid and process.
         - Restart redis server.

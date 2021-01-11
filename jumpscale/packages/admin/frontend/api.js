@@ -70,18 +70,11 @@ const apiClient = {
                 data: { name: name }
             })
         },
-        create_testnet_funded: (name) => {
-            return axios({
-                url: `${baseURL}/wallet/create_testnet_funded`,
-                method: "post",
-                data: { name: name }
-            })
-        },
-        import: (name, secret, network) => {
+        import: (name, secret) => {
             return axios({
                 url: `${baseURL}/wallet/import_wallet`,
                 method: "post",
-                data: { name: name, secret: secret, network: network }
+                data: { name: name, secret: secret }
             })
         },
         delete: (name) => {
@@ -176,6 +169,11 @@ const apiClient = {
                 url: `${baseURL}/admin/get_config`
             })
         },
+        getSDKVersion: () => {
+            return axios({
+                url: `${baseURL}/admin/get_sdk_version`
+            })
+        },
         getDeveloperOptions: () => {
             return axios({
                 url: `${baseURL}/admin/get_developer_options`
@@ -192,6 +190,11 @@ const apiClient = {
         clearBlockedNodes: () => {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
+            })
+        },
+        clearBlockedManagedDomains: () => {
+            return axios({
+                url: `${baseURL}/admin/clear_blocked_managed_domains`,
             })
         },
         getNotifications: () => {
@@ -555,12 +558,12 @@ const apiClient = {
                 url: `${baseURL}/identity/list_identities`
             })
         },
-        set: (label, tname, email, words, backup_password) => {
+        set: (label, tname, email, words, explorer_url, backup_password) => {
             return axios({
                 url: `${baseURL}/identity/set_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { label: label, tname: tname, email: email, words: words, backup_password: backup_password }
+                data: { label: label, tname: tname, email: email, words: words, explorer_url: explorer_url, backup_password: backup_password }
             })
         }
     },

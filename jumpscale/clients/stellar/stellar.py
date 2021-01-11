@@ -18,6 +18,8 @@ from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
 
+XLM_TRANSACTION_FEES = 0.00001
+ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
 
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
 _HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
@@ -110,9 +112,8 @@ class Stellar(Client):
         resp.raise_for_status()
         return resp.json()
 
-    def _activation_account(self, activation_code):
-        data = {"activation_code": activation_code}
-        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"args": data})
+    def _activation_account(self):
+        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"address": self.address})
         resp.raise_for_status()
         return resp.json()
 
@@ -129,7 +130,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=txe.to_xdr())
 
     def get_balance(self, address=None):
-        """Gets balance for a stellar address
+        """Gets the balances for a stellar address
         """
         if address is None:
             address = self.address
@@ -234,16 +235,18 @@ class Stellar(Client):
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
-        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
+        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"address": self.address})
         resp.raise_for_status()
-        j.logger.info(f"account with address {self.address} activated and  funded through friendbot")
+        j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
     def activate_through_threefold_service(self):
         """
         Activate your weallet through threefold services
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        resp = self._activation_account()
+        loaded_json = j.data.serializers.json.loads(resp)
+        xdr = loaded_json["activation_transaction"]
+        self.sign(xdr, submit=True)
 
     def activate_account(self, destination_address, starting_balance="12.50"):
         """Activates another account
@@ -283,6 +286,7 @@ class Stellar(Client):
             secret (str, optional): Secret to use will use instance property if empty. Defaults to None.
         """
         self._change_trustline(asset_code, issuer, secret=secret)
+        j.logger.info(f"Added trustline {asset_code}:{issuer} to account {self.address}")
 
     def add_known_trustline(self, asset_code):
         """Will add a trustline known by threefold for chosen asset_code
@@ -290,9 +294,14 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        balances = self.get_balance()
+        for b in balances.balances:
+            if b.asset_code == asset_code:
+                j.logger.info(f"trustline {asset_code} is already added.")
+                return
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
-            raise j.exceptions.NotFound(f"We do not provide a known issuers for {asset_code} on network {self.network}")
+            raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
         self._change_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
@@ -304,6 +313,7 @@ class Stellar(Client):
             secret (str, optional): Secret to use will use instance property if empty. Defaults to None.
         """
         self._change_trustline(asset_code, issuer, limit="0", secret=secret)
+        j.logger.info(f"Removed trustline {asset_code}:{issuer} from account {self.address}")
 
     def _change_trustline(self, asset_code, issuer, limit=None, secret=None):
         """Create a trustline between you and the issuer of an asset
@@ -338,11 +348,20 @@ class Stellar(Client):
         transaction.sign(source_keypair)
 
         try:
-            response = server.submit_transaction(transaction)
-            j.logger.info("Transaction hash: {}".format(response["hash"]))
+            server.submit_transaction(transaction)
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
             raise e
+
+    def return_xlms_to_activation(self):
+        xlm_balance = 0
+        for balance in self.get_balances():
+            if balance.asset_code == "XLM":
+                xlm_balance = balance.balance
+        trustlines = len(self.get_balances()) - 1
+        minimum_balance = 1 + 0.5 * trustlines
+        amount = xlm_balance - minimum_balance - XLM_TRANSACTION_FEES
+        self.transfer(ACTIVATION_ADDRESS, amount)
 
     def transfer(
         self,
@@ -357,6 +376,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        retries: int = 5,
     ):
         """Transfer assets to another address
 
@@ -382,20 +402,57 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
+        while retries > 0:
+            try:
+                return self._transfer(
+                    destination_address=destination_address,
+                    amount=amount,
+                    asset=asset,
+                    locked_until=locked_until,
+                    memo_text=memo_text,
+                    memo_hash=memo_hash,
+                    fund_transaction=fund_transaction,
+                    from_address=from_address,
+                    timeout=timeout,
+                    sequence_number=sequence_number,
+                    sign=sign,
+                )
+            except Exception as e:
+                retries -= 1
+                j.logger.warning(str(e))
+
+        raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
+
+    def _transfer(
+        self,
+        destination_address,
+        amount,
+        asset="XLM",
+        locked_until=None,
+        memo_text=None,
+        memo_hash=None,
+        fund_transaction=True,
+        from_address=None,
+        timeout=30,
+        sequence_number: int = None,
+        sign: bool = True,
+    ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
                 raise Exception(f"Wrong asset format should be in format 'assetcode:issuer', but received {assetStr}")
-            asset = assetStr[0]
+            asset_code = assetStr[0]
             issuer = assetStr[1]
+        else:
+            asset_code = asset
 
         if locked_until is not None:
             return self._transfer_locked_tokens(
                 destination_address,
                 amount,
-                asset,
+                asset_code,
                 issuer,
                 locked_until,
                 memo_text=memo_text,
@@ -423,7 +480,7 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset_code=asset,
+            asset_code=asset_code,
             asset_issuer=issuer,
             source=source_account.account_id,
         )
@@ -436,7 +493,7 @@ class Stellar(Client):
         transaction = transaction_builder.build()
         transaction = transaction.to_xdr()
 
-        if asset == "TFT" or asset == "FreeTFT":
+        if asset_code in _NETWORK_KNOWN_TRUSTS[self.network.value]:
             if fund_transaction:
                 transaction = self._fund_transaction(transaction=transaction)
                 transaction = transaction["transaction_xdr"]
@@ -448,6 +505,7 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
+
         response = horizon_server.submit_transaction(transaction)
         tx_hash = response["hash"]
         j.logger.info(f"Transaction hash: {tx_hash}")
@@ -591,7 +649,7 @@ class Stellar(Client):
 
         unlock_time = math.ceil(unlock_time)
 
-        self._log_info("Creating escrow account")
+        j.logger.info("Creating escrow account")
         escrow_kp = stellar_sdk.Keypair.random()
 
         # minimum account balance as described at https://www.stellar.org/developers/guides/concepts/fees.html#minimum-account-balance
@@ -601,11 +659,11 @@ class Stellar(Client):
         minimum_account_balance = (2 + 1 + 3) * base_reserve  # 1 trustline and 3 signers
         required_XLM = minimum_account_balance + base_fee * 0.0000001 * 3
 
-        self._log_info("Activating escrow account")
+        j.logger.info("Activating escrow account")
         self.activate_account(escrow_kp.public_key, str(math.ceil(required_XLM)))
 
         if asset_code != "XLM":
-            self._log_info("Adding trustline to escrow account")
+            j.logger.info("Adding trustline to escrow account")
             self.add_trustline(asset_code, asset_issuer, escrow_kp.secret)
 
         preauth_tx = self._create_unlock_transaction(escrow_kp, unlock_time)
@@ -615,9 +673,8 @@ class Stellar(Client):
         unlock_hash = stellar_sdk.strkey.StrKey.encode_pre_auth_tx(preauth_tx_hash)
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=preauth_tx.to_xdr())
 
-        self._set_escrow_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
-        self._log_info("Unlock Transaction:")
-        self._log_info(preauth_tx.to_xdr())
+        self._set_account_signers(escrow_kp.public_key, destination_address, preauth_tx_hash, escrow_kp)
+        j.logger.info(preauth_tx.to_xdr())
 
         self.transfer(
             escrow_kp.public_key,
@@ -800,7 +857,7 @@ class Stellar(Client):
         results = response["_embedded"]["records"][0]
         return results["type"] == "payment"
 
-    def get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
+    def _get_asset(self, code="TFT", issuer=None) -> stellar_sdk.Asset:
         """Gets an stellar_sdk.Asset object by code.
         if the code is TFT or TFTA we quickly return the Asset object based on the code.
         if the code is native (XLM) we return the Asset object with None issuer.
@@ -823,7 +880,7 @@ class Stellar(Client):
             return Asset(code, issuer)
 
         if not code:
-            raise ValueError("need to provide code")
+            raise ValueError("An asset code is required")
 
         if not issuer and code not in KNOWN_ASSETS:
             raise ValueError(
@@ -835,17 +892,13 @@ class Stellar(Client):
             return Asset(code, asset_issuer)
 
     def cancel_sell_order(
-        self,
-        offer_id,
-        selling_asset: stellar_sdk.Asset,
-        buying_asset: stellar_sdk.Asset,
-        price: Union[str, decimal.Decimal],
+        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
     ):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
-            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
-            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            selling_asset (str): Selling Asset
+            buying_asset (str): Buying Asset
             offer_id (int): pass the current offer id and set the amount to 0 to cancel this offer
             price (str): order price
         """
@@ -855,8 +908,8 @@ class Stellar(Client):
 
     def _manage_sell_order(
         self,
-        selling_asset: stellar_sdk.Asset,
-        buying_asset: stellar_sdk.Asset,
+        selling_asset: str,
+        buying_asset: str,
         amount: Union[str, decimal.Decimal],
         price: Union[str, decimal.Decimal],
         timeout=30,
@@ -865,8 +918,8 @@ class Stellar(Client):
         """Places/Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
-            selling_asset (stellar_sdk.Asset): Selling Asset object - check wallet object.get_asset_by_code function
-            buying_asset (stellar_sdk.Asset): Buying Asset object - Asset object - check wallet object.get_asset_by_code function
+            selling_asset (str): Selling Asset
+            buying_asset str): Buying Asset
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
@@ -879,15 +932,17 @@ class Stellar(Client):
         Returns:
             (dict): response as the result of sumbit the transaction
         """
+        stellar_selling_asset = self._get_asset(selling_asset)
+        stellar_buying_asset = self._get_asset(buying_asset)
         server = self._get_horizon_server()
         tb = TransactionBuilder(self.load_account(), network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
         try:
             tx = (
                 tb.append_manage_sell_offer_op(
-                    selling_code=selling_asset.code,
-                    selling_issuer=selling_asset.issuer,
-                    buying_code=buying_asset.code,
-                    buying_issuer=buying_asset.issuer,
+                    selling_code=stellar_selling_asset.code,
+                    selling_issuer=stellar_selling_asset.issuer,
+                    buying_code=stellar_buying_asset.code,
+                    buying_issuer=stellar_buying_asset.issuer,
                     amount=amount,
                     price=price,
                     offer_id=offer_id,
@@ -899,7 +954,7 @@ class Stellar(Client):
             raise ValueError("invalid issuer") from e
         except Exception as e:
             raise RuntimeError(
-                f"error happened for placing selling order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
+                f"error while creating order for selling: {selling_asset}, buying: {buying_asset}, amount: {amount} price: {price}"
             ) from e
         else:
             tx.sign(self.secret)
