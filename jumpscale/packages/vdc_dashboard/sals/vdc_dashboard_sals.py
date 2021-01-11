@@ -35,6 +35,8 @@ def get_all_deployments() -> list:
         deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
 
         for deployment_info in deployments:
+            if "app.kubernetes.io/name" not in deployment_info["metadata"]["labels"]:
+                continue
             solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
@@ -51,7 +53,7 @@ def get_all_deployments() -> list:
                     "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
                     "VDC Name": vdc_name,
                     "Domain": deployment_host,
-                    "Deployment Type": solution_type,
+                    "Chart": solution_type,
                 }
             )
             all_deployments.append(deployment_info)

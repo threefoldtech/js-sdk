@@ -107,25 +107,25 @@ def threebot_vdc():
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
-    vdc_dict["expiration_days"] = vdc.calculate_funded_period(False)
-    vdc_dict["expiration_date"] = vdc.calculate_expiration_value(False)
-    # Add wallet address
-    wallet = vdc.prepaid_wallet
-    balances = wallet.get_balance()
-    balances_data = []
-    for item in balances.balances:
-        # Add only TFT balance
-        if item.asset_code == "TFT":
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
+    # vdc_dict["expiration_days"] = vdc.calculate_funded_period(False)
+    # vdc_dict["expiration_date"] = vdc.calculate_expiration_value(False)
+    # # Add wallet address
+    # wallet = vdc.prepaid_wallet
+    # balances = wallet.get_balance()
+    # balances_data = []
+    # for item in balances.balances:
+    #     # Add only TFT balance
+    #     if item.asset_code == "TFT":
+    #         balances_data.append(
+    #             {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+    #         )
 
-    vdc_dict["wallet"] = {
-        "address": wallet.address,
-        "network": wallet.network.value,
-        "secret": wallet.secret,
-        "balances": balances_data,
-    }
+    # vdc_dict["wallet"] = {
+    #     "address": wallet.address,
+    #     "network": wallet.network.value,
+    #     "secret": wallet.secret,
+    #     "balances": balances_data,
+    # }
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}

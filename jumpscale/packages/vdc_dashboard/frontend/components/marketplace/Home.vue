@@ -41,7 +41,6 @@
       </div>
 
       <div class="categories">
-        <v-row>
           <v-tabs vertical class="transparent-body">
             <v-toolbar-title class="mb-2 font-weight-bold"
               >Categories</v-toolbar-title
@@ -53,6 +52,8 @@
               >{{ key }} ({{ appsLength(key) }})</v-tab
             >
             <v-tab-item v-for="(section, key) in filteredSections" :key="key">
+                <v-btn color="primary" class="float-right mr-16" @click="viewAllWorkloads()">All My Workloads</v-btn>
+
               <solutions-section
                 :title="key"
                 :apps="section.apps"
@@ -117,6 +118,14 @@ module.exports = {
         name: "Solution",
         params: {
           type: this.selectedObject.type.toLowerCase(),
+        },
+      });
+    },
+    viewAllWorkloads() {
+      this.$router.push({
+        name: "Solution",
+        params: {
+          type: "all",
         },
       });
     },
