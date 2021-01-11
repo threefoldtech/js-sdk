@@ -103,7 +103,7 @@ class KubernetesMonitor:
                 return True
         return False
 
-    def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False):
+    def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False, bot=None):
         """
         used to extend the vdc k8s cluster according to the vdc spec
         Args:
@@ -126,7 +126,7 @@ class KubernetesMonitor:
         no_nodes = no_nodes or current_spec["no_nodes"]
         if no_nodes < 1:
             return []
-        deployer = deployer or self.vdc_instance.get_deployer()
+        deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
         deployer._set_wallet(self.vdc_instance.prepaid_wallet.instance_name)
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
         deployer._set_wallet(self.vdc_instance.provision_wallet.instance_name)
