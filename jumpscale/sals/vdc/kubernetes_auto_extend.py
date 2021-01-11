@@ -87,11 +87,15 @@ class KubernetesMonitor:
 
     def has_enough_resources(self, cpu=0, memory=0):
         self.update_stats()
-        if self.node_stats["memory"]["total"] - self.node_stats["memory"]["used"] < memory:
-            return False
-        if self.node_stats["cpu"]["total"] - self.node_stats["cpu"]["used"] < cpu:
-            return False
-        return True
+        for stats in self.node_stats.values():
+            if all(
+                [
+                    stats["memory"]["total"] - self.node_stats["memory"]["used"] > memory,
+                    stats["cpu"]["total"] - self.node_stats["cpu"]["used"] > cpu,
+                ]
+            ):
+                return True
+        return False
 
     def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False):
         """
