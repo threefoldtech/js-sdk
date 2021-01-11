@@ -37,12 +37,21 @@ def get_all_deployments() -> list:
         for deployment_info in deployments:
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
+            solution_type = deployment_info["labels"]["app.kubernetes.io/name"]
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
+            try:
+                deployment_host = k8s_client.execute_native_cmd(
+                    cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+                )
+            except:
+                pass
 
             deployment_info.update(
                 {
                     "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
                     "VDC Name": vdc_name,
+                    "Domain": deployment_host,
+                    "Deployment Type": solution_type,
                 }
             )
             all_deployments.append(deployment_info)
