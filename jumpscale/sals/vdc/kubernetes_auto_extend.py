@@ -19,11 +19,12 @@ class StatsHistory:
 
 
 class KubernetesMonitor:
-    def __init__(self, vdc_instance):
+    def __init__(self, vdc_instance, burst_size=5):
         self.vdc_instance = vdc_instance
+        self.burst_size = burst_size
         self.manager = Manager()
         self._node_stats = {}
-        self.stats_history = StatsHistory(self.vdc_instance)
+        self.stats_history = StatsHistory(self.vdc_instance, burst_size)
 
     @property
     def nodes(self):
@@ -64,14 +65,22 @@ class KubernetesMonitor:
         self.stats_history.update(self._node_stats)
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
-        total_cpu = used_cpu = total_memory = used_memory = 0
-        for stats in self.node_stats.values():
-            total_cpu += stats["cpu"]["total"]
-            used_cpu += stats["cpu"]["used"]
-            total_memory += stats["memory"]["total"]
-            used_memory += stats["memory"]["used"]
-        overall_cpu_percentage = used_cpu / total_cpu if total_cpu else 0
-        overall_memory_percentage = used_memory / total_memory if total_memory else 0
-        if any([overall_cpu_percentage >= cpu_threshold, overall_memory_percentage >= memory_threshold,]):
-            return True
-        return False
+        burst_usage = []
+        stats_history = self.stats_history.get()
+        if len(stats_history) < self.burst_size:
+            return False
+        for h_dict in stats_history:
+            total_cpu = used_cpu = total_memory = used_memory = 0
+            for stats in h_dict.values():
+                total_cpu += stats["cpu"]["total"]
+                used_cpu += stats["cpu"]["used"]
+                total_memory += stats["memory"]["total"]
+                used_memory += stats["memory"]["used"]
+            overall_cpu_percentage = used_cpu / total_cpu if total_cpu else 0
+            overall_memory_percentage = used_memory / total_memory if total_memory else 0
+            burst_usage.append({"cpu": overall_cpu_percentage, "memory": overall_memory_percentage})
+
+        for usage_dict in burst_usage:
+            if all([usage_dict["cpu"] < cpu_threshold, usage_dict["memory"] < memory_threshold]):
+                return False
+        return True
