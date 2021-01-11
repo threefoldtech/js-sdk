@@ -16,7 +16,7 @@ from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
-
+from jumpscale.clients.explorer.models import ResourceUnitAmount
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -448,7 +448,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
-        self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
+        self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
         return pool_info
 
     def extend_pool(self, bot, pool_id):
@@ -460,9 +460,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.get().pools.get(pool_id)
-        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
-        trigger_sus = pool.sus + (su * 0.75) if su else 0
-        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
+        self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
@@ -1171,13 +1169,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         return cu, su
         """
-        cu = min((mru - 1) / 4, cru * 4 / 2)
-        su = (hru / 1000 + sru / 100 / 2) / 1.2
-        if cu < 0:
-            cu = 0
-        if su < 0:
-            su = 0
-        return cu, su
+
+        cloud_units = ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru).cloud_units()
+        return cloud_units.cu, cloud_units.su
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
         nv = NetworkView(network_name, workloads, identity_name=identity_name)
@@ -1910,6 +1904,82 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             result.append(slave_cont_id)
         return result
 
+    def deploy_etcd_containers(
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        ip_addresses,
+        etcd_cluster,
+        etcd_flist,
+        cpu=1,
+        memory=1024,
+        disk_size=1024,
+        disk_type=DiskType.SSD,
+        entrypoint="etcd",
+        public_ipv6=False,
+        **metadata,
+    ):
+        """
+        Deploy single and cluster etcd nodes
+        Args:
+            pool_id : Pool used to deploy etcd solution
+            node_id : Node used to deploy etcd solution
+            network_name : Network name used to deploy etcd solution
+            ip_addresses (List): List of IP address for every etcd node
+            etcd_cluster (str): Contains ETCD_INITIAL_CLUSTER value
+            etcd_flist (str): ETCD flist image used
+            cpu (int): CPU resource value. Defaults to 1.
+            memory (int): Memory resource size in MB. Defaults to 1024.
+            disk_size (int): Disk resource size in MB. Defaults to 1024.
+            disk_type (DiskType): Disk resource type. Defaults to DiskType.SSD.
+            entrypoint (str): Command that run at the start of the container. Defaults to "etcd".
+            public_ipv6 (bool): Check for IPv6. Defaults to False.
+
+        Returns:
+            List: List of reservation ids
+        """
+        etcd_cluster = etcd_cluster.rstrip(",")
+        solution_uuid = metadata["solution_uuid"]
+        env_cluster = {
+            "ETCD_INITIAL_CLUSTER_TOKEN": f"etcd_cluster_{solution_uuid}",
+            "ETCD_INITIAL_CLUSTER_STATE": "new",
+        }
+        result = []
+        for n, ip_address in enumerate(ip_addresses):
+            env = {}
+            if len(ip_addresses) > 1:
+                env.update(env_cluster)
+            env.update(
+                {
+                    "ALLOW_NONE_AUTHENTICATION": "yes",
+                    "ETCD_NAME": f"etcd_{n+1}",
+                    "ETCD_INITIAL_ADVERTISE_PEER_URLS": f"http://{ip_address}:2380",
+                    "ETCD_LISTEN_PEER_URLS": "http://0.0.0.0:2380",
+                    "ETCD_ADVERTISE_CLIENT_URLS": f"http://{ip_address}:2379",
+                    "ETCD_LISTEN_CLIENT_URLS": "http://0.0.0.0:2379",
+                    "ETCD_INITIAL_CLUSTER": etcd_cluster,
+                }
+            )
+            result.append(
+                self.deploy_container(
+                    pool_id,
+                    node_id,
+                    network_name,
+                    ip_address,
+                    etcd_flist,
+                    env,
+                    cpu,
+                    memory,
+                    disk_size,
+                    disk_type,
+                    entrypoint=entrypoint,
+                    public_ipv6=public_ipv6,
+                    **metadata,
+                )
+            )
+        return result
+
     def get_zdb_url(self, zdb_id, password, identity_name=None, workload=None):
         workload = workload or j.sals.zos.get(identity_name).workloads.get(zdb_id)
         result_json = j.data.serializers.json.loads(workload.info.result.data_json)
@@ -2005,11 +2075,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def wait_demo_payment(self, bot, pool_id, exp=5, trigger_cus=0, trigger_sus=1, identity_name=None):
         expiration = j.data.time.now().timestamp + exp * 60
-        msg = "<h2> Waiting for resources provisioning...</h2>"
+        msg = "<h2> Waiting on resource provisioning...</h2>"
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            if pool.cus >= trigger_cus or pool.sus >= trigger_sus:
                 bot.md_show_update("Preparing app resources")
                 return True
             gevent.sleep(2)
@@ -2037,6 +2107,30 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 return True
             gevent.sleep(2)
 
+        return False
+
+    def wait_pool_reservation(self, reservation_id, exp=5, qr_code=None, bot=None, identity_name=None):
+        expiration = j.data.time.now().timestamp + exp * 60
+        msg = "<h2> Waiting for payment...</h2>"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
+            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            qr_code_msg = f"""
+            <div class="text-center">
+                <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
+            </div>
+            """
+            msg = msg + self.msg_payment_info + qr_code_msg
+        zos = j.sals.zos.get(identity_name)
+        while j.data.time.get().timestamp < expiration:
+            if bot:
+                bot.md_show_update(msg, html=True)
+            payment_info = zos.pools.get_payment_info(reservation_id)
+            if payment_info.paid and payment_info.released:
+                return True
+            if payment_info.canceled:
+                raise DeploymentFailed(f"pool reservation {reservation_id} was cancelled because: {payment_info.cause}")
+            gevent.sleep(2)
         return False
 
     def get_payment_info(self, pool):

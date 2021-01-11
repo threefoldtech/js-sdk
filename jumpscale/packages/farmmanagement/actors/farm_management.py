@@ -6,7 +6,10 @@ from jumpscale.loader import j
 class FarmManagemenet(BaseActor):
     def __init__(self):
         super().__init__()
-        self._explorer = j.core.identity.me.explorer
+
+    @property
+    def _explorer(self):
+        return j.core.identity.me.explorer
 
     @actor_method
     def update_farm(self, farm_id, farm):

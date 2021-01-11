@@ -22,8 +22,12 @@ class KubernetesRole(Enum):
 
 class KubernetesNode(VDCHostBase):
     role = fields.Enum(KubernetesRole)
-    size = fields.Enum(VDC_SIZE.K8SNodeFlavor)
     public_ip = fields.IPRange()
+    _size = fields.Integer()
+
+    @property
+    def size(self):
+        return VDC_SIZE.K8SNodeFlavor(self._size)
 
 
 class S3Container(VDCHostBase):

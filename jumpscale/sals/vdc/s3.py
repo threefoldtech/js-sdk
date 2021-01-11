@@ -90,7 +90,7 @@ class VDCS3Deployer(VDCBaseComponent):
         deployment_nodes = []
         wids = []
         no_nodes = no_nodes or S3_NO_DATA_NODES + S3_NO_PARITY_NODES
-        for node in scheduler.nodes_by_capacity(pool_id=pool_id, sru=math.ceil(storage_per_zdb), ip_version="IPv6"):
+        for node in scheduler.nodes_by_capacity(pool_id=pool_id, hru=math.ceil(storage_per_zdb), ip_version="IPv6"):
             self.vdc_deployer.info(f"node {node.node_id} selected for zdb")
             deployment_nodes.append(node)
             if len(deployment_nodes) < no_nodes - len(wids):

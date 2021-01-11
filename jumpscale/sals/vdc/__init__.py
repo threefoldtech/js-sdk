@@ -9,11 +9,11 @@ VDC_INSTANCE_NAME_FORMAT = "vdc_{}_{}"
 
 class VDCStoredFactory(StoredFactory):
     def new(self, vdc_name, owner_tname, flavor):
-        if isinstance(flavor, str):
-            flavor = VDC_SIZE.VDCFlavor(flavor.lower())
+        if isinstance(flavor, VDC_SIZE.VDCFlavor):
+            flavor = flavor.value
         owner_tname = j.data.text.removesuffix(owner_tname, ".3bot")
         instance_name = VDC_INSTANCE_NAME_FORMAT.format(vdc_name, owner_tname)
-        return super().new(instance_name, vdc_name=vdc_name, owner_tname=owner_tname, flavor=flavor)
+        return super().new(instance_name, vdc_name=vdc_name, owner_tname=owner_tname, _flavor=flavor)
 
     def find(self, name=None, vdc_name=None, owner_tname=None, load_info=False):
         owner_tname = j.data.text.removesuffix(owner_tname, ".3bot") if owner_tname else None
@@ -40,11 +40,12 @@ class VDCStoredFactory(StoredFactory):
         return result
 
     def from_dict(self, instance_dict):
-        vdc_name = instance_dict.pop("vdc_name")
-        owner_tname = instance_dict.pop("owner_tname")
-        flavor = instance_dict.pop("flavor")
+        cp = instance_dict.copy()
+        vdc_name = cp.pop("vdc_name")
+        owner_tname = cp.pop("owner_tname")
+        flavor = cp.pop("flavor")
         instance = self.new(vdc_name, owner_tname, flavor)
-        for key, val in instance_dict.items():
+        for key, val in cp.items():
             setattr(instance, key, val)
         instance.save()
         return instance

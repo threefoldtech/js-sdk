@@ -59,7 +59,15 @@ const apiClient = {
         data: { wid: wid },
         headers: { 'Content-Type': 'application/json' }
       })
-    }
+    },
+    formatTOML: (obj) => {
+      return axios({
+        url: `${baseURL}/formattoml`,
+        method: "post",
+        data: { data: obj },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
   },
   license: {
     accept: () => {

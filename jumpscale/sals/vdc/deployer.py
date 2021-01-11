@@ -204,34 +204,40 @@ class VDCDeployer:
             j.logger.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
             raise VDCIdentityError(f"failed to generate identity for user {identity_name} due to error {str(e)}")
 
-    def get_pool_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+    def get_pool_id_and_reservation_id(self, farm_name, cus=0, sus=0, ipv4us=0):
+        # used for compute, storage and ipv4 units.
         cus = int(cus)
         sus = int(sus)
         ipv4us = int(ipv4us)
+
+        reservation_id = None
         self.info(f"getting pool on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}")
         farm = self.explorer.farms.get(farm_name=farm_name)
         for pool in self.zos.pools.list():
             farm_id = deployer.get_pool_farm_id(pool.pool_id, pool, self.identity.instance_name)
-            if farm_id == farm.id:
-                # extend
-                self.info(f"found existing pool {pool.pool_id} on farm: {farm_name}. pool: {str(pool)}")
-                if not any([cus, sus, ipv4us]):
-                    return pool.pool_id
-                node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
-                pool_info = self._retry_call(
-                    self.zos.pools.extend, args=[pool.pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
-                )
-                self.info(
-                    f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
-                )
-                self.pay(pool_info)
-                return pool.pool_id
+            if farm_id != farm.id or not any([pool.cus, pool.sus, pool.ipv4us]):
+                continue
+            # extend
+            self.info(f"found existing pool {pool.pool_id} on farm: {farm_name}. pool: {str(pool)}")
+            if not any([cus, sus, ipv4us]):
+                return pool.pool_id, reservation_id
+            node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm.id)]
+            pool_info = self._retry_call(
+                self.zos.pools.extend, args=[pool.pool_id, cus, sus, ipv4us], kwargs={"node_ids": node_ids}
+            )
+            self.info(
+                f"extending pool {pool.pool_id} with cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
+            )
+            self.pay(pool_info)
+            reservation_id = pool_info.reservation_id
+            return pool.pool_id, reservation_id
         pool_info = self._retry_call(self.zos.pools.create, args=[cus, sus, ipv4us, farm_name])
+        reservation_id = pool_info.reservation_id
         self.info(
             f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"
         )
         self.pay(pool_info)
-        return pool_info.reservation_id
+        return reservation_id, reservation_id
 
     def init_vdc(self, selected_farm):
         """
@@ -279,8 +285,9 @@ class VDCDeployer:
         farm_resources[selected_farm]["sus"] += sus
 
         for farm_name, cloud_units in farm_resources.items():
-            pool_id = self.get_pool_id(farm_name, **cloud_units)
-            self.wait_pool_payment(pool_id, trigger_sus=1)
+            _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
+            if reservation_id and not self.wait_pool_payment(reservation_id):
+                raise j.exceptions.Runtime(f"Failed to pay for pool: {reservation_id}")
 
     def deploy_vdc_network(self):
         """
@@ -330,7 +337,7 @@ class VDCDeployer:
         gs = scheduler or GlobalScheduler()
         zdb_threads = []
         for farm in ZDB_FARMS.get():
-            pool_id = self.get_pool_id(farm)
+            pool_id, _ = self.get_pool_id_and_reservation_id(farm)
             zdb_threads.append(
                 gevent.spawn(
                     self.s3.deploy_s3_zdb,
@@ -350,7 +357,7 @@ class VDCDeployer:
         2- extend cluster with the flavor no_nodes
         """
         gs = scheduler or GlobalScheduler()
-        master_pool_id = self.get_pool_id(NETWORK_FARM.get())
+        master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
@@ -503,7 +510,7 @@ class VDCDeployer:
 
             zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             scheduler = Scheduler(farm_name)
-            pool_id = self.get_pool_id(farm_name)
+            pool_id, _ = self.get_pool_id_and_reservation_id(farm_name)
 
             # deploy minio container
             # self.bot_show_update("Deploying minio container")
@@ -667,11 +674,11 @@ class VDCDeployer:
                 [workload.id for workload in nv.network_workloads], identity_name=self.identity.instance_name
             )
 
-    def wait_pool_payment(self, pool_id, exp=5, trigger_cus=0, trigger_sus=1):
+    def wait_pool_payment(self, reservation_id, exp=5):
         expiration = j.data.time.now().timestamp + exp * 60
         while j.data.time.get().timestamp < expiration:
-            pool = self.zos.pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            payment_info = self.zos.pools.get_payment_info(reservation_id)
+            if payment_info.paid and payment_info.released:
                 return True
             gevent.sleep(2)
         return False
@@ -744,7 +751,7 @@ class VDCDeployer:
             ipv4us = pool.active_ipv4 * duration * 60 * 60 * 24
             pool_info = self.zos.pools.extend(pool_id, int(cus), int(sus), int(ipv4us))
             self.info(
-                f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
+                f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, ipv4us: {ipv4us} reservation_id: {pool_info.reservation_id}"
             )
             self.pay(pool_info)
         self.vdc_instance.updated = j.data.time.utcnow().timestamp

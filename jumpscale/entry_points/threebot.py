@@ -248,21 +248,11 @@ def cli():
 
 def have_wallets():
     wallets = j.clients.stellar.list_all()
-    test, main = False, False
     for wallet_name in wallets:
         wallet = j.clients.stellar.get(wallet_name)
-        if wallet.network.value == "TEST":
-            test = True
-        elif wallet.network.value == "STD":
-            main = True
-    return test, main
-
-
-def create_test_wallet(wallet_name):
-    try:
-        j.clients.stellar.create_testnet_funded_wallet(wallet_name)
-    except Exception as e:
-        j.logger.error(str(e))
+        if wallet.network.value == "STD":
+            return True
+    return False
 
 
 def create_main_wallet(wallet_name):
@@ -274,14 +264,12 @@ def create_main_wallet(wallet_name):
 
 
 def create_wallets_if_not_exists():
-    test, main = have_wallets()
+    main_wallet = have_wallets()
     if not j.core.identity.is_configured:
         j.logger.warning("skipping wallets creation, identity isn't configured yet")
         return
     else:
-        if not test and "testnet" in j.core.identity.me.explorer_url:
-            create_test_wallet("test")
-        if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
+        if not main_wallet:
             create_main_wallet("main")
 
 

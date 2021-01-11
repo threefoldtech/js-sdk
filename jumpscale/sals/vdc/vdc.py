@@ -28,7 +28,6 @@ class UserVDC(Base):
     owner_tname = fields.String()
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
-    flavor = fields.Enum(VDC_SIZE.VDCFlavor)
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
     threebot = fields.Object(VDCThreebot)
@@ -36,6 +35,27 @@ class UserVDC(Base):
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
+    _flavor = fields.String()
+
+    @property
+    def flavor(self):
+        d = self.to_dict()
+        oldflavor = d.get("flavor", "silver")
+        if not self._flavor:
+            flavors = {"silver": "silver", "gold": "gold", "platinum": "platinum", "diamond": "diamond"}
+            self._flavor = d.get(flavors[oldflavor])
+            self.save()
+            # TODO: should we do a save here?
+            return VDC_SIZE.VDCFlavor(self._flavor)
+        else:
+            return VDC_SIZE.VDCFlavor(self._flavor)
+
+    def to_dict(self):
+        d = super().to_dict()
+        d["flavor"] = self._flavor
+        for node in d["kubernetes"]:
+            node["size"] = node["_size"]
+        return d
 
     def is_empty(self):
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
@@ -169,8 +189,10 @@ class UserVDC(Base):
                 address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
                 node.public_ip = address
 
-            node.size = (
-                VDC_SIZE.K8SNodeFlavor(workload.size) if workload.size in k8s_sizes else VDC_SIZE.K8SNodeFlavor.SMALL
+            node._size = (
+                VDC_SIZE.K8SNodeFlavor(workload.size).value
+                if workload.size in k8s_sizes
+                else VDC_SIZE.K8SNodeFlavor.SMALL.value
             )
             self.kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
@@ -423,7 +445,7 @@ class UserVDC(Base):
     def pay_amount(self, address, amount, wallet, memo_text=""):
         j.logger.info(f"transfering amount: {amount} from wallet: {wallet.instance_name} to address: {address}")
         deadline = j.data.time.now().timestamp + 5 * 60
-        a = wallet.get_asset()
+        a = wallet._get_asset()
         has_funds = None
         while j.data.time.now().timestamp < deadline:
             if not has_funds:

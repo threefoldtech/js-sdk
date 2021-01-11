@@ -591,7 +591,7 @@ tests = ["coverage (>=4.0)", "pytest-cache (>=1.0)", "pytest-cov", "flake8", "py
 
 [[package]]
 name = "js-ng"
-version = "11.0b10"
+version = "11.0b11"
 description = "system automation, configuration management and RPC framework"
 category = "main"
 optional = false
@@ -1245,7 +1245,7 @@ six = "*"
 
 [[package]]
 name = "stellar-sdk"
-version = "2.4.1"
+version = "2.10.0"
 description = "The Python Stellar SDK library provides APIs to build transactions and connect to Horizon."
 category = "main"
 optional = false
@@ -1504,7 +1504,7 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "6fa5775cc720edf5fe3c58d4a3572a7c30d94b8d2bd46a77ade30c60880c4478"
+content-hash = "774fc8311984ada2c73dc721c137d4f24f0a201f45161b9a100460918f8128d4"
 
 [metadata.files]
 acme = [
@@ -1799,8 +1799,8 @@ josepy = [
     {file = "josepy-1.4.0.tar.gz", hash = "sha256:c37ff4b93606e6a452b72cdb992da5e0544be12912fac01b31ddbdd61f6d5bd0"},
 ]
 js-ng = [
-    {file = "js-ng-11.0b10.tar.gz", hash = "sha256:d90c47a13607742accb33dd97c0c7c2e8ca07fc1f20a75b7ff267b12b4210bde"},
-    {file = "js_ng-11.0b10-py3-none-any.whl", hash = "sha256:4e88b2e4cb3e651aac6160b0ee5aa9bd609e988a68ca4b9c7f7d8a59c5be6979"},
+    {file = "js-ng-11.0b11.tar.gz", hash = "sha256:3a02fafdab0df4ac985677080daab46019ec25cbb562fd92d9674504d5991366"},
+    {file = "js_ng-11.0b11-py3-none-any.whl", hash = "sha256:4461a75a281345d46d961b1527a216ef3e00c720f4599be19a4e7504ef846ccb"},
 ]
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},
@@ -2195,8 +2195,8 @@ stellar-base-sseclient = [
     {file = "stellar-base-sseclient-0.0.21.tar.gz", hash = "sha256:2a500f3015dede4e9fac0f9d6d9d85f4fdd7fe1c9c10b2b111a6ae190cc5dc00"},
 ]
 stellar-sdk = [
-    {file = "stellar-sdk-2.4.1.tar.gz", hash = "sha256:505468d74e321d914bc4aacfa9674f17b02d6d5502190afd7a694c0d48310cf2"},
-    {file = "stellar_sdk-2.4.1-py3-none-any.whl", hash = "sha256:9303f78233864a2534736ed7fe8edb6e2a17306718115ec08eea509aa49afc50"},
+    {file = "stellar-sdk-2.10.0.tar.gz", hash = "sha256:543411588da9e049bf7e643510d36f959b42568a63527240a24bf57a0f7f34ec"},
+    {file = "stellar_sdk-2.10.0-py3-none-any.whl", hash = "sha256:582153e165203b02745788962a067a707bf964c26167b64a3c539bc08672efd8"},
 ]
 terminaltables = [
     {file = "terminaltables-3.1.0.tar.gz", hash = "sha256:f3eb0eb92e3833972ac36796293ca0906e998dc3be91fbe1f8615b331b853b81"},

@@ -1,10 +1,9 @@
 <template>
   <base-dialog title="Import wallet" v-model="dialog" :error="error" :loading="loading">
     <template #default>
-      <v-form>
+      <v-form @submit="submit">
         <v-text-field v-model="form.name" label="Name" dense></v-text-field>
         <v-text-field v-model="form.secret" label="Secret" dense></v-text-field>
-        <v-select v-model="form.network" label="Network" :items="wallet_networks" dense></v-select>
       </v-form>
     </template>
     <template #actions>
@@ -18,21 +17,16 @@
 
 module.exports = {
   mixins: [dialog],
-  data () {
-    return {
-      wallet_networks:["STD","TEST"]
-    }
-  },
   methods: {
     submit () {
       this.loading = true
       this.error = null
-      if(!this.form.name || !this.form.secret || !this.form.network){
+      if(!this.form.name || !this.form.secret ){
           this.error = "All fields required"
           this.loading = false
       }
       else{
-        this.$api.wallets.import(this.form.name, this.form.secret, this.form.network).then((response) => {
+        this.$api.wallets.import(this.form.name, this.form.secret).then((response) => {
           response_data = JSON.parse(response.data)
           if("error" in response_data){
             this.error = response_data.error

@@ -132,7 +132,7 @@
     </v-navigation-drawer>
 
     <v-main>
-      <router-view></router-view>
+      <router-view @updatesidebarlist="isFarmManagementInstalled()"></router-view>
       <identities v-model="dialogs.identity"></identities>
       <popup></popup>
     </v-main>
@@ -200,7 +200,8 @@ module.exports = {
       dialogs: {
         identity: false,
       },
-      announced: true
+      announced: true,
+      pages: this.$router.options.routes.filter(page => page.meta.listed)
     };
   },
   components: {
@@ -210,11 +211,6 @@ module.exports = {
   computed: {
     announcement_dialog() {
       return !this.announced
-    },
-    pages() {
-      return this.$router.options.routes.filter((page) => {
-        return page.meta.listed;
-      });
     },
   },
   watch: {
@@ -234,6 +230,16 @@ module.exports = {
         console.log(response.data)
         this.announced = response.data["announced"];
         this.$api.announcement.announce();
+      });
+    },
+    isFarmManagementInstalled() {
+      this.$api.packages.getInstalled().then(response => {
+        let installed = JSON.parse(response.data).data.includes("farmmanagement");
+        if (!installed){
+          this.pages = this.pages.filter(item => item.name != "Farm Management");
+        }else{
+          this.pages = this.$router.options.routes.filter(page => page.meta.listed);
+        }
       });
     },
     getIdentity() {
@@ -286,6 +292,7 @@ module.exports = {
     this.getAnnouncementStatus();
     this.setTimeLocal();
     this.getSDKVersion();
+    this.isFarmManagementInstalled();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);

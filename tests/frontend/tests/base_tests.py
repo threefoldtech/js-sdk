@@ -15,7 +15,7 @@ from tests.frontend.pages.base import Base
 class BaseTest(BaseTests):
     @classmethod
     def setUpClass(cls):
-        # Set auto login config to disable Threefold Connect login.
+        # Set auto login config to disable TF Connect login.
         j.core.config.set("AUTO_LOGIN", True)
 
         # Get environment variables to create identity.

@@ -291,6 +291,36 @@ class ChatflowSolutions:
                     result[domain]["wids"].append(container_workload.id)
         return list(result.values())
 
+    def list_etcd_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Container]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        container_workloads = self._list_container_workloads("etcd", next_action)
+        result = []
+        for name in container_workloads:
+            c_dict = container_workloads[name]
+            wids = []
+            ipsv4 = []
+            ipsv6 = []
+            for w_dict in c_dict:
+                wids.append(w_dict["wid"])
+                ipsv4.append(w_dict["ipv4"])
+                ipsv6.append(w_dict["ipv6"])
+            result.append(
+                {
+                    "wids": wids,
+                    "Name": name,
+                    "IPv4 Address(es)": ipsv4,
+                    "IPv6 Address(es)": ipsv6,
+                    "Node": c_dict[0]["node"],
+                    "Farm": c_dict[0]["farm"],
+                    "Network": c_dict[0]["network"],
+                }
+            )
+        return result
+
     def cancel_solution(self, solution_wids, identity_name=None):
         """
         solution_wids should be part of the same solution. if they are not created by the same solution they may not all be deleted
@@ -338,6 +368,7 @@ class ChatflowSolutions:
             "blog": 0,
             "website": 0,
             "taiga": 0,
+            "etcd": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

@@ -44,7 +44,9 @@ module.exports = {
     return {
       explorers: {
         "Main Network": {url: "https://explorer.grid.tf", type: "main"},
-        "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"}
+        "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"},
+        "Dev Network": {url: "https://explorer.devnet.grid.tf", type: "devnet"},
+
       },
       selected_explorer: "Main Network",
       display_name:"",

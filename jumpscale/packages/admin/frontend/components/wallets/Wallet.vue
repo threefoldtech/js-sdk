@@ -1,7 +1,11 @@
 <template>
   <base-dialog title="Wallet details" v-model="dialog" :loading="loading">
     <template #default>
-      <v-simple-table v-if="wallet">
+      <template v-if="error">
+      <v-alert type="error">Failed to load wallet {{ name }}, is it possible the wallet isn't activated?</v-alert>
+      </template>
+
+      <v-simple-table v-if="wallet && wallet.network">
         <template v-slot:default>
           <tbody>
             <tr>
@@ -42,7 +46,9 @@
       </v-simple-table>
     </template>
     <template #actions>
-      <v-btn text @click="updateTrustlines">Update trustlines</v-btn>
+      <template v-if="!hasTft && this.error">
+            <v-btn text @click="updateTrustlines">Accept TFT</v-btn>
+      </template>
       <v-btn text @click="close">Close</v-btn>
     </template>
   </base-dialog>
@@ -56,7 +62,9 @@ module.exports = {
   data () {
     return {
       wallet: null,
-      showSecret: false
+      hasTft: false,
+      showSecret: false,
+      error: null,
     }
   },
   watch: {
@@ -71,9 +79,25 @@ module.exports = {
   methods: {
     getWalletInfo () {
       this.loading = true
+      this.hasTft = false
       this.$api.wallets.get(this.name).then((response) => {
+        this.error = JSON.parse(response.data).error
+        if ( this.error ) {
+          console.log(this.error)
+          return
+        }
         this.wallet = JSON.parse(response.data).data
-      }).finally(() => {
+        for (let b of this.wallet.balances) {
+          if (b.asset_code.toUpperCase() === "TFT"){
+            this.hasTft = true
+            break
+          }
+        }
+      }).catch (err => {
+        console.log(err)
+        this.error = err;
+      }
+      ).finally(() => {
         this.loading = false
       })
     },

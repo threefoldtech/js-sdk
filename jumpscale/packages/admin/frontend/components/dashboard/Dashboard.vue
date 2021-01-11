@@ -15,10 +15,6 @@
           <v-icon left>mdi-package-variant-closed</v-icon> New Package
         </v-btn>
 
-        <v-btn color="primary" text @click.stop="dialogs.createWallet = true">
-          <v-icon left>mdi-wallet-plus-outline</v-icon> New Wallet
-        </v-btn>
-
         <v-btn color="primary" text to="/settings">
           <v-icon left>mdi-tune</v-icon> Settings
         </v-btn>

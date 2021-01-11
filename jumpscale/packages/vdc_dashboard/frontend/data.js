@@ -161,9 +161,9 @@ const DECENTRALIZED_DEV = {
             helpLink: "https://now.threefold.io/now/docs/gridsome/",
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
-        monitoring_stack: {
+        monitoringstack: {
             name: "Monitoring Stack",
-            type: "monitoring_stack",
+            type: "monitoringstack",
             image: "./assets/monitoring.png",
             disable: false,
             helpLink: "",

@@ -22,6 +22,7 @@ fi
 
 
 git reset --hard origin/${SDK_VERSION}
+git checkout $SDK_VERSION
 
 if $poetry_install; then
   poetry install

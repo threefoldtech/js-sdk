@@ -225,7 +225,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
     @deployment_context()
@@ -283,7 +283,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
         # subdomain selected on gateway on preferred farm
         if self.preferred_farm_gw:
-            self.chart_config.update({"ingress.certresolver": "gridca"})
+            self.chart_config.update({"global.ingress.certresolver": "gridca"})
 
     @chatflow_step(title="Installation")
     def install_chart(self):
@@ -351,10 +351,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
             self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
-    def success(self):
+    def success(self, extra_info=""):
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
-        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a>
+        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a><br />\n
+        {extra_info}
         """
         self.md_show(dedent(message), md=True)

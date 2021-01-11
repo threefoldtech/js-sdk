@@ -4,7 +4,7 @@ from jumpscale.core.exceptions import JSException
 from requests import HTTPError
 import json
 
-explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf"}
+explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf", "devnet": "explorer.devnet.grid.tf"}
 
 
 class Admin(BaseActor):
@@ -47,10 +47,24 @@ class Admin(BaseActor):
         identities = j.core.identity.list_all()
         identity_data = {}
         for identity_name in identities:
-            identity = j.core.identity.get(identity_name)
-            identity_data[identity_name] = identity.to_dict()
-            identity_data[identity_name]["instance_name"] = identity.instance_name
-            identity_data[identity_name].pop("__words")
+            try:
+                identity = j.core.identity.get(identity_name)
+                if identity.tid < 0:
+                    continue
+                identity_dict = identity.to_dict()
+                identity_dict["instance_name"] = identity.instance_name
+                identity_dict.pop("__words")
+            except Exception as e:
+                j.logger.exception("error", exception=e)
+                # TODO: include traceback
+                j.tools.alerthandler.alert_raise(
+                    app_name="admin",
+                    category="internal_errors",
+                    message=f"failed to get identity {identity_name} info due to error {str(e)}",
+                    alert_type="exception",
+                )
+                continue
+            identity_data[identity_name] = identity_dict
         return j.data.serializers.json.dumps({"data": identity_data})
 
     @actor_method
@@ -97,6 +111,7 @@ class Admin(BaseActor):
         explorer_clients = {
             "main": j.clients.explorer.get("user_checker_mainnet", f"https://{explorers['main']}/api/v1"),
             "testnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
+            "devnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
         }
         explorer_client = explorer_clients[explorer_type]
         try:

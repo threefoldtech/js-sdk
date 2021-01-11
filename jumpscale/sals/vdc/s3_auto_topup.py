@@ -171,6 +171,7 @@ def extend_zdbs(
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
     zos = get_zos()
+    reservation_ids = []
 
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
@@ -184,13 +185,15 @@ def extend_zdbs(
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"
         )
         zos.billing.payout_farmers(wallet, pool_info)
+        reservation_ids.append(pool_info.reservation_id)
 
     gs = GlobalScheduler()
     wids = []
-    for _, pool_id in enumerate(pool_ids):
-        pool = zos.pools.get(pool_id)
-        if not pool.sus:
-            wait_pool_payment(pool_id)
+    for idx, pool_id in enumerate(pool_ids):
+        reservation_id = reservation_ids[idx]
+        if not wait_pool_reservation(reservation_id):
+            j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
+            continue
         for node in gs.nodes_by_capacity(pool_id=pool_id, sru=size):
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
@@ -269,6 +272,17 @@ def wait_pool_payment(pool_id, exp=5, trigger_cus=0, trigger_sus=1):
     while j.data.time.get().timestamp < expiration:
         pool = zos.pools.get(pool_id)
         if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
+            return True
+        gevent.sleep(2)
+    return False
+
+
+def wait_pool_reservation(reservation_id, exp=5):
+    zos = get_zos()
+    expiration = j.data.time.now().timestamp + exp * 60
+    while j.data.time.get().timestamp < expiration:
+        payment_info = zos.pools.get_payment_info(reservation_id)
+        if payment_info.paid and payment_info.released:
             return True
         gevent.sleep(2)
     return False

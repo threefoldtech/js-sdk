@@ -23,7 +23,7 @@ class PaymentTransaction(Base):
             if amount < 0:
                 self.transaction_refund.success = True
             else:
-                a = wallet.get_asset()
+                a = wallet._get_asset()
                 sender_address = wallet.get_sender_wallet_address(self.transaction_hash)
                 j.logger.info(
                     f"refunding transaction: {self.transaction_hash} with amount: {amount} to address: {sender_address}"
@@ -73,7 +73,7 @@ class PaymentResult(Base):
                         j.logger.info(
                             f"refunding extra amount: {amount} of transaction {transaction.transaction_hash} to address: {sender_address}"
                         )
-                        a = self.parent.wallet.get_asset()
+                        a = self.parent.wallet._get_asset()
                         refund_hash = self.parent.wallet.transfer(
                             sender_address, amount=amount, asset=f"{a.code}:{a.issuer}"
                         )
@@ -226,7 +226,7 @@ class RefundRequest(Base):
             self.success = True
         else:
             try:
-                a = payment.wallet.get_asset()
+                a = payment.wallet._get_asset()
                 self.refund_transaction_hash = payment.wallet.transfer(
                     sender_address, amount=round(amount - 0.1, 6), asset=f"{a.code}:{a.issuer}"
                 )
