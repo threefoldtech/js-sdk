@@ -1,6 +1,6 @@
-from collections import defaultdict
 from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
+from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
 
 
 class StatsHistory:
@@ -84,3 +84,31 @@ class KubernetesMonitor:
             if all([usage_dict["cpu"] < cpu_threshold, usage_dict["memory"] < memory_threshold]):
                 return False
         return True
+
+    def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False):
+        """
+        used to extend the vdc k8s cluster according to the vdc spec
+        Args:
+            flavor: used to override the default k8s size in the vdc spec
+            deployer: pass a custom deployer if none it will use the vdc's get_deployer()
+            farm_name: farm to deploy on
+            no_nodes: no_nodes to extend. defaults to the nodes remaining in the vdc spec. must use force flag to override
+            force: if True it will force the extension with the specified no_nodes regardless of the vdc spec
+
+        Returns:
+            wids
+        """
+        current_spec = self.vdc_instance.get_current_spec()
+        if not force:
+            if current_spec["no_nodes"] < 1:
+                return []
+            no_nodes = current_spec["no_nodes"]
+
+        flavor = flavor or VDC_SIZE.VDC_FLAVORS[self.vdc_instance.flavor]["k8s"]["size"].value
+        no_nodes = no_nodes or current_spec["no_nodes"]
+        deployer = deployer or self.vdc_instance.get_deployer()
+        deployer._set_wallet(self.vdc_instance.prepaid_wallet.instance_name)
+        wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
+        deployer._set_wallet(self, self.vdc_instance.provision_wallet.instance_name)
+        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24))
+        return wids

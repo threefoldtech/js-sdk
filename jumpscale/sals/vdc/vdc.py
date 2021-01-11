@@ -483,6 +483,7 @@ class UserVDC(Base):
                 "services": {
                     "services.IP": count
                 }
+                "no_nodes": no_nodes # that were not deployed during initial vdc deployment
             }
         """
         if load_info:
@@ -499,6 +500,7 @@ class UserVDC(Base):
             result["nodes"].append(k8s.size)
             if k8s.public_ip != "::/128":
                 result["services"][VDC_SIZE.Services.IP] += 1
+        result["no_nodes"] = no_nodes
         return result
 
     def calculate_spec_price(self):
