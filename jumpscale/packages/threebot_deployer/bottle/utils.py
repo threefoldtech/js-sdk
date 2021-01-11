@@ -396,6 +396,19 @@ def redeploy_threebot_solution(
                     if log_config:
                         log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}'.lower()
 
+                    # Create wallet for the 3bot
+                    threebot_wallet = j.clients.stellar.get(f"threebot_{owner}_{new_solution_info['name']}")
+                    threebot_wallet.save()
+                    threebot_wallet_secret = threebot_wallet.secret
+                    try:
+                        threebot_wallet.activate_through_threefold_service()
+                    except Exception as e:
+                        j.logger.warning(
+                            f"Failed to activate wallet for {owner} {new_solution_info['name']} threebot due to {str(e)}"
+                            "3Bot will start without a wallet"
+                        )
+                        threebot_wallet_secret = ""
+
                     workload_ids.append(
                         deployer.deploy_container(
                             pool_id=compute_pool_id,
@@ -411,6 +424,7 @@ def redeploy_threebot_solution(
                                 "BACKUP_PASSWORD": backup_password,
                                 "BACKUP_TOKEN": backup_token,
                                 "TRC_SECRET": secret,
+                                "THREEBOT_WALLET_SECRET": threebot_wallet_secret,
                             },
                             interactive=False,
                             log_config=log_config,

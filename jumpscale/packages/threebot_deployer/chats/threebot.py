@@ -388,6 +388,19 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if log_config:
             log_config["channel_name"] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}".lower()
 
+        # Create wallet for the 3bot
+        threebot_wallet = j.clients.stellar.get(f"{self.SOLUTION_TYPE}_{self.threebot_name}_{self.solution_name}")
+        threebot_wallet.save()
+        threebot_wallet_secret = threebot_wallet.secret
+        try:
+            threebot_wallet.activate_through_threefold_service()
+        except Exception as e:
+            j.logger.warning(
+                f"Failed to activate wallet for {self.threebot_name} {self.solution_name} threebot due to {str(e)}"
+                "3Bot will start without a wallet"
+            )
+            threebot_wallet_secret = ""
+
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -404,6 +417,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     "BACKUP_TOKEN": backup_token,
                     "EMAIL_HOST_PASSWORD": "",
                     "TRC_SECRET": self.secret,
+                    "THREEBOT_WALLET_SECRET": threebot_wallet_secret,
                 },
                 interactive=False,
                 log_config=log_config,

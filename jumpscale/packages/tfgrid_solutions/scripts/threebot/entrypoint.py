@@ -21,6 +21,7 @@ def main():
     email_host_user = os.environ.get("EMAIL_HOST_USER")
     email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
     ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
+    WALLET_SECRET = os.environ.get("THREEBOT_WALLET_SECRET")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -89,6 +90,12 @@ def main():
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))
+
+    # get the main wallet
+    j.logger.info("Initalizing main wallet ...")
+    wallet = j.clients.stellar.get("main")
+    wallet.secret = WALLET_SECRET
+    wallet.save()
 
     j.logger.info("Starting threebot ...")
 
