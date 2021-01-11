@@ -95,8 +95,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Ubuntu is reachable.")
         self.assertTrue(
-            self.wait(ubuntu.ip_address, port=22, timeout=self.deployment_timeout),
-            f"Ubuntu is not reached after {self.deployment_timeout} second",
+            self.wait(ubuntu.ip_address, port=22, timeout=self.timeout),
+            f"Ubuntu is not reached after {self.timeout} second",
         )
 
         self.info("Check that Ubuntu has been deployed with the same version.")
@@ -133,8 +133,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = kubernetes.solution_id
         self.info("Check that kubernetes is reachable.")
         self.assertTrue(
-            self.wait(kubernetes.ip_addresses[0], port=22, timeout=self.deployment_timeout),
-            f"master is not reached after {self.deployment_timeout} second",
+            self.wait(kubernetes.ip_addresses[0], port=22, timeout=self.timeout),
+            f"master is not reached after {self.timeout} second",
         )
 
         self.info("Check that kubernetes has been deployed with the same number of workers.")
@@ -173,8 +173,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Minio is reachable.")
         self.assertTrue(
-            self.wait(minio.ip_addresses[0], port=9000, timeout=self.deployment_timeout),
-            f"minio is not reached after {self.deployment_timeout} second",
+            self.wait(minio.ip_addresses[0], port=9000, timeout=self.timeout),
+            f"minio is not reached after {self.timeout} second",
         )
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 403)
@@ -213,8 +213,8 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         self.info("Check that Redis is reachable.")
         self.assertTrue(
-            self.wait(monitoring.ip_addresses[0], port=6379, timeout=self.deployment_timeout),
-            f"redis is not reached after {self.deployment_timeout} second",
+            self.wait(monitoring.ip_addresses[0], port=6379, timeout=self.timeout),
+            f"redis is not reached after {self.timeout} second",
         )
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)
