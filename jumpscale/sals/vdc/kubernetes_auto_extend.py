@@ -128,5 +128,5 @@ class KubernetesMonitor:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24))
+        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
         return wids
