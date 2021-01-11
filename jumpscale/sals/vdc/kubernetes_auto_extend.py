@@ -111,6 +111,6 @@ class KubernetesMonitor:
         deployer = deployer or self.vdc_instance.get_deployer()
         deployer._set_wallet(self.vdc_instance.prepaid_wallet.instance_name)
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
-        deployer._set_wallet(self, self.vdc_instance.provision_wallet.instance_name)
+        deployer._set_wallet(self.vdc_instance.provision_wallet.instance_name)
         deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24))
         return wids
