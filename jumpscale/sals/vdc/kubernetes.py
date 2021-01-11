@@ -78,6 +78,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         duration=None,
         public_ip=False,
         solution_uuid=None,
+        external=True,
     ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
@@ -118,6 +119,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             master_ip,
             no_nodes,
             public_ip,
+            external,
         )
         if not wids:
             self.vdc_deployer.error(f"failed to extend kubernetes cluster with {no_nodes} nodes of flavor {k8s_flavor}")
@@ -182,8 +184,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 ip_address,
                 size=k8s_flavor.value,
                 identity_name=self.identity.instance_name,
-                form_info={"chatflow": "kubernetes"},
-                name=self.vdc_name,
+                # form_info={"chatflow": "kubernetes"},
+                # name=self.vdc_name,
                 secret=cluster_secret,
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
@@ -277,6 +279,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         master_ip,
         no_nodes,
         public_ip=False,
+        external=True,
     ):
         # deploy workers
         wids = []
@@ -315,11 +318,12 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                         size=k8s_flavor.value,
                         secret=cluster_secret,
                         identity_name=self.identity.instance_name,
-                        form_info={"chatflow": "kubernetes"},
-                        name=self.vdc_name,
+                        # form_info={"chatflow": "kubernetes"},
+                        # name=self.vdc_name,
                         solution_uuid=solution_uuid,
                         description=self.vdc_deployer.description,
                         public_ip_wid=public_ip_wid,
+                        external=external,
                     )
                 )
                 public_wids.append(public_ip_wid)
