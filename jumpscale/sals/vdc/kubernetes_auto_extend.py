@@ -102,7 +102,7 @@ class KubernetesMonitor:
         if not force:
             if current_spec["no_nodes"] < 1:
                 return []
-            no_nodes = current_spec["no_nodes"]
+            no_nodes = 1
 
         flavor = flavor or VDC_SIZE.VDC_FLAVORS[self.vdc_instance.flavor]["k8s"]["size"]
         no_nodes = no_nodes or current_spec["no_nodes"]
