@@ -85,6 +85,14 @@ class KubernetesMonitor:
                 return False
         return True
 
+    def has_enough_resources(self, cpu=0, memory=0):
+        self.update_stats()
+        if self.node_stats["memory"]["total"] - self.node_stats["memory"]["used"] < memory:
+            return False
+        if self.node_stats["cpu"]["total"] - self.node_stats["cpu"]["used"] < cpu:
+            return False
+        return True
+
     def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False):
         """
         used to extend the vdc k8s cluster according to the vdc spec
