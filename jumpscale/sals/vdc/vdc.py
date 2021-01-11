@@ -555,6 +555,7 @@ class UserVDC(Base):
             self.load_info()
         total_funds = self.get_total_funds()
         spec_price = self.calculate_spec_price() or 1
+        spec_price += 30 * 24 * 0.1  # one month price + hourly transaction fees
         return (total_funds / spec_price) * 30
 
     def calculate_expiration_value(self, load_info=True):
