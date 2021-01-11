@@ -79,7 +79,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
         cpu = int(self.resources_limits["cpu"][:-1])
         monitor = self.vdc.get_kubernetes_monitor()
         if not monitor.has_enough_resources(cpu=cpu, memory=memory):
-            self.md_show_update("Extending Kuebrnetes Cluster..")
             wids = monitor.extend(bot=self)
             if not wids:
                 raise StopChatFlow(
