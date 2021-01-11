@@ -105,7 +105,7 @@ class Scheduler:
             if public_ip and not self.check_node_public_ip_bridge(node):
                 continue
 
-            self._update_node(node, cru, mru, hru, sru)
+            self._update_node(node, cru, mru, sru, hru)
             yield node
 
     def check_node_public_ip_bridge(self, node):
