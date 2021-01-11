@@ -1429,7 +1429,7 @@ class ReservationChatflow:
                         For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>
                     """
             if sort_by_disk_space:
-                nodes = sorted(nodes, key=lambda x: x.total_resources.cru - x.reserved_resources.cru, reverse=True)
+                nodes = sorted(nodes, key=lambda x: x.total_resources.sru - x.reserved_resources.sru, reverse=True)
             for _ in range(nodes_number):
                 try:
                     if sort_by_disk_space:
