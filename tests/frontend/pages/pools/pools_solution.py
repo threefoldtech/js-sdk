@@ -16,10 +16,10 @@ class PoolsSolution(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def create(self, wallet_name, name, cu=1, su=1, duration_unit="Day", time_to_live=1):
+    def create(self, wallet_name, name, farm, cu=1, su=1, duration_unit="Day", time_to_live=1):
         # switch driver to ifram and choose create option
         self.wait(self.driver, "v-progress-linear__buffer")
-        self.choose_option("create")
+        self.__select_create_extend("create")
 
         # set pool name in input element
         chat_box = self.driver.find_element_by_class_name("chat")
@@ -29,17 +29,17 @@ class PoolsSolution(Base):
         self.click_button(self.driver, "NEXT")
 
         # set cu, su and time to live to input elements
-        self.set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
+        self.__set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
 
         # select the Freefarm
         farm_box = self.driver.find_element_by_class_name("v-select__selections")
         farm_input = farm_box.find_element_by_tag_name("input")
-        farm_input.send_keys("Freefarm")
+        farm_input.send_keys(farm)
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
 
         # select the wallet
-        self.select_wallet(wallet_name)
+        self.__select_wallet(wallet_name)
 
         self.wait(self.driver, "v-progress-circular")
         self.wait(self.driver, "progressbar")
@@ -48,7 +48,7 @@ class PoolsSolution(Base):
     def extend(self, wallet_name, name, cu=1, su=1, duration_unit="Day", time_to_live=1):
         # switch driver to ifram and choose extend option
         self.wait(self.driver, "v-progress-linear__buffer")
-        self.choose_option("extend")
+        self.__select_create_extend("extend")
 
         # open the pools list
         chat_box = self.driver.find_element_by_class_name("chat")
@@ -69,16 +69,17 @@ class PoolsSolution(Base):
         self.click_button(self.driver, "NEXT")
 
         # set cu, su and time to live to input elements
-        self.set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
+        self.__set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
 
         # select the wallet
-        self.select_wallet(wallet_name)
+        self.__select_wallet(wallet_name)
 
         self.wait(self.driver, "v-progress-circular")
         self.wait(self.driver, "progressbar")
         self.click_button(self.driver, "FINISH")
 
-    def choose_option(self, option):
+    def __select_create_extend(self, option):
+        """ this function used to select create or extend pool """
 
         iframe = self.driver.find_elements_by_tag_name("iframe")[0]
         self.driver.switch_to_frame(iframe)
@@ -91,7 +92,7 @@ class PoolsSolution(Base):
 
         self.wait(self.driver, "v-progress-circular")
 
-    def set_pool_details(self, cu=1, su=1, duration_unit="Day", time_to_live=1):
+    def __set_pool_details(self, cu=1, su=1, duration_unit="Day", time_to_live=1):
         pool_details = {
             "Required Amount of Compute Unit (CU)": cu,
             "Required Amount of Storage Unit (SU)": su,
@@ -111,7 +112,7 @@ class PoolsSolution(Base):
 
         self.wait(self.driver, "v-progress-circular")
 
-    def select_wallet(self, wallet_name):
+    def __select_wallet(self, wallet_name):
         chat_box = self.driver.find_element_by_class_name("chat")
         wallets_box = chat_box.find_element_by_class_name("v-input__slot")
         wallets = wallets_box.find_elements_by_class_name("v-radio")

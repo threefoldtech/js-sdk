@@ -1,4 +1,5 @@
 import pytest
+import os
 from jumpscale.loader import j
 from tests.frontend.pages.pools.pools_solution import PoolsSolution
 from tests.frontend.pages.wallets.wallets import Wallets
@@ -11,13 +12,10 @@ class PoolsTests(BaseTest):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.wallet_name = cls.random_name().lower()
-        j.clients.stellar.create_testnet_funded_wallet(cls.wallet_name)
 
-    @classmethod
-    def tearDownClass(cls):
-        j.clients.stellar.delete(cls.wallet_name)
-        super().tearDownClass()
+        cls.wallet_name = os.environ.get("WALLET")
+        if not cls.wallet_name:
+            raise Exception("Please add WALLET name as environment variables")
 
     def test01_create_pool(self):
         """Test case for creating a pool.
@@ -41,6 +39,7 @@ class PoolsTests(BaseTest):
         pools.create(
             name=pool_name,
             wallet_name=self.wallet_name,
+            farm="Freefarm",
             cu=cu,
             su=su,
             duration_unit=time_unit,
@@ -74,7 +73,7 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name)
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
 
         self.info("Extend this pool")
         cu = j.data.idgenerator.random_int(0, 2)
@@ -117,7 +116,7 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name)
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
 
         self.info("Check that the pool has been created in the pools card")
         test_pools = Pools(self.driver)
