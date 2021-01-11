@@ -77,10 +77,21 @@ def expose_s3() -> str:
 @app.route("/api/deployments/<solution_type>")
 @package_authorized("vdc_dashboard")
 def list_deployments(solution_type: str) -> str:
+    deployments = {}
     if solution_type:
         deployments = get_deployments(solution_type=solution_type)
-    else:
+
+    return j.data.serializers.json.dumps({"data": deployments})
+
+
+@app.route("/api/deployments")
+@package_authorized("vdc_dashboard")
+def list_all_deployments() -> str:
+    deployments = []
+    try:
         deployments = get_all_deployments()
+    except Exception as e:
+        j.logger.exception(message=str(e), exception=e)
 
     return j.data.serializers.json.dumps({"data": deployments})
 

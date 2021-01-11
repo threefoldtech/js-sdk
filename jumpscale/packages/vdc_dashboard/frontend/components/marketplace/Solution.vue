@@ -4,13 +4,14 @@
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
-            <v-avatar size="50px" class="mr-5" tile>
-              <v-img v-if="solution.image" :src="solution.image"></v-img>
+            <v-avatar v-if="solution.image" size="50px" class="mr-5" tile>
+              <v-img :src="solution.image"></v-img>
             </v-avatar>
             <span>{{solution.name}}</span>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
                 <a
+                  v-if="type!='all'"
                   class="chatflowInfo"
                   :href="solution.helpLink"
                   target="blank"
@@ -27,8 +28,7 @@
               <span>Go to Wiki</span>
             </v-tooltip>
           </v-card-title>
-
-          <v-card-text>
+          <v-card-text v-if="type!='all'">
             <span>{{solution.description}}</span>
             <br />
             <br />
@@ -38,7 +38,9 @@
               v-if="started(solution.type)"
               @click.stop="open(solution.type)"
             >Continue</v-btn>
+          </v-card-text>
 
+          <v-card-text>
             <v-divider class="my-5"></v-divider>
 
             <v-data-table
@@ -48,6 +50,7 @@
               class="elevation-1"
             >
               <template slot="no-data">No {{solution.name.toLowerCase()}} instances available</p></template>
+
               <template v-slot:item.domain="{ item }">
                 <a v-if="item.domain !== ''" :href="`https://${item.Domain}/`">{{item.Domain}}</a>
                 <p v-else> - </p>
@@ -124,6 +127,9 @@ module.exports = {
   },
   computed: {
     solution() {
+      if(this.type==='all'){
+        return {name: "Deployed Solutions",type: "all"}
+      }
       for (section in this.sections) {
         if (Object.keys(this.sections[section].apps).includes(this.type)) {
           return this.sections[section].apps[this.type];
@@ -154,14 +160,29 @@ module.exports = {
       this.dialogs.cancelSolution = true;
     },
     getDeployedSolutions(solution_type) {
-      this.$api.solutions
-        .getSolutions(solution_type)
+      if(solution_type === "all"){
+        this.$api.solutions
+        .getAllSolutions()
         .then((response) => {
           this.deployedSolutions = response.data.data;
+          chartTypeHeader = { text: "Deployment", value: "Chart"}
+          this.headers = [this.headers[0],chartTypeHeader,...this.headers.slice(1)]
         })
         .finally(() => {
           this.loading = false;
         });
+
+      }
+      else{
+        this.$api.solutions
+          .getSolutions(solution_type)
+          .then((response) => {
+            this.deployedSolutions = response.data.data;
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      }
     },
   },
   mounted() {

@@ -19,13 +19,19 @@ const apiClient = {
   solutions: {
     getSolutions: (solutionType) => {
       return axios({
-        url: `${baseURL}/deployments/${solutionType}`, // TODO Replace with bottle server api call
+        url: `${baseURL}/deployments/${solutionType}`,
+        method: "get",
+      })
+    },
+    getAllSolutions: () => {
+      return axios({
+        url: `${baseURL}/deployments`,
         method: "get",
       })
     },
     deleteSolution: (releaseName, solutionId, vdcName) => {
       return axios({
-        url: `${baseURL}/deployments/cancel/`, // TODO Replace with bottle server api call
+        url: `${baseURL}/deployments/cancel/`,
         method: "post",
         data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName },
         headers: { 'Content-Type': 'application/json' }
