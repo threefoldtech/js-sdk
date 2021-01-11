@@ -1,8 +1,8 @@
 name: Chatflows
 
 on:
-  push:
-    branches: [ development_chatflows_tests ]
+  schedule:
+    - cron:  '0 0 * * *'
 
 jobs:
   build:
