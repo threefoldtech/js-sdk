@@ -46,10 +46,14 @@ class KubernetesMonitor:
             if len(splits) != 5:
                 continue
             node_name = splits[0]
-            cpu_mill = float(splits[1][:-1])
-            cpu_percentage = float(splits[2][:-1]) / 100
-            memory_usage = float(splits[3][:-2])
-            memory_percentage = float(splits[4][:-1]) / 100
+            try:
+                cpu_mill = float(splits[1][:-1])
+                cpu_percentage = float(splits[2][:-1]) / 100
+                memory_usage = float(splits[3][:-2])
+                memory_percentage = float(splits[4][:-1]) / 100
+            except Exception as e:
+                j.logger.warning(f"k8s monitor: failed to get node: {node_name} usage due to error: {e}")
+                continue
             self._node_stats[node_name] = {
                 "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
@@ -60,6 +64,8 @@ class KubernetesMonitor:
         for node in result_dict["items"]:
             node_name = node["metadata"]["labels"]["k3s.io/hostname"]
             node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
+            if not node_name in self._node_stats:
+                continue
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
@@ -85,7 +91,19 @@ class KubernetesMonitor:
                 return False
         return True
 
-    def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False):
+    def has_enough_resources(self, cpu=0, memory=0):
+        self.update_stats()
+        for stats in self.node_stats.values():
+            if all(
+                [
+                    stats["memory"]["total"] - stats["memory"]["used"] > memory,
+                    stats["cpu"]["total"] - stats["cpu"]["used"] > cpu,
+                ]
+            ):
+                return True
+        return False
+
+    def extend(self, flavor=None, deployer=None, farm_name=None, no_nodes=None, force=False, bot=None):
         """
         used to extend the vdc k8s cluster according to the vdc spec
         Args:
@@ -108,9 +126,7 @@ class KubernetesMonitor:
         no_nodes = no_nodes or current_spec["no_nodes"]
         if no_nodes < 1:
             return []
-        deployer = deployer or self.vdc_instance.get_deployer()
-        deployer._set_wallet(self.vdc_instance.prepaid_wallet.instance_name)
+        deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
-        deployer._set_wallet(self.vdc_instance.provision_wallet.instance_name)
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24))
+        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
         return wids

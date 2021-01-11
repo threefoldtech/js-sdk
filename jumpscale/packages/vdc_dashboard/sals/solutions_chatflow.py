@@ -75,6 +75,15 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
         flavor = chosen_flavor.split()[0]
         self.resources_limits = chart_limits[flavor]
+        memory = int(self.resources_limits["memory"][:-2])
+        cpu = int(self.resources_limits["cpu"][:-1])
+        monitor = self.vdc.get_kubernetes_monitor()
+        if not monitor.has_enough_resources(cpu=cpu, memory=memory):
+            wids = monitor.extend(bot=self)
+            if not wids:
+                raise StopChatFlow(
+                    f"There are not enough resources to deploy cpu: {cpu}, memory: {memory}. current cluster resources: {monitor.node_stats}"
+                )
 
     def _configure_admin_username_password(self):
         form = self.new_form()
