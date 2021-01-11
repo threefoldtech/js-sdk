@@ -45,7 +45,8 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that threebot is reachable.")
@@ -65,7 +66,8 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
@@ -92,7 +94,8 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
@@ -125,15 +128,16 @@ class ThreebotChatflows(ChatflowsBase):
         """
         self.info("Deploy a threebot")
         name = self.random_name()
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
-
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
         self.info("Start the stopped threebot")
-        threebot = deployer.change_threebot_location(name, self.secret)
+        threebot = deployer.change_threebot_location(name, self.secret, expiration_time=expiration)
         self.solution_uuid = threebot.solution_id
         self.info("Check that threebot is reachable.")
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)

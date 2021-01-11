@@ -404,5 +404,7 @@ def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - D
     return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor)
 
 
-def change_threebot_location(name, password, node_policy="Automatic"):
-    return ThreebotChangeLocation(tname=name, password=password, node_policy=node_policy)
+def change_threebot_location(name, password, expiration_time, node_policy="Automatic"):
+    return ThreebotChangeLocation(
+        tname=name, password=password, node_policy=node_policy, expiration_time=expiration_time
+    )

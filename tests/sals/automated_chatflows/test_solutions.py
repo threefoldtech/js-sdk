@@ -97,7 +97,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         localclient.sshkey = self.ssh_client_name
         localclient.host = ubuntu.ip_address
         localclient.save()
-        self.solution_uuid = ubuntu.solution_id
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
