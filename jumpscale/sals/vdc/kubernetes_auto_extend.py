@@ -106,6 +106,8 @@ class KubernetesMonitor:
 
         flavor = flavor or VDC_SIZE.VDC_FLAVORS[self.vdc_instance.flavor]["k8s"]["size"]
         no_nodes = no_nodes or current_spec["no_nodes"]
+        if no_nodes < 1:
+            return []
         deployer = deployer or self.vdc_instance.get_deployer()
         deployer._set_wallet(self.vdc_instance.prepaid_wallet.instance_name)
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes)
