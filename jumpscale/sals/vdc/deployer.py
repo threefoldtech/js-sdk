@@ -749,7 +749,7 @@ class VDCDeployer:
             ipv4us = pool.active_ipv4 * duration * 60 * 60 * 24
             pool_info = self.zos.pools.extend(pool_id, int(cus), int(sus), int(ipv4us))
             self.info(
-                f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, reservation_id: {pool_info.reservation_id}"
+                f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, ipv4us: {ipv4us} reservation_id: {pool_info.reservation_id}"
             )
             self.pay(pool_info)
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
