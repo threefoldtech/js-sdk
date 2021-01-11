@@ -79,7 +79,7 @@ class KubernetesMonitor:
             overall_cpu_percentage = used_cpu / total_cpu if total_cpu else 0
             overall_memory_percentage = used_memory / total_memory if total_memory else 0
             burst_usage.append({"cpu": overall_cpu_percentage, "memory": overall_memory_percentage})
-
+        j.logger.info(f"burst stats: {burst_usage}")
         for usage_dict in burst_usage:
             if all([usage_dict["cpu"] < cpu_threshold, usage_dict["memory"] < memory_threshold]):
                 return False
