@@ -10,6 +10,7 @@
 
 ### Frontend
 
+- [test_pools](frontend/tests/test_pools.md)
 - [test_wallets](frontend/tests/test_wallets.md)
 
 ### Sals
