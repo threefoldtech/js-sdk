@@ -611,7 +611,7 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=False):
+    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=True):
         farm_name = farm_name or PREFERED_FARM.get()
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
