@@ -83,7 +83,7 @@ module.exports = {
           this.wallet = this.vdc.wallet;
           this.expirationTime =
             vdc.expiration_days > 1
-              ? `${vdc.expiration_days.toFixed(0)} days,`
+              ? `${vdc.expiration_days.toFixed(0)} days and ${((vdc.expiration_days % 1) * 24).toFixed(0)} hours,`
               : `${(vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
