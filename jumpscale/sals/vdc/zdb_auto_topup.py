@@ -81,11 +81,14 @@ class ZDBMonitor:
 
         return required_capacity
 
-    def get_password(self):
-        zos = j.sals.zos.get()
+    def get_password(self, identity=None):
+        identity = identity or self.vdc_instance._get_identity()
+        zos = j.sals.zos.get(identity.instance_name)
         for zdb in self.zdbs:
             workload = zos.workloads.get(zdb.wid)
-            metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata)
+            metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(
+                workload.info.metadata, identity.instance_name
+            )
             try:
                 metadata_dict = j.data.serializers.json.loads(metadata)
             except Exception as e:
