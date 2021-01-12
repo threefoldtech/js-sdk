@@ -8,10 +8,11 @@ class marketplace:
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         if WALLET_NAME not in j.clients.stellar.list_all():
             secret = kwargs.get("secret", None)
-            wallet = j.clients.stellar.new(WALLET_NAME, secret=secret, network="TEST")
+            wallet = j.clients.stellar.new(WALLET_NAME, secret=secret)
             if not secret:
-                wallet.activate_through_friendbot()
+                wallet.activate_through_threefold_service()
                 wallet.add_known_trustline("TFT")
+                j.logger.critical(f"Please fund the demos wallet using the address: {wallet.address}")
             wallet.save()
 
     def uninstall(self):

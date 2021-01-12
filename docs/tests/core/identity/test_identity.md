@@ -23,7 +23,8 @@ Test case for set my identity as default.
 
 Test case for delete my identity.
 
-**Test scenario**
+**Test Scenario**
+
 - Get identity instance.
 - Register an instance.
 - Delete my identity.
@@ -33,7 +34,8 @@ Test case for delete my identity.
 
 Test case for delete my identity.
 
-**Test scenario**
+**Test Scenario**
+
 - Get identity instance.
 - Register an instance.
 - Delete my identity.

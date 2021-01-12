@@ -25,8 +25,10 @@ class Identity(BaseActor):
         return j.data.serializers.json.dumps(data)
 
     @actor_method
-    def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
-        j.core.identity.get(label, tname=tname, email=email, words=words)
+    def set_identity(
+        self, label: str, tname: str, email: str, words: str, explorer_url: str, backup_password: str = None
+    ):
+        j.core.identity.get(label, tname=tname, email=email, explorer_url=explorer_url, words=words)
         j.core.identity.set_default(label)
         j.core.config.set("threebot_connect", True)
         if backup_password:
@@ -43,6 +45,7 @@ class Identity(BaseActor):
 
     @actor_method
     def get_explorer_url(self) -> str:
-        return j.data.serializers.json.dumps({"url":j.core.identity.me.explorer.url})
+        return j.data.serializers.json.dumps({"url": j.core.identity.me.explorer.url})
+
 
 Actor = Identity

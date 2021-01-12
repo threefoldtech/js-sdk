@@ -8,7 +8,14 @@
       </template>
 
       <template #default>
-        <v-data-table :loading="loading" :search="search" :headers="headers" :items="data" @click:row="open" class="elevation-1">
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+        <v-data-table :loading="loading" :search="search" :headers="headers" :items="data"  :sort-by="['id', 'epoch']" :sort-desc="[true, true]"@click:row="open" class="elevation-1">
           <template slot="no-data">No logs available</p></template>
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
@@ -38,6 +45,9 @@
                 <v-select v-model="filters.level" :items="Object.values(levels)" clearable filled hide-details dense></v-select>
               </td>
               <td>
+                <v-select v-model="filters.module" :items="modules" clearable filled hide-details dense></v-select>
+              </td>
+              <td>
                 <v-text-field v-model="filters.context" clearable filled hide-details dense></v-text-field>
               </td>
               <td>
@@ -59,80 +69,92 @@
 </template>
 
 <script>
-  module.exports = {
-    components: {
-      'show-record': httpVueLoader("./Log.vue"),
-      'delete-record': httpVueLoader("./Delete.vue"),
-    },
-    data () {
-      return {
-        appname: "gedis",
-        search: '',
-        apps: [],
-        logs: [],
-        dialogs: {
-          show: false,
-          delete: false
-        },
-        selected: null,
-        loading: false,
-        levels: LEVELS,
-        filters: {
-          id: null,
-          epoch: null,
-          category: null,
-          level: null,
-          context: null,
-          message: null,
-          processid: null,
-        },
-        headers: [
-          {text: "Id", value: "id"},
-          {text: "Application", value: "appname"},
-          {text: "Timestamp", value: "epoch"},
-          {text: "Category", value: "category"},
-          {text: "Level", value: "level"},
-          {text: "Context", value: "context"},
-          {text: "Message", value: "message"},
-          {text: "Process Id", value: "processid"}
-        ]
-      }
-    },
-    computed: {
-      data () {
-        return this.logs.filter((record) => {
-          let result = []
-          Object.keys(this.filters).forEach(key => {
-            result.push(!this.filters[key] || String(record[key]).includes(this.filters[key]))
-          })
-          return result.every(Boolean)
-        })
-      }
-    },
-    methods: {
-      open (record) {
-        this.selected = record
-        this.dialogs.show = true
+module.exports = {
+  components: {
+    "show-record": httpVueLoader("./Log.vue"),
+    "delete-record": httpVueLoader("./Delete.vue"),
+  },
+  data() {
+    return {
+      appname: "gedis",
+      search: "",
+      apps: [],
+      logs: [],
+      modules: [],
+      dialogs: {
+        show: false,
+        delete: false,
       },
-      getApps () {
-        this.$api.logs.listApps().then((response) => {
-          this.apps = JSON.parse(response.data).data
-        })
+      selected: null,
+      loading: false,
+      levels: LEVELS,
+      filters: {
+        id: null,
+        epoch: null,
+        category: null,
+        level: null,
+        module: null,
+        context: null,
+        message: null,
+        processid: null,
       },
-      getLogs () {
-        this.loading = true
-        this.$api.logs.listLogs(this.appname).then((response) => {
-          this.logs = JSON.parse(response.data).data
-        }).finally(() => {
-          this.loading = false
-        })
-      }
+      headers: [
+        { text: "Id", value: "id" },
+        { text: "Application", value: "app_name" },
+        { text: "Timestamp", value: "epoch" },
+        { text: "Category", value: "category" },
+        { text: "Level", value: "level" },
+        { text: "Module", value: "module" },
+        { text: "Context", value: "context" },
+        { text: "Message", value: "message" },
+        { text: "Process Id", value: "processid" },
+      ],
+    };
+  },
+  computed: {
+    data() {
+      return this.logs.filter((record) => {
+        let result = [];
+        Object.keys(this.filters).forEach((key) => {
+          result.push(
+            !this.filters[key] ||
+              String(record[key]).includes(this.filters[key])
+          );
+        });
+        return result.every(Boolean);
+      });
     },
-    mounted () {
-      this.getApps()
-      this.getLogs()
-    }
-  }
+  },
+  methods: {
+    open(record) {
+      this.selected = record;
+      this.dialogs.show = true;
+    },
+    getApps() {
+      this.$api.logs.listApps().then((response) => {
+        this.apps = JSON.parse(response.data).data;
+      });
+    },
+    getLogs() {
+      this.loading = true;
+      this.$api.logs
+        .listLogs(this.appname)
+        .then((response) => {
+          this.logs = JSON.parse(response.data).data;
+          this.modules = this.logs
+            .filter((record) => record.module)
+            .map((record) => record.module);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+  },
+  mounted() {
+    this.getApps();
+    this.getLogs();
+  },
+};
 </script>
 
 <style scoped>

@@ -88,7 +88,7 @@ def create_pool(currency="TFT", wallet_name=None):
     if wallet_name is None:
         j.logger.error("Pass WALLET_NAME with the name of the wallet in j.clients.stellar to reserve a pool")
         exit(0)
-    payment_detail = zos.pools.create(cu=100, su=100, farm="freefarm", currencies=[currency])
+    payment_detail = zos.pools.create(cu=100, su=100, ipv4us=0, farm="freefarm", currencies=[currency])
 
     wallet = j.clients.stellar.get(wallet_name)
     zos.billing.payout_farmers(wallet, payment_detail)

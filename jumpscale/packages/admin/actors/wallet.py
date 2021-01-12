@@ -5,32 +5,19 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 
 class Wallet(BaseActor):
     @actor_method
-    def create_wallet(self, name: str, wallettype: str = None) -> str:
-        explorer = j.core.identity.me.explorer
-        if wallettype is None:
-            if "testnet" in explorer.url or "devnet" in explorer.url:
-                wallettype = "TEST"
-            else:
-                wallettype = "STD"
-
+    def create_wallet(self, name: str) -> str:
         if j.clients.stellar.find(name):
             raise j.exceptions.Value(f"Wallet {name} already exists")
 
-        wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+        wallet = j.clients.stellar.new(name=name)
         try:
-            if wallettype == "TEST":
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException("Error on wallet activation")
 
-        trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
         try:
-            for asset_code in trustlines.keys():
-                wallet.add_known_trustline(asset_code)
+            wallet.add_known_trustline("TFT")
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException(
@@ -46,20 +33,27 @@ class Wallet(BaseActor):
             raise j.exceptions.Value("Wallet does not exist")
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
+        error = ""
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+                )
 
-        ret = {
-            "address": wallet.address,
-            "network": wallet.network.value,
-            "secret": wallet.secret,
-            "balances": balances_data,
-        }
-        return j.data.serializers.json.dumps({"data": ret})
+            ret = {
+                "address": wallet.address,
+                "network": wallet.network.value,
+                "secret": wallet.secret,
+                "balances": balances_data,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({"data": ret, "error": error})
 
     @actor_method
     def get_wallets(self) -> str:
@@ -81,19 +75,18 @@ class Wallet(BaseActor):
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if "TFT" in trustlines.keys():
+            wallet.add_known_trustline("TFT")
 
         wallet.save()
         return j.data.serializers.json.dumps({"data": trustlines})
 
     @actor_method
-    def import_wallet(self, name: str, secret: str, network: str) -> str:
+    def import_wallet(self, name: str, secret: str) -> str:
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({"error": "Wallet name already exists"})
-        network = network or "TEST"
         try:
-            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+            wallet = j.clients.stellar.new(name=name, secret=secret)
         except Exception as e:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps({"error": str(e)})
@@ -102,7 +95,7 @@ class Wallet(BaseActor):
         except:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps(
-                {"error": "Import failed.Make sure wallet is activated and network matches the wallet's network."}
+                {"error": "Import failed. Make sure wallet is activated on STD network."}
             )
         wallet.save()
         return j.data.serializers.json.dumps({"data": wallet.address})
@@ -110,11 +103,6 @@ class Wallet(BaseActor):
     @actor_method
     def delete_wallet(self, name: str) -> str:
         j.clients.stellar.delete(name=name)
-        return j.data.serializers.json.dumps({"data": True})
-
-    @actor_method
-    def create_testnet_funded(self, name: str) -> str:
-        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({"data": True})
 
 

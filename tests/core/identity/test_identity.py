@@ -29,6 +29,7 @@ class TestIdentity(TestCase):
         """Test case for register and check identity.
 
         **Test Scenario**
+
         - Get identity instance.
         - Register an instance.
         - Check about correct word and name.
@@ -48,6 +49,7 @@ class TestIdentity(TestCase):
         """Test case for set my identity as default.
 
         **Test Scenario**
+
         - Get identity instance.
         - Register an instance.
         - Set my instance as default.
@@ -68,7 +70,8 @@ class TestIdentity(TestCase):
     def test003_delete(self):
         """Test case for delete my identity.
 
-        **Test scenario**
+        **Test Scenario**
+
         - Get identity instance.
         - Register an instance.
         - Delete my identity.
@@ -87,7 +90,8 @@ class TestIdentity(TestCase):
     def test004_register_fake_identity(self):
         """Test case for delete my identity.
 
-        **Test scenario**
+        **Test Scenario**
+
         - Get identity instance.
         - Register an instance.
         - Delete my identity.

@@ -1,7 +1,7 @@
 <template>
   <base-dialog title="Create new wallet" v-model="dialog" :error="error" :loading="loading">
     <template #default>
-      <v-form>
+      <v-form @submit="submit">
         <v-text-field v-model="form.name" label="Wallet name" dense></v-text-field>
       </v-form>
     </template>
@@ -9,7 +9,7 @@
       <v-btn text @click="close">Close</v-btn>
       <v-btn text @click="submit">Submit</v-btn>
     </template>
-  </base-dialog>  
+  </base-dialog>
 </template>
 
 <script>

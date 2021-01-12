@@ -6,14 +6,19 @@ Vue.use(VueRouter)
 
 export default new VueRouter({
   routes: [
-    { 
+    {
       path: "/",
-      component: httpVueLoader("./views/farmmanagement/"), 
+      component: httpVueLoader("./views/farmmanagement/"),
       name: 'home',
       meta: {
         icon: 'fa-home',
         position: 'top'
-      } 
+      }
+    },
+    {
+      path: "/edit/:id",
+      component: httpVueLoader("./views/farmedit/"),
+      name: 'farmedit'
     },
   ]
 })

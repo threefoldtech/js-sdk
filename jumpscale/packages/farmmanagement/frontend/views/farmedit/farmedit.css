@@ -1,0 +1,21 @@
+.farmedit {
+    width: 500px;
+    height: 500px;
+    background-color: red;
+}
+
+.header-with-action {
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+}
+
+.plus-button {
+    padding-bottom: 20px !important;
+    margin-left: 20px !important;
+}
+
+.create-ip {
+    width: 50%;
+    margin: auto !important;
+}

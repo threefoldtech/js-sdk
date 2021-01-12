@@ -67,8 +67,8 @@ class UbuntuDeploy(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+        cloud_units = j.sals.marketplace.deployer._calculate_cloud_units(**query)
+        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
 
     @chatflow_step(title="Network")
     def ubuntu_network(self):
@@ -91,7 +91,7 @@ class UbuntuDeploy(GedisChatBot):
     def public_key_get(self):
         self.public_key = self.upload_file(
             """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True,
-        ).split("\n")[0]
+        ).strip()
 
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):

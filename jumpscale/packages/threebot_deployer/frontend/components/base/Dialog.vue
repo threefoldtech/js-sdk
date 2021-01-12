@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="700">
+  <v-dialog v-model="dialog" width="700" :persistent="persistent">
     <v-card :loading="loading" :disabled="loading">
       <v-card-title class="headline">{{title}}</v-card-title>
       <v-card-text class="pa-5">
@@ -35,7 +35,11 @@
       error: String,
       info: String,
       warning:String,
-      loading: Boolean
+      loading: Boolean,
+      persistent: {
+        type: Boolean,
+        default: false
+      },
     },
     computed: {
       dialog: {

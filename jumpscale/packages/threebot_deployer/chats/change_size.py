@@ -1,5 +1,9 @@
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow, deployer
-from jumpscale.packages.threebot_deployer.bottle.utils import list_threebot_solutions, redeploy_threebot_solution
+from jumpscale.packages.threebot_deployer.bottle.utils import (
+    list_threebot_solutions,
+    redeploy_threebot_solution,
+    get_threebot_zos,
+)
 from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
 from jumpscale.sals.chatflows.chatflows import chatflow_step
@@ -9,14 +13,14 @@ from jumpscale.loader import j
 
 
 FLAVORS = {
-    "Silver": {"cru": 1, "mru": 2, "sru": 2},
+    "Silver": {"cru": 1, "mru": 2, "sru": 4},
     "Gold": {"cru": 2, "mru": 4, "sru": 4},
     "Platinum": {"cru": 4, "mru": 8, "sru": 8},
 }
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -50,14 +54,17 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.cpu = self.query["cru"]
         self.memory = self.query["mru"] * 1024
         self.disk_size = self.query["sru"] * 1024
-        self.query["cru"] += 1
-        self.query["mru"] += 1
-        self.query["cru"] += 0.25
 
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
         self.pool = j.sals.zos.get().pools.get(self.pool_id)
-        cu, su = deployer.calculate_capacity_units(**self.query)
+        cloud_units = deployer._calculate_cloud_units(**self.query)
+        cu, su = cloud_units.cu, cloud_units.su
+        # guard in case of extending of 0 will raise zero division
+        if not cu:
+            cu = 1
+        if not su:
+            su = 1
         expiration_time = min(self.pool.cus / cu, self.pool.sus / su)
         if expiration_time < 60 * 60:
             default_time = j.data.time.utcnow().timestamp + 1209600
@@ -68,9 +75,11 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             self.expiration = 0
 
     def _verify_password(self, password):
-        name = f"{self.threebot_name}_{self.name}"
-        explorer = j.clients.explorer.get_by_url("https://explorer.testnet.grid.tf/api/v1")  # Fix
-        user = explorer.users.get(name=name)
+        instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
+        if not instance.verify_secret(password):
+            return False
+        zos = get_threebot_zos(instance)
+        user = zos._explorer.users.get(instance.identity_tid)
         words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
         seed = j.data.encryption.mnemonic_to_key(words)
         pubkey = NACL(seed).get_verify_key_hex()

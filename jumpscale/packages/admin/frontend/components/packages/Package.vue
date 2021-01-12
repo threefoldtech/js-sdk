@@ -31,7 +31,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-if="pkg.installed && pkg.chatflows" @click="showChatflows()">
-            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-card-text-outline</v-icon>
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-chat</v-icon>
           </v-btn>
         </template>
         <span>Chatflows</span>

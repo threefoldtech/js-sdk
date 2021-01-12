@@ -155,26 +155,22 @@ JSX> j.clients.stellar.other_wallet.sign_multisig_transaction(tx_xdr)
 JSX> j.clients.stellar.my_wallet.remove_signer(other_wallet.address)
 ```
 
-
 ## Creating a sell order
 
 Here is an example of placing a selling order of XLM for TFT
 
-### Get the wallet and the assets
+### Get the wallet
+
 ```python
 JS-NG> w = j.clients.stellar.get("w1")
-JS-NG> xlm = w.get_asset("XLM")
-JS-NG> xlm
-<stellar_sdk.asset.Asset object at 0x7f45d1b50668>
-JS-NG> tft = w.get_asset("TFT")
-
 ```
 
 ### Placinng a sell order
 
 Here we place a sell order with selling amount `5 XLM` for `20 TFT`
+
 ```python
-JS-NG> w.place_sell_order(selling_asset=xlm, buying_asset=tft, amount=decimal.Decimal(5), price=decimal.Decimal(20))
+JS-NG> w.place_sell_order(selling_asset="XLM", buying_asset="TFT", amount=decimal.Decimal(5), price=decimal.Decimal(20))
 {'_links': {'self': {'href': 'https://horizon-testnet.stellar.org/transactions/f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad'}, 'account': {'href': 'https://horizon-testnet.stellar.org/accounts/GC5JO4Z2MKVBA5LSJGI75D35YPVJZOLQYO2ZUXUH4HYYGTCRUW652BXP'}, 'ledger': {'href': 'https://horizon-testnet.stellar.org/ledgers/1017898'}, 'operations': {'href': 'https://horizon-testnet.stellar.org/transactions/f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad/operations{?cursor,limit,order}', 'templated': True}, 'effects': {'href': 'https://horizon-testnet.stellar.org/transactions/f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad/effects{?cursor,limit,order}', 'templated': True}, 'precedes': {'href': 'https://horizon-testnet.stellar.org/transactions?order=asc&cursor=4371838620688384'}, 'succeeds': {'href': 'https://horizon-testnet.stellar.org/transactions?order=desc&cursor=4371838620688384'}, 'transaction': {'href': 'https://horizon-testnet.stellar.org/transactions/f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad'}}, 'id': 'f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad', 'paging_token': '4371838620688384', 'successful': True, 'hash': 'f02035d9e3b499db9691dd22375cee4306bb829c1a19c21641215c56cdf426ad', 'ledger': 1017898, 'created_at': '2020-07-02T15:31:27Z', 'source_account': 'GC5JO4Z2MKVBA5LSJGI75D35YPVJZOLQYO2ZUXUH4HYYGTCRUW652BXP', 'source_account_sequence': '4356973738852368', 'fee_account': 'GC5JO4Z2MKVBA5LSJGI75D35YPVJZOLQYO2ZUXUH4HYYGTCRUW652BXP', 'fee_charged': '100', 'max_fee': '100', 'operation_count': 1, 'envelope_xdr': 'AAAAAgAAAAC6l3M6YqoQdXJJkf6PfcPqnLlww7WaXofh8YNMUaW93QAAAGQAD3qlAAAAEAAAAAEAAAAAAAAAAAAAAABe/f3qAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAABVEZUAAAAAAA5/GQbeotMseuGw9LomxJQHv5mNT8nihPVgEwpv/efZAAAAAAC+vCAAAAAFAAAAAEAAAAAAAAAAAAAAAAAAAABUaW93QAAAECxmsKeKmpboSMzbxF9OD+TCg6hz6aGpfYAbqL7r3TrzC6VB5usSG2ibfWBPJUE3TquBaNtvUV5lTLTq67v+VcG', 'result_xdr': 'AAAAAAAAAGQAAAAAAAAAAQAAAAAAAAADAAAAAAAAAAAAAAAAAAAAALqXczpiqhB1ckmR/o99w+qcuXDDtZpeh+Hxg0xRpb3dAAAAAAEGUEAAAAAAAAAAAVRGVAAAAAAAOfxkG3qLTLHrhsPS6JsSUB7+ZjU/J4oT1YBMKb/3n2QAAAAAAvrwgAAAABQAAAABAAAAAAAAAAAAAAAA', 'result_meta_xdr': 'AAAAAgAAAAIAAAADAA+IKgAAAAAAAAAAupdzOmKqEHVySZH+j33D6py5cMO1ml6H4fGDTFGlvd0AAAAXP4YQQAAPeqUAAAAPAAAACQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAABHhowAAAAAAAAAAAAAAAAEAD4gqAAAAAAAAAAC6l3M6YqoQdXJJkf6PfcPqnLlww7WaXofh8YNMUaW93QAAABc/hhBAAA96pQAAABAAAAAJAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAEeGjAAAAAAAAAAAAAAAAAQAAAAUAAAAAAA+IKgAAAAIAAAAAupdzOmKqEHVySZH+j33D6py5cMO1ml6H4fGDTFGlvd0AAAAAAQZQQAAAAAAAAAABVEZUAAAAAAA5/GQbeotMseuGw9LomxJQHv5mNT8nihPVgEwpv/efZAAAAAAC+vCAAAAAFAAAAAEAAAAAAAAAAAAAAAAAAAADAA+IKgAAAAAAAAAAupdzOmKqEHVySZH+j33D6py5cMO1ml6H4fGDTFGlvd0AAAAXP4YQQAAPeqUAAAAQAAAACQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAQAAAAAAAAAAAAAAABHhowAAAAAAAAAAAAAAAAEAD4gqAAAAAAAAAAC6l3M6YqoQdXJJkf6PfcPqnLlww7WaXofh8YNMUaW93QAAABc/hhBAAA96pQAAABAAAAAKAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAFNyTgAAAAAAAAAAAAAAAAwAPiBYAAAABAAAAALqXczpiqhB1ckmR/o99w+qcuXDDtZpeh+Hxg0xRpb3dAAAAAVRGVAAAAAAAOfxkG3qLTLHrhsPS6JsSUB7+ZjU/J4oT1YBMKb/3n2QAAAAAA7ikXX//////////AAAAAQAAAAEAAAAA7msoAAAAAAAAAAAAAAAAAAAAAAAAAAABAA+IKgAAAAEAAAAAupdzOmKqEHVySZH+j33D6py5cMO1ml6H4fGDTFGlvd0AAAABVEZUAAAAAAA5/GQbeotMseuGw9LomxJQHv5mNT8nihPVgEwpv/efZAAAAAADuKRdf/////////8AAAABAAAAAQAAAAEqBfIAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'fee_meta_xdr': 'AAAAAgAAAAMAD4gWAAAAAAAAAAC6l3M6YqoQdXJJkf6PfcPqnLlww7WaXofh8YNMUaW93QAAABc/hhCkAA96pQAAAA8AAAAJAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAABAAAAAAAAAAAAAAAAEeGjAAAAAAAAAAAAAAAAAQAPiCoAAAAAAAAAALqXczpiqhB1ckmR/o99w+qcuXDDtZpeh+Hxg0xRpb3dAAAAFz+GEEAAD3qlAAAADwAAAAkAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAR4aMAAAAAAAAAAAA=', 'memo_type': 'none', 'signatures': ['sZrCnipqW6EjM28RfTg/kwoOoc+mhqX2AG6i+69068wulQebrEhtom31gTyVBN06rgWjbb1FeZUy06uu7/lXBg=='], 'valid_after': '1970-01-01T00:00:00Z', 'valid_before': '2020-07-02T15:31:54Z'}
 
 JS-NG>

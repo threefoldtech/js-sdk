@@ -20,6 +20,8 @@ def main():
     email_host = os.environ.get("EMAIL_HOST")
     email_host_user = os.environ.get("EMAIL_HOST_USER")
     email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
+    ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
+    WALLET_SECRET = os.environ.get("THREEBOT_WALLET_SECRET")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -28,20 +30,30 @@ def main():
     new = True
 
     j.logger.info("Generating guest identity ...")
-    identity_main = j.core.identity.get(
-        "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
-    )
-    identity_test = j.core.identity.get(
-        "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
-    )
 
-    identities = [identity_main, identity_test]
-    for identity in identities:
+    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+
+    def _save_identity(identity):
         identity.admins.append(f"{threebot_name}.3bot")
         identity.register()
         identity.save()
 
-    default_identity = os.environ.get("DEFAULT_IDENTITY", "main")
+    if "test" in default_identity:
+        identity_test = j.core.identity.get(
+            "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
+        )
+        _save_identity(identity_test)
+    elif "dev" in default_identity:
+        identity_dev = j.core.identity.get(
+            "dev", tname=tname, email=email, words=words, explorer_url="https://explorer.devnet.grid.tf/api/v1"
+        )
+        _save_identity(identity_dev)
+    else:
+        identity_main = j.core.identity.get(
+            "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
+        )
+        _save_identity(identity_main)
+
     j.core.identity.set_default(default_identity)
 
     # configure escalation mailing
@@ -79,10 +91,19 @@ def main():
         except Exception as e:
             j.logger.error(str(e))
 
+    # get the main wallet
+    j.logger.info("Initalizing main wallet ...")
+    wallet = j.clients.stellar.get("main")
+    wallet.secret = WALLET_SECRET
+    wallet.save()
+
     j.logger.info("Starting threebot ...")
 
     server = j.servers.threebot.get("default")
     if test_cert == "false":
+        if ACME_SERVER_URL:
+            server.acme_server_type = "custom"
+            server.acme_server_url = ACME_SERVER_URL
         server.domain = domain
         server.email = email
         server.save()

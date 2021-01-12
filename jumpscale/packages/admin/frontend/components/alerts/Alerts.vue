@@ -8,7 +8,14 @@
       </template>
 
       <template #default>
-        <v-data-table class="elevation-1" :loading="loading" :headers="headers" :items="data" @click:row="open" :page.sync="page">
+        <v-text-field
+          v-model="search"
+          append-icon="mdi-magnify"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+        <v-data-table class="elevation-1" :loading="loading" :search="search" :headers="headers" :items="data" @click:row="open"  :sort-by="['id']" :sort-desc="[true]" :page.sync="page">
           <template slot="no-data">No Alerts available</p></template>
           <template v-slot:item.message="{ item }">
             {{ item.message.slice(0, 50) }} {{ item.message.length > 50 ? '...' : ''}}
@@ -56,96 +63,99 @@
 
 
 <script>
-  module.exports = {
-    props: ['alertID'],
-    components: {
-      'show-alert': httpVueLoader("./Alert.vue"),
-      'delete-alerts': httpVueLoader("./Delete.vue")
-    },
-    data () {
-      return {
-        appname: "init",
-        apps: [],
-        alerts: [],
-        selected: null,
-        page: 1,
-        dialogs: {
-          show: false,
-          delete: false
-        },
-        loading: false,
-        levels: LEVELS,
-        types: TYPES,
-        states: STATES,
-        filters: {
-          id: null,
-          appname: null,
-          type: null,
-          category: null,
-          status: null,
-          count: null,
-          message: null,
-        },
-        headers: [
-          {text: "Id", value: "id"},
-          {text: "Application", value: "appname"},
-          {text: "Last Occurrence", value: "last_occurrence"},
-          {text: "Type", value: "type"},
-          {text: "Category", value: "category"},
-          {text: "Status", value: "status"},
-          {text: "Count", value: "count"},
-          {text: "Message", value: "message"}
-        ]
-      }
-    },
-    computed: {
-      data () {
-        return this.alerts.filter((record) => {
-          let result = []
-          Object.keys(this.filters).forEach(key => {
-            result.push(!this.filters[key] || String(record[key]).includes(this.filters[key]))
-          })
-          return result.every(Boolean)
-        })
-      }
-    },
-    methods: {
-      open (record) {
-        this.selected = record
-        this.dialogs.show = true
+module.exports = {
+  props: ["alertID"],
+  components: {
+    "show-alert": httpVueLoader("./Alert.vue"),
+    "delete-alerts": httpVueLoader("./Delete.vue"),
+  },
+  data() {
+    return {
+      search: "",
+      appname: "init",
+      apps: [],
+      alerts: [],
+      selected: null,
+      page: 1,
+      dialogs: {
+        show: false,
+        delete: false,
       },
-      getApps () {
-        this.$api.logs.listApps().then((response) => {
-          this.apps = JSON.parse(response.data).data
-        })
+      loading: false,
+      levels: LEVELS,
+      types: TYPES,
+      states: STATES,
+      filters: {
+        id: null,
+        appname: null,
+        type: null,
+        category: null,
+        status: null,
+        count: null,
+        message: null,
       },
-      getAlerts () {
-        this.loading = true
-        this.$api.alerts.listAlerts(this.appname).then((response) => {
-          this.alerts = JSON.parse(response.data).data
-          console.log(this.alertID)
-          if(this.alertID !== undefined)
-            this.navigateToAlertID(this.alertID)
-        }).finally(() => {
-          this.loading = false
-        })
-      },
-      navigateToAlertID(alertID){
-        let idx = -1
-        let d = this.data
-        for(let i in d)
-          if(alertID == d[i].id)
-            idx = i
-        this.page = Math.floor(idx / 10) + 1
-        if (idx != -1)
-          this.open(d[idx])
-      }
+      headers: [
+        { text: "Id", value: "id" },
+        { text: "Application", value: "appname" },
+        { text: "Last Occurrence", value: "last_occurrence" },
+        { text: "Type", value: "type" },
+        { text: "Category", value: "category" },
+        { text: "Status", value: "status" },
+        { text: "Count", value: "count" },
+        { text: "Message", value: "message" },
+      ],
+    };
+  },
+  computed: {
+    data() {
+      return this.alerts.filter((record) => {
+        let result = [];
+        Object.keys(this.filters).forEach((key) => {
+          result.push(
+            !this.filters[key] ||
+              String(record[key]).includes(this.filters[key])
+          );
+        });
+        return result.every(Boolean);
+      });
     },
-    mounted () {
-      this.getApps()
-      this.getAlerts()
-    }
-  }
+  },
+  methods: {
+    open(record) {
+      this.selected = record;
+      this.dialogs.show = true;
+    },
+    getApps() {
+      this.$api.logs.listApps().then((response) => {
+        this.apps = JSON.parse(response.data).data;
+      });
+    },
+    getAlerts() {
+      this.loading = true;
+      this.$api.alerts
+        .listAlerts(this.appname)
+        .then((response) => {
+          this.alerts = JSON.parse(response.data).data;
+          console.log(this.alertID);
+          if (this.alertID !== undefined) this.navigateToAlertID(this.alertID);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    navigateToAlertID(alertID) {
+      let idx = -1;
+      let d = this.data;
+      for (let i in d) if (alertID == d[i].id) idx = i;
+      this.page = Math.floor(idx / 10) + 1;
+      if (idx != -1) this.open(d[idx]);
+    },
+  },
+  mounted() {
+    this.getApps();
+    this.getAlerts();
+  },
+};
 </script>
 
 

@@ -10,6 +10,7 @@ from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.core.exceptions import exceptions
 
 app = Bottle()
 
@@ -29,11 +30,18 @@ def stop_threebot() -> str:
     user_info = j.data.serializers.json.loads(get_user_info())
     if "password" not in data or "uuid" not in data:
         return HTTPResponse(
-            j.data.serializers.json.dumps({"error": f"invalid body. missing keys"}),
+            j.data.serializers.json.dumps({"error": "invalid body. missing keys"}),
             status=400,
             headers={"Content-Type": "application/json"},
         )
-    stop_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    try:
+        stop_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    except (exceptions.Permission, exceptions.Validation):
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid secret"}),
+            status=401,
+            headers={"Content-Type": "application/json"},
+        )
     return j.data.serializers.json.dumps({"data": True})
 
 
@@ -44,11 +52,18 @@ def destroy_threebot() -> str:
     user_info = j.data.serializers.json.loads(get_user_info())
     if "password" not in data or "uuid" not in data:
         return HTTPResponse(
-            j.data.serializers.json.dumps({"error": f"invalid body. missing keys"}),
+            j.data.serializers.json.dumps({"error": "invalid body. missing keys"}),
             status=400,
             headers={"Content-Type": "application/json"},
         )
-    delete_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    try:
+        delete_threebot_solution(owner=user_info["username"], solution_uuid=data["uuid"], password=data["password"])
+    except (exceptions.Permission, exceptions.Validation):
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"error": "invalid secret"}),
+            status=401,
+            headers={"Content-Type": "application/json"},
+        )
     return j.data.serializers.json.dumps({"data": True})
 
 

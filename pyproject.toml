@@ -1,18 +1,22 @@
 [tool.poetry]
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
-
-version = "11.1a1"
+version = "11.0b14"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 cryptography = "3.0"
-js-ng = "11.0b7"
+js-ng = "11.0b11"
 greenlet = "0.4.16"
 python = "^3.6"
-pillow = "^6.1"
+captcha = "^0.3"
+pillow = "^7.1.0"
+cryptocompare = "^0.6.4"
+certifi = "^2019.6"
+base58 = "^2.0.0"
+netaddr = "^0.7.19"
 sendgrid = "^6.0"
 minio = "^4.0"
 pycountry = "^19.8"
@@ -20,13 +24,14 @@ python-taiga = "^1.0.0"
 dnspython = "^1.16"
 PyGithub = "^1.43"
 python-digitalocean = "^1.15.0"
-stellar-sdk = "2.4.1"
+stellar-sdk = "2.10.0"
 pypng = "^0.0.20"
 pyqrcode = "^1.2.1"
 beaker = "^1.11.0"
 certbot-nginx = "1.5.0"
 requests_unixsocket = "^0.2.0"
 protobuf = "^3.12.2"
+crontab = "^0.22.9"
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"

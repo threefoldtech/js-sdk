@@ -56,10 +56,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         j.clients.sshclient.delete(self.ssh_client_name)
         super().tearDown()
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test01_ubuntu(self):
         """Test case for deploying Ubuntu.
 
         **Test Scenario**
+
         - Deploy Ubuntu.
         - Check that Ubuntu is reachable.
         - Check that Ubuntu has been deployed with the same version.
@@ -84,10 +86,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
         self.assertIn('VERSION_ID="18.04"', res)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_kubernetes(self):
         """Test case for Deploying a kubernetes.
 
         **Test Scenario**
+
         - Deploy kubernetes.
         - Check that kubernetes is reachable.
         - Check that kubernetes has been deployed with the same number of workers.
@@ -122,10 +126,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         res = res[2:]  # Remove master node and table's head.
         self.assertEqual(workernodes, len(res))
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test03_minio(self):
         """Test case for deploying Minio.
 
         **Test Scenario**
+
         - Deploy Minio.
         - Check that Minio is reachable.
         """
@@ -150,10 +156,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{minio.ip_addresses[0]}:9000", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test04_monitoring(self):
         """Test case for deploying a monitoring solution.
 
         **Test Scenario**
+
         - Deploy a monitoring solution.
         - Check that Prometheus UI is reachable.
         - Check that Grafana UI is reachable.
@@ -183,10 +191,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test05_generic_flist(self):
         """Test case for deploying a container with a generic flist.
 
         **Test Scenario**
+
         - Deploy a container with a flist.
         - Check that the container coreX is reachable.
         """
@@ -207,6 +217,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         """Test case for exposing a container with generic flist.
 
         **Test Scenario**
+
         - Deploy a container with a flist.
         - Expose this container's coreX endpoint to a subdomain.
         - Check that the container coreX is reachable through the subdomain.

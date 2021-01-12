@@ -508,10 +508,7 @@ class ReservationChatflow:
         List all stellar client wallets from bcdb. Based on explorer instance only either wallets with network type TEST or STD are returned
         rtype: list
         """
-        if "devnet" in self._explorer.url or "testnet" in self._explorer.url:
-            network_type = StellarNetwork.TEST
-        else:
-            network_type = StellarNetwork.STD
+        network_type = StellarNetwork.STD
 
         wallets_list = j.clients.stellar.list_all()
         wallets = dict()
@@ -1413,7 +1410,6 @@ class ReservationChatflow:
             disallowed_node_ids = self.list_blocked_nodes().keys()
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
-            mru = 0
         nodes_distribution = self._distribute_nodes(number_of_nodes, pool_ids=pool_ids)
         # to avoid using the same node with different networks
         nodes_selected = []
@@ -1427,9 +1423,9 @@ class ReservationChatflow:
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
-            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in bool with id={pool_id}) for this reservation.
-                        If you are using a low resources environment like testnet, 
-                        please make sure to allow over provisioning from the settings tab in dashboard. 
+            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in pool with id={pool_id}) for this reservation.
+                        If you are using a low resources environment like testnet,
+                        please make sure to allow over provisioning from the settings tab in dashboard.
                         For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>
                     """
             if sort_by_disk_space:
@@ -1439,8 +1435,7 @@ class ReservationChatflow:
                     if sort_by_disk_space:
                         if not nodes:
                             raise StopChatFlow(
-                                err_msg,
-                                htmlAlert=True,
+                                err_msg, htmlAlert=True,
                             )
                         for node in nodes:
                             if node.node_id not in selected_ids:
@@ -1451,8 +1446,7 @@ class ReservationChatflow:
                             node = random.choice(nodes)
                 except IndexError:
                     raise StopChatFlow(
-                        err_msg,
-                        htmlAlert=True,
+                        err_msg, htmlAlert=True,
                     )
                 nodes.remove(node)
                 nodes_selected.append(node)
@@ -1608,7 +1602,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable 3Bot connect : `j.core.config.set('threebot_connect', True)`
+            To enable TF Connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:

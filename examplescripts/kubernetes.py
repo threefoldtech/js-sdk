@@ -77,7 +77,7 @@ def reserve_pool():
     """
     reserve a pool for kubernetes cluster
     """
-    payment_detail = zos.pools.create(cu=20000, su=20000, farm="freefarm", currencies=["TFT"])
+    payment_detail = zos.pools.create(cu=20000, su=20000, ipv4us=0, farm="freefarm", currencies=["TFT"])
     print(payment_detail)
     if not j.clients.stellar.find("wallet"):
         j.clients.stellar.create_testnet_funded_wallet("wallet")

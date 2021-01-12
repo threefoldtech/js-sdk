@@ -63,7 +63,7 @@ class MonitoringDeploy(GedisChatBot):
                 Just upload the file with the key.
                 Note: please use keys compatible with Dropbear server eg: rsa """,
             required=True,
-        ).split("\n")[0]
+        ).strip()
 
     @chatflow_step(title="Prometheus container resources")
     def prometheus_container_resources(self):

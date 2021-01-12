@@ -14,6 +14,8 @@ JS-NG> server.start()
 ## Endpoint
 
 https://<host>/stellar_stats/api/stats
+https://<host>/stellar_stats/api/total_tft
+https://<host>/stellar_stats/api/total_unlocked_tft
 
 ## Query params
 
@@ -29,3 +31,5 @@ https://<host>/stellar_stats/api/stats
 - https://localhost/stellar_stats/api/stats?tokencode=TFTA
 - https://localhost/stellar_stats/api/stats?network=public&tokencode=TFTA
 - https://localhost/stellar_stats/api/stats?network=public&tokencode=TFTA&detailed=true
+- https://localhost/stellar_stats/api/total_tft
+- https://localhost/stellar_stats/api/total_unlocked_tft

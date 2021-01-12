@@ -21,11 +21,10 @@ pytest . -sv
 ### Generate tests docs from scratch
 
 ```bash
-pytest tests -sv --generate-docs --docs-from-scratch
+jsng "j.sals.testdocs.generate_tests_docs(source='tests/', target='docs/tests', clean=True)"
 ```
 
 ### Generate tests docs and append on the existing one
 
 ```bash
-pytest tests -sv --generate-docs
-```
+jsng "j.sals.testdocs.generate_tests_docs(source='tests/', target='docs/tests')"```

@@ -17,7 +17,7 @@ import random
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
-    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+    FLIST_URL = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
     title = "3Bot"
     steps = [
@@ -45,9 +45,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.threebot_info = self.stopped_names[self.name]
         self.pool_id = self.threebot_info["compute_pool"]
         self.query = {
-            "cru": self.threebot_info["cpu"] + 1,
-            "mru": self.threebot_info["memory"] / 1024 + 1,
-            "sru": self.threebot_info["disk_size"] / 1024 + 0.25,
+            "cru": self.threebot_info["cpu"],
+            "mru": self.threebot_info["memory"] / 1024,
+            "sru": self.threebot_info["disk_size"] / 1024,
         }
         self.retry = True
 
@@ -58,6 +58,8 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
 
     def _verify_password(self, password):
         instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
+        if not instance.verify_secret(password):
+            return False
         zos = get_threebot_zos(instance)
         user = zos._explorer.users.get(instance.identity_tid)
         words = j.data.encryption.key_to_mnemonic(password.encode().zfill(32))
@@ -118,7 +120,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             )
         msg, qr_code = deployer.get_qr_code_payment_info(self.pool_info)
         deployer.msg_payment_info = msg
-        result = deployer.wait_pool_payment(self, self.pool_info.reservation_id, qr_code=qr_code)
+        result = deployer.wait_pool_reservation(
+            self.pool_info.reservation_id, qr_code=qr_code, bot=self, identity_name=identity.instance_name
+        )
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.pool_id = self.pool_info.reservation_id

@@ -69,7 +69,6 @@ class MeetingsDeploy(MarketPlaceAppsChatflow):
             disk_size=self.resources["sru"] * 1024,
             interactive=False,
             entrypoint="/entrypoint.sh",
-            public_ipv6=True,
             solution_uuid=self.solution_id,
             **self.solution_metadata,
         )

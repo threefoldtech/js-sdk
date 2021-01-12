@@ -159,6 +159,7 @@ class TestRestic(TestCase):
         """Test case for simple directory backup and restore.
 
         **Test Scenario**
+
         - Create a directory with random content.
         - Create another empty directory to restore the backup in it.
         - Use restic to back it up.
@@ -179,6 +180,7 @@ class TestRestic(TestCase):
         """Test case for directory backup and restore with modifications.
 
         **Test Scenario**
+
         - Create a directory with random content.
         - Create another directory with random content.
         - Use restic to make a backup of the first directory.
@@ -227,6 +229,7 @@ class TestRestic(TestCase):
         """Test case for snapshots listing.
 
         **Test Scenario**
+
         - Make two directories with random content.
         - Backup the first then the second then the third with tags: [tag1, tag2], [tag2, tag3], [tag2, tag3].
         - List the snapshots using the tag name [(tag1), (tag2), (tag3), (tag1, tag3)].
@@ -265,6 +268,7 @@ class TestRestic(TestCase):
         """Test case for auto backup.
 
         **Test Scenario**
+
         - Make a directory with random content.
         - Check that there's no backup running.
         - Turn on auto backup and check it's turned on.
@@ -287,6 +291,7 @@ class TestRestic(TestCase):
         """Test case for snapshot removal.
 
         **Test Scenario**
+
         - Create multiple snapshots.
         - Check all of them are created.
         - Remove all but the last one.
@@ -313,6 +318,7 @@ class TestRestic(TestCase):
         """Test case for unusual inputs.
 
         **Test Scenario**
+
         - Call restore without passing it any info.
         - Restore a directory that wasn't backed up.
         """

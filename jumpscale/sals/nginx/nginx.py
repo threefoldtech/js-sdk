@@ -40,6 +40,7 @@ website.configure()
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
+from jumpscale.core.exceptions import Input
 from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
@@ -112,12 +113,109 @@ class Location(Base):
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get("threebot_connect", True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):
         j.sals.fs.mkdir(self.cfg_dir)
         j.sals.fs.write_file(self.cfg_file, self.get_config())
+
+
+class AcmeServer(Enum):
+    LETSENCRYPT = "letsencrypt"
+    ZEROSSL = "zerossl"
+    CUSTOM = "custom"
+
+
+class Certbot(Base):
+    DEFAULT_NAME = "certbot"
+    DEFAULT_LOGS_DIR = j.sals.fs.join_paths(j.core.dirs.LOGDIR, DEFAULT_NAME)
+    DEFAULT_CONFIG_DIR = j.sals.fs.join_paths(j.core.dirs.CFGDIR, DEFAULT_NAME)
+    DEFAULT_WORK_DIR = j.sals.fs.join_paths(j.core.dirs.VARDIR, DEFAULT_NAME)
+
+    # the following options match the certbot command arguments
+    domain = fields.String(required=True)
+    non_interactive = fields.Boolean(default=True)
+    agree_tos = fields.Boolean(default=True)
+    logs_dir = fields.String(default=DEFAULT_LOGS_DIR)
+    config_dir = fields.String(default=DEFAULT_CONFIG_DIR)
+    work_dir = fields.String(default=DEFAULT_WORK_DIR)
+
+    email = fields.Email()
+    server = fields.URL()
+    eab_kid = fields.String()
+    eab_hmac_key = fields.String()
+
+    @property
+    def run_cmd(self):
+        args = [self.DEFAULT_NAME]
+
+        for name, value in self.to_dict().items():
+            if name.endswith("_"):
+                continue
+
+            if value:
+                # append only if the field has a value
+                name = name.replace("_", "-")
+                args.append(f"--{name}")
+
+                # append the value itself only if it's a boolean value
+                # boolean options are set by adding name only
+                if not isinstance(value, bool):
+                    args.append(value)
+
+        return args
+
+
+class NginxCertbot(Certbot):
+    nginx_server_root = fields.String(required=True)
+    nginx = fields.Boolean(default=True)
+
+
+class LetsencryptCertbot(NginxCertbot):
+    """
+    default installation is for let's encrypt (manual plugin), no need for other options
+
+    currently, we support only email
+    """
+
+    # change required value to True here
+    email = fields.Email(required=True)
+
+
+class ZerosslCertbot(NginxCertbot):
+    SERVER_URL = "https://acme.zerossl.com/v2/DV90"
+    KEY_CREDENTIALS_URL = "https://api.zerossl.com/acme/eab-credentials"
+    EMAIL_CREDENTIALS_URL = "https://api.zerossl.com/acme/eab-credentials-email"
+
+    api_key_ = fields.Secret()
+    server = fields.URL(default=SERVER_URL)
+
+    @property
+    def run_cmd(self):
+        # get eab_kid and eab_hmac_key based on email or api_key_
+        if not self.email and not self.api_key_:
+            raise Input("email or api_key_ must be provided")
+
+        # set them to get the full run-cmd with correct arguments
+        if self.api_key_:
+            resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={"access_key": self.api_key_})
+        else:
+            resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={"email": self.email})
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        self.eab_kid = data["eab_kid"]
+        self.eab_hmac_key = data["eab_hmac_key"]
+
+        return super().run_cmd
+
+
+class CustomCertbot(NginxCertbot):
+    # change email and server required value to True here
+    email = fields.Email(required=True)
+    server = fields.URL(required=True)
 
 
 class Website(Base):
@@ -126,8 +224,31 @@ class Website(Base):
     port = fields.Integer(default=PORTS.HTTP)
     locations = fields.Factory(Location)
     includes = fields.List(fields.String())
-    letsencryptemail = fields.String()
+
     selfsigned = fields.Boolean(default=True)
+
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+
+    @property
+    def certbot(self):
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+        )
+
+        if self.acme_server_type == AcmeServer.LETSENCRYPT:
+            certbot_type = LetsencryptCertbot
+        elif self.acme_server_type == AcmeServer.ZEROSSL:
+            certbot_type = ZerosslCertbot
+        else:
+            certbot_type = CustomCertbot
+
+        return certbot_type(**kwargs)
 
     @property
     def cfg_dir(self):
@@ -174,14 +295,7 @@ class Website(Base):
 
     def generate_certificates(self):
         if self.domain:
-            rc, out, err = j.sals.process.execute(
-                f"certbot --nginx -d {self.domain} "
-                f"--non-interactive --agree-tos -m {self.letsencryptemail} "
-                f"--nginx-server-root {self.parent.cfg_dir} "
-                f"--logs-dir {j.core.dirs.LOGDIR}/certbot "
-                f"--config-dir {j.core.dirs.CFGDIR}/certbot "
-                f"--work-dir {j.core.dirs.VARDIR}/certbot "
-            )
+            rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
             if rc > 0:
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
 
@@ -251,8 +365,7 @@ class NginxConfig(Base):
         return self._logs_dir
 
     def configure(self):
-        """configures main nginx conf
-        """
+        """configures main nginx conf"""
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()

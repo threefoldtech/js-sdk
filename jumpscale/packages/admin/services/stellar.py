@@ -1,10 +1,11 @@
 from jumpscale.loader import j
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.tools.notificationsqueue.queue import LEVEL
+from crontab import CronTab
 
 
 class StellarService(BackgroundService):
-    def __init__(self, name="admin_stellar", interval=60, *args, **kwargs):
+    def __init__(self, name="admin_stellar", interval=CronTab("* * * * *"), *args, **kwargs):
         """
             Check stellar service state every 1 min
         """

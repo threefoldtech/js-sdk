@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
-from jumpscale.sals.nginx.nginx import LocationType, PORTS
+from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
 
 
 GEDIS = "gedis"
@@ -45,6 +45,8 @@ class NginxPackageConfig:
             "locations": [],
             "domain": self.package.default_domain,
             "letsencryptemail": self.package.default_email,
+            "acme_server_type": self.package.default_acme_server_type,
+            "acme_server_url": self.package.default_acme_server_url,
         }
 
         is_auth = self.package.config.get("is_auth", True)
@@ -130,6 +132,10 @@ class NginxPackageConfig:
                 website.letsencryptemail = server.get(
                     "letsencryptemail", self.default_config[0].get("letsencryptemail")
                 )
+                website.acme_server_type = server.get(
+                    "acme_server_type", self.default_config[0].get("acme_server_type")
+                )
+                website.acme_server_url = server.get("acme_server_url", self.default_config[0].get("acme_server_url"))
 
                 for location in server.get("locations", []):
                     loc = None
@@ -197,7 +203,16 @@ class StripPathMiddleware(object):
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl="", kwargs=None):
+    def __init__(
+        self,
+        path,
+        default_domain,
+        default_email,
+        giturl="",
+        kwargs=None,
+        default_acme_server_type=AcmeServer.LETSENCRYPT,
+        default_acme_server_url=None,
+    ):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -206,6 +221,8 @@ class Package:
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.default_acme_server_type = default_acme_server_type
+        self.default_acme_server_url = default_acme_server_url
         self.kwargs = kwargs or {}
 
     def _load_files(self, dir_path):
@@ -216,7 +233,15 @@ class Package:
                 yield dict(name=name, path=file_path)
 
     def load_config(self):
-        return toml.load(j.sals.fs.join_paths(self.path, "package.toml"))
+        return toml.load(self.package_config_path)
+
+    @property
+    def package_config_path(self):
+        return j.sals.fs.join_paths(self.path, "package.toml")
+
+    @property
+    def package_module_path(self):
+        return j.sals.fs.join_paths(self.path, "package.py")
 
     @property
     def module(self):
@@ -322,6 +347,13 @@ class Package:
             self.module.stop()
             self.module.start()
 
+    def exists(self):
+        return j.sals.fs.exists(self.package_config_path)
+
+    def is_valid(self):
+        # more constraints, but for now let's say it's not ok if the main files don't exist
+        return self.exists()
+
 
 class PackageManager(Base):
     packages = fields.Typed(dict, default=DEFAULT_PACKAGES.copy())
@@ -345,6 +377,8 @@ class PackageManager(Base):
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
+                default_acme_server_type=self.threebot.acme_server_type,
+                default_acme_server_url=self.threebot.acme_server_url,
                 giturl=package_giturl,
                 kwargs=package_kwargs,
             )
@@ -355,7 +389,7 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            if package:
+            if package and package.is_valid():
                 if j.sals.fs.exists(package.path):
                     chatflows = True if package.chats_dir else False
                     all_packages.append(
@@ -377,7 +411,9 @@ class PackageManager(Base):
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
             for pkg in os.listdir(path):
-                if pkg not in self.packages:
+                pkg_path = j.sals.fs.join_paths(path, pkg)
+                pkgtoml_path = j.sals.fs.join_paths(pkg_path, "package.toml")
+                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path):
                     all_packages.append(
                         {
                             "name": pkg,
@@ -566,6 +602,9 @@ class PackageManager(Base):
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f"{package_name} package not found")
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service["name"])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
@@ -588,7 +627,7 @@ class PackageManager(Base):
                 if not pkg:
                     j.logger.error(f"can't get package {package}")
                 else:
-                    if pkg.path and j.sals.fs.exists(pkg.path):
+                    if pkg.path and pkg.is_valid():
                         self.install(pkg)
                     else:
                         j.logger.error(f"package {package} was installed before but {pkg.path} doesn't exist anymore.")
@@ -629,6 +668,8 @@ class ThreebotServer(Base):
     _package_manager = fields.Factory(PackageManager)
     domain = fields.String()
     email = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -749,7 +790,7 @@ class ThreebotServer(Base):
         self.redis.start()
         self.nginx.start()
         self.rack.start()
-        j.application.start(f"threebot_{self.instance_name}")
+        j.logger.register(f"threebot_{self.instance_name}")
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
@@ -780,7 +821,7 @@ class ThreebotServer(Base):
             package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
-        j.application.stop()
+        j.logger.unregister()
         self.redis.stop()
         self.rack.stop()
         self._started = False

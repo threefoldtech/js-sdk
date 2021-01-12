@@ -49,4 +49,47 @@ def get_stats():
     return results
 
 
+@app.route("/api/total_tft")
+def total_tft():
+    query_params = request.query.decode()
+    network = query_params.get("network", "public")
+    tokencode = query_params.get("tokencode", "TFT")
+
+    # cache the request in local redis
+    redis = j.clients.redis.get("redis_instance")
+    cached_data = redis.get(f"{network}-{tokencode}-total_tft")
+    if cached_data:
+        return cached_data
+
+    collector = StatisticsCollector(network)
+    stats = collector.getstatistics(tokencode, False)
+
+    total = stats["total"]
+    redis.set(f"{network}-{tokencode}-total_tft", total, ex=600)
+    return f"{total}"
+
+
+@app.route("/api/total_unlocked_tft")
+def total_unlocked_tft():
+    query_params = request.query.decode()
+    network = query_params.get("network", "public")
+    tokencode = query_params.get("tokencode", "TFT")
+
+    # cache the request in local redis
+    redis = j.clients.redis.get("redis_instance")
+    cached_data = redis.get(f"{network}-{tokencode}-total_unlocked_tft")
+    if cached_data:
+        return cached_data
+
+    collector = StatisticsCollector(network)
+    stats = collector.getstatistics(tokencode, False)
+
+    total_tft = stats["total"]
+    total_locked_tft = stats["total_locked"]
+    total_unlocked_tft = total_tft - total_locked_tft
+
+    redis.set(f"{network}-{tokencode}-total_unlocked_tft", total_unlocked_tft, ex=600)
+    return f"{total_unlocked_tft}"
+
+
 app = SessionMiddleware(app, SESSION_OPTS)

@@ -74,7 +74,7 @@ class KubernetesDeploy(GedisChatBot):
             """Please upload your public SSH key to be able to access the depolyed container via ssh
                 Note: please use keys compatible with Dropbear server eg: RSA""",
             required=True,
-        ).split("\n")
+        ).splitlines()
 
         self.cluster_secret = self.string_ask("Please add the cluster secret", default="secret", required=True)
 

@@ -1609,7 +1609,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
             error_msg = &#34;&#34;&#34;
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable 3Bot connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
+            To enable Threefold Connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
             &#34;&#34;&#34;
             raise j.exceptions.Runtime(error_msg)
         if not user_info[&#34;email&#34;]:
@@ -3520,7 +3520,7 @@ you can add, update, list, get, filter nodes</p>
         if not j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
             error_msg = &#34;&#34;&#34;
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable 3Bot connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
+            To enable Threefold Connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
             &#34;&#34;&#34;
             raise j.exceptions.Runtime(error_msg)
         if not user_info[&#34;email&#34;]:
@@ -5571,7 +5571,7 @@ where a QR code is viewed for the user to scan and continue with their payment</
     if not j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
         error_msg = &#34;&#34;&#34;
         This chatflow is not supported when 3Bot is in dev mode.
-        To enable 3Bot connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
+        To enable Threefold Connect : `j.core.config.set(&#39;threebot_connect&#39;, True)`
         &#34;&#34;&#34;
         raise j.exceptions.Runtime(error_msg)
     if not user_info[&#34;email&#34;]:
