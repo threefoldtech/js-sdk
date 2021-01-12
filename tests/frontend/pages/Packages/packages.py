@@ -14,16 +14,16 @@ class Packages(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def add_threebot_deployer_package_if_not_added(self):
-        threebot_installed = False
+    def add_package_if_not_added(self, package, git_url):
+        package_installed = False
         installed_packages, available_packages = self.get_installed_and_available_packages()
-        if "threebot_deployer" not in installed_packages.keys():
-            git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
+        if package not in installed_packages.keys():
+            git_url = url
             self.add_package(git_url=git_url)
-            threebot_installed = True
+            package_installed = True
         installed_packages, available_packages = self.get_installed_and_available_packages()
-        package_card = installed_packages["threebot_deployer"]
-        return package_card, threebot_installed
+        package_card = installed_packages[package]
+        return package_card, package_installed
 
     def get_system_packages(self):
         system_packages = {}
@@ -74,12 +74,10 @@ class Packages(Base):
 
     def delete_package(self, package_name):
         installed_packages, available_packages = self.get_installed_and_available_packages()
-        for package in installed_packages.keys():
-            if package == package_name:
-                package_card = installed_packages[package_name]
-                delete_icon = package_card.find_element_by_class_name("v-btn")
-                delete_icon.click()
-                break
+        if package_name in installed_packages.keys():
+            package_card = installed_packages[package_name]
+            delete_icon = package_card.find_element_by_class_name("v-btn")
+            delete_icon.click()
         else:
             return
         self.click_button(self.driver, "SUBMIT")
@@ -93,14 +91,14 @@ class Packages(Base):
         self.wait(self.driver, "progressbar")
         return random_package
 
-    def open_in_browser(self):
-        package_card, threebot_installed = self.add_threebot_deployer_package_if_not_added()
+    def open_in_browser(self, package, git_url):
+        package_card, threebot_installed = self.add_package_if_not_added(package, git_url)
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
         return self.driver.current_url
 
-    def chatflows(self):
-        package_card, threebot_installed = self.add_threebot_deployer_package_if_not_added()
+    def chatflows(self, package, git_url):
+        package_card, threebot_installed = self.add_package_if_not_added(package, git_url)
         chatflows = package_card.find_elements_by_class_name("v-btn__content")[2]
         chatflows.click()
         cards = self.driver.find_elements_by_class_name("v-card__title")

@@ -85,9 +85,10 @@ class PackagesTests(BaseTest):
         - Press open in browser button.
         - Check the current URL.
         """
+        git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
         self.info("Check if threebot deployer package is installed ot not, If not install it")
         self.info("Press open in browser button")
-        current_url = self.packages.open_in_browser()
+        current_url = self.packages.open_in_browser(package="threebot_deployer", git_url=git_url)
 
         self.info("Check the current URL")
         self.assertEqual(current_url, "https://localhost/threebot_deployer/#/")
@@ -100,10 +101,10 @@ class PackagesTests(BaseTest):
         - Press chatflows button.
         - Check that the chatflow pop-up window appears.
         """
-
+        git_url = "https://github.com/threefoldtech/js-sdk/tree/development/jumpscale/packages/threebot_deployer"
         self.info("Check if threebot deployer package is installed ot not, If not install it")
         self.info("Press chatflows button")
-        cards_name = self.packages.chatflows()
+        cards_name = self.packages.chatflows(package="threebot_deployer", git_url=git_url)
 
         self.info("Check that the chatflow pop-up window appears")
         self.assertIn("Chatflows", cards_name)
