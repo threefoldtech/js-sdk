@@ -442,7 +442,7 @@ ports:
       enabled: true')""",
         )
 
-    def add_traefik_entrypoint(self, entrypoint_name, port):
+    def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
         """
         Add a new entrypoint to traefik
         """
@@ -451,6 +451,11 @@ ports:
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         config_str = k8s_client.get_helm_chart_user_values("traefik", "kube-system")
         config_json = j.data.serializers.json.loads(config_str)
-        config_json["ports"][entrypoint_name] = {"port": port, "exposedPort": port, "exposed": True}
+        config_json["ports"][entrypoint_name] = {
+            "port": port,
+            "exposedPort": port,
+            "expose": expose,
+            "protocol": protocol,
+        }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
