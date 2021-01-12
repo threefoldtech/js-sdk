@@ -93,9 +93,12 @@ def main():
 
     # get the main wallet
     j.logger.info("Initalizing main wallet ...")
-    wallet = j.clients.stellar.get("main")
-    wallet.secret = WALLET_SECRET
-    wallet.save()
+    if WALLET_SECRET:
+        wallet = j.clients.stellar.get("main")
+        wallet.secret = WALLET_SECRET
+        wallet.save()
+    else:
+        j.logger.error(f"Failed to create wallet, secret wasn't passed correctly ...")
 
     j.logger.info("Starting threebot ...")
 
