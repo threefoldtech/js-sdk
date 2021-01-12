@@ -58,6 +58,20 @@ class Manager:
         return out
 
     @helm_required
+    def upgrade_release(self, release, repo, namespace, yaml_config):
+        """Update helm repos
+
+        Returns:
+            str: output of the helm command
+        """
+        rc, out, err = self._execute(
+            f"helm --kubeconfig {self.config_path} upgrade {release} {repo} --namespace {namespace} -f <(echo -e '{yaml_config}')"
+        )
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to upgrade release error was {err}")
+        return out
+
+    @helm_required
     def add_helm_repo(self, name, url):
         """Add helm repo
 
