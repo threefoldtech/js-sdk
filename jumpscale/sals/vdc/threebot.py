@@ -158,16 +158,17 @@ class VDCThreebotDeployer(VDCBaseComponent):
         domain_source = j.core.config.get("VDC_DOMAIN_SOURCE", "gateway")
 
         for gateway in gateways:
+            # TODO: uncomment this before merge this branch into development_vdc
             # deploy subdomain
-            ip_addresses = self.vdc_deployer.proxy.get_gateway_addresses(gateway)
-            namemanager = NameManager(
-                domain_source, gateway=gateway, pool_id=gateway_pool_id, proxy_instance=self.vdc_deployer.proxy
-            )
-            subdomain, subdomain_id = namemanager.create_subdomain(
-                parent_domain=parent_domain, prefix=prefix, ip_addresses=ip_addresses, vdc_uuid=self.vdc_uuid
-            )
+            # ip_addresses = self.vdc_deployer.proxy.get_gateway_addresses(gateway)
+            # namemanager = NameManager(
+            #     domain_source, gateway=gateway, pool_id=gateway_pool_id, proxy_instance=self.vdc_deployer.proxy
+            # )
+            # subdomain, subdomain_id = namemanager.create_subdomain(
+            #     parent_domain=parent_domain, prefix=prefix, ip_addresses=ip_addresses, vdc_uuid=self.vdc_uuid
+            # )
 
-            j.logger.info(f"Created subdomain successfully on {domain_source} with id: {subdomain_id}")
+            # j.logger.info(f"Created subdomain successfully on {domain_source} with id: {subdomain_id}")
 
             # if old records exist for this prefix clean it.
             wid = deployer.create_proxy(

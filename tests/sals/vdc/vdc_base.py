@@ -25,7 +25,8 @@ class VDCBase(BaseTests):
 
     @classmethod
     def _get_env_vars(cls):
-        needed_vars = ["TNAME", "EMAIL", "WORDS", "WALLET_SECRET", "VDC_NAME_USER", "VDC_NAME_TOKEN"]
+        # TODO: uncomment this before merge this branch into development_vdc
+        needed_vars = ["TNAME", "EMAIL", "WORDS", "WALLET_SECRET"]  # , "VDC_NAME_USER", "VDC_NAME_TOKEN"]
         for var in needed_vars:
             value = os.environ.get(var)
             if not value:
