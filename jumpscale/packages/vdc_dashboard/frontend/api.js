@@ -66,11 +66,10 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    getZstorConfig: (obj) => {
+    getZstorConfig: () => {
       return axios({
         url: `${baseURL}/zstor/config`,
         method: "post",
-        data: { data: obj },
         headers: { 'Content-Type': 'application/json' }
       })
     },

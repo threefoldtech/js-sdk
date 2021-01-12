@@ -174,14 +174,26 @@ def cancel_deployment():
 @app.route("/api/zstor/config", method="POST")
 @authenticated
 def get_zstor_config():
-    request_data = j.data.serializers.json.loads(request.body.read())
-    data = request_data.get("data")
     vdc = _get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
-    for group in data["groups"]:
-        for backend in group["backends"]:
-            backend["password"] = password
+    data = {
+        "data_shards": 2,
+        "parity_shards": 1,
+        "redundant_groups": 0,
+        "redundant_nodes": 0,
+        "encryption": {"algorithm": "AES", "key": "",},
+        "compression": {"algorithm": "snappy",},
+        "groups": [],
+    }
+    for zdb in vdc.s3.zdbs:
+        data["groups"].append(
+            {
+                "backends": [
+                    {"address": f"[{zdb.ip_address}]:{zdb.port}", "namespace": zdb.namespace, "password": password},
+                ],
+            }
+        )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
 
 

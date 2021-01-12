@@ -114,34 +114,9 @@ module.exports = {
         this.dialogs.downloadInfo = false;
       } else if (this.downloadType === "zstor") {
         fileType = "toml";
-        data = {
-          data_shards: 2,
-          parity_shards: 1,
-          redundant_groups: 0,
-          redundant_nodes: 0,
-          encryption: {
-            algorithm: "AES",
-            key: "",
-          },
-          compression: {
-            algorithm: "snappy",
-          },
-          groups: [],
-        };
-        for (i in this.vdc.s3.zdbs) {
-          let zdb = this.vdc.s3.zdbs[i];
-          data.groups.push({
-            backends: [
-              {
-                address: `[${zdb.ip_address}]:${zdb.port}`,
-                namespace: zdb.namespace,
-              },
-            ],
-          });
-        }
         this.loading = true;
         this.$api.solutions
-          .getZstorConfig(data)
+          .getZstorConfig()
           .then((response) => {
             data = response.data.data;
             const blob = new Blob([data]);
