@@ -66,7 +66,7 @@ class VDCStoredFactory(StoredFactory):
 
 
 VDCFACTORY = VDCStoredFactory(UserVDC)
-VDCFACTORY.always_relaod = True
+VDCFACTORY.always_reload = True
 
 
 def export_module_as():
