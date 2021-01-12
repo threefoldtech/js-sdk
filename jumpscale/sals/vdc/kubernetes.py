@@ -444,7 +444,7 @@ ports:
 
     def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
         """
-        Add a new entrypoint to traefik
+        Add a new entrypoint to traefik or override an existing one
         """
 
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
