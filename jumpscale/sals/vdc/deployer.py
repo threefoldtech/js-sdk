@@ -375,7 +375,7 @@ class VDCDeployer:
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             cluster_secret,
             [self.ssh_key.public_key.strip()],
-            no_nodes,
+            1,
             duration=INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=self.vdc_uuid,
             external=False,
@@ -429,7 +429,7 @@ class VDCDeployer:
         if not gcc.add_query(**master_query):
             return False
 
-        worker_query = {"farm_name": farm_name, "no_nodes": plan["k8s"]["no_nodes"]}
+        worker_query = {"farm_name": farm_name, "no_nodes": 1}
         worker_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["size"]])
         if not gcc.add_query(**worker_query):
             return False
