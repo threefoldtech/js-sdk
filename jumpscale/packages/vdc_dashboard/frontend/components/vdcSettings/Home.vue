@@ -48,14 +48,7 @@
             >
           </v-row>
           <b class="font-weight-bold"
-            >Your VDC will expire in
-            <ins>
-              {{
-                vdc.expiration_days > 1
-                  ? `${vdc.expiration_days.toFixed(0)} days,`
-                  : `${(vdc.expiration_days * 24).toFixed(0)} hours,`
-              }} </ins
-            ><br />
+            >Your VDC will expire in <ins> {{ expirationTime }} </ins><br />
             Please fund the wallet with address: {{ wallet.address }}</b
           >
         </v-card-text>
@@ -72,6 +65,7 @@ module.exports = {
       vdc: null,
       name: null,
       wallet: null,
+      expirationTime: null,
       raiseExpirationAlert: true,
       dialog: {
         expiration: false,
@@ -87,6 +81,10 @@ module.exports = {
           this.vdc = response.data;
           this.name = this.vdc.vdc_name;
           this.wallet = this.vdc.wallet;
+          this.expirationTime =
+            vdc.expiration_days > 1
+              ? `${vdc.expiration_days.toFixed(0)} days,`
+              : `${(vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
           this.loading = false;
