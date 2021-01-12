@@ -141,7 +141,7 @@ module.exports = {
         }
         this.loading = true;
         this.$api.solutions
-          .formatTOML(data)
+          .getZstorConfig(data)
           .then((response) => {
             data = response.data.data;
             const blob = new Blob([data]);
