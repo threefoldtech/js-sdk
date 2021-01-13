@@ -170,3 +170,15 @@ class Workloads:
         workload = self.get(workload_id)
         signature = sign_delete_request(workload, me.tid, me.nacl.signing_key)
         return self._workloads.sign_delete(workload_id, me.tid, signature)
+
+    def wait(self, wid, timeout=5):
+        expiration = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < expiration:
+            workload = self.get(wid)
+            if not workload.info.result.workload_id:
+                continue
+
+            success = workload.info.result.state.value == 1
+            msg = workload.info.result.message
+            return success, msg
+        raise j.exceptions.Timeout(f"waiting for workload {wid} timeout")
