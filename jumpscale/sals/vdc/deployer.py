@@ -361,7 +361,13 @@ class VDCDeployer:
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv
+            master_pool_id,
+            gs,
+            master_size,
+            cluster_secret,
+            [self.ssh_key.public_key.strip(), self.threebot.public_key.strip()],
+            self.vdc_uuid,
+            nv,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -469,6 +475,9 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
+        self.threebot_ssh_key = j.clients.sshclient.get(f"{self.vdc_name}_threebot")
+        self.threebot_ssh_key.generate_keys()
+
         farm_name = farm_name or PREFERED_FARM.get()
         if not self.check_capacity(farm_name):
             raise j.exceptions.Validation(
@@ -570,7 +579,8 @@ class VDCDeployer:
 
             self.bot_show_update("Updating Traefik")
             self.kubernetes.upgrade_traefik()
-
+            self.vdc_instance.load_info()
+            j.clients.sshclient.delete(f"{self.vdc_name}_threebot")
             return kube_config
 
     def get_prefix(self):

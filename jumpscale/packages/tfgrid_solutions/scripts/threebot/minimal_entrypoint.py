@@ -28,6 +28,7 @@ Required env variables:
 - PREPAID_WALLET_SECRET -> secret for prepaid wallet
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
 - ACME_SERVER_URL -> to use for package certificate
+- THREEBOT_PRIVATE_KEY -> private key to be set on threebot
 
 
 Role:
@@ -49,6 +50,7 @@ KUBE_CONFIG = os.environ.get("KUBE_CONFIG")
 PROVISIONING_WALLET_SECRET = os.environ.get("PROVISIONING_WALLET_SECRET")
 PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
+THREEBOT_PRIVATE_KEY = os.environ.get("THREEBOT_PRIVATE_KEY")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -172,3 +174,7 @@ wallet = j.clients.stellar.get(
     name=f"provision_wallet_{vdc.solution_uuid}", secret=PROVISIONING_WALLET_SECRET, network=network
 )
 wallet.save()
+if THREEBOT_PRIVATE_KEY:
+    with open("/root/.ssh/id_rsa", "w") as f:
+        f.writelines(THREEBOT_PRIVATE_KEY)
+        j.sals.fs.chmod("/root/.ssh/id_rsa", 600)
