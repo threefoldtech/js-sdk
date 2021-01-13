@@ -402,7 +402,7 @@ def redeploy_threebot_solution(
 
                     log_config = j.core.config.get("LOGGING_SINK", {})
                     if log_config:
-                        log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}'.lower()
+                        log_config["channel_name"] = f'{owner}-threebot-{new_solution_info["name"]}'.lower()
 
                     # Create wallet for the 3bot
                     threebot_wallet = j.clients.stellar.get(f"threebot_{owner}_{new_solution_info['name']}")
