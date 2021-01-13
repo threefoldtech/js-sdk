@@ -71,8 +71,18 @@ def main():
             j.logger.warning("Failed to set escalation mail settings")
 
     if backup_password:
+        has_snapshots = False
+        try:
+            snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
+            if snapshots.get("data"):
+                has_snapshots = True
+                new = False
+        except:
+            has_snapshots = False
+
         # Sanitation for the case user deleted his old backups!
         try:
+            # this raises only if backup_password is wrong or new is True
             BACKUP_ACTOR.init(backup_password, new=False)
         except Exception as e:
             new = True
@@ -80,7 +90,8 @@ def main():
 
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
-            if not new:
+
+            if has_snapshots:
                 snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
                 if snapshots.get("data"):
                     j.logger.info("Restoring backup ...")
