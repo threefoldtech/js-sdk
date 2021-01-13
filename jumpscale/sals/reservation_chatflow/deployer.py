@@ -2091,7 +2091,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            msg += f"Please scan the QR Code below for the payment details"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2114,7 +2114,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            msg += f"Please scan the QR Code below for the payment"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
