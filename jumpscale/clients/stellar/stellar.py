@@ -71,6 +71,8 @@ class Network(Enum):
 class Stellar(Client):
     network = fields.Enum(Network)
     address = fields.String()
+    sequence = fields.Integer()
+    sequencedate = fields.Integer()
 
     def secret_updated(self, value):
         self.address = stellar_sdk.Keypair.from_secret(value).public_key
