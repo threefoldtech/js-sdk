@@ -79,8 +79,6 @@ class Packages(Base):
             delete_icon = package_card.find_element_by_class_name("v-btn")
             delete_icon.click()
             self.click_button(self.driver, "SUBMIT")
-        else:
-            return
 
     def install_random_package(self):
         installed_packages, available_packages = self.get_installed_and_available_packages()
