@@ -33,6 +33,11 @@ class TestVDC(VDCBase):
         kube_config = deployer.deploy_vdc(minio_ak, minio_sk)
         return kube_config
 
+    @classmethod
+    def tearDownClass(cls):
+        j.sals.vdc.delete(cls.vdc.instance_name)
+        super().tearDownClass()
+
     def test_01_list_vdcs(self):
         """Test case for listing deployed vdcs.
 
