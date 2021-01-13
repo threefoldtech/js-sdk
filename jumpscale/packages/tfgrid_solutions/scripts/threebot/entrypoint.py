@@ -74,6 +74,7 @@ def main():
         has_snapshots = False
         try:
             snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
+            j.logger.info("current snapshots:", snapshots)
             if snapshots.get("data"):
                 has_snapshots = True
                 new = False
