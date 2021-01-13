@@ -1,3 +1,4 @@
+import gevent
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 import uuid
 from jumpscale.sals.marketplace import solutions
@@ -105,15 +106,16 @@ def list_threebot_solutions(owner):
     while cursor:
         cursor, _, result = USER_THREEBOT_FACTORY.find_many(cursor, owner_tname=owner)
         threebots += list(result)
-    for threebot in threebots:
+
+    def get_threebot_info(threebot):
         zos = get_threebot_zos(threebot)
         grouped_identity_workloads = group_threebot_workloads_by_uuid(threebot, zos)
         workloads = grouped_identity_workloads.get(threebot.solution_uuid)
         if not workloads:
-            continue
+            return
         solution_info = build_solution_info(workloads, threebot)
         if "ipv4" not in solution_info or "domain" not in solution_info:
-            continue
+            return
         solution_info["solution_uuid"] = threebot.solution_uuid
         solution_info["farm"] = threebot.farm_name
         solution_info["state"] = threebot.state.value
@@ -121,12 +123,18 @@ def list_threebot_solutions(owner):
         compute_pool = zos.pools.get(solution_info["compute_pool"])
         solution_info["expiration"] = compute_pool.empty_at
         if not compute_pool:
-            continue
+            return
         if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at == 9223372036854775807:
             solution_info["state"] = ThreebotState.STOPPED.value
             threebot.state = ThreebotState.STOPPED
             threebot.save()
         result.append(solution_info)
+
+    threads = []
+    for threebot in threebots:
+        thread = gevent.spawn(get_threebot_info, threebot)
+        threads.append(thread)
+    gevent.joinall(threads)
     return result
 
 
