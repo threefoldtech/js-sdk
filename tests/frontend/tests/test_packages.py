@@ -13,9 +13,10 @@ class PackagesTests(BaseTest):
         self.packages.load()
 
     def test01_system_packages(self):
-        """
-        Test case for checking system packages list.
+        """Test case for checking system packages list.
+
         **Test Scenario**
+
         - Check the system packages list.
           the package list that should be started by default with threebot server.
           ['auth', 'chatflows', 'admin', 'weblibs', 'tfgrid_solutions', 'backup']
@@ -27,9 +28,10 @@ class PackagesTests(BaseTest):
         self.assertEqual(default_packages_list, list(system_packages_list.keys()), "not all default packages exist")
 
     def test02_add_install_delete_package(self):
-        """
-        Test case for adding a package and deleting it.
+        """Test case for adding a package and deleting it.
+
         **Test Scenario**
+
         - Add a package using GitURL.
         - Check that the package has been installed correctly.
         - Add a package using path.
@@ -78,9 +80,10 @@ class PackagesTests(BaseTest):
         self.assertNotIn(installed_package, installed_packages.keys())
 
     def test03_open_in_browser(self):
-        """
-        Test case for testing open in browser button.
+        """Test case for testing open in browser button.
+
         **Test Scenario**
+
         - Check if threebot deployer package is installed ot not, If not install it.
         - Press open in browser button.
         - Check the current URL.
@@ -94,9 +97,10 @@ class PackagesTests(BaseTest):
         self.assertEqual(current_url, "https://localhost/threebot_deployer/#/")
 
     def test04_chatflows(self):
-        """
-        Test case for testing chatflow window.
+        """Test case for testing chatflow window.
+
         **Test Scenario**
+
         - Check if threebot deployer package is installed ot not, If not install it.
         - Press chatflows button.
         - Check that the chatflow pop-up window appears.

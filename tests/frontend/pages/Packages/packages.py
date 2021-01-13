@@ -15,15 +15,13 @@ class Packages(Base):
         self.driver.get(url)
 
     def add_package_if_not_added(self, package, git_url):
-        package_installed = False
         installed_packages, available_packages = self.get_installed_and_available_packages()
         if package not in installed_packages.keys():
-            git_url = url
+            git_url = git_url
             self.add_package(git_url=git_url)
-            package_installed = True
         installed_packages, available_packages = self.get_installed_and_available_packages()
         package_card = installed_packages[package]
-        return package_card, package_installed
+        return package_card
 
     def get_system_packages(self):
         system_packages = {}
@@ -90,13 +88,13 @@ class Packages(Base):
         return random_package
 
     def open_in_browser(self, package, git_url):
-        package_card, threebot_installed = self.add_package_if_not_added(package, git_url)
+        package_card = self.add_package_if_not_added(package, git_url)
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
         return self.driver.current_url
 
     def chatflows(self, package, git_url):
-        package_card, threebot_installed = self.add_package_if_not_added(package, git_url)
+        package_card = self.add_package_if_not_added(package, git_url)
         chatflows = package_card.find_elements_by_class_name("v-btn__content")[2]
         chatflows.click()
         cards = self.driver.find_elements_by_class_name("v-card__title")
